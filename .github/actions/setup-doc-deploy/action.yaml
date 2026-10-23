@@ -1,4 +1,4 @@
-# Composite action shared by docs.yaml and docs-dev.yaml.
+# Composite action shared by release-docs-publish.yaml and ci-doctest.yaml.
 # Configures git for the ci-docs-bot identity and fetches the gh-pages
 # branch so mike can deploy documentation on top of it.
 

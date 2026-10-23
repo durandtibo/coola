@@ -14,6 +14,7 @@ __all__ = ["SupportsRegisterMany", "register_default_handlers"]
 
 from collections import UserString, deque
 from collections.abc import Collection, Mapping
+from types import MappingProxyType
 from typing import Protocol, TypeVar
 
 T = TypeVar("T")
@@ -29,8 +30,10 @@ _SCALAR_TYPES = (object, str, bytes, int, float, complex, bool, UserString)
 # generators are not collections: they are leaves, so they are never consumed (or
 # iterated forever) by a traversal.
 _ITERABLE_TYPES = (list, tuple, deque, range, Collection, set, frozenset)
-# Mappings are expanded into their values.
-_MAPPING_TYPES = (dict, Mapping)
+# Mappings are expanded into their values. The handlers are resolved with the MRO of the
+# type, so a virtual member of an ABC (``MappingProxyType`` is registered as a ``Mapping``
+# but does not inherit from it) is a leaf unless it is registered explicitly.
+_MAPPING_TYPES = (dict, Mapping, MappingProxyType)
 
 
 class SupportsRegisterMany(Protocol[T_contra]):

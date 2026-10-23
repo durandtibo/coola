@@ -617,6 +617,24 @@ def test_type_registry_setitem_non_type_key_raises() -> None:
         registry["abc"] = "value"  # ty: ignore[invalid-key]
 
 
+def test_type_registry_not_registered_msg_same_qualname_is_qualified() -> None:
+    def make_class() -> type:
+        class Foo:
+            pass
+
+        return Foo
+
+    first, second = make_class(), make_class()
+    msg = TypeRegistry[str]({first: "first"})._not_registered_msg(second)
+    assert "Registered types: tests.unit.registry.test_type." in msg
+
+
+def test_type_registry_many_already_registered_msg_is_sorted() -> None:
+    registry = TypeRegistry[str]({str: "a", int: "b", float: "c"})
+    with pytest.raises(AlreadyRegisteredError, match=r"float.*int.*str"):
+        registry.register_many({str: "x", int: "y", float: "z"})
+
+
 def test_type_registry_cache_does_not_keep_a_dynamic_class_alive() -> None:
     registry = TypeRegistry[str]({object: "obj"})
     dynamic = type("Dynamic", (), {})

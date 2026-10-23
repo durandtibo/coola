@@ -207,13 +207,25 @@ def test_tensor_summarizer_summarize_max_depth_ignored(registry: SummarizerRegis
 
 
 @torch_available
+def test_tensor_summarizer_summarize_meta_tensor(registry: SummarizerRegistry) -> None:
+    """Test summarizing a tensor on a device that is not the CPU (the
+    meta device exists without a GPU)."""
+    tensor = torch.empty(5, device="meta")
+    result = TensorSummarizer().summarize(tensor, registry)
+    assert (
+        result == "<class 'torch.Tensor'> | shape=torch.Size([5]) | dtype=torch.float32 | "
+        "device=meta | requires_grad=False"
+    )
+
+
+@torch_available
 @cuda_available
 def test_tensor_summarizer_summarize_cuda_tensor(registry: SummarizerRegistry) -> None:
     """Test summarizing a tensor on CUDA device."""
     tensor = torch.empty(5).cuda()
     result = TensorSummarizer().summarize(tensor, registry)
     assert (
-        result == "<class 'torch.Tensor'> | shape=torch.Size([3, 3]) | dtype=torch.float32 | "
+        result == "<class 'torch.Tensor'> | shape=torch.Size([5]) | dtype=torch.float32 | "
         "device=cuda:0 | requires_grad=False"
     )
 

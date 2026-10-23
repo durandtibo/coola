@@ -13,7 +13,39 @@ __all__ = [
     "validate_positive",
 ]
 
-from typing import Any
+import operator
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+
+def _check(
+    compare: Callable[[Any, Any], Any], value: Any, bound: Any, name: str, requirement: str
+) -> None:
+    r"""Check a comparison and raise a clear error if it fails.
+
+    Args:
+        compare: The comparison function (e.g. ``operator.ge``).
+        value: The value to validate.
+        bound: The bound to compare ``value`` with.
+        name: The name of the value, used in the error message.
+        requirement: The requirement, used in the error message.
+
+    Raises:
+        TypeError: If ``value`` cannot be compared with ``bound`` (for
+            example ``None``, a ``str`` or an array with several items).
+        ValueError: If the comparison is false (or ``value`` is NaN).
+    """
+    try:
+        is_valid = bool(compare(value, bound))
+    except (TypeError, ValueError) as exc:
+        # ValueError: the truth value of an array with several items is ambiguous.
+        msg = f"{name} must be a number that can be compared with {bound}, got {value!r}"
+        raise TypeError(msg) from exc
+    if not is_valid:
+        msg = f"{name} must be {requirement}, got {value}"
+        raise ValueError(msg)
 
 
 def validate_ge(value: Any, low: Any, *, name: str = "value") -> None:
@@ -25,6 +57,8 @@ def validate_ge(value: Any, low: Any, *, name: str = "value") -> None:
         name: The name of the value, used in the error message.
 
     Raises:
+        TypeError: If ``value`` cannot be compared (for example ``None``, a
+            ``str`` or an array with several items).
         ValueError: If ``value`` is lower than ``low``.
 
     Example:
@@ -34,9 +68,7 @@ def validate_ge(value: Any, low: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not value >= low:
-        msg = f"{name} must be greater than or equal to {low}, got {value}"
-        raise ValueError(msg)
+    _check(operator.ge, value, low, name, f"greater than or equal to {low}")
 
 
 def validate_gt(value: Any, low: Any, *, name: str = "value") -> None:
@@ -48,6 +80,8 @@ def validate_gt(value: Any, low: Any, *, name: str = "value") -> None:
         name: The name of the value, used in the error message.
 
     Raises:
+        TypeError: If ``value`` cannot be compared (for example ``None``, a
+            ``str`` or an array with several items).
         ValueError: If ``value`` is lower than or equal to ``low``.
 
     Example:
@@ -57,9 +91,7 @@ def validate_gt(value: Any, low: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not value > low:
-        msg = f"{name} must be greater than {low}, got {value}"
-        raise ValueError(msg)
+    _check(operator.gt, value, low, name, f"greater than {low}")
 
 
 def validate_le(value: Any, high: Any, *, name: str = "value") -> None:
@@ -71,6 +103,8 @@ def validate_le(value: Any, high: Any, *, name: str = "value") -> None:
         name: The name of the value, used in the error message.
 
     Raises:
+        TypeError: If ``value`` cannot be compared (for example ``None``, a
+            ``str`` or an array with several items).
         ValueError: If ``value`` is greater than ``high``.
 
     Example:
@@ -80,9 +114,7 @@ def validate_le(value: Any, high: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not value <= high:
-        msg = f"{name} must be less than or equal to {high}, got {value}"
-        raise ValueError(msg)
+    _check(operator.le, value, high, name, f"less than or equal to {high}")
 
 
 def validate_lt(value: Any, high: Any, *, name: str = "value") -> None:
@@ -94,6 +126,8 @@ def validate_lt(value: Any, high: Any, *, name: str = "value") -> None:
         name: The name of the value, used in the error message.
 
     Raises:
+        TypeError: If ``value`` cannot be compared (for example ``None``, a
+            ``str`` or an array with several items).
         ValueError: If ``value`` is greater than or equal to ``high``.
 
     Example:
@@ -103,9 +137,7 @@ def validate_lt(value: Any, high: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not value < high:
-        msg = f"{name} must be less than {high}, got {value}"
-        raise ValueError(msg)
+    _check(operator.lt, value, high, name, f"less than {high}")
 
 
 def validate_non_negative(value: Any, *, name: str = "value") -> None:
@@ -116,6 +148,8 @@ def validate_non_negative(value: Any, *, name: str = "value") -> None:
         name: The name of the value, used in the error message.
 
     Raises:
+        TypeError: If ``value`` cannot be compared (for example ``None``, a
+            ``str`` or an array with several items).
         ValueError: If ``value`` is negative.
 
     Example:
@@ -125,9 +159,7 @@ def validate_non_negative(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not value >= 0:
-        msg = f"{name} must be non-negative, got {value}"
-        raise ValueError(msg)
+    _check(operator.ge, value, 0, name, "non-negative")
 
 
 def validate_positive(value: Any, *, name: str = "value") -> None:
@@ -138,6 +170,8 @@ def validate_positive(value: Any, *, name: str = "value") -> None:
         name: The name of the value, used in the error message.
 
     Raises:
+        TypeError: If ``value`` cannot be compared (for example ``None``, a
+            ``str`` or an array with several items).
         ValueError: If ``value`` is not positive.
 
     Example:
@@ -147,9 +181,7 @@ def validate_positive(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not value > 0:
-        msg = f"{name} must be positive, got {value}"
-        raise ValueError(msg)
+    _check(operator.gt, value, 0, name, "positive")
 
 
 def validate_negative(value: Any, *, name: str = "value") -> None:
@@ -160,6 +192,8 @@ def validate_negative(value: Any, *, name: str = "value") -> None:
         name: The name of the value, used in the error message.
 
     Raises:
+        TypeError: If ``value`` cannot be compared (for example ``None``, a
+            ``str`` or an array with several items).
         ValueError: If ``value`` is not negative.
 
     Example:
@@ -169,9 +203,7 @@ def validate_negative(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not value < 0:
-        msg = f"{name} must be negative, got {value}"
-        raise ValueError(msg)
+    _check(operator.lt, value, 0, name, "negative")
 
 
 def validate_non_positive(value: Any, *, name: str = "value") -> None:
@@ -182,6 +214,8 @@ def validate_non_positive(value: Any, *, name: str = "value") -> None:
         name: The name of the value, used in the error message.
 
     Raises:
+        TypeError: If ``value`` cannot be compared (for example ``None``, a
+            ``str`` or an array with several items).
         ValueError: If ``value`` is positive.
 
     Example:
@@ -191,6 +225,4 @@ def validate_non_positive(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    if not value <= 0:
-        msg = f"{name} must be non-positive, got {value}"
-        raise ValueError(msg)
+    _check(operator.le, value, 0, name, "non-positive")
