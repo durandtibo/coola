@@ -663,3 +663,40 @@ def test_remove_keys_if_values_equal_to_the_removed_key_are_kept() -> None:
         "x": "a",
         "y": ["a"],
     }
+
+
+def test_add_prefix_suffix_to_keys_recursive_list_of_dicts() -> None:
+    assert add_prefix_suffix_to_keys(
+        {"a": [{"b": 1}, [{"c": 2}], 3]}, prefix="p_", recursive=True
+    ) == {"p_a": [{"p_b": 1}, [{"p_c": 2}], 3]}
+
+
+def test_add_prefix_suffix_to_keys_recursive_tuple_of_dicts() -> None:
+    assert add_prefix_suffix_to_keys({"a": ({"b": 1},)}, suffix="_s", recursive=True) == {
+        "a_s": ({"b_s": 1},)
+    }
+
+
+def test_add_prefix_suffix_to_keys_recursive_keeps_strings() -> None:
+    assert add_prefix_suffix_to_keys({"a": ["abc", b"x"]}, prefix="p_", recursive=True) == {
+        "p_a": ["abc", b"x"]
+    }
+
+
+def test_add_prefix_suffix_to_keys_not_recursive_keeps_lists() -> None:
+    assert add_prefix_suffix_to_keys({"a": [{"b": 1}]}, prefix="p_") == {"p_a": [{"b": 1}]}
+
+
+def test_flatten_mapping_always_prefix_colliding_keys_raises() -> None:
+    with pytest.raises(DuplicateKeyError, match="collides"):
+        flatten_mapping({"a.b": {"c": 1}, "a": {"b.c": 2}}, always_prefix=True)
+
+
+def test_flatten_mapping_prefix_colliding_with_plain_key_raises() -> None:
+    with pytest.raises(DuplicateKeyError, match="collides"):
+        flatten_mapping({"m1": {"b": 1}, "m2": {"b": 2}, "x": {"m1.b": 5}}, on_duplicate="prefix")
+
+
+def test_flatten_mapping_prefix_colliding_with_prefixed_key_raises() -> None:
+    with pytest.raises(DuplicateKeyError, match="collides"):
+        flatten_mapping({"x": {"m1.b": 5}, "m1": {"b": 1}, "m2": {"b": 2}}, on_duplicate="prefix")

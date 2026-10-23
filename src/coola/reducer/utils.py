@@ -21,6 +21,13 @@ def auto_reducer() -> BaseReducer[Sequence[float]]:
         - If ``numpy`` is available, use ``NumpyReducer``
         - Otherwise, use ``NativeReducer``
 
+    The rules do not look at the values, so ``TorchReducer`` is also
+    chosen for a plain list. It converts the values to a tensor: it is
+    slower than ``NativeReducer`` for a short list, and it fails for an
+    integer that does not fit in 64 bits. ``NumpyReducer`` has the same
+    limit (and converts it to a float). Use ``NativeReducer`` for
+    arbitrary precision integers.
+
     Returns:
         The "best" reducer.
 

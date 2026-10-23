@@ -178,3 +178,19 @@ def test_validate_non_positive_custom_name() -> None:
 def test_validate_comparison_rejects_nan(validate: object) -> None:
     with pytest.raises(ValueError, match="nan"):
         validate(float("nan"))  # type: ignore[operator]
+
+
+@pytest.mark.parametrize("value", [None, "a"])
+def test_validate_non_negative_not_a_number_raises(value: object) -> None:
+    with pytest.raises(TypeError, match="can be compared"):
+        validate_non_negative(value)
+
+
+def test_validate_non_negative_list_raises() -> None:
+    with pytest.raises(TypeError, match="can be compared"):
+        validate_non_negative([1, 2])
+
+
+def test_validate_non_negative_nan_raises() -> None:
+    with pytest.raises(ValueError, match="non-negative"):
+        validate_non_negative(float("nan"))

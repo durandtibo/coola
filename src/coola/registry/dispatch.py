@@ -14,13 +14,13 @@ from __future__ import annotations
 
 __all__ = ["BaseTypeDispatchRegistry"]
 
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.display import MultilineDisplayMixin
 from coola.registry.type import TypeRegistry
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import ItemsView, Mapping
 
 V = TypeVar("V")
 
@@ -34,8 +34,8 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
     the Method Resolution Order (MRO) for type lookup, via an internal
     ``TypeRegistry``. When resolving a handler for some data, the most
     specific registered handler for the data's type is used, falling
-    back to parent types (or a default handler, if one is registered
-    for ``object``) if needed.
+    back to parent types (or the handler registered for ``object``, if
+    any) if needed.
 
     Subclasses typically expose their own, more specifically named
     ``has_<x>``/``find_<x>`` wrappers around ``has``/``find`` plus a
@@ -57,6 +57,12 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
 
     def _get_repr_kwargs(self) -> dict[str, Any]:
         return {"state": self._state}
+
+    def __contains__(self, data_type: type) -> bool:
+        return self.has(data_type)
+
+    def __len__(self) -> int:
+        return len(self._state)
 
     def register(self, data_type: type, value: V, exist_ok: bool = False) -> None:
         r"""Register a handler for a given data type.
@@ -82,7 +88,8 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
         r"""Register multiple handlers at once.
 
         This is a convenience method for bulk registration that
-        internally calls ``register`` for each type-handler pair.
+        registers all the pairs at once: nothing is registered if one
+        of the types is invalid or (with ``exist_ok=False``) already registered.
 
         Args:
             mapping: Dictionary mapping Python types to handler
@@ -103,7 +110,7 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
 
         Note that this only checks for direct registration. Even if
         this returns ``False``, ``find`` may still return a handler
-        via MRO lookup or the default handler.
+        via MRO lookup or the handler registered for ``object``.
 
         Args:
             data_type: The type to check.
@@ -127,12 +134,13 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
 
         Returns:
             The most specific registered handler for this type,
-            resolved via MRO, or the default handler if no match is
-            found.
+            resolved via MRO (the handler registered for ``object``
+            matches every type).
 
         Raises:
-            KeyError: If no handler is registered for ``data_type``
-                (or any of its parent types).
+            TypeNotRegisteredError: If no handler is registered for
+                ``data_type`` or any of its parent types. It is a
+                ``KeyError``.
 
         Note:
             Results are cached internally (see ``TypeRegistry.resolve``)
@@ -140,3 +148,45 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
             is invalidated automatically by ``register``/``register_many``.
         """
         return self._state.resolve(data_type)
+
+    def unregister(self, data_type: type) -> V:
+        r"""Remove the handler registered for a given data type.
+
+        Args:
+            data_type: The type to unregister.
+
+        Returns:
+            The handler that was registered for this type.
+
+        Raises:
+            TypeNotRegisteredError: If no handler is directly registered
+                for ``data_type``.
+        """
+        return self._state.unregister(data_type)
+
+    def clear(self) -> None:
+        r"""Remove all the registered handlers."""
+        self._state.clear()
+
+    def items(self) -> ItemsView[type, V]:
+        r"""Return a view of the registered ``(type, handler)`` pairs.
+
+        The view is a snapshot: it is not updated by later changes.
+        """
+        return self._state.items()
+
+    def equal(self, other: object, equal_nan: bool = False) -> bool:
+        r"""Indicate if two registries are equal or not.
+
+        Args:
+            other: The object to compare with.
+            equal_nan: If ``True``, then two ``NaN``s will be
+                considered equal.
+
+        Returns:
+            ``True`` if ``other`` has the same type and the same
+                registered handlers, otherwise ``False``.
+        """
+        if type(other) is not type(self):
+            return False
+        return self._state.equal(cast("BaseTypeDispatchRegistry[V]", other)._state, equal_nan)

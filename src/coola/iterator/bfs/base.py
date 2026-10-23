@@ -32,6 +32,9 @@ class BaseChildFinder(ABC, Generic[T]):
           to return ``True``, so the traversal yields the value instead
           of expanding it.
         - For leaf types (types with no children), simply return without yielding.
+          Without ``is_leaf``, the value is treated as an empty container: it has
+          no children, so nothing is yielded for it (``DefaultChildFinder``
+          overrides ``is_leaf``, so the leaves are yielded).
 
     Example:
         ```pycon
