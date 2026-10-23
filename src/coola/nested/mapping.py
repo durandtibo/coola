@@ -98,7 +98,10 @@ def flatten_mapping(
     Raises:
         ValueError: if ``on_duplicate`` is not a valid value.
         DuplicateKeyError: if ``on_duplicate='raise'`` and an inner key
-            appears more than once with different values.
+            appears more than once with different values, or if
+            two different keys are flattened to the same key (for
+            example ``{"a.b": {"c": 1}, "a": {"b.c": 2}}`` with
+            ``always_prefix=True``).
 
     Example:
         ```pycon
@@ -122,13 +125,13 @@ def flatten_mapping(
             prefixed_key = f"{outer_key}{separator}{inner_key}"
 
             if always_prefix:
-                out[prefixed_key] = value
+                _add_key(out, prefixed_key, value)
                 continue
 
             if inner_key not in seen:
                 seen[inner_key] = value
                 origins[inner_key] = outer_key
-                out[inner_key] = value
+                _add_key(out, inner_key, value)
                 continue
 
             if objects_are_equal(seen[inner_key], value, equal_nan=equal_nan):
@@ -149,7 +152,7 @@ def flatten_mapping(
             # Re-key the first occurrence too, the first time a real
             # conflict is found for this inner key.
             _prefix_first_occurrence(out, inner_key, f"{origins[inner_key]}{separator}{inner_key}")
-            out[prefixed_key] = value
+            _add_key(out, prefixed_key, value)
 
     return out
 
@@ -169,6 +172,26 @@ def _validate_on_duplicate(on_duplicate: str, strategies: set[str]) -> None:
         raise ValueError(msg)
 
 
+def _add_key(out: dict[Any, Any], key: Any, value: Any) -> None:
+    r"""Add a new key, refusing to overwrite an existing entry.
+
+    Different (outer key, inner key) pairs can give the same prefixed
+    key, e.g. ``("a.b", "c")`` and ``("a", "b.c")``.
+
+    Args:
+        out: The flattened mapping, modified in-place.
+        key: The key to add.
+        value: The value to store.
+
+    Raises:
+        DuplicateKeyError: if ``key`` is already in ``out``.
+    """
+    if key in out:
+        msg = f"Duplicate key found: {key!r} (it collides with another flattened key)"
+        raise DuplicateKeyError(msg)
+    out[key] = value
+
+
 def _prefix_first_occurrence(out: dict[Any, Any], key: Any, prefixed_key: str) -> None:
     r"""Re-key the first occurrence of ``key`` with its prefixed key, if
     it is still stored with its original key.
@@ -179,7 +202,8 @@ def _prefix_first_occurrence(out: dict[Any, Any], key: Any, prefixed_key: str) -
         prefixed_key: The key with the prefix of its first occurrence.
     """
     if key in out:
-        out[prefixed_key] = out.pop(key)
+        value = out.pop(key)
+        _add_key(out, prefixed_key, value)
 
 
 def _is_duplicate_value(value: Any, kept: list[Any], equal_nan: bool) -> bool:

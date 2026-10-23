@@ -792,3 +792,32 @@ def test_flatten_frame_struct_with_list_field_expanded() -> None:
             },
         ),
     )
+
+
+@polars_available
+def test_expand_list_columns_existing_column_raises() -> None:
+    frame = pl.DataFrame(
+        {"l": [[1, 2], [3]], "l.0": [9, 9]},
+        schema={"l": pl.List(pl.Int64), "l.0": pl.Int64},
+    )
+    with pytest.raises(ValueError, match="already exists"):
+        expand_list_columns(frame, separator=".")
+
+
+@polars_available
+def test_expand_list_columns_new_columns_collide_raises() -> None:
+    frame = pl.DataFrame(
+        {"a1": [[1]], "a": [[0] * 11]},
+        schema={"a1": pl.List(pl.Int64), "a": pl.List(pl.Int64)},
+    )
+    with pytest.raises(ValueError, match="already exists"):
+        expand_list_columns(frame, separator="")
+
+
+@polars_available
+def test_expand_list_columns_all_empty_or_null_keeps_column() -> None:
+    frame = pl.DataFrame(
+        {"id": [1, 2], "tags": [[], None]},
+        schema={"id": pl.Int64, "tags": pl.List(pl.String)},
+    )
+    assert_frame_equal(expand_list_columns(frame, separator="."), frame)
