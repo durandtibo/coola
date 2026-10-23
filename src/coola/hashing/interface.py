@@ -6,6 +6,7 @@ from __future__ import annotations
 __all__ = ["get_default_hasher_registry", "get_default_registry", "hash_object", "register_hashers"]
 
 import dataclasses
+import inspect
 import warnings
 from collections import OrderedDict, deque
 from collections.abc import Mapping, Sequence
@@ -320,7 +321,23 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
 def _has_hash_method(data_type: type) -> bool:
     r"""Indicate if the instances of a type have a ``hash`` method (see
     ``SupportsHash``)."""
-    return callable(getattr(data_type, "hash", None))
+    method = getattr(data_type, "hash", None)
+    if not callable(method):
+        return False
+    # A ``hash`` method with another signature (``polars.Series.hash(seed=...)``)
+    # is not the ``SupportsHash`` protocol.
+    try:
+        signature = inspect.signature(method)
+    except (TypeError, ValueError):
+        return False
+    kwargs = {"registry": None, "length": 64, "ignore_unhashable": False}
+    for args in ((None,), ()):  # with and without ``self``
+        try:
+            signature.bind(*args, **kwargs)
+        except TypeError:
+            continue
+        return True
+    return False
 
 
 def _get_value_hashers() -> dict[type, Hasher[Any]]:
