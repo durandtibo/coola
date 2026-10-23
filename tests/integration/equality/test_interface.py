@@ -18,9 +18,9 @@ if TYPE_CHECKING:
 @pytest.fixture(autouse=True)
 def _reset_default_registry() -> Generator[None, None, None]:
     """Reset the registry before and after each test."""
-    tester_interface._default_registry._instance = None
+    tester_interface._default_registry.reset()
     yield
-    tester_interface._default_registry._instance = None
+    tester_interface._default_registry.reset()
 
 
 class CustomList(list): ...

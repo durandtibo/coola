@@ -328,3 +328,21 @@ def test_default_registry_singleton_plugin_cannot_request_the_registry_being_bui
         registry = holder["singleton"].get()
     assert registry == {"good": 1}
     assert holder["singleton"].get() is registry
+
+
+def test_lazy_singleton_is_built_false_initially() -> None:
+    assert not LazySingleton(lambda: 42).is_built()
+
+
+def test_lazy_singleton_is_built_true_after_get() -> None:
+    singleton = LazySingleton(lambda: None)
+    singleton.get()
+    assert singleton.is_built()
+
+
+def test_lazy_singleton_reset_rebuilds_the_value() -> None:
+    calls = []
+    singleton = LazySingleton(lambda: calls.append(1) or len(calls))
+    singleton.get()
+    singleton.reset()
+    assert singleton.get() == 2

@@ -18,6 +18,6 @@ def _reset_default_registry() -> Generator[None, None, None]:
     generators both delegate to ``coola.hashing.hash_object`` and thus
     to this cached, otherwise test-order-dependent, singleton.
     """
-    hashing_interface._default_registry._instance = None
+    hashing_interface._default_registry.reset()
     yield
-    hashing_interface._default_registry._instance = None
+    hashing_interface._default_registry.reset()
