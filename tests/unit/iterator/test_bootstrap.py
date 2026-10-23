@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import deque
+from collections import UserString, deque
 from collections.abc import Collection, Mapping
 from types import MappingProxyType
 from typing import Any
@@ -31,7 +31,7 @@ class _FakeRegistry:
 ###############################################
 
 
-@pytest.mark.parametrize("data_type", [object, str, bytes, int, float, complex, bool])
+@pytest.mark.parametrize("data_type", [object, str, bytes, int, float, complex, bool, UserString])
 def test_register_default_handlers_scalar_types(data_type: type) -> None:
     registry = _FakeRegistry()
     default_handler = "default"
@@ -62,6 +62,7 @@ def test_register_default_handlers_registers_all_types_exactly_once() -> None:
         object,
         str,
         bytes,
+        UserString,
         int,
         float,
         complex,
