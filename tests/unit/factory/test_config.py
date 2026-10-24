@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+import importlib
+import sys
 from abc import ABC
 from collections import Counter
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 import pytest
 
 from coola.factory import OBJECT_TARGET, is_object_config
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from pathlib import Path
 
 
 def create_list() -> list:
@@ -183,9 +189,22 @@ def test_is_object_config_int_not_str() -> None:
 
 def test_is_object_config_with_invalid_target() -> None:
     """Test is_object_config with non-existent target raises
-    ImportError."""
+    ImportError if the module is imported."""
     with pytest.raises(ImportError):
-        is_object_config({OBJECT_TARGET: "non_existent_module.NonExistentClass"}, object)
+        is_object_config(
+            {OBJECT_TARGET: "non_existent_module.NonExistentClass"}, object, import_target=True
+        )
+
+
+def test_is_object_config_with_target_in_a_module_that_is_not_imported() -> None:
+    """Test is_object_config returns False without importing the
+    module."""
+    assert not is_object_config({OBJECT_TARGET: "non_existent_module.NonExistentClass"}, object)
+
+
+def test_is_object_config_with_missing_attribute_in_an_imported_module() -> None:
+    with pytest.raises(ImportError, match="has no attribute"):
+        is_object_config({OBJECT_TARGET: "collections.NonExistentClass"}, object)
 
 
 def test_is_object_config_with_malformed_target() -> None:
@@ -258,6 +277,69 @@ def test_is_object_config_allowed_prefixes_checked_before_the_import() -> None:
             object,
             allowed_prefixes=["collections"],
         )
+
+
+@pytest.fixture
+def side_effect_module(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Generator[Path]:
+    r"""Create a module that writes a file when it is imported."""
+    marker = tmp_path.joinpath("imported.txt")
+    tmp_path.joinpath("coola_side_effect_module.py").write_text(
+        f"from pathlib import Path\n\nPath({str(marker)!r}).write_text('imported')\n\n\n"
+        "class Thing:\n    pass\n"
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+    sys.modules.pop("coola_side_effect_module", None)
+    yield marker
+    sys.modules.pop("coola_side_effect_module", None)
+
+
+def test_is_object_config_does_not_import_the_module_of_the_target(
+    side_effect_module: Path,
+) -> None:
+    is_object_config({OBJECT_TARGET: "coola_side_effect_module.Thing"}, object)
+    assert not side_effect_module.exists()
+
+
+@pytest.mark.usefixtures("side_effect_module")
+def test_is_object_config_target_in_a_module_that_is_not_imported_is_false() -> None:
+    assert not is_object_config({OBJECT_TARGET: "coola_side_effect_module.Thing"}, object)
+
+
+def test_is_object_config_import_target_imports_the_module(side_effect_module: Path) -> None:
+    is_object_config({OBJECT_TARGET: "coola_side_effect_module.Thing"}, object, import_target=True)
+    assert side_effect_module.exists()
+
+
+@pytest.mark.usefixtures("side_effect_module")
+def test_is_object_config_import_target_true() -> None:
+    assert is_object_config(
+        {OBJECT_TARGET: "coola_side_effect_module.Thing"}, object, import_target=True
+    )
+
+
+def test_is_object_config_allowed_prefixes_import_the_module(side_effect_module: Path) -> None:
+    is_object_config(
+        {OBJECT_TARGET: "coola_side_effect_module.Thing"},
+        object,
+        allowed_prefixes=["coola_side_effect_module"],
+    )
+    assert side_effect_module.exists()
+
+
+@pytest.mark.usefixtures("side_effect_module")
+def test_is_object_config_target_in_an_imported_module_is_true_without_import_target() -> None:
+    importlib.import_module("coola_side_effect_module")
+    assert is_object_config({OBJECT_TARGET: "coola_side_effect_module.Thing"}, object)
+
+
+@pytest.mark.usefixtures("side_effect_module")
+def test_is_object_config_module_name_target_is_not_imported() -> None:
+    assert not is_object_config({OBJECT_TARGET: "coola_side_effect_module"}, object)
+
+
+def test_is_object_config_target_that_is_not_a_string_raises() -> None:
+    with pytest.raises(TypeError, match="is not a string"):
+        is_object_config({OBJECT_TARGET: 1}, object)
 
 
 def test_is_object_config_allowed_prefixes_without_target() -> None:

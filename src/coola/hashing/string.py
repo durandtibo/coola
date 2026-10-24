@@ -95,6 +95,10 @@ def validate_hash_length(length: int) -> None:
 def hash_string(value: str, length: int = 64) -> str:
     """Generate a hexadecimal hash of a string using BLAKE2b.
 
+    A lone surrogate (for example in the result of ``os.fsdecode`` for a
+    file name that is not valid UTF-8) is encoded with the
+    ``surrogatepass`` error handler.
+
     Args:
         value: The input string to hash.
         length: The desired length of the returned hex string. Must be an
@@ -118,11 +122,10 @@ def hash_string(value: str, length: int = 64) -> str:
     """
     validate_hash_length(length)
     digest_size = length // 2
-    try:
-        encoded = value.encode()
-    except UnicodeEncodeError as exc:
-        msg = f"Cannot hash a string that is not valid UTF-8 (e.g. a lone surrogate): {exc.reason}."
-        raise ValueError(msg) from exc
+    # ``surrogatepass`` encodes a lone surrogate (e.g. from ``os.fsdecode``)
+    # as three bytes that valid UTF-8 never contains, so it cannot collide
+    # with another string and it does not change the other strings.
+    encoded = value.encode(errors="surrogatepass")
     return hashlib.blake2b(encoded, digest_size=digest_size).hexdigest()
 
 

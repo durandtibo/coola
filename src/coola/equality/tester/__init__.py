@@ -24,6 +24,7 @@ __all__ = [
     "BaseEqualityTester",
     "DataclassEqualityTester",
     "DefaultEqualityTester",
+    "DifferenceCloseEqualityTester",
     "EqualEqualityTester",
     "EqualNanEqualityTester",
     "EqualityTesterRegistry",
@@ -32,6 +33,7 @@ __all__ = [
     "MappingEqualityTester",
     "NumpyArrayEqualityTester",
     "NumpyMaskedArrayEqualityTester",
+    "ObjectAttributesEqualityTester",
     "OrderedMappingEqualityTester",
     "PandasDataFrameEqualityTester",
     "PandasExtensionArrayEqualityTester",
@@ -44,6 +46,7 @@ __all__ = [
     "PydanticModelEqualityTester",
     "ScalarEqualityTester",
     "SequenceEqualityTester",
+    "SetEqualityTester",
     "TolerantEqualEqualityTester",
     "TorchPackedSequenceEqualityTester",
     "TorchTensorEqualityTester",
@@ -63,9 +66,11 @@ from coola.equality.tester.collection import (
     MappingEqualityTester,
     OrderedMappingEqualityTester,
     SequenceEqualityTester,
+    SetEqualityTester,
 )
 from coola.equality.tester.dataclass import DataclassEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester
+from coola.equality.tester.difference import DifferenceCloseEqualityTester
 from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
 from coola.equality.tester.handler import HandlerEqualityTester
 from coola.equality.tester.interface import (
@@ -73,6 +78,7 @@ from coola.equality.tester.interface import (
     get_default_registry,
     register_equality_testers,
 )
+from coola.equality.tester.object import ObjectAttributesEqualityTester
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
 from coola.equality.tester.tolerant import TolerantEqualEqualityTester

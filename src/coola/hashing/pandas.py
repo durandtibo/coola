@@ -35,8 +35,9 @@ def _hash_values(
 
 
 def _hash_dtype(dtype: Any, registry: HasherRegistry, length: int, ignore_unhashable: bool) -> str:
-    r"""Hash a dtype: ``str(dtype)`` is ``"category"`` for every categorical
-    dtype, so the categories and the ``ordered`` flag are added."""
+    r"""Hash a dtype: ``str(dtype)`` is ``"category"`` for every
+    categorical dtype, so the categories and the ``ordered`` flag are
+    added."""
     if isinstance(dtype, pd.CategoricalDtype):
         categories = _hash_values(dtype.categories.to_numpy(), registry, length, ignore_unhashable)
         return f"{dtype}\0{dtype.ordered}\0{categories}"

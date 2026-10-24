@@ -14,6 +14,7 @@ from coola.iterator.dfs import (
     PathRegistry,
 )
 from coola.registry import AlreadyRegisteredError
+from tests.helpers import nest
 from tests.unit.iterator.dfs.helpers import DEFAULT_SAMPLES, CustomList
 
 if TYPE_CHECKING:
@@ -464,3 +465,18 @@ def test_registry_iterate_first_traversal_is_not_affected_by_the_second() -> Non
     next(first)
     list(second)
     assert list(first) == [2, 3, 4]
+
+
+def test_iterator_registry_iterate_deep_structure_raises_a_recursion_error() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    with pytest.raises(
+        RecursionError, match="Python recursion limit was exceeded while iterating over"
+    ):
+        list(registry.iterate(nest(1, 5000)))
+
+
+def test_iterator_registry_iterate_deep_structure_error_comes_from_the_interpreter() -> None:
+    registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+    with pytest.raises(RecursionError) as exc_info:
+        list(registry.iterate(nest(1, 5000)))
+    assert type(exc_info.value.__cause__) is RecursionError

@@ -106,7 +106,7 @@ The default registry hashes **only** the following types (and their subclasses):
 | `dict`, other `Mapping`                      | Independent of the order of the keys                                                                                 |
 | `OrderedDict`                                | Own tag. The order of the keys matters, like in `objects_are_equal`                                                  |
 | `set`, `frozenset`                           | Independent of the iteration order. A `set` and a `frozenset` hash differently                                       |
-| `date`, `datetime`, `time`                   | ISO 8601 form, including the UTC offset when there is one                                                            |
+| `date`, `datetime`, `time`                   | ISO 8601 form; aware `datetime` and `time` are normalised to UTC                                                                    |
 | `timedelta`, `timezone`                      | The `repr` of the value                                                                                              |
 | `uuid.UUID`, `zoneinfo.ZoneInfo`             | The string form (the UUID text, the zone key)                                                                        |
 | `decimal.Decimal`                            | The normalised value: `Decimal('1.0')` and `Decimal('1.00')` have the same hash                                      |
@@ -145,7 +145,14 @@ False
 ```
 
 The hash values can change between versions of `coola`: do not persist them as a stable
-identifier across upgrades without checking.
+identifier across upgrades without checking. The unit tests keep one golden vector per hasher
+family (`tests/unit/hashing/test_golden.py`), so a change of the format is a deliberate edit.
+
+`hash_object` uses the default registry, which changes when code calls `register_hashers` or when
+an installed package declares a `coola.hashing.hashers` entry point. The identifiers
+`generate_stable_content_id` and `generate_stable_uuid5` use `get_stable_registry()` instead (the
+built-in hashers only) when no registry is given, so they do not depend on the installed packages.
+Passing another registry opts out of this stability.
 
 ## Properties
 
@@ -201,8 +208,9 @@ True
 ## Behavior per Type
 
 - **`str`**: tag `str`, UTF-8 payload. There is no Unicode normalisation, so a precomposed `é` and
-  `e` followed by a combining accent are different strings. A string that cannot be encoded as
-  UTF-8 (a lone surrogate) raises a `ValueError`.
+  `e` followed by a combining accent are different strings. A lone surrogate (for example in a
+  file name from `os.fsdecode`) is encoded with `surrogatepass`, which never collides with a valid
+  string.
 - **`bytes`, `bytearray`**: tagged with their type name, payload is the raw content.
 - **`bool`, `int`, `float`, `complex`, `None`**: tag is the type name, payload is the builtin
   `repr`, which round-trips exactly. `bool` is checked before `int`, so `True` and `1` differ.
@@ -219,8 +227,9 @@ True
 - **`set`, `frozenset`**: the sorted item hashes under the `set` or `frozenset` tag.
 - **`date`, `datetime`, `time`**: tagged with the concrete class name, payload is the ISO 8601
   string. Aware datetimes are converted to UTC first, so the same instant in two time zones hashes
-  the same, while a naive and an aware datetime differ. The offset of an aware `time` is part of
-  its payload. `timedelta` and `timezone` use their `repr`.
+  the same, while a naive and an aware datetime differ. An aware `time` is normalised the same way
+  (the offset is subtracted from the time of day), so equal aware times hash the same. `timedelta`
+  and `timezone` use their `repr`.
 - **`Path`, `PurePath`**: the POSIX form of the path as written, with no filesystem access, so the
   hash is portable across machines. A relative and an absolute path to the same location differ.
   Register `ResolvedPathHasher` to resolve symlinks, `..` and relative paths first; the result
@@ -261,7 +270,6 @@ True
 | `length` is odd or outside 2 to 128   | `ValueError`                                                                     |
 | No hasher for the type                | `KeyError` naming the type, or a lossy placeholder with `ignore_unhashable=True` |
 | Self-referencing container            | `ValueError` instead of a stack overflow                                         |
-| String that is not valid UTF-8        | `ValueError`                                                                     |
 | Secret field with `on_secret="error"` | `ValueError`, without leaking the value                                          |
 
 ## Type-Specific Hashers

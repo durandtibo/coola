@@ -12,11 +12,12 @@ __all__ = ["HasherRegistry"]
 import threading
 import warnings
 from enum import Enum
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 
 from coola.hashing.base import Hasher
 from coola.hashing.string import hash_string
 from coola.registry import BaseTypeDispatchRegistry, TypeNotRegisteredError
+from coola.utils.fork import track_fork
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -81,6 +82,23 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
         super().__init__(initial_state=initial_state)
         # Copy-on-write tuple: readers do not need a lock.
         self._fallbacks: tuple[tuple[Callable[[type], bool], Hasher[Any]], ...] = ()
+        self._fallbacks_lock = threading.Lock()
+        track_fork(self)
+
+    def copy(self) -> Self:
+        new = super().copy()
+        new._fallbacks_lock = threading.Lock()
+        track_fork(new)
+        return new
+
+    def _reset_after_fork(self) -> None:
+        r"""Recreate the lock of the fallbacks in a forked child process.
+
+        The lock may have been held by a thread that does not exist in
+        the child process, which would block the registry forever. The
+        registered hashers and fallbacks are kept. The lock of the
+        internal type registry is recreated by the type registry.
+        """
         self._fallbacks_lock = threading.Lock()
 
     def _display_fields(self) -> dict[str, Any]:

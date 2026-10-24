@@ -263,6 +263,38 @@ def get_default_registry() -> HasherRegistry:
 get_default_hasher_registry = get_default_registry
 
 
+def get_stable_registry() -> HasherRegistry:
+    """Return the registry of the stable identifiers.
+
+    This registry only has the hashers that are built in ``coola``. Unlike
+    the default registry, it does not load the ``coola.hashing.hashers``
+    entry points of the installed packages and it is not changed by
+    ``register_hashers``, so the identifiers computed with it depend on the
+    version of ``coola`` and not on the installed packages or on the code
+    that runs in the process. It is the registry used by
+    ``generate_stable_content_id`` and ``generate_stable_uuid5`` when no
+    registry is given.
+
+    Returns:
+        A singleton ``HasherRegistry`` with the built-in hashers.
+
+    Notes:
+        The registry is shared by the process: do not register hashers in
+        it. Pass your own registry to the functions that accept one to opt
+        out of the stability.
+
+    Example:
+        ```pycon
+        >>> from coola.hashing import get_stable_registry
+        >>> registry = get_stable_registry()
+        >>> len(registry.hash("meowwwwww"))
+        64
+
+        ```
+    """
+    return _stable_registry.get()
+
+
 def _register_default_hashers(registry: HasherRegistry) -> None:
     """Populate a registry with hashers for common Python built-in
     types.
@@ -364,4 +396,9 @@ def _get_value_hashers() -> dict[type, Hasher[Any]]:
 
 _default_registry: LazySingleton[HasherRegistry] = make_default_registry_singleton(
     HasherRegistry, _register_default_hashers, plugin_group="coola.hashing.hashers"
+)
+
+
+_stable_registry: LazySingleton[HasherRegistry] = make_default_registry_singleton(
+    HasherRegistry, _register_default_hashers
 )

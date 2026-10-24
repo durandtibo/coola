@@ -658,3 +658,50 @@ def test_hash_pandas_interval_differs_by_bound() -> None:
 @pandas_available
 def test_hash_pandas_interval_differs_by_closed() -> None:
     assert hash_object(pd.Interval(0, 1)) != hash_object(pd.Interval(0, 1, closed="left"))
+
+
+@jax_available
+@numpy_available
+@pytest.mark.parametrize("dtype", ["bfloat16", "float8_e4m3fn", "float8_e5m2"])
+def test_hash_numpy_ml_dtypes_negative_zero(dtype: str) -> None:
+    dtype = getattr(jnp, dtype)
+    assert hash_object(np.array([0.0], dtype=dtype)) == hash_object(np.array([-0.0], dtype=dtype))
+
+
+@jax_available
+@numpy_available
+@pytest.mark.parametrize("dtype", ["bfloat16", "float8_e4m3fn", "float8_e5m2"])
+def test_hash_numpy_ml_dtypes_nan_sign(dtype: str) -> None:
+    nan = np.array([np.nan], dtype=getattr(jnp, dtype))
+    assert hash_object(nan) == hash_object(-nan)
+
+
+@jax_available
+@numpy_available
+def test_hash_numpy_ml_dtypes_differs_by_value() -> None:
+    assert hash_object(np.array([1.0], dtype=jnp.bfloat16)) != hash_object(
+        np.array([2.0], dtype=jnp.bfloat16)
+    )
+
+
+@jax_available
+@numpy_available
+def test_hash_numpy_ml_dtypes_differs_by_dtype() -> None:
+    assert hash_object(np.array([1.0], dtype=jnp.bfloat16)) != hash_object(
+        np.array([1.0], dtype=jnp.float8_e4m3fn)
+    )
+
+
+@jax_available
+@numpy_available
+def test_hash_numpy_ml_dtypes_int4_equal_arrays() -> None:
+    assert hash_object(np.array([1, 2], dtype=jnp.int4)) == hash_object(
+        np.array([1, 2], dtype=jnp.int4)
+    )
+
+
+@jax_available
+def test_hash_jax_bfloat16_negative_zero() -> None:
+    assert hash_object(jnp.array([0.0], dtype=jnp.bfloat16)) == hash_object(
+        jnp.array([-0.0], dtype=jnp.bfloat16)
+    )

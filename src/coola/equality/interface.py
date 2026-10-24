@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from coola.equality.config import EqualityConfig
 from coola.equality.handler.utils import MaxDepthExceededError
 from coola.equality.tester.interface import get_default_registry
+from coola.utils.recursion import raise_recursion_limit_error
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
@@ -32,12 +33,7 @@ def _compare(
     except MaxDepthExceededError:
         raise  # already explains how to fix it
     except RecursionError as exc:
-        msg = (
-            "The Python recursion limit was exceeded while comparing deeply nested "
-            "objects. Each nesting level uses several interpreter frames; reduce the "
-            "nesting or increase the limit with sys.setrecursionlimit()."
-        )
-        raise RecursionError(msg) from exc
+        raise_recursion_limit_error("comparing", exc)
 
 
 def objects_are_allclose(
@@ -73,7 +69,10 @@ def objects_are_allclose(
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
         show_difference: If ``True``, log a readable description when the
             comparison fails.
-        max_depth: Maximum recursion depth for nested comparisons.
+        max_depth: A limit that raises, not a display depth: the maximum
+            recursion depth for nested comparisons (a deeper structure
+            raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
+            ``summarize``, which truncates the output).
             Must be positive. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
@@ -142,7 +141,10 @@ def objects_are_equal(
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
         show_difference: If ``True``, log a readable description when the
             comparison fails.
-        max_depth: Maximum recursion depth for nested comparisons.
+        max_depth: A limit that raises, not a display depth: the maximum
+            recursion depth for nested comparisons (a deeper structure
+            raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
+            ``summarize``, which truncates the output).
             Must be positive. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.

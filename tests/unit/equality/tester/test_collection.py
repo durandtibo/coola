@@ -12,13 +12,14 @@ from coola.equality.tester import (
     MappingEqualityTester,
     OrderedMappingEqualityTester,
     SequenceEqualityTester,
+    SetEqualityTester,
 )
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 from tests.unit.equality.utils import ExamplePair
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Mapping, Sequence, Set as AbstractSet
 
 if is_numpy_available():
     import numpy as np
@@ -691,3 +692,78 @@ def test_sequence_equality_tester_objects_are_equal_false_numpy(
     actual: Sequence, expected: Sequence, config: EqualityConfig
 ) -> None:
     assert not SequenceEqualityTester().objects_are_equal(actual, expected, config)
+
+
+######################################
+#     Tests for SetEqualityTester    #
+######################################
+
+
+def test_set_equality_tester_repr() -> None:
+    assert repr(SetEqualityTester()) == "SetEqualityTester()"
+
+
+def test_set_equality_tester_equal_true() -> None:
+    assert SetEqualityTester().equal(SetEqualityTester())
+
+
+def test_set_equality_tester_equal_false_different_type() -> None:
+    assert not SetEqualityTester().equal(SequenceEqualityTester())
+
+
+def test_set_equality_tester_objects_are_equal_true_same_object(config: EqualityConfig) -> None:
+    obj = {1, 2}
+    assert SetEqualityTester().objects_are_equal(obj, obj, config)
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (set(), set()),
+        ({1, 2, 3}, {3, 2, 1}),
+        (frozenset({"a"}), frozenset({"a"})),
+        ({(1, 2.5)}, {(1, 2.5)}),
+    ],
+)
+def test_set_equality_tester_objects_are_equal_true(
+    config: EqualityConfig, actual: AbstractSet, expected: AbstractSet
+) -> None:
+    assert SetEqualityTester().objects_are_equal(actual, expected, config)
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        ({1, 2}, {1, 3}),
+        ({1, 2}, {1}),
+        ({1}, frozenset({1})),
+        ({1}, {True}),
+    ],
+)
+def test_set_equality_tester_objects_are_equal_false(
+    config: EqualityConfig, actual: AbstractSet, expected: AbstractSet
+) -> None:
+    assert not SetEqualityTester().objects_are_equal(actual, expected, config)
+
+
+def test_set_equality_tester_objects_are_equal_equal_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert SetEqualityTester().objects_are_equal({float("nan")}, {float("nan")}, config)
+
+
+def test_set_equality_tester_objects_are_equal_true_does_not_log(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    config = EqualityConfig(show_difference=True)
+    with caplog.at_level(logging.INFO):
+        SetEqualityTester().objects_are_equal({1}, {1}, config)
+    assert not caplog.messages
+
+
+def test_set_equality_tester_objects_are_equal_false_different_type_logs(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    config = EqualityConfig(show_difference=True)
+    with caplog.at_level(logging.INFO):
+        SetEqualityTester().objects_are_equal({1}, frozenset({1}), config)
+    assert "different types" in caplog.text
