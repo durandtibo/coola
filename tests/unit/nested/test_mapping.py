@@ -771,15 +771,15 @@ def test_flatten_mapping_prefix_colliding_with_prefixed_key_raises() -> None:
 
 
 def test_flatten_mapping_value_that_is_not_a_mapping_raises() -> None:
-    with pytest.raises(TypeError, match=r"The value of the key 'a' must be a mapping"):
+    with pytest.raises(TypeError, match=r"value of the key 'a' must be an instance of"):
         flatten_mapping({"a": 1})
 
 
 def test_flatten_mapping_value_that_is_not_a_mapping_names_the_type() -> None:
-    with pytest.raises(TypeError, match=r"but got <class 'list'>"):
+    with pytest.raises(TypeError, match=r"got <class 'list'>"):
         flatten_mapping({"a": {"x": 1}, "b": [1, 2]})
 
 
 def test_flatten_mapping_value_that_is_not_a_mapping_raises_with_always_prefix() -> None:
-    with pytest.raises(TypeError, match="must be a mapping"):
+    with pytest.raises(TypeError, match="must be an instance of"):
         flatten_mapping({"a": None}, always_prefix=True)

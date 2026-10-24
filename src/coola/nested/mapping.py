@@ -25,6 +25,7 @@ from coola.recursive import (
     TransformerRegistry,
 )
 from coola.recursive.rebuild import rebuild_sequence
+from coola.validation import validate_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -44,17 +45,6 @@ class DuplicateKeyError(KeyError, ValueError):
 
 
 T = TypeVar("T")
-
-
-def _check_is_mapping(key: Any, value: object) -> None:
-    r"""Check that the value of a key is a mapping.
-
-    Raises:
-        TypeError: if ``value`` is not a mapping.
-    """
-    if not isinstance(value, Mapping):
-        msg = f"The value of the key {key!r} must be a mapping, but got {type(value)!r}"
-        raise TypeError(msg)
 
 
 def flatten_mapping(
@@ -134,7 +124,7 @@ def flatten_mapping(
     seen: dict[Any, Any] = {}  # inner key -> recorded value, to check for real conflicts
 
     for outer_key, inner_mapping in mapping.items():
-        _check_is_mapping(outer_key, inner_mapping)
+        validate_mapping(inner_mapping, name=f"value of the key {outer_key!r}")
         for inner_key, value in inner_mapping.items():
             prefixed_key = f"{outer_key}{separator}{inner_key}"
 

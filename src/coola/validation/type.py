@@ -18,11 +18,13 @@ __all__ = [
     "validate_int",
     "validate_isinstance",
     "validate_list",
+    "validate_mapping",
     "validate_set",
     "validate_str",
     "validate_tuple",
 ]
 
+from collections.abc import Mapping
 from typing import Any
 
 
@@ -175,6 +177,29 @@ def validate_dict(value: Any, *, name: str = "value") -> None:
         ```
     """
     validate_isinstance(value, dict, name=name)
+
+
+def validate_mapping(value: Any, *, name: str = "value") -> None:
+    r"""Validate that ``value`` is a mapping.
+
+    A mapping is an instance of ``collections.abc.Mapping``, for example
+    a ``dict``, an ``OrderedDict`` or a ``MappingProxyType``.
+
+    Args:
+        value: The value to validate.
+        name: The name of the value, used in the error message.
+
+    Raises:
+        TypeError: If ``value`` is not a mapping.
+
+    Example:
+        ```pycon
+        >>> from coola.validation import validate_mapping
+        >>> validate_mapping({"a": 1})
+
+        ```
+    """
+    validate_isinstance(value, Mapping, name=name)
 
 
 def validate_set(value: Any, *, name: str = "value") -> None:

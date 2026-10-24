@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections import OrderedDict
+from types import MappingProxyType
+
 import pytest
 
 from coola.validation import (
@@ -10,6 +13,7 @@ from coola.validation import (
     validate_int,
     validate_isinstance,
     validate_list,
+    validate_mapping,
     validate_set,
     validate_str,
     validate_tuple,
@@ -181,3 +185,19 @@ def test_validate_frozenset_invalid(value: object) -> None:
 def test_validate_frozenset_custom_name() -> None:
     with pytest.raises(TypeError, match="foo must be an instance of <class 'frozenset'>"):
         validate_frozenset(object(), name="foo")
+
+
+@pytest.mark.parametrize("value", [{}, {"a": 1}, OrderedDict(a=1), MappingProxyType({"a": 1})])
+def test_validate_mapping_valid(value: object) -> None:
+    validate_mapping(value)
+
+
+@pytest.mark.parametrize("value", [[("a", 1)], {1}, "ab", None])
+def test_validate_mapping_invalid(value: object) -> None:
+    with pytest.raises(TypeError, match=r"value must be an instance of .*Mapping"):
+        validate_mapping(value)
+
+
+def test_validate_mapping_custom_name() -> None:
+    with pytest.raises(TypeError, match=r"foo must be an instance of .*Mapping"):
+        validate_mapping(object(), name="foo")
