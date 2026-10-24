@@ -11,6 +11,10 @@ respective submodules instead, e.g. ``from coola.equality import
 objects_are_equal`` or ``from coola.summary import summarize``.
 """
 
+# Design choice: the top-level package deliberately exposes only ``__version__``. The main
+# functions (``objects_are_equal``, ``hash_object``, ``summarize``, ...) are not re-exported
+# here, so each one is imported from its own subpackage (``coola.equality``,
+# ``coola.hashing``, ``coola.summary``) and the subpackage is the documented path.
 __all__ = ["__version__"]
 
 from typing import Any
