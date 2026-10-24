@@ -8,6 +8,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, JaxArrayEqualHandler, TrueHandler
+from coola.equality.handler.jax import array_equal
 from coola.testing.fixtures import jax_available
 from coola.utils.imports import is_jax_available
 from tests.unit.equality.tester.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
@@ -191,3 +192,27 @@ def test_jax_array_equal_handler_set_next_handler_incorrect() -> None:
     handler = JaxArrayEqualHandler()
     with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
         handler.set_next_handler(42)
+
+
+@jax_available
+def test_array_equal_rtol_scales_with_the_second_array() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert array_equal(jnp.array([100.0]), jnp.array([101.005]), config)
+
+
+@jax_available
+def test_array_equal_rtol_scales_with_the_first_array() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert array_equal(jnp.array([101.005]), jnp.array([100.0]), config)
+
+
+@jax_available
+def test_array_equal_rtol_outside_the_tolerance() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert not array_equal(jnp.array([101.5]), jnp.array([100.0]), config)
+
+
+@jax_available
+def test_array_equal_rtol_outside_the_tolerance_reversed() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert not array_equal(jnp.array([100.0]), jnp.array([101.5]), config)
