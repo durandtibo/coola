@@ -375,3 +375,27 @@ def test_array_equal_object_dtype_nested_arrays_different() -> None:
 @numpy_available
 def test_array_equal_object_dtype_different_shape(config: EqualityConfig) -> None:
     assert not array_equal(np.array([1, 2], dtype=object), np.array([[1, 2]], dtype=object), config)
+
+
+@numpy_available
+def test_array_equal_rtol_scales_with_the_second_array() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert array_equal(np.array([100.0]), np.array([101.005]), config)
+
+
+@numpy_available
+def test_array_equal_rtol_scales_with_the_first_array() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert array_equal(np.array([101.005]), np.array([100.0]), config)
+
+
+@numpy_available
+def test_array_equal_rtol_outside_the_tolerance() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert not array_equal(np.array([101.5]), np.array([100.0]), config)
+
+
+@numpy_available
+def test_array_equal_rtol_outside_the_tolerance_reversed() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert not array_equal(np.array([100.0]), np.array([101.5]), config)

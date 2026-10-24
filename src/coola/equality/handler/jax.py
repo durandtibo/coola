@@ -91,7 +91,14 @@ def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
         ```
     """
     if config.atol > 0 or config.rtol > 0:
-        return jnp.allclose(
-            array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
-        ).item()
+        # ``jnp.allclose`` scales the tolerance with the second array only, so the two
+        # directions are tried to make the comparison symmetric.
+        return (
+            jnp.allclose(
+                array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
+            ).item()
+            or jnp.allclose(
+                array2, array1, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
+            ).item()
+        )
     return jnp.array_equal(array1, array2, equal_nan=config.equal_nan).item()

@@ -135,7 +135,11 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
         # ``equal`` and ``allclose`` are not implemented for sparse layouts.
         tensor1, tensor2 = tensor1.to_dense(), tensor2.to_dense()
     if config.equal_nan or config.atol > 0 or config.rtol > 0:
+        # ``allclose`` scales the tolerance with the second tensor only, so the two
+        # directions are tried to make the comparison symmetric.
         return tensor1.allclose(
             tensor2, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan
+        ) or tensor2.allclose(
+            tensor1, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan
         )
     return tensor1.equal(tensor2)
