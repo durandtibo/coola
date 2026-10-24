@@ -3,9 +3,7 @@ complex numbers and dataclasses."""
 
 from __future__ import annotations
 
-import cmath
 import copy
-import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -25,7 +23,7 @@ complex_numbers = st.complex_numbers(allow_nan=False, allow_infinity=False, max_
 
 
 def _is_close(a: Any, b: Any, atol: float, rtol: float) -> bool:
-    return cmath.isclose(a, b, abs_tol=atol, rel_tol=rtol)
+    return a == b or abs(a - b) <= atol + rtol * max(abs(a), abs(b))
 
 
 ###############################
@@ -85,12 +83,12 @@ def test_result_is_a_bool_for_scalars(function: Any, value: Any, other: Any) -> 
 
 
 @given(dtype=float_types, x=np_finite, y=np_finite, atol=tolerances, rtol=st.floats(0, 1))
-def test_numpy_float_follows_math_isclose(
+def test_numpy_float_follows_the_numpy_rule(
     dtype: type, x: float, y: float, atol: float, rtol: float
 ) -> None:
     a, b = dtype(x), dtype(y)
     assume(np.isfinite(a) and np.isfinite(b))
-    expected = math.isclose(float(a), float(b), abs_tol=atol, rel_tol=rtol)
+    expected = _is_close(float(a), float(b), atol, rtol)
     assert objects_are_allclose(a, b, atol=atol, rtol=rtol) == expected
 
 
@@ -166,7 +164,7 @@ def test_numpy_float_inside_containers(x: float, y: float, atol: float) -> None:
 
 
 @given(a=complex_numbers, b=complex_numbers, atol=tolerances, rtol=st.floats(0, 1))
-def test_complex_follows_cmath_isclose(a: complex, b: complex, atol: float, rtol: float) -> None:
+def test_complex_follows_the_numpy_rule(a: complex, b: complex, atol: float, rtol: float) -> None:
     assert objects_are_allclose(a, b, atol=atol, rtol=rtol) == _is_close(a, b, atol, rtol)
 
 
@@ -225,7 +223,7 @@ def test_complex_nan_is_not_equal_to_a_number(nan_part: str, real: float, imag: 
 
 
 @given(dtype=st.sampled_from([np.complex64, np.complex128]), a=complex_numbers, atol=tolerances)
-def test_numpy_complex_follows_cmath_isclose(dtype: type, a: complex, atol: float) -> None:
+def test_numpy_complex_follows_the_numpy_rule(dtype: type, a: complex, atol: float) -> None:
     x = dtype(a)
     y = dtype(a + 1.0)
     assume(np.isfinite(x) and np.isfinite(y))

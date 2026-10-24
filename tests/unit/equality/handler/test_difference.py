@@ -162,3 +162,36 @@ def test_difference_close_decimal_infinity_and_number() -> None:
 
 def test_difference_close_decimal_opposite_infinities() -> None:
     assert not difference_close(Decimal("Infinity"), Decimal("-Infinity"), EqualityConfig(atol=1.0))
+
+
+########################################
+#     Tests for the tolerance rule     #
+########################################
+
+
+# |1 - 3| = 2 <= 0.5 + 0.5 * 3: the tolerances add up, as in NumPy.
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (Decimal(1), Decimal(3)),
+        (Decimal(3), Decimal(1)),
+        (Fraction(1), Fraction(3)),
+        (Fraction(3), Fraction(1)),
+        (timedelta(seconds=1), timedelta(seconds=3)),
+        (timedelta(seconds=3), timedelta(seconds=1)),
+    ],
+)
+def test_difference_close_atol_and_rtol_add_up(actual: object, expected: object) -> None:
+    assert difference_close(actual, expected, EqualityConfig(atol=0.5, rtol=0.5))
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (Decimal(1), Decimal("3.5")),
+        (Fraction(1), Fraction(7, 2)),
+        (timedelta(seconds=1), timedelta(seconds=3.5)),
+    ],
+)
+def test_difference_close_outside_atol_and_rtol(actual: object, expected: object) -> None:
+    assert not difference_close(actual, expected, EqualityConfig(atol=0.5, rtol=0.5))

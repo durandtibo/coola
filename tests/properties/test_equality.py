@@ -9,7 +9,6 @@ from __future__ import annotations
 import copy
 import datetime as dt
 import functools
-import math
 from collections import OrderedDict, deque
 from typing import Any
 
@@ -409,13 +408,13 @@ def test_tolerance_allclose_is_reflexive(data: Any) -> None:
     rtol=st.floats(0, 1),
     delta=st.floats(-20, 20),
 )
-def test_tolerance_of_floats_follows_math_isclose(
+def test_tolerance_of_floats_follows_the_numpy_rule(
     expected: float, atol: float, rtol: float, delta: float
 ) -> None:
     actual = expected + delta
-    # The tolerance of two floats is the one of ``math.isclose``.
-    assert objects_are_allclose(actual, expected, atol=atol, rtol=rtol) == math.isclose(
-        actual, expected, rel_tol=rtol, abs_tol=atol
+    # The tolerance of two floats is the one of the arrays (symmetric NumPy rule).
+    assert objects_are_allclose(actual, expected, atol=atol, rtol=rtol) == (
+        abs(actual - expected) <= atol + rtol * max(abs(actual), abs(expected))
     )
 
 
@@ -602,3 +601,45 @@ def test_rebuilt_objects_are_equal(data: Any) -> None:
 @given(data=values)
 def test_equal_rebuilt_objects_have_the_same_hash(data: Any) -> None:
     assert hash_object(data) == hash_object(rebuild(data))
+
+
+#################################################
+#     Symmetry and monotonicity of allclose     #
+#################################################
+
+
+@given(x=finite_floats, y=finite_floats, atol=st.floats(0, 10), rtol=st.floats(0, 1))
+def test_allclose_is_symmetric(x: float, y: float, atol: float, rtol: float) -> None:
+    assert objects_are_allclose(x, y, atol=atol, rtol=rtol) == objects_are_allclose(
+        y, x, atol=atol, rtol=rtol
+    )
+
+
+@given(
+    x=finite_floats,
+    delta=st.floats(-5, 5),
+    atol=st.floats(0, 10),
+    rtol=st.floats(0, 1),
+    extra=st.floats(0, 10),
+)
+def test_allclose_is_monotonic_in_atol(
+    x: float, delta: float, atol: float, rtol: float, extra: float
+) -> None:
+    data, other = [x], [x + delta]
+    assume(objects_are_allclose(data, other, atol=atol, rtol=rtol))
+    assert objects_are_allclose(data, other, atol=atol + extra, rtol=rtol)
+
+
+@given(
+    x=finite_floats,
+    delta=st.floats(-5, 5),
+    atol=st.floats(0, 10),
+    rtol=st.floats(0, 1),
+    extra=st.floats(0, 10),
+)
+def test_allclose_is_monotonic_in_rtol(
+    x: float, delta: float, atol: float, rtol: float, extra: float
+) -> None:
+    data, other = [x], [x + delta]
+    assume(objects_are_allclose(data, other, atol=atol, rtol=rtol))
+    assert objects_are_allclose(data, other, atol=atol, rtol=rtol + extra)

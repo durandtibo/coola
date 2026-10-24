@@ -61,8 +61,8 @@ def difference_close(actual: Any, expected: Any, config: EqualityConfig) -> bool
     r"""Indicate if two values are equal within a tolerance.
 
     The values are close if
-    ``|actual - expected| <= max(rtol * max(|actual|, |expected|), atol)``
-    (the rule of ``math.isclose``). The tolerances are converted to the
+    ``|actual - expected| <= atol + rtol * max(|actual|, |expected|)``
+    (the rule of the NumPy, PyTorch and JAX handlers). The tolerances are converted to the
     type of the values: ``atol`` of a ``timedelta`` is a number of
     seconds. Two values that are equal are always close, and a
     ``Decimal`` NaN is equal to a NaN only if ``config.equal_nan`` is
@@ -105,4 +105,4 @@ def difference_close(actual: Any, expected: Any, config: EqualityConfig) -> bool
         atol, rtol = timedelta(seconds=config.atol), config.rtol
     else:
         atol, rtol = Fraction(config.atol), Fraction(config.rtol)
-    return abs(actual - expected) <= max(rtol * max(abs(actual), abs(expected)), atol)
+    return abs(actual - expected) <= atol + rtol * max(abs(actual), abs(expected))

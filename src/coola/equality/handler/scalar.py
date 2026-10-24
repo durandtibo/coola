@@ -154,16 +154,16 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
     """
     if config.atol > 0.0 or config.rtol > 0.0:
         # ``numbers.Real`` also covers the NumPy scalars (NumPy registers them), so
-        # only the complex numbers use ``cmath`` (``math.isclose`` would raise for
-        # ``complex`` and drop the imaginary part for ``numpy.complex64``).
+        # only the complex numbers are converted to ``complex`` (``float`` would raise
+        # for ``complex`` and drop the imaginary part for ``numpy.complex64``).
         if not isinstance(number1, numbers.Real) or not isinstance(number2, numbers.Real):
-            return cmath.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)
+            return _isclose(complex(number1), complex(number2), rtol=config.rtol, atol=config.atol)
         if isinstance(number1, int) and isinstance(number2, int):
             # Exact arithmetic: converting large integers to ``float`` rounds them.
             # NumPy integers are not ``int`` and keep the ``float`` comparison.
             return int_isclose(number1, number2, rtol=config.rtol, atol=config.atol)
         try:
-            return math.isclose(number1, number2, abs_tol=config.atol, rel_tol=config.rtol)
+            return _isclose(float(number1), float(number2), rtol=config.rtol, atol=config.atol)
         except OverflowError:
             # An ``int`` too large for a float: compare with exact arithmetic.
             return int_isclose(number1, number2, rtol=config.rtol, atol=config.atol)
@@ -171,14 +171,28 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
     return bool(number1 == number2)
 
 
+def _isclose(number1: complex, number2: complex, rtol: float, atol: float) -> bool:
+    """Indicate if two numbers are close with the NumPy rule.
+
+    The numbers are close if ``abs(number1 - number2) <= atol + rtol *
+    max(abs(number1), abs(number2))``, which is the rule of the NumPy,
+    PyTorch and JAX handlers. Two different numbers are never close if
+    one of them is infinite or NaN.
+    """
+    if number1 == number2:
+        return True
+    if not (cmath.isfinite(number1) and cmath.isfinite(number2)):
+        return False
+    return abs(number1 - number2) <= atol + rtol * max(abs(number1), abs(number2))
+
+
 def int_isclose(number1: float, number2: float, rtol: float = 0.0, atol: float = 0.0) -> bool:
     r"""Indicate if two numbers are close, using exact rational
     arithmetic.
 
-    This is a fallback of ``math.isclose`` for integers that are too
-    large to be converted to a float. The numbers are close if
-    ``abs(number1 - number2) <= max(rtol * max(abs(number1),
-    abs(number2)), atol)``.
+    This is a fallback for integers that are too large to be converted
+    to a float. The numbers are close if ``abs(number1 - number2) <=
+    atol + rtol * max(abs(number1), abs(number2))``.
 
     Args:
         number1: The first number.
@@ -205,5 +219,5 @@ def int_isclose(number1: float, number2: float, rtol: float = 0.0, atol: float =
         value1, value2 = Fraction(number1), Fraction(number2)
     except (OverflowError, ValueError):  # infinity or NaN
         return number1 == number2
-    tolerance = max(Fraction(rtol) * max(abs(value1), abs(value2)), Fraction(atol))
+    tolerance = Fraction(atol) + Fraction(rtol) * max(abs(value1), abs(value2))
     return abs(value1 - value2) <= tolerance
