@@ -1,52 +1,23 @@
 r"""Top-level package for ``coola``.
 
-``coola`` provides functionality to compare nested objects, hash and
-summarize complex structures, and work with helper utilities for
-recursive transformations and iteration.
+``coola`` provides functionality to compare nested objects, summarize
+complex structures, and work with helper utilities for recursive
+transformations and iteration.
 
-The main entry points are available from the top-level package, for
-example ``coola.objects_are_equal``, ``coola.hash_object`` and
-``coola.summarize``. They are imported the first time they are used, so
-``import coola`` stays cheap. The other functions and classes are
-documented under their subpackage (``coola.equality``,
-``coola.hashing``, ``coola.summary``, ...).
-
-Example:
-    ```pycon
-    >>> import coola
-    >>> coola.objects_are_equal({"a": [1, 2]}, {"a": [1, 2]})
-    True
-    >>> coola.objects_are_allclose([1.0], [1.0 + 1e-9])
-    True
-
-    ```
+This top-level module only exposes ``__version__``; it does not re-
+export the package's entry points (e.g. ``objects_are_equal``,
+``objects_are_allclose``, ``summarize``). Import them from their
+respective submodules instead, e.g. ``from coola.equality import
+objects_are_equal`` or ``from coola.summary import summarize``.
 """
 
-__all__ = [
-    "__version__",
-    "assert_objects_allclose",
-    "assert_objects_equal",
-    "compare",
-    "hash_object",
-    "objects_are_allclose",
-    "objects_are_equal",
-    "summarize",
-]
+# Design choice: the top-level package deliberately exposes only ``__version__``. The main
+# functions (``objects_are_equal``, ``hash_object``, ``summarize``, ...) are not re-exported
+# here, so each one is imported from its own subpackage (``coola.equality``,
+# ``coola.hashing``, ``coola.summary``) and the subpackage is the documented path.
+__all__ = ["__version__"]
 
-import importlib
 from typing import Any
-
-# The module that defines each entry point. The module is imported the first time the name is
-# used, so ``import coola`` does not import the subpackages.
-_LAZY_EXPORTS = {
-    "assert_objects_allclose": "coola.equality",
-    "assert_objects_equal": "coola.equality",
-    "compare": "coola.equality",
-    "hash_object": "coola.hashing",
-    "objects_are_allclose": "coola.equality",
-    "objects_are_equal": "coola.equality",
-    "summarize": "coola.summary",
-}
 
 
 def __getattr__(name: str) -> Any:
@@ -63,14 +34,9 @@ def __getattr__(name: str) -> Any:
             value = "0.0.0"
         globals()["__version__"] = value
         return value
-    module_name = _LAZY_EXPORTS.get(name)
-    if module_name is not None:
-        value = getattr(importlib.import_module(module_name), name)
-        globals()[name] = value
-        return value
     msg = f"module {__name__!r} has no attribute {name!r}"
     raise AttributeError(msg)
 
 
 def __dir__() -> list[str]:
-    return sorted({*globals(), "__version__", *_LAZY_EXPORTS})
+    return sorted([*globals(), "__version__"])

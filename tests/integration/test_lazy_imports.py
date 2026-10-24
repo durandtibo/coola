@@ -41,23 +41,6 @@ def test_importing_a_lazy_name_imports_its_module() -> None:
     assert "numpy" in loaded_libraries(statement)
 
 
-def test_importing_coola_does_not_import_the_subpackages() -> None:
-    """Test that the entry points of ``coola`` are imported when they
-    are used."""
-    code = (
-        "import sys, coola; print(any(name.startswith('coola.equality') for name in sys.modules))"
-    )
-    assert run_python(code) == ["False"]
-
-
-def test_using_an_entry_point_of_coola_imports_its_subpackage() -> None:
-    code = (
-        "import sys, coola; coola.summarize; "
-        "print('coola.summary' in sys.modules, 'coola.equality' in sys.modules)"
-    )
-    assert run_python(code) == ["True", "False"]
-
-
 def test_a_lazy_name_is_in_the_dir_of_the_package() -> None:
     """Test that ``dir`` lists the names that are not imported yet."""
     code = "import coola.hashing; print('TorchTensorHasher' in dir(coola.hashing))"
