@@ -7,7 +7,7 @@ __all__ = ["to_jsonable"]
 import base64
 import datetime
 import sys
-from dataclasses import asdict, is_dataclass
+from dataclasses import fields, is_dataclass
 from decimal import Decimal
 from enum import Enum
 from pathlib import PurePath
@@ -32,8 +32,9 @@ def to_jsonable(data: Any) -> Any:
     bytes to a Base64 string
     (ASCII) and enum members to their (converted) value.
     Dataclasses are
-    converted recursively because ``dataclasses.asdict`` can produce
-    nested dataclass or ``BaseModel`` fields. All other object types,
+    converted recursively, field by field, without copying the field
+    values (``dataclasses.asdict`` deep-copies them), so a nested
+    dataclass or ``BaseModel`` field is converted too. All other object types,
     including containers such as ``list`` or ``dict``, are returned
     unchanged. Non-string ``dict`` keys are not converted, so the result
     is accepted by ``json.dumps`` only if the keys are ``str``, ``int``,
@@ -72,7 +73,7 @@ def to_jsonable(data: Any) -> Any:
         if matches(data):
             return convert(data)
     if is_dataclass(data) and not isinstance(data, type):
-        return _to_jsonable_recursive(asdict(data))
+        return _to_jsonable_recursive({f.name: getattr(data, f.name) for f in fields(data)})
     return data
 
 
@@ -126,12 +127,11 @@ _CONVERTERS: tuple[tuple[Callable[[Any], bool], Callable[[Any], Any]], ...] = (
 
 def _to_jsonable_recursive(data: Any) -> Any:
     r"""Recursively apply ``to_jsonable`` to the dict/list structure
-    produced by ``dataclasses.asdict``.
+    built from the fields of a dataclass.
 
-    ``dataclasses.asdict`` recurses into nested dataclasses, ``list``, and
-    ``dict`` fields but leaves other field values (e.g. ``numpy.ndarray``,
-    ``torch.Tensor``, ``pydantic.BaseModel``) unconverted. This helper walks
-    the resulting structure and converts each leaf.
+    The field values (e.g. ``numpy.ndarray``, ``torch.Tensor``,
+    ``pydantic.BaseModel``, nested dataclasses) are not converted yet.
+    This helper walks the structure and converts each leaf.
 
     Args:
         data: The dict/list structure to convert.
