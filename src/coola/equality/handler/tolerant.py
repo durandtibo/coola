@@ -5,7 +5,6 @@ from __future__ import annotations
 
 __all__ = ["SupportsTolerantEqual", "TolerantEqualHandler"]
 
-import logging
 from typing import TYPE_CHECKING, Protocol
 
 from coola.equality.handler.allclose import SupportsAllCloseNan
@@ -17,8 +16,6 @@ from coola.utils.introspection import supports_methods
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsTolerantEqual(SupportsAllCloseNan, Protocol):
@@ -126,8 +123,6 @@ class TolerantEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
             result = actual.equal(expected, equal_nan=config.equal_nan)
         if not result:
             if config.show_difference:
-                report_difference(
-                    logger, config, format_value_difference(actual=actual, expected=expected)
-                )
+                report_difference(config, format_value_difference(actual=actual, expected=expected))
             return False
         return True

@@ -152,17 +152,29 @@ def test_check_recursion_depth_greater_than_max_depth() -> None:
 
 
 def test_report_difference_logs_without_reporter(caplog: pytest.LogCaptureFixture) -> None:
-    logger = logging.getLogger("test_report_difference")
-    with caplog.at_level(logging.INFO, logger=logger.name):
-        report_difference(logger, EqualityConfig(), "different %s", "values")
+    with caplog.at_level(logging.INFO, logger="coola.equality"):
+        report_difference(EqualityConfig(), "different %s", "values")
     assert caplog.messages == ["different values"]
+
+
+def test_report_difference_logs_the_path_in_the_record(caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.INFO, logger="coola.equality"):
+        report_difference(EqualityConfig(), "different", path=("a", 0))
+    assert caplog.records[-1].coola_path == ("a", 0)
+
+
+def test_report_difference_logs_an_empty_path_by_default(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    with caplog.at_level(logging.INFO, logger="coola.equality"):
+        report_difference(EqualityConfig(), "different")
+    assert caplog.records[-1].coola_path == ()
 
 
 def test_report_difference_sends_formatted_message_and_path_to_reporter() -> None:
     reports: list[tuple[str, tuple[object, ...]]] = []
     config = EqualityConfig(reporter=lambda message, path: reports.append((message, path)))
-    logger = logging.getLogger("test_report_difference")
-    report_difference(logger, config, "%s vs %s", 1, 2, extra={"coola_path": ("a", 0)})
+    report_difference(config, "%s vs %s", 1, 2, path=("a", 0))
     assert reports == [("1 vs 2", ("a", 0))]
 
 
@@ -170,16 +182,15 @@ def test_report_difference_does_not_log_when_there_is_a_reporter(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     config = EqualityConfig(reporter=lambda _message, _path: None)
-    logger = logging.getLogger("test_report_difference")
-    with caplog.at_level(logging.INFO, logger=logger.name):
-        report_difference(logger, config, "%s vs %s", 1, 2, extra={"coola_path": ("a", 0)})
+    with caplog.at_level(logging.INFO, logger="coola.equality"):
+        report_difference(config, "%s vs %s", 1, 2, path=("a", 0))
     assert not caplog.messages  # nothing is logged when there is a reporter
 
 
-def test_report_difference_reporter_without_args_or_extra() -> None:
+def test_report_difference_reporter_without_args_or_path() -> None:
     reports: list[tuple[str, tuple[object, ...]]] = []
     config = EqualityConfig(reporter=lambda message, path: reports.append((message, path)))
-    report_difference(logging.getLogger("x"), config, "100% different")
+    report_difference(config, "100% different")
     assert reports == [("100% different", ())]
 
 

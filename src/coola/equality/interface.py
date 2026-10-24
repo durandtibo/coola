@@ -68,7 +68,8 @@ def objects_are_allclose(
         atol: The absolute tolerance parameter. Must be non-negative.
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
         show_difference: If ``True``, log a readable description when the
-            comparison fails.
+            comparison fails, at the ``INFO`` level on the
+            ``coola.equality`` logger.
         max_depth: A limit that raises, not a display depth: the maximum
             recursion depth for nested comparisons (a deeper structure
             raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
@@ -140,7 +141,8 @@ def objects_are_equal(
         expected: The expected object.
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
         show_difference: If ``True``, log a readable description when the
-            comparison fails.
+            comparison fails, at the ``INFO`` level on the
+            ``coola.equality`` logger.
         max_depth: A limit that raises, not a display depth: the maximum
             recursion depth for nested comparisons (a deeper structure
             raises ``MaxDepthExceededError``, unlike the ``max_depth`` of

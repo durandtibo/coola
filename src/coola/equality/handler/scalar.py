@@ -5,7 +5,6 @@ from __future__ import annotations
 __all__ = ["NanEqualHandler", "ScalarEqualHandler"]
 
 import cmath
-import logging
 import math
 import numbers
 from fractions import Fraction
@@ -18,9 +17,6 @@ from coola.equality.handler.utils import report_difference
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class NanEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
@@ -121,7 +117,6 @@ class ScalarEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         object_equal = number_equal(actual, expected, config)
         if not object_equal and config.show_difference:
             report_difference(
-                logger,
                 config,
                 format_value_difference(actual=actual, expected=expected, name="numbers"),
             )

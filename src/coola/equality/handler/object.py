@@ -6,7 +6,6 @@ from __future__ import annotations
 __all__ = ["ObjectSameAttributesHandler", "get_object_attributes"]
 
 import functools
-import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -21,8 +20,6 @@ from coola.utils.safe import safe_str
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 def get_object_attributes(obj: object) -> dict[str, Any]:
@@ -113,7 +110,6 @@ class ObjectSameAttributesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             if attributes1.keys() != attributes2.keys():
                 if config.show_difference:
                     report_difference(
-                        logger,
                         config,
                         "objects have different attributes: %s vs %s",
                         sorted(attributes1),
@@ -125,13 +121,12 @@ class ObjectSameAttributesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                 if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:
                         report_difference(
-                            logger,
                             config,
                             "objects have different %s: %s vs %s",
                             name,
                             safe_str(value1),
                             safe_str(value2),
-                            extra={"coola_path": (AttributeName(name),)},
+                            path=(AttributeName(name),),
                         )
                     return False
             return self._handle_next(actual, expected, config=config)

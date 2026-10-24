@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = ["PyarrowEqualHandler"]
 
-import logging
 import warnings
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any
@@ -25,9 +24,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PyarrowEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
@@ -65,9 +61,7 @@ class PyarrowEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         equal = object_equal(actual, expected, config)
         if config.show_difference and not equal:
-            report_difference(
-                logger, config, format_value_difference(actual=actual, expected=expected)
-            )
+            report_difference(config, format_value_difference(actual=actual, expected=expected))
         return equal
 
 

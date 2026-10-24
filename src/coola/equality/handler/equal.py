@@ -9,7 +9,6 @@ __all__ = [
     "SupportsEqualNan",
 ]
 
-import logging
 from typing import TYPE_CHECKING, Protocol
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -19,8 +18,6 @@ from coola.equality.handler.utils import report_difference
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsEqual(Protocol):
@@ -95,9 +92,7 @@ class EqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
             return False
         if not actual.equal(expected):
             if config.show_difference:
-                report_difference(
-                    logger, config, format_value_difference(actual=actual, expected=expected)
-                )
+                report_difference(config, format_value_difference(actual=actual, expected=expected))
             return False
         return True
 
@@ -146,8 +141,6 @@ class EqualNanHandler(HandlerEqualityMixin, BaseEqualityHandler):
             return False
         if not actual.equal(expected, equal_nan=config.equal_nan):
             if config.show_difference:
-                report_difference(
-                    logger, config, format_value_difference(actual=actual, expected=expected)
-                )
+                report_difference(config, format_value_difference(actual=actual, expected=expected))
             return False
         return True

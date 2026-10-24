@@ -1562,7 +1562,7 @@ Details:
 ## Explaining a Difference
 
 `objects_are_equal(..., show_difference=True)` logs the first difference found with the standard
-`logging` module (INFO level, `coola.equality.*` loggers), which is convenient to debug in a
+`logging` module (INFO level, `coola.equality` logger; the path of the difference is in the `coola_path` attribute of the log record), which is convenient to debug in a
 console. To get the difference in your code, use `compare`, which returns a `ComparisonResult` with
 the path to the difference and the reason:
 
@@ -1587,7 +1587,9 @@ message, for the tests.
 - `compare` and the assert functions do not log and do not change the logging configuration, so they
   can be called from several threads at the same time.
 - A custom handler is only explained by `compare` if it reports its difference with
-  `coola.equality.handler.report_difference` (not directly with a logger).
+  `coola.equality.handler.report_difference(config, message, path=...)` (not directly with a
+  logger). `report_difference` is the only reporting mechanism: it sends the message and the path to
+  the `reporter` of the config if there is one, otherwise it logs them.
 - `EqualityConfig` is **not** thread-safe: it contains the depth counter of the comparison. The
   functions create one for each call; do not share an instance between threads.
 

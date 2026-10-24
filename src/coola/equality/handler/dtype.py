@@ -5,7 +5,6 @@ from __future__ import annotations
 
 __all__ = ["SameDTypeHandler", "SupportsDType"]
 
-import logging
 from typing import TYPE_CHECKING, Any, Protocol
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -14,9 +13,6 @@ from coola.equality.handler.utils import report_difference
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsDType(Protocol):
@@ -65,7 +61,6 @@ class SameDTypeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if actual.dtype != expected.dtype:
             if config.show_difference:
                 report_difference(
-                    logger,
                     config,
                     "objects have different data types: %s vs %s",
                     actual.dtype,

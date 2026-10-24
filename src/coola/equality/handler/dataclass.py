@@ -6,7 +6,6 @@ from __future__ import annotations
 __all__ = ["DataclassSameFieldsHandler"]
 
 import dataclasses
-import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -21,8 +20,6 @@ from coola.utils.safe import safe_str
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class DataclassSameFieldsHandler(HandlerEqualityMixin, BaseEqualityHandler):
@@ -69,15 +66,12 @@ class DataclassSameFieldsHandler(HandlerEqualityMixin, BaseEqualityHandler):
                 if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:
                         report_difference(
-                            logger,
                             config,
                             "objects have different %s: %s vs %s",
                             field.name,
                             safe_str(value1),
                             safe_str(value2),
-                            extra={
-                                "coola_path": (AttributeName(field.name),),
-                            },
+                            path=(AttributeName(field.name),),
                         )
                     return False
             return self._handle_next(actual, expected, config=config)

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = ["NumpyArrayEqualHandler"]
 
-import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -20,8 +19,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class NumpyArrayEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
@@ -56,7 +53,7 @@ class NumpyArrayEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             report_difference(
-                logger, config, format_value_difference(actual, expected, name="numpy.ndarrays")
+                config, format_value_difference(actual, expected, name="numpy.ndarrays")
             )
         return object_equal
 

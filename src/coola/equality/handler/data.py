@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = ["SameDataHandler", "SupportsData"]
 
-import logging
 from typing import TYPE_CHECKING, Any, Protocol
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -14,9 +13,6 @@ from coola.utils.safe import safe_str
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsData(Protocol):
@@ -61,12 +57,11 @@ class SameDataHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if not config.registry.objects_are_equal(actual.data, expected.data, config):
             if config.show_difference:
                 report_difference(
-                    logger,
                     config,
                     "objects have different data: %s vs %s",
                     safe_str(actual.data),
                     safe_str(expected.data),
-                    extra={"coola_path": (AttributeName("data"),)},
+                    path=(AttributeName("data"),),
                 )
             return False
         return self._handle_next(actual, expected, config=config)
