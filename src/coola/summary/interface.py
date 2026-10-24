@@ -67,6 +67,8 @@ def summarize(
 
     Raises:
         ValueError: If ``max_depth`` is negative.
+        RecursionError: If ``max_depth`` is so large that the Python recursion limit is
+            exceeded (each nesting level uses a few interpreter frames).
 
     Example:
         ```pycon
