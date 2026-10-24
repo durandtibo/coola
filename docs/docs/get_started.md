@@ -25,6 +25,35 @@ uv pip install coola[all,jax,numpy,packaging,pandas,polars,pyarrow,pydantic,torc
 uv pip install coola[numpy,torch]  # with NumPy and PyTorch
 ```
 
+## First steps
+
+After the installation, compare, hash and summarize a nested object:
+
+```pycon
+>>> from coola.equality import assert_objects_equal, compare, objects_are_equal
+>>> from coola.hashing import hash_object
+>>> from coola.summary import summarize
+>>> actual = {"scores": [95, 87]}
+>>> expected = {"scores": [95, 88]}
+>>> objects_are_equal(actual, expected)
+False
+>>> compare(actual, expected).path
+('scores', 1)
+>>> assert_objects_equal(actual, expected)  # in a test: the AssertionError shows the path
+Traceback (most recent call last):
+    ...
+AssertionError: objects are not equal at actual['scores'][1]
+numbers are different:
+  actual   : 87
+  expected : 88
+>>> len(hash_object(actual))
+64
+>>> print(summarize(actual))
+<class 'dict'> (length=1)
+  (scores): [95, 87]
+
+```
+
 ## Using pip
 
 Alternatively, you can use `pip`:
