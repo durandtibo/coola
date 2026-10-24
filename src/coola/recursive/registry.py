@@ -135,7 +135,7 @@ class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
 
             ```
         """
-        return self.find(data_type)
+        return self._find_with_dataclass_marker(data_type)
 
     def transform(self, data: object, func: Callable[[Any], Any]) -> Any:
         """Transform data by applying a function recursively through the

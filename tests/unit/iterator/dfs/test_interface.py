@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import UserString, deque
 from collections.abc import Collection, Generator, Iterator, Mapping
+from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any
 
@@ -10,10 +11,12 @@ import pytest
 from coola.equality import objects_are_equal
 from coola.iterator import dfs_iterate
 from coola.iterator.dfs import (
+    DataclassIterator,
     DefaultIterator,
     IterableIterator,
     IteratorRegistry,
     MappingIterator,
+    enter_dataclasses,
     get_default_registry,
     interface as dfs_interface,
     register_iterators,
@@ -233,3 +236,54 @@ def test_dfs_iterate_mapping_proxy() -> None:
 def test_dfs_iterate_user_string_is_a_leaf() -> None:
     value = UserString("abc")
     assert list(dfs_iterate([value, 1])) == [value, 1]
+
+
+@dataclass
+class Config:
+    lr: float
+    layers: list
+
+
+@pytest.fixture
+def local_registry() -> IteratorRegistry:
+    return IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+
+
+def test_dfs_iterate_dataclass_is_a_leaf_by_default(local_registry: IteratorRegistry) -> None:
+    config = Config(0.1, [1])
+    assert list(dfs_iterate(config, registry=local_registry)) == [config]
+
+
+def test_enter_dataclasses_registers_the_iterator(local_registry: IteratorRegistry) -> None:
+    enter_dataclasses(registry=local_registry)
+    assert isinstance(local_registry.find_iterator(Config), DataclassIterator)
+
+
+def test_enter_dataclasses_dfs_iterate_enters_the_dataclass(
+    local_registry: IteratorRegistry,
+) -> None:
+    enter_dataclasses(registry=local_registry)
+    assert list(dfs_iterate(Config(0.1, [1, 2]), registry=local_registry)) == [0.1, 1, 2]
+
+
+def test_enter_dataclasses_can_be_called_twice(local_registry: IteratorRegistry) -> None:
+    enter_dataclasses(registry=local_registry)
+    enter_dataclasses(registry=local_registry)
+    assert len(local_registry) == 3
+
+
+def test_enter_dataclasses_default_registry(
+    monkeypatch: pytest.MonkeyPatch, local_registry: IteratorRegistry
+) -> None:
+    monkeypatch.setattr(dfs_interface, "get_default_registry", lambda: local_registry)
+    enter_dataclasses()
+    assert isinstance(local_registry.find_iterator(Config), DataclassIterator)
+
+
+def test_enter_dataclasses_keeps_the_iterator_registered_for_a_type(
+    local_registry: IteratorRegistry,
+) -> None:
+    iterator = IterableIterator()
+    local_registry.register(Config, iterator)
+    enter_dataclasses(registry=local_registry)
+    assert local_registry.find_iterator(Config) is iterator

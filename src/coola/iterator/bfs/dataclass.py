@@ -1,0 +1,41 @@
+r"""Define the BFS child finder class for dataclass instances."""
+
+from __future__ import annotations
+
+__all__ = ["DataclassChildFinder"]
+
+import dataclasses
+from typing import TYPE_CHECKING, Any
+
+from coola.display import InlineDisplayMixin
+from coola.iterator.bfs.base import BaseChildFinder
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+
+class DataclassChildFinder(InlineDisplayMixin, BaseChildFinder[Any]):
+    r"""Child finder for dataclass instances.
+
+    The children of a dataclass instance are the values of its fields,
+    in the order of the definition of the fields. It is not registered
+    by default: see ``coola.iterator.bfs.enter_dataclasses``.
+
+    Example:
+        ```pycon
+        >>> from dataclasses import dataclass
+        >>> from coola.iterator.bfs import DataclassChildFinder
+        >>> @dataclass
+        ... class Config:
+        ...     lr: float
+        ...     layers: list
+        ...
+        >>> list(DataclassChildFinder().find_children(Config(0.1, [1, 2])))
+        [0.1, [1, 2]]
+
+        ```
+    """
+
+    def find_children(self, data: Any) -> Iterator[Any]:
+        for field in dataclasses.fields(data):
+            yield getattr(data, field.name)
