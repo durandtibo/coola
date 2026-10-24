@@ -19,6 +19,7 @@ from coola.equality.tester.collection import (
     MappingEqualityTester,
     OrderedMappingEqualityTester,
     SequenceEqualityTester,
+    SetEqualityTester,
 )
 from coola.equality.tester.dataclass import DataclassEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester
@@ -167,6 +168,7 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     mapping = MappingEqualityTester()
     ordered_mapping = OrderedMappingEqualityTester()
     sequence = SequenceEqualityTester()
+    set_tester = SetEqualityTester()
     equal = EqualEqualityTester()
     return {
         # Object is the catch-all base for unregistered types
@@ -182,6 +184,9 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         list: sequence,
         tuple: sequence,
         Sequence: sequence,
+        # Sets - the elements are matched with the registry (equal_nan and tolerance apply)
+        set: set_tester,
+        frozenset: set_tester,
         # The values of a dict have no ``__eq__``: they are compared in the order of the dict
         type({}.values()): sequence,
         # Mappings - recursive transformation of keys and values

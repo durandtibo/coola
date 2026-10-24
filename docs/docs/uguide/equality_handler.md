@@ -253,6 +253,23 @@ False
 
 ```
 
+#### `SetSameValuesHandler`
+
+Matches each element of the first set with an element of the second set through the registry (so
+`equal_nan` and the tolerance apply):
+
+```pycon
+>>> from coola.equality.config import EqualityConfig
+>>> from coola.equality.handler import SetSameValuesHandler, TrueHandler, create_chain
+>>> config = EqualityConfig(equal_nan=True)
+>>> handler = create_chain(SetSameValuesHandler(), TrueHandler())
+>>> handler.handle({1.0, float("nan")}, {1.0, float("nan")}, config)
+True
+>>> handler.handle({1.0, 2.0}, {1.0, 3.0}, config)
+False
+
+```
+
 #### `MappingSameKeysHandler`
 
 Checks if two mappings have the same keys:
