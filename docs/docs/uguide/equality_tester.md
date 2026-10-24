@@ -372,6 +372,42 @@ chain, and can override `_check_dependencies` to raise an error if an optional p
 - **`XarrayVariableEqualityTester`**: Compare xarray Variables
 - **`PyarrowEqualityTester`**: Compare PyArrow arrays and tables
 
+### Tester for Objects Without Value Semantics
+
+#### `ObjectAttributesEqualityTester`
+
+A plain class that does not define `__eq__`, an exception such as `ValueError("a")`, and a
+`functools.partial` are compared by identity: two equal-looking instances are different, unlike a
+dataclass or a pydantic model, which are compared field by field. This is the rule of "equal means
+`==`", so the tester is **not registered by default**. Register it for the classes that must be
+compared by their attributes. It compares the entries of `vars(obj)`, the slots of the class and of its
+parent classes, the `args` of an exception and the `func`, `args` and `keywords` of a partial, through
+the registry (so the tolerance and `equal_nan` apply), and reports the attribute that differs:
+
+```pycon
+>>> from coola.equality import objects_are_equal
+>>> from coola.equality.tester import (
+...     DefaultEqualityTester,
+...     EqualityTesterRegistry,
+...     ObjectAttributesEqualityTester,
+... )
+>>> class Point:
+...     def __init__(self, x):
+...         self.x = x
+...
+>>> registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
+>>> objects_are_equal(Point(1), Point(1), registry=registry)
+False
+>>> registry.register(Point, ObjectAttributesEqualityTester())
+>>> objects_are_equal(Point(1), Point(1), registry=registry)
+True
+
+```
+
+To change the default registry, use `register_equality_testers`, for example
+`register_equality_testers({BaseException: ObjectAttributesEqualityTester()})` to compare all the
+exceptions by their `args`.
+
 ### Default Tester
 
 #### `DefaultEqualityTester`

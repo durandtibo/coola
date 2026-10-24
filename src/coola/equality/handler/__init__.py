@@ -24,6 +24,7 @@ __all__ = [
     "NanEqualHandler",
     "NumpyArrayEqualHandler",
     "ObjectEqualHandler",
+    "ObjectSameAttributesHandler",
     "PandasDataFrameEqualHandler",
     "PandasExtensionArrayEqualHandler",
     "PandasIndexEqualHandler",
@@ -47,6 +48,7 @@ __all__ = [
     "TrueHandler",
     "check_recursion_depth",
     "create_chain",
+    "get_object_attributes",
     "handlers_are_equal",
     "report_difference",
     "track_comparison",
@@ -75,6 +77,7 @@ from coola.equality.handler.native import (
     SameTypeHandler,
     TrueHandler,
 )
+from coola.equality.handler.object import ObjectSameAttributesHandler, get_object_attributes
 from coola.equality.handler.scalar import NanEqualHandler, ScalarEqualHandler
 from coola.equality.handler.sequence import SequenceSameValuesHandler
 from coola.equality.handler.shape import SameShapeHandler
