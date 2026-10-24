@@ -4,13 +4,14 @@ from __future__ import annotations
 
 __all__ = ["EqualityConfig"]
 
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from coola.validation import validate_finite, validate_non_negative, validate_positive
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Generator
 
     from coola.equality.tester.registry import EqualityTesterRegistry
 
@@ -136,3 +137,76 @@ class EqualityConfig:
         It is the inverse of ``increment_depth``.
         """
         self._current_depth -= 1
+
+    def mark_warned(self, name: str) -> bool:
+        """Record that a warning was emitted for a setting.
+
+        The handlers use it to warn once per setting and per
+        comparison, and not for each object of a nested structure.
+
+        Args:
+            name: The name of the setting the warning is about.
+
+        Returns:
+            ``True`` if this is the first call with this name, so the
+                handler should warn, otherwise ``False``.
+
+        Example:
+            ```pycon
+            >>> from coola.equality.config import EqualityConfig
+            >>> config = EqualityConfig()
+            >>> config.mark_warned("atol")
+            True
+            >>> config.mark_warned("atol")
+            False
+            >>> config.mark_warned("rtol")
+            True
+
+            ```
+        """
+        if name in self._warned:
+            return False
+        self._warned.add(name)
+        return True
+
+    @contextmanager
+    def visiting(self, actual: object, expected: object) -> Generator[bool]:
+        """Context manager to detect the cycles in the objects to
+        compare.
+
+        It records that ``actual`` and ``expected`` are being compared.
+        If this pair is already being compared higher in the call
+        stack, the objects contain a cycle. See ``track_comparison``.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object.
+
+        Yields:
+            ``True`` if the pair is already being compared, otherwise
+                ``False``.
+
+        Example:
+            ```pycon
+            >>> from coola.equality.config import EqualityConfig
+            >>> config = EqualityConfig()
+            >>> x, y = [], []
+            >>> with config.visiting(x, y) as in_progress:
+            ...     print(in_progress)
+            ...     with config.visiting(x, y) as in_progress:
+            ...         print(in_progress)
+            ...
+            False
+            True
+
+            ```
+        """
+        key = (id(actual), id(expected))
+        if key in self._in_progress:
+            yield True
+            return
+        self._in_progress.add(key)
+        try:
+            yield False
+        finally:
+            self._in_progress.discard(key)

@@ -194,7 +194,7 @@ def check_recursion_depth(config: EqualityConfig) -> Generator[None]:
         >>> from coola.equality.handler import check_recursion_depth
         >>> config = EqualityConfig(max_depth=5)
         >>> with check_recursion_depth(config):
-        ...     print(config._current_depth)
+        ...     print(config.depth)
         ...
         1
 
@@ -249,12 +249,5 @@ def track_comparison(config: EqualityConfig, actual: object, expected: object) -
 
         ```
     """
-    key = (id(actual), id(expected))
-    if key in config._in_progress:
-        yield True
-        return
-    config._in_progress.add(key)
-    try:
-        yield False
-    finally:
-        config._in_progress.discard(key)
+    with config.visiting(actual, expected) as in_progress:
+        yield in_progress

@@ -169,9 +169,8 @@ def _warn_ignored(config: EqualityConfig, name: str, obj: Any) -> None:
     A nested structure can contain many Arrow objects, and the same
     warning for each of them would flood the output.
     """
-    if name in config._warned:
+    if not config.mark_warned(name):
         return
-    config._warned.add(name)
     warnings.warn(
         f"{name} is ignored because it is not supported for {type(obj)}",
         RuntimeWarning,
