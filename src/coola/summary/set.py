@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["SetSummarizer"]
 
+import heapq
 from collections.abc import Set as AbstractSet
 from itertools import islice
 from typing import TYPE_CHECKING, Any
@@ -15,6 +16,21 @@ if TYPE_CHECKING:
     from coola.summary.registry import SummarizerRegistry
 
 
+def _first_items(data: AbstractSet[Any], limit: int) -> list[Any]:
+    r"""Return the first ``limit`` items of a set (all the items if
+    ``limit`` is not positive).
+
+    The items are the smallest ones when they can be compared, so the
+    output does not depend on the iteration order of the set (which
+    depends on ``PYTHONHASHSEED`` for the strings). Otherwise, the items
+    are returned in iteration order.
+    """
+    try:
+        return heapq.nsmallest(limit, data) if limit > 0 else sorted(data)
+    except TypeError:
+        return list(islice(data, limit)) if limit > 0 else list(data)
+
+
 class SetSummarizer(BaseCollectionSummarizer[AbstractSet[Any]]):
     r"""Summarizer for set-based data structures.
 
@@ -22,6 +38,12 @@ class SetSummarizer(BaseCollectionSummarizer[AbstractSet[Any]]):
     summaries that display the type, length, and items with proper
     indentation. It respects the max_items limit and handles nested structures
     through the registry system.
+
+    When the items can be compared, the items that are displayed are
+    the smallest ones, in order, so the summary is the same from one
+    run to the next (the iteration order of a set of strings depends on
+    ``PYTHONHASHSEED``). Otherwise, the items are displayed in
+    iteration order.
 
     This class creates a multi-line summary showing the set's type,
     length, and contents. It handles depth limiting to prevent excessively
@@ -48,7 +70,7 @@ class SetSummarizer(BaseCollectionSummarizer[AbstractSet[Any]]):
     """
 
     def _get_preview(self, data: AbstractSet[Any], limit: int) -> Any:
-        items = islice(iter(data), limit)
+        items = _first_items(data, limit)
         # The type is kept for the builtin sets, any other set is shown as a list.
         if type(data) is set:
             return set(items)
@@ -63,9 +85,7 @@ class SetSummarizer(BaseCollectionSummarizer[AbstractSet[Any]]):
         depth: int,
         max_depth: int,
     ) -> str:
-        items = data
-        if self._max_items > 0:
-            items = islice(items, self._max_items)
+        items = _first_items(data, self._max_items)
         return str_sequence(
             [registry.summarize(value, depth=depth + 1, max_depth=max_depth) for value in items],
             num_spaces=self._num_spaces,

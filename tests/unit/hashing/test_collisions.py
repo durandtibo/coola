@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import os
 from collections import OrderedDict, deque
 from datetime import UTC, date, datetime, timedelta, timezone
 from enum import Enum, IntEnum, StrEnum
@@ -160,9 +161,12 @@ def test_hash_object_recovers_after_self_reference_error() -> None:
     assert isinstance(hash_object([1, 2]), str)
 
 
-def test_hash_object_lone_surrogate_raises_value_error() -> None:
-    with pytest.raises(ValueError, match="not valid UTF-8"):
-        hash_object("\ud800")
+def test_hash_object_lone_surrogate() -> None:
+    assert len(hash_object("\ud800")) == 64
+
+
+def test_hash_object_path_with_lone_surrogate() -> None:
+    assert len(hash_object(Path(os.fsdecode(b"a\x80")))) == 64
 
 
 def test_hash_object_ignore_unhashable_warns() -> None:

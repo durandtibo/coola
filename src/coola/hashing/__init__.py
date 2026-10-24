@@ -52,6 +52,7 @@ __all__ = [
     "XarrayHasher",
     "get_default_hasher_registry",
     "get_default_registry",
+    "get_stable_registry",
     "hash_bytes",
     "hash_enum",
     "hash_object",
@@ -73,6 +74,7 @@ from coola.hashing.hashable import HashableHasher, SupportsHash
 from coola.hashing.interface import (
     get_default_hasher_registry,
     get_default_registry,
+    get_stable_registry,
     hash_object,
     register_hashers,
 )

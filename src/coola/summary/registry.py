@@ -12,19 +12,9 @@ __all__ = ["DataclassMarker", "SummarizerRegistry"]
 import dataclasses
 from typing import Any
 
-from coola.registry import BaseTypeDispatchRegistry
+from coola.registry import BaseTypeDispatchRegistry, DataclassMarker
 from coola.summary.base import Summarizer
-
-
-class DataclassMarker:
-    """Registry key for the summarizer used by the dataclass types that
-    have no summarizer of their own.
-
-    A dataclass cannot be registered by type because every dataclass is
-    a different type. The summarizer registered for this key is used for
-    the dataclasses that would otherwise be handled by the catch-all
-    ``object`` summarizer.
-    """
+from coola.utils.recursion import raise_recursion_limit_error
 
 
 class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
@@ -189,6 +179,10 @@ class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
                 summarized. The registry itself doesn't raise exceptions, but
                 delegates to registered summarizers which may raise this or
                 other exceptions.
+            RecursionError: If ``max_depth`` is so large that the Python
+                recursion limit is exceeded (each nesting level uses a
+                few interpreter frames). The error is raised by the
+                call with ``depth=0``.
 
         Notes:
             - The depth parameter is primarily for internal use during recursion.
@@ -240,4 +234,9 @@ class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
             ```
         """
         summarizer = self.find_summarizer(type(data))
-        return summarizer.summarize(data=data, depth=depth, max_depth=max_depth, registry=self)
+        try:
+            return summarizer.summarize(data=data, depth=depth, max_depth=max_depth, registry=self)
+        except RecursionError as exc:
+            if depth > 0:  # only the outermost call reports the error
+                raise
+            raise_recursion_limit_error("summarizing", exc)

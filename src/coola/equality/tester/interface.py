@@ -11,6 +11,9 @@ __all__ = [
 
 from collections import OrderedDict, deque
 from collections.abc import Mapping, Sequence
+from datetime import timedelta
+from decimal import Decimal
+from fractions import Fraction
 from typing import Any
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -19,9 +22,11 @@ from coola.equality.tester.collection import (
     MappingEqualityTester,
     OrderedMappingEqualityTester,
     SequenceEqualityTester,
+    SetEqualityTester,
 )
 from coola.equality.tester.dataclass import DataclassEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester
+from coola.equality.tester.difference import DifferenceCloseEqualityTester
 from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
 from coola.equality.tester.registry import DataclassMarker, EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
@@ -167,7 +172,9 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     mapping = MappingEqualityTester()
     ordered_mapping = OrderedMappingEqualityTester()
     sequence = SequenceEqualityTester()
+    set_tester = SetEqualityTester()
     equal = EqualEqualityTester()
+    difference = DifferenceCloseEqualityTester()
     return {
         # Object is the catch-all base for unregistered types
         object: default,
@@ -175,6 +182,10 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         int: scalar,
         float: scalar,
         complex: scalar,
+        # Types without ``allclose``: the tolerance applies to the difference
+        Decimal: difference,
+        Fraction: difference,
+        timedelta: difference,
         # Dataclasses without their own tester
         DataclassMarker: DataclassEqualityTester(),
         # Sequences - recursive transformation preserving order
@@ -182,6 +193,9 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         list: sequence,
         tuple: sequence,
         Sequence: sequence,
+        # Sets - the elements are matched by hash and type (equal_nan applies, the tolerance does not)
+        set: set_tester,
+        frozenset: set_tester,
         # The values of a dict have no ``__eq__``: they are compared in the order of the dict
         type({}.values()): sequence,
         # Mappings - recursive transformation of keys and values

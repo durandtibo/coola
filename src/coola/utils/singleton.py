@@ -12,21 +12,33 @@ double-checked locking.
 from __future__ import annotations
 
 __all__ = [
+    "DISABLE_PLUGINS_ENV_VAR",
     "STRICT_PLUGINS_ENV_VAR",
     "LazySingleton",
+    "LoadedPlugin",
+    "get_loaded_plugins",
     "load_registry_plugins",
     "make_default_registry_singleton",
+    "reset_default_registries",
+    "temporary_default_registries",
 ]
 
 import logging
 import os
 import threading
 import warnings
+import weakref
+from contextlib import contextmanager
+from dataclasses import dataclass
 from importlib.metadata import entry_points
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+
+from coola.utils.fork import track_fork
+
+from coola.utils.fork import track_fork
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Generator
     from importlib.metadata import EntryPoint
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -36,8 +48,36 @@ logger: logging.Logger = logging.getLogger(__name__)
 #: ``"0"`` and ``"false"`` (case-insensitive), and is useful in CI.
 STRICT_PLUGINS_ENV_VAR = "COOLA_STRICT_PLUGINS"
 
+#: Environment variable that disables the entry-point plugins: none of them
+#: is loaded. It is enabled by any value other than ``""``, ``"0"`` and
+#: ``"false"`` (case-insensitive), and is useful to get a reproducible run,
+#: or to find out which plugin causes a conflict.
+DISABLE_PLUGINS_ENV_VAR = "COOLA_DISABLE_PLUGINS"
+
 T = TypeVar("T")
 R = TypeVar("R")
+
+
+@dataclass(frozen=True)
+class LoadedPlugin:
+    r"""A plugin that was loaded and applied to a registry.
+
+    Attributes:
+        group: The entry-point group of the plugin, for example
+            ``"coola.equality.testers"``.
+        name: The name of the entry point.
+        value: The target of the entry point, for example
+            ``"mypackage.plugin:register"``.
+    """
+
+    group: str
+    name: str
+    value: str
+
+
+# The plugins that were applied, by (group, name). A dict, so the plugins that are applied again
+# (a default registry that is rebuilt) are listed once.
+_LOADED_PLUGINS: dict[tuple[str, str], LoadedPlugin] = {}
 
 
 _UNSET: Any = object()
@@ -84,6 +124,18 @@ class LazySingleton(Generic[T]):
         self._instance: T = _UNSET
         self._lock = threading.Lock()
         self._building_thread: int | None = None
+        track_fork(self)
+
+    def _reset_after_fork(self) -> None:
+        r"""Recreate the lock in a forked child process.
+
+        The lock may have been held by a thread that does not exist in
+        the child process (the thread that was building the value),
+        which would block the child forever. If the value was not built
+        yet, the child builds it.
+        """
+        self._lock = threading.Lock()
+        self._building_thread = None
 
     def get(self) -> T:
         r"""Return the cached value, building it on the first call.
@@ -128,6 +180,28 @@ class LazySingleton(Generic[T]):
         new one."""
         with self._lock:
             self._instance = _UNSET
+
+    def _replace_with_copy(self) -> T:
+        r"""Replace the cached value by a copy of it and return the
+        previous value.
+
+        If the value is not built yet, nothing is replaced and the
+        returned value is ``_UNSET``.
+        """
+        with self._lock:
+            previous = self._instance
+            if previous is not _UNSET:
+                self._instance = cast("Any", previous).copy()
+            return previous
+
+    def _restore(self, value: T) -> None:
+        r"""Set the cached value (``_UNSET`` forgets it)."""
+        with self._lock:
+            self._instance = value
+
+
+# The singletons created by ``make_default_registry_singleton``.
+_DEFAULT_REGISTRY_SINGLETONS: weakref.WeakSet[LazySingleton[Any]] = weakref.WeakSet()
 
 
 def make_default_registry_singleton(
@@ -174,7 +248,103 @@ def make_default_registry_singleton(
             load_registry_plugins(registry, plugin_group)
         return registry
 
-    return LazySingleton(build)
+    singleton = LazySingleton(build)
+    _DEFAULT_REGISTRY_SINGLETONS.add(singleton)
+    return singleton
+
+
+def reset_default_registries() -> None:
+    r"""Forget the default registries, so the next use of each of them
+    builds a new one.
+
+    Every default registry (equality testers, hashers, summarizers,
+    ...) is rebuilt with its default entries and its plugins, and the
+    registrations that were made with the ``register_*`` functions, and
+    the calls to ``clear`` or ``unregister``, are dropped. A registry
+    that was obtained before the reset is not changed.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.tester import get_default_registry
+        >>> from coola.utils.singleton import reset_default_registries
+        >>> get_default_registry().clear()
+        >>> reset_default_registries()
+        >>> get_default_registry().has_equality_tester(int)
+        True
+
+        ```
+    """
+    for singleton in list(_DEFAULT_REGISTRY_SINGLETONS):
+        singleton.reset()
+
+
+@contextmanager
+def temporary_default_registries() -> Generator[None]:
+    r"""Restore the default registries when the context exits.
+
+    Inside the context, the default registries that are already built
+    are replaced by a copy (``copy``), so a registration, an
+    ``unregister`` or a ``clear`` does not change the original. The
+    default registries that are not built yet are built inside the
+    context and forgotten when it exits. It is meant for tests that
+    register a type, so they do not leak the registration to the other
+    tests of the process.
+
+    The default registries are process-wide: do not enter the context
+    in several threads at the same time.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.tester import DefaultEqualityTester, get_default_registry
+        >>> from coola.utils.singleton import temporary_default_registries
+        >>> class Point:
+        ...     pass
+        ...
+        >>> with temporary_default_registries():
+        ...     get_default_registry().register(Point, DefaultEqualityTester())
+        ...     get_default_registry().has_equality_tester(Point)
+        ...
+        True
+        >>> get_default_registry().has_equality_tester(Point)
+        False
+
+        ```
+    """
+    previous = [
+        (singleton, singleton._replace_with_copy()) for singleton in _DEFAULT_REGISTRY_SINGLETONS
+    ]
+    try:
+        yield
+    finally:
+        for singleton, value in previous:
+            singleton._restore(value)
+
+
+def get_loaded_plugins() -> list[LoadedPlugin]:
+    r"""Get the entry-point plugins that were loaded in this process.
+
+    A plugin is listed after it was applied to a default registry. The
+    default registries load their plugins the first time they are
+    built, so a registry that was not used yet has not loaded its
+    plugins. It makes it possible to find out which installed package
+    changed the behaviour of ``objects_are_equal``, ``hash_object`` or
+    ``summarize``, without reading ``importlib.metadata``.
+
+    Returns:
+        The loaded plugins, in the order in which they were loaded.
+        The plugins that failed to load, and all the plugins when
+        ``COOLA_DISABLE_PLUGINS`` is set, are not listed.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.singleton import get_loaded_plugins
+        >>> plugins = get_loaded_plugins()
+        >>> isinstance(plugins, list)
+        True
+
+        ```
+    """
+    return list(_LOADED_PLUGINS.values())
 
 
 def load_registry_plugins(registry: object, group: str) -> None:
@@ -187,7 +357,9 @@ def load_registry_plugins(registry: object, group: str) -> None:
     traceback. If the ``COOLA_STRICT_PLUGINS`` environment variable is
     set (e.g. in CI), every plugin is still attempted and all failures
     are then raised together as an ``ExceptionGroup``, each annotated
-    with the plugin name and group.
+    with the plugin name and group. If the ``COOLA_DISABLE_PLUGINS``
+    environment variable is set, no plugin is loaded. The plugins that
+    were loaded are listed by ``get_loaded_plugins``.
 
     Args:
         registry: The registry passed to each plugin.
@@ -205,6 +377,8 @@ def load_registry_plugins(registry: object, group: str) -> None:
 
         ```
     """
+    if _plugins_disabled():
+        return
     errors: list[Exception] = []
     for entry_point in entry_points(group=group):
         _load_plugin(entry_point, registry, group, errors)
@@ -213,9 +387,20 @@ def load_registry_plugins(registry: object, group: str) -> None:
         raise ExceptionGroup(msg, errors)
 
 
+def _env_flag(name: str) -> bool:
+    r"""Indicate whether an environment variable is enabled (set to a
+    value other than ``""``, ``"0"`` and ``"false"``)."""
+    return os.environ.get(name, "").strip().lower() not in {"", "0", "false"}
+
+
 def _strict_plugins() -> bool:
     r"""Indicate whether plugin failures must raise instead of warn."""
-    return os.environ.get(STRICT_PLUGINS_ENV_VAR, "").strip().lower() not in {"", "0", "false"}
+    return _env_flag(STRICT_PLUGINS_ENV_VAR)
+
+
+def _plugins_disabled() -> bool:
+    r"""Indicate whether the plugins must not be loaded."""
+    return _env_flag(DISABLE_PLUGINS_ENV_VAR)
 
 
 def _load_plugin(
@@ -229,6 +414,9 @@ def _load_plugin(
     """
     try:
         entry_point.load()(registry)
+        _LOADED_PLUGINS[group, entry_point.name] = LoadedPlugin(
+            group=group, name=entry_point.name, value=entry_point.value
+        )
     except Exception as exc:
         if _strict_plugins():
             exc.add_note(f"while loading plugin {entry_point.name!r} of group {group!r}")

@@ -19,6 +19,7 @@ from coola.summary.mapping import MappingSummarizer
 from coola.summary.registry import DataclassMarker, SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
+from coola.utils.deprecation import deprecate_positional_options
 from coola.utils.imports import package_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 from coola.validation import validate_non_negative
@@ -39,15 +40,25 @@ _LAZY_SUMMARIZERS = (
 )
 
 
-def summarize(data: object, max_depth: int = 1, registry: SummarizerRegistry | None = None) -> str:
+@deprecate_positional_options("max_depth", "registry")
+def summarize(
+    data: object, *, max_depth: int = 1, registry: SummarizerRegistry | None = None
+) -> str:
     r"""Create a summary string representation of nested data.
+
+    The options must be passed by keyword. Passing ``max_depth`` or
+    ``registry`` as positional arguments is deprecated and emits a
+    ``DeprecationWarning``.
 
     Args:
         data: Input data to summarize.
-        max_depth: The maximum nesting level to expand when summarizing.
-            Structures deeper than this level are shown in compact form.
-            Must be non-negative. Default is 1, which expands only the
-            top level of nested structures.
+        max_depth: A display depth, not a limit that raises: the maximum
+            nesting level to expand when summarizing. Structures deeper
+            than this level are shown in compact form (unlike the
+            ``max_depth`` of ``objects_are_equal``, which raises an
+            error for a deeper structure). Must be non-negative.
+            Default is 1, which expands only the top level of nested
+            structures.
         registry: Registry to resolve summarizers for nested data.
             If ``None``, the default registry is used.
 
@@ -56,6 +67,8 @@ def summarize(data: object, max_depth: int = 1, registry: SummarizerRegistry | N
 
     Raises:
         ValueError: If ``max_depth`` is negative.
+        RecursionError: If ``max_depth`` is so large that the Python recursion limit is
+            exceeded (each nesting level uses a few interpreter frames).
 
     Example:
         ```pycon

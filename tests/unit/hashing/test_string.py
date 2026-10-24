@@ -227,9 +227,20 @@ def test_string_hasher_hash_differs_from_untagged_hash_string(registry: HasherRe
     assert StringHasher().hash("hello", registry=registry) != hash_string("hello")
 
 
-def test_hash_string_lone_surrogate_raises_value_error() -> None:
-    with pytest.raises(ValueError, match="not valid UTF-8"):
-        hash_string("\ud800")
+def test_hash_string_lone_surrogate() -> None:
+    assert len(hash_string("a\udc80")) == 64
+
+
+def test_hash_string_lone_surrogate_differs_from_other_surrogate() -> None:
+    assert hash_string("\udc80") != hash_string("\udc81")
+
+
+def test_hash_string_lone_surrogate_differs_from_replacement_character() -> None:
+    assert hash_string("\udc80") != hash_string("\ufffd")
+
+
+def test_hash_string_unchanged_for_valid_utf8() -> None:
+    assert hash_string("é", length=16) == "cb1abf8beff3192f"
 
 
 ##########################################

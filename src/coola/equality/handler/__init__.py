@@ -11,6 +11,7 @@ __all__ = [
     "AttributeName",
     "BaseEqualityHandler",
     "DataclassSameFieldsHandler",
+    "DifferenceCloseHandler",
     "EqualHandler",
     "EqualNanHandler",
     "FalseHandler",
@@ -24,6 +25,7 @@ __all__ = [
     "NanEqualHandler",
     "NumpyArrayEqualHandler",
     "ObjectEqualHandler",
+    "ObjectSameAttributesHandler",
     "PandasDataFrameEqualHandler",
     "PandasExtensionArrayEqualHandler",
     "PandasIndexEqualHandler",
@@ -32,6 +34,7 @@ __all__ = [
     "PolarsLazyFrameEqualHandler",
     "PolarsSeriesEqualHandler",
     "PyarrowEqualHandler",
+    "PydanticModelSameFieldsHandler",
     "SameAttributeHandler",
     "SameDTypeHandler",
     "SameDataHandler",
@@ -41,12 +44,14 @@ __all__ = [
     "SameTypeHandler",
     "ScalarEqualHandler",
     "SequenceSameValuesHandler",
+    "SetSameValuesHandler",
     "TolerantEqualHandler",
     "TorchTensorEqualHandler",
     "TorchTensorSameDeviceHandler",
     "TrueHandler",
     "check_recursion_depth",
     "create_chain",
+    "get_object_attributes",
     "handlers_are_equal",
     "report_difference",
     "track_comparison",
@@ -58,6 +63,7 @@ from coola.equality.handler.allclose import AllCloseNanHandler
 from coola.equality.handler.base import BaseEqualityHandler, HandlerCycleError
 from coola.equality.handler.data import SameDataHandler
 from coola.equality.handler.dataclass import DataclassSameFieldsHandler
+from coola.equality.handler.difference import DifferenceCloseHandler
 from coola.equality.handler.dtype import SameDTypeHandler
 from coola.equality.handler.equal import EqualHandler, EqualNanHandler
 from coola.equality.handler.mapping import (
@@ -75,8 +81,11 @@ from coola.equality.handler.native import (
     SameTypeHandler,
     TrueHandler,
 )
+from coola.equality.handler.object import ObjectSameAttributesHandler, get_object_attributes
+from coola.equality.handler.pydantic import PydanticModelSameFieldsHandler
 from coola.equality.handler.scalar import NanEqualHandler, ScalarEqualHandler
 from coola.equality.handler.sequence import SequenceSameValuesHandler
+from coola.equality.handler.set import SetSameValuesHandler
 from coola.equality.handler.shape import SameShapeHandler
 from coola.equality.handler.tolerant import TolerantEqualHandler
 from coola.equality.handler.utils import (

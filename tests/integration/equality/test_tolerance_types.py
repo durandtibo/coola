@@ -4,6 +4,9 @@ numeric types."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import timedelta
+from decimal import Decimal
+from fractions import Fraction
 
 import numpy as np
 import pytest
@@ -215,3 +218,42 @@ def test_dataclass_show_difference_logs(caplog: pytest.LogCaptureFixture) -> Non
 
 def test_dataclass_class_is_not_an_instance() -> None:
     assert objects_are_equal(Point, Point)
+
+
+#############################################################
+#     Tests for the types compared with their difference    #
+#############################################################
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        pytest.param(Decimal("1.0"), Decimal("1.00001"), id="decimal"),
+        pytest.param(Fraction(1, 3), Fraction(333333, 1000000), id="fraction"),
+        pytest.param(timedelta(seconds=1), timedelta(seconds=1.0001), id="timedelta"),
+    ],
+)
+def test_objects_are_allclose_difference_types_atol(actual: object, expected: object) -> None:
+    assert objects_are_allclose(actual, expected, atol=1e-3)
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        pytest.param(Decimal("1.0"), Decimal("1.00001"), id="decimal"),
+        pytest.param(Fraction(1, 3), Fraction(333333, 1000000), id="fraction"),
+        pytest.param(timedelta(seconds=1), timedelta(seconds=1.0001), id="timedelta"),
+    ],
+)
+def test_objects_are_equal_difference_types_ignore_the_default_tolerance(
+    actual: object, expected: object
+) -> None:
+    assert not objects_are_equal(actual, expected)
+
+
+def test_objects_are_allclose_difference_types_in_a_list() -> None:
+    assert objects_are_allclose([Decimal("1.0")], [Decimal("1.00001")], atol=1e-3)
+
+
+def test_objects_are_equal_decimal_nan_equal_nan() -> None:
+    assert objects_are_equal(Decimal("NaN"), Decimal("NaN"), equal_nan=True)

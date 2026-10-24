@@ -9,7 +9,7 @@ import os
 import threading
 import time
 
-from coola.identifier.fork import track_fork
+from coola.utils.fork import track_fork
 
 
 class MonotonicRandom:

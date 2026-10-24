@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.iterator.dfs.base import BaseIterator
 from coola.registry import BaseTypeDispatchRegistry
+from coola.utils.recursion import raise_recursion_limit_error
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
@@ -112,7 +113,7 @@ class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
 
             ```
         """
-        return self.find(data_type)
+        return self._find_with_dataclass_marker(data_type)
 
     def iterate(self, data: object) -> Iterator[Any]:
         r"""Perform depth-first iteration over a data structure.
@@ -133,6 +134,9 @@ class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
                 through other containers (a cycle), and its iterator
                 visits the children with ``registry.iterate`` (as the
                 built-in iterators do).
+            RecursionError: If the structure is nested so deeply that
+                the Python recursion limit is exceeded (each nesting
+                level uses a few interpreter frames).
 
         Example:
             ```pycon
@@ -150,7 +154,10 @@ class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
 
             ```
         """
-        yield from PathRegistry(self).iterate(data)
+        try:
+            yield from PathRegistry(self).iterate(data)
+        except RecursionError as exc:
+            raise_recursion_limit_error("iterating over", exc)
 
 
 class PathRegistry(IteratorRegistry):

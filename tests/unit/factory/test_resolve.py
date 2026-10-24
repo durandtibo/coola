@@ -732,3 +732,23 @@ def test_resolve_object_default_cls_does_not_check_the_target() -> None:
 def test_resolve_object_target_outside_allowed_prefixes_still_raises_import_error() -> None:
     with pytest.raises(ImportError, match="allowed"):
         resolve_object({OBJECT_TARGET: f"{__name__}.Tracked"}, cls=Animal, allowed_prefixes=["os"])
+
+
+def test_resolve_object_nested_target_is_not_resolved() -> None:
+    """Test that a nested configuration is passed to the target as a
+    ``dict``, as documented."""
+    config = {OBJECT_TARGET: "collections.OrderedDict", "a": {OBJECT_TARGET: "builtins.int"}}
+    assert resolve_object(config) == OrderedDict(a={OBJECT_TARGET: "builtins.int"})
+
+
+def test_resolve_object_nested_target_is_not_checked_by_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "collections.OrderedDict", "a": {OBJECT_TARGET: "os.getcwd"}}
+    assert resolve_object(config, allowed_prefixes=["collections"]) == OrderedDict(
+        a={OBJECT_TARGET: "os.getcwd"}
+    )
+
+
+def test_factory_nested_target_is_not_resolved() -> None:
+    assert factory("collections.OrderedDict", a={OBJECT_TARGET: "builtins.int"}) == OrderedDict(
+        a={OBJECT_TARGET: "builtins.int"}
+    )

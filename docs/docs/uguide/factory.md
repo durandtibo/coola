@@ -110,6 +110,41 @@ treated as a factory configuration, even when it is already a valid instance of 
 expected class. Do not use `resolve_object` to resolve objects whose expected type is
 itself a `dict` subclass.
 
+## Nested configurations
+
+`_target_` is resolved at the top level only. A nested dictionary that has a `_target_` key is
+passed to the target as a plain `dict`, it is **not** instantiated (unlike Hydra, which
+instantiates the nested configurations):
+
+```pycon
+
+>>> from coola.factory import resolve_object
+>>> config = {
+...     "_target_": "collections.OrderedDict",
+...     "when": {"_target_": "datetime.date", "year": 2020, "month": 1, "day": 1},
+... }
+>>> resolve_object(config)
+OrderedDict({'when': {'_target_': 'datetime.date', 'year': 2020, 'month': 1, 'day': 1}})
+
+```
+
+This is deliberate: `allowed_prefixes` (and `_allowed_prefixes_`) applies to the one `_target_` of
+the call, so a configuration cannot make `coola` import more modules by nesting targets. To build the
+nested object, resolve it yourself, with the same restrictions, and pass the result:
+
+```pycon
+
+>>> from datetime import date
+>>> when = resolve_object(
+...     {"_target_": "datetime.date", "year": 2020, "month": 1, "day": 1},
+...     cls=date,
+...     allowed_prefixes=["datetime"],
+... )
+>>> resolve_object({"_target_": "collections.OrderedDict", "when": when})
+OrderedDict({'when': datetime.date(2020, 1, 1)})
+
+```
+
 ## Security: restricting the targets
 
 !!! danger "Only resolve configurations that you trust"
@@ -154,9 +189,12 @@ with. Only allow objects that are safe to call with arbitrary arguments.
 ## Checking if a configuration targets a class
 
 `is_object_config` checks whether the `_target_` of a configuration resolves to (or returns,
-for functions with a type-hinted return value) a given class. The target is imported to check it, so
-pass `allowed_prefixes` for a configuration that is not trusted. A function whose return type hint
-cannot be resolved is not a configuration for the class:
+for functions with a type-hinted return value) a given class. The module of the target is **not**
+imported to answer: if it is not imported yet, the configuration is not a configuration for the
+class (importing a module runs its top-level code). Pass `allowed_prefixes` (a matching target is
+imported if needed) or `import_target=True` (any target is imported) to import it; do this only for
+a trusted configuration. A function whose return type hint cannot be resolved is not a
+configuration for the class:
 
 ```pycon
 

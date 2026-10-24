@@ -47,7 +47,7 @@ described [below](#type-specific-behavior).
 | Signed zero             | `-0.0` is equal to `0.0`.                                                                                                                                                                                                                                                                                   |
 | Time zones              | Aware datetimes compare by the instant they represent: 12:00 UTC equals 13:00 UTC+1. A naive datetime (no time zone) never equals an aware one.                                                                                                                                                             |
 | Tolerance               | Only `objects_are_allclose` uses `atol` and `rtol`, and only for numbers, arrays, tensors and data frames. Every other value is compared exactly, and the types must still match: `objects_are_allclose(1, 1.0, atol=1)` is `False`.                                                                        |
-| Unregistered types      | A type without a dedicated tester is compared with `==` after the type check, so your own classes work if they define `__eq__`. Otherwise two objects are equal only if they are the same object.                                                                                                           |
+| Unregistered types      | A type without a dedicated tester is compared with `==` after the type check, so your own classes work if they define `__eq__`. Otherwise two objects are equal only if they are the same object (a plain class, an exception, a `functools.partial`): register an `ObjectAttributesEqualityTester` to compare them by their attributes (see [Equality Testers](equality_tester.md)). |
 | Pure                    | The comparison does not modify its inputs, and gives the same answer every time.                                                                                                                                                                                                                            |
 | Failure modes           | A self-referencing container raises a `RecursionError` (see [Controlling Recursion Depth](#controlling-recursion-depth)). Unsupported types never raise: they fall back to `==`.                                                                                                                            |
 | Consistent with hashing | Objects that are equal also have the same [`hash_object`](hashing.md) hash. The reverse is not guaranteed: a `list` subclass and a `list`, or a NumPy `float64` and a `float`, share a hash but are not equal.                                                                                              |
@@ -344,17 +344,20 @@ False
 
 ```
 
-:warning: The check applies to the values that `coola` compares one by one (items of sequences,
-values of mappings, attributes, ...). The members of a `set` and the keys of a `dict` are matched
-with the native hash and equality, so `{1}` and `{True}` (or `{1: "a"}` and `{True: "a"}`) are still
-considered equal.
+:warning: The keys of a `dict` are matched with the native hash and equality, so `{1: "a"}` and
+`{True: "a"}` are still considered equal. The members of a `set` are matched by their
+type and hash, so `{1}` and `{True}` are different (unlike with `==`).
 
 ```pycon
 >>> from coola.equality import objects_are_equal
+>>> {1: "a"} == {True: "a"}
+True
+>>> objects_are_equal({1: "a"}, {True: "a"})
+True
 >>> {1} == {True}
 True
 >>> objects_are_equal({1}, {True})
-True
+False
 
 ```
 
@@ -717,7 +720,9 @@ True
 ### Controlling Recursion Depth
 
 For deeply nested structures, you can control the maximum recursion depth to prevent stack
-overflow. The `max_depth` parameter sets the maximum nesting level that will be compared:
+overflow. The `max_depth` parameter sets the maximum nesting level that will be compared. It is a
+**limit that raises** (`MaxDepthExceededError`) for a deeper structure, unlike the `max_depth` of
+`summarize`, which is a **display depth** that truncates the output:
 
 ```pycon
 >>> from coola.equality import objects_are_equal
@@ -815,9 +820,14 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   columns (this requires NumPy), and the other types are compared exactly
 - `numpy.ndarray` with a non-numeric dtype: `str`, `bytes` and `object` arrays are compared
   exactly, and so are `datetime64` and `timedelta64` arrays, even if a tolerance is given
-- `set` and `frozenset`: compared with `==`, so the tolerance is not applied to the items (a set
-  of floats is compared exactly)
-- Any other type, for example `str`, `bytes`, `range`, `datetime.datetime` or `decimal.Decimal`:
+- `decimal.Decimal`, `fractions.Fraction` and `datetime.timedelta`: compared with `==`, or with their
+  difference if `atol` or `rtol` is given (`atol` of a `timedelta` is a number of seconds). A
+  `Decimal` NaN is equal to a NaN only if `equal_nan=True`
+- `set` and `frozenset`: the elements are matched by hash and type in linear time, so `equal_nan`
+  applies to the elements (`{1.0, float("nan")}` equals itself with `equal_nan=True`, also inside
+  tuples and frozensets), but the tolerance does not: the elements are compared exactly, so
+  `{1.0}` and `{1.0 + 1e-9}` are different even with `objects_are_allclose`
+- Any other type, for example `str`, `bytes`, `range` or `datetime.datetime`:
   compared with `==`, so the tolerance and `equal_nan` are ignored, and the result is what the
   type's `__eq__` returns. If `==` raises a `TypeError` or a `ValueError`, or does not return a
   value that can be converted to a `bool` (for example, a class that compares arrays), a

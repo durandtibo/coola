@@ -8,9 +8,14 @@ registry.
 
 from __future__ import annotations
 
-__all__ = ["MappingEqualityTester", "OrderedMappingEqualityTester", "SequenceEqualityTester"]
+__all__ = [
+    "MappingEqualityTester",
+    "OrderedMappingEqualityTester",
+    "SequenceEqualityTester",
+    "SetEqualityTester",
+]
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, Sequence, Set as AbstractSet
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
@@ -21,6 +26,7 @@ from coola.equality.handler import (
     SameObjectHandler,
     SameTypeHandler,
     SequenceSameValuesHandler,
+    SetSameValuesHandler,
     TrueHandler,
     create_chain,
 )
@@ -182,5 +188,42 @@ class SequenceEqualityTester(BaseChainEqualityTester[Sequence[Any]]):
             SameTypeHandler(),
             SameLengthHandler(),
             SequenceSameValuesHandler(),
+            TrueHandler(),
+        )
+
+
+class SetEqualityTester(BaseChainEqualityTester[AbstractSet[Any]]):
+    r"""Implement a set equality tester.
+
+    This tester handles ``set`` and ``frozenset``. Unlike ``==``, the
+    elements are matched by hash and type, so ``equal_nan`` applies to
+    them (the tolerance does not). The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify same type
+    3. SameLengthHandler: Check both sets have same length
+    4. SetSameValuesHandler: Match the elements of the two sets by
+       hash and type
+    5. TrueHandler: Return True if all checks pass
+
+    Example:
+        ```pycon
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import SetEqualityTester
+        >>> config = EqualityConfig(equal_nan=True)
+        >>> tester = SetEqualityTester()
+        >>> tester.objects_are_equal({1.0, float("nan")}, {1.0, float("nan")}, config)
+        True
+        >>> tester.objects_are_equal({1.0, 2.0}, {1.0, 3.0}, config)
+        False
+
+        ```
+    """
+
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(
+            SameObjectHandler(),
+            SameTypeHandler(),
+            SameLengthHandler(),
+            SetSameValuesHandler(),
             TrueHandler(),
         )

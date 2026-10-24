@@ -6,12 +6,17 @@ from typing import TYPE_CHECKING, Any, Never, cast
 
 import pytest
 
-from coola.utils import singleton
+from coola.utils import fork, singleton
 from coola.utils.singleton import (
+    DISABLE_PLUGINS_ENV_VAR,
     STRICT_PLUGINS_ENV_VAR,
     LazySingleton,
+    LoadedPlugin,
+    get_loaded_plugins,
     load_registry_plugins,
     make_default_registry_singleton,
+    reset_default_registries,
+    temporary_default_registries,
 )
 
 if TYPE_CHECKING:
@@ -301,6 +306,7 @@ def test_make_default_registry_singleton_concurrent_get_returns_the_same_registr
 class _FakeEntryPoint:
     def __init__(self, name: str, func: Callable[[Any], None]) -> None:
         self.name = name
+        self.value = f"fake:{name}"
         self._func = func
 
     def load(self) -> Callable[[Any], None]:
@@ -476,3 +482,248 @@ def test_lazy_singleton_reset_rebuilds_the_value() -> None:
     singleton.get()
     singleton.reset()
     assert singleton.get() == 2
+
+
+def test_lazy_singleton_is_tracked_for_forks() -> None:
+    singleton = LazySingleton(lambda: 1)
+    assert singleton in fork._TRACKED
+
+
+def test_lazy_singleton_reset_after_fork_recreates_the_lock() -> None:
+    singleton = LazySingleton(lambda: 1)
+    lock = singleton._lock
+    singleton._reset_after_fork()
+    assert singleton._lock is not lock
+
+
+def test_lazy_singleton_reset_after_fork_does_not_block_if_the_lock_was_held() -> None:
+    singleton = LazySingleton(lambda: 1)
+    singleton._lock.acquire()  # held by a thread that does not exist in the child
+    singleton._reset_after_fork()
+    assert singleton.get() == 1
+
+
+def test_lazy_singleton_reset_after_fork_forgets_the_building_thread() -> None:
+    singleton = LazySingleton(lambda: 1)
+    singleton._building_thread = 1
+    singleton._reset_after_fork()
+    assert singleton._building_thread is None
+
+
+def test_lazy_singleton_reset_after_fork_keeps_the_value() -> None:
+    singleton = LazySingleton(object)
+    value = singleton.get()
+    singleton._reset_after_fork()
+    assert singleton.get() is value
+
+
+#####################################################
+#     Tests for the scope of the default registries #
+#####################################################
+
+
+def test_reset_default_registries_resets_the_singletons() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    reset_default_registries()
+    assert singleton.get() is not registry
+
+
+def test_reset_default_registries_drops_the_changes() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    singleton.get().clear()
+    reset_default_registries()
+    assert singleton.get() == {"a": 1}
+
+
+def test_reset_default_registries_does_not_change_the_previous_registry() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    reset_default_registries()
+    assert registry == {"a": 1}
+
+
+def test_reset_default_registries_does_not_build_the_registries() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    reset_default_registries()
+    assert not singleton.is_built()
+
+
+def test_temporary_default_registries_uses_a_copy() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    with temporary_default_registries():
+        assert singleton.get() is not registry
+
+
+def test_temporary_default_registries_copy_has_the_entries() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    singleton.get()
+    with temporary_default_registries():
+        assert singleton.get() == {"a": 1}
+
+
+def test_temporary_default_registries_restores_the_registry() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    with temporary_default_registries():
+        singleton.get().clear()
+    assert singleton.get() is registry
+
+
+def test_temporary_default_registries_does_not_change_the_original() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    singleton.get()
+    with temporary_default_registries():
+        singleton.get().clear()
+    assert singleton.get() == {"a": 1}
+
+
+def test_temporary_default_registries_forgets_the_registry_built_inside() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    with temporary_default_registries():
+        singleton.get()
+    assert not singleton.is_built()
+
+
+def fail_in_scope(singleton: LazySingleton[dict]) -> None:
+    with temporary_default_registries():
+        singleton.get().clear()
+        msg = "boom"
+        raise RuntimeError(msg)
+
+
+def test_temporary_default_registries_restores_after_an_error() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    with pytest.raises(RuntimeError, match="boom"):
+        fail_in_scope(singleton)
+    assert singleton.get() is registry
+
+
+def test_temporary_default_registries_nested() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    with temporary_default_registries(), temporary_default_registries():
+        singleton.get().clear()
+    assert singleton.get() is registry
+
+
+#############################################
+#     Tests for the disabled / listed plugins
+#############################################
+
+
+def _noop(registry: Any) -> None:
+    pass
+
+
+@pytest.fixture(autouse=True)
+def _isolate_loaded_plugins(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(singleton, "_LOADED_PLUGINS", {})
+
+
+@pytest.mark.parametrize("value", ["1", "true", "yes", "TRUE"])
+def test_load_registry_plugins_disabled_does_not_call_the_plugins(
+    monkeypatch: pytest.MonkeyPatch, value: str
+) -> None:
+    monkeypatch.setenv(DISABLE_PLUGINS_ENV_VAR, value)
+    _patch_entry_points(monkeypatch, [_FakeEntryPoint("a", lambda r: r.update(a=1))])
+    registry: dict[str, int] = {}
+    load_registry_plugins(registry, "grp")
+    assert registry == {}
+
+
+@pytest.mark.parametrize("value", ["", "0", "false", "FALSE"])
+def test_load_registry_plugins_disable_variable_unset_calls_the_plugins(
+    monkeypatch: pytest.MonkeyPatch, value: str
+) -> None:
+    monkeypatch.setenv(DISABLE_PLUGINS_ENV_VAR, value)
+    _patch_entry_points(monkeypatch, [_FakeEntryPoint("a", lambda r: r.update(a=1))])
+    registry: dict[str, int] = {}
+    load_registry_plugins(registry, "grp")
+    assert registry == {"a": 1}
+
+
+def test_load_registry_plugins_disabled_does_not_read_the_entry_points(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fail(group: str) -> Never:
+        msg = f"entry_points({group!r}) must not be called"
+        raise AssertionError(msg)
+
+    monkeypatch.setenv(DISABLE_PLUGINS_ENV_VAR, "1")
+    monkeypatch.setattr(singleton, "entry_points", fail)
+    load_registry_plugins({}, "grp")
+
+
+def test_load_registry_plugins_disabled_skips_the_strict_failures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(DISABLE_PLUGINS_ENV_VAR, "1")
+    monkeypatch.setenv(STRICT_PLUGINS_ENV_VAR, "1")
+    _patch_entry_points(monkeypatch, [_FakeEntryPoint("bad", _broken)])
+    load_registry_plugins({}, "grp")
+
+
+def test_get_loaded_plugins_empty() -> None:
+    assert get_loaded_plugins() == []
+
+
+def test_get_loaded_plugins_lists_the_loaded_plugin(monkeypatch: pytest.MonkeyPatch) -> None:
+    _patch_entry_points(monkeypatch, [_FakeEntryPoint("a", lambda r: r.update(a=1))])
+    load_registry_plugins({}, "grp")
+    assert get_loaded_plugins() == [LoadedPlugin(group="grp", name="a", value="fake:a")]
+
+
+def test_get_loaded_plugins_keeps_the_loading_order(monkeypatch: pytest.MonkeyPatch) -> None:
+    _patch_entry_points(
+        monkeypatch,
+        [_FakeEntryPoint("b", _noop), _FakeEntryPoint("a", _noop)],
+    )
+    load_registry_plugins({}, "grp")
+    assert [plugin.name for plugin in get_loaded_plugins()] == ["b", "a"]
+
+
+def test_get_loaded_plugins_does_not_list_the_failed_plugin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_entry_points(
+        monkeypatch, [_FakeEntryPoint("bad", _broken), _FakeEntryPoint("good", _noop)]
+    )
+    with pytest.warns(RuntimeWarning, match="Skipping plugin 'bad'"):
+        load_registry_plugins({}, "grp")
+    assert [plugin.name for plugin in get_loaded_plugins()] == ["good"]
+
+
+def test_get_loaded_plugins_lists_a_plugin_loaded_twice_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_entry_points(monkeypatch, [_FakeEntryPoint("a", _noop)])
+    load_registry_plugins({}, "grp")
+    load_registry_plugins({}, "grp")
+    assert len(get_loaded_plugins()) == 1
+
+
+def test_get_loaded_plugins_lists_the_same_name_in_two_groups(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_entry_points(monkeypatch, [_FakeEntryPoint("a", _noop)])
+    load_registry_plugins({}, "grp1")
+    load_registry_plugins({}, "grp2")
+    assert [plugin.group for plugin in get_loaded_plugins()] == ["grp1", "grp2"]
+
+
+def test_get_loaded_plugins_returns_a_copy(monkeypatch: pytest.MonkeyPatch) -> None:
+    _patch_entry_points(monkeypatch, [_FakeEntryPoint("a", _noop)])
+    load_registry_plugins({}, "grp")
+    get_loaded_plugins().clear()
+    assert len(get_loaded_plugins()) == 1
+
+
+def test_get_loaded_plugins_after_a_default_registry_is_built(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_entry_points(monkeypatch, [_FakeEntryPoint("a", lambda r: r.update(p=1))])
+    make_default_registry_singleton(dict, _noop, plugin_group="grp").get()
+    assert [plugin.name for plugin in get_loaded_plugins()] == ["a"]
