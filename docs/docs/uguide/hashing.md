@@ -201,8 +201,9 @@ True
 ## Behavior per Type
 
 - **`str`**: tag `str`, UTF-8 payload. There is no Unicode normalisation, so a precomposed `é` and
-  `e` followed by a combining accent are different strings. A string that cannot be encoded as
-  UTF-8 (a lone surrogate) raises a `ValueError`.
+  `e` followed by a combining accent are different strings. A lone surrogate (for example in a
+  file name from `os.fsdecode`) is encoded with `surrogatepass`, which never collides with a valid
+  string.
 - **`bytes`, `bytearray`**: tagged with their type name, payload is the raw content.
 - **`bool`, `int`, `float`, `complex`, `None`**: tag is the type name, payload is the builtin
   `repr`, which round-trips exactly. `bool` is checked before `int`, so `True` and `1` differ.
@@ -261,7 +262,6 @@ True
 | `length` is odd or outside 2 to 128   | `ValueError`                                                                     |
 | No hasher for the type                | `KeyError` naming the type, or a lossy placeholder with `ignore_unhashable=True` |
 | Self-referencing container            | `ValueError` instead of a stack overflow                                         |
-| String that is not valid UTF-8        | `ValueError`                                                                     |
 | Secret field with `on_secret="error"` | `ValueError`, without leaking the value                                          |
 
 ## Type-Specific Hashers
