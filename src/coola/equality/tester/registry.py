@@ -14,21 +14,10 @@ import dataclasses
 from typing import TYPE_CHECKING, Any, cast
 
 from coola.equality.tester.base import BaseEqualityTester
-from coola.registry import BaseTypeDispatchRegistry
+from coola.registry import BaseTypeDispatchRegistry, DataclassMarker
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-
-class DataclassMarker:
-    """Registry key for the tester used by the dataclass types that have
-    no tester of their own.
-
-    A dataclass cannot be registered by type because every dataclass is
-    a different type. The tester registered for this key is used for the
-    dataclasses (with the generated ``__eq__``) that would otherwise be
-    handled by the catch-all ``object`` tester.
-    """
 
 
 def _has_generated_eq(data_type: type) -> bool:

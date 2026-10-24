@@ -73,7 +73,10 @@ def objects_are_allclose(
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
         show_difference: If ``True``, log a readable description when the
             comparison fails.
-        max_depth: Maximum recursion depth for nested comparisons.
+        max_depth: A limit that raises, not a display depth: the maximum
+            recursion depth for nested comparisons (a deeper structure
+            raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
+            ``summarize``, which truncates the output).
             Must be positive. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
@@ -142,7 +145,10 @@ def objects_are_equal(
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
         show_difference: If ``True``, log a readable description when the
             comparison fails.
-        max_depth: Maximum recursion depth for nested comparisons.
+        max_depth: A limit that raises, not a display depth: the maximum
+            recursion depth for nested comparisons (a deeper structure
+            raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
+            ``summarize``, which truncates the output).
             Must be positive. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.

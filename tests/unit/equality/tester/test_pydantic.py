@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 from unittest.mock import Mock, patch
 
 import pytest
@@ -40,6 +41,14 @@ class Open(BaseModel):
 class Secret(BaseModel):
     x: float
     _cache: int = PrivateAttr(default=0)
+
+
+class Cached(BaseModel):
+    x: int
+
+    @functools.cached_property
+    def double(self) -> int:
+        return self.x * 2
 
 
 class Nested(BaseModel):
@@ -190,6 +199,17 @@ def test_pydantic_model_equality_tester_show_difference(
     with caplog.at_level("INFO"):
         tester.objects_are_equal(Point(x=1.0, y=2.0), Point(x=1.0, y=3.0), config)
     assert "different" in caplog.text
+
+
+@pydantic_available
+def test_pydantic_model_equality_tester_cached_property_read_on_one_model(
+    config: EqualityConfig,
+) -> None:
+    """Test that a cached property read on one model does not make equal
+    models different."""
+    actual, expected = Cached(x=1), Cached(x=1)
+    assert actual.double == 2
+    assert PydanticModelEqualityTester().objects_are_equal(actual, expected, config)
 
 
 def test_pydantic_model_equality_tester_missing_package() -> None:

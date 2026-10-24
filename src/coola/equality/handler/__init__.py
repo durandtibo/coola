@@ -33,6 +33,7 @@ __all__ = [
     "PolarsLazyFrameEqualHandler",
     "PolarsSeriesEqualHandler",
     "PyarrowEqualHandler",
+    "PydanticModelSameFieldsHandler",
     "SameAttributeHandler",
     "SameDTypeHandler",
     "SameDataHandler",
@@ -78,6 +79,7 @@ from coola.equality.handler.native import (
     TrueHandler,
 )
 from coola.equality.handler.object import ObjectSameAttributesHandler, get_object_attributes
+from coola.equality.handler.pydantic import PydanticModelSameFieldsHandler
 from coola.equality.handler.scalar import NanEqualHandler, ScalarEqualHandler
 from coola.equality.handler.sequence import SequenceSameValuesHandler
 from coola.equality.handler.shape import SameShapeHandler

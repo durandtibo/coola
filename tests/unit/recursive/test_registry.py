@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 import pytest
@@ -7,13 +8,14 @@ import pytest
 from coola.equality import objects_are_equal
 from coola.recursive import (
     BaseTransformer,
+    DataclassTransformer,
     DefaultTransformer,
     MappingTransformer,
     SequenceTransformer,
     SetTransformer,
     TransformerRegistry,
 )
-from coola.registry import AlreadyRegisteredError
+from coola.registry import AlreadyRegisteredError, DataclassMarker
 
 
 class CustomList(list):
@@ -248,3 +250,40 @@ def test_transformer_registry_transform_empty_list() -> None:
 
 def test_transformer_registry_transform_empty_dict() -> None:
     assert TransformerRegistry({dict: MappingTransformer()}).transform({}, str) == {}
+
+
+def test_transformer_registry_find_transformer_dataclass_uses_the_marker() -> None:
+    @dataclass
+    class Item:
+        value: int
+
+    transformer = DataclassTransformer()
+    registry = TransformerRegistry({object: DefaultTransformer(), DataclassMarker: transformer})
+    assert registry.find_transformer(Item) is transformer
+
+
+def test_transformer_registry_find_transformer_dataclass_without_marker_uses_object() -> None:
+    @dataclass
+    class Item:
+        value: int
+
+    transformer = DefaultTransformer()
+    assert TransformerRegistry({object: transformer}).find_transformer(Item) is transformer
+
+
+def test_transformer_registry_find_transformer_registered_dataclass_has_priority() -> None:
+    @dataclass
+    class Item:
+        value: int
+
+    transformer = SequenceTransformer()
+    registry = TransformerRegistry(
+        {object: DefaultTransformer(), DataclassMarker: DataclassTransformer(), Item: transformer}
+    )
+    assert registry.find_transformer(Item) is transformer
+
+
+def test_transformer_registry_find_transformer_class_that_is_not_a_dataclass_uses_object() -> None:
+    transformer = DefaultTransformer()
+    registry = TransformerRegistry({object: transformer, DataclassMarker: DataclassTransformer()})
+    assert registry.find_transformer(int) is transformer
