@@ -112,7 +112,7 @@ class IteratorRegistry(BaseTypeDispatchRegistry[BaseIterator[Any]]):
 
             ```
         """
-        return self.find(data_type)
+        return self._find_with_dataclass_marker(data_type)
 
     def iterate(self, data: object) -> Iterator[Any]:
         r"""Perform depth-first iteration over a data structure.

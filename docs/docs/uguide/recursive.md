@@ -114,6 +114,38 @@ You can create and use a custom registry for more control:
 
 ```
 
+### Dataclasses
+
+By default, a dataclass instance is a leaf: `recursive_apply` calls the function on the whole
+object, while `objects_are_equal`, `hash_object` and `summarize` enter the dataclasses. Call
+`enter_dataclasses()` to transform the fields instead. The instance is rebuilt with
+`dataclasses.replace` (`DataclassTransformer`), so frozen dataclasses are supported and the input
+is not modified. The fields with `init=False` are recomputed by `__init__`/`__post_init__`:
+
+```pycon
+>>> from dataclasses import dataclass
+>>> from coola.recursive import (
+...     DefaultTransformer,
+...     SequenceTransformer,
+...     TransformerRegistry,
+...     enter_dataclasses,
+...     recursive_apply,
+... )
+>>> @dataclass
+... class Config:
+...     lr: float
+...     layers: list
+...
+>>> registry = TransformerRegistry({object: DefaultTransformer(), list: SequenceTransformer()})
+>>> enter_dataclasses(registry=registry)
+>>> recursive_apply(Config(0.1, [1, 2]), str, registry=registry)
+Config(lr='0.1', layers=['1', '2'])
+
+```
+
+Without `registry`, `enter_dataclasses()` changes the default registry for the whole process. A
+transformer registered for the type of the dataclass has priority.
+
 ## Available Transformers
 
 The `coola.recursive` package provides several built-in transformers:

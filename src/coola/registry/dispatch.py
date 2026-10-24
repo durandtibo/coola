@@ -12,9 +12,10 @@ free, and only need to add their domain-specific entry point (e.g.
 
 from __future__ import annotations
 
-__all__ = ["BaseTypeDispatchRegistry"]
+__all__ = ["BaseTypeDispatchRegistry", "DataclassMarker"]
 
 import copy
+import dataclasses
 from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar, cast
 
 from coola.display import MultilineDisplayMixin
@@ -24,6 +25,17 @@ if TYPE_CHECKING:
     from collections.abc import Callable, ItemsView, Mapping, Sequence
 
 V = TypeVar("V")
+
+
+class DataclassMarker:
+    """Registry key for the handler used by the dataclass types that
+    have no handler of their own.
+
+    A dataclass cannot be registered by type because every dataclass is
+    a different type. The handler registered for this key is used for
+    the dataclasses that would otherwise be handled by the catch-all
+    ``object`` handler.
+    """
 
 
 class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
@@ -209,6 +221,31 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
             is invalidated automatically by ``register``/``register_many``.
         """
         return self._state.resolve(data_type)
+
+    def _find_with_dataclass_marker(self, data_type: type) -> V:
+        r"""Find the handler of a type, using the handler registered for
+        ``DataclassMarker`` for a dataclass that has no handler of its
+        own.
+
+        The marker handler is used only if the lookup ended on the
+        catch-all ``object`` handler. The cheap ``is_dataclass`` check
+        is first so the other types are not slowed down.
+
+        Args:
+            data_type: The Python type to find a handler for.
+
+        Returns:
+            The handler of the type.
+        """
+        handler = self.find(data_type)
+        if (
+            dataclasses.is_dataclass(data_type)
+            and self.has(DataclassMarker)
+            and self.has(object)
+            and handler is self.find(object)
+        ):
+            return self.find(DataclassMarker)
+        return handler
 
     def unregister(self, data_type: type) -> V:
         r"""Remove the handler registered for a given data type.

@@ -24,13 +24,18 @@
 
 ## Overview
 
-`coola` is a lightweight Python library that makes it easy to compare complex and nested data
-structures.
-It provides simple, extensible functions to check equality between objects containing
+`coola` is a lightweight Python library to **compare**, **hash** and **summarize** complex and
+nested data structures.
+It provides simple, extensible functions that work on objects containing
 [PyTorch tensors](https://pytorch.org/docs/stable/tensors.html),
 [NumPy arrays](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html),
 [pandas](https://pandas.pydata.org/)/[polars](https://www.pola.rs/) DataFrames, and other scientific
-computing objects.
+computing objects:
+
+- **Compare**: `objects_are_equal`, `objects_are_allclose`, `assert_objects_equal` and `compare`
+  check equality (exact or with a tolerance) and tell where two objects differ.
+- **Hash**: `hash_object` computes a deterministic hash of a nested object.
+- **Summarize**: `summarize` creates a short, readable description of a large structure for logs.
 
 **Quick Links:**
 
@@ -72,27 +77,58 @@ True
 
 ```
 
-**Debug differences easily:**
+**Assert equality in your tests, with the path of the difference:**
 
 ```pycon
->>> from coola.equality import objects_are_equal
+>>> from coola.equality import assert_objects_equal
 >>> actual = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 87}]}
 >>> expected = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 88}]}
->>> objects_are_equal(actual, expected, show_difference=True)
-False
-
-```
-
-Log output
-
-```textmate
+>>> assert_objects_equal(actual, expected)
+Traceback (most recent call last):
+    ...
+AssertionError: objects are not equal at actual['users'][1]['score']
 numbers are different:
   actual   : 87
   expected : 88
-mappings have different values for key 'score'
-sequences have different values at index 1
-mappings have different values for key 'users'
+
 ```
+
+`assert_objects_allclose` does the same with a tolerance.
+
+**Get the difference as data:**
+
+```pycon
+>>> from coola.equality import compare
+>>> result = compare(actual, expected)
+>>> result.equal
+False
+>>> result.path
+('users', 1, 'score')
+>>> print(result.reason)
+numbers are different:
+  actual   : 87
+  expected : 88
+
+```
+
+**Hash and summarize:**
+
+```pycon
+>>> from coola.hashing import hash_object
+>>> from coola.summary import summarize
+>>> len(hash_object(actual))
+64
+>>> print(summarize(actual, max_depth=2))
+<class 'dict'> (length=1)
+  (users): <class 'list'> (length=2)
+      (0): {'id': 1, 'score': 95}
+      (1): {'id': 2, 'score': 87}
+
+```
+
+`objects_are_equal(actual, expected, show_difference=True)` logs the differences with
+`logger.info`, so they are only visible if the logging level of the `coola` logger is `INFO` or
+lower.
 
 See the [user guide](https://durandtibo.github.io/coola/uguide/equality) for detailed examples.
 
@@ -106,7 +142,9 @@ Compare complex nested objects with support for multiple data types:
 
 - **Exact equality**: `objects_are_equal()` for strict comparison
 - **Approximate equality**: `objects_are_allclose()` for numerical tolerance
-- **User-friendly difference reporting**: Clear, structured output showing exactly what differs
+- **Assertions for tests**: `assert_objects_equal()` and `assert_objects_allclose()` raise an
+  `AssertionError` with the path of the difference
+- **Structured results**: `compare()` returns a `ComparisonResult` with the path and the reason
 - **Extensible**: Add custom equality testers for your own types
 
 [Learn more →](https://durandtibo.github.io/coola/uguide/equality)

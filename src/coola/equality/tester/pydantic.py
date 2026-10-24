@@ -13,6 +13,7 @@ __all__ = ["PydanticModelEqualityTester"]
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
+    PydanticModelSameFieldsHandler,
     SameAttributeHandler,
     SameObjectHandler,
     SameTypeHandler,
@@ -42,8 +43,9 @@ class PydanticModelEqualityTester(BaseChainEqualityTester[pydantic.BaseModel]):
     validates and serializes. The handler chain:
     1. SameObjectHandler: Check for object identity
     2. SameTypeHandler: Verify both have the same type
-    3. SameAttributeHandler("__dict__"): Compare the field values
-    4. SameAttributeHandler("__pydantic_extra__"): Compare the extra values
+    3. PydanticModelSameFieldsHandler: Compare the values of the declared
+       fields (the cached properties are ignored)
+    4. SameAttributeHandler("model_extra"): Compare the extra values
     5. TrueHandler: Return True if all checks pass
 
     Example:
@@ -72,8 +74,8 @@ class PydanticModelEqualityTester(BaseChainEqualityTester[pydantic.BaseModel]):
         return create_chain(
             SameObjectHandler(),
             SameTypeHandler(),
-            SameAttributeHandler(name="__dict__"),
-            SameAttributeHandler(name="__pydantic_extra__"),
+            PydanticModelSameFieldsHandler(),
+            SameAttributeHandler(name="model_extra"),
             TrueHandler(),
         )
 
