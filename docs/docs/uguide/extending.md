@@ -130,3 +130,19 @@ with its traceback. Set the `COOLA_STRICT_PLUGINS=1` environment variable (e.g. 
 to raise the failures instead, so a broken plugin is not missed: every plugin is still attempted,
 and all the failures are raised together as an `ExceptionGroup`, each annotated with the name and
 the group of the plugin.
+
+Set `COOLA_DISABLE_PLUGINS=1` to load no plugin at all (a reproducible run, or to check whether a
+plugin causes a conflict). To find out which plugins were loaded in the process, for example when
+`objects_are_equal` or a hash is not what you expect, call `get_loaded_plugins()`:
+
+```pycon
+>>> from coola.equality import get_default_registry
+>>> from coola.utils.singleton import get_loaded_plugins
+>>> get_default_registry()  # doctest: +SKIP
+>>> [(plugin.group, plugin.name, plugin.value) for plugin in get_loaded_plugins()]  # doctest: +SKIP
+[('coola.equality.testers', 'mypkg', 'mypkg.coola_plugin:register')]
+
+```
+
+A plugin is listed after it was applied to a default registry, which loads its plugins the first
+time it is built.

@@ -143,7 +143,9 @@ Point (fields=2)
 ### Depth Control
 
 The most important feature of `coola.summary` is controlling how deeply nested structures are
-expanded using the `max_depth` parameter:
+expanded using the `max_depth` parameter. It is a **display depth**: the structures deeper than
+`max_depth` are shown in a compact form, nothing is raised. This is the opposite of the `max_depth`
+of `objects_are_equal`, which is a **limit that raises** an error for a deeper structure:
 
 ```pycon
 >>> from coola.summary import get_default_registry

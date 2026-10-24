@@ -159,6 +159,37 @@ For this simple example, the results are the same, but for more complex nested s
 traversal order can differ significantly. BFS processes all items at each level before moving
 deeper, while DFS goes as deep as possible before backtracking.
 
+### Dataclasses
+
+`dfs_iterate` and `bfs_iterate` treat a dataclass instance as a leaf by default, while
+`objects_are_equal`, `hash_object` and `summarize` enter the dataclasses. Call `enter_dataclasses()`
+(from `coola.iterator.dfs` or `coola.iterator.bfs`) to visit the values of the fields, in the order
+of their definition (`DataclassIterator` and `DataclassChildFinder`):
+
+```pycon
+>>> from dataclasses import dataclass
+>>> from coola.iterator.dfs import (
+...     DefaultIterator,
+...     IterableIterator,
+...     IteratorRegistry,
+...     dfs_iterate,
+...     enter_dataclasses,
+... )
+>>> @dataclass
+... class Config:
+...     lr: float
+...     layers: list
+...
+>>> registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+>>> enter_dataclasses(registry=registry)
+>>> list(dfs_iterate(Config(0.1, [1, 2]), registry=registry))
+[0.1, 1, 2]
+
+```
+
+Without `registry`, `enter_dataclasses()` changes the default registry for the whole process. An
+iterator registered for the type of the dataclass has priority.
+
 ## Type-Based Filtering
 
 ### Basic Filtering
