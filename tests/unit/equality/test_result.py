@@ -11,9 +11,12 @@ import pytest
 import coola.equality as eq
 from coola.equality import (
     ComparisonResult,
+    Tolerance,
     assert_objects_allclose,
     assert_objects_equal,
     compare,
+    objects_are_allclose,
+    objects_are_equal,
 )
 from coola.equality.handler import AttributeName
 from coola.equality.tester import EqualityTesterRegistry
@@ -186,8 +189,8 @@ def test_compare_shared_objects_reused() -> None:
 @pytest.mark.parametrize(
     ("actual", "expected", "kwargs"),
     [
-        ([1.0], [1.05], {"atol": 0.1}),
-        ([100.0], [101.0], {"rtol": 0.05}),
+        ([1.0], [1.05], {"tolerance": Tolerance(atol=0.1)}),
+        ([100.0], [101.0], {"tolerance": Tolerance(rtol=0.05)}),
         ([float("nan")], [float("nan")], {"equal_nan": True}),
     ],
 )
@@ -199,7 +202,7 @@ def test_compare_options_equal(actual: list, expected: list, kwargs: dict) -> No
     ("actual", "expected", "kwargs", "reason"),
     [
         ([1.0], [1.05], {}, numbers(1.0, 1.05)),
-        ([100.0], [101.0], {"rtol": 0.001}, numbers(100.0, 101.0)),
+        ([100.0], [101.0], {"tolerance": Tolerance(rtol=0.001)}, numbers(100.0, 101.0)),
         ([float("nan")], [float("nan")], {}, numbers("nan", "nan")),
     ],
 )
@@ -207,10 +210,52 @@ def test_compare_options_not_equal(actual: list, expected: list, kwargs: dict, r
     assert compare(actual, expected, **kwargs) == different_result(actual, expected, (0,), reason)
 
 
-@pytest.mark.parametrize("name", ["atol", "rtol"])
-def test_compare_negative_tolerance(name: str) -> None:
-    with pytest.raises(ValueError, match=name):
-        compare(1, 1, **{name: -1.0})
+def test_compare_default_is_exact() -> None:
+    assert not compare(1.0, 1.0 + 1e-9)
+
+
+def test_compare_numpy_default_tolerance() -> None:
+    assert compare(1.0, 1.0 + 1e-9, tolerance=Tolerance.numpy_default())
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (1.0, 1.0),
+        (1.0, 1.0 + 1e-9),
+        (1.0, 1.000001),
+        (1.0, 1.1),
+        (100.0, 100.0005),
+        (100.0, 100.5),
+        (0.0, 1e-9),
+        (0.0, 1e-6),
+        ([1.0, 2.0], [1.0, 2.0 + 1e-9]),
+        ([1.0, 2.0], [1.0, 2.1]),
+        ({"a": 1.0}, {"a": 1.0 + 1e-7}),
+        ({"a": 1.0}, {"a": 1.01}),
+        ((1.0,), (1.0 + 1e-6,)),
+        ((1.0,), (1.00001,)),
+        ([[1.0]], [[1.0 + 1e-9]]),
+        ([[1.0]], [[2.0]]),
+        (1, 1),
+        (1, 2),
+        (1, 1.0),
+        ("a", "a"),
+    ],
+)
+def test_allclose_entry_points_agree(actual: object, expected: object) -> None:
+    tolerance = Tolerance.numpy_default()
+    assert objects_are_allclose(actual, expected) == bool(
+        compare(actual, expected, tolerance=tolerance)
+    )
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [(1.0, 1.0), (1.0, 1.0 + 1e-9), ([1.0], [1.5]), (1, 1.0), ("a", "b")],
+)
+def test_equal_entry_points_agree(actual: object, expected: object) -> None:
+    assert objects_are_equal(actual, expected) == bool(compare(actual, expected))
 
 
 def test_compare_max_depth() -> None:

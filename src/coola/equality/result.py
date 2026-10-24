@@ -16,6 +16,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.handler.utils import AttributeName
 from coola.equality.interface import _compare
 from coola.equality.tester.interface import get_default_registry
+from coola.equality.tolerance import Tolerance
 from coola.utils.safe import safe_repr
 from coola.utils.string import truncate_str
 
@@ -110,17 +111,17 @@ def compare(
     actual: object,
     expected: object,
     *,
+    tolerance: Tolerance | None = None,
     equal_nan: bool = False,
-    atol: float = 0.0,
-    rtol: float = 0.0,
     max_depth: int = 100,
     max_repr_chars: int = 1000,
     registry: EqualityTesterRegistry | None = None,
 ) -> ComparisonResult:
     r"""Compare two objects and explain the first difference.
 
-    Exact equality is used by default. Set ``atol`` and/or ``rtol`` to
-    compare within a tolerance (as ``objects_are_allclose`` does).
+    Exact equality is used by default. Set ``tolerance`` to compare
+    within a tolerance: ``Tolerance.numpy_default()`` is the tolerance
+    of ``objects_are_allclose`` (``rtol=1e-5``, ``atol=1e-8``).
     Comparison stops at the first difference.
 
     Note:
@@ -135,9 +136,9 @@ def compare(
     Args:
         actual: The actual object.
         expected: The expected object.
+        tolerance: The tolerance of the comparison. If ``None``, the
+            comparison is exact.
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
-        atol: The absolute tolerance. Must be non-negative.
-        rtol: The relative tolerance. Must be non-negative.
         max_depth: A limit that raises, not a display depth: the maximum
             recursion depth for nested comparisons (a deeper structure
             raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
@@ -152,8 +153,7 @@ def compare(
         The comparison result.
 
     Raises:
-        ValueError: If ``atol`` or ``rtol`` is negative, or if
-            ``max_repr_chars`` is less than 3.
+        ValueError: If ``max_repr_chars`` is less than 3.
 
     Example:
         ```pycon
@@ -165,6 +165,11 @@ def compare(
         ('a',)
         >>> result.equal
         False
+        >>> from coola.equality import Tolerance
+        >>> compare(1.0, 1.0 + 1e-9).equal
+        False
+        >>> compare(1.0, 1.0 + 1e-9, tolerance=Tolerance.numpy_default()).equal
+        True
 
         ```
     """
@@ -173,12 +178,14 @@ def compare(
         raise ValueError(msg)
     if registry is None:
         registry = get_default_registry()
+    if tolerance is None:
+        tolerance = Tolerance()
     config = EqualityConfig(
         registry=registry,
         show_difference=True,
         equal_nan=equal_nan,
-        atol=atol,
-        rtol=rtol,
+        atol=tolerance.atol,
+        rtol=tolerance.rtol,
         max_depth=max_depth,
     )
     reports: list[tuple[str, tuple[object, ...]]] = []
@@ -254,9 +261,8 @@ def assert_objects_allclose(
     result = compare(
         actual,
         expected,
+        tolerance=Tolerance(rtol=rtol, atol=atol),
         equal_nan=equal_nan,
-        atol=atol,
-        rtol=rtol,
         max_depth=max_depth,
         registry=registry,
     )
