@@ -57,8 +57,9 @@ class PyarrowArraySummarizer(BaseMetadataSummarizer["pa.Array | pa.ChunkedArray"
         return [f"length={len(data)}", f"type={data.type}"]
 
 
-class PyarrowTableSummarizer(BaseFieldsSummarizer[pa.Table]):
-    r"""Implement a summarizer for ``pyarrow.Table`` objects.
+class PyarrowTableSummarizer(BaseFieldsSummarizer["pa.Table | pa.RecordBatch"]):
+    r"""Implement a summarizer for ``pyarrow.Table`` and
+    ``pyarrow.RecordBatch`` objects.
 
     By default, it displays the metadata (type, shape, columns with their
     arrow type) rather than the values. At most 10 columns are listed.
@@ -87,7 +88,7 @@ class PyarrowTableSummarizer(BaseFieldsSummarizer[pa.Table]):
     def _check_dependencies(self) -> None:
         check_pyarrow()
 
-    def _describe(self, data: pa.Table) -> list[str]:
+    def _describe(self, data: pa.Table | pa.RecordBatch) -> list[str]:
         fields = [(field.name, field.type) for field in data.schema]
         return [f"shape={data.shape}", f"columns={self._format_fields(fields)}"]
 
@@ -106,8 +107,10 @@ def get_default_summarizers() -> dict[type, Summarizer[Any]]:
         return {}
 
     array_summarizer = PyarrowArraySummarizer()
+    table_summarizer = PyarrowTableSummarizer()
     return {
         pa.Array: array_summarizer,
         pa.ChunkedArray: array_summarizer,
-        pa.Table: PyarrowTableSummarizer(),
+        pa.Table: table_summarizer,
+        pa.RecordBatch: table_summarizer,
     }

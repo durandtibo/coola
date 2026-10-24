@@ -253,6 +253,23 @@ False
 
 ```
 
+#### `SetSameValuesHandler`
+
+Matches the elements of the two sets by hash and type (so `equal_nan` applies, but the tolerance
+does not):
+
+```pycon
+>>> from coola.equality.config import EqualityConfig
+>>> from coola.equality.handler import SetSameValuesHandler, TrueHandler, create_chain
+>>> config = EqualityConfig(equal_nan=True)
+>>> handler = create_chain(SetSameValuesHandler(), TrueHandler())
+>>> handler.handle({1.0, float("nan")}, {1.0, float("nan")}, config)
+True
+>>> handler.handle({1.0, 2.0}, {1.0, 3.0}, config)
+False
+
+```
+
 #### `MappingSameKeysHandler`
 
 Checks if two mappings have the same keys:
@@ -318,6 +335,28 @@ The package includes specialized handlers for specific types:
 - **`PolarsLazyFrameEqualHandler`**: Compare polars LazyFrames
 - **`JaxArrayEqualHandler`**: Compare JAX arrays
 - **`PyarrowEqualHandler`**: Compare PyArrow arrays and tables
+
+#### `ObjectSameAttributesHandler`
+
+Compares the attributes of two objects of the same class (`vars`, slots, the `args` of an exception,
+the content of a `functools.partial`) through the registry. `get_object_attributes` returns the
+attributes of one object:
+
+```pycon
+>>> from coola.equality.config import EqualityConfig
+>>> from coola.equality.handler import ObjectSameAttributesHandler, TrueHandler, create_chain
+>>> class Point:
+...     def __init__(self, x):
+...         self.x = x
+...
+>>> config = EqualityConfig()
+>>> handler = create_chain(ObjectSameAttributesHandler(), TrueHandler())
+>>> handler.handle(Point(1), Point(1), config)
+True
+>>> handler.handle(Point(1), Point(2), config)
+False
+
+```
 
 ### Handlers for Objects with Methods
 

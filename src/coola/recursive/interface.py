@@ -24,6 +24,7 @@ from coola.recursive.registry import TransformerRegistry
 from coola.recursive.sequence import SequenceTransformer
 from coola.recursive.set import SetTransformer
 from coola.registry import DataclassMarker
+from coola.utils.deprecation import deprecate_positional_options
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -32,10 +33,14 @@ if TYPE_CHECKING:
     from coola.recursive.base import Transformer
 
 
+@deprecate_positional_options("registry")
 def recursive_apply(
-    data: object, func: Callable[[Any], Any], registry: TransformerRegistry | None = None
+    data: object, func: Callable[[Any], Any], *, registry: TransformerRegistry | None = None
 ) -> Any:
     """Recursively transform nested data with a type-aware registry.
+
+    The ``registry`` option must be passed by keyword. Passing it as a
+    positional argument is deprecated and emits a ``DeprecationWarning``.
 
     Args:
         data: Input data, potentially containing nested containers.
@@ -52,7 +57,8 @@ def recursive_apply(
 
         The function is recursive: each nesting level uses a few Python frames, so a very
         deep structure (about a thousand levels) reaches the interpreter recursion limit and
-        raises a ``RecursionError``.
+        raises a ``RecursionError`` that explains how to fix it. A container that contains
+        itself raises a ``ValueError``.
 
     Example:
         ```pycon

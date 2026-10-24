@@ -19,18 +19,26 @@ __all__ = [
     "get_loaded_plugins",
     "load_registry_plugins",
     "make_default_registry_singleton",
+    "reset_default_registries",
+    "temporary_default_registries",
 ]
 
 import logging
 import os
 import threading
 import warnings
+import weakref
+from contextlib import contextmanager
 from dataclasses import dataclass
 from importlib.metadata import entry_points
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+
+from coola.utils.fork import track_fork
+
+from coola.utils.fork import track_fork
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Generator
     from importlib.metadata import EntryPoint
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -116,6 +124,18 @@ class LazySingleton(Generic[T]):
         self._instance: T = _UNSET
         self._lock = threading.Lock()
         self._building_thread: int | None = None
+        track_fork(self)
+
+    def _reset_after_fork(self) -> None:
+        r"""Recreate the lock in a forked child process.
+
+        The lock may have been held by a thread that does not exist in
+        the child process (the thread that was building the value),
+        which would block the child forever. If the value was not built
+        yet, the child builds it.
+        """
+        self._lock = threading.Lock()
+        self._building_thread = None
 
     def get(self) -> T:
         r"""Return the cached value, building it on the first call.
@@ -160,6 +180,28 @@ class LazySingleton(Generic[T]):
         new one."""
         with self._lock:
             self._instance = _UNSET
+
+    def _replace_with_copy(self) -> T:
+        r"""Replace the cached value by a copy of it and return the
+        previous value.
+
+        If the value is not built yet, nothing is replaced and the
+        returned value is ``_UNSET``.
+        """
+        with self._lock:
+            previous = self._instance
+            if previous is not _UNSET:
+                self._instance = cast("Any", previous).copy()
+            return previous
+
+    def _restore(self, value: T) -> None:
+        r"""Set the cached value (``_UNSET`` forgets it)."""
+        with self._lock:
+            self._instance = value
+
+
+# The singletons created by ``make_default_registry_singleton``.
+_DEFAULT_REGISTRY_SINGLETONS: weakref.WeakSet[LazySingleton[Any]] = weakref.WeakSet()
 
 
 def make_default_registry_singleton(
@@ -206,7 +248,76 @@ def make_default_registry_singleton(
             load_registry_plugins(registry, plugin_group)
         return registry
 
-    return LazySingleton(build)
+    singleton = LazySingleton(build)
+    _DEFAULT_REGISTRY_SINGLETONS.add(singleton)
+    return singleton
+
+
+def reset_default_registries() -> None:
+    r"""Forget the default registries, so the next use of each of them
+    builds a new one.
+
+    Every default registry (equality testers, hashers, summarizers,
+    ...) is rebuilt with its default entries and its plugins, and the
+    registrations that were made with the ``register_*`` functions, and
+    the calls to ``clear`` or ``unregister``, are dropped. A registry
+    that was obtained before the reset is not changed.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.tester import get_default_registry
+        >>> from coola.utils.singleton import reset_default_registries
+        >>> get_default_registry().clear()
+        >>> reset_default_registries()
+        >>> get_default_registry().has_equality_tester(int)
+        True
+
+        ```
+    """
+    for singleton in list(_DEFAULT_REGISTRY_SINGLETONS):
+        singleton.reset()
+
+
+@contextmanager
+def temporary_default_registries() -> Generator[None]:
+    r"""Restore the default registries when the context exits.
+
+    Inside the context, the default registries that are already built
+    are replaced by a copy (``copy``), so a registration, an
+    ``unregister`` or a ``clear`` does not change the original. The
+    default registries that are not built yet are built inside the
+    context and forgotten when it exits. It is meant for tests that
+    register a type, so they do not leak the registration to the other
+    tests of the process.
+
+    The default registries are process-wide: do not enter the context
+    in several threads at the same time.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.tester import DefaultEqualityTester, get_default_registry
+        >>> from coola.utils.singleton import temporary_default_registries
+        >>> class Point:
+        ...     pass
+        ...
+        >>> with temporary_default_registries():
+        ...     get_default_registry().register(Point, DefaultEqualityTester())
+        ...     get_default_registry().has_equality_tester(Point)
+        ...
+        True
+        >>> get_default_registry().has_equality_tester(Point)
+        False
+
+        ```
+    """
+    previous = [
+        (singleton, singleton._replace_with_copy()) for singleton in _DEFAULT_REGISTRY_SINGLETONS
+    ]
+    try:
+        yield
+    finally:
+        for singleton, value in previous:
+            singleton._restore(value)
 
 
 def get_loaded_plugins() -> list[LoadedPlugin]:

@@ -238,6 +238,20 @@ def test_dfs_iterate_user_string_is_a_leaf() -> None:
     assert list(dfs_iterate([value, 1])) == [value, 1]
 
 
+def test_dfs_iterate_positional_registry_is_deprecated() -> None:
+    with pytest.warns(DeprecationWarning, match="`registry` to `dfs_iterate`"):
+        dfs_iterate([1], get_default_registry())
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_dfs_iterate_positional_registry_is_deprecated_result() -> None:
+    assert list(dfs_iterate([1, [2]], get_default_registry())) == [1, 2]
+
+
+def test_dfs_iterate_keyword_registry_does_not_warn() -> None:
+    assert list(dfs_iterate([1, [2]], registry=get_default_registry())) == [1, 2]
+
+
 @dataclass
 class Config:
     lr: float

@@ -14,6 +14,7 @@ from coola.summary import (
     SetSummarizer,
     SummarizerRegistry,
 )
+from tests.helpers import nest
 
 
 class CustomList(list):
@@ -236,3 +237,25 @@ def test_summarizer_registry_registry_isolation_second_registry() -> None:
     SummarizerRegistry({list: summarizer1})
     registry2 = SummarizerRegistry({list: summarizer2})
     assert registry2._state[list] is summarizer2
+
+
+def test_summarizer_registry_summarize_deep_structure_raises_a_recursion_error() -> None:
+    registry = SummarizerRegistry({object: DefaultSummarizer(), list: SequenceSummarizer()})
+    with pytest.raises(
+        RecursionError, match="Python recursion limit was exceeded while summarizing"
+    ):
+        registry.summarize(nest(1, 5000), max_depth=10**6)
+
+
+def test_summarizer_registry_summarize_deep_structure_error_comes_from_the_interpreter() -> None:
+    registry = SummarizerRegistry({object: DefaultSummarizer(), list: SequenceSummarizer()})
+    with pytest.raises(RecursionError) as exc_info:
+        registry.summarize(nest(1, 5000), max_depth=10**6)
+    assert type(exc_info.value.__cause__) is RecursionError
+
+
+def test_summarizer_registry_summarize_nested_call_does_not_wrap_the_error() -> None:
+    registry = SummarizerRegistry({object: DefaultSummarizer(), list: SequenceSummarizer()})
+    with pytest.raises(RecursionError) as exc_info:
+        registry.summarize(nest(1, 5000), depth=1, max_depth=10**6)
+    assert "Python recursion limit" not in str(exc_info.value)
