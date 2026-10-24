@@ -345,8 +345,8 @@ False
 ```
 
 :warning: The keys of a `dict` are matched with the native hash and equality, so `{1: "a"}` and
-`{True: "a"}` are still considered equal. The members of a `set` are matched one by one with the
-registry, so `{1}` and `{True}` are different (unlike with `==`).
+`{True: "a"}` are still considered equal. The members of a `set` are matched by their
+type and hash, so `{1}` and `{True}` are different (unlike with `==`).
 
 ```pycon
 >>> from coola.equality import objects_are_equal
@@ -820,12 +820,10 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   columns (this requires NumPy), and the other types are compared exactly
 - `numpy.ndarray` with a non-numeric dtype: `str`, `bytes` and `object` arrays are compared
   exactly, and so are `datetime64` and `timedelta64` arrays, even if a tolerance is given
-- `set` and `frozenset`: each element of the first set is matched with an element of the second
-  set of the same type through the registry, so `equal_nan` and the tolerance apply to the elements
-  (`{1.0, float("nan")}` equals itself with `equal_nan=True`, `{1.0}` and `{1.0 + 1e-9}` are close).
-  With a tolerance, an element is matched with the first unmatched element within the tolerance. The
-  matching is quadratic in the worst case, except for sets of `int`, `str`, `bytes`, `bool` and
-  `None` without tolerance, which are compared at once
+- `set` and `frozenset`: the elements are matched by hash and type in linear time, so `equal_nan`
+  applies to the elements (`{1.0, float("nan")}` equals itself with `equal_nan=True`, also inside
+  tuples and frozensets), but the tolerance does not: the elements are compared exactly, so
+  `{1.0}` and `{1.0 + 1e-9}` are different even with `objects_are_allclose`
 - Any other type, for example `str`, `bytes`, `range`, `datetime.datetime` or `decimal.Decimal`:
   compared with `==`, so the tolerance and `equal_nan` are ignored, and the result is what the
   type's `__eq__` returns. If `==` raises a `TypeError` or a `ValueError`, or does not return a

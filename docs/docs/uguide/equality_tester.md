@@ -104,8 +104,8 @@ correctly.
 
 #### `SetEqualityTester`
 
-Handles `set` and `frozenset`. Unlike `==`, the elements are matched with the registry, so
-`equal_nan` and the tolerance apply to them:
+Handles `set` and `frozenset`. Unlike `==`, the elements are matched by hash and type, so
+`equal_nan` applies to them (the tolerance does not):
 
 ```pycon
 >>> from coola.equality.config import EqualityConfig

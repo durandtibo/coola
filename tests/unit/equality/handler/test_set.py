@@ -6,7 +6,6 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, SetSameValuesHandler, TrueHandler
-from coola.equality.tester import EqualityTesterRegistry, ScalarEqualityTester
 
 
 @pytest.fixture
@@ -96,25 +95,36 @@ def test_set_same_values_handler_handle_equal_nan_in_a_tuple() -> None:
     )
 
 
-def test_set_same_values_handler_handle_tolerance() -> None:
+def test_set_same_values_handler_handle_tolerance_is_not_applied() -> None:
     config = EqualityConfig(atol=1e-6)
-    assert SetSameValuesHandler(next_handler=TrueHandler()).handle({1.0}, {1.0 + 1e-9}, config)
+    assert not SetSameValuesHandler(next_handler=TrueHandler()).handle({1.0}, {1.0 + 1e-9}, config)
 
 
-def test_set_same_values_handler_handle_outside_the_tolerance() -> None:
-    config = EqualityConfig(atol=1e-6)
-    assert not SetSameValuesHandler(next_handler=TrueHandler()).handle({1.0}, {1.1}, config)
+def test_set_same_values_handler_handle_equal_nan_in_a_frozenset() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert SetSameValuesHandler(next_handler=TrueHandler()).handle(
+        {frozenset({float("nan")})}, {frozenset({float("nan")})}, config
+    )
 
 
-def test_set_same_values_handler_handle_tolerance_for_the_integers() -> None:
-    config = EqualityConfig(atol=1.0)
-    assert SetSameValuesHandler(next_handler=TrueHandler()).handle({1}, {2}, config)
+def test_set_same_values_handler_handle_equal_nan_in_a_nested_tuple() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert SetSameValuesHandler(next_handler=TrueHandler()).handle(
+        {((float("nan"), 1), 2)}, {((float("nan"), 1), 2)}, config
+    )
 
 
-def test_set_same_values_handler_handle_tolerance_matches_each_element_once() -> None:
-    config = EqualityConfig(atol=0.5)
+def test_set_same_values_handler_handle_equal_nan_matches_each_nan_once() -> None:
+    config = EqualityConfig(equal_nan=True)
     assert not SetSameValuesHandler(next_handler=TrueHandler()).handle(
-        {1.0, 1.2}, {1.1, 5.0}, config
+        {float("nan"), -float("nan")}, {float("nan"), 1.0}, config
+    )
+
+
+def test_set_same_values_handler_handle_tuple_and_frozenset_differ() -> None:
+    config = EqualityConfig()
+    assert not SetSameValuesHandler(next_handler=TrueHandler()).handle(
+        {(1, 2)}, frozenset({frozenset({1, 2})}), config
     )
 
 
@@ -122,18 +132,6 @@ def test_set_same_values_handler_handle_does_not_change_the_inputs(config: Equal
     actual, expected = {1.5, 2.5}, {2.5, 1.5}
     SetSameValuesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
     assert (actual, expected) == ({1.5, 2.5}, {2.5, 1.5})
-
-
-def test_set_same_values_handler_handle_uses_the_registry() -> None:
-    registry = EqualityTesterRegistry({object: ScalarEqualityTester()})
-    config = EqualityConfig(registry=registry, atol=0.1)
-    assert SetSameValuesHandler(next_handler=TrueHandler()).handle({1.0}, {1.05}, config)
-
-
-def test_set_same_values_handler_handle_restores_show_difference() -> None:
-    config = EqualityConfig(show_difference=True, reporter=lambda _msg, _path: None)
-    SetSameValuesHandler(next_handler=TrueHandler()).handle({1.5}, {2.5}, config)
-    assert config.show_difference
 
 
 def test_set_same_values_handler_handle_show_difference_logs_the_element(

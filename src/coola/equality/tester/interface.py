@@ -184,7 +184,7 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         list: sequence,
         tuple: sequence,
         Sequence: sequence,
-        # Sets - the elements are matched with the registry (equal_nan and tolerance apply)
+        # Sets - the elements are matched by hash and type (equal_nan applies, the tolerance does not)
         set: set_tester,
         frozenset: set_tester,
         # The values of a dict have no ``__eq__``: they are compared in the order of the dict

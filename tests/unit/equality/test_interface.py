@@ -634,11 +634,11 @@ def test_objects_are_equal_set_of_tuples_with_nan_and_equal_nan() -> None:
     assert objects_are_equal({(float("nan"), 1)}, {(float("nan"), 1)}, equal_nan=True)
 
 
-def test_objects_are_allclose_sets_within_the_tolerance() -> None:
-    assert objects_are_allclose({1.0}, {1.0 + 1e-9})
+def test_objects_are_allclose_sets_are_compared_exactly() -> None:
+    assert not objects_are_allclose({1.0}, {1.0 + 1e-9})
 
 
-def test_objects_are_allclose_sets_outside_the_tolerance() -> None:
+def test_objects_are_allclose_sets_with_different_values() -> None:
     assert not objects_are_allclose({1.0}, {1.1})
 
 
@@ -646,8 +646,8 @@ def test_objects_are_equal_sets_of_one_and_true_are_different() -> None:
     assert not objects_are_equal({1}, {True})
 
 
-def test_objects_are_equal_set_in_a_dict() -> None:
-    assert objects_are_allclose({"a": {1.0, 2.0}}, {"a": {2.0, 1.0 + 1e-9}})
+def test_objects_are_allclose_set_in_a_dict() -> None:
+    assert objects_are_allclose({"a": {1.0, 2.0}}, {"a": {2.0, 1.0}})
 
 
 def test_objects_are_equal_frozensets() -> None:

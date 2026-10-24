@@ -255,8 +255,8 @@ False
 
 #### `SetSameValuesHandler`
 
-Matches each element of the first set with an element of the second set through the registry (so
-`equal_nan` and the tolerance apply):
+Matches the elements of the two sets by hash and type (so `equal_nan` applies, but the tolerance
+does not):
 
 ```pycon
 >>> from coola.equality.config import EqualityConfig

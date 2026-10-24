@@ -196,13 +196,13 @@ class SetEqualityTester(BaseChainEqualityTester[AbstractSet[Any]]):
     r"""Implement a set equality tester.
 
     This tester handles ``set`` and ``frozenset``. Unlike ``==``, the
-    elements are compared with the registry, so ``equal_nan`` and the
-    tolerance apply to them. The handler chain:
+    elements are matched by hash and type, so ``equal_nan`` applies to
+    them (the tolerance does not). The handler chain:
     1. SameObjectHandler: Check for object identity
     2. SameTypeHandler: Verify same type
     3. SameLengthHandler: Check both sets have same length
-    4. SetSameValuesHandler: Match each element of the first set with
-       an element of the second set, using the registry
+    4. SetSameValuesHandler: Match the elements of the two sets by
+       hash and type
     5. TrueHandler: Return True if all checks pass
 
     Example:
