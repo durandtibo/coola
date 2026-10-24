@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from coola.identifier import fork
-from coola.identifier.fork import track_fork
+from coola.utils import fork
+from coola.utils.fork import track_fork
 
 
 class Resettable:

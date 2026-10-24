@@ -85,6 +85,49 @@ def test_hash_numpy_array_negative_zero() -> None:
 
 
 @numpy_available
+def test_hash_numpy_structured_array_equal_arrays() -> None:
+    dtype = [("a", "f8"), ("b", "i4")]
+    assert hash_object(np.zeros(2, dtype=dtype)) == hash_object(np.zeros(2, dtype=dtype))
+
+
+@numpy_available
+def test_hash_numpy_structured_array_different_field_names() -> None:
+    assert hash_object(np.zeros(2, dtype=[("a", "f8")])) != hash_object(
+        np.zeros(2, dtype=[("b", "f8")])
+    )
+
+
+@numpy_available
+def test_hash_numpy_structured_array_different_field_types() -> None:
+    assert hash_object(np.zeros(2, dtype=[("a", "f8")])) != hash_object(
+        np.zeros(2, dtype=[("a", "i8")])
+    )
+
+
+@numpy_available
+def test_hash_numpy_structured_array_different_values() -> None:
+    dtype = [("a", "f8")]
+    assert hash_object(np.zeros(2, dtype=dtype)) != hash_object(np.ones(2, dtype=dtype))
+
+
+@numpy_available
+def test_hash_numpy_structured_array_negative_zero_in_a_field() -> None:
+    dtype = [("a", "f8"), ("b", "i4")]
+    assert hash_object(np.array([(-0.0, 1)], dtype=dtype)) == hash_object(
+        np.array([(0.0, 1)], dtype=dtype)
+    )
+
+
+@numpy_available
+def test_hash_numpy_structured_array_negative_zero_in_a_nested_field() -> None:
+    dtype = [("p", [("x", "f4")]), ("q", "f8", (2,))]
+    first, second = np.zeros(1, dtype=dtype), np.zeros(1, dtype=dtype)
+    first["p"]["x"] = -0.0
+    first["q"] = -0.0
+    assert hash_object(first) == hash_object(second)
+
+
+@numpy_available
 def test_hash_numpy_array_nan_sign() -> None:
     assert hash_object(np.array([np.nan])) == hash_object(np.array([-np.nan]))
 
@@ -102,6 +145,17 @@ def test_hash_numpy_array_float32_nan_sign() -> None:
 
 
 @numpy_available
+def test_hash_numpy_structured_array_does_not_modify_the_input() -> None:
+    array = np.array([(-0.0, 1)], dtype=[("a", "f8"), ("b", "i4")])
+    hash_object(array)
+    assert str(array["a"][0]) == "-0.0"
+
+
+@numpy_available
+def test_hash_numpy_void_array_different_sizes() -> None:
+    assert hash_object(np.zeros(2, dtype="V8")) != hash_object(np.zeros(2, dtype="V4"))
+
+
 def test_hash_numpy_array_nan_differs_from_a_number() -> None:
     assert hash_object(np.array([np.nan])) != hash_object(np.array([0.0]))
 
@@ -311,6 +365,100 @@ def test_hash_pandas_series_differs_by_dtype() -> None:
 
 
 @pandas_available
+def test_hash_pandas_dataframe_differs_by_index_name() -> None:
+    frame = pd.DataFrame({"a": [1, 2]}, index=pd.Index([0, 1], name="x"))
+    assert hash_object(frame) != hash_object(frame.rename_axis(index="y"))
+
+
+@pandas_available
+def test_hash_pandas_dataframe_differs_by_columns_name() -> None:
+    frame = pd.DataFrame({"a": [1, 2]}).rename_axis(columns="x")
+    assert hash_object(frame) != hash_object(frame.rename_axis(columns="y"))
+
+
+@pandas_available
+def test_hash_pandas_dataframe_index_without_name_equals_a_copy() -> None:
+    frame = pd.DataFrame({"a": [1, 2]})
+    assert hash_object(frame) == hash_object(frame.copy())
+
+
+@pandas_available
+def test_hash_pandas_dataframe_differs_by_index_dtype() -> None:
+    frame = pd.DataFrame({"a": [1, 2]}, index=pd.Index([0, 1], dtype="int64"))
+    assert hash_object(frame) != hash_object(frame.set_axis(pd.Index([0, 1], dtype="int32")))
+
+
+@pandas_available
+def test_hash_pandas_dataframe_multiindex_equal_frames() -> None:
+    index = pd.MultiIndex.from_tuples([(1, "a"), (2, "b")], names=["p", "q"])
+    frame = pd.DataFrame({"v": [1, 2]}, index=index)
+    assert hash_object(frame) == hash_object(frame.copy())
+
+
+@pandas_available
+def test_hash_pandas_dataframe_multiindex_differs_by_level_name() -> None:
+    index = pd.MultiIndex.from_tuples([(1, "a"), (2, "b")], names=["p", "q"])
+    frame = pd.DataFrame({"v": [1, 2]}, index=index)
+    assert hash_object(frame) != hash_object(frame.rename_axis(index=["p", "r"]))
+
+
+@pandas_available
+def test_hash_pandas_dataframe_multiindex_differs_by_values() -> None:
+    first = pd.MultiIndex.from_tuples([(1, "a"), (2, "b")])
+    second = pd.MultiIndex.from_tuples([(1, "a"), (2, "c")])
+    assert hash_object(pd.DataFrame({"v": [1, 2]}, index=first)) != hash_object(
+        pd.DataFrame({"v": [1, 2]}, index=second)
+    )
+
+
+@pandas_available
+def test_hash_pandas_series_differs_by_index_name() -> None:
+    series = pd.Series([1, 2], index=pd.Index([0, 1], name="x"))
+    assert hash_object(series) != hash_object(series.rename_axis("y"))
+
+
+@pandas_available
+def test_hash_pandas_series_categorical_equal_series() -> None:
+    series = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b"]))
+    assert hash_object(series) == hash_object(series.copy())
+
+
+@pandas_available
+def test_hash_pandas_series_categorical_differs_by_categories() -> None:
+    first = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b"]))
+    second = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b", "c"]))
+    assert hash_object(first) != hash_object(second)
+
+
+@pandas_available
+def test_hash_pandas_series_categorical_differs_by_order_of_categories() -> None:
+    first = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b"]))
+    second = pd.Series(pd.Categorical(["a", "b"], categories=["b", "a"]))
+    assert hash_object(first) != hash_object(second)
+
+
+@pandas_available
+def test_hash_pandas_series_categorical_differs_by_ordered() -> None:
+    first = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b"], ordered=False))
+    second = pd.Series(pd.Categorical(["a", "b"], categories=["a", "b"], ordered=True))
+    assert hash_object(first) != hash_object(second)
+
+
+@pandas_available
+def test_hash_pandas_dataframe_categorical_column_differs_by_categories() -> None:
+    first = pd.DataFrame({"a": pd.Categorical(["a", "b"], categories=["a", "b"])})
+    second = pd.DataFrame({"a": pd.Categorical(["a", "b"], categories=["a", "b", "c"])})
+    assert hash_object(first) != hash_object(second)
+
+
+@pandas_available
+def test_hash_pandas_series_categorical_index_differs_by_categories() -> None:
+    first = pd.Series([1, 2], index=pd.CategoricalIndex(["a", "b"], categories=["a", "b"]))
+    second = pd.Series([1, 2], index=pd.CategoricalIndex(["a", "b"], categories=["a", "b", "c"]))
+    assert hash_object(first) != hash_object(second)
+
+
+@pandas_available
 def test_hash_pandas_series_nan_sign() -> None:
     assert hash_object(pd.Series([np.nan])) == hash_object(pd.Series([-np.nan]))
 
@@ -427,3 +575,50 @@ def test_hash_xarray_variable_equal() -> None:
 def test_hash_xarray_variable_differs_by_data() -> None:
     array = xr.DataArray([1, 2], dims=["x"], coords={"x": [0, 1]}, name="n")
     assert hash_object(array.variable) != hash_object(array.variable.copy(data=[1, 3]))
+
+
+@jax_available
+@numpy_available
+@pytest.mark.parametrize("dtype", ["bfloat16", "float8_e4m3fn", "float8_e5m2"])
+def test_hash_numpy_ml_dtypes_negative_zero(dtype: str) -> None:
+    dtype = getattr(jnp, dtype)
+    assert hash_object(np.array([0.0], dtype=dtype)) == hash_object(np.array([-0.0], dtype=dtype))
+
+
+@jax_available
+@numpy_available
+@pytest.mark.parametrize("dtype", ["bfloat16", "float8_e4m3fn", "float8_e5m2"])
+def test_hash_numpy_ml_dtypes_nan_sign(dtype: str) -> None:
+    nan = np.array([np.nan], dtype=getattr(jnp, dtype))
+    assert hash_object(nan) == hash_object(-nan)
+
+
+@jax_available
+@numpy_available
+def test_hash_numpy_ml_dtypes_differs_by_value() -> None:
+    assert hash_object(np.array([1.0], dtype=jnp.bfloat16)) != hash_object(
+        np.array([2.0], dtype=jnp.bfloat16)
+    )
+
+
+@jax_available
+@numpy_available
+def test_hash_numpy_ml_dtypes_differs_by_dtype() -> None:
+    assert hash_object(np.array([1.0], dtype=jnp.bfloat16)) != hash_object(
+        np.array([1.0], dtype=jnp.float8_e4m3fn)
+    )
+
+
+@jax_available
+@numpy_available
+def test_hash_numpy_ml_dtypes_int4_equal_arrays() -> None:
+    assert hash_object(np.array([1, 2], dtype=jnp.int4)) == hash_object(
+        np.array([1, 2], dtype=jnp.int4)
+    )
+
+
+@jax_available
+def test_hash_jax_bfloat16_negative_zero() -> None:
+    assert hash_object(jnp.array([0.0], dtype=jnp.bfloat16)) == hash_object(
+        jnp.array([-0.0], dtype=jnp.bfloat16)
+    )

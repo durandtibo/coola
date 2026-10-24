@@ -4,10 +4,20 @@ import re
 
 import pytest
 
-from coola.hashing import HasherRegistry, ReprHasher, StringHasher, interface as hashing_interface
+from coola.hashing import (
+    HasherRegistry,
+    ReprHasher,
+    StringHasher,
+    interface as hashing_interface,
+    register_hashers,
+)
 from coola.identifier.content import generate_stable_content_id
 
 HEX_PATTERN = re.compile(r"^[0-9a-f]+$")
+
+
+class MyInt(int):
+    pass
 
 
 ################################################
@@ -100,3 +110,20 @@ def test_generate_stable_content_id_does_not_mutate_default_registry_when_custom
 def test_generate_stable_content_id_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
         generate_stable_content_id({"a": 1}, 32)  # type: ignore[misc]
+
+
+def test_generate_stable_content_id_golden_vector() -> None:
+    assert generate_stable_content_id({"a": [1, 2]}, length=16) == "5a7a714bd5501390"
+
+
+def test_generate_stable_content_id_ignores_hashers_registered_in_default_registry() -> None:
+    expected = generate_stable_content_id(MyInt(1))
+    register_hashers({MyInt: StringHasher()})
+    assert generate_stable_content_id(MyInt(1)) == expected
+
+
+def test_generate_stable_content_id_differs_with_a_custom_registry() -> None:
+    registry = HasherRegistry({object: ReprHasher()})
+    assert generate_stable_content_id("meow", registry=registry) != generate_stable_content_id(
+        "meow"
+    )

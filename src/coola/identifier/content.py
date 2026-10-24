@@ -15,7 +15,7 @@ __all__ = ["generate_stable_content_id"]
 
 from typing import TYPE_CHECKING
 
-from coola.hashing import hash_object
+from coola.hashing import get_stable_registry, hash_object
 
 if TYPE_CHECKING:
     from coola.hashing import HasherRegistry
@@ -42,7 +42,10 @@ def generate_stable_content_id(
             structure such as a ``list``, ``dict``, or ``tuple``.
         registry: The registry used to resolve hashers for each data
             type, forwarded to ``hash_object``. If ``None``, the
-            default registry is used.
+            stable registry (``get_stable_registry``) is used: it has
+            only the built-in hashers, so the identifier does not
+            depend on the installed plugins or on ``register_hashers``.
+            Passing another registry opts out of this stability.
         length: The desired length of the returned hex string,
             forwarded to ``hash_object``. Must be an even number
             between 2 and 128 inclusive. Defaults to ``64``.
@@ -72,4 +75,6 @@ def generate_stable_content_id(
 
         ```
     """
+    if registry is None:
+        registry = get_stable_registry()
     return hash_object(data, registry=registry, length=length, ignore_unhashable=ignore_unhashable)

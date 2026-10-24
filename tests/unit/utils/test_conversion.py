@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import datetime
 import json
+import threading
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
@@ -229,6 +230,28 @@ def test_to_json_dataclass_with_tuple_and_set_fields() -> None:
 
     result = to_jsonable(Container(values=(1, (2, 3)), unique={4}, nested={"a": (5,)}))
     assert result == {"values": [1, [2, 3]], "unique": [4], "nested": {"a": [5]}}
+
+
+class NoCopy:
+    def __deepcopy__(self, memo: dict) -> None:
+        msg = "must not be copied"
+        raise TypeError(msg)
+
+
+def test_to_json_dataclass_does_not_copy_the_fields() -> None:
+    """A field that cannot be copied (for example a lock) must not make
+    the conversion fail."""
+    obj = NoCopy()
+    assert to_jsonable(Wrapper(value=obj))["value"] is obj
+
+
+def test_to_json_dataclass_does_not_copy_the_nested_fields() -> None:
+    obj = NoCopy()
+    assert to_jsonable(Wrapper(value=Wrapper(value=obj)))["value"]["value"] is obj
+
+
+def test_to_json_dataclass_with_lock() -> None:
+    assert set(to_jsonable(Wrapper(value=threading.Lock()))) == {"value"}
 
 
 def test_to_jsonable_bytes() -> None:

@@ -9,13 +9,19 @@ from __future__ import annotations
 
 __all__ = ["TransformerRegistry"]
 
+import threading
 from typing import TYPE_CHECKING, Any
 
 from coola.recursive.base import Transformer
 from coola.registry import BaseTypeDispatchRegistry
+from coola.utils.recursion import raise_recursion_limit_error
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+# The ids of the containers that are being transformed by the current thread (the path to the
+# object being transformed), to detect a container that contains itself.
+_state = threading.local()
 
 
 class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
@@ -135,7 +141,7 @@ class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
 
             ```
         """
-        return self.find(data_type)
+        return self._find_with_dataclass_marker(data_type)
 
     def transform(self, data: object, func: Callable[[Any], Any]) -> Any:
         """Transform data by applying a function recursively through the
@@ -161,6 +167,16 @@ class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
             The transformed data, with the same structure as the input but
             with leaf values transformed by ``func``.
 
+        Raises:
+            ValueError: If a container contains itself, directly or
+                through other containers (a cycle), and its
+                transformer transforms the children with
+                ``registry.transform`` (as the built-in transformers
+                do).
+            RecursionError: If the structure is nested so deeply that
+                the Python recursion limit is exceeded (each nesting
+                level uses a few interpreter frames).
+
         Example:
             Converting all numbers to strings in a nested structure:
 
@@ -185,4 +201,19 @@ class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
             ```
         """
         transformer = self.find_transformer(type(data))
-        return transformer.transform(data, func, self)
+        active: set[int] | None = getattr(_state, "active", None)
+        if active is None:
+            active = _state.active = set()
+        key = id(data)
+        if key in active:
+            msg = f"Cycle detected: an object of type {type(data)} contains itself"
+            raise ValueError(msg)
+        active.add(key)
+        try:
+            return transformer.transform(data, func, self)
+        except RecursionError as exc:
+            if len(active) > 1:  # only the outermost call reports the error
+                raise
+            raise_recursion_limit_error("transforming", exc)
+        finally:
+            active.discard(key)

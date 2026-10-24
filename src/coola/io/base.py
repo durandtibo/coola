@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.factory import is_object_config, resolve_object
 from coola.io.utils import add_uuid_suffix
+from coola.utils.fork import track_fork
 from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
@@ -46,6 +47,24 @@ logger: logging.Logger = logging.getLogger(__name__)
 # per distinct path saved over the lifetime of the process.
 _SAVE_LOCKS_GUARD = threading.Lock()
 _SAVE_LOCKS: weakref.WeakValueDictionary[str, threading.Lock] = weakref.WeakValueDictionary()
+
+
+class _SaveLocksResetter:
+    r"""Recreate the locks of ``save`` in a forked child process.
+
+    A lock held by a thread of the parent at the time of the fork stays
+    locked forever in the child, because the owner does not exist
+    there.
+    """
+
+    def _reset_after_fork(self) -> None:
+        global _SAVE_LOCKS_GUARD  # noqa: PLW0603
+        _SAVE_LOCKS_GUARD = threading.Lock()
+        _SAVE_LOCKS.clear()
+
+
+_SAVE_LOCKS_RESETTER = _SaveLocksResetter()
+track_fork(_SAVE_LOCKS_RESETTER)
 
 # Default timeout/poll interval for the cross-process file lock acquired by
 # ``_save_lock`` below.
@@ -469,6 +488,7 @@ class BaseFileSaver(BaseSaver[T]):
         *,
         exist_ok: bool = False,
         fsync: bool = False,
+        lock: bool = True,
     ) -> None:
         r"""Save the data into the given path.
 
@@ -523,6 +543,20 @@ class BaseFileSaver(BaseSaver[T]):
                 machine crashes right after the call. This is fine for
                 caches and most logs.
 
+            lock: If ``True`` (the default), concurrent saves to the same
+                path are serialized (see ``exist_ok``). If ``False``, no
+                lock is taken and no ``.lock`` file is created: the data
+                is still written to a temporary file and committed
+                atomically (``os.link`` or ``replace``), so a reader never
+                sees a partial file and ``exist_ok=False`` still fails if
+                the file exists, but two concurrent writers of the same
+                path are not serialized and the last commit wins. Use it
+                for batch jobs that write many distinct files: the lock
+                makes a save about 8 times slower than a plain write. The
+                lock file protocol relies on ``O_EXCL``, which is
+                unreliable on some network filesystems (for example old
+                NFS versions).
+
         Note:
             The caller needs write access to the *directory* of
             ``path``, not only to the file: the data is first written
@@ -572,7 +606,7 @@ class BaseFileSaver(BaseSaver[T]):
         # ``os.link``/``replace`` landing after call B's, silently
         # discarding whichever of A's or B's data lost the race in a
         # non-deterministic, hard-to-reproduce way.
-        with _save_lock(path):
+        with _save_lock(path) if lock else contextlib.nullcontext():
             # Save to tmp, then commit by moving the file in case the job
             # gets interrupted while writing the file.
             tmp_path = _tmp_path(path)
@@ -658,7 +692,10 @@ class BaseFileSaver(BaseSaver[T]):
 
 
 def is_loader_config(
-    config: dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+    config: dict[Any, Any],
+    *,
+    allowed_prefixes: Sequence[str] | None = None,
+    import_target: bool = False,
 ) -> bool:
     r"""Indicate if the input configuration is a configuration for a
     ``BaseLoader``.
@@ -673,13 +710,20 @@ def is_loader_config(
         allowed_prefixes: An optional allow-list of module prefixes that
             the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
             ``None`` (default), any ``"_target_"`` is allowed.
+        import_target: If ``True``, the module of ``"_target_"`` is
+            imported if it is not imported yet, even without
+            ``allowed_prefixes``. By default, a ``"_target_"`` whose
+            module is not imported yet and that is not restricted by
+            ``allowed_prefixes`` is not a configuration for a
+            ``BaseLoader`` (see ``coola.factory.is_object_config``).
 
     Returns:
         ``True`` if the input configuration is a configuration for a
             ``BaseLoader`` object.
 
     Security:
-        The ``"_target_"`` is imported to check its class: see
+        The module of the ``"_target_"`` is imported to check its class
+        only with ``allowed_prefixes`` or ``import_target=True``: see
         ``coola.factory.is_object_config``.
 
     Example:
@@ -690,11 +734,16 @@ def is_loader_config(
 
         ```
     """
-    return is_object_config(config, BaseLoader, allowed_prefixes=allowed_prefixes)
+    return is_object_config(
+        config, BaseLoader, allowed_prefixes=allowed_prefixes, import_target=import_target
+    )
 
 
 def is_saver_config(
-    config: dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+    config: dict[Any, Any],
+    *,
+    allowed_prefixes: Sequence[str] | None = None,
+    import_target: bool = False,
 ) -> bool:
     r"""Indicate if the input configuration is a configuration for a
     ``BaseSaver``.
@@ -709,13 +758,20 @@ def is_saver_config(
         allowed_prefixes: An optional allow-list of module prefixes that
             the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
             ``None`` (default), any ``"_target_"`` is allowed.
+        import_target: If ``True``, the module of ``"_target_"`` is
+            imported if it is not imported yet, even without
+            ``allowed_prefixes``. By default, a ``"_target_"`` whose
+            module is not imported yet and that is not restricted by
+            ``allowed_prefixes`` is not a configuration for a
+            ``BaseSaver`` (see ``coola.factory.is_object_config``).
 
     Returns:
         ``True`` if the input configuration is a configuration for a
             ``BaseSaver`` object.
 
     Security:
-        The ``"_target_"`` is imported to check its class: see
+        The module of the ``"_target_"`` is imported to check its class
+        only with ``allowed_prefixes`` or ``import_target=True``: see
         ``coola.factory.is_object_config``.
 
     Example:
@@ -726,7 +782,9 @@ def is_saver_config(
 
         ```
     """
-    return is_object_config(config, BaseSaver, allowed_prefixes=allowed_prefixes)
+    return is_object_config(
+        config, BaseSaver, allowed_prefixes=allowed_prefixes, import_target=import_target
+    )
 
 
 def resolve_loader(

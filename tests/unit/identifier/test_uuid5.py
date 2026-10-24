@@ -11,8 +11,14 @@ from coola.hashing import (
     StringHasher,
     hash_object,
     interface as hashing_interface,
+    register_hashers,
 )
 from coola.identifier.uuid5 import _NAMESPACE, generate_stable_uuid5
+
+
+class MyInt(int):
+    pass
+
 
 UUID_PATTERN = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
@@ -167,3 +173,13 @@ def test_generate_stable_uuid5_same_data_different_namespace_matches_manual_uuid
 def test_generate_stable_uuid5_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
         generate_stable_uuid5({"a": 1}, None)  # type: ignore[misc]
+
+
+def test_generate_stable_uuid5_golden_vector() -> None:
+    assert generate_stable_uuid5({"a": [1, 2]}) == "b0c09eff-b68b-546c-838a-56952e4c79a7"
+
+
+def test_generate_stable_uuid5_ignores_hashers_registered_in_default_registry() -> None:
+    expected = generate_stable_uuid5(MyInt(1))
+    register_hashers({MyInt: StringHasher()})
+    assert generate_stable_uuid5(MyInt(1)) == expected

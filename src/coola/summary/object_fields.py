@@ -22,8 +22,8 @@ T = TypeVar("T")
 
 
 class BaseObjectFieldsSummarizer(InlineDisplayMixin, BaseSummarizer[T]):
-    r"""Define the base class of the summarizers of the objects that
-    have named fields.
+    r"""Define the base class of the summarizers of the objects that have
+    named fields.
 
     The fields are summarized with the registry, so a field can be an
     array, a data frame, another dataclass, and so on, and ``max_depth``

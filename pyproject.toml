@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling >= 1.32", "hatchling-autoextras-hook>=0.1.3"]
+requires = ["hatchling>=1.32.4", "hatchling-autoextras-hook>=0.1.3"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
@@ -80,7 +80,7 @@ rich = ["rich>=14.0.0,<16.0"]
 [dependency-groups]
 
 dev = [
-  "coverage[toml]>=7.15,<8.0",
+  "coverage[toml]>=7.16.2,<8.0",
   "docformatter>=1.7.8,<2.0",
   "feu[all]>=0.8.4,<1.0",
   "import-linter>=2.0,<3.0; python_full_version >= '3.14'",
@@ -100,7 +100,7 @@ dev = [
 docs = [
   "mike >=2.2,<3.0",
   "mkdocs-material >=9.7,<10.0",
-  "mkdocstrings[python]>=1.0,<2.0",
+  "mkdocstrings[python]>=1.0.7,<2.0",
   "mkdocs-include-markdown-plugin >=7.3,<8.0",
 ]
 

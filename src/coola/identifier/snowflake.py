@@ -22,8 +22,8 @@ import secrets
 import threading
 import time
 
-from coola.identifier.fork import track_fork
 from coola.identifier.validation import validate_bit_range
+from coola.utils.fork import track_fork
 from coola.utils.singleton import LazySingleton
 
 # Sleep briefly between spins while waiting for the next millisecond, to

@@ -340,3 +340,48 @@ def test_set_summarizer_summarize_depth_limit_preview_keeps_the_type(
 ) -> None:
     result = SetSummarizer(max_items=2).summarize(data, registry, depth=1, max_depth=1)
     assert result == expected
+
+
+def test_set_summarizer_summarize_shows_the_smallest_items(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer(max_items=2).summarize({5, 3, 9, 1, 7}, registry)
+    assert result == "<class 'set'> (length=5)\n  (0): 1\n  (1): 3\n  ..."
+
+
+def test_set_summarizer_summarize_sorts_the_strings(registry: SummarizerRegistry) -> None:
+    result = SetSummarizer().summarize({"b", "c", "a"}, registry)
+    assert result == ("<class 'set'> (length=3)\n  (0): a\n  (1): b\n  (2): c")
+
+
+def test_set_summarizer_summarize_max_items_negative_sorts_all_the_items(
+    registry: SummarizerRegistry,
+) -> None:
+    result = SetSummarizer(max_items=-1).summarize({3, 1, 2}, registry)
+    assert result == ("<class 'set'> (length=3)\n  (0): 1\n  (1): 2\n  (2): 3")
+
+
+def test_set_summarizer_summarize_items_that_cannot_be_compared(
+    registry: SummarizerRegistry,
+) -> None:
+    result = SetSummarizer(max_items=1).summarize({1, "a"}, registry)
+    assert result.count("\n  (") == 1
+
+
+def test_set_summarizer_summarize_items_that_cannot_be_compared_negative_max_items(
+    registry: SummarizerRegistry,
+) -> None:
+    result = SetSummarizer(max_items=-1).summarize({1, "a"}, registry)
+    assert result.count("\n  (") == 2
+
+
+def test_set_summarizer_summarize_depth_limit_preview_uses_the_smallest_items(
+    registry: SummarizerRegistry,
+) -> None:
+    result = SetSummarizer(max_items=2).summarize({4, 2, 3, 1}, registry, depth=1, max_depth=1)
+    assert result == "{1, 2} ..."
+
+
+def test_set_summarizer_summarize_depth_limit_preview_items_that_cannot_be_compared(
+    registry: SummarizerRegistry,
+) -> None:
+    result = SetSummarizer(max_items=1).summarize({1, "a"}, registry, depth=1, max_depth=1)
+    assert result.endswith("} ...")

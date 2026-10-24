@@ -12,11 +12,14 @@ __all__ = [
 
 from typing import TYPE_CHECKING, Any
 
+from coola.iterator.bfs.dataclass import DataclassChildFinder
 from coola.iterator.bfs.default import DefaultChildFinder
 from coola.iterator.bfs.iterable import IterableChildFinder
 from coola.iterator.bfs.mapping import MappingChildFinder
 from coola.iterator.bfs.registry import ChildFinderRegistry
 from coola.iterator.bootstrap import register_default_handlers
+from coola.registry import DataclassMarker
+from coola.utils.deprecation import deprecate_positional_options
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -25,13 +28,17 @@ if TYPE_CHECKING:
     from coola.iterator.bfs import BaseChildFinder
 
 
-def bfs_iterate(data: object, registry: ChildFinderRegistry | None = None) -> Iterator[Any]:
+@deprecate_positional_options("registry")
+def bfs_iterate(data: object, *, registry: ChildFinderRegistry | None = None) -> Iterator[Any]:
     """Perform Breadth-First Search (BFS) iteration over nested data
     structures (lists, dicts, tuples, sets, etc.).
 
     This function yields elements from the data structure in a BFS manner, recursively
     traversing all levels of nested structures. It uses the appropriate child finders registered
     for the data types (e.g., lists, dictionaries, etc.).
+
+    The ``registry`` option must be passed by keyword. Passing it as a positional argument is
+    deprecated and emits a ``DeprecationWarning``.
 
     Args:
         data: The nested data structure to traverse. Can be a list, tuple, dict, set, or any
@@ -85,6 +92,51 @@ def register_child_finders(
         ```
     """
     get_default_registry().register_many(mapping, exist_ok=exist_ok)
+
+
+def enter_dataclasses(*, registry: ChildFinderRegistry | None = None) -> None:
+    """Make ``bfs_iterate`` enter the dataclass instances.
+
+    By default, a dataclass instance is a leaf: ``bfs_iterate`` yields
+    the whole object, unlike ``objects_are_equal``, ``hash_object`` and
+    ``summarize``, which enter it. After this function, ``bfs_iterate``
+    visits the values of the fields (see ``DataclassChildFinder``). It
+    is opt-in so that the default behavior does not change. A child
+    finder registered for the type of the dataclass has priority.
+
+    Args:
+        registry: The registry to change. If ``None``, the default
+            registry is used.
+
+    Example:
+        ```pycon
+        >>> from dataclasses import dataclass
+        >>> from coola.iterator.bfs import (
+        ...     ChildFinderRegistry,
+        ...     DefaultChildFinder,
+        ...     IterableChildFinder,
+        ...     bfs_iterate,
+        ...     enter_dataclasses,
+        ... )
+        >>> @dataclass
+        ... class Config:
+        ...     lr: float
+        ...     layers: list
+        ...
+        >>> registry = ChildFinderRegistry(
+        ...     {object: DefaultChildFinder(), list: IterableChildFinder()}
+        ... )
+        >>> len(list(bfs_iterate(Config(0.1, [1, 2]), registry=registry)))
+        1
+        >>> enter_dataclasses(registry=registry)
+        >>> list(bfs_iterate(Config(0.1, [1, 2]), registry=registry))
+        [0.1, 1, 2]
+
+        ```
+    """
+    if registry is None:
+        registry = get_default_registry()
+    registry.register(DataclassMarker, DataclassChildFinder(), exist_ok=True)
 
 
 def get_default_registry() -> ChildFinderRegistry:

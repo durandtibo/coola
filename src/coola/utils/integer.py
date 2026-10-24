@@ -4,17 +4,31 @@ from __future__ import annotations
 
 __all__ = ["int_repr"]
 
+from decimal import Decimal
+
+# The default limit of the int-to-str conversion of CPython. It is a constant
+# here (not ``sys.get_int_max_str_digits()``) so that the representation of an
+# integer does not depend on the setting of the interpreter.
+_MAX_DECIMAL_DIGITS = 4300
+
+# An integer with more bits than this has more than ``_MAX_DECIMAL_DIGITS``
+# digits (2**15000 has 4515 digits).
+_MAX_DECIMAL_BITS = 15000
+
 
 def int_repr(value: int) -> str:
-    r"""Return the ``repr`` of an integer, in hexadecimal if it exceeds
-    the int-to-str conversion limit of the interpreter.
+    r"""Return the ``repr`` of an integer, in hexadecimal if it has more
+    than 4300 decimal digits.
+
+    The limit is fixed, so the result does not depend on
+    ``sys.set_int_max_str_digits`` or ``PYTHONINTMAXSTRDIGITS``.
 
     Args:
         value: The integer to convert.
 
     Returns:
         The decimal ``repr`` of ``value``, or ``0x...`` when it has
-            more digits than ``sys.get_int_max_str_digits()``.
+            more than 4300 digits.
 
     Example:
         ```pycon
@@ -26,7 +40,9 @@ def int_repr(value: int) -> str:
 
         ```
     """
-    try:
-        return int.__repr__(value)
-    except ValueError:  # more digits than ``sys.get_int_max_str_digits()``
-        return f"0x{value:x}"
+    if value.bit_length() <= _MAX_DECIMAL_BITS:
+        # ``Decimal`` is not subject to the limit of the interpreter
+        digits = str(Decimal(abs(value)))
+        if len(digits) <= _MAX_DECIMAL_DIGITS:
+            return f"-{digits}" if value < 0 else digits
+    return f"0x{value:x}"

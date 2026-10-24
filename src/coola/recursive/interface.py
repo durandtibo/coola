@@ -15,6 +15,7 @@ from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
 
+from coola.recursive.dataclass import DataclassTransformer
 from coola.recursive.default import (
     DefaultTransformer,
 )
@@ -22,6 +23,8 @@ from coola.recursive.mapping import MappingTransformer
 from coola.recursive.registry import TransformerRegistry
 from coola.recursive.sequence import SequenceTransformer
 from coola.recursive.set import SetTransformer
+from coola.registry import DataclassMarker
+from coola.utils.deprecation import deprecate_positional_options
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -30,10 +33,14 @@ if TYPE_CHECKING:
     from coola.recursive.base import Transformer
 
 
+@deprecate_positional_options("registry")
 def recursive_apply(
-    data: object, func: Callable[[Any], Any], registry: TransformerRegistry | None = None
+    data: object, func: Callable[[Any], Any], *, registry: TransformerRegistry | None = None
 ) -> Any:
     """Recursively transform nested data with a type-aware registry.
+
+    The ``registry`` option must be passed by keyword. Passing it as a
+    positional argument is deprecated and emits a ``DeprecationWarning``.
 
     Args:
         data: Input data, potentially containing nested containers.
@@ -50,7 +57,8 @@ def recursive_apply(
 
         The function is recursive: each nesting level uses a few Python frames, so a very
         deep structure (about a thousand levels) reaches the interpreter recursion limit and
-        raises a ``RecursionError``.
+        raises a ``RecursionError`` that explains how to fix it. A container that contains
+        itself raises a ``ValueError``.
 
     Example:
         ```pycon
@@ -103,6 +111,48 @@ def register_transformers(
         ```
     """
     get_default_registry().register_many(mapping, exist_ok=exist_ok)
+
+
+def enter_dataclasses(*, registry: TransformerRegistry | None = None) -> None:
+    """Make ``recursive_apply`` enter the dataclass instances.
+
+    By default, a dataclass instance is a leaf: ``recursive_apply``
+    calls the function on the whole object, unlike ``objects_are_equal``,
+    ``hash_object`` and ``summarize``, which enter it. After this
+    function, the fields of a dataclass are transformed and the instance
+    is rebuilt with ``dataclasses.replace`` (see ``DataclassTransformer``).
+    It is opt-in so that the default behavior does not change. A
+    transformer registered for the type of the dataclass has priority.
+
+    Args:
+        registry: The registry to change. If ``None``, the default
+            registry is used.
+
+    Example:
+        ```pycon
+        >>> from dataclasses import dataclass
+        >>> from coola.recursive import (
+        ...     DefaultTransformer,
+        ...     TransformerRegistry,
+        ...     enter_dataclasses,
+        ...     recursive_apply,
+        ... )
+        >>> @dataclass
+        ... class Config:
+        ...     lr: float
+        ...
+        >>> registry = TransformerRegistry({object: DefaultTransformer()})
+        >>> recursive_apply(Config(0.1), str, registry=registry)
+        'Config(lr=0.1)'
+        >>> enter_dataclasses(registry=registry)
+        >>> recursive_apply(Config(0.1), str, registry=registry)
+        Config(lr='0.1')
+
+        ```
+    """
+    if registry is None:
+        registry = get_default_registry()
+    registry.register(DataclassMarker, DataclassTransformer(), exist_ok=True)
 
 
 def get_default_registry() -> TransformerRegistry:

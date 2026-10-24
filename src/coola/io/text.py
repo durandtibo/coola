@@ -147,6 +147,7 @@ def save_text(
     encoding: str = DEFAULT_ENCODING,
     exist_ok: bool = False,
     fsync: bool = False,
+    lock: bool = True,
 ) -> None:
     r"""Save the given data to a text file.
 
@@ -166,6 +167,14 @@ def save_text(
             It is slower. Defaults to ``False``: the file is replaced
             atomically, but its content may be lost if the machine
             crashes right after the call.
+        lock: If ``True`` (the default), concurrent saves to the same
+            path are serialized with a lock file next to the path (see
+            ``BaseFileSaver.save``). If ``False``, no lock is used:
+            the file is still written to a temporary file and committed
+            atomically, so a reader never sees a partial file, but two
+            concurrent writers of the same path are not serialized
+            (the last one wins). It is faster, which matters for
+            batch jobs that write many distinct files.
 
     Raises:
         FileExistsError: if the file already exists.
@@ -189,4 +198,4 @@ def save_text(
 
         ```
     """
-    TextSaver(encoding=encoding).save(to_save, path, exist_ok=exist_ok, fsync=fsync)
+    TextSaver(encoding=encoding).save(to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock)

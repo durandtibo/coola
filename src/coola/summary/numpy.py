@@ -37,7 +37,9 @@ class NDArraySummarizer(BaseMetadataSummarizer[np.ndarray]):
             representation (same as ``repr(array)``), displaying
             actual values. If ``False`` (default), returns only
             metadata in a compact format:
-            ``<class> | shape=<shape> | dtype=<dtype>``.
+            ``<class> | shape=<shape> | dtype=<dtype>``. A masked
+            array (``numpy.ma.MaskedArray``) also shows the number of
+            masked values: ``... | num_masked=<count>``.
             Default: ``False``
 
     Raises:
@@ -70,7 +72,11 @@ class NDArraySummarizer(BaseMetadataSummarizer[np.ndarray]):
         check_numpy()
 
     def _describe(self, data: np.ndarray) -> list[str]:
-        return [f"shape={data.shape}", f"dtype={data.dtype}"]
+        fields = [f"shape={data.shape}", f"dtype={data.dtype}"]
+        if isinstance(data, np.ma.MaskedArray):
+            # The mask is part of the value: two arrays with a different mask are different.
+            fields.append(f"num_masked={int(np.ma.getmaskarray(data).sum())}")
+        return fields
 
 
 def get_default_summarizers() -> dict[type, Summarizer[Any]]:

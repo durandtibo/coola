@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -10,7 +11,7 @@ import coola
 
 if TYPE_CHECKING:
     import threading
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
 
 def run_threads(threads: Sequence[threading.Thread]) -> None:
@@ -52,3 +53,25 @@ def run_python(code: str) -> list[str]:
         env={**os.environ, "PYTHONPATH": src},
     )
     return result.stdout.split()
+
+
+def run_in_children(num_children: int, function: Callable[[], str]) -> list[str]:
+    """Run ``function`` in ``num_children`` forked children and return
+    the string each one returns."""
+    results = []
+    for _ in range(num_children):
+        read_fd, write_fd = os.pipe()
+        pid = os.fork()
+        if pid == 0:  # pragma: no cover  (measured in the child process only)
+            os.close(read_fd)
+            # A child that blocks (e.g. on a lock) is killed, and returns an empty string.
+            signal.alarm(5)
+            try:
+                os.write(write_fd, function().encode())
+            finally:
+                os._exit(0)
+        os.close(write_fd)
+        with os.fdopen(read_fd) as file:
+            results.append(file.read())
+        os.waitpid(pid, 0)
+    return results
