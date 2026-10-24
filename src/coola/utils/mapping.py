@@ -15,7 +15,10 @@ def sort_by_keys(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
     r"""Sort a dictionary by keys.
 
     If the keys cannot be compared with each other (for example ``1``
-    and ``"a"``), they are sorted by type name first, then by key.
+    and ``"a"``), they are sorted by type name first, then by key. If
+    two keys of the same type cannot be compared either (for example
+    the tuples ``(1,)`` and ``("a",)``), they are sorted by type name
+    first, then by ``repr`` of the key.
 
     Args:
         mapping: The dictionary to sort.
@@ -34,7 +37,13 @@ def sort_by_keys(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
     try:
         return dict(sorted(mapping.items(), key=operator.itemgetter(0)))
     except TypeError:
+        pass
+    try:
         return dict(sorted(mapping.items(), key=lambda item: (type(item[0]).__name__, item[0])))
+    except TypeError:
+        return dict(
+            sorted(mapping.items(), key=lambda item: (type(item[0]).__name__, repr(item[0])))
+        )
 
 
 def sort_by_values(mapping: Mapping[Any, Any]) -> dict[Any, Any]:

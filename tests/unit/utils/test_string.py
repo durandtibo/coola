@@ -204,3 +204,21 @@ def test_slugify_different_non_ascii_texts_have_different_slugs() -> None:
 
 def test_slugify_punctuation_only_is_empty() -> None:
     assert slugify("!!!") == ""
+
+
+@pytest.mark.parametrize("text", ["😀", "👍🏽", "→"])
+def test_slugify_text_without_letters_uses_a_hash(text: str) -> None:
+    assert len(slugify(text)) == 8
+
+
+def test_slugify_emoji_slug() -> None:
+    assert slugify("😀") == "f0443a34"
+
+
+def test_slugify_different_emojis_have_different_slugs() -> None:
+    assert slugify("😀") != slugify("😢")
+
+
+@pytest.mark.parametrize("text", ["", " ", "\u3000", "\u00a0", "-_-", "!!!"])
+def test_slugify_whitespace_and_ascii_punctuation_are_empty(text: str) -> None:
+    assert slugify(text) == ""

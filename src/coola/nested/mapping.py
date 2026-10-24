@@ -46,6 +46,17 @@ class DuplicateKeyError(KeyError, ValueError):
 T = TypeVar("T")
 
 
+def _check_is_mapping(key: Any, value: object) -> None:
+    r"""Check that the value of a key is a mapping.
+
+    Raises:
+        TypeError: if ``value`` is not a mapping.
+    """
+    if not isinstance(value, Mapping):
+        msg = f"The value of the key {key!r} must be a mapping, but got {type(value)!r}"
+        raise TypeError(msg)
+
+
 def flatten_mapping(
     mapping: Mapping[Any, Mapping[Any, Any]],
     on_duplicate: Literal["raise", "first", "last", "prefix"] = "raise",
@@ -98,6 +109,7 @@ def flatten_mapping(
 
     Raises:
         ValueError: if ``on_duplicate`` is not a valid value.
+        TypeError: if a value of ``mapping`` is not a mapping.
         DuplicateKeyError: if ``on_duplicate='raise'`` and an inner key
             appears more than once with different values, or if
             two different keys are flattened to the same key (for
@@ -122,6 +134,7 @@ def flatten_mapping(
     seen: dict[Any, Any] = {}  # inner key -> recorded value, to check for real conflicts
 
     for outer_key, inner_mapping in mapping.items():
+        _check_is_mapping(outer_key, inner_mapping)
         for inner_key, value in inner_mapping.items():
             prefixed_key = f"{outer_key}{separator}{inner_key}"
 
