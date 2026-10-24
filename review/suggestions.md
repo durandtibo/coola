@@ -597,3 +597,27 @@ Checked against `git log 0287a61a..HEAD` and by re-running the repros.
    the traversal helpers), 24.3 (plugins).
 5. **API:** 28.1 (flat namespace), 28.2, 28.3 (breaking), 28.4 (README), 27.1.
 6. **Cleanup:** 22.8, 23.2, 23.3, 25.2, 25.3, 26.2, 27.2, 29.2, 17.4 (carried).
+
+## 33. Status of round 5
+
+Items 23.1 to 28.4. The status is **PR open** until the pull request is merged.
+
+| ID   | Status      | Notes                                                                                                         |
+| ---- | ----------- | ------------------------------------------------------------------------------------------------------------- |
+| 23.1 | **PR open** | #2281 (the declared fields are compared, not `__dict__`)                                                      |
+| 23.2 | **PR open** | #2294 (`SetEqualityTester`: `equal_nan` and the tolerance apply, `{1}` and `{True}` are different)            |
+| 23.3 | **PR open** | #2295 (opt-in `ObjectAttributesEqualityTester`; `torch.nested` (13.6) is not part of it)                      |
+| 24.1 | **PR open** | #2283 (`track_fork` moves to `coola.utils.fork`; registries, `LazySingleton` and the save locks are reset)    |
+| 24.2 | **PR open** | #2284 (stacked on #2283: `copy()`, `temporary_default_registries`, `reset_default_registries`, pytest fixture) |
+| 24.3 | **PR open** | #2293 (`COOLA_DISABLE_PLUGINS`, `get_loaded_plugins`)                                                         |
+| 25.1 | **PR open** | #2285 (cycles and a clear `RecursionError` in `recursive_apply`, `dfs_iterate` and `summarize`)               |
+| 25.2 | **PR open** | #2286 (sorted set previews, `RecordBatch`, masked arrays)                                                     |
+| 25.3 | **PR open** | #2296 (opt-in `enter_dataclasses` for `recursive_apply`, `dfs_iterate` and `bfs_iterate`)                     |
+| 26.1 | **PR open** | #2280 (`to_jsonable` no longer deep-copies the fields of a dataclass)                                         |
+| 26.2 | **PR open** | #2287 (`flatten_mapping`, `sort_by_keys`, `slugify`)                                                          |
+| 27.1 | **PR open** | #2288 (documented: nested `_target_` is not resolved)                                                         |
+| 27.2 | **PR open** | #2289 (`is_object_config` does not import the module by default; `import_target=True` opts in)                |
+| 28.1 | **Decided** | #2282 (not implemented by decision: the top-level namespace stays minimal, a comment says so) |
+| 28.2 | **PR open** | #2290 (keyword-only options with a `DeprecationWarning` for the positional form)                              |
+| 28.3 | **PR open** | #2291 (documented in the docstrings and guides; the parameter is not renamed)                                 |
+| 28.4 | **PR open** | #2292 (README and index lead with compare, hash and summarize; `assert_objects_equal` and `compare` shown)    |
