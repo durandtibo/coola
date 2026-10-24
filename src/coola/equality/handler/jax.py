@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = ["JaxArrayEqualHandler"]
 
-import logging
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -20,8 +19,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class JaxArrayEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
@@ -56,7 +53,6 @@ class JaxArrayEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         object_equal = array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             report_difference(
-                logger,
                 config,
                 format_value_difference(
                     actual=actual, expected=expected, name="jax.numpy.ndarrays"

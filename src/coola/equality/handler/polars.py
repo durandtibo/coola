@@ -6,7 +6,6 @@ from __future__ import annotations
 __all__ = ["PolarsDataFrameEqualHandler", "PolarsLazyFrameEqualHandler", "PolarsSeriesEqualHandler"]
 
 import inspect
-import logging
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
@@ -25,8 +24,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PolarsDataFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
@@ -69,7 +66,6 @@ class PolarsDataFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         object_equal = frame_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             report_difference(
-                logger,
                 config,
                 format_value_difference(actual=actual, expected=expected, name="polars.DataFrames"),
             )
@@ -119,7 +115,6 @@ class PolarsLazyFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         )
         if config.show_difference and not object_equal:
             report_difference(
-                logger,
                 config,
                 format_value_difference(actual=actual, expected=expected, name="polars.LazyFrames"),
             )
@@ -158,7 +153,6 @@ class PolarsSeriesEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         object_equal = series_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             report_difference(
-                logger,
                 config,
                 format_value_difference(actual=actual, expected=expected, name="polars.Series"),
             )

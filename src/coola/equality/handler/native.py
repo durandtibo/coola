@@ -12,7 +12,6 @@ __all__ = [
     "TrueHandler",
 ]
 
-import logging
 from operator import attrgetter
 from typing import TYPE_CHECKING
 
@@ -29,8 +28,6 @@ if TYPE_CHECKING:
     from collections.abc import Sized
 
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class FalseHandler(HandlerEqualityMixin, BaseEqualityHandler):
@@ -135,9 +132,7 @@ class ObjectEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
             )
             raise TypeError(msg) from exc
         if config.show_difference and not object_equal:
-            report_difference(
-                logger, config, format_value_difference(actual=actual, expected=expected)
-            )
+            report_difference(config, format_value_difference(actual=actual, expected=expected))
         return object_equal
 
 
@@ -202,15 +197,12 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if not config.registry.objects_are_equal(value1, value2, config):
             if config.show_difference:
                 report_difference(
-                    logger,
                     config,
                     "objects have different %s: %s vs %s",
                     self._name,
                     safe_str(value1),
                     safe_str(value2),
-                    extra={
-                        "coola_path": tuple(AttributeName(name) for name in self._name.split(".")),
-                    },
+                    path=tuple(AttributeName(name) for name in self._name.split(".")),
                 )
             return False
         return self._handle_next(actual, expected, config=config)
@@ -243,7 +235,6 @@ class SameLengthHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if len(actual) != len(expected):
             if config.show_difference:
                 report_difference(
-                    logger,
                     config,
                     "objects have different lengths: %s vs %s",
                     f"{len(actual):,}",
@@ -314,6 +305,6 @@ class SameTypeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if type(actual) is not type(expected):
             if config.show_difference:
                 message = format_type_difference(type(actual), type(expected))
-                report_difference(logger, config, message)
+                report_difference(config, message)
             return False
         return self._handle_next(actual, expected, config=config)

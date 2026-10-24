@@ -12,15 +12,17 @@ __all__ = [
     "track_comparison",
 ]
 
+import logging
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import logging
     from collections.abc import Generator
 
     from coola.equality.config import EqualityConfig
     from coola.equality.handler.base import BaseEqualityHandler
+
+LOGGER: logging.Logger = logging.getLogger("coola.equality")
 
 
 class AttributeName(str):
@@ -53,52 +55,45 @@ class MaxDepthExceededError(RecursionError):
 
 
 def report_difference(
-    logger: logging.Logger,
     config: EqualityConfig,
     msg: str,
     *args: object,
-    extra: dict[str, object] | None = None,
+    path: tuple[object, ...] = (),
 ) -> None:
     r"""Report a difference found while comparing two objects.
 
     If the configuration has a ``reporter``, the formatted message is
     sent to it together with the location of the difference, and
     nothing is logged. Otherwise, the message is logged at the ``INFO``
-    level with ``logger``.
+    level on the ``coola.equality`` logger, with the location in the
+    ``coola_path`` attribute of the log record.
 
-    Handlers should call this function (instead of ``logger.info``) when
+    Handlers should call this function (instead of a logger) when
     ``config.show_difference`` is ``True``.
 
     Args:
-        logger: The logger used when there is no reporter.
         config: The equality configuration.
         msg: The message, optionally with ``%`` placeholders.
         *args: The values for the placeholders of ``msg``.
-        extra: Extra information about the difference. The
-            ``"coola_path"`` entry is a tuple with the location of the
-            difference in the compared objects, relative to the current
-            level of nesting. The components that are attributes are
-            ``AttributeName`` instances.
+        path: The location of the difference in the compared objects,
+            relative to the current level of nesting. The components
+            that are attributes are ``AttributeName`` instances.
 
     Example:
         ```pycon
-        >>> import logging
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import report_difference
         >>> reports = []
         >>> config = EqualityConfig(reporter=lambda msg, path: reports.append((msg, path)))
-        >>> report_difference(
-        ...     logging.getLogger(), config, "different %s", "values", extra={"coola_path": ("a",)}
-        ... )
+        >>> report_difference(config, "different %s", "values", path=("a",))
         >>> reports
         [('different values', ('a',))]
 
         ```
     """
     if config.reporter is None:
-        logger.info(msg, *args, extra=extra)
+        LOGGER.info(msg, *args, extra={"coola_path": path})
         return
-    path = cast("tuple[object, ...]", (extra or {}).get("coola_path", ()))
     config.reporter(msg % args if args else msg, path)
 
 

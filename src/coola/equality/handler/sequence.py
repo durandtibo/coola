@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = ["SequenceSameValuesHandler", "is_exact_scalar_sequence"]
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -20,8 +19,6 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 # Types for which ``==`` is exact and agrees with ``objects_are_equal``
 # (no NaN, no tolerance), so whole sequences can be compared at once.
@@ -70,7 +67,6 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             if len(actual) != len(expected):
                 if config.show_difference:
                     report_difference(
-                        logger,
                         config,
                         "sequences have different lengths: %s vs %s",
                         f"{len(actual):,}",
@@ -95,14 +91,13 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                 if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:
                         report_difference(
-                            logger,
                             config,
                             format_sequence_difference(
                                 actual,
                                 expected,
                                 different_index=idx,
                             ),
-                            extra={"coola_path": (idx,)},
+                            path=(idx,),
                         )
                     return False
             return self._handle_next(actual, expected, config=config)

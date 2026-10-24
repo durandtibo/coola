@@ -34,7 +34,7 @@ In this page, `<pkg>` is the name of the library, e.g. `pandas`.
 1. Create `src/coola/equality/handler/<pkg>.py` with the handler that compares two objects
    (follow `pandas.py` or `numpy.py`). It must honor `config.equal_nan`, `config.atol` and
    `config.rtol` when the library supports them, and report the difference with
-   `report_difference` when `config.show_difference` is `True`. Export it in
+   `report_difference(config, message)` when `config.show_difference` is `True`. Export it in
    `equality/handler/__init__.py` as a lazy name (see [Lazy imports](#lazy-imports)).
 2. Create `src/coola/equality/tester/<pkg>.py`. A tester is a `BaseChainEqualityTester` that
    implements `_create_handler` (the chain, usually `SameObjectHandler`, `SameTypeHandler`, some

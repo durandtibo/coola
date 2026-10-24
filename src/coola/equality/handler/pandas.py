@@ -10,7 +10,6 @@ __all__ = [
     "PandasSeriesEqualHandler",
 ]
 
-import logging
 from typing import TYPE_CHECKING, Any, cast
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -26,8 +25,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PandasDataFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
@@ -70,7 +67,6 @@ class PandasDataFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         object_equal = frame_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             report_difference(
-                logger,
                 config,
                 format_value_difference(actual=actual, expected=expected, name="pandas.DataFrames"),
             )
@@ -109,7 +105,6 @@ class PandasSeriesEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         object_equal = series_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             report_difference(
-                logger,
                 config,
                 format_value_difference(actual=actual, expected=expected, name="pandas.Series"),
             )
@@ -148,7 +143,6 @@ class PandasIndexEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         object_equal = index_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             report_difference(
-                logger,
                 config,
                 format_value_difference(actual=actual, expected=expected, name="pandas.Index"),
             )
@@ -189,7 +183,6 @@ class PandasExtensionArrayEqualHandler(HandlerEqualityMixin, BaseEqualityHandler
         object_equal = extension_array_equal(actual, expected, config)
         if config.show_difference and not object_equal:
             report_difference(
-                logger,
                 config,
                 format_value_difference(actual=actual, expected=expected, name="pandas arrays"),
             )

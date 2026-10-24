@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = ["MappingSameKeyOrderHandler", "MappingSameKeysHandler", "MappingSameValuesHandler"]
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -20,8 +19,6 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class MappingSameKeysHandler(HandlerEqualityMixin, BaseEqualityHandler):
@@ -57,7 +54,6 @@ class MappingSameKeysHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if keys1.keys() != keys2.keys():
             if config.show_difference:
                 report_difference(
-                    logger,
                     config,
                     format_mapping_difference(
                         missing_keys={keys1[k] for k in keys1.keys() - keys2.keys()},
@@ -106,7 +102,6 @@ class MappingSameKeyOrderHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if actual_keys != expected_keys:
             if config.show_difference:
                 report_difference(
-                    logger,
                     config,
                     format_mapping_difference(different_key_order=(actual_keys, expected_keys)),
                 )
@@ -171,10 +166,9 @@ class MappingSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                 if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:
                         report_difference(
-                            logger,
                             config,
                             format_mapping_difference(different_value_key=key),
-                            extra={"coola_path": (key,)},
+                            path=(key,),
                         )
                     return False
             return self._handle_next(actual, expected, config=config)

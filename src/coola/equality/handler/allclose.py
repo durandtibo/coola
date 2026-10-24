@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = ["AllCloseNanHandler", "SupportsAllCloseNan"]
 
-import logging
 from typing import TYPE_CHECKING, Protocol
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -15,8 +14,6 @@ from coola.utils.introspection import supports_methods
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class SupportsAllCloseNan(Protocol):
@@ -116,8 +113,6 @@ class AllCloseNanHandler(HandlerEqualityMixin, BaseEqualityHandler):
             expected, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
         ):
             if config.show_difference:
-                report_difference(
-                    logger, config, format_value_difference(actual=actual, expected=expected)
-                )
+                report_difference(config, format_value_difference(actual=actual, expected=expected))
             return False
         return True

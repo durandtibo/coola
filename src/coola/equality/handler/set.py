@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __all__ = ["SetSameValuesHandler"]
 
-import logging
 from collections import Counter
 from typing import TYPE_CHECKING, Any
 
@@ -17,8 +16,6 @@ if TYPE_CHECKING:
     from collections.abc import Set as AbstractSet
 
     from coola.equality.config import EqualityConfig
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 # A NaN is replaced by this marker when ``equal_nan=True``.
 _NAN: Any = object()
@@ -64,7 +61,6 @@ class SetSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             if len(actual) != len(expected):
                 if config.show_difference:
                     report_difference(
-                        logger,
                         config,
                         "sets have different lengths: %s vs %s",
                         f"{len(actual):,}",
@@ -75,11 +71,10 @@ class SetSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             if unmatched is not _NO_ELEMENT:
                 if config.show_difference:
                     report_difference(
-                        logger,
                         config,
                         "sets have different elements: %s of actual has no match in expected",
                         safe_repr(unmatched),
-                        extra={"coola_path": (unmatched,)},
+                        path=(unmatched,),
                     )
                 return False
             return self._handle_next(actual, expected, config=config)
