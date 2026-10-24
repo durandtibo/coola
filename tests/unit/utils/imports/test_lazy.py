@@ -170,9 +170,9 @@ def test_import_object_missing_name() -> None:
         import_object("collections:missing_name")
 
 
-###############################
-#     is_module_imported      #
-###############################
+##############################
+#     is_module_imported     #
+##############################
 
 
 @pytest.mark.parametrize("target", ["collections.Counter", "collections", "os.path.join"])
