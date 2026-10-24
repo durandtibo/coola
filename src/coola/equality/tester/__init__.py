@@ -24,6 +24,7 @@ __all__ = [
     "BaseEqualityTester",
     "DataclassEqualityTester",
     "DefaultEqualityTester",
+    "DifferenceCloseEqualityTester",
     "EqualEqualityTester",
     "EqualNanEqualityTester",
     "EqualityTesterRegistry",
@@ -68,6 +69,7 @@ from coola.equality.tester.collection import (
 )
 from coola.equality.tester.dataclass import DataclassEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester
+from coola.equality.tester.difference import DifferenceCloseEqualityTester
 from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
 from coola.equality.tester.handler import HandlerEqualityTester
 from coola.equality.tester.interface import (

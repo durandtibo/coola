@@ -11,8 +11,9 @@ from __future__ import annotations
 
 __all__ = ["RandomManagerRegistry"]
 
+import copy
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 from coola.display import MultilineDisplayMixin
 from coola.random.base import BaseRandomManager
@@ -64,6 +65,31 @@ class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
 
     def _display_fields(self) -> dict[str, Any]:
         return {"state": self._state}
+
+    def copy(self) -> Self:
+        """Create a copy of the registry.
+
+        The copy has the same managers as the registry, and is
+        independent from it: registering a manager in one registry does
+        not change the other. The managers are not copied.
+
+        Returns:
+            A new registry of the same class.
+
+        Example:
+            ```pycon
+            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
+            >>> registry = RandomManagerRegistry({"random": RandomRandomManager()})
+            >>> other = registry.copy()
+            >>> other.register("other", RandomRandomManager())
+            >>> registry.has_manager("other")
+            False
+
+            ```
+        """
+        new = copy.copy(self)
+        new._state = self._state.copy()
+        return new
 
     def register(
         self,

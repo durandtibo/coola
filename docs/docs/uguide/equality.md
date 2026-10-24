@@ -820,11 +820,14 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   columns (this requires NumPy), and the other types are compared exactly
 - `numpy.ndarray` with a non-numeric dtype: `str`, `bytes` and `object` arrays are compared
   exactly, and so are `datetime64` and `timedelta64` arrays, even if a tolerance is given
+- `decimal.Decimal`, `fractions.Fraction` and `datetime.timedelta`: compared with `==`, or with their
+  difference if `atol` or `rtol` is given (`atol` of a `timedelta` is a number of seconds). A
+  `Decimal` NaN is equal to a NaN only if `equal_nan=True`
 - `set` and `frozenset`: the elements are matched by hash and type in linear time, so `equal_nan`
   applies to the elements (`{1.0, float("nan")}` equals itself with `equal_nan=True`, also inside
   tuples and frozensets), but the tolerance does not: the elements are compared exactly, so
   `{1.0}` and `{1.0 + 1e-9}` are different even with `objects_are_allclose`
-- Any other type, for example `str`, `bytes`, `range`, `datetime.datetime` or `decimal.Decimal`:
+- Any other type, for example `str`, `bytes`, `range` or `datetime.datetime`:
   compared with `==`, so the tolerance and `equal_nan` are ignored, and the result is what the
   type's `__eq__` returns. If `==` raises a `TypeError` or a `ValueError`, or does not return a
   value that can be converted to a `bool` (for example, a class that compares arrays), a

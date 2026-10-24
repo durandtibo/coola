@@ -6,6 +6,7 @@ import pytest
 
 from coola.identifier import ObjectIdGenerator, generate_object_id
 from coola.identifier.monotonic import MonotonicRandom
+from tests.integration.helpers import run_in_children
 
 pytestmark = [
     pytest.mark.skipif(not hasattr(os, "fork"), reason="Requires os.fork"),
@@ -14,26 +15,6 @@ pytestmark = [
     pytest.mark.filterwarnings("ignore:.*fork.*:DeprecationWarning"),
     pytest.mark.filterwarnings("ignore:os.fork\\(\\) was called:RuntimeWarning"),
 ]
-
-
-def run_in_children(num_children: int, function: object) -> list[str]:
-    """Run ``function`` in ``num_children`` forked children and return
-    the string each one returns."""
-    results = []
-    for _ in range(num_children):
-        read_fd, write_fd = os.pipe()
-        pid = os.fork()
-        if pid == 0:  # pragma: no cover  (measured in the child process only)
-            os.close(read_fd)
-            try:
-                os.write(write_fd, function().encode())  # type: ignore[operator]
-            finally:
-                os._exit(0)
-        os.close(write_fd)
-        with os.fdopen(read_fd) as file:
-            results.append(file.read())
-        os.waitpid(pid, 0)
-    return results
 
 
 ###############################

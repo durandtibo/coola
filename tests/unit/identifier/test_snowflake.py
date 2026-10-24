@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.identifier import fork, snowflake
+from coola.identifier import snowflake
 from coola.identifier.snowflake import (
     _EPOCH_MS,
     _MAX_SEQUENCE,
@@ -18,6 +18,7 @@ from coola.identifier.snowflake import (
     extract_snowflake_timestamp_ms,
     generate_snowflake_id,
 )
+from coola.utils import fork
 
 
 def _decode(snowflake_id: int) -> tuple[int, int, int]:

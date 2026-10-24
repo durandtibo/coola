@@ -11,6 +11,7 @@ __all__ = [
     "AttributeName",
     "BaseEqualityHandler",
     "DataclassSameFieldsHandler",
+    "DifferenceCloseHandler",
     "EqualHandler",
     "EqualNanHandler",
     "FalseHandler",
@@ -60,6 +61,7 @@ from coola.equality.handler.allclose import AllCloseNanHandler
 from coola.equality.handler.base import BaseEqualityHandler, HandlerCycleError
 from coola.equality.handler.data import SameDataHandler
 from coola.equality.handler.dataclass import DataclassSameFieldsHandler
+from coola.equality.handler.difference import DifferenceCloseHandler
 from coola.equality.handler.dtype import SameDTypeHandler
 from coola.equality.handler.equal import EqualHandler, EqualNanHandler
 from coola.equality.handler.mapping import (

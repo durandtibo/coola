@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Never, cast
 
 import pytest
 
-from coola.utils import singleton
+from coola.utils import fork, singleton
 from coola.utils.singleton import (
     DISABLE_PLUGINS_ENV_VAR,
     STRICT_PLUGINS_ENV_VAR,
@@ -15,6 +15,8 @@ from coola.utils.singleton import (
     get_loaded_plugins,
     load_registry_plugins,
     make_default_registry_singleton,
+    reset_default_registries,
+    temporary_default_registries,
 )
 
 if TYPE_CHECKING:
@@ -480,6 +482,131 @@ def test_lazy_singleton_reset_rebuilds_the_value() -> None:
     singleton.get()
     singleton.reset()
     assert singleton.get() == 2
+
+
+def test_lazy_singleton_is_tracked_for_forks() -> None:
+    singleton = LazySingleton(lambda: 1)
+    assert singleton in fork._TRACKED
+
+
+def test_lazy_singleton_reset_after_fork_recreates_the_lock() -> None:
+    singleton = LazySingleton(lambda: 1)
+    lock = singleton._lock
+    singleton._reset_after_fork()
+    assert singleton._lock is not lock
+
+
+def test_lazy_singleton_reset_after_fork_does_not_block_if_the_lock_was_held() -> None:
+    singleton = LazySingleton(lambda: 1)
+    singleton._lock.acquire()  # held by a thread that does not exist in the child
+    singleton._reset_after_fork()
+    assert singleton.get() == 1
+
+
+def test_lazy_singleton_reset_after_fork_forgets_the_building_thread() -> None:
+    singleton = LazySingleton(lambda: 1)
+    singleton._building_thread = 1
+    singleton._reset_after_fork()
+    assert singleton._building_thread is None
+
+
+def test_lazy_singleton_reset_after_fork_keeps_the_value() -> None:
+    singleton = LazySingleton(object)
+    value = singleton.get()
+    singleton._reset_after_fork()
+    assert singleton.get() is value
+
+
+#####################################################
+#     Tests for the scope of the default registries #
+#####################################################
+
+
+def test_reset_default_registries_resets_the_singletons() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    reset_default_registries()
+    assert singleton.get() is not registry
+
+
+def test_reset_default_registries_drops_the_changes() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    singleton.get().clear()
+    reset_default_registries()
+    assert singleton.get() == {"a": 1}
+
+
+def test_reset_default_registries_does_not_change_the_previous_registry() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    reset_default_registries()
+    assert registry == {"a": 1}
+
+
+def test_reset_default_registries_does_not_build_the_registries() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    reset_default_registries()
+    assert not singleton.is_built()
+
+
+def test_temporary_default_registries_uses_a_copy() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    with temporary_default_registries():
+        assert singleton.get() is not registry
+
+
+def test_temporary_default_registries_copy_has_the_entries() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    singleton.get()
+    with temporary_default_registries():
+        assert singleton.get() == {"a": 1}
+
+
+def test_temporary_default_registries_restores_the_registry() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    with temporary_default_registries():
+        singleton.get().clear()
+    assert singleton.get() is registry
+
+
+def test_temporary_default_registries_does_not_change_the_original() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    singleton.get()
+    with temporary_default_registries():
+        singleton.get().clear()
+    assert singleton.get() == {"a": 1}
+
+
+def test_temporary_default_registries_forgets_the_registry_built_inside() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    with temporary_default_registries():
+        singleton.get()
+    assert not singleton.is_built()
+
+
+def fail_in_scope(singleton: LazySingleton[dict]) -> None:
+    with temporary_default_registries():
+        singleton.get().clear()
+        msg = "boom"
+        raise RuntimeError(msg)
+
+
+def test_temporary_default_registries_restores_after_an_error() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    with pytest.raises(RuntimeError, match="boom"):
+        fail_in_scope(singleton)
+    assert singleton.get() is registry
+
+
+def test_temporary_default_registries_nested() -> None:
+    singleton = make_default_registry_singleton(dict, lambda r: r.update(a=1))
+    registry = singleton.get()
+    with temporary_default_registries(), temporary_default_registries():
+        singleton.get().clear()
+    assert singleton.get() is registry
 
 
 #############################################

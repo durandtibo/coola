@@ -248,3 +248,59 @@ def test_base_type_dispatch_registry_register_lazy_len_loads_the_handlers() -> N
     registry = BaseTypeDispatchRegistry[str]()
     registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
     assert len(registry) == 1
+
+
+def test_base_type_dispatch_registry_copy_returns_the_same_class() -> None:
+    assert type(HasherRegistry().copy()) is HasherRegistry
+
+
+def test_base_type_dispatch_registry_copy_has_the_same_handlers() -> None:
+    registry = BaseTypeDispatchRegistry[str]({int: "int_handler", float: "float_handler"})
+    assert dict(registry.copy().items()) == {int: "int_handler", float: "float_handler"}
+
+
+def test_base_type_dispatch_registry_copy_register_does_not_change_the_original() -> None:
+    registry = BaseTypeDispatchRegistry[str]({int: "int_handler"})
+    registry.copy().register(float, "float_handler")
+    assert not registry.has(float)
+
+
+def test_base_type_dispatch_registry_copy_unregister_does_not_change_the_original() -> None:
+    registry = BaseTypeDispatchRegistry[str]({int: "int_handler"})
+    registry.copy().unregister(int)
+    assert registry.has(int)
+
+
+def test_base_type_dispatch_registry_copy_clear_does_not_change_the_original() -> None:
+    registry = BaseTypeDispatchRegistry[str]({int: "int_handler"})
+    registry.copy().clear()
+    assert len(registry) == 1
+
+
+def test_base_type_dispatch_registry_copy_has_the_lazy_groups() -> None:
+    registry = BaseTypeDispatchRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert registry.copy().find(Decimal) == "decimal"
+
+
+def test_base_type_dispatch_registry_copy_does_not_copy_the_handlers() -> None:
+    handler = object()
+    assert BaseTypeDispatchRegistry[object]({int: handler}).copy().find(int) is handler
+
+
+@pytest.mark.parametrize(
+    "registry_cls",
+    [
+        EqualityTesterRegistry,
+        HasherRegistry,
+        ChildFinderRegistry,
+        IteratorRegistry,
+        TransformerRegistry,
+        SummarizerRegistry,
+    ],
+)
+def test_base_type_dispatch_registry_copy_of_a_subclass_has_its_own_state(
+    registry_cls: type[BaseTypeDispatchRegistry],
+) -> None:
+    registry = registry_cls()
+    assert registry.copy()._state is not registry._state

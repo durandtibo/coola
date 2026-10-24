@@ -2,9 +2,10 @@ r"""Implement some utility functions to lazily import a module."""
 
 from __future__ import annotations
 
-__all__ = ["LazyModule", "import_object", "lazy_exports", "lazy_import"]
+__all__ = ["LazyModule", "import_object", "is_module_imported", "lazy_exports", "lazy_import"]
 
 import importlib
+import sys
 from types import ModuleType
 from typing import TYPE_CHECKING, Any
 
@@ -116,6 +117,37 @@ def import_object(path: str) -> Any:
         msg = f"Expected a path with the form 'package.module:name', got {path!r}"
         raise ValueError(msg)
     return getattr(importlib.import_module(module_name), name)
+
+
+def is_module_imported(target: object) -> bool:
+    r"""Indicate if the module of a target is already imported.
+
+    The module is not imported. A target that is not a string is
+    reported as imported, so ``coola.factory.import_object`` raises its
+    usual error.
+
+    Args:
+        target: The fully qualified name of the object (for example
+            ``"collections.Counter"``), or a module name.
+
+    Returns:
+        ``True`` if the module is in ``sys.modules`` or if ``target``
+            is not a string, otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import is_module_imported
+        >>> is_module_imported("collections.Counter")
+        True
+        >>> is_module_imported("missing_module.Name")
+        False
+
+        ```
+    """
+    if not isinstance(target, str):
+        return True
+    module_name = target.rpartition(".")[0] or target
+    return module_name in sys.modules
 
 
 def lazy_exports(

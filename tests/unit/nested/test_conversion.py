@@ -17,6 +17,7 @@ from coola.utils.imports import (
     is_pydantic_available,
     is_torch_available,
 )
+from tests.helpers import nest
 
 if is_pydantic_available():
     from pydantic import BaseModel
@@ -241,3 +242,15 @@ def test_try_sorted_list_not_comparable() -> None:
 def test_convert_to_list_of_dicts_string_value_raises(value: object) -> None:
     with pytest.raises(TypeError, match="must be a sequence of items"):
         convert_to_list_of_dicts({"a": value, "b": [1, 2]})
+
+
+def test_convert_to_jsonable_deep_structure_raises_a_recursion_error() -> None:
+    with pytest.raises(RecursionError, match="Python recursion limit was exceeded"):
+        convert_to_jsonable(nest(1, 5000))
+
+
+def test_convert_to_jsonable_list_that_contains_itself() -> None:
+    data: list = []
+    data.append(data)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        convert_to_jsonable(data)

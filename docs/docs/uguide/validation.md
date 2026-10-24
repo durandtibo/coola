@@ -13,7 +13,7 @@ The `coola.validation` package provides:
 
 1. **Type checks** - `validate_isinstance` to check a value is an instance of a given type, and
    `validate_bool`, `validate_int`, `validate_float`, `validate_str`, `validate_list`,
-   `validate_tuple`, `validate_dict`, `validate_set` and `validate_frozenset` for the common builtin types
+   `validate_tuple`, `validate_dict`, `validate_mapping`, `validate_set` and `validate_frozenset` for the common builtin types
 2. **Container checks** - `validate_not_empty` to check a value is not empty, and `validate_in`
    to check a value belongs to a set of valid values
 3. **Comparison checks** - `validate_ge`, `validate_gt`, `validate_le`, and `validate_lt` to
