@@ -4,7 +4,7 @@ from datetime import UTC, date, datetime, time, timedelta, timezone
 
 import pytest
 
-from coola.hashing import DatetimeHasher, HasherRegistry, get_default_registry
+from coola.hashing import DatetimeHasher, HasherRegistry, get_default_registry, hash_object
 
 
 @pytest.fixture
@@ -273,3 +273,52 @@ def test_datetime_hasher_hash_equal_instants_away_from_limits_still_equal(
     first = datetime(2024, 1, 1, 12, tzinfo=UTC)
     second = datetime(2024, 1, 1, 13, tzinfo=timezone(timedelta(hours=1)))
     assert hasher.hash(first, registry=registry) == hasher.hash(second, registry=registry)
+
+
+def test_datetime_hasher_hash_aware_time_equal_instants(registry: HasherRegistry) -> None:
+    hasher = DatetimeHasher()
+    first = time(12, tzinfo=UTC)
+    second = time(13, tzinfo=timezone(timedelta(hours=1)))
+    assert hasher.hash(first, registry=registry) == hasher.hash(second, registry=registry)
+
+
+def test_datetime_hasher_hash_aware_time_different_instants(registry: HasherRegistry) -> None:
+    hasher = DatetimeHasher()
+    first = time(12, tzinfo=UTC)
+    second = time(12, tzinfo=timezone(timedelta(hours=1)))
+    assert hasher.hash(first, registry=registry) != hasher.hash(second, registry=registry)
+
+
+def test_datetime_hasher_hash_aware_time_differs_from_naive(registry: HasherRegistry) -> None:
+    hasher = DatetimeHasher()
+    assert hasher.hash(time(12, tzinfo=UTC), registry=registry) != hasher.hash(
+        time(12), registry=registry
+    )
+
+
+def test_datetime_hasher_hash_aware_time_microseconds(registry: HasherRegistry) -> None:
+    hasher = DatetimeHasher()
+    assert hasher.hash(time(12, 0, 0, 1, tzinfo=UTC), registry=registry) != hasher.hash(
+        time(12, tzinfo=UTC), registry=registry
+    )
+
+
+def test_datetime_hasher_hash_aware_time_negative_offset(registry: HasherRegistry) -> None:
+    hasher = DatetimeHasher()
+    first = time(12, tzinfo=timezone(timedelta(hours=-5)))
+    second = time(17, tzinfo=UTC)
+    assert hasher.hash(first, registry=registry) == hasher.hash(second, registry=registry)
+
+
+def test_datetime_hasher_hash_aware_time_before_midnight_in_utc(registry: HasherRegistry) -> None:
+    hasher = DatetimeHasher()
+    first = time(1, tzinfo=timezone(timedelta(hours=2)))
+    second = time(23, tzinfo=UTC)
+    assert hasher.hash(first, registry=registry) != hasher.hash(second, registry=registry)
+
+
+def test_hash_object_equal_aware_times_have_the_same_hash() -> None:
+    first = time(12, tzinfo=UTC)
+    second = time(13, tzinfo=timezone(timedelta(hours=1)))
+    assert first == second
+    assert hash_object(first) == hash_object(second)
