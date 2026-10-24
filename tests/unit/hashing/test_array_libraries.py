@@ -577,6 +577,89 @@ def test_hash_xarray_variable_differs_by_data() -> None:
     assert hash_object(array.variable) != hash_object(array.variable.copy(data=[1, 3]))
 
 
+@pandas_available
+@pytest.mark.parametrize(
+    "series",
+    [
+        pytest.param(
+            pd.Series([True, None], dtype="boolean") if is_pandas_available() else 0, id="boolean"
+        ),
+        pytest.param(
+            pd.Series(["a", None], dtype="string") if is_pandas_available() else 0, id="string"
+        ),
+        pytest.param(
+            pd.Series([1, None], dtype="Int64") if is_pandas_available() else 0, id="Int64"
+        ),
+        pytest.param(
+            pd.Series(pd.to_datetime(["2020", None]).tz_localize("UTC"))
+            if is_pandas_available()
+            else 0,
+            id="tz-aware",
+        ),
+        pytest.param(
+            pd.Series(pd.period_range("2020", periods=2, freq="D")) if is_pandas_available() else 0,
+            id="period",
+        ),
+        pytest.param(
+            pd.Series(pd.arrays.IntervalArray.from_breaks([0, 1, 2]))
+            if is_pandas_available()
+            else 0,
+            id="interval",
+        ),
+    ],
+)
+def test_hash_pandas_series_with_missing_value_or_extension_dtype(series: pd.Series) -> None:
+    assert hash_object(series) == hash_object(series.copy())
+
+
+@pandas_available
+def test_hash_pandas_series_missing_value_differs_from_value() -> None:
+    assert hash_object(pd.Series([1, None], dtype="Int64")) != hash_object(
+        pd.Series([1, 2], dtype="Int64")
+    )
+
+
+@pandas_available
+def test_hash_pandas_dataframe_with_missing_value() -> None:
+    frame = pd.DataFrame({"a": pd.Series(["x", None], dtype="string")})
+    assert hash_object(frame) == hash_object(frame.copy())
+
+
+@pandas_available
+def test_hash_pandas_na() -> None:
+    assert hash_object(pd.NA) == hash_object(pd.NA)
+
+
+@pandas_available
+def test_hash_pandas_nat_differs_from_na() -> None:
+    assert hash_object(pd.NaT) != hash_object(pd.NA)
+
+
+@pandas_available
+def test_hash_pandas_period_differs_by_ordinal() -> None:
+    assert hash_object(pd.Period("2020")) != hash_object(pd.Period("2021"))
+
+
+@pandas_available
+def test_hash_pandas_period_differs_by_frequency() -> None:
+    assert hash_object(pd.Period("2020", freq="D")) != hash_object(pd.Period("2020", freq="h"))
+
+
+@pandas_available
+def test_hash_pandas_interval_equal() -> None:
+    assert hash_object(pd.Interval(0, 1)) == hash_object(pd.Interval(0, 1))
+
+
+@pandas_available
+def test_hash_pandas_interval_differs_by_bound() -> None:
+    assert hash_object(pd.Interval(0, 1)) != hash_object(pd.Interval(0, 2))
+
+
+@pandas_available
+def test_hash_pandas_interval_differs_by_closed() -> None:
+    assert hash_object(pd.Interval(0, 1)) != hash_object(pd.Interval(0, 1, closed="left"))
+
+
 @jax_available
 @numpy_available
 @pytest.mark.parametrize("dtype", ["bfloat16", "float8_e4m3fn", "float8_e5m2"])
