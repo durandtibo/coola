@@ -189,3 +189,35 @@ def test_ndarray_summarizer_summarize_large_ndarray(registry: SummarizerRegistry
     array = np.broadcast_to(np.float64(1), (1000, 1000, 10))  # no memory allocated
     result = NDArraySummarizer().summarize(array, registry)
     assert result == "<class 'numpy.ndarray'> | shape=(1000, 1000, 10) | dtype=float64"
+
+
+@numpy_available
+def test_ndarray_summarizer_summarize_masked_array(registry: SummarizerRegistry) -> None:
+    array = np.ma.masked_array([1, 2, 3], mask=[0, 1, 1])
+    result = NDArraySummarizer().summarize(array, registry)
+    assert result == "<class 'numpy.ma.MaskedArray'> | shape=(3,) | dtype=int64 | num_masked=2"
+
+
+@numpy_available
+def test_ndarray_summarizer_summarize_masked_array_without_mask(
+    registry: SummarizerRegistry,
+) -> None:
+    result = NDArraySummarizer().summarize(np.ma.masked_array([1, 2]), registry)
+    assert result == "<class 'numpy.ma.MaskedArray'> | shape=(2,) | dtype=int64 | num_masked=0"
+
+
+@numpy_available
+def test_ndarray_summarizer_summarize_masked_arrays_with_a_different_mask_differ(
+    registry: SummarizerRegistry,
+) -> None:
+    summarizer = NDArraySummarizer()
+    assert summarizer.summarize(
+        np.ma.masked_array([1, 2], mask=[0, 1]), registry
+    ) != summarizer.summarize(np.ma.masked_array([1, 2], mask=[0, 0]), registry)
+
+
+@numpy_available
+def test_ndarray_summarizer_summarize_ndarray_has_no_mask_field(
+    registry: SummarizerRegistry,
+) -> None:
+    assert "num_masked" not in NDArraySummarizer().summarize(np.ones(2), registry)

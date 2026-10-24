@@ -113,7 +113,10 @@ Sets display their type, length, and elements:
 
 ```
 
-Note: Sets are unordered, so the element order in the summary may vary.
+The elements are sorted when they can be compared, so the summary is the same from one run to the
+next (a set of strings is not iterated in the same order with a different `PYTHONHASHSEED`). When
+the set has more than `max_items` elements, the smallest ones are shown. The elements that cannot be
+compared (for example an `int` and a `str`) are shown in iteration order.
 
 ### Dataclasses and Pydantic Models
 
@@ -450,7 +453,7 @@ so a large data frame never floods the logs. At most 10 columns or variables are
 | `polars.DataFrame`                      | `PolarsDataFrameSummarizer` | `shape`, `columns` with their dtype        |
 | `polars.LazyFrame`                      | `PolarsLazyFrameSummarizer` | `columns` with their dtype (not collected) |
 | `polars.Series`                         | `PolarsSeriesSummarizer`    | `shape`, `dtype`, `name`                   |
-| `pyarrow.Table`                         | `PyarrowTableSummarizer`    | `shape`, `columns` with their type         |
+| `pyarrow.Table`, `pyarrow.RecordBatch`  | `PyarrowTableSummarizer`    | `shape`, `columns` with their type         |
 | `pyarrow.Array`, `pyarrow.ChunkedArray` | `PyarrowArraySummarizer`    | `length`, `type`                           |
 | `xarray.DataArray`                      | `XarrayDataArraySummarizer` | `dims`, `shape`, `dtype`, `name`           |
 | `xarray.Dataset`                        | `XarrayDatasetSummarizer`   | `dims`, `data_vars` with their dtype       |

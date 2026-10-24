@@ -8,7 +8,9 @@ from coola.summary import (
     PyarrowArraySummarizer,
     PyarrowTableSummarizer,
     SummarizerRegistry,
+    summarize,
 )
+from coola.summary.pyarrow import get_default_summarizers
 from coola.testing.fixtures import pyarrow_available
 from coola.utils.imports import MissingPackageError, is_pyarrow_available
 
@@ -150,3 +152,23 @@ def test_table_summarizer_max_fields_repr() -> None:
     assert repr(PyarrowTableSummarizer(max_fields=2)) == (
         "PyarrowTableSummarizer(show_data=False, max_fields=2)"
     )
+
+
+@pyarrow_available
+def test_pyarrow_table_summarizer_summarize_record_batch(registry: SummarizerRegistry) -> None:
+    batch = pa.record_batch({"a": [1, 2, 3], "b": [0.1, 0.2, 0.3]})
+    result = PyarrowTableSummarizer().summarize(batch, registry)
+    assert (
+        result == "<class 'pyarrow.lib.RecordBatch'> | shape=(3, 2) | columns=a: int64, b: double"
+    )
+
+
+@pyarrow_available
+def test_get_default_summarizers_record_batch_uses_the_table_summarizer() -> None:
+    assert isinstance(get_default_summarizers()[pa.RecordBatch], PyarrowTableSummarizer)
+
+
+@pyarrow_available
+def test_summarize_record_batch_with_the_default_registry() -> None:
+    result = summarize(pa.record_batch({"a": [1, 2]}))
+    assert result == "<class 'pyarrow.lib.RecordBatch'> | shape=(2, 1) | columns=a: int64"
