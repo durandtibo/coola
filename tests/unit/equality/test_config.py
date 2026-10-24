@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+
 import pytest
 
 from coola.equality.config import EqualityConfig
@@ -156,3 +158,76 @@ def test_equality_config_eq_false_different_show_difference() -> None:
 
 def test_equality_config_eq_false_different_max_depth() -> None:
     assert EqualityConfig() != EqualityConfig(max_depth=50)
+
+
+#################################
+#     Tests for mark_warned     #
+#################################
+
+
+def test_equality_config_mark_warned_first_time() -> None:
+    assert EqualityConfig().mark_warned("atol") is True
+
+
+def test_equality_config_mark_warned_second_time() -> None:
+    config = EqualityConfig()
+    config.mark_warned("atol")
+    assert config.mark_warned("atol") is False
+
+
+def test_equality_config_mark_warned_other_name() -> None:
+    config = EqualityConfig()
+    config.mark_warned("atol")
+    assert config.mark_warned("rtol") is True
+
+
+def test_equality_config_mark_warned_is_per_config() -> None:
+    EqualityConfig().mark_warned("atol")
+    assert EqualityConfig().mark_warned("atol") is True
+
+
+##############################
+#     Tests for visiting     #
+##############################
+
+
+def test_equality_config_visiting_first_time() -> None:
+    with EqualityConfig().visiting([], []) as in_progress:
+        assert in_progress is False
+
+
+def test_equality_config_visiting_same_pair_is_in_progress() -> None:
+    config = EqualityConfig()
+    a, b = [], []
+    with config.visiting(a, b), config.visiting(a, b) as inner:
+        assert inner is True
+
+
+def test_equality_config_visiting_swapped_pair_is_not_in_progress() -> None:
+    config = EqualityConfig()
+    a, b = [], []
+    with config.visiting(a, b), config.visiting(b, a) as swapped:
+        assert swapped is False
+
+
+def test_equality_config_visiting_pair_is_removed_on_exit() -> None:
+    config = EqualityConfig()
+    a, b = [], []
+    with config.visiting(a, b):
+        pass
+    with config.visiting(a, b) as in_progress:
+        assert in_progress is False
+
+
+def _fail() -> None:
+    msg = "boom"
+    raise RuntimeError(msg)
+
+
+def test_equality_config_visiting_pair_is_removed_on_error() -> None:
+    config = EqualityConfig()
+    a, b = [], []
+    with contextlib.suppress(RuntimeError), config.visiting(a, b):
+        _fail()
+    with config.visiting(a, b) as in_progress:
+        assert in_progress is False
