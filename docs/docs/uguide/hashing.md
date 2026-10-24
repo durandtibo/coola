@@ -106,7 +106,7 @@ The default registry hashes **only** the following types (and their subclasses):
 | `dict`, other `Mapping`                      | Independent of the order of the keys                                                                                 |
 | `OrderedDict`                                | Own tag. The order of the keys matters, like in `objects_are_equal`                                                  |
 | `set`, `frozenset`                           | Independent of the iteration order. A `set` and a `frozenset` hash differently                                       |
-| `date`, `datetime`, `time`                   | ISO 8601 form, including the UTC offset when there is one                                                            |
+| `date`, `datetime`, `time`                   | ISO 8601 form; aware `datetime` and `time` are normalised to UTC                                                                    |
 | `timedelta`, `timezone`                      | The `repr` of the value                                                                                              |
 | `uuid.UUID`, `zoneinfo.ZoneInfo`             | The string form (the UUID text, the zone key)                                                                        |
 | `decimal.Decimal`                            | The normalised value: `Decimal('1.0')` and `Decimal('1.00')` have the same hash                                      |
@@ -219,8 +219,9 @@ True
 - **`set`, `frozenset`**: the sorted item hashes under the `set` or `frozenset` tag.
 - **`date`, `datetime`, `time`**: tagged with the concrete class name, payload is the ISO 8601
   string. Aware datetimes are converted to UTC first, so the same instant in two time zones hashes
-  the same, while a naive and an aware datetime differ. The offset of an aware `time` is part of
-  its payload. `timedelta` and `timezone` use their `repr`.
+  the same, while a naive and an aware datetime differ. An aware `time` is normalised the same way
+  (the offset is subtracted from the time of day), so equal aware times hash the same. `timedelta`
+  and `timezone` use their `repr`.
 - **`Path`, `PurePath`**: the POSIX form of the path as written, with no filesystem access, so the
   hash is portable across machines. A relative and an absolute path to the same location differ.
   Register `ResolvedPathHasher` to resolve symlinks, `..` and relative paths first; the result
