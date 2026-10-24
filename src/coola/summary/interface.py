@@ -44,10 +44,13 @@ def summarize(data: object, max_depth: int = 1, registry: SummarizerRegistry | N
 
     Args:
         data: Input data to summarize.
-        max_depth: The maximum nesting level to expand when summarizing.
-            Structures deeper than this level are shown in compact form.
-            Must be non-negative. Default is 1, which expands only the
-            top level of nested structures.
+        max_depth: A display depth, not a limit that raises: the maximum
+            nesting level to expand when summarizing. Structures deeper
+            than this level are shown in compact form (unlike the
+            ``max_depth`` of ``objects_are_equal``, which raises an
+            error for a deeper structure). Must be non-negative.
+            Default is 1, which expands only the top level of nested
+            structures.
         registry: Registry to resolve summarizers for nested data.
             If ``None``, the default registry is used.
 
