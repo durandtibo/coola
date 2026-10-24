@@ -5,6 +5,7 @@ from __future__ import annotations
 
 __all__ = [
     "ComparisonResult",
+    "Tolerance",
     "assert_objects_allclose",
     "assert_objects_equal",
     "compare",
@@ -19,3 +20,4 @@ from coola.equality.result import (
     assert_objects_equal,
     compare,
 )
+from coola.equality.tolerance import Tolerance

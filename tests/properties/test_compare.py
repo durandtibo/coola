@@ -11,6 +11,7 @@ import pytest
 from hypothesis import assume, given, strategies as st
 
 from coola.equality import (
+    Tolerance,
     assert_objects_allclose,
     assert_objects_equal,
     compare,
@@ -50,7 +51,7 @@ def test_equal_agrees_with_objects_are_equal(data: Any, other: Any) -> None:
 
 @given(data=small_values, other=small_values, atol=tolerances, rtol=tolerances)
 def test_agrees_with_objects_are_allclose(data: Any, other: Any, atol: float, rtol: float) -> None:
-    result = compare(data, other, atol=atol, rtol=rtol)
+    result = compare(data, other, tolerance=Tolerance(rtol=rtol, atol=atol))
     assert bool(result) == objects_are_allclose(data, other, atol=atol, rtol=rtol)
 
 

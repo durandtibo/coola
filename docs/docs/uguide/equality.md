@@ -46,7 +46,7 @@ described [below](#type-specific-behavior).
 | NaN                     | `NaN` is not equal to `NaN`, unless `equal_nan=True` or both are the same object. See [Behavior by Type](#behavior-by-type-nan-and-tolerance).                                                                                                                                                                                                                                        |
 | Signed zero             | `-0.0` is equal to `0.0`.                                                                                                                                                                                                                                                                                                                                                             |
 | Time zones              | Aware datetimes compare by the instant they represent: 12:00 UTC equals 13:00 UTC+1. A naive datetime (no time zone) never equals an aware one.                                                                                                                                                                                                                                       |
-| Tolerance               | Only `objects_are_allclose` uses `atol` and `rtol`, and only for numbers, arrays, tensors and data frames. Every other value is compared exactly, and the types must still match: `objects_are_allclose(1, 1.0, atol=1)` is `False`.                                                                                                                                                  |
+| Tolerance               | Only the `*_allclose` functions and `compare(..., tolerance=...)` use `rtol` and `atol`. `objects_are_equal` and `assert_objects_equal` are exact (no tolerance), `objects_are_allclose` and `assert_objects_allclose` default to `rtol=1e-5, atol=1e-8` (the NumPy defaults, `Tolerance.numpy_default()`), and `compare` is exact unless `tolerance` is given. The tolerance applies only for numbers, arrays, tensors and data frames. Every other value is compared exactly, and the types must still match: `objects_are_allclose(1, 1.0, atol=1)` is `False`.                                                                                                                                                  |
 | Unregistered types      | A type without a dedicated tester is compared with `==` after the type check, so your own classes work if they define `__eq__`. Otherwise two objects are equal only if they are the same object (a plain class, an exception, a `functools.partial`): register an `ObjectAttributesEqualityTester` to compare them by their attributes (see [Equality Testers](equality_tester.md)). |
 | Reflexive               | `objects_are_equal(x, x)` is `True` for every `x`, and also for a copy of `x`. A distinct `NaN` is the exception unless `equal_nan=True` (see the NaN row).                                                                                                                                                                                                                           |
 | Symmetric               | `objects_are_equal(a, b)` and `objects_are_equal(b, a)` give the same answer, and so do `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)`. A user class with an asymmetric `__eq__` is the exception.                                                                                                                                                                     |
@@ -424,6 +424,23 @@ The tolerance parameters are:
 
 - `atol`: Absolute tolerance (default: 1e-8)
 - `rtol`: Relative tolerance (default: 1e-5)
+
+`compare` takes the tolerance as a `Tolerance` object and is exact when it is not given, whereas
+`objects_are_allclose` and `assert_objects_allclose` default to `rtol=1e-5, atol=1e-8`.
+`Tolerance.numpy_default()` is the tolerance of `objects_are_allclose`, so
+`compare(a, b, tolerance=Tolerance.numpy_default())` gives the same answer as
+`objects_are_allclose(a, b)`:
+
+```pycon
+>>> from coola.equality import Tolerance, compare
+>>> bool(compare(1.0, 1.0 + 1e-9))
+False
+>>> bool(compare(1.0, 1.0 + 1e-9, tolerance=Tolerance.numpy_default()))
+True
+>>> bool(compare(1.0, 1.05, tolerance=Tolerance(atol=0.1)))
+True
+
+```
 
 Two numbers are considered equal if `|actual - expected| <= atol + rtol * max(|actual|, |expected|)`.
 This is the rule of NumPy, PyTorch, JAX, PyArrow and xarray arrays, and it is also used for Python
