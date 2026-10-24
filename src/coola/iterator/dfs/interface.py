@@ -13,10 +13,12 @@ __all__ = [
 from typing import TYPE_CHECKING, Any
 
 from coola.iterator.bootstrap import register_default_handlers
+from coola.iterator.dfs.dataclass import DataclassIterator
 from coola.iterator.dfs.default import DefaultIterator
 from coola.iterator.dfs.iterable import IterableIterator
 from coola.iterator.dfs.mapping import MappingIterator
 from coola.iterator.dfs.registry import IteratorRegistry
+from coola.registry import DataclassMarker
 from coola.utils.deprecation import deprecate_positional_options
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
@@ -92,6 +94,49 @@ def register_iterators(
         ```
     """
     get_default_registry().register_many(mapping, exist_ok=exist_ok)
+
+
+def enter_dataclasses(*, registry: IteratorRegistry | None = None) -> None:
+    """Make ``dfs_iterate`` enter the dataclass instances.
+
+    By default, a dataclass instance is a leaf: ``dfs_iterate`` yields
+    the whole object, unlike ``objects_are_equal``, ``hash_object`` and
+    ``summarize``, which enter it. After this function, ``dfs_iterate``
+    visits the values of the fields (see ``DataclassIterator``). It is
+    opt-in so that the default behavior does not change. An iterator
+    registered for the type of the dataclass has priority.
+
+    Args:
+        registry: The registry to change. If ``None``, the default
+            registry is used.
+
+    Example:
+        ```pycon
+        >>> from dataclasses import dataclass
+        >>> from coola.iterator.dfs import (
+        ...     DefaultIterator,
+        ...     IterableIterator,
+        ...     IteratorRegistry,
+        ...     dfs_iterate,
+        ...     enter_dataclasses,
+        ... )
+        >>> @dataclass
+        ... class Config:
+        ...     lr: float
+        ...     layers: list
+        ...
+        >>> registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
+        >>> len(list(dfs_iterate(Config(0.1, [1, 2]), registry=registry)))
+        1
+        >>> enter_dataclasses(registry=registry)
+        >>> list(dfs_iterate(Config(0.1, [1, 2]), registry=registry))
+        [0.1, 1, 2]
+
+        ```
+    """
+    if registry is None:
+        registry = get_default_registry()
+    registry.register(DataclassMarker, DataclassIterator(), exist_ok=True)
 
 
 def get_default_registry() -> IteratorRegistry:
