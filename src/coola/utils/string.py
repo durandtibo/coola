@@ -131,10 +131,12 @@ def slugify(text: str) -> str:
 
     Returns:
         A lowercase, hyphen-separated slug safe to use as a filename,
-            URL path segment, or dict key. If the text has letters or
-            digits but none can be written in ASCII (e.g. ``"日本語"``),
-            the slug is a short hash of the text instead of an empty
-            string.
+            URL path segment, or dict key. If the text has letters,
+            digits or other non-ASCII characters (e.g. an emoji) but
+            none can be written in ASCII (e.g. ``"日本語"``), the slug
+            is a short hash of the text instead of an empty string.
+            Text that only has whitespace and ASCII punctuation gives
+            an empty string.
 
     Example:
         ```pycon
@@ -157,7 +159,7 @@ def slugify(text: str) -> str:
     text = text.lower()
     # Replace any run of non-alphanumeric characters with a single hyphen.
     text = re.sub(r"[^a-z0-9]+", "-", text).strip("-")
-    if not text and any(c.isalnum() for c in original):
+    if not text and any(c.isalnum() or not (c.isascii() or c.isspace()) for c in original):
         # Distinct texts that cannot be written in ASCII keep distinct slugs.
         return hashlib.sha256(original.encode()).hexdigest()[:8]
     return text

@@ -107,3 +107,21 @@ def test_sort_by_values_identical_values_keeps_the_length() -> None:
 
 def test_sort_by_keys_mixed_key_types() -> None:
     assert list(sort_by_keys({"b": 1, 2: 2, "a": 3, 1: 4})) == [1, 2, "a", "b"]
+
+
+def test_sort_by_keys_keys_of_the_same_type_that_cannot_be_compared() -> None:
+    assert list(sort_by_keys({(1,): 1, ("a",): 2})) == [("a",), (1,)]
+
+
+def test_sort_by_keys_keys_of_the_same_type_that_cannot_be_compared_is_deterministic() -> None:
+    assert sort_by_keys({("a",): 2, (1,): 1}) == sort_by_keys({(1,): 1, ("a",): 2})
+
+
+def test_sort_by_keys_mixed_types_that_cannot_be_compared_and_tuples() -> None:
+    assert list(sort_by_keys({("a",): 1, 2: 2, (1,): 3, "b": 4})) == [2, "b", ("a",), (1,)]
+
+
+def test_sort_by_keys_does_not_change_the_input() -> None:
+    data = {("a",): 2, (1,): 1}
+    sort_by_keys(data)
+    assert list(data) == [("a",), (1,)]
