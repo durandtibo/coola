@@ -336,6 +336,28 @@ The package includes specialized handlers for specific types:
 - **`JaxArrayEqualHandler`**: Compare JAX arrays
 - **`PyarrowEqualHandler`**: Compare PyArrow arrays and tables
 
+#### `ObjectSameAttributesHandler`
+
+Compares the attributes of two objects of the same class (`vars`, slots, the `args` of an exception,
+the content of a `functools.partial`) through the registry. `get_object_attributes` returns the
+attributes of one object:
+
+```pycon
+>>> from coola.equality.config import EqualityConfig
+>>> from coola.equality.handler import ObjectSameAttributesHandler, TrueHandler, create_chain
+>>> class Point:
+...     def __init__(self, x):
+...         self.x = x
+...
+>>> config = EqualityConfig()
+>>> handler = create_chain(ObjectSameAttributesHandler(), TrueHandler())
+>>> handler.handle(Point(1), Point(1), config)
+True
+>>> handler.handle(Point(1), Point(2), config)
+False
+
+```
+
 ### Handlers for Objects with Methods
 
 These handlers delegate the comparison to the methods of the objects:

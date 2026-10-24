@@ -33,6 +33,7 @@ __all__ = [
     "MappingEqualityTester",
     "NumpyArrayEqualityTester",
     "NumpyMaskedArrayEqualityTester",
+    "ObjectAttributesEqualityTester",
     "OrderedMappingEqualityTester",
     "PandasDataFrameEqualityTester",
     "PandasExtensionArrayEqualityTester",
@@ -77,6 +78,7 @@ from coola.equality.tester.interface import (
     get_default_registry,
     register_equality_testers,
 )
+from coola.equality.tester.object import ObjectAttributesEqualityTester
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
 from coola.equality.tester.tolerant import TolerantEqualEqualityTester
