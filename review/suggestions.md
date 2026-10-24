@@ -86,9 +86,15 @@ from coola.hashing import hash_object
 hash_object(pd.Series([True, None], dtype="boolean"))  # TypeNotRegisteredError: NAType
 hash_object(pd.Series(["a", None], dtype="string"))  # TypeNotRegisteredError: NAType
 hash_object(pd.Series(["a", None], dtype="string[pyarrow]"))  # TypeNotRegisteredError: NAType
-hash_object(pd.Series(pd.to_datetime(["2020", None]).tz_localize("UTC")))  # ValueError: NaTType does not support utcoffset
-hash_object(pd.Series(pd.period_range("2020", periods=2, freq="D")))  # TypeNotRegisteredError: Period
-hash_object(pd.Series(pd.arrays.IntervalArray.from_breaks([0, 1, 2])))  # TypeNotRegisteredError: Interval
+hash_object(
+    pd.Series(pd.to_datetime(["2020", None]).tz_localize("UTC"))
+)  # ValueError: NaTType does not support utcoffset
+hash_object(
+    pd.Series(pd.period_range("2020", periods=2, freq="D"))
+)  # TypeNotRegisteredError: Period
+hash_object(
+    pd.Series(pd.arrays.IntervalArray.from_breaks([0, 1, 2]))
+)  # TypeNotRegisteredError: Interval
 ```
 
 `Int64`, `Float64`, `category`, `timedelta64`, `Sparse` and the `int64[pyarrow]` dtype work, so the
@@ -319,7 +325,9 @@ Every default registry is a process-wide `LazySingleton`. The public API can mut
 from coola.equality.tester import get_default_registry
 
 get_default_registry().clear()
-objects_are_equal(np.ones(2), np.ones(2))  # TypeNotRegisteredError: ndarray, for the rest of the process
+objects_are_equal(
+    np.ones(2), np.ones(2)
+)  # TypeNotRegisteredError: ndarray, for the rest of the process
 ```
 
 `clear()` also drops the pending lazy groups (`BaseRegistry.clear` clears `_lazy`), so the optional
@@ -352,7 +360,9 @@ lists the plugins that were loaded (`coola.utils.singleton.get_loaded_plugins()`
 ```python
 cycle = []
 cycle.append(cycle)
-recursive_apply(cycle, lambda x: x)  # RecursionError: maximum recursion depth exceeded (no cycle detection)
+recursive_apply(
+    cycle, lambda x: x
+)  # RecursionError: maximum recursion depth exceeded (no cycle detection)
 dfs_iterate(deep)  # RecursionError for a 3000-level structure (bfs_iterate is iterative and works)
 summarize(deep, max_depth=5000)  # RecursionError
 convert_to_jsonable(deep)  # RecursionError

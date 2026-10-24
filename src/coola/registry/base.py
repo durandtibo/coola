@@ -126,7 +126,8 @@ class BaseRegistry(Generic[K, V]):
         return f"{self.__class__.__qualname__}(\n  {body}\n)"
 
     def _pending_msg(self) -> str:
-        r"""Return the line that lists the lazy groups that are not loaded.
+        r"""Return the line that lists the lazy groups that are not
+        loaded.
 
         This must be called while holding ``self._lock``.
         """

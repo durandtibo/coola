@@ -18,7 +18,8 @@ class ExamplePair:
 
 
 class BadStr:
-    r"""An object that is compared by value and whose ``__str__`` raises."""
+    r"""An object that is compared by value and whose ``__str__``
+    raises."""
 
     def __init__(self, value: int) -> None:
         self.value = value

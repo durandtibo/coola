@@ -1,8 +1,8 @@
-r"""Property-based tests of the invariants of ``equality``, ``hashing`` and
-``summary`` on the classes of values that the nested-container strategies
-do not generate: signed zeros and NaNs, structured dtypes, data frames with
-named indexes and categoricals, dataclasses with ``compare=False`` fields
-and items whose ``__repr__`` raises.
+r"""Property-based tests of the invariants of ``equality``, ``hashing``
+and ``summary`` on the classes of values that the nested-container
+strategies do not generate: signed zeros and NaNs, structured dtypes,
+data frames with named indexes and categoricals, dataclasses with
+``compare=False`` fields and items whose ``__repr__`` raises.
 
 The tests marked ``xfail`` document a defect whose fix is not merged yet
 (the item of the codebase review is in the reason).
