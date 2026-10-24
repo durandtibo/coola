@@ -179,7 +179,6 @@ of their definition (`DataclassIterator` and `DataclassChildFinder`):
 ... class Config:
 ...     lr: float
 ...     layers: list
-...
 >>> registry = IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
 >>> enter_dataclasses(registry=registry)
 >>> list(dfs_iterate(Config(0.1, [1, 2]), registry=registry))

@@ -83,8 +83,7 @@ def _move_to_keywords(
     num_positional: int,
     names: tuple[str, ...],
 ) -> tuple[tuple[Any, ...], dict[str, Any]]:
-    r"""Move the deprecated positional options to the keyword
-    arguments.
+    r"""Move the deprecated positional options to the keyword arguments.
 
     Raises:
         TypeError: if there are too many positional arguments, or if an

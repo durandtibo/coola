@@ -135,7 +135,6 @@ is not modified. The fields with `init=False` are recomputed by `__init__`/`__po
 ... class Config:
 ...     lr: float
 ...     layers: list
-...
 >>> registry = TransformerRegistry({object: DefaultTransformer(), list: SequenceTransformer()})
 >>> enter_dataclasses(registry=registry)
 >>> recursive_apply(Config(0.1, [1, 2]), str, registry=registry)

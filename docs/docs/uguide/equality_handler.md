@@ -348,7 +348,6 @@ attributes of one object:
 >>> class Point:
 ...     def __init__(self, x):
 ...         self.x = x
-...
 >>> config = EqualityConfig()
 >>> handler = create_chain(ObjectSameAttributesHandler(), TrueHandler())
 >>> handler.handle(Point(1), Point(1), config)

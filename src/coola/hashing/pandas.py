@@ -48,11 +48,11 @@ def _column_values(column: Any) -> Any:
     r"""Return the values of a column in a form that can be hashed.
 
     The NumPy dtypes, the categorical and the sparse dtypes are hashed
-    as a NumPy array. The other extension dtypes (``Int64``, ``boolean``,
-    ``string``, tz-aware datetimes, periods, intervals, ...) are
-    converted to an object array where a missing value is ``None``,
-    because ``to_numpy()`` would put ``pandas.NA`` or ``pandas.NaT`` in
-    the array.
+    as a NumPy array. The other extension dtypes (``Int64``,
+    ``boolean``, ``string``, tz-aware datetimes, periods, intervals,
+    ...) are converted to an object array where a missing value is
+    ``None``, because ``to_numpy()`` would put ``pandas.NA`` or
+    ``pandas.NaT`` in the array.
     """
     dtype = column.dtype
     if isinstance(dtype, (np.dtype, pd.CategoricalDtype, pd.SparseDtype)):
