@@ -123,7 +123,7 @@ def test_golden_vector_polars_series() -> None:
 
 @pyarrow_available
 def test_golden_vector_pyarrow_array() -> None:
-    assert hash_object(pa.array([1, 2]), length=16) == "3ed04fe2344a7225"
+    assert hash_object(pa.array([1, 2]), length=16) == "bf6f094668f367d0"
 
 
 @torch_available

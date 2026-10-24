@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import pytest
 
-from coola.hashing import hash_object
+from coola.hashing import hash_object, pyarrow as pyarrow_hashing
 from coola.testing.fixtures import (
     jax_available,
     numpy_available,
@@ -575,6 +577,86 @@ def test_hash_xarray_variable_equal() -> None:
 def test_hash_xarray_variable_differs_by_data() -> None:
     array = xr.DataArray([1, 2], dims=["x"], coords={"x": [0, 1]}, name="n")
     assert hash_object(array.variable) != hash_object(array.variable.copy(data=[1, 3]))
+
+
+@pyarrow_available
+def test_hash_pyarrow_array_null_differs_from_zero() -> None:
+    assert hash_object(pa.array([1, None])) != hash_object(pa.array([1, 0]))
+
+
+@pyarrow_available
+def test_hash_pyarrow_array_null_differs_from_nan() -> None:
+    assert hash_object(pa.array([1.0, None])) != hash_object(pa.array([1.0, float("nan")]))
+
+
+@pyarrow_available
+def test_hash_pyarrow_array_null_position() -> None:
+    assert hash_object(pa.array([1, None, 3])) != hash_object(pa.array([1, 3, None]))
+
+
+@pyarrow_available
+def test_hash_pyarrow_array_negative_zero() -> None:
+    assert hash_object(pa.array([0.0])) == hash_object(pa.array([-0.0]))
+
+
+@pyarrow_available
+def test_hash_pyarrow_array_nan_sign() -> None:
+    assert hash_object(pa.array([float("nan")])) == hash_object(pa.array([-float("nan")]))
+
+
+@pyarrow_available
+def test_hash_pyarrow_boolean_array_with_null() -> None:
+    assert hash_object(pa.array([True, None])) != hash_object(pa.array([True, False]))
+
+
+@pyarrow_available
+def test_hash_pyarrow_chunked_array_ignores_the_chunk_layout() -> None:
+    assert hash_object(pa.chunked_array([[1, 2], [3]])) == hash_object(
+        pa.chunked_array([[1], [2, 3]])
+    )
+
+
+@pyarrow_available
+def test_hash_pyarrow_chunked_array_with_null_ignores_the_chunk_layout() -> None:
+    assert hash_object(pa.chunked_array([[1, None], [3]])) == hash_object(
+        pa.chunked_array([[1], [None, 3]])
+    )
+
+
+@pyarrow_available
+def test_hash_pyarrow_string_array_with_null() -> None:
+    assert hash_object(pa.array(["a", None])) != hash_object(pa.array(["a", ""]))
+
+
+@pyarrow_available
+def test_hash_pyarrow_table_with_null() -> None:
+    assert hash_object(pa.table({"a": [1, None]})) != hash_object(pa.table({"a": [1, 0]}))
+
+
+@pyarrow_available
+@pytest.mark.parametrize(
+    "array",
+    [
+        pytest.param(pa.array([1, 2]) if is_pyarrow_available() else 0, id="integer"),
+        pytest.param(pa.array([1.0, 2.0]) if is_pyarrow_available() else 0, id="floating"),
+        pytest.param(pa.array([True, False]) if is_pyarrow_available() else 0, id="boolean"),
+        pytest.param(pa.chunked_array([[1], [2]]) if is_pyarrow_available() else 0, id="chunked"),
+    ],
+)
+def test_hash_pyarrow_fixed_width_array_does_not_use_python_objects(array: pa.Array) -> None:
+    with patch(
+        "coola.hashing.pyarrow._hash_fixed_width_array",
+        wraps=pyarrow_hashing._hash_fixed_width_array,
+    ) as spy:
+        hash_object(array)
+    spy.assert_called_once()
+
+
+@pyarrow_available
+def test_hash_pyarrow_string_array_uses_python_objects() -> None:
+    with patch("coola.hashing.pyarrow._hash_fixed_width_array") as mock:
+        hash_object(pa.array(["a"]))
+    mock.assert_not_called()
 
 
 @pandas_available
