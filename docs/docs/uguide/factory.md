@@ -189,9 +189,12 @@ with. Only allow objects that are safe to call with arbitrary arguments.
 ## Checking if a configuration targets a class
 
 `is_object_config` checks whether the `_target_` of a configuration resolves to (or returns,
-for functions with a type-hinted return value) a given class. The target is imported to check it, so
-pass `allowed_prefixes` for a configuration that is not trusted. A function whose return type hint
-cannot be resolved is not a configuration for the class:
+for functions with a type-hinted return value) a given class. The module of the target is **not**
+imported to answer: if it is not imported yet, the configuration is not a configuration for the
+class (importing a module runs its top-level code). Pass `allowed_prefixes` (a matching target is
+imported if needed) or `import_target=True` (any target is imported) to import it; do this only for
+a trusted configuration. A function whose return type hint cannot be resolved is not a
+configuration for the class:
 
 ```pycon
 

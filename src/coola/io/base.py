@@ -692,7 +692,10 @@ class BaseFileSaver(BaseSaver[T]):
 
 
 def is_loader_config(
-    config: dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+    config: dict[Any, Any],
+    *,
+    allowed_prefixes: Sequence[str] | None = None,
+    import_target: bool = False,
 ) -> bool:
     r"""Indicate if the input configuration is a configuration for a
     ``BaseLoader``.
@@ -707,13 +710,20 @@ def is_loader_config(
         allowed_prefixes: An optional allow-list of module prefixes that
             the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
             ``None`` (default), any ``"_target_"`` is allowed.
+        import_target: If ``True``, the module of ``"_target_"`` is
+            imported if it is not imported yet, even without
+            ``allowed_prefixes``. By default, a ``"_target_"`` whose
+            module is not imported yet and that is not restricted by
+            ``allowed_prefixes`` is not a configuration for a
+            ``BaseLoader`` (see ``coola.factory.is_object_config``).
 
     Returns:
         ``True`` if the input configuration is a configuration for a
             ``BaseLoader`` object.
 
     Security:
-        The ``"_target_"`` is imported to check its class: see
+        The module of the ``"_target_"`` is imported to check its class
+        only with ``allowed_prefixes`` or ``import_target=True``: see
         ``coola.factory.is_object_config``.
 
     Example:
@@ -724,11 +734,16 @@ def is_loader_config(
 
         ```
     """
-    return is_object_config(config, BaseLoader, allowed_prefixes=allowed_prefixes)
+    return is_object_config(
+        config, BaseLoader, allowed_prefixes=allowed_prefixes, import_target=import_target
+    )
 
 
 def is_saver_config(
-    config: dict[Any, Any], *, allowed_prefixes: Sequence[str] | None = None
+    config: dict[Any, Any],
+    *,
+    allowed_prefixes: Sequence[str] | None = None,
+    import_target: bool = False,
 ) -> bool:
     r"""Indicate if the input configuration is a configuration for a
     ``BaseSaver``.
@@ -743,13 +758,20 @@ def is_saver_config(
         allowed_prefixes: An optional allow-list of module prefixes that
             the ``"_target_"`` must match, e.g. ``["coola.io"]``. If
             ``None`` (default), any ``"_target_"`` is allowed.
+        import_target: If ``True``, the module of ``"_target_"`` is
+            imported if it is not imported yet, even without
+            ``allowed_prefixes``. By default, a ``"_target_"`` whose
+            module is not imported yet and that is not restricted by
+            ``allowed_prefixes`` is not a configuration for a
+            ``BaseSaver`` (see ``coola.factory.is_object_config``).
 
     Returns:
         ``True`` if the input configuration is a configuration for a
             ``BaseSaver`` object.
 
     Security:
-        The ``"_target_"`` is imported to check its class: see
+        The module of the ``"_target_"`` is imported to check its class
+        only with ``allowed_prefixes`` or ``import_target=True``: see
         ``coola.factory.is_object_config``.
 
     Example:
@@ -760,7 +782,9 @@ def is_saver_config(
 
         ```
     """
-    return is_object_config(config, BaseSaver, allowed_prefixes=allowed_prefixes)
+    return is_object_config(
+        config, BaseSaver, allowed_prefixes=allowed_prefixes, import_target=import_target
+    )
 
 
 def resolve_loader(

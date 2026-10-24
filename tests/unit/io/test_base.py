@@ -1013,6 +1013,24 @@ def test_is_saver_config_not_allowed_prefixes() -> None:
         is_saver_config(config, allowed_prefixes=["os"])
 
 
+def test_is_loader_config_module_not_imported() -> None:
+    assert not is_loader_config({OBJECT_TARGET: "coola_missing_module.Loader"})
+
+
+def test_is_loader_config_import_target() -> None:
+    with pytest.raises(ImportError, match="coola_missing_module"):
+        is_loader_config({OBJECT_TARGET: "coola_missing_module.Loader"}, import_target=True)
+
+
+def test_is_saver_config_module_not_imported() -> None:
+    assert not is_saver_config({OBJECT_TARGET: "coola_missing_module.Saver"})
+
+
+def test_is_saver_config_import_target() -> None:
+    with pytest.raises(ImportError, match="coola_missing_module"):
+        is_saver_config({OBJECT_TARGET: "coola_missing_module.Saver"}, import_target=True)
+
+
 def test_resolve_loader_allowed_prefixes() -> None:
     config = {OBJECT_TARGET: "coola.io.JsonLoader"}
     assert isinstance(resolve_loader(config, allowed_prefixes=["coola.io"]), JsonLoader)

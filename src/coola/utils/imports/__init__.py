@@ -26,6 +26,7 @@ __all__ = [
     "import_object",
     "is_colorlog_available",
     "is_jax_available",
+    "is_module_imported",
     "is_numpy_available",
     "is_packaging_available",
     "is_pandas_available",
@@ -77,7 +78,13 @@ from coola.utils.imports.jax import (
     jax_available,
     raise_jax_missing_error,
 )
-from coola.utils.imports.lazy import LazyModule, import_object, lazy_exports, lazy_import
+from coola.utils.imports.lazy import (
+    LazyModule,
+    import_object,
+    is_module_imported,
+    lazy_exports,
+    lazy_import,
+)
 from coola.utils.imports.numpy import (
     check_numpy,
     is_numpy_available,
