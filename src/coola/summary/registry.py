@@ -12,20 +12,9 @@ __all__ = ["DataclassMarker", "SummarizerRegistry"]
 import dataclasses
 from typing import Any
 
-from coola.registry import BaseTypeDispatchRegistry
+from coola.registry import BaseTypeDispatchRegistry, DataclassMarker
 from coola.summary.base import Summarizer
 from coola.utils.recursion import raise_recursion_limit_error
-
-
-class DataclassMarker:
-    """Registry key for the summarizer used by the dataclass types that
-    have no summarizer of their own.
-
-    A dataclass cannot be registered by type because every dataclass is
-    a different type. The summarizer registered for this key is used for
-    the dataclasses that would otherwise be handled by the catch-all
-    ``object`` summarizer.
-    """
 
 
 class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
