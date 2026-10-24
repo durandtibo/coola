@@ -17,6 +17,7 @@ from coola.iterator.dfs.default import DefaultIterator
 from coola.iterator.dfs.iterable import IterableIterator
 from coola.iterator.dfs.mapping import MappingIterator
 from coola.iterator.dfs.registry import IteratorRegistry
+from coola.utils.deprecation import deprecate_positional_options
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -25,7 +26,8 @@ if TYPE_CHECKING:
     from coola.iterator.dfs.base import BaseIterator
 
 
-def dfs_iterate(data: object, registry: IteratorRegistry | None = None) -> Iterator[Any]:
+@deprecate_positional_options("registry")
+def dfs_iterate(data: object, *, registry: IteratorRegistry | None = None) -> Iterator[Any]:
     """Perform Depth-First Search (DFS) iteration over nested data
     structures (lists, dicts, tuples, sets, etc.).
 
@@ -38,6 +40,9 @@ def dfs_iterate(data: object, registry: IteratorRegistry | None = None) -> Itera
     ``RecursionError``. ``bfs_iterate`` is iterative and has no such limit. The recursion is
     the contract of the iterators (they visit the children with ``registry.iterate``), which
     lets a custom iterator choose the order of its children.
+
+    The ``registry`` option must be passed by keyword. Passing it as a positional argument is
+    deprecated and emits a ``DeprecationWarning``.
 
     Args:
         data: The nested data structure to traverse. Can be a list, tuple, dict, set, or any

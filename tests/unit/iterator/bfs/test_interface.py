@@ -277,3 +277,17 @@ def test_bfs_iterate_deep_chain_does_not_walk_the_ancestors() -> None:
 def test_bfs_iterate_user_string_is_a_leaf() -> None:
     value = UserString("abc")
     assert list(bfs_iterate([value, 1])) == [value, 1]
+
+
+def test_bfs_iterate_positional_registry_is_deprecated() -> None:
+    with pytest.warns(DeprecationWarning, match="`registry` to `bfs_iterate`"):
+        bfs_iterate([1], get_default_registry())
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_bfs_iterate_positional_registry_is_deprecated_result() -> None:
+    assert list(bfs_iterate([1, [2]], get_default_registry())) == [1, 2]
+
+
+def test_bfs_iterate_keyword_registry_does_not_warn() -> None:
+    assert list(bfs_iterate([1, [2]], registry=get_default_registry())) == [1, 2]

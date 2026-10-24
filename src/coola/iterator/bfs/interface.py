@@ -17,6 +17,7 @@ from coola.iterator.bfs.iterable import IterableChildFinder
 from coola.iterator.bfs.mapping import MappingChildFinder
 from coola.iterator.bfs.registry import ChildFinderRegistry
 from coola.iterator.bootstrap import register_default_handlers
+from coola.utils.deprecation import deprecate_positional_options
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -25,13 +26,17 @@ if TYPE_CHECKING:
     from coola.iterator.bfs import BaseChildFinder
 
 
-def bfs_iterate(data: object, registry: ChildFinderRegistry | None = None) -> Iterator[Any]:
+@deprecate_positional_options("registry")
+def bfs_iterate(data: object, *, registry: ChildFinderRegistry | None = None) -> Iterator[Any]:
     """Perform Breadth-First Search (BFS) iteration over nested data
     structures (lists, dicts, tuples, sets, etc.).
 
     This function yields elements from the data structure in a BFS manner, recursively
     traversing all levels of nested structures. It uses the appropriate child finders registered
     for the data types (e.g., lists, dictionaries, etc.).
+
+    The ``registry`` option must be passed by keyword. Passing it as a positional argument is
+    deprecated and emits a ``DeprecationWarning``.
 
     Args:
         data: The nested data structure to traverse. Can be a list, tuple, dict, set, or any

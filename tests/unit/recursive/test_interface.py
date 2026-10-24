@@ -288,3 +288,22 @@ def test_recursive_apply_with_mapping_proxy_values() -> None:
 
 def test_recursive_apply_with_user_string() -> None:
     assert recursive_apply([UserString("abc")], lambda x: x) == ["abc"]
+
+
+def test_recursive_apply_positional_registry_is_deprecated() -> None:
+    with pytest.warns(DeprecationWarning, match="`registry` to `recursive_apply`"):
+        recursive_apply([1], str, get_default_registry())
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_recursive_apply_positional_registry_is_deprecated_result() -> None:
+    assert recursive_apply([1], str, get_default_registry()) == ["1"]
+
+
+def test_recursive_apply_keyword_registry_does_not_warn() -> None:
+    assert recursive_apply([1], str, registry=get_default_registry()) == ["1"]
+
+
+def test_recursive_apply_too_many_positional_arguments_raises() -> None:
+    with pytest.raises(TypeError, match="takes at most 3 positional arguments"):
+        recursive_apply([1], str, None, None)
