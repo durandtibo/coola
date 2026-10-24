@@ -5,19 +5,23 @@ from __future__ import annotations
 __all__ = [
     "BaseChildFinder",
     "ChildFinderRegistry",
+    "DataclassChildFinder",
     "DefaultChildFinder",
     "IterableChildFinder",
     "MappingChildFinder",
     "bfs_iterate",
+    "enter_dataclasses",
     "get_default_child_finder_registry",
     "get_default_registry",
     "register_child_finders",
 ]
 
 from coola.iterator.bfs.base import BaseChildFinder
+from coola.iterator.bfs.dataclass import DataclassChildFinder
 from coola.iterator.bfs.default import DefaultChildFinder
 from coola.iterator.bfs.interface import (
     bfs_iterate,
+    enter_dataclasses,
     get_default_child_finder_registry,
     get_default_registry,
     register_child_finders,

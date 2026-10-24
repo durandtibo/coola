@@ -2,16 +2,19 @@ from __future__ import annotations
 
 from collections import UserString, defaultdict, deque
 from collections.abc import Generator, Mapping, Sequence
+from dataclasses import dataclass
 from types import MappingProxyType
 
 import pytest
 
 from coola.equality import objects_are_equal
 from coola.recursive import (
+    DataclassTransformer,
     DefaultTransformer,
     SequenceTransformer,
     SetTransformer,
     TransformerRegistry,
+    enter_dataclasses,
     get_default_registry,
     interface as recursive_interface,
     recursive_apply,
@@ -288,3 +291,57 @@ def test_recursive_apply_with_mapping_proxy_values() -> None:
 
 def test_recursive_apply_with_user_string() -> None:
     assert recursive_apply([UserString("abc")], lambda x: x) == ["abc"]
+
+
+@dataclass
+class Config:
+    lr: float
+    layers: list
+
+
+@pytest.fixture
+def local_registry() -> TransformerRegistry:
+    return TransformerRegistry({object: DefaultTransformer(), list: SequenceTransformer()})
+
+
+def test_recursive_apply_dataclass_is_a_leaf_by_default(
+    local_registry: TransformerRegistry,
+) -> None:
+    assert recursive_apply(Config(0.1, [1]), type, registry=local_registry) is Config
+
+
+def test_enter_dataclasses_registers_the_transformer(local_registry: TransformerRegistry) -> None:
+    enter_dataclasses(registry=local_registry)
+    assert isinstance(local_registry.find_transformer(Config), DataclassTransformer)
+
+
+def test_enter_dataclasses_recursive_apply_enters_the_dataclass(
+    local_registry: TransformerRegistry,
+) -> None:
+    enter_dataclasses(registry=local_registry)
+    assert recursive_apply(Config(0.1, [1, 2]), str, registry=local_registry) == Config(
+        "0.1", ["1", "2"]
+    )
+
+
+def test_enter_dataclasses_can_be_called_twice(local_registry: TransformerRegistry) -> None:
+    enter_dataclasses(registry=local_registry)
+    enter_dataclasses(registry=local_registry)
+    assert len(local_registry) == 3
+
+
+def test_enter_dataclasses_default_registry(
+    monkeypatch: pytest.MonkeyPatch, local_registry: TransformerRegistry
+) -> None:
+    monkeypatch.setattr(recursive_interface, "get_default_registry", lambda: local_registry)
+    enter_dataclasses()
+    assert isinstance(local_registry.find_transformer(Config), DataclassTransformer)
+
+
+def test_enter_dataclasses_keeps_the_transformer_registered_for_a_type(
+    local_registry: TransformerRegistry,
+) -> None:
+    transformer = SequenceTransformer()
+    local_registry.register(Config, transformer)
+    enter_dataclasses(registry=local_registry)
+    assert local_registry.find_transformer(Config) is transformer

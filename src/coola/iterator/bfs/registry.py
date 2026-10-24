@@ -156,7 +156,7 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
 
             ```
         """
-        return self.find(data_type)
+        return self._find_with_dataclass_marker(data_type)
 
     def find_children(self, data: object) -> Iterator[Any]:
         r"""Return the immediate children of an object using its child
