@@ -12,8 +12,10 @@ from coola.recursive import (
     SequenceTransformer,
     SetTransformer,
     TransformerRegistry,
+    get_default_registry,
 )
 from coola.registry import AlreadyRegisteredError
+from tests.helpers import nest
 
 
 class CustomList(list):
@@ -248,3 +250,74 @@ def test_transformer_registry_transform_empty_list() -> None:
 
 def test_transformer_registry_transform_empty_dict() -> None:
     assert TransformerRegistry({dict: MappingTransformer()}).transform({}, str) == {}
+
+
+@pytest.fixture
+def registry() -> TransformerRegistry:
+    return get_default_registry()
+
+
+def test_transformer_registry_transform_list_that_contains_itself(
+    registry: TransformerRegistry,
+) -> None:
+    data: list[Any] = []
+    data.append(data)
+    with pytest.raises(ValueError, match="Cycle detected: an object of type <class 'list'>"):
+        registry.transform(data, str)
+
+
+def test_transformer_registry_transform_dict_that_contains_itself(
+    registry: TransformerRegistry,
+) -> None:
+    data: dict[str, Any] = {}
+    data["a"] = data
+    with pytest.raises(ValueError, match="Cycle detected: an object of type <class 'dict'>"):
+        registry.transform(data, str)
+
+
+def test_transformer_registry_transform_indirect_cycle(registry: TransformerRegistry) -> None:
+    first: list[Any] = []
+    second = [first]
+    first.append(second)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        registry.transform(first, str)
+
+
+def test_transformer_registry_transform_shared_reference_is_not_a_cycle(
+    registry: TransformerRegistry,
+) -> None:
+    shared = [1]
+    assert registry.transform([shared, shared], str) == [["1"], ["1"]]
+
+
+def test_transformer_registry_transform_works_after_a_cycle(registry: TransformerRegistry) -> None:
+    data: list[Any] = []
+    data.append(data)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        registry.transform(data, str)
+    assert registry.transform([1, [2]], str) == ["1", ["2"]]
+
+
+def test_transformer_registry_transform_deep_structure_raises_a_recursion_error(
+    registry: TransformerRegistry,
+) -> None:
+    with pytest.raises(
+        RecursionError, match="Python recursion limit was exceeded while transforming"
+    ):
+        registry.transform(nest(1, 5000), str)
+
+
+def test_transformer_registry_transform_deep_structure_error_is_raised_once(
+    registry: TransformerRegistry,
+) -> None:
+    with pytest.raises(RecursionError) as exc_info:
+        registry.transform(nest(1, 5000), str)
+    assert type(exc_info.value.__cause__) is RecursionError
+
+
+def test_transformer_registry_transform_works_after_a_deep_structure(
+    registry: TransformerRegistry,
+) -> None:
+    with pytest.raises(RecursionError):
+        registry.transform(nest(1, 5000), str)
+    assert registry.transform([1, [2]], str) == ["1", ["2"]]

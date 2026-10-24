@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from coola.equality.config import EqualityConfig
 from coola.equality.handler.utils import MaxDepthExceededError
 from coola.equality.tester.interface import get_default_registry
+from coola.utils.recursion import raise_recursion_limit_error
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
@@ -32,12 +33,7 @@ def _compare(
     except MaxDepthExceededError:
         raise  # already explains how to fix it
     except RecursionError as exc:
-        msg = (
-            "The Python recursion limit was exceeded while comparing deeply nested "
-            "objects. Each nesting level uses several interpreter frames; reduce the "
-            "nesting or increase the limit with sys.setrecursionlimit()."
-        )
-        raise RecursionError(msg) from exc
+        raise_recursion_limit_error("comparing", exc)
 
 
 def objects_are_allclose(

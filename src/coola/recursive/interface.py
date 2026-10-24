@@ -50,7 +50,8 @@ def recursive_apply(
 
         The function is recursive: each nesting level uses a few Python frames, so a very
         deep structure (about a thousand levels) reaches the interpreter recursion limit and
-        raises a ``RecursionError``.
+        raises a ``RecursionError`` that explains how to fix it. A container that contains
+        itself raises a ``ValueError``.
 
     Example:
         ```pycon
