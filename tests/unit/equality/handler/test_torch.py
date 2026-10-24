@@ -373,3 +373,27 @@ def test_tensor_equal_meta(config: EqualityConfig) -> None:
 @torch_available
 def test_tensor_equal_meta_different(config: EqualityConfig) -> None:
     assert not tensor_equal(torch.empty(2, device="meta"), torch.empty(3, device="meta"), config)
+
+
+@torch_available
+def test_tensor_equal_rtol_scales_with_the_second_tensor() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert tensor_equal(torch.tensor([100.0]), torch.tensor([101.005]), config)
+
+
+@torch_available
+def test_tensor_equal_rtol_scales_with_the_first_tensor() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert tensor_equal(torch.tensor([101.005]), torch.tensor([100.0]), config)
+
+
+@torch_available
+def test_tensor_equal_rtol_outside_the_tolerance() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert not tensor_equal(torch.tensor([101.5]), torch.tensor([100.0]), config)
+
+
+@torch_available
+def test_tensor_equal_rtol_outside_the_tolerance_reversed() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert not tensor_equal(torch.tensor([100.0]), torch.tensor([101.5]), config)
