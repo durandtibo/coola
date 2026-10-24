@@ -700,3 +700,24 @@ def test_hasher_registry_reset_after_fork_does_not_block_if_the_fallbacks_lock_w
     registry._reset_after_fork()
     registry.register_fallback(lambda tp: tp is complex, StrHasher())
     assert len(registry._fallbacks) == 1
+
+
+def test_hasher_registry_copy_has_the_same_fallbacks() -> None:
+    registry = HasherRegistry()
+    registry.register_fallback(lambda tp: tp is complex, StrHasher())
+    assert len(registry.copy()._fallbacks) == 1
+
+
+def test_hasher_registry_copy_register_fallback_does_not_change_the_original() -> None:
+    registry = HasherRegistry()
+    registry.copy().register_fallback(lambda tp: tp is complex, StrHasher())
+    assert len(registry._fallbacks) == 0
+
+
+def test_hasher_registry_copy_has_its_own_fallbacks_lock() -> None:
+    registry = HasherRegistry()
+    assert registry.copy()._fallbacks_lock is not registry._fallbacks_lock
+
+
+def test_hasher_registry_copy_is_tracked_for_forks() -> None:
+    assert HasherRegistry().copy() in fork._TRACKED

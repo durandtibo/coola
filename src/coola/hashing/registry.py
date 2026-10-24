@@ -12,7 +12,7 @@ __all__ = ["HasherRegistry"]
 import threading
 import warnings
 from enum import Enum
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 
 from coola.hashing.base import Hasher
 from coola.hashing.string import hash_string
@@ -84,6 +84,12 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
         self._fallbacks: tuple[tuple[Callable[[type], bool], Hasher[Any]], ...] = ()
         self._fallbacks_lock = threading.Lock()
         track_fork(self)
+
+    def copy(self) -> Self:
+        new = super().copy()
+        new._fallbacks_lock = threading.Lock()
+        track_fork(new)
+        return new
 
     def _reset_after_fork(self) -> None:
         r"""Recreate the lock of the fallbacks in a forked child process.

@@ -493,3 +493,92 @@ def test_base_registry_reset_after_fork_does_not_block_if_the_lock_was_held() ->
     registry._reset_after_fork()
     registry.register("key", 1)
     assert registry.get("key") == 1
+
+
+def test_base_registry_copy_returns_the_same_class() -> None:
+    assert type(Registry[str, int]().copy()) is Registry
+
+
+def test_base_registry_copy_has_the_same_entries() -> None:
+    registry = Registry[str, int]({"a": 1, "b": 2})
+    assert dict(registry.copy().items()) == {"a": 1, "b": 2}
+
+
+def test_base_registry_copy_is_a_new_object() -> None:
+    registry = Registry[str, int]()
+    assert registry.copy() is not registry
+
+
+def test_base_registry_copy_register_does_not_change_the_original() -> None:
+    registry = Registry[str, int]({"a": 1})
+    registry.copy().register("b", 2)
+    assert not registry.has("b")
+
+
+def test_base_registry_copy_unregister_does_not_change_the_original() -> None:
+    registry = Registry[str, int]({"a": 1})
+    registry.copy().unregister("a")
+    assert registry.has("a")
+
+
+def test_base_registry_copy_clear_does_not_change_the_original() -> None:
+    registry = Registry[str, int]({"a": 1})
+    registry.copy().clear()
+    assert len(registry) == 1
+
+
+def test_base_registry_copy_register_in_the_original_does_not_change_the_copy() -> None:
+    registry = Registry[str, int]()
+    other = registry.copy()
+    registry.register("a", 1)
+    assert not other.has("a")
+
+
+def test_base_registry_copy_does_not_copy_the_values() -> None:
+    value = object()
+    assert Registry[str, object]({"a": value}).copy().get("a") is value
+
+
+def test_base_registry_copy_has_its_own_lock() -> None:
+    registry = Registry[str, int]()
+    assert registry.copy()._lock is not registry._lock
+
+
+def test_base_registry_copy_is_tracked_for_forks() -> None:
+    assert Registry[str, int]().copy() in fork._TRACKED
+
+
+def test_base_registry_copy_has_the_lazy_groups() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    assert registry.copy().get("a") == 1
+
+
+def test_base_registry_copy_loads_the_lazy_groups_separately() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    registry.copy().get("a")
+    assert list(registry._lazy) == ["group"]
+
+
+def test_base_registry_copy_clear_keeps_the_lazy_groups_of_the_original() -> None:
+    registry = Registry[str, int]()
+    registry.register_lazy("group", lambda: {"a": 1})
+    registry.copy().clear()
+    assert registry.get("a") == 1
+
+
+def test_base_registry_copy_of_a_type_registry_has_its_own_cache() -> None:
+    registry = TypeRegistry[str]({int: "int"})
+    registry.resolve(int)
+    other = registry.copy()
+    other.register(bool, "bool")
+    assert registry.resolve(bool) == "int"
+
+
+def test_base_registry_copy_of_a_type_registry_resolves_in_the_copy() -> None:
+    registry = TypeRegistry[str]({int: "int"})
+    registry.resolve(bool)
+    other = registry.copy()
+    other.register(bool, "bool")
+    assert other.resolve(bool) == "bool"

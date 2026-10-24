@@ -5,9 +5,10 @@ from __future__ import annotations
 
 __all__ = ["BaseRegistry"]
 
+import copy
 import threading
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, Self, TypeVar
 
 from coola.registry.exceptions import AlreadyRegisteredError, KeyNotRegisteredError
 from coola.utils.fork import track_fork
@@ -144,6 +145,41 @@ class BaseRegistry(Generic[K, V]):
         override it to invalidate any derived state (e.g. a resolution
         cache).
         """
+
+    def copy(self) -> Self:
+        r"""Create a copy of the registry.
+
+        The copy has the same entries and the same pending lazy groups
+        as the registry, and is independent from it: registering or
+        removing an entry in one registry does not change the other.
+        The keys and the values are not copied.
+
+        Returns:
+            A new registry of the same class.
+
+        Example:
+            ```pycon
+            >>> from coola.registry import Registry
+            >>> registry = Registry[str, int]({"key": 42})
+            >>> other = registry.copy()
+            >>> other.register("other", 1)
+            >>> registry.has("other")
+            False
+            >>> other.get("key")
+            42
+
+            ```
+        """
+        # The attributes that are not replaced below (the configuration of a subclass) are shared.
+        new = copy.copy(self)
+        with self._lock:
+            new._state = self._state.copy()
+            # The entries are never changed after their creation, so they are shared.
+            new._lazy = self._lazy.copy()
+        new._lock = threading.RLock()
+        new._invalidate()
+        track_fork(new)
+        return new
 
     def _reset_after_fork(self) -> None:
         r"""Recreate the lock in a forked child process.

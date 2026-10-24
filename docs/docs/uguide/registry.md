@@ -387,6 +387,28 @@ new locks right after the fork and keeps the content of the registry. The same a
 `LazySingleton`, to the default registries and to the lock of the savers. The `spawn` start method
 is not affected.
 
+## Copying a Registry
+
+`copy()` creates an independent registry with the same entries (and the same pending lazy groups).
+The keys and the values are not copied:
+
+```pycon
+>>> from coola.registry import Registry
+>>> registry = Registry[str, int]({"key": 42})
+>>> other = registry.copy()
+>>> other.register("other", 1)
+>>> registry.has("other")
+False
+>>> other.get("key")
+42
+
+```
+
+Every registry of `coola` has a `copy()` method (`TypeRegistry`, `HasherRegistry`,
+`EqualityTesterRegistry`, ...). To test code that registers a type in a default registry without
+leaking the registration to the other tests, see "Isolating the Default Registries" in the
+[testing guide](testing.md).
+
 ## Common Use Cases
 
 ### Plugin System
