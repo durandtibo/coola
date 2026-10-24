@@ -14,7 +14,8 @@ from __future__ import annotations
 
 __all__ = ["BaseTypeDispatchRegistry"]
 
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+import copy
+from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar, cast
 
 from coola.display import MultilineDisplayMixin
 from coola.registry.type import TypeRegistry
@@ -57,6 +58,34 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
 
     def _display_fields(self) -> dict[str, Any]:
         return {"state": self._state}
+
+    def copy(self) -> Self:
+        r"""Create a copy of the registry.
+
+        The copy has the same handlers (and the same pending lazy
+        groups) as the registry, and is independent from it:
+        registering or removing a handler in one registry does not
+        change the other. The handlers are not copied.
+
+        Returns:
+            A new registry of the same class.
+
+        Example:
+            ```pycon
+            >>> from coola.hashing import HasherRegistry, StrHasher
+            >>> registry = HasherRegistry({str: StrHasher()})
+            >>> other = registry.copy()
+            >>> other.unregister(str)
+            StrHasher()
+            >>> registry.has(str)
+            True
+
+            ```
+        """
+        # The attributes that are not replaced (the configuration of a subclass) are shared.
+        new = copy.copy(self)
+        new._state = self._state.copy()
+        return new
 
     def __contains__(self, data_type: type) -> bool:
         return self.has(data_type)

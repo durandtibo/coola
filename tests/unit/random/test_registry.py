@@ -327,3 +327,18 @@ def test_random_manager_registry_manual_seed_not_int(seed: object) -> None:
     registry = RandomManagerRegistry({"random": RandomRandomManager()})
     with pytest.raises(TypeError, match="seed must be an int"):
         registry.manual_seed(seed)
+
+
+def test_random_manager_registry_copy_returns_the_same_class() -> None:
+    assert type(RandomManagerRegistry().copy()) is RandomManagerRegistry
+
+
+def test_random_manager_registry_copy_has_the_same_managers() -> None:
+    manager = RandomRandomManager()
+    assert RandomManagerRegistry({"random": manager}).copy()._state.get("random") is manager
+
+
+def test_random_manager_registry_copy_register_does_not_change_the_original() -> None:
+    registry = RandomManagerRegistry()
+    registry.copy().register("random", RandomRandomManager())
+    assert not registry.has_manager("random")

@@ -388,6 +388,43 @@ The first marker skips the test if the dependency is not available, the second o
 dependency is available. Pass `plural=True` when the name lists several dependencies (for example
 `"PyTorch and CUDA"`), so the reason reads "are available".
 
+## Isolating the Default Registries
+
+The default registries (equality testers, hashers, summarizers, ...) are process-wide. A test that
+registers a type in one of them changes it for every other test of the session. The
+`isolated_default_registries` fixture of `coola.testing.registries` runs the test on copies of the
+default registries and restores the original ones when the test ends:
+
+```python
+# conftest.py
+from coola.testing.registries import isolated_default_registries
+
+__all__ = ["isolated_default_registries"]
+```
+
+```python
+import pytest
+
+from coola.equality import objects_are_equal
+from coola.equality.tester import DefaultEqualityTester, get_default_registry
+
+
+class Point:
+    pass
+
+
+@pytest.mark.usefixtures("isolated_default_registries")
+def test_point() -> None:
+    get_default_registry().register(Point, DefaultEqualityTester())
+    assert get_default_registry().has_equality_tester(Point)
+```
+
+Outside of pytest, `coola.utils.singleton.temporary_default_registries()` is the context manager
+behind the fixture, and `coola.utils.singleton.reset_default_registries()` forgets the default
+registries so the next use builds them again with their default entries and plugins (this also
+restores a registry that was emptied with `clear()`). Every registry has a `copy()` method to build
+an independent registry with the same entries.
+
 ## Usage Examples
 
 ### Testing with Multiple Dependencies
