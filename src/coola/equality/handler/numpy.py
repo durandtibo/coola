@@ -98,8 +98,12 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         and is_numeric_array(array1)
         and is_numeric_array(array2)
     ):
+        # ``np.allclose`` scales the tolerance with the second array only, so the two
+        # directions are tried to make the comparison symmetric.
         return np.allclose(
             array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
+        ) or np.allclose(
+            array2, array1, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
         )
     # ``np.isnan`` is not defined for string/object/void dtypes, so
     # ``equal_nan`` is only forwarded when both arrays support it.

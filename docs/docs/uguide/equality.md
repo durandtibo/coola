@@ -422,7 +422,11 @@ The tolerance parameters are:
 - `atol`: Absolute tolerance (default: 1e-8)
 - `rtol`: Relative tolerance (default: 1e-5)
 
-Two values are considered equal if: `|actual - expected| <= atol + rtol * |expected|`
+Two numbers are considered equal if `|actual - expected| <= max(rtol * max(|actual|, |expected|), atol)`
+(the rule of `math.isclose`). NumPy arrays, PyTorch tensors and JAX arrays use
+`|actual - expected| <= atol + rtol * max(|actual|, |expected|)`, so the comparison is symmetric:
+`objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result. The array rule
+is never stricter than the scalar rule.
 
 ### Finding a Difference
 
