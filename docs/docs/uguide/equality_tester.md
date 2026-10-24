@@ -102,6 +102,23 @@ True
 The tester recursively compares elements using the registry, so nested structures are handled
 correctly.
 
+#### `SetEqualityTester`
+
+Handles `set` and `frozenset`. Unlike `==`, the elements are matched by hash and type, so
+`equal_nan` applies to them (the tolerance does not):
+
+```pycon
+>>> from coola.equality.config import EqualityConfig
+>>> from coola.equality.tester import SetEqualityTester
+>>> config = EqualityConfig(equal_nan=True)
+>>> tester = SetEqualityTester()
+>>> tester.objects_are_equal({1.0, float("nan")}, {1.0, float("nan")}, config)
+True
+>>> tester.objects_are_equal({1.0, 2.0}, {1.0, 3.0}, config)
+False
+
+```
+
 #### `MappingEqualityTester`
 
 Handles mapping types like `dict`:

@@ -45,6 +45,7 @@ __all__ = [
     "PydanticModelEqualityTester",
     "ScalarEqualityTester",
     "SequenceEqualityTester",
+    "SetEqualityTester",
     "TolerantEqualEqualityTester",
     "TorchPackedSequenceEqualityTester",
     "TorchTensorEqualityTester",
@@ -64,6 +65,7 @@ from coola.equality.tester.collection import (
     MappingEqualityTester,
     OrderedMappingEqualityTester,
     SequenceEqualityTester,
+    SetEqualityTester,
 )
 from coola.equality.tester.dataclass import DataclassEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester

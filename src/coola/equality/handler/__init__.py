@@ -43,6 +43,7 @@ __all__ = [
     "SameTypeHandler",
     "ScalarEqualHandler",
     "SequenceSameValuesHandler",
+    "SetSameValuesHandler",
     "TolerantEqualHandler",
     "TorchTensorEqualHandler",
     "TorchTensorSameDeviceHandler",
@@ -81,6 +82,7 @@ from coola.equality.handler.native import (
 from coola.equality.handler.pydantic import PydanticModelSameFieldsHandler
 from coola.equality.handler.scalar import NanEqualHandler, ScalarEqualHandler
 from coola.equality.handler.sequence import SequenceSameValuesHandler
+from coola.equality.handler.set import SetSameValuesHandler
 from coola.equality.handler.shape import SameShapeHandler
 from coola.equality.handler.tolerant import TolerantEqualHandler
 from coola.equality.handler.utils import (

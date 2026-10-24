@@ -344,17 +344,20 @@ False
 
 ```
 
-:warning: The check applies to the values that `coola` compares one by one (items of sequences,
-values of mappings, attributes, ...). The members of a `set` and the keys of a `dict` are matched
-with the native hash and equality, so `{1}` and `{True}` (or `{1: "a"}` and `{True: "a"}`) are still
-considered equal.
+:warning: The keys of a `dict` are matched with the native hash and equality, so `{1: "a"}` and
+`{True: "a"}` are still considered equal. The members of a `set` are matched by their
+type and hash, so `{1}` and `{True}` are different (unlike with `==`).
 
 ```pycon
 >>> from coola.equality import objects_are_equal
+>>> {1: "a"} == {True: "a"}
+True
+>>> objects_are_equal({1: "a"}, {True: "a"})
+True
 >>> {1} == {True}
 True
 >>> objects_are_equal({1}, {True})
-True
+False
 
 ```
 
@@ -820,8 +823,10 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
 - `decimal.Decimal`, `fractions.Fraction` and `datetime.timedelta`: compared with `==`, or with their
   difference if `atol` or `rtol` is given (`atol` of a `timedelta` is a number of seconds). A
   `Decimal` NaN is equal to a NaN only if `equal_nan=True`
-- `set` and `frozenset`: compared with `==`, so the tolerance is not applied to the items (a set
-  of floats is compared exactly)
+- `set` and `frozenset`: the elements are matched by hash and type in linear time, so `equal_nan`
+  applies to the elements (`{1.0, float("nan")}` equals itself with `equal_nan=True`, also inside
+  tuples and frozensets), but the tolerance does not: the elements are compared exactly, so
+  `{1.0}` and `{1.0 + 1e-9}` are different even with `objects_are_allclose`
 - Any other type, for example `str`, `bytes`, `range` or `datetime.datetime`:
   compared with `==`, so the tolerance and `equal_nan` are ignored, and the result is what the
   type's `__eq__` returns. If `==` raises a `TypeError` or a `ValueError`, or does not return a

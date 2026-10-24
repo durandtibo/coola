@@ -27,6 +27,7 @@ from coola.equality.tester import (
     PyarrowEqualityTester,
     ScalarEqualityTester,
     SequenceEqualityTester,
+    SetEqualityTester,
     TorchPackedSequenceEqualityTester,
     TorchTensorEqualityTester,
     XarrayDataArrayEqualityTester,
@@ -86,8 +87,8 @@ TESTER_TYPES: list[tuple[type, type, bool]] = [
     # Default
     (object, DefaultEqualityTester, True),
     (str, DefaultEqualityTester, False),
-    (set, DefaultEqualityTester, False),
-    (frozenset, DefaultEqualityTester, False),
+    (set, SetEqualityTester, True),
+    (frozenset, SetEqualityTester, True),
     # Scalar
     (int, ScalarEqualityTester, True),
     (float, ScalarEqualityTester, True),
