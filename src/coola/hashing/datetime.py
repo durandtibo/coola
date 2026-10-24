@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["DatetimeHasher"]
 
 from contextlib import suppress
-from datetime import UTC, date, datetime, time
+from datetime import UTC, date, datetime, time, timedelta
 from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin
@@ -31,8 +31,10 @@ class DatetimeHasher(InlineDisplayMixin, BaseHasher[date | time]):
 
     Aware datetimes are converted to UTC first, so equal instants in
     different time zones hash the same, like they compare equal. Naive
-    and aware datetimes differ. An aware ``time`` is not normalised: its
-    offset is part of the ISO string.
+    and aware datetimes differ. An aware ``time`` is normalised the same
+    way, like ``time.__eq__`` does: the offset is subtracted from the time
+    of day (without wrapping around midnight) and the payload is the
+    resulting number of microseconds. A naive ``time`` uses its ISO string.
 
     Example:
         ```pycon
@@ -83,4 +85,19 @@ class DatetimeHasher(InlineDisplayMixin, BaseHasher[date | time]):
             # be representable, so the value is hashed with its own offset.
             with suppress(OverflowError):
                 data = data.astimezone(UTC)
+        if isinstance(data, time):
+            offset = data.utcoffset()
+            if offset is not None:
+                # Aware times that compare equal have the same time of day in UTC.
+                elapsed = timedelta(
+                    hours=data.hour,
+                    minutes=data.minute,
+                    seconds=data.second,
+                    microseconds=data.microsecond,
+                )
+                return hash_tagged(
+                    type(data).__qualname__,
+                    f"utc:{(elapsed - offset) // timedelta(microseconds=1)}",
+                    length=length,
+                )
         return hash_tagged(type(data).__qualname__, data.isoformat(), length=length)
