@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Generic, TypeVar
 
 from coola.registry.exceptions import AlreadyRegisteredError, KeyNotRegisteredError
+from coola.utils.fork import track_fork
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 from coola.utils.imports import import_object
 from coola.utils.introspection import is_same_type
@@ -75,6 +76,7 @@ class BaseRegistry(Generic[K, V]):
             self._validate_key(key)
         self._state: dict[K, V] = initial_state.copy() if initial_state else {}
         self._lock: threading.RLock = threading.RLock()  # RLock allows re-entrant locking
+        track_fork(self)
         # Cached snapshot of ``_state`` used by ``items``/``keys``/``values`` and by
         # ``__iter__``/``__repr__``/``__str__``. It is
         # invalidated (set to None) by ``_invalidate`` on every mutation, so repeated
@@ -142,6 +144,16 @@ class BaseRegistry(Generic[K, V]):
         override it to invalidate any derived state (e.g. a resolution
         cache).
         """
+
+    def _reset_after_fork(self) -> None:
+        r"""Recreate the lock in a forked child process.
+
+        The lock may have been held by a thread that does not exist in
+        the child process, which would block the registry forever. The
+        content of the registry is kept: the child has a copy of the
+        memory of its parent.
+        """
+        self._lock = threading.RLock()
 
     def _invalidate(self) -> None:
         r"""Invalidate state derived from ``_state`` after a mutation.

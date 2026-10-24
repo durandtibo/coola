@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.factory import is_object_config, resolve_object
 from coola.io.utils import add_uuid_suffix
+from coola.utils.fork import track_fork
 from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
@@ -46,6 +47,24 @@ logger: logging.Logger = logging.getLogger(__name__)
 # per distinct path saved over the lifetime of the process.
 _SAVE_LOCKS_GUARD = threading.Lock()
 _SAVE_LOCKS: weakref.WeakValueDictionary[str, threading.Lock] = weakref.WeakValueDictionary()
+
+
+class _SaveLocksResetter:
+    r"""Recreate the locks of ``save`` in a forked child process.
+
+    A lock held by a thread of the parent at the time of the fork stays
+    locked forever in the child, because the owner does not exist
+    there.
+    """
+
+    def _reset_after_fork(self) -> None:
+        global _SAVE_LOCKS_GUARD  # noqa: PLW0603
+        _SAVE_LOCKS_GUARD = threading.Lock()
+        _SAVE_LOCKS.clear()
+
+
+_SAVE_LOCKS_RESETTER = _SaveLocksResetter()
+track_fork(_SAVE_LOCKS_RESETTER)
 
 # Default timeout/poll interval for the cross-process file lock acquired by
 # ``_save_lock`` below.

@@ -26,6 +26,7 @@ from coola.io import (
     JsonLoader,
     JsonSaver,
     TextLoader,
+    base as io_base,
     is_loader_config,
     is_saver_config,
     resolve_loader,
@@ -35,6 +36,8 @@ from coola.io import (
     save_text,
 )
 from coola.io.base import (
+    _SAVE_LOCKS,
+    _SAVE_LOCKS_RESETTER,
     _acquire_file_lock,
     _break_stale_lock,
     _get_save_lock,
@@ -47,6 +50,7 @@ from coola.io.base import (
     _short_name,
     _tmp_path,
 )
+from coola.utils import fork
 
 ######################################
 #     Tests for is_loader_config     #
@@ -476,6 +480,33 @@ def test_get_save_lock_reuses_existing_lock_for_same_path(tmp_path: Path) -> Non
     path = tmp_path.joinpath("data.txt")
     lock = _get_save_lock(path)
     assert _get_save_lock(path) is lock
+
+
+def test_save_locks_resetter_is_tracked_for_forks() -> None:
+    assert _SAVE_LOCKS_RESETTER in fork._TRACKED
+
+
+def test_save_locks_resetter_reset_after_fork_recreates_the_guard() -> None:
+    guard = io_base._SAVE_LOCKS_GUARD
+    _SAVE_LOCKS_RESETTER._reset_after_fork()
+    assert io_base._SAVE_LOCKS_GUARD is not guard
+
+
+def test_save_locks_resetter_reset_after_fork_does_not_block_if_the_guard_was_held(
+    tmp_path: Path,
+) -> None:
+    io_base._SAVE_LOCKS_GUARD.acquire()  # held by a thread that does not exist in the child
+    _SAVE_LOCKS_RESETTER._reset_after_fork()
+    path = tmp_path.joinpath("data.txt")
+    lock = _get_save_lock(path)
+    assert _get_save_lock(path) is lock
+
+
+def test_save_locks_resetter_reset_after_fork_clears_the_locks(tmp_path: Path) -> None:
+    lock = _get_save_lock(tmp_path.joinpath("data.txt"))
+    lock.acquire()  # held by a thread that does not exist in the child
+    _SAVE_LOCKS_RESETTER._reset_after_fork()
+    assert len(_SAVE_LOCKS) == 0
 
 
 def test_acquire_file_lock_has_no_lock_file_initially(tmp_path: Path) -> None:

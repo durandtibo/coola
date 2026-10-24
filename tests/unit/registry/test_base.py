@@ -7,6 +7,7 @@ import pytest
 
 from coola.registry import AlreadyRegisteredError, Registry, TypeRegistry
 from coola.registry.base import BaseRegistry
+from coola.utils import fork
 
 ##################################
 #     Tests for BaseRegistry     #
@@ -466,3 +467,29 @@ def test_base_registry_values_consistent_with_items() -> None:
     registry = BaseRegistry[str, int]({"key1": 1, "key2": 2})
     registry.items()
     assert list(registry.values()) == [1, 2]
+
+
+def test_base_registry_is_tracked_for_forks() -> None:
+    registry = BaseRegistry[str, int]()
+    assert registry in fork._TRACKED
+
+
+def test_base_registry_reset_after_fork_recreates_the_lock() -> None:
+    registry = BaseRegistry[str, int]()
+    lock = registry._lock
+    registry._reset_after_fork()
+    assert registry._lock is not lock
+
+
+def test_base_registry_reset_after_fork_keeps_the_content() -> None:
+    registry = BaseRegistry[str, int]({"key": 1})
+    registry._reset_after_fork()
+    assert registry.get("key") == 1
+
+
+def test_base_registry_reset_after_fork_does_not_block_if_the_lock_was_held() -> None:
+    registry = BaseRegistry[str, int]()
+    registry._lock.acquire()  # held by a thread that does not exist in the child
+    registry._reset_after_fork()
+    registry.register("key", 1)
+    assert registry.get("key") == 1

@@ -380,6 +380,13 @@ True
 
 ```
 
+The registries are also safe to use in a process created with `os.fork` (a `multiprocessing` pool
+with the `fork` start method, a `torch.utils.data.DataLoader` with workers). A lock held by a thread
+of the parent at the time of the fork would stay locked forever in the child, so the child creates
+new locks right after the fork and keeps the content of the registry. The same applies to
+`LazySingleton`, to the default registries and to the lock of the savers. The `spawn` start method
+is not affected.
+
 ## Common Use Cases
 
 ### Plugin System

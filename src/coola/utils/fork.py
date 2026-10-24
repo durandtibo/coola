@@ -1,12 +1,20 @@
-r"""Reset the state of the identifier generators in a forked process.
+r"""Reset the state of the objects in a forked process.
 
-A process created with ``os.fork`` (e.g. a worker of a pre-fork server
-or of ``multiprocessing`` with the ``fork`` start method) starts with a
-copy of the memory of its parent, including the state of the generators.
-Without a reset, the parent and its children would produce the same
-random values and the same counters, so they could produce the same
-identifiers. The generators that register with ``track_fork`` are reset
-in the child process right after the fork.
+A process created with ``os.fork`` (e.g. a worker of a pre-fork server,
+a ``torch.utils.data.DataLoader`` worker or ``multiprocessing`` with
+the ``fork`` start method) starts with a copy of the memory of its
+parent, but only with the thread that forked. Two kinds of state need a
+reset in the child process:
+
+- the state of the identifier generators: without a reset, the parent
+  and its children would produce the same random values and the same
+  counters, so they could produce the same identifiers;
+- the locks: a lock that another thread of the parent held at the time
+  of the fork stays locked forever in the child, because the owner does
+  not exist there.
+
+The objects that register with ``track_fork`` are reset in the child
+process right after the fork.
 """
 
 from __future__ import annotations
@@ -42,7 +50,7 @@ def track_fork(obj: ForkAware) -> None:
 
     Example:
         ```pycon
-        >>> from coola.identifier.fork import track_fork
+        >>> from coola.utils.fork import track_fork
         >>> class Counter:
         ...     def __init__(self):
         ...         self.value = 0
