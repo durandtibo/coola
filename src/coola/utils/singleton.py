@@ -35,6 +35,8 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from coola.utils.fork import track_fork
 
+from coola.utils.fork import track_fork
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
     from importlib.metadata import EntryPoint
