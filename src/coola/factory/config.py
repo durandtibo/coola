@@ -10,12 +10,12 @@ from __future__ import annotations
 __all__ = ["is_object_config"]
 
 import inspect
-import sys
 from types import UnionType
 from typing import TYPE_CHECKING, Any, Union, get_args, get_origin, get_type_hints
 
 from coola.factory.constants import OBJECT_TARGET
 from coola.factory.instantiation import import_object
+from coola.utils.imports import is_module_imported
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -94,7 +94,7 @@ def is_object_config(
     target = config.get(OBJECT_TARGET)
     if target is None:
         return False
-    if not (import_target or allowed_prefixes is not None or _is_module_imported(target)):
+    if not (import_target or allowed_prefixes is not None or is_module_imported(target)):
         return False
     target = import_object(target, allowed_prefixes=allowed_prefixes)
     if inspect.isfunction(target):
@@ -112,19 +112,3 @@ def is_object_config(
     # A generic alias such as ``list[int]`` is not a class: check its origin (``list``).
     targets = tuple(get_origin(t) or t for t in targets)
     return any(inspect.isclass(t) and issubclass(t, cls) for t in targets)
-
-
-def _is_module_imported(target: object) -> bool:
-    r"""Indicate if the module of a target is already imported.
-
-    The module is not imported. A target that is not a string is
-    reported as imported, so ``import_object`` raises its usual error.
-
-    Args:
-        target: The fully qualified name of the object (for example
-            ``"collections.Counter"``), or a module name.
-    """
-    if not isinstance(target, str):
-        return True
-    module_name = target.rpartition(".")[0] or target
-    return module_name in sys.modules

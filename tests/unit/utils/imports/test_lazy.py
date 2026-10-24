@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from collections import OrderedDict
 
 import pytest
@@ -9,6 +10,7 @@ import pytest
 from coola.utils.imports import (
     LazyModule,
     import_object,
+    is_module_imported,
     lazy_exports,
     lazy_import,
 )
@@ -166,6 +168,35 @@ def test_import_object_missing_module() -> None:
 def test_import_object_missing_name() -> None:
     with pytest.raises(AttributeError, match="missing_name"):
         import_object("collections:missing_name")
+
+
+###############################
+#     is_module_imported      #
+###############################
+
+
+@pytest.mark.parametrize("target", ["collections.Counter", "collections", "os.path.join"])
+def test_is_module_imported_true(target: str) -> None:
+    assert is_module_imported(target)
+
+
+@pytest.mark.parametrize("target", ["missing_module.Name", "missing_module", "missing.sub.Name"])
+def test_is_module_imported_false(target: str) -> None:
+    assert not is_module_imported(target)
+
+
+@pytest.mark.parametrize("target", [None, 1, ["collections.Counter"]])
+def test_is_module_imported_not_a_string(target: object) -> None:
+    assert is_module_imported(target)
+
+
+def test_is_module_imported_does_not_import() -> None:
+    is_module_imported("missing_module.Name")
+    assert "missing_module" not in sys.modules
+
+
+def test_is_module_imported_uses_parent_module() -> None:
+    assert not is_module_imported("collections.missing_sub.Name")
 
 
 ############################
