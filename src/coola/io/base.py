@@ -53,8 +53,7 @@ class _SaveLocksResetter:
     r"""Recreate the locks of ``save`` in a forked child process.
 
     A lock held by a thread of the parent at the time of the fork stays
-    locked forever in the child, because the owner does not exist
-    there.
+    locked forever in the child, because the owner does not exist there.
     """
 
     def _reset_after_fork(self) -> None:

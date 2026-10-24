@@ -411,7 +411,6 @@ the registry (so the tolerance and `equal_nan` apply), and reports the attribute
 >>> class Point:
 ...     def __init__(self, x):
 ...         self.x = x
-...
 >>> registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
 >>> objects_are_equal(Point(1), Point(1), registry=registry)
 False

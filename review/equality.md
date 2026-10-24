@@ -26,18 +26,18 @@ not re-checked here and stays open. The table in `suggestions.md` should be upda
 
 ## 2. Problems
 
-| ID  | P   | Finding                                                                                                        |
-| --- | --- | -------------------------------------------------------------------------------------------------------------- |
-| E1  | P1  | Tolerance defaults and parameter order differ between the entry points **[verified]**                          |
-| E2  | P2  | Two reporting mechanisms (logger + `show_difference`, and `reporter`); `show_difference` is not a comparison setting |
-| E3  | P2  | `EqualityConfig` mixes immutable settings and mutable per-comparison state; handlers reach into its privates   |
-| E4  | P2  | Symmetry is not a stated property, and dispatch uses `type(actual)` only **[reading]**                         |
-| E5  | P2  | Public surface is too wide and unclear: handler vs tester duplicate each other, 83 public classes              |
-| E6  | P2  | Errors: documented `RecursionError`, real `MaxDepthExceededError`, not exported from `coola.equality`          |
-| E7  | P3  | `max_depth` has to be repeated on five functions, and means "raise" here and "truncate" in `summary`           |
+| ID  | P   | Finding                                                                                                                             |
+| --- | --- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| E1  | P1  | Tolerance defaults and parameter order differ between the entry points **[verified]**                                               |
+| E2  | P2  | Two reporting mechanisms (logger + `show_difference`, and `reporter`); `show_difference` is not a comparison setting                |
+| E3  | P2  | `EqualityConfig` mixes immutable settings and mutable per-comparison state; handlers reach into its privates                        |
+| E4  | P2  | Symmetry is not a stated property, and dispatch uses `type(actual)` only **[reading]**                                              |
+| E5  | P2  | Public surface is too wide and unclear: handler vs tester duplicate each other, 83 public classes                                   |
+| E6  | P2  | Errors: documented `RecursionError`, real `MaxDepthExceededError`, not exported from `coola.equality`                               |
+| E7  | P3  | `max_depth` has to be repeated on five functions, and means "raise" here and "truncate" in `summary`                                |
 | E8  | P3  | Default registry cannot be scoped or reset (see `suggestions.md` 24.2); `get_default_equality_tester_registry` is a redundant alias |
-| E9  | P3  | `result.py` imports the private `_compare`; the `ComparisonResult.path` rebuild relies on report order         |
-| E10 | P3  | No fast path or explicit contract for unhashable/huge inputs; property tests do not cover the new options      |
+| E9  | P3  | `result.py` imports the private `_compare`; the `ComparisonResult.path` rebuild relies on report order                              |
+| E10 | P3  | No fast path or explicit contract for unhashable/huge inputs; property tests do not cover the new options                           |
 
 ### E1. Entry points disagree on tolerance **[verified]**
 
@@ -53,7 +53,7 @@ assert_objects_allclose(..., *, rtol=1e-5, atol=1e-8, ...)
   changes the result.
 - `rtol` comes first in two signatures and second in `compare`. Everyone passes them by keyword,
   but `help()` and the docs read inconsistently.
-- The defaults (`1e-5`, `1e-8`) are NumPy's. They are a hidden default for *every* type
+- The defaults (`1e-5`, `1e-8`) are NumPy's. They are a hidden default for _every_ type
   (`Decimal`, `timedelta`, pandas, tensors), and `objects_are_allclose(1.0, 1.0 + 1e-9)` is `True`
   with no argument. This is fine but it is not in the properties table ("Tolerance" row only says
   "uses `atol` and `rtol`").
@@ -75,7 +75,7 @@ assert_objects_allclose(..., *, rtol=1e-5, atol=1e-8, ...)
 Handlers call `report_difference(logger, config, msg, extra={"coola_path": ...})`. If
 `config.reporter` is `None` the message goes to a module logger at `INFO`. So:
 
-- `show_difference` is a *logging* switch, not a comparison setting, yet it lives in
+- `show_difference` is a _logging_ switch, not a comparison setting, yet it lives in
   `EqualityConfig`, in `objects_are_equal` and `objects_are_allclose`, but not in `compare` (which
   hard-codes `True`) nor in the `assert_*` functions.
 - A custom handler that logs directly is silently dropped by `compare` (documented in the note of
@@ -85,7 +85,7 @@ Handlers call `report_difference(logger, config, msg, extra={"coola_path": ...})
 
 **Target**
 
-- A handler *returns* a `Difference | None`-style outcome, or calls `config.report(reason, path_part)`;
+- A handler _returns_ a `Difference | None`-style outcome, or calls `config.report(reason, path_part)`;
   no handler knows about `logging`. The tester/registry level decides the sink:
   - `objects_are_equal` / `objects_are_allclose`: no reporting (`reporter=None`, nothing computed).
   - `compare` / `assert_*`: a collecting reporter.
@@ -113,7 +113,7 @@ The dataclass holds `registry, equal_nan, atol, rtol, show_difference, max_depth
 
 ```python
 @dataclass(frozen=True, slots=True)
-class EqualityConfig:          # settings only: hashable, shareable, thread-safe
+class EqualityConfig:  # settings only: hashable, shareable, thread-safe
     registry: EqualityTesterRegistry
     equal_nan: bool = False
     rtol: float = 0.0
@@ -122,13 +122,14 @@ class EqualityConfig:          # settings only: hashable, shareable, thread-safe
     reporter: Reporter | None = None
 
 
-class ComparisonContext:       # one per comparison, created by the entry point
+class ComparisonContext:  # one per comparison, created by the entry point
     config: EqualityConfig
     depth: int
     in_progress: set[tuple[int, int]]
     warned: set[str]
-    def descend(self) -> ContextManager[None]: ...   # replaces check_recursion_depth
-    def visiting(self, a, b) -> ContextManager[bool]: ...   # replaces track_comparison
+
+    def descend(self) -> ContextManager[None]: ...  # replaces check_recursion_depth
+    def visiting(self, a, b) -> ContextManager[bool]: ...  # replaces track_comparison
     def warn_once(self, name, message) -> None: ...
 ```
 
@@ -152,10 +153,10 @@ That makes strict type checks symmetric for the built-in testers, but:
 
 **Target**
 
-- Add three rows to the properties table: *Reflexive* (with the NaN exception, already documented in
-  the docstrings), *Symmetric* (for `objects_are_equal`; tolerant comparison is **not** symmetric
+- Add three rows to the properties table: _Reflexive_ (with the NaN exception, already documented in
+  the docstrings), _Symmetric_ (for `objects_are_equal`; tolerant comparison is **not** symmetric
   because `rtol` scales with `expected`, as in `numpy.isclose`; say so, or make it symmetric as the
-  JAX/torch testers' docs hint), *Not transitive with tolerance*.
+  JAX/torch testers' docs hint), _Not transitive with tolerance_.
 - Decide on tolerant symmetry once. Recommended: keep the NumPy definition
   (`|a - e| <= atol + rtol * |e|`), name it in the table, and give every library handler the same
   formula (13.2 in `suggestions.md` already made NumPy/torch/JAX consistent; extend to pandas, polars,
@@ -167,7 +168,7 @@ That makes strict type checks symmetric for the built-in testers, but:
 ### E5. Surface area: handlers and testers duplicate each other
 
 There are 50 public handler classes and 33 tester classes. Most testers are a fixed chain
-(`BaseChainEqualityTester._create_handler`), so every library has a tester class *and* a handler
+(`BaseChainEqualityTester._create_handler`), so every library has a tester class _and_ a handler
 class (`NumpyArrayEqualHandler` + `NumpyArrayEqualityTester`, and so on). The two layers have the
 same `equal(other)`/`__repr__`/visualize boilerplate, and two documents explain them (equality
 tester guide, equality handler guide).
@@ -177,7 +178,7 @@ tester guide, equality handler guide).
 - Public, documented, stable: `objects_are_equal`, `objects_are_allclose`, `compare`,
   `assert_objects_equal`, `assert_objects_allclose`, `ComparisonResult`, `EqualityConfig`,
   `EqualityTesterRegistry`, `BaseEqualityTester`, `register_equality_testers`, the exception types,
-  and the *named* testers users reference (`ObjectAttributesEqualityTester`, `EqualEqualityTester`,
+  and the _named_ testers users reference (`ObjectAttributesEqualityTester`, `EqualEqualityTester`,
   `DifferenceCloseEqualityTester`, `SequenceEqualityTester`, ...).
 - Handlers are an implementation detail of the built-in testers, except for the base class and the
   generic building blocks (`SameObjectHandler`, `SameTypeHandler`, `SameLengthHandler`,
@@ -215,7 +216,7 @@ for the tolerances.
 The parameter is declared, with the same long docstring paragraph, on `objects_are_equal`,
 `objects_are_allclose`, `compare`, `assert_objects_equal`, `assert_objects_allclose` and
 `EqualityConfig`. Target: a single documented "Common options" section, referenced from every
-docstring, and keep the name but rename the concept in the user guide to *nesting limit* so it is
+docstring, and keep the name but rename the concept in the user guide to _nesting limit_ so it is
 not confused with `summarize(max_depth=...)` (`suggestions.md` 28.3 proposes the same for the
 other side). Do not rename the keyword unless `summary` is renamed in the same release.
 

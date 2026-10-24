@@ -188,8 +188,8 @@ def test_is_object_config_int_not_str() -> None:
 
 
 def test_is_object_config_with_invalid_target() -> None:
-    """Test is_object_config with non-existent target raises
-    ImportError if the module is imported."""
+    """Test is_object_config with non-existent target raises ImportError
+    if the module is imported."""
     with pytest.raises(ImportError):
         is_object_config(
             {OBJECT_TARGET: "non_existent_module.NonExistentClass"}, object, import_target=True

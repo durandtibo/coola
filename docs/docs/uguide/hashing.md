@@ -106,7 +106,7 @@ The default registry hashes **only** the following types (and their subclasses):
 | `dict`, other `Mapping`                      | Independent of the order of the keys                                                                                 |
 | `OrderedDict`                                | Own tag. The order of the keys matters, like in `objects_are_equal`                                                  |
 | `set`, `frozenset`                           | Independent of the iteration order. A `set` and a `frozenset` hash differently                                       |
-| `date`, `datetime`, `time`                   | ISO 8601 form; aware `datetime` and `time` are normalised to UTC                                                                    |
+| `date`, `datetime`, `time`                   | ISO 8601 form; aware `datetime` and `time` are normalised to UTC                                                     |
 | `timedelta`, `timezone`                      | The `repr` of the value                                                                                              |
 | `uuid.UUID`, `zoneinfo.ZoneInfo`             | The string form (the UUID text, the zone key)                                                                        |
 | `decimal.Decimal`                            | The normalised value: `Decimal('1.0')` and `Decimal('1.00')` have the same hash                                      |

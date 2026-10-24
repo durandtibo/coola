@@ -23,8 +23,8 @@ if TYPE_CHECKING:
 
 
 def _is_fixed_width(data_type: Any) -> bool:
-    r"""Indicate if the values of a type can be hashed from a NumPy array
-    without going through Python objects."""
+    r"""Indicate if the values of a type can be hashed from a NumPy
+    array without going through Python objects."""
     return (
         pa.types.is_integer(data_type)
         or pa.types.is_floating(data_type)
@@ -36,9 +36,9 @@ def _hash_fixed_width_array(array: Any, length: int) -> str:
     r"""Hash the type, the positions of the nulls and the values of an
     integer, floating-point or boolean array through NumPy.
 
-    The ``null`` values are replaced by zero (``False``) in the values, and their
-    positions are hashed apart. The values are canonicalized like the
-    NumPy arrays (``-0.0`` and NaN).
+    The ``null`` values are replaced by zero (``False``) in the values,
+    and their positions are hashed apart. The values are canonicalized
+    like the NumPy arrays (``-0.0`` and NaN).
     """
     import numpy as np  # noqa: PLC0415
     import pyarrow.compute as pc  # noqa: PLC0415
