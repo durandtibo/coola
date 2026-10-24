@@ -85,6 +85,14 @@ def _dtype_str(dtype: np.dtype) -> str:
     return str(dtype.descr) if dtype.names else str(dtype.str)
 
 
+def _is_ml_dtypes_float(dtype: np.dtype) -> bool:
+    r"""Indicate if a dtype is a floating-point type of ``ml_dtypes``
+    (``bfloat16``, ``float8_*``, ...) with the kind ``V``."""
+    return dtype.type.__module__.startswith("ml_dtypes") and dtype.name.startswith(
+        ("bfloat", "float")
+    )
+
+
 def canonicalize_floats(data: np.ndarray) -> np.ndarray:
     r"""Return an array where the floating-point values have one bit
     pattern per value.
@@ -93,7 +101,8 @@ def canonicalize_floats(data: np.ndarray) -> np.ndarray:
     equal values (and NaNs, which are equal for ``equal_nan``) have the
     same bytes whatever the sign or the payload of the NaN. The real and
     the imaginary parts of a complex array are processed separately. The
-    other dtypes are returned unchanged.
+    ``ml_dtypes`` floating-point types (``bfloat16``, ``float8_*``) are
+    processed through ``float32``. The other dtypes are returned unchanged.
 
     Args:
         data: The array to canonicalize. It is not modified.
@@ -120,6 +129,10 @@ def canonicalize_floats(data: np.ndarray) -> np.ndarray:
             data[name] = canonicalize_floats(data[name])
         return data
     kind = data.dtype.kind
+    if kind == "V" and _is_ml_dtypes_float(data.dtype):
+        # ``bfloat16`` and ``float8_*`` have the kind ``V``. The conversion to
+        # ``float32`` is exact, and so is the conversion back.
+        return canonicalize_floats(data.astype(np.float32)).astype(data.dtype)
     if kind == "f":
         return np.where(np.isnan(data), np.array(np.nan, dtype=data.dtype), data + 0)
     if kind == "c":
