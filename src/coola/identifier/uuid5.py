@@ -16,7 +16,7 @@ __all__ = ["generate_stable_uuid5"]
 import uuid
 from typing import TYPE_CHECKING
 
-from coola.hashing import hash_object
+from coola.hashing import get_stable_registry, hash_object
 
 if TYPE_CHECKING:
     from coola.hashing import HasherRegistry
@@ -60,8 +60,8 @@ def generate_stable_uuid5(
         hashers
         resolved by ``registry`` for the types in ``data``) keep
         producing the same digest for that ``data``. A change to the
-        default registry's hashing algorithms in a future ``coola``
-        release would silently change the UUIDs produced here. Do not
+        hashing algorithms of ``coola`` in a future release would
+        silently change the UUIDs produced here. Do not
         rely on cross-version stability for UUIDs persisted long-term
         (e.g. as database primary keys) unless you pin ``coola`` and
         pass an explicit, version-controlled ``registry``.
@@ -71,7 +71,10 @@ def generate_stable_uuid5(
             such as a ``list``, ``dict``, or ``tuple``.
         registry: The registry used to resolve hashers for each data
             type, forwarded to ``hash_object``. If ``None``, the
-            default registry is used.
+            stable registry (``get_stable_registry``) is used: it has
+            only the built-in hashers, so the identifier does not
+            depend on the installed plugins or on ``register_hashers``.
+            Passing another registry opts out of this stability.
         namespace: The UUID namespace passed to ``uuid.uuid5``. Defaults
             to a namespace fixed for this module; pass a different one
             to derive UUIDs in a separate identifier space (e.g. to
@@ -104,6 +107,8 @@ def generate_stable_uuid5(
 
         ```
     """
+    if registry is None:
+        registry = get_stable_registry()
     return str(
         uuid.uuid5(
             namespace,

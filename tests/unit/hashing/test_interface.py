@@ -25,6 +25,7 @@ from coola.hashing import (
     StrHasher,
     StringHasher,
     get_default_registry,
+    get_stable_registry,
     hash_object,
     hash_tagged,
     interface as hashing_interface,
@@ -752,3 +753,32 @@ def test_get_default_hashers_returns_nothing_if_the_library_is_unavailable(modul
     name = module.rpartition(".")[2]
     with patch(f"{module}.is_{name}_available", lambda: False):
         assert import_object(f"{module}:get_default_hashers")() == {}
+
+
+##########################################
+#     Tests for get_stable_registry      #
+##########################################
+
+
+def test_get_stable_registry_returns_registry() -> None:
+    assert isinstance(get_stable_registry(), HasherRegistry)
+
+
+def test_get_stable_registry_returns_singleton() -> None:
+    assert get_stable_registry() is get_stable_registry()
+
+
+def test_get_stable_registry_is_not_the_default_registry() -> None:
+    assert get_stable_registry() is not get_default_registry()
+
+
+def test_get_stable_registry_has_the_builtin_hashers() -> None:
+    assert get_stable_registry().has_hasher(str)
+
+
+def test_get_stable_registry_is_not_changed_by_register_hashers() -> None:
+    class MyType:
+        pass
+
+    register_hashers({MyType: StrHasher()})
+    assert not get_stable_registry().has_hasher(MyType)

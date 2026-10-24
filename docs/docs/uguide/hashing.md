@@ -145,7 +145,14 @@ False
 ```
 
 The hash values can change between versions of `coola`: do not persist them as a stable
-identifier across upgrades without checking.
+identifier across upgrades without checking. The unit tests keep one golden vector per hasher
+family (`tests/unit/hashing/test_golden.py`), so a change of the format is a deliberate edit.
+
+`hash_object` uses the default registry, which changes when code calls `register_hashers` or when
+an installed package declares a `coola.hashing.hashers` entry point. The identifiers
+`generate_stable_content_id` and `generate_stable_uuid5` use `get_stable_registry()` instead (the
+built-in hashers only) when no registry is given, so they do not depend on the installed packages.
+Passing another registry opts out of this stability.
 
 ## Properties
 
