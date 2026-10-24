@@ -617,7 +617,7 @@ Items 23.1 to 28.4. The status is **PR open** until the pull request is merged.
 | 26.2 | **PR open** | #2287 (`flatten_mapping`, `sort_by_keys`, `slugify`)                                                          |
 | 27.1 | **PR open** | #2288 (documented: nested `_target_` is not resolved)                                                         |
 | 27.2 | **PR open** | #2289 (`is_object_config` does not import the module by default; `import_target=True` opts in)                |
-| 28.1 | **PR open** | #2282 (`coola.objects_are_equal`, `hash_object`, `summarize`, ... through a lazy namespace)                   |
+| 28.1 | **Decided** | #2282 (not implemented by decision: the top-level namespace stays minimal, a comment says so) |
 | 28.2 | **PR open** | #2290 (keyword-only options with a `DeprecationWarning` for the positional form)                              |
 | 28.3 | **PR open** | #2291 (documented in the docstrings and guides; the parameter is not renamed)                                 |
 | 28.4 | **PR open** | #2292 (README and index lead with compare, hash and summarize; `assert_objects_equal` and `compare` shown)    |
