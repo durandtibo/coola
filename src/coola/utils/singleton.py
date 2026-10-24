@@ -25,6 +25,8 @@ import warnings
 from importlib.metadata import entry_points
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
+from coola.utils.fork import track_fork
+
 if TYPE_CHECKING:
     from collections.abc import Callable
     from importlib.metadata import EntryPoint
@@ -84,6 +86,18 @@ class LazySingleton(Generic[T]):
         self._instance: T = _UNSET
         self._lock = threading.Lock()
         self._building_thread: int | None = None
+        track_fork(self)
+
+    def _reset_after_fork(self) -> None:
+        r"""Recreate the lock in a forked child process.
+
+        The lock may have been held by a thread that does not exist in
+        the child process (the thread that was building the value),
+        which would block the child forever. If the value was not built
+        yet, the child builds it.
+        """
+        self._lock = threading.Lock()
+        self._building_thread = None
 
     def get(self) -> T:
         r"""Return the cached value, building it on the first call.

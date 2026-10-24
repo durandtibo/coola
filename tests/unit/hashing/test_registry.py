@@ -19,6 +19,7 @@ from coola.hashing import (
     get_default_registry,
 )
 from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError, TypeRegistry
+from coola.utils import fork
 from tests.helpers import nest
 from tests.unit.hashing.helpers import Unhashable
 
@@ -667,3 +668,35 @@ def test_hasher_registry_equal_different_hashers() -> None:
 
 def test_hasher_registry_equal_different_type() -> None:
     assert not HasherRegistry().equal(object())
+
+
+def test_hasher_registry_is_tracked_for_forks() -> None:
+    registry = HasherRegistry()
+    assert registry in fork._TRACKED
+
+
+def test_hasher_registry_reset_after_fork_recreates_the_fallbacks_lock() -> None:
+    registry = HasherRegistry()
+    lock = registry._fallbacks_lock
+    registry._reset_after_fork()
+    assert registry._fallbacks_lock is not lock
+
+
+def test_hasher_registry_state_is_tracked_for_forks() -> None:
+    registry = HasherRegistry()
+    assert registry._state in fork._TRACKED
+
+
+def test_hasher_registry_reset_after_fork_keeps_the_fallbacks() -> None:
+    registry = HasherRegistry()
+    registry.register_fallback(lambda tp: tp is complex, StrHasher())
+    registry._reset_after_fork()
+    assert len(registry._fallbacks) == 1
+
+
+def test_hasher_registry_reset_after_fork_does_not_block_if_the_fallbacks_lock_was_held() -> None:
+    registry = HasherRegistry()
+    registry._fallbacks_lock.acquire()  # held by a thread that does not exist in the child
+    registry._reset_after_fork()
+    registry.register_fallback(lambda tp: tp is complex, StrHasher())
+    assert len(registry._fallbacks) == 1

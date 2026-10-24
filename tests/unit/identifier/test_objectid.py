@@ -9,10 +9,10 @@ import pytest
 from coola.identifier import (
     ObjectIdGenerator,
     extract_object_id_timestamp,
-    fork,
     generate_object_id,
     objectid as objectid_module,
 )
+from coola.utils import fork
 
 OBJECT_ID_PATTERN = re.compile(r"^[0-9a-f]{24}$")
 

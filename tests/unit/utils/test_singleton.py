@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Never, cast
 
 import pytest
 
-from coola.utils import singleton
+from coola.utils import fork, singleton
 from coola.utils.singleton import (
     STRICT_PLUGINS_ENV_VAR,
     LazySingleton,
@@ -476,3 +476,36 @@ def test_lazy_singleton_reset_rebuilds_the_value() -> None:
     singleton.get()
     singleton.reset()
     assert singleton.get() == 2
+
+
+def test_lazy_singleton_is_tracked_for_forks() -> None:
+    singleton = LazySingleton(lambda: 1)
+    assert singleton in fork._TRACKED
+
+
+def test_lazy_singleton_reset_after_fork_recreates_the_lock() -> None:
+    singleton = LazySingleton(lambda: 1)
+    lock = singleton._lock
+    singleton._reset_after_fork()
+    assert singleton._lock is not lock
+
+
+def test_lazy_singleton_reset_after_fork_does_not_block_if_the_lock_was_held() -> None:
+    singleton = LazySingleton(lambda: 1)
+    singleton._lock.acquire()  # held by a thread that does not exist in the child
+    singleton._reset_after_fork()
+    assert singleton.get() == 1
+
+
+def test_lazy_singleton_reset_after_fork_forgets_the_building_thread() -> None:
+    singleton = LazySingleton(lambda: 1)
+    singleton._building_thread = 1
+    singleton._reset_after_fork()
+    assert singleton._building_thread is None
+
+
+def test_lazy_singleton_reset_after_fork_keeps_the_value() -> None:
+    singleton = LazySingleton(object)
+    value = singleton.get()
+    singleton._reset_after_fork()
+    assert singleton.get() is value
