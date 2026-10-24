@@ -347,6 +347,8 @@ These handlers delegate the comparison to the methods of the objects:
 - **`TolerantEqualHandler`**: Call `allclose` when `atol` or `rtol` is not zero, otherwise `equal`
 - **`DataclassSameFieldsHandler`**: Compare the fields of two instances of the same dataclass through
   the registry (the fields with `compare=False` are ignored)
+- **`PydanticModelSameFieldsHandler`**: Compare the declared fields of two instances of the same
+  pydantic model through the registry (the cached properties and the private attributes are ignored)
 
 ### Terminal Handlers
 

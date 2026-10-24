@@ -720,7 +720,9 @@ True
 ### Controlling Recursion Depth
 
 For deeply nested structures, you can control the maximum recursion depth to prevent stack
-overflow. The `max_depth` parameter sets the maximum nesting level that will be compared:
+overflow. The `max_depth` parameter sets the maximum nesting level that will be compared. It is a
+**limit that raises** (`MaxDepthExceededError`) for a deeper structure, unlike the `max_depth` of
+`summarize`, which is a **display depth** that truncates the output:
 
 ```pycon
 >>> from coola.equality import objects_are_equal
