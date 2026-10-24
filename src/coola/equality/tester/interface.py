@@ -11,6 +11,9 @@ __all__ = [
 
 from collections import OrderedDict, deque
 from collections.abc import Mapping, Sequence
+from datetime import timedelta
+from decimal import Decimal
+from fractions import Fraction
 from typing import Any
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -22,6 +25,7 @@ from coola.equality.tester.collection import (
 )
 from coola.equality.tester.dataclass import DataclassEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester
+from coola.equality.tester.difference import DifferenceCloseEqualityTester
 from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
 from coola.equality.tester.registry import DataclassMarker, EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
@@ -168,6 +172,7 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     ordered_mapping = OrderedMappingEqualityTester()
     sequence = SequenceEqualityTester()
     equal = EqualEqualityTester()
+    difference = DifferenceCloseEqualityTester()
     return {
         # Object is the catch-all base for unregistered types
         object: default,
@@ -175,6 +180,10 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         int: scalar,
         float: scalar,
         complex: scalar,
+        # Types without ``allclose``: the tolerance applies to the difference
+        Decimal: difference,
+        Fraction: difference,
+        timedelta: difference,
         # Dataclasses without their own tester
         DataclassMarker: DataclassEqualityTester(),
         # Sequences - recursive transformation preserving order
