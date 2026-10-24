@@ -48,6 +48,9 @@ described [below](#type-specific-behavior).
 | Time zones              | Aware datetimes compare by the instant they represent: 12:00 UTC equals 13:00 UTC+1. A naive datetime (no time zone) never equals an aware one.                                                                                                                                                                                                                                       |
 | Tolerance               | Only the `*_allclose` functions and `compare(..., tolerance=...)` use `rtol` and `atol`. `objects_are_equal` and `assert_objects_equal` are exact (no tolerance), `objects_are_allclose` and `assert_objects_allclose` default to `rtol=1e-5, atol=1e-8` (the NumPy defaults, `Tolerance.numpy_default()`), and `compare` is exact unless `tolerance` is given. The tolerance applies only for numbers, arrays, tensors and data frames. Every other value is compared exactly, and the types must still match: `objects_are_allclose(1, 1.0, atol=1)` is `False`.                                                                                                                                                  |
 | Unregistered types      | A type without a dedicated tester is compared with `==` after the type check, so your own classes work if they define `__eq__`. Otherwise two objects are equal only if they are the same object (a plain class, an exception, a `functools.partial`): register an `ObjectAttributesEqualityTester` to compare them by their attributes (see [Equality Testers](equality_tester.md)). |
+| Reflexive               | `objects_are_equal(x, x)` is `True` for every `x`, and also for a copy of `x`. A distinct `NaN` is the exception unless `equal_nan=True` (see the NaN row).                                                                                                                                                                                                                           |
+| Symmetric               | `objects_are_equal(a, b)` and `objects_are_equal(b, a)` give the same answer, and so do `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)`. A user class with an asymmetric `__eq__` is the exception.                                                                                                                                                                     |
+| Not transitive          | With a tolerance, `a` close to `b` and `b` close to `c` does not imply that `a` is close to `c`. The exact comparison is transitive.                                                                                                                                                                                                                                                  |
 | Pure                    | The comparison does not modify its inputs, and gives the same answer every time.                                                                                                                                                                                                                                                                                                      |
 | Failure modes           | A self-referencing container raises a `RecursionError` (see [Controlling Recursion Depth](#controlling-recursion-depth)). Unsupported types never raise: they fall back to `==`.                                                                                                                                                                                                      |
 | Consistent with hashing | Objects that are equal also have the same [`hash_object`](hashing.md) hash. The reverse is not guaranteed: a `list` subclass and a `list`, or a NumPy `float64` and a `float`, share a hash but are not equal.                                                                                                                                                                        |
@@ -439,11 +442,16 @@ True
 
 ```
 
-Two numbers are considered equal if `|actual - expected| <= max(rtol * max(|actual|, |expected|), atol)`
-(the rule of `math.isclose`). NumPy arrays, PyTorch tensors and JAX arrays use
-`|actual - expected| <= atol + rtol * max(|actual|, |expected|)`, so the comparison is symmetric:
-`objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result. The array rule
-is never stricter than the scalar rule.
+Two numbers are considered equal if `|actual - expected| <= atol + rtol * max(|actual|, |expected|)`.
+This is the rule of NumPy, PyTorch, JAX, PyArrow and xarray arrays, and it is also used for Python
+numbers (`float`, `int`, `complex`), NumPy scalars, `Decimal`, `Fraction` and `timedelta`. It is
+symmetric: `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result.
+`pandas` and `polars` delegate to their own testing functions, which use
+`max(atol, rtol * max(|actual|, |expected|))` (the rule of `math.isclose`) instead of the sum, so
+they are never more permissive than the other types.
+
+The comparison within a tolerance is not transitive: `a` can be close to `b`, and `b` close to `c`,
+while `a` is not close to `c`.
 
 ### Finding a Difference
 
@@ -1520,7 +1528,7 @@ summarizes what each type does with them (it was checked for each type with `obj
 
 | Type                                                    | `equal_nan`                                                                                 | `atol` / `rtol`                                                                                        | Also compared                                            |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| `float`, `int`, `complex`, NumPy scalars                | Honored for distinct `NaN` objects\*                                                        | `math.isclose` (`cmath.isclose` for complex), for `int` too                                            | The types must be the same (`1` and `1.0` are different) |
+| `float`, `int`, `complex`, NumPy scalars                | Honored for distinct `NaN` objects\*                                                        | `abs(a - b) <= atol + rtol * max(abs(a), abs(b))`, for `int` too (exact for large `int`)               | The types must be the same (`1` and `1.0` are different) |
 | dataclass instances                                     | Honored for the fields                                                                      | Honored for the fields                                                                                 | Same type; the fields with `compare=True`                |
 | `numpy.ndarray`                                         | Honored for numeric and datetime dtypes; **ignored for `str`, `bytes` and `object` arrays** | Numeric dtypes only (`bool`, `int`, `uint`, `float`, `complex`); the other dtypes are compared exactly | dtype, shape                                             |
 | `numpy.ma.MaskedArray`                                  | Honored for the data                                                                        | Honored for the data                                                                                   | dtype, shape, mask, `fill_value`                         |

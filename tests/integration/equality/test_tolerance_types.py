@@ -257,3 +257,31 @@ def test_objects_are_allclose_difference_types_in_a_list() -> None:
 
 def test_objects_are_equal_decimal_nan_equal_nan() -> None:
     assert objects_are_equal(Decimal("NaN"), Decimal("NaN"), equal_nan=True)
+
+
+########################################
+#     Tests for the tolerance rule     #
+########################################
+
+# |1 - 3| = 2 <= 0.5 + 0.5 * 3: the absolute and the relative tolerances add up.
+PAIRS_BY_TYPE = {
+    "float": (1.0, 3.0),
+    "int": (1, 3),
+    "complex": (complex(1, 0), complex(3, 0)),
+    "Decimal": (Decimal(1), Decimal(3)),
+    "Fraction": (Fraction(1), Fraction(3)),
+    "timedelta": (timedelta(seconds=1), timedelta(seconds=3)),
+    "numpy float64": (np.float64(1), np.float64(3)),
+    "numpy array": (np.array([1.0]), np.array([3.0])),
+    "list": ([1.0], [3.0]),
+}
+
+
+@pytest.mark.parametrize("pair", PAIRS_BY_TYPE.values(), ids=PAIRS_BY_TYPE.keys())
+def test_allclose_atol_and_rtol_add_up(pair: tuple) -> None:
+    assert objects_are_allclose(*pair, atol=0.5, rtol=0.5)
+
+
+@pytest.mark.parametrize("pair", PAIRS_BY_TYPE.values(), ids=PAIRS_BY_TYPE.keys())
+def test_allclose_atol_and_rtol_add_up_is_symmetric(pair: tuple) -> None:
+    assert objects_are_allclose(*reversed(pair), atol=0.5, rtol=0.5)

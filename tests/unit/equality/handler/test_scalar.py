@@ -472,3 +472,29 @@ def test_complex_are_equal_tolerance() -> None:
 def test_complex_are_equal_tolerance_different() -> None:
     config = EqualityConfig(equal_nan=True, atol=0.1)
     assert not complex_are_equal(complex(NAN, 1), complex(NAN, 1.5), config)
+
+
+########################################
+#     Tests for the tolerance rule     #
+########################################
+
+
+# |1 - 3| = 2 <= 0.5 + 0.5 * 3: the tolerances add up, as in NumPy.
+@pytest.mark.parametrize(
+    ("number1", "number2"),
+    [(1.0, 3.0), (3.0, 1.0), (1, 3), (3, 1), (complex(1, 0), complex(3, 0))],
+)
+def test_number_equal_atol_and_rtol_add_up(number1: float, number2: float) -> None:
+    assert number_equal(number1, number2, EqualityConfig(atol=0.5, rtol=0.5))
+
+
+def test_number_equal_atol_and_rtol_add_up_huge_int() -> None:
+    big = 10**400
+    assert number_equal(big, 3 * big, EqualityConfig(atol=0.5, rtol=1.0))
+
+
+@pytest.mark.parametrize(
+    ("number1", "number2"), [(1.0, 3.5), (3.5, 1.0), (1, 4), (4, 1), (1.0, float("inf"))]
+)
+def test_number_equal_outside_atol_and_rtol(number1: float, number2: float) -> None:
+    assert not number_equal(number1, number2, EqualityConfig(atol=0.5, rtol=0.5))
