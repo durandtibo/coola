@@ -52,6 +52,12 @@ def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
             (the original error is then raised unchanged).
         TypeError: if ``_target_`` is not a string.
 
+    Note:
+        ``_target_`` is resolved at the top level only: a nested
+        dictionary with a ``_target_`` key is passed to the target
+        unchanged, it is not instantiated. Resolve the nested
+        configurations with ``resolve_object`` and pass the results.
+
     Security:
         ``_target_`` is imported and called with no allowlist or
         restriction on which module or class it may reference: this
@@ -165,6 +171,13 @@ def resolve_object(
     as-is. Otherwise, if it is a ``dict``, it is treated as a
     factory configuration and instantiated via
     ``coola.factory.factory``.
+
+    Note:
+        ``"_target_"`` is resolved at the top level only: a nested
+        dictionary with a ``"_target_"`` key is passed to the target
+        unchanged, it is not instantiated. Resolve the nested
+        configurations with ``resolve_object`` (with the same
+        ``allowed_prefixes``) and pass the results.
 
     Note:
         If ``cls`` is itself a ``dict`` subclass (e.g.
