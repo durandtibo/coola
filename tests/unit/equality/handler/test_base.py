@@ -406,3 +406,13 @@ def test_falsy_handler_repr_shows_the_next_handler() -> None:
 def test_falsy_handler_is_called_by_the_previous_handler(config: EqualityConfig) -> None:
     handler = SameObjectHandler(next_handler=FalsyHandler())
     assert handler.handle(1, 2, config)
+
+
+def test_handle_next_is_the_handle_method_of_the_next_handler() -> None:
+    handler = SameObjectHandler(next_handler=ObjectEqualHandler())
+    assert handler._handle_next == handler.next_handler.handle
+
+
+def test_handle_next_without_next_handler_raises() -> None:
+    with pytest.raises(RuntimeError, match=r"next handler is not defined"):
+        SameObjectHandler()._handle_next  # noqa: B018
