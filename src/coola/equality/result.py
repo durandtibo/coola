@@ -155,7 +155,12 @@ def compare(
         The comparison result.
 
     Raises:
-        ValueError: If ``max_repr_chars`` is less than 3.
+        ValueError: If ``max_repr_chars`` is less than 3, or if
+            ``max_depth`` is not positive.
+        MaxDepthExceededError: If the nesting of the objects exceeds
+            ``max_depth``. It is a ``RecursionError``.
+        RecursionError: If the interpreter recursion limit is reached
+            before ``max_depth``.
 
     Example:
         ```pycon
@@ -246,7 +251,12 @@ def assert_objects_allclose(
         AssertionError: If the objects are not equal within the
             tolerances. The message contains the path to the first
             difference.
-        ValueError: If ``rtol`` or ``atol`` is negative.
+        ValueError: If ``rtol`` or ``atol`` is negative, or if
+            ``max_depth`` is not positive.
+        MaxDepthExceededError: If the nesting of the objects exceeds
+            ``max_depth``. It is a ``RecursionError``.
+        RecursionError: If the interpreter recursion limit is reached
+            before ``max_depth``.
 
     Example:
         ```pycon
@@ -302,6 +312,11 @@ def assert_objects_equal(
     Raises:
         AssertionError: If the objects are not equal. The message
             contains the path to the first difference.
+        ValueError: If ``max_depth`` is not positive.
+        MaxDepthExceededError: If the nesting of the objects exceeds
+            ``max_depth``. It is a ``RecursionError``.
+        RecursionError: If the interpreter recursion limit is reached
+            before ``max_depth``.
 
     Example:
         ```pycon

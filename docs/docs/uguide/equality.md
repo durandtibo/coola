@@ -52,7 +52,7 @@ described [below](#type-specific-behavior).
 | Symmetric               | `objects_are_equal(a, b)` and `objects_are_equal(b, a)` give the same answer, and so do `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)`. A user class with an asymmetric `__eq__` is the exception.                                                                                                                                                                     |
 | Not transitive          | With a tolerance, `a` close to `b` and `b` close to `c` does not imply that `a` is close to `c`. The exact comparison is transitive.                                                                                                                                                                                                                                                  |
 | Pure                    | The comparison does not modify its inputs, and gives the same answer every time.                                                                                                                                                                                                                                                                                                      |
-| Failure modes           | A self-referencing container raises a `RecursionError` (see [Controlling Recursion Depth](#controlling-recursion-depth)). Unsupported types never raise: they fall back to `==`.                                                                                                                                                                                                      |
+| Failure modes           | A self-referencing container does not raise: a pair that is already being compared is considered equal. A structure nested deeper than `max_depth` raises a `MaxDepthExceededError` (see [Controlling Recursion Depth](#controlling-recursion-depth)). Unsupported types never raise: they fall back to `==`.                                                                                                                                                                                                      |
 | Consistent with hashing | Objects that are equal also have the same [`hash_object`](hashing.md) hash. The reverse is not guaranteed: a `list` subclass and a `list`, or a NumPy `float64` and a `float`, share a hash but are not equal.                                                                                                                                                                        |
 
 ```pycon
@@ -762,6 +762,16 @@ The `*_allclose` functions also take `rtol` and `atol`, and `compare` takes `tol
 ### Controlling Recursion Depth
 
 The `max_depth` option is the **nesting limit** of the comparison.
+
+There are three failure modes, and only the last two raise:
+
+| Case                                       | Result                                                                                         |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Cycle (a container that contains itself)   | No error: a pair that is already being compared is considered equal                            |
+| Nesting deeper than `max_depth`            | `coola.equality.MaxDepthExceededError`, a subclass of `RecursionError`                         |
+| Interpreter recursion limit reached        | `RecursionError` with advice on `sys.setrecursionlimit()`, raised before `max_depth` is hit if it is set too high |
+
+`max_depth` must be positive, otherwise a `ValueError` is raised.
 
 For deeply nested structures, you can control the maximum recursion depth to prevent stack
 overflow. The `max_depth` parameter sets the maximum nesting level that will be compared. It is a
