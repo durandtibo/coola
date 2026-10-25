@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -709,6 +709,107 @@ def test_pandas_extension_array_equal_handler_handle_false() -> None:
     assert not handler.handle(pd.Categorical([1, 2]), pd.Categorical([1, 3]), EqualityConfig())
 
 
+#############################################
+#     Tests for the tolerance of numbers    #
+#############################################
+
+
+@pandas_available
+def test_series_equal_integers_rtol() -> None:
+    assert series_equal(pd.Series([100]), pd.Series([101]), EqualityConfig(rtol=0.01))
+
+
+@pandas_available
+def test_series_equal_integers_outside_rtol() -> None:
+    assert not series_equal(pd.Series([100]), pd.Series([110]), EqualityConfig(rtol=0.01))
+
+
+@pandas_available
+def test_series_equal_atol_and_rtol_add_up() -> None:
+    # |0 - 0.9| = 0.9 <= 0.5 + 0.5 * 0.9
+    assert series_equal(pd.Series([0.0]), pd.Series([0.9]), EqualityConfig(atol=0.5, rtol=0.5))
+
+
+@pandas_available
+def test_series_equal_unsigned_integers_do_not_wrap_around() -> None:
+    assert not series_equal(
+        pd.Series([0], dtype="uint8"), pd.Series([200], dtype="uint8"), EqualityConfig(atol=1.0)
+    )
+
+
+@pandas_available
+def test_series_equal_numeric_different_index() -> None:
+    assert not series_equal(
+        pd.Series([1.0], index=["a"]), pd.Series([1.0], index=["b"]), EqualityConfig(atol=1.0)
+    )
+
+
+@pandas_available
+def test_series_equal_numeric_different_name() -> None:
+    assert not series_equal(
+        pd.Series([1.0], name="a"), pd.Series([1.0], name="b"), EqualityConfig(atol=1.0)
+    )
+
+
+@pandas_available
+def test_series_equal_numeric_different_dtype() -> None:
+    assert not series_equal(
+        pd.Series([1.0], dtype="float64"),
+        pd.Series([1.0], dtype="float32"),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+def test_series_equal_nullable_integers_nulls_at_the_same_positions() -> None:
+    assert series_equal(
+        pd.Series([1, None], dtype="Int64"),
+        pd.Series([2, None], dtype="Int64"),
+        EqualityConfig(atol=1.0, equal_nan=True),
+    )
+
+
+@pandas_available
+def test_series_equal_nullable_integers_nulls_at_different_positions() -> None:
+    assert not series_equal(
+        pd.Series([1, None], dtype="Int64"),
+        pd.Series([None, 1], dtype="Int64"),
+        EqualityConfig(atol=1.0, equal_nan=True),
+    )
+
+
+@pandas_available
+def test_series_equal_nullable_floats_with_equal_nan() -> None:
+    assert series_equal(
+        pd.Series([1.0, None], dtype="Float64"),
+        pd.Series([1.5, None], dtype="Float64"),
+        EqualityConfig(atol=1.0, equal_nan=True),
+    )
+
+
+@pandas_available
+def test_series_equal_non_numeric_stays_exact() -> None:
+    assert not series_equal(pd.Series(["a"]), pd.Series(["b"]), EqualityConfig(atol=1.0))
+
+
+@pandas_available
+def test_frame_equal_integers_atol() -> None:
+    assert frame_equal(
+        pd.DataFrame({"a": [1, 2], "b": ["x", "y"]}),
+        pd.DataFrame({"a": [1, 3], "b": ["x", "y"]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+def test_frame_equal_integers_outside_atol() -> None:
+    assert not frame_equal(
+        pd.DataFrame({"a": [1, 2], "b": ["x", "y"]}),
+        pd.DataFrame({"a": [1, 5], "b": ["x", "y"]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
 ####################################
 #     Tests for missing values     #
 ####################################
@@ -768,10 +869,57 @@ def test_frame_equal_nulls_at_different_positions() -> None:
 
 
 @pandas_available
+def test_frame_equal_non_numeric_column_stays_exact() -> None:
+    assert not frame_equal(
+        pd.DataFrame({"a": [1, 2], "b": ["x", "y"]}),
+        pd.DataFrame({"a": [1, 2], "b": ["x", "z"]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
 def test_frame_equal_null_and_value() -> None:
     assert not frame_equal(
         pd.DataFrame({"a": ["x", None]}), pd.DataFrame({"a": ["x", "y"]}), EqualityConfig()
     )
+
+
+@pandas_available
+def test_frame_equal_numeric_different_index() -> None:
+    assert not frame_equal(
+        pd.DataFrame({"a": [1, 2]}),
+        pd.DataFrame({"a": [1, 2]}, index=[5, 6]),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+def test_frame_equal_numeric_different_column_names() -> None:
+    assert not frame_equal(
+        pd.DataFrame({"a": [1, 2]}), pd.DataFrame({"b": [1, 2]}), EqualityConfig(atol=1.0)
+    )
+
+
+@pandas_available
+def test_frame_equal_numeric_different_dtypes() -> None:
+    assert not frame_equal(
+        pd.DataFrame({"a": [1, 2]}), pd.DataFrame({"a": [1.0, 2.0]}), EqualityConfig(atol=1.0)
+    )
+
+
+@pandas_available
+def test_frame_equal_does_not_change_the_inputs() -> None:
+    df1, df2 = pd.DataFrame({"a": [1, 2]}), pd.DataFrame({"a": [1, 3]})
+    frame_equal(df1, df2, EqualityConfig(atol=1.0))
+    assert df2["a"].tolist() == [1, 3]
+
+
+@pandas_available
+def test_frame_equal_without_numpy_uses_the_pandas_tolerance() -> None:
+    with patch("coola.equality.handler.pandas.is_numpy_available", lambda: False):
+        assert frame_equal(
+            pd.DataFrame({"a": [100.0]}), pd.DataFrame({"a": [100.5]}), EqualityConfig(rtol=0.01)
+        )
 
 
 @pandas_available

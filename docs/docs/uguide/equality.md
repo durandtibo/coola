@@ -457,12 +457,11 @@ True
 Two numbers are considered equal if `|actual - expected| <= atol + rtol * max(|actual|, |expected|)`.
 This is the rule of NumPy, PyTorch, JAX, PyArrow and xarray arrays, and it is also used for Python
 numbers (`float`, `int`, `complex`), NumPy scalars, `Decimal`, `Fraction` and `timedelta`. It is
-symmetric: `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result. For an
-array, the rule is applied to each element separately, so the answer does not depend on the
-container (a `list`, a NumPy array or a PyTorch tensor give the same answer for the same numbers).
-`pandas` and `polars` delegate to their own testing functions, which use
-`max(atol, rtol * max(|actual|, |expected|))` (the rule of `math.isclose`) instead of the sum, so
-they are never more permissive than the other types.
+symmetric: `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result.
+The integer and floating-point columns of `pandas` and `polars` data frames and series follow the
+same rule (this requires NumPy); the other columns are compared by `pandas.testing` and
+`polars.testing`, which also apply the tolerance to the floats nested in a list or a struct with
+the rule of `math.isclose` (`max(atol, rtol * max(|actual|, |expected|))`).
 
 The comparison within a tolerance is not transitive: `a` can be close to `b`, and `b` close to `c`,
 while `a` is not close to `c`.
@@ -809,13 +808,15 @@ True
 
 ```
 
-The default `max_depth` is 100. The comparison is recursive and uses several Python frames per
-nesting level, so the interpreter limit (`sys.getrecursionlimit()`, 1000 by default) is reached
-at roughly 60-150 nesting levels depending on the container types. The default `max_depth` is
-below that for a list, but not for every container: a nesting of about 90 dictionaries already
-raises a `RecursionError` (with advice on `sys.setrecursionlimit()`) before `max_depth` is reached,
-and the stack of the caller (a test runner, a web framework) is subtracted from the same limit. For extremely deeply nested structures, reduce the nesting, or raise the
-interpreter limit with `sys.setrecursionlimit()` and `max_depth` accordingly. Comparison does not use an explicit stack.
+The default `max_depth` is 100. The comparison is recursive and uses a few Python frames per
+nesting level (about 7 for a `dict`, fewer for the other containers), so the default is reached
+before the interpreter limit (`sys.getrecursionlimit()`, 1000 by default) as long as the caller of
+`objects_are_equal` is less than about 250 frames deep: a `MaxDepthExceededError` with an
+explanatory message is raised instead of a `RecursionError`. A caller that is deeper (a test runner
+or a web framework use some frames) can still hit the interpreter limit first, which raises a
+`RecursionError` with advice. For extremely deeply nested structures, reduce the nesting, or raise
+the interpreter limit with `sys.setrecursionlimit()` and `max_depth` accordingly. Comparison does
+not use an explicit stack.
 
 ### Using Custom Registries
 
@@ -1579,8 +1580,8 @@ summarizes what each type does with them (it was checked for each type with `obj
 | `torch.Tensor`                                          | Honored                                                                                     | Honored (`torch.allclose`), integer tensors included                                                   | dtype, shape, device                                     |
 | `torch.nn.utils.rnn.PackedSequence`                     | Honored                                                                                     | Honored                                                                                                | `batch_sizes`, `sorted_indices`, `unsorted_indices`      |
 | `jax.numpy.ndarray`                                     | Honored                                                                                     | Honored                                                                                                | dtype, shape                                             |
-| `pandas.DataFrame`, `pandas.Series`                     | A float `NaN` follows `equal_nan`; a null (`None`, `NaT`, `pd.NA`) is always equal          | Honored (exact if both are `0`)                                                                        | dtype, index, columns                                    |
-| `polars.DataFrame`, `polars.Series`, `polars.LazyFrame` | Honored for float `NaN`. **`null` is always equal to `null`**                               | Honored (exact if both are `0`)                                                                        | dtype, schema; a `LazyFrame` is collected                |
+| `pandas.DataFrame`, `pandas.Series`                     | A float `NaN` follows `equal_nan`; a null (`None`, `NaT`, `pd.NA`) is always equal          | Honored for the integer and floating-point columns (NumPy rule)                                        | dtype, index, columns                                    |
+| `polars.DataFrame`, `polars.Series`, `polars.LazyFrame` | Honored for float `NaN`. **`null` is always equal to `null`**                               | Honored for the integer and floating-point columns (NumPy rule)                                        | dtype, schema; a `LazyFrame` is collected                |
 | `xarray.DataArray`, `xarray.Dataset`, `xarray.Variable` | Honored                                                                                     | Honored                                                                                                | dimensions, coordinates, attributes                      |
 | `pyarrow.Array`, `pyarrow.Table`                        | Honored for the floating-point columns; `null` is equal to `null`                           | Honored for the integer and floating-point columns; the other types are compared exactly               | Type, length, `null` positions, schema for tables        |
 

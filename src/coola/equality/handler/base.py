@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, Any, Never, TypeVar, overload
 from coola.utils.format import str_sequence
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.equality.config import EqualityConfig
 
 T = TypeVar("T", bound="BaseEqualityHandler")
@@ -306,16 +308,19 @@ class BaseEqualityHandler(ABC):
             current = current.next_handler
         return str_sequence(handlers)
 
-    def _handle_next(self, actual: object, expected: object, config: EqualityConfig) -> bool:
-        r"""Return the output from the next handler.
+    @property
+    def _handle_next(self) -> Callable[..., bool]:
+        r"""The ``handle`` method of the next handler.
 
-        Args:
-            actual: The actual input.
-            expected: The expected input.
-            config: The equality configuration.
+        A handler calls ``self._handle_next(actual, expected, config=config)``
+        to pass the inputs to the next handler. This is the bound method
+        of the next handler, and not a method that forwards the call,
+        so a handler of the chain costs one Python frame and not two:
+        the comparison recurses once per handler and per nesting level,
+        and the frames count against the interpreter recursion limit.
 
         Returns:
-            The output from the next handler.
+            The ``handle`` method of the next handler.
 
         Raises:
             RuntimeError: if the next handler is not defined.
@@ -323,7 +328,7 @@ class BaseEqualityHandler(ABC):
         if self._next_handler is None:
             msg = "next handler is not defined"
             raise RuntimeError(msg)
-        return self._next_handler.handle(actual, expected, config=config)
+        return self._next_handler.handle
 
     def _verify_next_handler(self, handler: object) -> None:
         r"""Verify the next handler is valid.

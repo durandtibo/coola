@@ -1201,3 +1201,130 @@ def test_series_equal_nested_nan_not_equal_nan() -> None:
 def test_series_equal_nested_nan_equal_nan() -> None:
     series = pl.Series([[1.0, float("nan")]])
     assert series_equal(series, series.clone(), EqualityConfig(equal_nan=True))
+
+
+#############################################
+#     Tests for the tolerance of numbers    #
+#############################################
+
+
+@polars_available
+def test_series_equal_integers_rtol() -> None:
+    assert series_equal(pl.Series([100]), pl.Series([101]), EqualityConfig(rtol=0.01))
+
+
+@polars_available
+def test_series_equal_integers_atol() -> None:
+    assert series_equal(pl.Series([1]), pl.Series([2]), EqualityConfig(atol=2.0))
+
+
+@polars_available
+def test_series_equal_integers_outside_atol() -> None:
+    assert not series_equal(pl.Series([1]), pl.Series([5]), EqualityConfig(atol=2.0))
+
+
+@polars_available
+def test_series_equal_atol_and_rtol_add_up() -> None:
+    # |0 - 0.9| = 0.9 <= 0.5 + 0.5 * 0.9
+    assert series_equal(pl.Series([0.0]), pl.Series([0.9]), EqualityConfig(atol=0.5, rtol=0.5))
+
+
+@polars_available
+def test_series_equal_unsigned_integers_do_not_wrap_around() -> None:
+    assert not series_equal(
+        pl.Series([0], dtype=pl.UInt8), pl.Series([200], dtype=pl.UInt8), EqualityConfig(atol=1.0)
+    )
+
+
+@polars_available
+def test_series_equal_numeric_different_names() -> None:
+    assert not series_equal(pl.Series("a", [1]), pl.Series("b", [1]), EqualityConfig(atol=1.0))
+
+
+@polars_available
+def test_series_equal_numeric_different_dtypes() -> None:
+    assert not series_equal(pl.Series([1]), pl.Series([1.0]), EqualityConfig(atol=1.0))
+
+
+@polars_available
+def test_series_equal_numeric_nulls_at_the_same_positions() -> None:
+    assert series_equal(pl.Series([1, None]), pl.Series([2, None]), EqualityConfig(atol=1.0))
+
+
+@polars_available
+def test_series_equal_numeric_nulls_at_different_positions() -> None:
+    assert not series_equal(pl.Series([1, None]), pl.Series([None, 1]), EqualityConfig(atol=1.0))
+
+
+@polars_available
+def test_series_equal_numeric_null_and_value() -> None:
+    assert not series_equal(pl.Series([1, None]), pl.Series([1, 1]), EqualityConfig(atol=1.0))
+
+
+@polars_available
+def test_series_equal_non_numeric_stays_exact() -> None:
+    assert not series_equal(pl.Series(["a"]), pl.Series(["b"]), EqualityConfig(atol=1.0))
+
+
+@polars_available
+def test_frame_equal_integers_atol() -> None:
+    assert frame_equal(
+        pl.DataFrame({"a": [1, 2], "b": ["x", "y"]}),
+        pl.DataFrame({"a": [1, 3], "b": ["x", "y"]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@polars_available
+def test_frame_equal_integers_outside_atol() -> None:
+    assert not frame_equal(
+        pl.DataFrame({"a": [1, 2], "b": ["x", "y"]}),
+        pl.DataFrame({"a": [1, 5], "b": ["x", "y"]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@polars_available
+def test_frame_equal_non_numeric_column_stays_exact() -> None:
+    assert not frame_equal(
+        pl.DataFrame({"a": [1, 2], "b": ["x", "y"]}),
+        pl.DataFrame({"a": [1, 2], "b": ["x", "z"]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@polars_available
+def test_frame_equal_different_column_order_with_tolerance() -> None:
+    assert not frame_equal(
+        pl.DataFrame({"a": [1], "b": [2]}),
+        pl.DataFrame({"b": [2], "a": [1]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@polars_available
+def test_frame_equal_different_column_names_with_tolerance() -> None:
+    assert not frame_equal(
+        pl.DataFrame({"a": [1]}), pl.DataFrame({"b": [1]}), EqualityConfig(atol=1.0)
+    )
+
+
+@polars_available
+def test_frame_equal_only_non_numeric_columns_with_tolerance() -> None:
+    assert frame_equal(
+        pl.DataFrame({"b": ["x"]}), pl.DataFrame({"b": ["x"]}), EqualityConfig(atol=1.0)
+    )
+
+
+@polars_available
+def test_frame_equal_numeric_columns_with_equal_nan() -> None:
+    frame = pl.DataFrame({"a": [1.0, float("nan")]})
+    assert frame_equal(frame, frame.clone(), EqualityConfig(atol=1.0, equal_nan=True))
+
+
+@polars_available
+def test_frame_equal_without_numpy_uses_the_polars_tolerance() -> None:
+    with patch("coola.equality.handler.polars.is_numpy_available", lambda: False):
+        assert not frame_equal(
+            pl.DataFrame({"a": [100]}), pl.DataFrame({"a": [101]}), EqualityConfig(rtol=0.01)
+        )
