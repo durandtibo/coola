@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler.utils import AttributeName
-from coola.equality.interface import _compare
+from coola.equality.interface import run_comparison
 from coola.equality.tester.interface import get_default_registry
 from coola.equality.tolerance import Tolerance
 from coola.utils.safe import safe_repr
@@ -139,10 +139,12 @@ def compare(
         tolerance: The tolerance of the comparison. If ``None``, the
             comparison is exact.
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
-        max_depth: A limit that raises, not a display depth: the maximum
-            recursion depth for nested comparisons (a deeper structure
-            raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
-            ``summarize``, which truncates the output).
+        max_depth: The nesting limit: the maximum nesting level of the
+            compared objects. A deeper structure raises
+            ``MaxDepthExceededError`` (it is not a display depth like
+            the ``max_depth`` of ``summarize``). Must be positive.
+            See the "Common options" section of the equality user
+            guide. Defaults to 100.
         max_repr_chars: The maximum number of characters of the
             ``actual`` and ``expected`` attributes of the result. A
             longer ``repr`` is truncated and ends with ``...``.
@@ -195,7 +197,7 @@ def compare(
     )
     reports: list[tuple[str, tuple[object, ...]]] = []
     config.reporter = lambda message, path: reports.append((message, path))
-    equal = _compare(registry, actual, expected, config)
+    equal = run_comparison(registry, actual, expected, config)
     if equal:
         # The ``repr`` of the objects is not computed for equal objects, because it
         # is expensive for large objects and ``compare`` is used for each passing
@@ -235,10 +237,12 @@ def assert_objects_allclose(
         rtol: The relative tolerance parameter. Must be non-negative.
         atol: The absolute tolerance parameter. Must be non-negative.
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
-        max_depth: A limit that raises, not a display depth: the maximum
-            recursion depth for nested comparisons (a deeper structure
-            raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
-            ``summarize``, which truncates the output).
+        max_depth: The nesting limit: the maximum nesting level of the
+            compared objects. A deeper structure raises
+            ``MaxDepthExceededError`` (it is not a display depth like
+            the ``max_depth`` of ``summarize``). Must be positive.
+            See the "Common options" section of the equality user
+            guide. Defaults to 100.
         registry: Registry used to resolve type-specific equality
             testers. If ``None``, the default registry is used.
         root: The name used for the root of the path in the message.
@@ -295,10 +299,12 @@ def assert_objects_equal(
         actual: The actual object.
         expected: The expected object.
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
-        max_depth: A limit that raises, not a display depth: the maximum
-            recursion depth for nested comparisons (a deeper structure
-            raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
-            ``summarize``, which truncates the output).
+        max_depth: The nesting limit: the maximum nesting level of the
+            compared objects. A deeper structure raises
+            ``MaxDepthExceededError`` (it is not a display depth like
+            the ``max_depth`` of ``summarize``). Must be positive.
+            See the "Common options" section of the equality user
+            guide. Defaults to 100.
         registry: Registry used to resolve type-specific equality
             testers. If ``None``, the default registry is used.
         root: The name used for the root of the path in the message.

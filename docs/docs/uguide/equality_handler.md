@@ -600,7 +600,8 @@ considers the pair as equal, because the cycle only repeats the comparison in pr
 - **`HandlerCycleError`**: Raised when a handler chain contains a cycle (it is a `ValueError`).
 - **`AttributeName`**: A `str` that marks a component of the location of a difference as an
   attribute (a dataclass field) instead of a key or an index, so a location is formatted as
-  `['a'][2].x`.
+  `['a'][2].x`. It is exported from `coola.equality`, so a custom handler can produce the same paths
+  as the built-in ones: `from coola.equality import AttributeName`.
 
 ## Common Use Cases
 

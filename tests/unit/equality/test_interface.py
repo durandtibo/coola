@@ -7,8 +7,14 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.equality import objects_are_allclose, objects_are_equal
+from coola.equality.config import EqualityConfig
 from coola.equality.handler import MaxDepthExceededError
-from coola.equality.tester import DefaultEqualityTester, EqualityTesterRegistry
+from coola.equality.interface import run_comparison
+from coola.equality.tester import (
+    DefaultEqualityTester,
+    EqualityTesterRegistry,
+    get_default_registry,
+)
 from coola.testing.fixtures import numpy_available, torch_available
 from tests.helpers import nest
 
@@ -656,3 +662,35 @@ def test_objects_are_equal_frozensets() -> None:
 
 def test_objects_are_equal_set_and_frozenset_are_different() -> None:
     assert not objects_are_equal({1}, frozenset({1}))
+
+
+#####################################
+#     Tests for run_comparison      #
+#####################################
+
+
+def test_run_comparison_equal() -> None:
+    assert run_comparison(get_default_registry(), [1, 2], [1, 2], EqualityConfig())
+
+
+def test_run_comparison_different() -> None:
+    assert not run_comparison(get_default_registry(), [1, 2], [1, 3], EqualityConfig())
+
+
+def test_run_comparison_calls_reporter() -> None:
+    reports = []
+    config = EqualityConfig(show_difference=True, reporter=lambda _, path: reports.append(path))
+    run_comparison(get_default_registry(), [1, 2], [1, 3], config)
+    assert reports == [(), (1,)]
+
+
+def test_run_comparison_max_depth_error_is_not_rewritten() -> None:
+    config = EqualityConfig(max_depth=10)
+    with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(10\) exceeded"):
+        run_comparison(get_default_registry(), nest([], 50), nest([], 50), config)
+
+
+def test_run_comparison_python_recursion_limit_message() -> None:
+    config = EqualityConfig(max_depth=10**6)
+    with pytest.raises(RecursionError, match="Python recursion limit"):
+        run_comparison(get_default_registry(), nest([], 2000), nest([], 2000), config)

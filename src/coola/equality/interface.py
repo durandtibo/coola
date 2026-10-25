@@ -2,7 +2,7 @@ r"""Define the public interface to compare nested data for equality."""
 
 from __future__ import annotations
 
-__all__ = ["objects_are_allclose", "objects_are_equal"]
+__all__ = ["objects_are_allclose", "objects_are_equal", "run_comparison"]
 
 from typing import TYPE_CHECKING
 
@@ -15,11 +15,32 @@ if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
 
 
-def _compare(
+def run_comparison(
     registry: EqualityTesterRegistry, actual: object, expected: object, config: EqualityConfig
 ) -> bool:
     """Run the comparison and make interpreter stack overflows
     actionable.
+
+    It is the code path shared by all the entry points
+    (``objects_are_equal``, ``objects_are_allclose`` and ``compare``).
+    Use it to run a comparison with an ``EqualityConfig`` that you
+    built, for example with a ``reporter``.
+
+    Args:
+        registry: The registry that finds the tester of ``actual``.
+        actual: The actual object.
+        expected: The expected object.
+        config: The settings of the comparison. A config holds the state
+            of one comparison, so do not share it between comparisons.
+
+    Returns:
+        ``True`` if the objects are equal, otherwise ``False``.
+
+    Raises:
+        MaxDepthExceededError: If the nesting of the objects exceeds
+            ``config.max_depth``.
+        RecursionError: If the interpreter recursion limit is reached
+            before ``config.max_depth``.
 
     The comparison recurses through several Python frames per nesting
     level, so the interpreter limit (``sys.getrecursionlimit()``) is
@@ -70,11 +91,12 @@ def objects_are_allclose(
         show_difference: If ``True``, log a readable description when the
             comparison fails, at the ``INFO`` level on the
             ``coola.equality`` logger.
-        max_depth: A limit that raises, not a display depth: the maximum
-            recursion depth for nested comparisons (a deeper structure
-            raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
-            ``summarize``, which truncates the output).
-            Must be positive. Defaults to 100.
+        max_depth: The nesting limit: the maximum nesting level of the
+            compared objects. A deeper structure raises
+            ``MaxDepthExceededError`` (it is not a display depth like
+            the ``max_depth`` of ``summarize``). Must be positive.
+            See the "Common options" section of the equality user
+            guide. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
 
@@ -114,7 +136,7 @@ def objects_are_allclose(
         rtol=rtol,
         max_depth=max_depth,
     )
-    return _compare(registry, actual, expected, config)
+    return run_comparison(registry, actual, expected, config)
 
 
 def objects_are_equal(
@@ -147,11 +169,12 @@ def objects_are_equal(
         show_difference: If ``True``, log a readable description when the
             comparison fails, at the ``INFO`` level on the
             ``coola.equality`` logger.
-        max_depth: A limit that raises, not a display depth: the maximum
-            recursion depth for nested comparisons (a deeper structure
-            raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
-            ``summarize``, which truncates the output).
-            Must be positive. Defaults to 100.
+        max_depth: The nesting limit: the maximum nesting level of the
+            compared objects. A deeper structure raises
+            ``MaxDepthExceededError`` (it is not a display depth like
+            the ``max_depth`` of ``summarize``). Must be positive.
+            See the "Common options" section of the equality user
+            guide. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
 
@@ -183,4 +206,4 @@ def objects_are_equal(
         equal_nan=equal_nan,
         max_depth=max_depth,
     )
-    return _compare(registry, actual, expected, config)
+    return run_comparison(registry, actual, expected, config)
