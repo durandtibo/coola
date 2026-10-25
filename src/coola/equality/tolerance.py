@@ -14,8 +14,8 @@ class Tolerance:
     r"""Define the tolerance of a comparison.
 
     Two numbers ``actual`` and ``expected`` are close if
-    ``|actual - expected| <= atol + rtol * |expected|``, as in
-    ``numpy.isclose``. The default is no tolerance (exact comparison).
+    ``|actual - expected| <= atol + rtol * max(|actual|, |expected|)``
+    (the ``numpy.isclose`` rule made symmetric). The default is no tolerance (exact comparison).
 
     Args:
         rtol: The relative tolerance parameter. Must be non-negative

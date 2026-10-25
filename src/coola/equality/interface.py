@@ -152,9 +152,7 @@ def objects_are_equal(
 
     Note:
         The types are compared first, so ``1`` and ``1.0`` are different
-        (as are ``[1]`` and ``[1.0]``), even with a tolerance. A ``bool``
-        is an ``int``, so ``True`` and ``False`` are close with
-        ``atol=1``, unlike ``numpy.bool_``.
+        (as are ``[1]`` and ``[1.0]``).
 
         An object is always equal to itself, even if it contains ``NaN``
         and ``equal_nan=False``: ``[n]`` equals ``[n]`` for
