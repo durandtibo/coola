@@ -136,6 +136,10 @@ class EqualityConfig:
         """
         return self._current_depth
 
+    @depth.setter
+    def depth(self, value: int) -> None:
+        self._current_depth = value
+
     def increment_depth(self) -> None:
         """Increment the current depth counter.
 

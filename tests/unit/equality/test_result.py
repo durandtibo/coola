@@ -292,7 +292,7 @@ def test_compare_explicit_registry_different() -> None:
 def test_compare_custom_registry_is_used() -> None:
     registry = EqualityTesterRegistry()
     with pytest.raises(KeyError):
-        compare(1, 1, registry=registry)
+        compare(1, 2, registry=registry)
 
 
 def test_compare_does_not_emit_logs(caplog: pytest.LogCaptureFixture) -> None:
@@ -309,12 +309,12 @@ def test_compare_restores_logger(logger_state: tuple) -> None:
 
 def test_compare_raises_the_error_of_the_registry() -> None:
     with pytest.raises(KeyError):
-        compare(1, 1, registry=EqualityTesterRegistry())
+        compare(1, 2, registry=EqualityTesterRegistry())
 
 
 def test_compare_restores_logger_on_error(logger_state: tuple) -> None:
     with contextlib.suppress(KeyError):
-        compare(1, 1, registry=EqualityTesterRegistry())
+        compare(1, 2, registry=EqualityTesterRegistry())
     logger = logging.getLogger(LOGGER_NAME)
     assert (logger.level, logger.propagate, list(logger.handlers)) == logger_state
 

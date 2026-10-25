@@ -12,7 +12,7 @@ from __future__ import annotations
 __all__ = ["BaseEqualityTester"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
@@ -48,6 +48,12 @@ class BaseEqualityTester(ABC, Generic[T]):
 
         ```
     """
+
+    # ``True`` for a tester that uses the engine: its ``objects_are_equal`` receives the
+    # ``Engine`` and returns a verdict or the child pairs (see ``coola.equality.engine``).
+    # The other testers receive the ``EqualityConfig``. The flag is removed once all the
+    # testers use the engine.
+    engine_protocol: ClassVar[bool] = False
 
     @abstractmethod
     def equal(self, other: object) -> bool:
