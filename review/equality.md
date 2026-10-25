@@ -15,7 +15,11 @@ one extension point, one numeric rule, one frame algorithm. Breaking changes are
 3. **First difference only, on demand.** Only the first difference is explained, and only when an
    explanation is asked for (`compare`, `assert_*`). `objects_are_equal` and `objects_are_allclose`
    build no message and no path.
-4. **Major release.** Breaking changes are fine and compatibility is not a design input: there is no
+4. **Equality drives hashing, not the reverse.** Equality is designed for its own users; `hash_object`
+   is then aligned with it, in a later change outside this design (last section). The property
+   "equal objects have the same hash" is a goal for the hashers to meet, never a reason to bend a
+   comparison rule.
+5. **Major release.** Breaking changes are fine and compatibility is not a design input: there is no
    adapter, no alias, no deprecation period. Deprecated and compatibility code is removed (for
    example the `RuntimeError` base of `HandlerCycleError` and the `RecursionError` base of
    `MaxDepthExceededError`, which has no reason to exist once the engine does not recurse). The
@@ -43,7 +47,7 @@ construction instead of by the discipline of each tester.
 | Symmetric               | `eq(a, b)` and `eq(b, a)` agree, with and without tolerance.                                                                                                                                                                                                                             | kernel formula, engine type rule              |
 | Not transitive, pure    | A tolerance is not transitive; a comparison never modifies its inputs.                                                                                                                                                                                                                   | (documented)                                  |
 | Failure modes           | Cycle: equal. Nesting above `max_depth`: `MaxDepthExceededError`. `==` that raises or returns a non-bool: `TypeError` naming the type; other exceptions propagate. No `RecursionError`, whatever the caller's stack.                                                                     | the engine (explicit stack)                   |
-| Consistent with hashing | Equal objects have the same `hash_object`.                                                                                                                                                                                                                                               | the missing-value rule, the table comparer    |
+| Consistent with hashing | Equal objects have the same `hash_object`. The equality rules above are the reference; where a hasher disagrees, the hasher is changed (last section).                                                                                                                  | the hashers, later                            |
 | Fast, early exit        | A comparison stops at the first difference and visits nothing after it; the failing path costs what the passing path costs (benchmarked); only the first difference is explained, and only on demand.                                                                                    | the engine, lazy reasons, benchmark gates     |
 | Location                | `compare` and `assert_*` give the path of the first difference: keys, positions, attributes, the column and row of a frame, the index in an array, the element of a set.                                                                                                                 | the engine's stack and `ctx.fail`             |
 
@@ -402,10 +406,10 @@ met. The prototype bounds the gain of the engine, not of the whole rewrite.
 | C3  | **[verified]** pandas `Series`, `DataFrame`, `Index`, `"boolean"` arrays: `True` is close to `False` with `atol=1`                                                                                                                                                                                                                                            | the `exact` column kind                                     |
 | C4  | **[verified]** nested cells: polars applies the tolerance inside a list, pyarrow does not, pandas uses its own rule and ignores `equal_nan` (`eq(pd.Series([[nan]]), same, equal_nan=True)` is `False`) | the `exact` kind: nested cells are compared by the library's `equals`, with no tolerance (Q6); the three libraries agree |
 | C5  | **[verified]** a failing exact comparison of two pandas series of 2M floats takes 5 898 ms (equal copy: 2.9 ms; `pd.testing.assert_series_equal` alone: 5 804 ms); a 200k x 10 frame: 538 ms                                                                                                                                                                  | no `pandas.testing`; boolean arrays                         |
-| C6  | **[verified]** pandas `object` column: two distinct `NaN` are equal without `equal_nan`; `None` equals `NaN` but `hash_object` differs | **open (R1)**: under Q6 the `object` column stays with the library, so this remains unless the hasher or the rule changes |
+| C6  | **[verified]** pandas `object` column: two distinct `NaN` are equal without `equal_nan`; `None` equals `NaN` but `hash_object` differs | none in equality (Q6: the column stays with the library); the hasher is aligned later (last section) |
 | C7  | **[verified]** `MappingProxyType` and `array.array` fall to `==`: no tolerance, a `mappingproxy` holding arrays raises `TypeError`                                                                                                                                                                                                                            | register both (two lines)                                   |
 | C8  | **[verified]** `float16`/`float32` arrays at extreme values: `RuntimeWarning` and a wrong `True` (`60000` against `-60000`, `rtol=1.5`); a Python float gives `False`                                                                                                                                                                                         | cast to `float64` in the kernel                             |
-| C9  | **[verified]** masked arrays: the data under the mask is compared, so arrays that print identically differ; `hash_object` ignores it | **none (Q5)**: kept; document that the data under the mask is part of the value (the hash ignores it, which is allowed: equal implies same hash) |
+| C9  | **[verified]** masked arrays: the data under the mask is compared, so arrays that print identically differ; `hash_object` ignores it | **none (Q5)**: kept and documented (the hash ignores it, which keeps "equal implies same hash") |
 | C10 | **[verified]** `compare` gives an empty path for an array, a frame and an Arrow table; a set element is shown as an index (`actual[2]`)                                                                                                                                                                                                                       | engine path, `ctx.fail(*path)`, `Element`                   |
 | C11 | **[verified]** `show_difference=True` is silent by default, exists on two functions, and there are 50 occurrences and 39 `report_difference` calls behind `if config.show_difference`                                                                                                                                                                         | one first-failure record; remove the option and the logger  |
 | C12 | **[verified]** `compare` on 1M floats differing at index 0 takes 231 ms (`objects_are_equal`: 10 ms): it builds the `repr` of the roots                                                                                                                                                                                                                       | bounded reasons; drop the root `repr`s                      |
@@ -437,7 +441,7 @@ after each.
 | 4    | Register `types.MappingProxyType` and `array.array`; regression test with arrays inside a `mappingproxy`                                                                                                                                                                                                                                                                            | C7                 |     |            |
 | 5    | Fix the four documentation statements; find why the Markdown doctest job did not stop on `extending.md`                                                                                                                                                                                                                                                                             | C17                |     |            |
 | 6    | ~~Masked arrays~~ dropped by Q5 (documentation only: say that the masked values are compared)                                                                                                                                                                                                                | C9 (doc)           |     |            |
-| 7    | pandas on column kinds inside the current handler (no `pandas.testing`; the `object` and nested columns through `Series.equals`); failing-path benchmark within 2x of the passing path                                                                                                                       | C4, C5, C6 (R1)    | B   | 1, 3       |
+| 7    | pandas on column kinds inside the current handler (no `pandas.testing`; the `object` and nested columns through `Series.equals`); failing-path benchmark within 2x of the passing path                                                                                                                       | C4, C5, C6    | B   | 1, 3       |
 | 8    | polars and pyarrow on column kinds: nested columns through `equals` (polars loses the tolerance inside nested cells)                                                                                                                                                                                           | C4                 | B   | 1, 3       |
 | 9    | **Engine**: add `Engine`, the lookup cache, the explicit stack, identity/type/depth/cycle ownership. The existing chain testers are called as leaf testers while the families are ported, to keep each PR small and the benchmarks comparable; this staging is removed by step 14 and is not a compatibility layer                                                                  | C13, part C14, C15 |     | 1          |
 | 10   | One reporting mechanism: `report_difference` forwards to `ctx.fail`; first-failure record; lazy bounded reasons; remove `show_difference`, the logger sink, `compare(tolerance=, max_repr_chars=)` and the root fields of the result                                                                                                                                                | C11, C12, C15      | B   | 9          |
@@ -634,7 +638,7 @@ intermediate states, a large diff). Decision: A
 | Q3  | Remove `show_difference` and the logger                   | section 3, steps 10                                                                                                                     |
 | Q4  | Drop root `repr`s; `compare(rtol, atol)`; `Tolerance` public | section 3                                                                                                                            |
 | Q5  | Masked arrays: keep comparing the data under the mask     | masked row of 4.4; step 6 dropped; C9 closed                                                                                            |
-| Q6  | Nested and `object` cells of frames left to the library   | section 7: three kinds only, no cell children, the tolerance and `equal_nan` do not reach nested cells; C4 reworded; C6 left open (R1) |
+| Q6  | Nested and `object` cells of frames left to the library   | section 7: three kinds only, no cell children, the tolerance and `equal_nan` do not reach nested cells; C4 reworded; C6 left open  |
 | Q7  | Time resolution stays in the dtype                        | section 7                                                                                                                               |
 | Q8  | Integers: exact difference, tolerance in `float64`        | section 6; the cast of small floats is not covered by this answer (R2)                                                                  |
 | Q9  | Ignored state stays ignored and is documented             | guide sections                                                                                                                          |
@@ -646,15 +650,12 @@ intermediate states, a large diff). Decision: A
 
 ### Follow-up questions
 
-**R1. What do we do about the properties that Q6 leaves unsatisfied?** With nested and `object` columns
-left to the library, two documented properties have an exception: `None` against `NaN` in a pandas
-`object` column are equal but have different `hash_object`s ("equal implies same hash"), and
-`NaN` in a nested cell equals `NaN` without `equal_nan` (the NaN row).
-Options: A. document both as exceptions of the frame section (no work, two exceptions in the
-Guarantees table); B. make the hasher treat `None` and `NaN` in an `object` column like pandas does,
-and keep the NaN exception (hash property true, one exception left); C. compare `object` columns
-(only these, not Arrow and polars nested columns) cell by cell through the engine (both properties
-true for pandas, a slower path for a rare dtype, and one more kind). Recommendation: B.
+**R1. (answered by the principle that equality drives hashing.)** With nested and `object` columns left
+to the library, `None` against `NaN` in a pandas `object` column are equal but have different
+`hash_object`s, and `NaN` in a nested cell equals `NaN` without `equal_nan`. The equality rule is not
+changed for the hash: the hasher is aligned later (last section). The remaining question is only
+whether the `NaN`-in-nested-cell exception is documented in the Guarantees table (recommended: yes,
+as part of the Q6 wording).
 
 **R2. Do small floats (`float16`, `bfloat16`, `float32`) keep their dtype in the kernel?** Q8 chose the
 integer rule only. Keeping the dtype means a `RuntimeWarning` and a wrong `True` at the edge of the
@@ -741,3 +742,40 @@ def run(self, a, e):  # Engine.run
 
 The measured prototype uses a `container` flag on the tester instead of testing the type of the
 result; its output on the 5 000-entry dict, on cycles and on `max_depth` is the one of section 9.
+
+## Changes in other sub-packages (later, outside this design)
+
+The design above is for `coola.equality` only. Equality is the reference: the changes below follow
+from it and are made afterwards, one PR each, without driving any choice made above. They are listed
+so that nothing is forgotten.
+
+### Hashing (`coola.hashing`)
+
+The property "equal objects have the same `hash_object`" has to hold with the new equality. What the
+design implies for the hashers:
+
+| Case                                                                                     | Equality (target)                               | Hasher today / change                                                                                   |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| pandas `object` column, `None` against `NaN`                                             | equal (the library's `equals`)                  | hashes differ **[verified]**: hash a `None` and a `NaN` of an `object` column the same                  |
+| `NaN` inside nested cells (lists, structs) of a frame                                    | equal without `equal_nan` (the library)         | check the hash of nested `NaN`: it must not depend on the NaN bit pattern                               |
+| Nested floats of a frame, tolerance                                                      | exact (no tolerance)                            | nothing to do: equal values have equal hashes                                                           |
+| Masked array, data under the mask                                                        | compared (Q5)                                   | the hasher ignores it; allowed (different values may share a hash); decide if it should include it     |
+| Integers above 2^53 in arrays, `bool` and enums                                          | exact                                           | check that the hash is exact (no `float64` conversion), and the same for `bool` and `Enum` members      |
+| Enum members, `IntEnum` against `int`                                                    | different types                                 | the hash of an `IntEnum` member may equal the hash of its `int`: allowed                                |
+| `MappingProxyType`, `array.array`                                                        | compared as a mapping and a sequence            | check they have a hasher consistent with a `dict` and a `list` of the same content                      |
+| Time resolution (`timedelta64[s]` against `[ns]`)                                        | different dtypes                                | allowed to share a hash                                                                                 |
+
+The hashing property tests (`tests/properties/test_hashing*.py`) get the cross-container equality
+properties of step 1 as a second source: any equal pair that the equality tests generate must hash
+equally. Where the hasher needs a rule that is not obvious, the rule is taken from the equality
+guide, not the other way round.
+
+### Packages that depend on the equality API
+
+| Package                                            | Change                                                                                                                                        |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `coola.io`, `coola.nested`, `coola.hashing.registry`, `coola.registry.base` | import `objects_are_equal` from `coola.equality`, not from the private `coola.equality.interface` (C18)                         |
+| `coola.registry` (equality of two registries)      | testers are compared with their `__eq__` (the `equal(other)` method of `BaseEqualityTester` is removed): the default registry registers the testers and handlers types of the removed chain with the default `==` tester, or no longer registers them |
+| `coola.summary`, `coola.iterator`, `coola.recursive`, `coola.reducer` | no change expected; check that none imports a removed handler or `HandlerCycleError`                                          |
+| `coola.testing`                                    | fixtures and helpers that use `show_difference` or the handler chain move to `compare` and `assert_*`                                          |
+| Documentation                                      | `docs/docs/uguide/hashing.md` states the property against the equality guide; `docs/docs/dev/add_backend.md` loses the handler step (one tester, one adapter); README and `index.md` drop `show_difference` |
