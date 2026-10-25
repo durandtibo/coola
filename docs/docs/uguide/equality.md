@@ -1482,6 +1482,46 @@ False
 
 ```
 
+##### `numpy.ma.MaskedArray`
+
+Two NumPy `MaskedArray`s are equal if:
+
+- they have the same data type and the same shape
+- the underlying data are equal (within the tolerance, if one is given), **including the masked
+  values**: two arrays that differ only at a masked position are not equal
+- they have the same mask
+- they have the same `fill_value`
+
+The tolerance is only used for the numerical data. The mask and the `fill_value` are compared
+exactly.
+
+```pycon
+>>> import numpy
+>>> from coola.equality import objects_are_equal, objects_are_allclose
+>>> objects_are_equal(
+...     numpy.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
+...     numpy.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
+... )
+True
+>>> objects_are_equal(
+...     numpy.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
+...     numpy.ma.array(data=[0.0, 5.0, 2.0], mask=[0, 1, 0]),
+... )  # the masked values are different
+False
+>>> objects_are_allclose(
+...     numpy.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
+...     numpy.ma.array(data=[0.0, 1.0, 2.001], mask=[0, 1, 0]),
+...     atol=0.01,
+... )
+True
+>>> objects_are_equal(
+...     numpy.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
+...     numpy.ma.array(data=[0.0, 1.0, 2.0], mask=[1, 1, 0]),
+... )  # the masks are different
+False
+
+```
+
 #### xarray
 
 You need to install `coola` with xarray to check if some xarray objects are equal or not. Please
@@ -1578,7 +1618,7 @@ summarizes what each type does with them (it was checked for each type with `obj
 | `float`, `int`, `complex`, NumPy scalars                | Honored for distinct `NaN` objects\*                                                        | `abs(a - b) <= atol + rtol * max(abs(a), abs(b))`, for `int` too (exact for large `int`)               | The types must be the same (`1` and `1.0` are different) |
 | dataclass instances                                     | Honored for the fields                                                                      | Honored for the fields                                                                                 | Same type; the fields with `compare=True`                |
 | `numpy.ndarray`                                         | Honored for numeric and datetime dtypes; **ignored for `str`, `bytes` and `object` arrays** | Numeric dtypes only (`bool`, `int`, `uint`, `float`, `complex`); the other dtypes are compared exactly | dtype, shape                                             |
-| `numpy.ma.MaskedArray`                                  | Honored for the data                                                                        | Honored for the data                                                                                   | dtype, shape, mask, `fill_value`                         |
+| `numpy.ma.MaskedArray`                                  | Honored for the data (masked values included)                                               | Honored for the data (masked values included)                                                          | dtype, shape, mask, `fill_value`                         |
 | `torch.Tensor`                                          | Honored                                                                                     | Honored (`torch.allclose`), integer tensors included                                                   | dtype, shape, device                                     |
 | `torch.nn.utils.rnn.PackedSequence`                     | Honored                                                                                     | Honored                                                                                                | `batch_sizes`, `sorted_indices`, `unsorted_indices`      |
 | `jax.numpy.ndarray`                                     | Honored                                                                                     | Honored                                                                                                | dtype, shape                                             |
