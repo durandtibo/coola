@@ -8,12 +8,19 @@ from dataclasses import dataclass, field
 from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
+from unittest.mock import Mock
 
 import numpy as np
 import pytest
 
 from coola.equality import objects_are_allclose, objects_are_equal
-from coola.testing.fixtures import numpy_available
+from coola.testing.fixtures import numpy_available, pandas_available
+from coola.utils.imports import is_pandas_available
+
+if is_pandas_available():
+    import pandas as pd
+else:  # pragma: no cover
+    pd = Mock()
 
 NAN = float("nan")
 
@@ -286,6 +293,35 @@ def test_allclose_atol_and_rtol_add_up(pair: tuple) -> None:
 @pytest.mark.parametrize("pair", PAIRS_BY_TYPE.values(), ids=PAIRS_BY_TYPE.keys())
 def test_allclose_atol_and_rtol_add_up_is_symmetric(pair: tuple) -> None:
     assert objects_are_allclose(*reversed(pair), atol=0.5, rtol=0.5)
+
+
+########################################
+#     Tests for pandas nulls           #
+########################################
+
+
+@pandas_available
+def test_objects_are_equal_pandas_frame_with_a_null_is_equal_to_its_copy() -> None:
+    frame = pd.DataFrame({"a": ["x", None], "b": pd.array([1, None], dtype="Int64")})
+    assert objects_are_equal(frame, frame.copy())
+
+
+@pandas_available
+def test_objects_are_equal_pandas_frame_with_a_nan_is_not_equal_to_its_copy() -> None:
+    frame = pd.DataFrame({"a": [1.0, float("nan")]})
+    assert not objects_are_equal(frame, frame.copy())
+
+
+@pandas_available
+def test_objects_are_equal_pandas_frame_with_a_nan_is_equal_to_its_copy_with_equal_nan() -> None:
+    frame = pd.DataFrame({"a": [1.0, float("nan")]})
+    assert objects_are_equal(frame, frame.copy(), equal_nan=True)
+
+
+@pandas_available
+def test_objects_are_equal_pandas_frame_in_a_dict_with_a_null() -> None:
+    frame = pd.DataFrame({"a": ["x", None]})
+    assert objects_are_equal({"df": frame}, {"df": frame.copy()})
 
 
 ########################################
