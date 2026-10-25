@@ -33,6 +33,7 @@ __all__ = [
     "MappingEqualityTester",
     "NumpyArrayEqualityTester",
     "NumpyMaskedArrayEqualityTester",
+    "NumpyTimeScalarEqualityTester",
     "ObjectAttributesEqualityTester",
     "OrderedMappingEqualityTester",
     "PandasDataFrameEqualityTester",
@@ -87,6 +88,7 @@ if TYPE_CHECKING:
     from coola.equality.tester.numpy import (
         NumpyArrayEqualityTester,
         NumpyMaskedArrayEqualityTester,
+        NumpyTimeScalarEqualityTester,
     )
     from coola.equality.tester.pandas import (
         PandasDataFrameEqualityTester,
@@ -118,6 +120,7 @@ _LAZY_EXPORTS = {
     "JaxArrayEqualityTester": "coola.equality.tester.jax",
     "NumpyArrayEqualityTester": "coola.equality.tester.numpy",
     "NumpyMaskedArrayEqualityTester": "coola.equality.tester.numpy",
+    "NumpyTimeScalarEqualityTester": "coola.equality.tester.numpy",
     "PandasDataFrameEqualityTester": "coola.equality.tester.pandas",
     "PandasExtensionArrayEqualityTester": "coola.equality.tester.pandas",
     "PandasIndexEqualityTester": "coola.equality.tester.pandas",
