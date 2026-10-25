@@ -69,7 +69,8 @@ def test_objects_are_equal_large_float_list_benchmark(benchmark) -> None:  # noq
 
 
 def make_records(size: int) -> dict[str, dict]:
-    r"""Create a dict of ``size`` records ``{"x": float, "y": [int, int]}``."""
+    r"""Create a dict of ``size`` records ``{"x": float, "y": [int,
+    int]}``."""
     return {f"k{i}": {"x": float(i), "y": [i, i + 1]} for i in range(size)}
 
 
