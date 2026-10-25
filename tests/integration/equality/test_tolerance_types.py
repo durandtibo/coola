@@ -3,6 +3,7 @@ numeric types."""
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import timedelta
 from decimal import Decimal
@@ -285,3 +286,78 @@ def test_allclose_atol_and_rtol_add_up(pair: tuple) -> None:
 @pytest.mark.parametrize("pair", PAIRS_BY_TYPE.values(), ids=PAIRS_BY_TYPE.keys())
 def test_allclose_atol_and_rtol_add_up_is_symmetric(pair: tuple) -> None:
     assert objects_are_allclose(*reversed(pair), atol=0.5, rtol=0.5)
+
+
+########################################
+#     Tests for NaN dictionary keys    #
+########################################
+
+
+def test_objects_are_equal_nan_keys_equal_nan() -> None:
+    assert objects_are_equal({float("nan"): 1}, {float("nan"): 1}, equal_nan=True)
+
+
+def test_objects_are_equal_nan_keys_not_equal_nan() -> None:
+    assert not objects_are_equal({float("nan"): 1}, {float("nan"): 1})
+
+
+def test_objects_are_equal_nan_keys_different_values_equal_nan() -> None:
+    assert not objects_are_equal({float("nan"): 1}, {float("nan"): 2}, equal_nan=True)
+
+
+def test_objects_are_equal_nan_keys_nested_equal_nan() -> None:
+    assert objects_are_equal({"a": {float("nan"): [1]}}, {"a": {float("nan"): [1]}}, equal_nan=True)
+
+
+def test_objects_are_equal_nan_keys_ordered_dict_equal_nan() -> None:
+    assert objects_are_equal(
+        OrderedDict([(float("nan"), 1), ("a", 2)]),
+        OrderedDict([(float("nan"), 1), ("a", 2)]),
+        equal_nan=True,
+    )
+
+
+############################################
+#     Tests for NumPy time scalars         #
+############################################
+
+
+@numpy_available
+def test_objects_are_allclose_timedelta64_scalar() -> None:
+    assert objects_are_allclose(np.timedelta64(1, "s"), np.timedelta64(1, "s"))
+
+
+@numpy_available
+def test_objects_are_allclose_timedelta64_scalar_in_list() -> None:
+    assert objects_are_allclose([np.timedelta64(1, "s")], [np.timedelta64(1, "s")])
+
+
+@numpy_available
+def test_objects_are_equal_timedelta64_nat_equal_nan() -> None:
+    assert objects_are_equal(np.timedelta64("NaT", "s"), np.timedelta64("NaT", "s"), equal_nan=True)
+
+
+@numpy_available
+def test_objects_are_equal_timedelta64_scalar() -> None:
+    assert objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(1, "s"))
+
+
+@numpy_available
+def test_objects_are_equal_timedelta64_scalar_different() -> None:
+    assert not objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(2, "s"))
+
+
+########################################
+#     Tests for the option types       #
+########################################
+
+
+@pytest.mark.parametrize("value", [True, 1.5])
+def test_objects_are_equal_max_depth_wrong_type(value: object) -> None:
+    with pytest.raises(TypeError, match="max_depth must be an int"):
+        objects_are_equal([1], [1], max_depth=value)
+
+
+def test_objects_are_allclose_atol_bool() -> None:
+    with pytest.raises(TypeError, match="atol must be a real number"):
+        objects_are_allclose(1.0, 1.0, atol=True)

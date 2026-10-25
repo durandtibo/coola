@@ -9,16 +9,13 @@ from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.mixin import HandlerEqualityMixin
-from coola.equality.handler.utils import check_recursion_depth, report_difference
+from coola.equality.handler.utils import check_recursion_depth, comparison_key, report_difference
 from coola.utils.safe import safe_repr
 
 if TYPE_CHECKING:
     from collections.abc import Set as AbstractSet
 
     from coola.equality.config import EqualityConfig
-
-# A NaN is replaced by this marker when ``equal_nan=True``.
-_NAN: Any = object()
 
 
 class SetSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
@@ -90,31 +87,13 @@ class SetSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             The first element of ``actual`` that has no match, or
                 ``_NO_ELEMENT`` if every element has one.
         """
-        counts = Counter(cls._key(value, config) for value in expected)
+        counts = Counter(comparison_key(value, config) for value in expected)
         for value in actual:
-            key = cls._key(value, config)
+            key = comparison_key(value, config)
             if counts[key] == 0:
                 return value
             counts[key] -= 1
         return _NO_ELEMENT
-
-    @classmethod
-    def _key(cls, value: Any, config: EqualityConfig) -> Any:
-        r"""Return a hashable key that is equal for the equal elements.
-
-        The key contains the type of the value (``1``, ``1.0`` and
-        ``True`` have the same hash and are equal with ``==``), and the
-        NaNs are replaced by a marker if ``config.equal_nan`` is
-        ``True``, also inside the tuples and frozensets.
-        """
-        if isinstance(value, float):
-            if config.equal_nan and value != value:  # noqa: PLR0124
-                return (float, _NAN)
-        elif isinstance(value, tuple):
-            return (type(value), tuple(cls._key(v, config) for v in value))
-        elif isinstance(value, frozenset):
-            return (type(value), frozenset(Counter(cls._key(v, config) for v in value).items()))
-        return (type(value), value)
 
 
 _NO_ELEMENT: Any = object()

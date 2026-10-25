@@ -8,7 +8,13 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from coola.validation import validate_finite, validate_non_negative, validate_positive
+from coola.validation import (
+    validate_finite,
+    validate_int,
+    validate_non_negative,
+    validate_number,
+    validate_positive,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
@@ -66,6 +72,9 @@ class EqualityConfig:
             being logged. Defaults to ``None`` (log the differences).
 
     Raises:
+        TypeError: if ``atol`` or ``rtol`` is not a real number (a
+            ``bool`` is rejected), or if ``max_depth`` is not an ``int``
+            (a ``bool`` is rejected).
         ValueError: if ``atol`` or ``rtol`` is negative or not finite, or if
             ``max_depth`` is not positive.
 
@@ -108,6 +117,9 @@ class EqualityConfig:
 
     def __post_init__(self) -> None:
         """Validate configuration parameters after initialization."""
+        validate_number(self.atol, name="atol")
+        validate_number(self.rtol, name="rtol")
+        validate_int(self.max_depth, name="max_depth")
         validate_non_negative(self.atol, name="atol")
         validate_non_negative(self.rtol, name="rtol")
         validate_positive(self.max_depth, name="max_depth")
