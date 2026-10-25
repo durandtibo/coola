@@ -443,64 +443,6 @@ by returning `(a, b, part)`). They share one release and one migration note show
 
 ## 11. Decisions for the maintainers
 
-The design choices that need a decision are listed, with options and a recommendation, in the last section
-of this document ("Design choices to decide").
-
-## 12. Not covered
-
-- Per-library corner cases beyond the probes: sparse and quantized torch tensors, nested tensors,
-  dask-backed xarray, pandas `Interval`, `Period` and `Sparse` columns on the `exact` path.
-- The GPU path, Windows, fork behaviour.
-- A registration made while a comparison runs is seen by the next call only (the lookup cache is per
-  call).
-- The prototype has no `Decimal` and no library tester. The package-size estimate (about 4k lines
-  instead of 8.6k, unit tests from 20.5k to about 12k lines) is an extrapolation, not a measurement.
-- Mutation testing of the package.
-
-## Appendix: the engine loop
-
-```python
-def run(self, a, e):  # Engine.run
-    stack, keys, parts, visiting = [], [], [], set()  # child iterators, cycle keys, path parts
-    pair = (a, e, None)
-    while True:
-        a, e, part = pair
-        ok = True
-        if a is not e:
-            t = type(a)
-            if t is not type(e):
-                ok = self.fail("types differ")
-            else:
-                result = self.find(t).objects_are_equal(a, e, self)  # a verdict, or children
-                if result is True or result is False:
-                    ok = result
-                elif (key := (id(a), id(e))) not in visiting:  # a pair on the stack is equal
-                    if len(stack) >= self.max_depth:
-                        raise MaxDepthExceededError
-                    visiting.add(key)
-                    stack.append(result)
-                    keys.append(key)
-                    parts.append(part)
-        if ok is False:
-            return self.record_failure(
-                parts, part
-            )  # path = parts[1:] + (part,) + the parts of fail()
-        while True:  # next pair: the top iterator, popping the exhausted ones
-            if not stack:
-                return True
-            if (nxt := next(stack[-1], None)) is not None:
-                pair = nxt
-                break
-            stack.pop()
-            visiting.discard(keys.pop())
-            parts.pop()
-```
-
-The measured prototype uses a `container` flag on the tester instead of testing the type of the
-result; its output on the 5 000-entry dict, on cycles and on `max_depth` is the one of section 9.
-
-## Design choices to decide
-
 Each choice has the options, what each one costs, and a recommendation. "Decision" is left empty for
 the maintainers; the steps of section 10.2 that depend on a choice are named.
 
@@ -559,32 +501,32 @@ nested cells (raise). Recommendation: A. Decision: ____
 `timedelta64[s]` and `timedelta64[ns]` differ, as in NumPy. pandas 3 infers different resolutions
 for values built in different ways, so two frames of the same instants can differ. A. keep strict
 (document the `astype` fix); B. cast both to the finer resolution before comparing. B is friendlier
-and breaks the "same dtype" rule of the guide. Recommendation: A. Decision: ____
+and breaks the "same dtype" rule of the guide. Recommendation: A. Decision: A
 
 ### Q8. Precision policy of the kernel (step 3)
 
 A. Cast `float16`, `bfloat16`, `float32` to `float64` (correct at the edge of the range, memory x2 for
 the temporaries); B. keep the dtype (fast, wrong at extremes, warns). Integers: C. exact difference,
 tolerance in `float64` (recommended), or D. exact `Fraction` arithmetic for every integer array (exact
-everywhere, much slower). Recommendation: A and C. Decision: ____
+everywhere, much slower). Recommendation: A and C. Decision: C
 
 ### Q9. What stays ignored (no step)
 
 `requires_grad`, pandas `attrs` and `flags`, Arrow schema metadata, `pydantic` private attributes,
 LazyFrame query plan (collected). Options: keep ignored and document each (recommended), or add
-opt-in flags. Decision: ____
+opt-in flags. Decision: keep ignored and document each
 
 ### Q10. Strictness of enums and labels (step 2)
 
 A. `bool` and every `enum.Enum` member are compared exactly, tolerance never applies (recommended).
-B. Also `str`, `bytes` and every non-numeric type through an explicit "label" list. Decision: ____
+B. Also `str`, `bytes` and every non-numeric type through an explicit "label" list. Decision: A
 
 ### Q11. Compatibility and release strategy (steps 9 to 14)
 
 A. One breaking release for steps 11 to 14, with a migration note and the engine already present
 (recommended). B. A compatibility adapter that keeps `BaseEqualityHandler`/`create_chain` working for
 one more release, deprecated, at the cost of the 500 lines of chain machinery staying. C. Do not
-break: stop after step 8 and keep the chain. Decision: ____
+break: stop after step 8 and keep the chain. Decision: A
 
 ### Q12. Public surface (step 14)
 
@@ -592,7 +534,7 @@ About 25 names in `coola.equality`; the library testers are private. Options: A.
 modules reached through the registry (recommended); B. keep the named library testers public
 (`NumpyArrayEqualityTester`, ...) so that users can compose or subclass them. Also decide the
 public name of the engine type (`Engine`, `ComparisonContext`) and whether `Element` and
-`AttributeName` are exported. Decision: ____
+`AttributeName` are exported. Decision: B
 
 ### Q13. Registry lookup cache (step 9)
 
@@ -604,4 +546,57 @@ the next call). B. A lock-free immutable snapshot inside the registry (benefits 
 
 A. Engine plus an adapter that runs the current chain testers as leaves (recommended: nothing
 breaks, benchmarks can compare). B. Engine and the port of the Python testers in one PR (fewer
-intermediate states, a large diff). Decision: ____
+intermediate states, a large diff). Decision: A
+
+## 12. Not covered
+
+- Per-library corner cases beyond the probes: sparse and quantized torch tensors, nested tensors,
+  dask-backed xarray, pandas `Interval`, `Period` and `Sparse` columns on the `exact` path.
+- The GPU path, Windows, fork behaviour.
+- A registration made while a comparison runs is seen by the next call only (the lookup cache is per
+  call).
+- The prototype has no `Decimal` and no library tester. The package-size estimate (about 4k lines
+  instead of 8.6k, unit tests from 20.5k to about 12k lines) is an extrapolation, not a measurement.
+- Mutation testing of the package.
+
+## Appendix: the engine loop
+
+```python
+def run(self, a, e):  # Engine.run
+    stack, keys, parts, visiting = [], [], [], set()  # child iterators, cycle keys, path parts
+    pair = (a, e, None)
+    while True:
+        a, e, part = pair
+        ok = True
+        if a is not e:
+            t = type(a)
+            if t is not type(e):
+                ok = self.fail("types differ")
+            else:
+                result = self.find(t).objects_are_equal(a, e, self)  # a verdict, or children
+                if result is True or result is False:
+                    ok = result
+                elif (key := (id(a), id(e))) not in visiting:  # a pair on the stack is equal
+                    if len(stack) >= self.max_depth:
+                        raise MaxDepthExceededError
+                    visiting.add(key)
+                    stack.append(result)
+                    keys.append(key)
+                    parts.append(part)
+        if ok is False:
+            return self.record_failure(
+                parts, part
+            )  # path = parts[1:] + (part,) + the parts of fail()
+        while True:  # next pair: the top iterator, popping the exhausted ones
+            if not stack:
+                return True
+            if (nxt := next(stack[-1], None)) is not None:
+                pair = nxt
+                break
+            stack.pop()
+            visiting.discard(keys.pop())
+            parts.pop()
+```
+
+The measured prototype uses a `container` flag on the tester instead of testing the type of the
+result; its output on the 5 000-entry dict, on cycles and on `max_depth` is the one of section 9.
