@@ -406,6 +406,65 @@ def test_array_equal_rtol_outside_the_tolerance_reversed() -> None:
     assert not array_equal(np.array([100.0]), np.array([101.5]), config)
 
 
+@numpy_available
+def test_array_equal_rtol_each_element_in_its_own_direction() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert array_equal(np.array([100.0, 101.005]), np.array([101.005, 100.0]), config)
+
+
+@numpy_available
+def test_array_equal_rtol_each_element_in_its_own_direction_reversed() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert array_equal(np.array([101.005, 100.0]), np.array([100.0, 101.005]), config)
+
+
+@numpy_available
+def test_array_equal_rtol_one_element_outside_the_tolerance() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert not array_equal(np.array([100.0, 101.005]), np.array([101.005, 105.0]), config)
+
+
+@numpy_available
+def test_array_equal_unsigned_integers_do_not_wrap_around() -> None:
+    config = EqualityConfig(atol=1.0)
+    assert not array_equal(np.array([0], dtype=np.uint8), np.array([200], dtype=np.uint8), config)
+
+
+@numpy_available
+def test_array_equal_unsigned_integers_within_atol() -> None:
+    config = EqualityConfig(atol=1.0)
+    assert array_equal(np.array([5], dtype=np.uint8), np.array([4], dtype=np.uint8), config)
+
+
+@numpy_available
+def test_array_equal_integers_within_rtol_reversed() -> None:
+    config = EqualityConfig(rtol=0.02)
+    assert array_equal(np.array([101, 100]), np.array([100, 101]), config)
+
+
+@numpy_available
+def test_array_equal_equal_infinities_with_tolerance() -> None:
+    config = EqualityConfig(atol=1.0)
+    assert array_equal(np.array([float("inf")]), np.array([float("inf")]), config)
+
+
+@numpy_available
+def test_array_equal_different_infinities_with_tolerance() -> None:
+    config = EqualityConfig(atol=1e300)
+    assert not array_equal(np.array([float("inf")]), np.array([float("-inf")]), config)
+
+
+@numpy_available
+def test_array_equal_complex_with_tolerance() -> None:
+    config = EqualityConfig(atol=0.6)
+    assert array_equal(np.array([1 + 1j]), np.array([1.5 + 1j]), config)
+
+
+@numpy_available
+def test_array_equal_different_shape_with_tolerance() -> None:
+    assert not array_equal(np.ones(2), np.ones(3), EqualityConfig(atol=1.0))
+
+
 ################################################
 #     Tests for NumpyTimeScalarEqualHandler    #
 ################################################

@@ -457,7 +457,9 @@ True
 Two numbers are considered equal if `|actual - expected| <= atol + rtol * max(|actual|, |expected|)`.
 This is the rule of NumPy, PyTorch, JAX, PyArrow and xarray arrays, and it is also used for Python
 numbers (`float`, `int`, `complex`), NumPy scalars, `Decimal`, `Fraction` and `timedelta`. It is
-symmetric: `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result.
+symmetric: `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result. For an
+array, the rule is applied to each element separately, so the answer does not depend on the
+container (a `list`, a NumPy array or a PyTorch tensor give the same answer for the same numbers).
 `pandas` and `polars` delegate to their own testing functions, which use
 `max(atol, rtol * max(|actual|, |expected|))` (the rule of `math.isclose`) instead of the sum, so
 they are never more permissive than the other types.
