@@ -24,6 +24,7 @@ __all__ = [
     "MaxDepthExceededError",
     "NanEqualHandler",
     "NumpyArrayEqualHandler",
+    "NumpyTimeScalarEqualHandler",
     "ObjectEqualHandler",
     "ObjectSameAttributesHandler",
     "PandasDataFrameEqualHandler",
@@ -103,7 +104,7 @@ from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
     from coola.equality.handler.jax import JaxArrayEqualHandler
-    from coola.equality.handler.numpy import NumpyArrayEqualHandler
+    from coola.equality.handler.numpy import NumpyArrayEqualHandler, NumpyTimeScalarEqualHandler
     from coola.equality.handler.pandas import (
         PandasDataFrameEqualHandler,
         PandasExtensionArrayEqualHandler,
@@ -127,6 +128,7 @@ if TYPE_CHECKING:
 _LAZY_EXPORTS = {
     "JaxArrayEqualHandler": "coola.equality.handler.jax",
     "NumpyArrayEqualHandler": "coola.equality.handler.numpy",
+    "NumpyTimeScalarEqualHandler": "coola.equality.handler.numpy",
     "PandasDataFrameEqualHandler": "coola.equality.handler.pandas",
     "PandasExtensionArrayEqualHandler": "coola.equality.handler.pandas",
     "PandasIndexEqualHandler": "coola.equality.handler.pandas",

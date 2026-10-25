@@ -52,7 +52,7 @@ described [below](#type-specific-behavior).
 | Symmetric               | `objects_are_equal(a, b)` and `objects_are_equal(b, a)` give the same answer, and so do `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)`. A user class with an asymmetric `__eq__` is the exception.                                                                                                                                                                                                                                                                                                                                                  |
 | Not transitive          | With a tolerance, `a` close to `b` and `b` close to `c` does not imply that `a` is close to `c`. The exact comparison is transitive.                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Pure                    | The comparison does not modify its inputs, and gives the same answer every time.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Failure modes           | A self-referencing container does not raise: a pair that is already being compared is considered equal. A structure nested deeper than `max_depth` raises a `MaxDepthExceededError` (see [Controlling Recursion Depth](#controlling-recursion-depth)). Unsupported types never raise: they fall back to `==`.                                                                                                                                                                                                                                                      |
+| Failure modes           | A self-referencing container does not raise: a pair that is already being compared is considered equal. A structure nested deeper than `max_depth` raises a `MaxDepthExceededError` (see [Controlling Recursion Depth](#controlling-recursion-depth)). Unsupported types fall back to `==`: an `==` that raises propagates unchanged, and an `==` that returns an array (see [Types that work with caveats](#types-that-work-with-caveats)) raises a `TypeError`.                                                                                                                                                                                                                                                      |
 | Consistent with hashing | Objects that are equal also have the same [`hash_object`](hashing.md) hash. The reverse is not guaranteed: a `list` subclass and a `list`, or a NumPy `float64` and a `float`, share a hash but are not equal.                                                                                                                                                                                                                                                                                                                                                     |
 
 ```pycon
@@ -347,8 +347,8 @@ False
 
 ```
 
-:warning: The keys of a `dict` are matched with the native hash and equality, so `{1: "a"}` and
-`{True: "a"}` are still considered equal. The members of a `set` are matched by their
+:warning: The keys of a `dict` are matched by their type and their value, so `{1: "a"}` and
+`{True: "a"}` are different (unlike with `==`). The members of a `set` are matched by their
 type and hash, so `{1}` and `{True}` are different (unlike with `==`).
 
 ```pycon
@@ -356,7 +356,7 @@ type and hash, so `{1}` and `{True}` are different (unlike with `==`).
 >>> {1: "a"} == {True: "a"}
 True
 >>> objects_are_equal({1: "a"}, {True: "a"})
-True
+False
 >>> {1} == {True}
 True
 >>> objects_are_equal({1}, {True})
@@ -783,7 +783,9 @@ There are three failure modes, and only the last two raise:
 | Nesting deeper than `max_depth`          | `coola.equality.MaxDepthExceededError`, a subclass of `RecursionError`                                            |
 | Interpreter recursion limit reached      | `RecursionError` with advice on `sys.setrecursionlimit()`, raised before `max_depth` is hit if it is set too high |
 
-`max_depth` must be positive, otherwise a `ValueError` is raised.
+`max_depth` must be a positive `int` (not a `bool`), otherwise a `ValueError` (not positive) or a
+`TypeError` (not an `int`) is raised. `rtol` and `atol` must be non-negative finite real numbers
+(not `bool`).
 
 For deeply nested structures, you can control the maximum recursion depth to prevent stack
 overflow. The `max_depth` parameter sets the maximum nesting level that will be compared. It is a
@@ -808,8 +810,9 @@ True
 The default `max_depth` is 100. The comparison is recursive and uses several Python frames per
 nesting level, so the interpreter limit (`sys.getrecursionlimit()`, 1000 by default) is reached
 at roughly 60-150 nesting levels depending on the container types. The default `max_depth` is
-below that, so a `MaxDepthExceededError` with an explanatory message is raised instead of a
-`RecursionError`. For extremely deeply nested structures, reduce the nesting, or raise the
+below that for a list, but not for every container: a nesting of about 90 dictionaries already
+raises a `RecursionError` (with advice on `sys.setrecursionlimit()`) before `max_depth` is reached,
+and the stack of the caller (a test runner, a web framework) is subtracted from the same limit. For extremely deeply nested structures, reduce the nesting, or raise the
 interpreter limit with `sys.setrecursionlimit()` and `max_depth` accordingly. Comparison does not use an explicit stack.
 
 ### Using Custom Registries
