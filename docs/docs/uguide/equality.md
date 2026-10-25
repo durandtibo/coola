@@ -446,9 +446,10 @@ Two numbers are considered equal if `|actual - expected| <= atol + rtol * max(|a
 This is the rule of NumPy, PyTorch, JAX, PyArrow and xarray arrays, and it is also used for Python
 numbers (`float`, `int`, `complex`), NumPy scalars, `Decimal`, `Fraction` and `timedelta`. It is
 symmetric: `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result.
-`pandas` and `polars` delegate to their own testing functions, which use
-`max(atol, rtol * max(|actual|, |expected|))` (the rule of `math.isclose`) instead of the sum, so
-they are never more permissive than the other types.
+The integer and floating-point columns of `pandas` and `polars` data frames and series follow the
+same rule (this requires NumPy); the other columns are compared by `pandas.testing` and
+`polars.testing`, which also apply the tolerance to the floats nested in a list or a struct with
+the rule of `math.isclose` (`max(atol, rtol * max(|actual|, |expected|))`).
 
 The comparison within a tolerance is not transitive: `a` can be close to `b`, and `b` close to `c`,
 while `a` is not close to `c`.
@@ -1560,8 +1561,8 @@ summarizes what each type does with them (it was checked for each type with `obj
 | `torch.Tensor`                                          | Honored                                                                                     | Honored (`torch.allclose`), integer tensors included                                                   | dtype, shape, device                                     |
 | `torch.nn.utils.rnn.PackedSequence`                     | Honored                                                                                     | Honored                                                                                                | `batch_sizes`, `sorted_indices`, `unsorted_indices`      |
 | `jax.numpy.ndarray`                                     | Honored                                                                                     | Honored                                                                                                | dtype, shape                                             |
-| `pandas.DataFrame`, `pandas.Series`                     | **Any missing value counts as `NaN`**: `NaN`, `None`, `NaT`, `pd.NA`                        | Honored (exact if both are `0`)                                                                        | dtype, index, columns                                    |
-| `polars.DataFrame`, `polars.Series`, `polars.LazyFrame` | Honored for float `NaN`. **`null` is always equal to `null`**                               | Honored (exact if both are `0`)                                                                        | dtype, schema; a `LazyFrame` is collected                |
+| `pandas.DataFrame`, `pandas.Series`                     | **Any missing value counts as `NaN`**: `NaN`, `None`, `NaT`, `pd.NA`                        | Honored for the integer and floating-point columns (NumPy rule)                                        | dtype, index, columns                                    |
+| `polars.DataFrame`, `polars.Series`, `polars.LazyFrame` | Honored for float `NaN`. **`null` is always equal to `null`**                               | Honored for the integer and floating-point columns (NumPy rule)                                        | dtype, schema; a `LazyFrame` is collected                |
 | `xarray.DataArray`, `xarray.Dataset`, `xarray.Variable` | Honored                                                                                     | Honored                                                                                                | dimensions, coordinates, attributes                      |
 | `pyarrow.Array`, `pyarrow.Table`                        | Honored for the floating-point columns; `null` is equal to `null`                           | Honored for the integer and floating-point columns; the other types are compared exactly               | Type, length, `null` positions, schema for tables        |
 

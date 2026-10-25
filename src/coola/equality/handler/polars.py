@@ -13,7 +13,7 @@ from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
-from coola.utils.imports import is_polars_available
+from coola.utils.imports import is_numpy_available, is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
     import polars as pl
@@ -223,6 +223,14 @@ def frame_equal(df1: pl.DataFrame, df2: pl.DataFrame, config: EqualityConfig) ->
         return False
     if not config.equal_nan and has_nan(df1):
         return False
+    if df1.columns != df2.columns:
+        return False
+    if _tolerance_applies(config):
+        # The integer and float columns follow the same rule as the other libraries.
+        numeric = [c for c in df1.columns if _is_numeric_pair(df1[c], df2[c])]
+        if not all(_numeric_series_close(df1[c], df2[c], config) for c in numeric):
+            return False
+        df1, df2 = df1.drop(numeric), df2.drop(numeric)
     try:
         assert_frame_equal(df1, df2, atol=config.atol, rtol=config.rtol)
     except AssertionError:
@@ -258,6 +266,8 @@ def series_equal(series1: pl.Series, series2: pl.Series, config: EqualityConfig)
         return False
     if not config.equal_nan and has_nan(series1):
         return False
+    if _tolerance_applies(config) and _is_numeric_pair(series1, series2):
+        return series1.name == series2.name and _numeric_series_close(series1, series2, config)
     try:
         assert_series_equal(
             series1,
@@ -268,6 +278,32 @@ def series_equal(series1: pl.Series, series2: pl.Series, config: EqualityConfig)
     except AssertionError:
         return False
     return True
+
+
+def _tolerance_applies(config: EqualityConfig) -> bool:
+    # The tolerance of the numeric columns is applied with NumPy (the shared rule).
+    return (config.atol > 0 or config.rtol > 0) and is_numpy_available()
+
+
+def _is_numeric_pair(series1: pl.Series, series2: pl.Series) -> bool:
+    # ``is_numeric`` also includes ``Decimal``, which is compared by polars.
+    dtype = series1.dtype
+    return dtype == series2.dtype and (dtype.is_integer() or dtype.is_float())
+
+
+def _numeric_series_close(series1: pl.Series, series2: pl.Series, config: EqualityConfig) -> bool:
+    r"""Indicate if two numeric series are equal within a tolerance.
+
+    ``polars.testing`` applies the tolerance to the floats only and with
+    the rule of ``math.isclose``. The nulls must be at the same
+    positions, then the values are compared with the NumPy rule
+    (``|a - b| <= atol + rtol * max(|a|, |b|)``).
+    """
+    from coola.equality.handler.numpy import array_equal  # noqa: PLC0415
+
+    if not series1.is_null().equals(series2.is_null()):
+        return False
+    return array_equal(series1.fill_null(0).to_numpy(), series2.fill_null(0).to_numpy(), config)
 
 
 def assert_frame_equal(

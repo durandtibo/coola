@@ -16,7 +16,7 @@ from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
-from coola.utils.imports import is_pandas_available
+from coola.utils.imports import is_numpy_available, is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
     import pandas as pd
@@ -231,6 +231,75 @@ def index_equal(index1: pd.Index, index2: pd.Index, config: EqualityConfig) -> b
     return True
 
 
+def _tolerance_applies(config: EqualityConfig) -> bool:
+    # The tolerance of the numeric columns is applied with NumPy (the shared rule).
+    return (config.atol > 0 or config.rtol > 0) and is_numpy_available()
+
+
+def _is_numeric_pair(series1: pd.Series, series2: pd.Series) -> bool:
+    dtype = series1.dtype
+    return dtype == series2.dtype and bool(
+        pd.api.types.is_integer_dtype(dtype) or pd.api.types.is_float_dtype(dtype)
+    )
+
+
+def _numeric_values_close(series1: pd.Series, series2: pd.Series, config: EqualityConfig) -> bool:
+    r"""Indicate if the values of two numeric series are equal within a
+    tolerance.
+
+    ``pandas.testing`` applies its own tolerance rule. The missing
+    values must be at the same positions, then the values are compared
+    with the NumPy rule (``|a - b| <= atol + rtol * max(|a|, |b|)``),
+    like the other libraries. The index and the name are not compared.
+    """
+    from coola.equality.handler.numpy import array_equal  # noqa: PLC0415
+
+    if (
+        not pd.api.types.is_float_dtype(series1.dtype)
+        and not (series1.isna().to_numpy() == series2.isna().to_numpy()).all()
+    ):
+        return False
+    return array_equal(_to_numpy(series1), _to_numpy(series2), config)
+
+
+def _to_numpy(series: pd.Series) -> Any:
+    # A float NaN stays a NaN (governed by ``equal_nan``). The other missing values are
+    # replaced by zero: their positions are compared apart.
+    if pd.api.types.is_float_dtype(series.dtype):
+        return series.to_numpy(dtype="float64", na_value=float("nan"))
+    if series.isna().any():
+        return series.fillna(0).to_numpy(dtype="float64")
+    return series.to_numpy()
+
+
+def _with_values(series: pd.Series, values: pd.Series) -> pd.Series:
+    r"""Return a series with the index and the name of ``series`` and
+    the values of ``values``."""
+    return pd.Series(values.array, index=series.index, name=series.name)
+
+
+def _align_numeric_columns(
+    df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig
+) -> pd.DataFrame | None:
+    r"""Compare the numeric columns with the shared rule and copy the
+    values of ``df1`` in ``df2``, so the other checks of pandas (index,
+    columns, dtypes, other columns) do not see a difference.
+
+    Returns:
+        The data frame ``df2`` with the values of the numeric columns
+            of ``df1``, or ``None`` if one numeric column is not close.
+    """
+    positions = [i for i in range(df1.shape[1]) if _is_numeric_pair(df1.iloc[:, i], df2.iloc[:, i])]
+    if not positions:
+        return df2
+    df2 = df2.copy()
+    for i in positions:
+        if not _numeric_values_close(df1.iloc[:, i], df2.iloc[:, i], config):
+            return None
+        cast("Any", df2).isetitem(i, df1.iloc[:, i].array)
+    return df2
+
+
 def _index_has_nan(index: pd.Index) -> bool:
     if isinstance(index, pd.MultiIndex):  # ``isna`` is not defined for MultiIndex
         return bool(cast("Any", index).to_frame(index=False).isna().to_numpy().any())
@@ -310,6 +379,11 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
         return False
     if not config.equal_nan and cast("Any", df1).isna().any().any():
         return False
+    if _tolerance_applies(config):
+        aligned = _align_numeric_columns(df1, df2, config)
+        if aligned is None:
+            return False
+        df2 = aligned
     try:
         cast("Any", pd.testing).assert_frame_equal(
             df1,
@@ -352,6 +426,10 @@ def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig)
         return False
     if not config.equal_nan and cast("Any", series1).isna().any():
         return False
+    if _tolerance_applies(config) and _is_numeric_pair(series1, series2):
+        if not _numeric_values_close(series1, series2, config):
+            return False
+        series2 = _with_values(series2, series1)
     try:
         cast("Any", pd.testing).assert_series_equal(
             series1,

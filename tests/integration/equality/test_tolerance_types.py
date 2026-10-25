@@ -7,12 +7,24 @@ from dataclasses import dataclass, field
 from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
+from unittest.mock import Mock
 
 import numpy as np
 import pytest
 
 from coola.equality import objects_are_allclose, objects_are_equal
-from coola.testing.fixtures import numpy_available
+from coola.testing.fixtures import numpy_available, pandas_available, polars_available
+from coola.utils.imports import is_pandas_available, is_polars_available
+
+if is_pandas_available():
+    import pandas as pd
+else:  # pragma: no cover
+    pd = Mock()
+
+if is_polars_available():
+    import polars as pl
+else:  # pragma: no cover
+    pl = Mock()
 
 NAN = float("nan")
 
@@ -285,3 +297,48 @@ def test_allclose_atol_and_rtol_add_up(pair: tuple) -> None:
 @pytest.mark.parametrize("pair", PAIRS_BY_TYPE.values(), ids=PAIRS_BY_TYPE.keys())
 def test_allclose_atol_and_rtol_add_up_is_symmetric(pair: tuple) -> None:
     assert objects_are_allclose(*reversed(pair), atol=0.5, rtol=0.5)
+
+
+################################################
+#     Tests for the tolerance of data frames   #
+################################################
+
+
+@polars_available
+def test_objects_are_allclose_polars_integers_follow_rtol() -> None:
+    assert objects_are_allclose(pl.Series([100]), pl.Series([101]), rtol=0.01, atol=0.0)
+
+
+@polars_available
+def test_objects_are_allclose_polars_integers_follow_atol() -> None:
+    assert objects_are_allclose(pl.Series([1]), pl.Series([2]), atol=2.0)
+
+
+@pandas_available
+def test_objects_are_allclose_pandas_and_numpy_agree_on_atol_and_rtol() -> None:
+    kwargs = {"atol": 0.5, "rtol": 0.5}
+    assert objects_are_allclose(
+        pd.Series([0.0]), pd.Series([0.9]), **kwargs
+    ) == objects_are_allclose(np.array([0.0]), np.array([0.9]), **kwargs)
+
+
+@polars_available
+def test_objects_are_allclose_polars_and_numpy_agree_on_atol_and_rtol() -> None:
+    kwargs = {"atol": 0.5, "rtol": 0.5}
+    assert objects_are_allclose(
+        pl.Series([0.0]), pl.Series([0.9]), **kwargs
+    ) == objects_are_allclose(np.array([0.0]), np.array([0.9]), **kwargs)
+
+
+@polars_available
+def test_objects_are_allclose_polars_lazy_frame_integers() -> None:
+    assert objects_are_allclose(
+        pl.LazyFrame({"a": [100]}), pl.LazyFrame({"a": [101]}), rtol=0.01, atol=0.0
+    )
+
+
+@pandas_available
+def test_objects_are_allclose_pandas_frame_in_a_dict() -> None:
+    assert objects_are_allclose(
+        {"df": pd.DataFrame({"a": [100, 200]})}, {"df": pd.DataFrame({"a": [101, 201]})}, rtol=0.01
+    )
