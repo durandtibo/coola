@@ -484,6 +484,39 @@ by returning `(a, b, part)`). They share the major release; the migration guide 
 - **Docs**: the guide's Guarantees table takes the wording of section 1; "Finding a Difference" uses
   `compare`; the NaN, tolerance and Design Principles sections follow sections 5 to 7.
 
+### 10.4 Status
+
+Every PR targets `main` (the long-lived branch of T1 was not needed). Done on the date of the last PR
+below; "open" means the PR is not merged yet.
+
+| Step | PR | Status | What was done, and where it differs from the design |
+| ---- | -- | ------ | ---------------------------------------------------- |
+| 1 | #2339 | done | `tests/properties/test_equality_containers.py`: copy, symmetry and agreement with the list for NumPy, torch, pandas, polars, pyarrow, xarray. The C3 and C1 `xfail` tests were removed by steps 2 and 3. The C4 `xfail` was removed by step 7 (see below). |
+| 2 | #2340 | done | Enum members and pandas booleans (Series, DataFrame columns, Index, extension arrays) are exact. C2, C3 closed. |
+| 3 | #2343 | done | Kernel: exact integer difference, small floats and `complex64` in double precision, `over` silenced; nullable pandas integers stay integers. `uint64` torch tensors still go through `float64` (`torch.maximum` is not implemented for them). JAX without 64-bit mode has no `float64`. C1, C8 closed. |
+| 4 | #2341 | done | `MappingProxyType` and `array.array` registered. C7 closed. |
+| 5 | #2342 | done | Four statements fixed. The Markdown doctest task fails locally on the broken example, so the task itself stops on a failure; why CI stayed green could not be established (logs not read). The Design Principles list named `show_difference` until step 10. C17 closed. |
+| 6 | - | dropped | Q5. |
+| 7 | #2344 | done | pandas by column kinds, no `pandas.testing`: 2M-float series differing at index 0 5 898 ms to about 2 ms; 200k x 10 frame 538 ms to about 0.6 ms. The tolerance no longer applies to an `Index`. Nested and `object` cells follow `Series.equals`. C5, C6 (kept as decided), C4 (pandas) closed. |
+| 8 | #2345 | done | polars and pyarrow by column kinds, durations follow the tolerance, nested columns by the library. Differs from the design: the libraries do **not** agree on a nested `NaN` (polars: equal; pyarrow: not equal; pandas: equal only for the same `NaN` object). Q6 B leaves it to the library, and the guide says so. C4 closed. |
+| - | #2346 | done | Benchmarks of the gates (section 10.3) added before step 9, with the baseline of `main` in the PR. |
+| 9 | #2347 | done | `Engine` (explicit stack, per-call lookup cache, identity, strict type, cycles, depth, `fail`, `warn_once`), `Element`, `BaseEqualityTester.engine_protocol`. Chain testers are called as leaves with the `EqualityConfig` and still recurse, so C13 stays open until steps 11 to 13 port the families. |
+| 10 | #2349 (open) | done | One record: `config.reports`, filled by `report_difference` and by the engine; `show_difference`, the logger and `reporter` removed; `compare(rtol, atol)`; `ComparisonResult` without `actual` and `expected`. `compare` of 1M floats differing at index 0: 291.6 ms to 11.8 ms (target below 30 ms). C11, C12 closed. Differs from the design: handlers still report through `report_difference(config, ...)` (the port to `ctx.fail` is step 11), and the reasons are not yet formatted with a bounded `reprlib.Repr` (step 12). |
+| 11 | - | to do | Port the Python testers to the engine. |
+| 12 | - | to do | Port the array testers; bounded value formatter; index in the path. |
+| 13 | - | to do | `TableEqualityTester` and the adapters; `Element` for sets. |
+| 14 | - | to do | Delete the chain machinery; freeze `EqualityConfig`; migration guide; trim `__all__`. |
+
+Items of section 10.1: C1, C2, C3, C4, C5, C6 (kept), C7, C8, C9 (kept, Q5), C11, C12, C17 are closed.
+C10 (index in the path of an array, `Element` for sets, tables as one leaf) is open (steps 12 and 13),
+as are C13, C14, C15 (frozen config, one `Engine` per call is done), C16 and C18, and C19 is closed by
+step 1.
+
+Benchmark gates (checked by hand, T2): `compare` of 1M floats below 30 ms met (11.8 ms); two pandas
+series of 2M floats differing at index 0 below 10 ms met (about 2 ms); 200k x 10 pandas frame below
+10 ms met (about 0.6 ms). The targets after step 11 (6 ms for 20 000 floats, 15 ms for the 5 000
+records) are open: the records benchmark is still 45 ms because the containers recurse.
+
 ## 11. Decisions for the maintainers
 
 Each choice has the options, what each one costs, and a recommendation. "Decision" is left empty for
