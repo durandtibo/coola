@@ -310,6 +310,7 @@ class Column:
 
 
 class Table(Protocol):  # what an adapter returns
+    kind_name: str  # "table", "series" or "array": the word used in the reasons (S3)
     def structure(self) -> Hashable: ...  # equal for the same shape, names, dtypes, index
     def columns(self) -> Iterator[Column]: ...
 
@@ -318,17 +319,23 @@ class TableEqualityTester(BaseEqualityTester[object]):
     def objects_are_equal(self, actual, expected, ctx):
         a, e = to_table(actual), to_table(expected)  # the adapter of the type
         if a.structure() != e.structure():
-            return ctx.fail(lambda: describe_structure_difference(a, e))
-        for ca, ce in zip(a.columns(), e.columns()):  # lazily: a column is converted only when reached
+            return ctx.fail(lambda: f"{a.kind_name}s have a different structure")
+        for ca, ce in zip(
+            a.columns(), e.columns()
+        ):  # lazily: a column is converted only when reached
             if not column_close(ca, ce, ctx):  # the kernel, or the library's equals
-                return ctx.fail("tables have different values")  # first differing column: stop
+                return ctx.fail(  # first differing column: stop
+                    lambda: f"{a.kind_name}s have different values: column {ca.name!r} differs"
+                )
         return True
 ```
 
-A table is a leaf for the engine and is reported as a whole (R5): "tables have a different structure"
-or "tables have different values". There is no column or row in the path: the user finds the
-difference with the library (`DataFrame.compare`, `polars.testing`, `Table.equals`). The comparison
-still stops at the first column that differs, so the failing path is as cheap as the passing one.
+A table is a leaf for the engine and is reported as a whole (R5): "tables have a different structure",
+or "tables have different values: column 'price' differs" (S1: the name of the first differing
+column is free, since the loop knows it; a row is never looked up). A `Series` or an `Array` says
+"series" or "arrays" (S3, the `kind_name` of its adapter). There is no row in the path: the user finds
+the difference with the library (`DataFrame.compare`, `polars.testing`, `Table.equals`). The
+comparison stops at the first column that differs, so the failing path is as cheap as the passing one.
 
 | Kind       | Dtypes                                                                                                                                          | Comparison                                                                                  |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -411,7 +418,7 @@ met. The prototype bounds the gain of the engine, not of the whole rewrite.
 | C7  | **[verified]** `MappingProxyType` and `array.array` fall to `==`: no tolerance, a `mappingproxy` holding arrays raises `TypeError`                                                                                                                                                                                                                            | register both (two lines)                                                                                                |
 | C8  | **[verified]** `float16`/`float32` arrays at extreme values: `RuntimeWarning` and a wrong `True` (`60000` against `-60000`, `rtol=1.5`); a Python float gives `False`                                                                                                                                                                                         | cast to `float64` in the kernel                                                                                          |
 | C9  | **[verified]** masked arrays: the data under the mask is compared, so arrays that print identically differ; `hash_object` ignores it                                                                                                                                                                                                                          | **none (Q5)**: kept and documented (the hash ignores it, which keeps "equal implies same hash")                          |
-| C10 | **[verified]** `compare` gives an empty path for an array, a frame and an Arrow table; a set element is shown as an index (`actual[2]`)                                                                                                                                                                                                                       | the index in the path of an array (S2); `Element` for sets; a table stays one leaf (R5)                                  |
+| C10 | **[verified]** `compare` gives an empty path for an array, a frame and an Arrow table; a set element is shown as an index (`actual[2]`)                                                                                                                                                                                                                       | the index in the path of an array (S2, kept); `Element` for sets; a table stays one leaf (R5)                                  |
 | C11 | **[verified]** `show_difference=True` is silent by default, exists on two functions, and there are 50 occurrences and 39 `report_difference` calls behind `if config.show_difference`                                                                                                                                                                         | one first-failure record; remove the option and the logger                                                               |
 | C12 | **[verified]** `compare` on 1M floats differing at index 0 takes 231 ms (`objects_are_equal`: 10 ms): it builds the `repr` of the roots                                                                                                                                                                                                                       | bounded reasons; drop the root `repr`s                                                                                   |
 | C13 | **[verified]** 6.4 frames per dict level; a 99-level dict fails with `RecursionError` from a 300-frame caller; 830k calls for 5 000 entries                                                                                                                                                                                                                   | the engine (section 4.2)                                                                                                 |
@@ -652,7 +659,11 @@ intermediate states, a large diff). Decision: A
 | R2  | Cast small floats to `float64`                                                                        | section 6                                                                                                                         |
 | R3  | `TableEqualityTester(adapter)` only, `Engine`, export both path parts, helpers private except `close` | section 3                                                                                                                         |
 | R4  | Keep `max_depth=100` and `MaxDepthExceededError`                                                      | section 4.2                                                                                                                       |
-| R5  | A table is one leaf, reported as different, no column or row                                          | sections 5, 7                                                                                                                     |
+| R5  | A table is one leaf, reported as different, no row (the column name comes from S1) | sections 5, 7 |
+| S1  | The reason of a table names the first differing column (never a row) | section 7 |
+| S2  | Arrays keep their index in the path                       | sections 4.3, 5 |
+| S3  | A `Series` says "series", an `Array` "arrays" (`kind_name`) | section 7 |
+| H1  | The hasher of masked arrays is left as it is (may change later) | last section |
 
 ### Follow-up questions
 
@@ -731,6 +742,32 @@ name for itself (a `kind_name` string), still one tester.
 
 Recommendation: B.
 Decision: B
+
+**T1. Which release carries the breaking steps?** Steps 2, 7, 8 and 10 to 14 are breaking; the other
+steps are not. Options: A. every step lands in the next major release branch, in the order of
+section 10.2, and nothing is released until step 14 (one big break, a long-lived branch);
+B. the non-breaking steps (1, 3, 4, 5) are released in the current minor releases, the breaking ones
+wait for the major release, in order; C. all steps are released as they are merged, each breaking
+one with a version bump.
+
+Recommendation: B.
+Decision: A
+
+**T2. Are the benchmark gates a failing CI check?** `ci-benchmark.yaml` exists. The gates of
+section 10.3 (regression above 10%, and the targets after steps 7, 10, 11) can fail the build, or be
+reported only. Failing builds on timing are flaky on shared runners.
+Options: A. fail the build on a regression above 10% against the stored baseline of `main`, with a
+generous margin for the absolute targets; B. report only, and check by hand at each step.
+
+Recommendation: A for the relative gate, B for the absolute targets.
+Decision: B
+
+**T3. Who and when for the hashing follow-up?** The last section lists the hasher changes. Options:
+A. a separate design document and PRs after step 14; B. in parallel, after step 1 (the properties
+exist), so that the cross-container properties also test the hash from the start.
+
+Recommendation: B.
+Decision: A
 
 ## 12. Not covered
 
