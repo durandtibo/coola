@@ -1263,16 +1263,18 @@ The tolerance also applies to `complex` numbers (the distance in the complex pla
 the NumPy scalars like `numpy.float32` or `numpy.int64`. Two numbers of different types are never
 equal, for example `numpy.float32(1.0)` and `numpy.float64(1.0)`.
 
-Note that booleans are explicitly considered as integers in Python so the tolerance can be used with
-booleans:
+Note that a boolean is a label, not a quantity: the tolerance never applies to booleans (Python
+`bool`, `numpy.bool_`, boolean arrays and tensors), even if `bool` is a subclass of `int`:
 
 ```pycon
 >>> from coola.equality import objects_are_allclose
 >>> objects_are_allclose(True, False)
 False
 >>> objects_are_allclose(True, False, atol=1)
-True
+False
 >>> objects_are_allclose(True, False, rtol=1)
+False
+>>> objects_are_allclose(True, True, atol=1)
 True
 
 ```

@@ -658,3 +658,18 @@ def test_array_equal_datetime_has_no_tolerance() -> None:
         np.array(["2020-01-02"], dtype="M8[D]"),
         EqualityConfig(atol=1e9),
     )
+
+
+@numpy_available
+def test_array_equal_bool_has_no_atol() -> None:
+    assert not array_equal(np.array([True]), np.array([False]), EqualityConfig(atol=1.0))
+
+
+@numpy_available
+def test_array_equal_bool_has_no_rtol() -> None:
+    assert not array_equal(np.array([True]), np.array([False]), EqualityConfig(rtol=1.0))
+
+
+@numpy_available
+def test_array_equal_bool_equal_with_tolerance() -> None:
+    assert array_equal(np.array([True, False]), np.array([True, False]), EqualityConfig(atol=1.0))

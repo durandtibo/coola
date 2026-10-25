@@ -14,7 +14,10 @@ from coola.equality.handler import (
     TrueHandler,
 )
 from coola.equality.handler.scalar import complex_are_equal, int_isclose, number_equal
-from tests.unit.equality.tester.test_scalar import SCALAR_EQUAL_TOLERANCE
+from tests.unit.equality.tester.test_scalar import (
+    SCALAR_EQUAL_TOLERANCE,
+    SCALAR_NOT_EQUAL_TOLERANCE,
+)
 from tests.unit.equality.utils import ExamplePair
 
 
@@ -534,3 +537,20 @@ def test_number_equal_real_without_float_equal() -> None:
 
 def test_number_equal_real_without_float_different() -> None:
     assert not number_equal(Unconvertible(), Unconvertible(1), EqualityConfig(atol=0.5))
+
+
+@pytest.mark.parametrize("example", SCALAR_NOT_EQUAL_TOLERANCE)
+def test_scalar_equal_handler_handle_false_tolerance(
+    example: ExamplePair,
+    config: EqualityConfig,
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert not ScalarEqualHandler().handle(example.actual, example.expected, config)
+
+
+@pytest.mark.parametrize(("number1", "number2"), [(True, 1), (1, True), (False, 0.0), (0.0, False)])
+def test_number_equal_bool_has_no_tolerance(number1: float, number2: float) -> None:
+    assert number_equal(number1, number2, EqualityConfig(atol=1.0, rtol=1.0)) == (
+        number1 == number2
+    )

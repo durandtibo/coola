@@ -130,6 +130,9 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
     if tensor1.layout != torch.strided:
         # ``equal`` and ``allclose`` are not implemented for sparse layouts.
         tensor1, tensor2 = tensor1.to_dense(), tensor2.to_dense()
+    if torch.bool in (tensor1.dtype, tensor2.dtype):
+        # A boolean is a label, not a quantity: no tolerance (and no NaN).
+        return tensor1.equal(tensor2)
     if config.equal_nan or config.atol > 0 or config.rtol > 0:
         return _tensors_close(tensor1, tensor2, config)
     return tensor1.equal(tensor2)

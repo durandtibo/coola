@@ -72,9 +72,10 @@ def objects_are_allclose(
 
     Note:
         The types are compared first, so ``1`` and ``1.0`` are different
-        (as are ``[1]`` and ``[1.0]``), even with a tolerance. A ``bool``
-        is an ``int``, so ``True`` and ``False`` are close with
-        ``atol=1``, unlike ``numpy.bool_``.
+        (as are ``[1]`` and ``[1.0]``), even with a tolerance. A boolean
+        is a label, not a quantity: ``True`` and ``False`` are never
+        close, even with ``atol=1`` (also for ``numpy.bool_`` and for
+        boolean arrays).
 
         An object is always equal to itself, even if it contains ``NaN``
         and ``equal_nan=False``: ``[n]`` equals ``[n]`` for
@@ -154,7 +155,10 @@ def objects_are_equal(
 
     Note:
         The types are compared first, so ``1`` and ``1.0`` are different
-        (as are ``[1]`` and ``[1.0]``).
+        (as are ``[1]`` and ``[1.0]``), even with a tolerance. A boolean
+        is a label, not a quantity: ``True`` and ``False`` are never
+        close, even with ``atol=1`` (also for ``numpy.bool_`` and for
+        boolean arrays).
 
         An object is always equal to itself, even if it contains ``NaN``
         and ``equal_nan=False``: ``[n]`` equals ``[n]`` for

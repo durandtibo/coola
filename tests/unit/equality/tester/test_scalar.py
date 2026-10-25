@@ -48,7 +48,6 @@ SCALAR_EQUAL_TOLERANCE = [
     pytest.param(ExamplePair(actual=1, expected=5, atol=10.0), id="integer 1 atol=10"),
     pytest.param(ExamplePair(actual=1.0, expected=1.0001, atol=1e-3), id="float + atol=1e-3"),
     pytest.param(ExamplePair(actual=1.0, expected=0.9999, atol=1e-3), id="float - atol=1e-3"),
-    pytest.param(ExamplePair(actual=True, expected=False, atol=1.0), id="bool - atol=1"),
     # rtol
     pytest.param(ExamplePair(actual=0, expected=1, rtol=1.0), id="integer 0 rtol=1"),
     pytest.param(ExamplePair(actual=1, expected=0, rtol=1.0), id="integer 1 rtol=1"),
@@ -56,6 +55,12 @@ SCALAR_EQUAL_TOLERANCE = [
     pytest.param(ExamplePair(actual=1, expected=5, rtol=10.0), id="integer 1 rtol=10"),
     pytest.param(ExamplePair(actual=1.0, expected=1.0001, rtol=1e-3), id="float + rtol=1e-3"),
     pytest.param(ExamplePair(actual=1.0, expected=0.9999, rtol=1e-3), id="float - rtol=1e-3"),
+]
+
+SCALAR_NOT_EQUAL_TOLERANCE = [
+    # A boolean is a label, not a quantity: no tolerance.
+    pytest.param(ExamplePair(actual=True, expected=False, atol=1.0), id="bool - atol=1"),
+    pytest.param(ExamplePair(actual=False, expected=True, atol=1.0), id="bool reversed - atol=1"),
     pytest.param(ExamplePair(actual=True, expected=False, rtol=1.0), id="bool - rtol=1"),
 ]
 
@@ -210,3 +215,21 @@ def test_scalar_equality_tester_objects_are_equal_true_tolerance(
     assert ScalarEqualityTester().objects_are_equal(
         actual=example.actual, expected=example.expected, config=config
     )
+
+
+@pytest.mark.parametrize("example", SCALAR_NOT_EQUAL_TOLERANCE)
+def test_scalar_equality_tester_objects_are_equal_false_tolerance(
+    example: ExamplePair, config: EqualityConfig
+) -> None:
+    config.atol = example.atol
+    config.rtol = example.rtol
+    assert not ScalarEqualityTester().objects_are_equal(
+        actual=example.actual, expected=example.expected, config=config
+    )
+
+
+def test_scalar_equality_tester_objects_are_equal_true_bool_tolerance(
+    config: EqualityConfig,
+) -> None:
+    config.atol = 1.0
+    assert ScalarEqualityTester().objects_are_equal(True, True, config)
