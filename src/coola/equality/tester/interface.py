@@ -8,11 +8,13 @@ __all__ = [
     "register_equality_testers",
 ]
 
+from array import array
 from collections import OrderedDict, deque
 from collections.abc import Mapping, Sequence
 from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
+from types import MappingProxyType
 from typing import Any
 
 from coola.equality.handler.base import BaseEqualityHandler
@@ -99,8 +101,8 @@ def get_default_registry() -> EqualityTesterRegistry:
     Returns:
         A EqualityTesterRegistry instance with equality testers registered for:
             - Scalar types (int, float)
-            - Sequences (list, tuple, deque, Sequence ABC)
-            - Mappings (dict, OrderedDict, Mapping ABC)
+            - Sequences (list, tuple, deque, array.array, Sequence ABC)
+            - Mappings (dict, OrderedDict, MappingProxyType, Mapping ABC)
             - Third-party library types (numpy, torch, pandas, polars, jax, xarray, pyarrow)
 
     Notes:
@@ -187,6 +189,7 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         DataclassMarker: DataclassEqualityTester(),
         # Sequences - recursive transformation preserving order
         deque: sequence,
+        array: sequence,
         list: sequence,
         tuple: sequence,
         Sequence: sequence,
@@ -198,6 +201,7 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         # Mappings - recursive transformation of keys and values
         dict: mapping,
         OrderedDict: ordered_mapping,
+        MappingProxyType: mapping,
         Mapping: mapping,
         # coola types
         BaseEqualityHandler: equal,

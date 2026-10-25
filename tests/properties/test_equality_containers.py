@@ -178,7 +178,6 @@ def test_large_int_difference_is_exact(name: str, value: int) -> None:
     assert not objects_are_allclose(build([value]), build([value + 1]), rtol=0.0, atol=0.5)
 
 
-@pytest.mark.xfail(reason="C3: pandas booleans are compared with the tolerance", strict=True)
 def test_pandas_booleans_are_exact() -> None:
     assert not objects_are_allclose(pd.Series([True]), pd.Series([False]), atol=1.0)
 

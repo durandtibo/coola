@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = ["NanEqualHandler", "ScalarEqualHandler"]
 
 import cmath
+import enum
 import math
 import numbers
 from fractions import Fraction
@@ -148,11 +149,13 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
 
         ```
     """
-    # A ``bool`` is a label, not a quantity: ``True`` is close to ``True`` only.
+    # A ``bool`` and an enum member are labels, not quantities: ``True`` is close to ``True``
+    # only, and ``IntEnum`` members are compared exactly.
     if (config.atol > 0.0 or config.rtol > 0.0) and (
         isinstance(number1, numbers.Number)
         and isinstance(number2, numbers.Number)
-        and not (isinstance(number1, bool) or isinstance(number2, bool))
+        and not isinstance(number1, (bool, enum.Enum))
+        and not isinstance(number2, (bool, enum.Enum))
     ):
         # ``numbers.Real`` also covers the NumPy scalars (NumPy registers them), so
         # only the complex numbers are converted to ``complex`` (``float`` would raise

@@ -136,7 +136,7 @@ plugin causes a conflict). To find out which plugins were loaded in the process,
 `objects_are_equal` or a hash is not what you expect, call `get_loaded_plugins()`:
 
 ```pycon
->>> from coola.equality import get_default_registry
+>>> from coola.equality.tester import get_default_registry
 >>> from coola.utils.singleton import get_loaded_plugins
 >>> get_default_registry()  # doctest: +SKIP
 >>> [(plugin.group, plugin.name, plugin.value) for plugin in get_loaded_plugins()]  # doctest: +SKIP
