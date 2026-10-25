@@ -668,9 +668,9 @@ intermediate states, a large diff). Decision: A
 | S2  | Arrays keep their index in the path                                                                   | sections 4.3, 5                                                                                                                   |
 | S3  | A `Series` says "series", an `Array` "arrays" (`kind_name`)                                           | section 7                                                                                                                         |
 | H1  | The hasher of masked arrays is left as it is (may change later)                                       | last section                                                                                                                      |
-| T1  | All steps land on a major-release branch; nothing is released before step 14 | section 10.2 |
-| T2  | Benchmark gates are reported and checked by hand, not a failing CI check | section 10.3 |
-| T3  | The hashing follow-up is done after step 14 | last section |
+| T1  | All steps land on a major-release branch; nothing is released before step 14                          | section 10.2                                                                                                                      |
+| T2  | Benchmark gates are reported and checked by hand, not a failing CI check                              | section 10.3                                                                                                                      |
+| T3  | The hashing follow-up is done after step 14                                                           | last section                                                                                                                      |
 
 ### Follow-up questions
 
