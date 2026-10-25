@@ -241,11 +241,11 @@ def _to_seconds(series: pd.Series) -> pd.Series:
 
 def _durations_to_seconds_frames(df1: pd.DataFrame, df2: pd.DataFrame) -> tuple[Any, Any]:
     r"""Convert the duration columns that have the same dtype to float
-    seconds, so the tolerance applies to them (a duration is a
-    quantity, unlike an instant).
+    seconds, so the tolerance applies to them (a duration is a quantity,
+    unlike an instant).
 
-    The other columns are not changed, and the dtypes are still
-    compared by pandas.
+    The other columns are not changed, and the dtypes are still compared
+    by pandas.
     """
     positions = [
         i
