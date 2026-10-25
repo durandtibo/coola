@@ -14,7 +14,11 @@ large or deeply nested objects.
 
 from __future__ import annotations
 
-from coola.equality import objects_are_allclose, objects_are_equal
+from typing import Any
+
+import pytest
+
+from coola.equality import compare, objects_are_allclose, objects_are_equal
 
 
 def make_wide_nested_object(width: int, depth: int) -> dict:
@@ -62,3 +66,81 @@ def test_objects_are_equal_large_float_list_benchmark(benchmark) -> None:  # noq
     data = [float(i) for i in range(100_000)]
     other = [float(i) for i in range(100_000)]
     assert benchmark(objects_are_equal, data, other)
+
+
+def make_records(size: int) -> dict[str, dict]:
+    r"""Create a dict of ``size`` records ``{"x": float, "y": [int, int]}``."""
+    return {f"k{i}": {"x": float(i), "y": [i, i + 1]} for i in range(size)}
+
+
+def test_objects_are_equal_records_benchmark(benchmark) -> None:  # noqa: ANN001
+    data, other = make_records(5_000), make_records(5_000)
+    assert benchmark(objects_are_equal, data, other)
+
+
+def test_objects_are_equal_records_different_benchmark(benchmark) -> None:  # noqa: ANN001
+    data, other = make_records(5_000), make_records(5_000)
+    other["k0"]["y"][1] = -1
+    assert not benchmark(objects_are_equal, data, other)
+
+
+def test_compare_large_float_list_different_at_first_benchmark(benchmark) -> None:  # noqa: ANN001
+    data = [float(i) for i in range(1_000_000)]
+    other = [-1.0, *data[1:]]
+    assert not benchmark(compare, data, other)
+
+
+def test_objects_are_equal_large_float_list_different_at_first_benchmark(benchmark) -> None:  # noqa: ANN001
+    data = [float(i) for i in range(1_000_000)]
+    other = [-1.0, *data[1:]]
+    assert not benchmark(objects_are_equal, data, other)
+
+
+def test_objects_are_equal_pandas_series_different_at_first_benchmark(benchmark) -> None:  # noqa: ANN001
+    pd = pytest.importorskip("pandas")
+    np = pytest.importorskip("numpy")
+    values = np.random.default_rng(0).standard_normal(2_000_000)
+    other = values.copy()
+    other[0] += 1.0
+    assert not benchmark(objects_are_equal, pd.Series(values), pd.Series(other))
+
+
+def test_objects_are_equal_pandas_series_equal_benchmark(benchmark) -> None:  # noqa: ANN001
+    pd = pytest.importorskip("pandas")
+    np = pytest.importorskip("numpy")
+    values = np.random.default_rng(0).standard_normal(2_000_000)
+    assert benchmark(objects_are_equal, pd.Series(values), pd.Series(values.copy()))
+
+
+def _frame_values() -> tuple[Any, Any]:
+    np = pytest.importorskip("numpy")
+    values = np.random.default_rng(0).standard_normal((200_000, 10))
+    other = values.copy()
+    other[0, 0] += 1.0
+    return values, other
+
+
+def test_objects_are_equal_pandas_frame_different_in_one_cell_benchmark(benchmark) -> None:  # noqa: ANN001
+    pd = pytest.importorskip("pandas")
+    values, other = _frame_values()
+    assert not benchmark(objects_are_equal, pd.DataFrame(values), pd.DataFrame(other))
+
+
+def test_objects_are_equal_polars_frame_different_in_one_cell_benchmark(benchmark) -> None:  # noqa: ANN001
+    pl = pytest.importorskip("polars")
+    values, other = _frame_values()
+    assert not benchmark(objects_are_equal, pl.DataFrame(values), pl.DataFrame(other))
+
+
+def test_objects_are_equal_pyarrow_table_different_in_one_cell_benchmark(benchmark) -> None:  # noqa: ANN001
+    pa = pytest.importorskip("pyarrow")
+    values, other = _frame_values()
+    table = pa.table({str(i): values[:, i] for i in range(10)})
+    table_other = pa.table({str(i): other[:, i] for i in range(10)})
+    assert not benchmark(objects_are_equal, table, table_other)
+
+
+def test_objects_are_allclose_numpy_array_benchmark(benchmark) -> None:  # noqa: ANN001
+    np = pytest.importorskip("numpy")
+    values = np.random.default_rng(0).standard_normal(1_000_000)
+    assert benchmark(objects_are_allclose, values, values.copy())
