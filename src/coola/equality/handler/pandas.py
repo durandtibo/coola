@@ -233,8 +233,33 @@ def index_equal(index1: pd.Index, index2: pd.Index, config: EqualityConfig) -> b
 
 def _index_has_nan(index: pd.Index) -> bool:
     if isinstance(index, pd.MultiIndex):  # ``isna`` is not defined for MultiIndex
-        return bool(cast("Any", index).to_frame(index=False).isna().to_numpy().any())
-    return bool(cast("Any", index).isna().any())
+        # A level that holds only missing values has the dtype ``object``, whatever the values
+        # were: it is conservatively considered as ``NaN``.
+        return any(
+            bool((codes == -1).any()) and (len(level) == 0 or _has_nan_dtype(level.dtype))
+            for level, codes in zip(index.levels, index.codes, strict=True)
+        )
+    return _has_nan(index)
+
+
+def _has_nan(values: Any) -> bool:
+    r"""Indicate if a series, an index or an array has a ``NaN``.
+
+    There are two kinds of missing values. A ``NaN`` (in a float or
+    complex dtype) is governed by ``equal_nan``. A null (``None``,
+    ``pandas.NA`` or ``NaT`` in the other dtypes) is equal to a null,
+    whatever ``equal_nan``: a copy of a data frame must be equal to the
+    data frame.
+    """
+    return _has_nan_dtype(values.dtype) and bool(values.isna().any())
+
+
+def _has_nan_dtype(dtype: Any) -> bool:
+    return bool(pd.api.types.is_float_dtype(dtype) or pd.api.types.is_complex_dtype(dtype))
+
+
+def _frame_has_nan(df: pd.DataFrame) -> bool:
+    return any(_has_nan(df.iloc[:, i]) for i in range(df.shape[1]))
 
 
 def extension_array_equal(array1: Any, array2: Any, config: EqualityConfig) -> bool:
@@ -263,7 +288,7 @@ def extension_array_equal(array1: Any, array2: Any, config: EqualityConfig) -> b
     """
     if array1.shape != array2.shape:  # cheap check before scanning for NaN
         return False
-    if not config.equal_nan and array1.isna().any():
+    if not config.equal_nan and _has_nan(array1):
         return False
     try:
         cast("Any", pd.testing).assert_extension_array_equal(
@@ -308,7 +333,7 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
     """
     if df1.shape != df2.shape:  # cheap check before scanning for NaN
         return False
-    if not config.equal_nan and cast("Any", df1).isna().any().any():
+    if not config.equal_nan and _frame_has_nan(df1):
         return False
     try:
         cast("Any", pd.testing).assert_frame_equal(
@@ -350,7 +375,7 @@ def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig)
     """
     if series1.shape != series2.shape:  # cheap check before scanning for NaN
         return False
-    if not config.equal_nan and cast("Any", series1).isna().any():
+    if not config.equal_nan and _has_nan(series1):
         return False
     try:
         cast("Any", pd.testing).assert_series_equal(
