@@ -25,6 +25,7 @@ __all__ = [
     "NanEqualHandler",
     "NumpyArrayEqualHandler",
     "NumpyMaskedArrayDataHandler",
+    "NumpyTimeScalarEqualHandler",
     "ObjectEqualHandler",
     "ObjectSameAttributesHandler",
     "PandasDataFrameEqualHandler",
@@ -51,6 +52,7 @@ __all__ = [
     "TorchTensorSameDeviceHandler",
     "TrueHandler",
     "check_recursion_depth",
+    "comparison_key",
     "create_chain",
     "get_object_attributes",
     "handlers_are_equal",
@@ -93,6 +95,7 @@ from coola.equality.handler.utils import (
     AttributeName,
     MaxDepthExceededError,
     check_recursion_depth,
+    comparison_key,
     create_chain,
     handlers_are_equal,
     report_difference,
@@ -102,7 +105,11 @@ from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
     from coola.equality.handler.jax import JaxArrayEqualHandler
-    from coola.equality.handler.numpy import NumpyArrayEqualHandler, NumpyMaskedArrayDataHandler
+    from coola.equality.handler.numpy import (
+        NumpyArrayEqualHandler,
+        NumpyMaskedArrayDataHandler,
+        NumpyTimeScalarEqualHandler,
+    )
     from coola.equality.handler.pandas import (
         PandasDataFrameEqualHandler,
         PandasExtensionArrayEqualHandler,
@@ -127,6 +134,7 @@ _LAZY_EXPORTS = {
     "JaxArrayEqualHandler": "coola.equality.handler.jax",
     "NumpyArrayEqualHandler": "coola.equality.handler.numpy",
     "NumpyMaskedArrayDataHandler": "coola.equality.handler.numpy",
+    "NumpyTimeScalarEqualHandler": "coola.equality.handler.numpy",
     "PandasDataFrameEqualHandler": "coola.equality.handler.pandas",
     "PandasExtensionArrayEqualHandler": "coola.equality.handler.pandas",
     "PandasIndexEqualHandler": "coola.equality.handler.pandas",

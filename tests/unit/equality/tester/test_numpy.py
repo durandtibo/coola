@@ -9,6 +9,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     NumpyArrayEqualityTester,
     NumpyMaskedArrayEqualityTester,
+    NumpyTimeScalarEqualityTester,
 )
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import MissingPackageError, is_numpy_available
@@ -575,6 +576,40 @@ def test_numpy_masked_array_equality_tester_no_numpy() -> None:
         pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyMaskedArrayEqualityTester()
+
+
+######################################################
+#     Tests for NumpyTimeScalarEqualityTester        #
+######################################################
+
+
+@numpy_available
+def test_numpy_time_scalar_equality_tester_equal(config: EqualityConfig) -> None:
+    assert NumpyTimeScalarEqualityTester().objects_are_equal(
+        np.timedelta64(1, "s"), np.timedelta64(1, "s"), config
+    )
+
+
+@numpy_available
+def test_numpy_time_scalar_equality_tester_different(config: EqualityConfig) -> None:
+    assert not NumpyTimeScalarEqualityTester().objects_are_equal(
+        np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
+    )
+
+
+@numpy_available
+def test_numpy_time_scalar_equality_tester_different_type(config: EqualityConfig) -> None:
+    assert not NumpyTimeScalarEqualityTester().objects_are_equal(
+        np.timedelta64(1, "s"), np.datetime64(1, "s"), config
+    )
+
+
+def test_numpy_time_scalar_equality_tester_no_numpy() -> None:
+    with (
+        patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
+        pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
+    ):
+        NumpyTimeScalarEqualityTester()
 
 
 @numpy_available

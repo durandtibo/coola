@@ -7,6 +7,7 @@ __all__ = ["TorchTensorEqualHandler", "TorchTensorSameDeviceHandler"]
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.elementwise import elementwise_close
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
@@ -130,11 +131,22 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
         # ``equal`` and ``allclose`` are not implemented for sparse layouts.
         tensor1, tensor2 = tensor1.to_dense(), tensor2.to_dense()
     if config.equal_nan or config.atol > 0 or config.rtol > 0:
-        # ``allclose`` scales the tolerance with the second tensor only, so the two
-        # directions are tried to make the comparison symmetric.
-        return tensor1.allclose(
-            tensor2, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan
-        ) or tensor2.allclose(
-            tensor1, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan
-        )
+        return _tensors_close(tensor1, tensor2, config)
     return tensor1.equal(tensor2)
+
+
+def _tensors_close(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig) -> bool:
+    if tensor1.shape != tensor2.shape or tensor1.dtype != tensor2.dtype:
+        return False
+    # The integers and the booleans are converted: an unsigned subtraction wraps around.
+    if not (tensor1.is_floating_point() or tensor1.is_complex()):
+        tensor1, tensor2 = tensor1.to(torch.float64), tensor2.to(torch.float64)
+    close = elementwise_close(
+        tensor1,
+        tensor2,
+        atol=config.atol,
+        rtol=config.rtol,
+        equal_nan=config.equal_nan,
+        xp=torch,
+    )
+    return bool(close.all().item())
