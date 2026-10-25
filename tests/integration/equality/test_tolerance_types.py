@@ -3,11 +3,13 @@ numeric types."""
 
 from __future__ import annotations
 
+from array import array
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
+from types import MappingProxyType
 from unittest.mock import Mock
 
 import numpy as np
@@ -507,3 +509,39 @@ def test_objects_are_allclose_numpy_bool_array_has_no_tolerance() -> None:
 @torch_available
 def test_objects_are_allclose_torch_bool_tensor_has_no_tolerance() -> None:
     assert not objects_are_allclose(torch.tensor([True]), torch.tensor([False]), atol=1.0)
+
+
+def test_objects_are_allclose_mappingproxy_has_tolerance() -> None:
+    assert objects_are_allclose(
+        MappingProxyType({"a": 1.0}), MappingProxyType({"a": 1.05}), atol=0.1
+    )
+
+
+@numpy_available
+def test_objects_are_equal_mappingproxy_with_arrays() -> None:
+    assert objects_are_equal(
+        MappingProxyType({"a": np.array([1, 2])}), MappingProxyType({"a": np.array([1, 2])})
+    )
+
+
+@numpy_available
+def test_objects_are_equal_mappingproxy_with_different_arrays() -> None:
+    assert not objects_are_equal(
+        MappingProxyType({"a": np.array([1, 2])}), MappingProxyType({"a": np.array([1, 3])})
+    )
+
+
+def test_objects_are_equal_mappingproxy_and_dict_differ() -> None:
+    assert not objects_are_equal(MappingProxyType({"a": 1}), {"a": 1})
+
+
+def test_objects_are_allclose_array_has_tolerance() -> None:
+    assert objects_are_allclose(array("d", [1.0, 2.0]), array("d", [1.0, 2.05]), atol=0.1)
+
+
+def test_objects_are_allclose_array_outside_tolerance() -> None:
+    assert not objects_are_allclose(array("d", [1.0, 2.0]), array("d", [1.0, 2.5]), atol=0.1)
+
+
+def test_objects_are_equal_array_and_list_differ() -> None:
+    assert not objects_are_equal(array("d", [1.0]), [1.0])

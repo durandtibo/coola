@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from array import array
 from collections import OrderedDict, deque
 from collections.abc import Generator, Mapping, Sequence
 from dataclasses import dataclass
@@ -7,6 +8,7 @@ from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
 from pathlib import Path
+from types import MappingProxyType
 from unittest.mock import patch
 
 import pytest
@@ -107,11 +109,13 @@ TESTER_TYPES: list[tuple[type, type, bool]] = [
     (tuple, SequenceEqualityTester, True),
     (Sequence, SequenceEqualityTester, True),
     (deque, SequenceEqualityTester, True),
+    (array, SequenceEqualityTester, True),
     (type({}.values()), SequenceEqualityTester, True),
     # Mapping
     (dict, MappingEqualityTester, True),
     (Mapping, MappingEqualityTester, True),
     (OrderedDict, OrderedMappingEqualityTester, True),
+    (MappingProxyType, MappingEqualityTester, True),
     # coola types
     (BaseEqualityTester, EqualEqualityTester, True),
     (BaseEqualityHandler, EqualEqualityTester, True),
@@ -334,6 +338,7 @@ NATIVE_SAMPLES = {
     timedelta: timedelta(seconds=1),
     DataclassMarker: Point(),
     deque: deque([1, 2]),
+    array: array("d", [1.0, 2.0]),
     list: [1, {"a": 2}],
     tuple: (1, (2, 3)),
     Sequence: [1, 2],
@@ -342,6 +347,7 @@ NATIVE_SAMPLES = {
     type({}.values()): {"a": 1}.values(),
     dict: {"a": [1, 2]},
     OrderedDict: OrderedDict(a=1, b=2),
+    MappingProxyType: MappingProxyType({"a": [1, 2]}),
     Mapping: {"a": 1},
     BaseEqualityHandler: SameObjectHandler(),
     BaseEqualityTester: DefaultEqualityTester(),
