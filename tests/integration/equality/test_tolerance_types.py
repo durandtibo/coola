@@ -20,14 +20,25 @@ from coola.testing.fixtures import (
     numpy_available,
     pandas_available,
     polars_available,
+    pyarrow_available,
     torch_available,
 )
-from coola.utils.imports import is_pandas_available, is_polars_available, is_torch_available
+from coola.utils.imports import (
+    is_pandas_available,
+    is_polars_available,
+    is_pyarrow_available,
+    is_torch_available,
+)
 
 if is_pandas_available():
     import pandas as pd
 else:  # pragma: no cover
     pd = Mock()
+
+if is_pyarrow_available():
+    import pyarrow as pa
+else:  # pragma: no cover
+    pa = Mock()
 
 if is_torch_available():
     import torch
@@ -616,3 +627,43 @@ def test_objects_are_allclose_small_torch_floats_at_the_edge_of_the_range(dtype:
         rtol=1.5,
         atol=0.0,
     )
+
+
+@polars_available
+def test_objects_are_allclose_polars_durations_have_tolerance() -> None:
+    assert objects_are_allclose(
+        pl.Series([timedelta(seconds=1)]), pl.Series([timedelta(seconds=1.5)]), atol=1.0
+    )
+
+
+@pyarrow_available
+def test_objects_are_allclose_pyarrow_durations_have_tolerance() -> None:
+    assert objects_are_allclose(
+        pa.array([1_000_000], type=pa.duration("us")),
+        pa.array([1_500_000], type=pa.duration("us")),
+        atol=1.0,
+    )
+
+
+@polars_available
+def test_objects_are_allclose_polars_nested_floats_have_no_tolerance() -> None:
+    assert not objects_are_allclose(pl.Series([[1.0]]), pl.Series([[1.0000001]]), atol=1.0)
+
+
+@pyarrow_available
+def test_objects_are_allclose_pyarrow_nested_floats_have_no_tolerance() -> None:
+    assert not objects_are_allclose(pa.array([[1.0]]), pa.array([[1.0000001]]), atol=1.0)
+
+
+@pandas_available
+def test_objects_are_allclose_pandas_durations_have_tolerance() -> None:
+    assert objects_are_allclose(
+        pd.Series(pd.to_timedelta([1], unit="s").as_unit("ns")),
+        pd.Series(pd.to_timedelta([1.5], unit="s").as_unit("ns")),
+        atol=1.0,
+    )
+
+
+@pandas_available
+def test_objects_are_allclose_pandas_nested_floats_have_no_tolerance() -> None:
+    assert not objects_are_allclose(pd.Series([[1.0]]), pd.Series([[1.0000001]]), atol=1.0)

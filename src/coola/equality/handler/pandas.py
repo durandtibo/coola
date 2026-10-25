@@ -247,8 +247,8 @@ def _is_duration_dtype(dtype: Any) -> bool:
 
 
 def _values_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig) -> bool:
-    r"""Compare the values of two series that have the same dtype and
-    the same index, by the kind of their dtype.
+    r"""Compare the values of two series that have the same dtype and the
+    same index, by the kind of their dtype.
 
     - numeric (integers, floats, complex, also the nullable ones): the
       null values must be at the same positions, then the values are
