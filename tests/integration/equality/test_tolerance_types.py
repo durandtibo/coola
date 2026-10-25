@@ -653,3 +653,17 @@ def test_objects_are_allclose_polars_nested_floats_have_no_tolerance() -> None:
 @pyarrow_available
 def test_objects_are_allclose_pyarrow_nested_floats_have_no_tolerance() -> None:
     assert not objects_are_allclose(pa.array([[1.0]]), pa.array([[1.0000001]]), atol=1.0)
+
+
+@pandas_available
+def test_objects_are_allclose_pandas_durations_have_tolerance() -> None:
+    assert objects_are_allclose(
+        pd.Series(pd.to_timedelta([1], unit="s").as_unit("ns")),
+        pd.Series(pd.to_timedelta([1.5], unit="s").as_unit("ns")),
+        atol=1.0,
+    )
+
+
+@pandas_available
+def test_objects_are_allclose_pandas_nested_floats_have_no_tolerance() -> None:
+    assert not objects_are_allclose(pd.Series([[1.0]]), pd.Series([[1.0000001]]), atol=1.0)

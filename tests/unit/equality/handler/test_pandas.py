@@ -920,14 +920,6 @@ def test_frame_equal_does_not_change_the_inputs() -> None:
 
 
 @pandas_available
-def test_frame_equal_without_numpy_uses_the_pandas_tolerance() -> None:
-    with patch("coola.equality.handler.pandas.is_numpy_available", lambda: False):
-        assert frame_equal(
-            pd.DataFrame({"a": [100.0]}), pd.DataFrame({"a": [100.5]}), EqualityConfig(rtol=0.01)
-        )
-
-
-@pandas_available
 def test_index_equal_null_copy_is_equal() -> None:
     index = pd.Index(["a", None])
     assert index_equal(index, index.copy(), EqualityConfig())
@@ -1079,4 +1071,185 @@ def test_extension_array_equal_boolean_has_no_tolerance() -> None:
         pd.array([True, False], dtype="boolean"),
         pd.array([False, False], dtype="boolean"),
         EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+def test_index_equal_has_no_tolerance() -> None:
+    assert not index_equal(pd.Index([1.0, 2.0]), pd.Index([1.0, 2.001]), EqualityConfig(atol=0.01))
+
+
+@pandas_available
+def test_index_equal_different_class() -> None:
+    assert not index_equal(pd.RangeIndex(2), pd.Index([0, 1]), EqualityConfig())
+
+
+@pandas_available
+def test_index_equal_different_names() -> None:
+    assert not index_equal(pd.Index([1], name="a"), pd.Index([1], name="b"), EqualityConfig())
+
+
+@pandas_available
+def test_index_equal_different_dtypes() -> None:
+    assert not index_equal(pd.Index([1]), pd.Index([1.0]), EqualityConfig())
+
+
+@pandas_available
+def test_series_equal_object_none_equals_nan() -> None:
+    assert series_equal(
+        pd.Series([1, None], dtype=object),
+        pd.Series([1, float("nan")], dtype=object),
+        EqualityConfig(),
+    )
+
+
+@pandas_available
+def test_series_equal_nested_cells_have_no_tolerance() -> None:
+    assert not series_equal(
+        pd.Series([[1.0]]), pd.Series([[1.0000001]]), EqualityConfig(atol=1.0, rtol=1.0)
+    )
+
+
+@pandas_available
+def test_series_equal_nested_cells_equal() -> None:
+    assert series_equal(pd.Series([[1.0, 2.0]]), pd.Series([[1.0, 2.0]]), EqualityConfig())
+
+
+@pandas_available
+def test_series_equal_different_names() -> None:
+    assert not series_equal(pd.Series([1], name="a"), pd.Series([1], name="b"), EqualityConfig())
+
+
+@pandas_available
+def test_series_equal_nan_name_equals_nan_name() -> None:
+    assert series_equal(
+        pd.Series([1], name=float("nan")), pd.Series([1], name=float("nan")), EqualityConfig()
+    )
+
+
+@pandas_available
+def test_series_equal_tuple_name() -> None:
+    assert series_equal(
+        pd.Series([1], name=("a", "b")), pd.Series([1], name=("a", "b")), EqualityConfig()
+    )
+
+
+@pandas_available
+def test_series_equal_different_index() -> None:
+    assert not series_equal(
+        pd.Series([1, 2], index=[0, 1]), pd.Series([1, 2], index=[0, 2]), EqualityConfig()
+    )
+
+
+@pandas_available
+def test_series_equal_complex_with_tolerance() -> None:
+    assert series_equal(pd.Series([1 + 1j]), pd.Series([1.5 + 1j]), EqualityConfig(atol=0.6))
+
+
+@pandas_available
+def test_series_equal_complex_outside_tolerance() -> None:
+    assert not series_equal(pd.Series([1 + 1j]), pd.Series([2.5 + 1j]), EqualityConfig(atol=0.6))
+
+
+@pandas_available
+def test_series_equal_duration_nat_at_the_same_position() -> None:
+    durations = pd.to_timedelta([1, None], unit="s")
+    assert series_equal(pd.Series(durations), pd.Series(durations.copy()), EqualityConfig())
+
+
+@pandas_available
+def test_series_equal_duration_nat_at_different_positions() -> None:
+    assert not series_equal(
+        pd.Series(pd.to_timedelta([1, None], unit="s")),
+        pd.Series(pd.to_timedelta([None, 1], unit="s")),
+        EqualityConfig(atol=5.0),
+    )
+
+
+@pandas_available
+def test_series_equal_duration_different_resolutions() -> None:
+    assert not series_equal(
+        pd.Series(pd.to_timedelta([1], unit="s").as_unit("s")),
+        pd.Series(pd.to_timedelta([1], unit="s").as_unit("ns")),
+        EqualityConfig(),
+    )
+
+
+@pandas_available
+def test_series_equal_timezone_aware_instants_have_no_tolerance() -> None:
+    assert not series_equal(
+        pd.Series(pd.to_datetime(["2020-01-01"], utc=True)),
+        pd.Series(pd.to_datetime(["2020-01-02"], utc=True)),
+        EqualityConfig(atol=1e9),
+    )
+
+
+@pandas_available
+def test_series_equal_nullable_float_with_tolerance() -> None:
+    assert series_equal(
+        pd.Series([1.0], dtype="Float64"),
+        pd.Series([1.05], dtype="Float64"),
+        EqualityConfig(atol=0.1),
+    )
+
+
+@pandas_available
+def test_frame_equal_different_columns() -> None:
+    assert not frame_equal(pd.DataFrame({"a": [1]}), pd.DataFrame({"b": [1]}), EqualityConfig())
+
+
+@pandas_available
+def test_frame_equal_different_column_dtypes() -> None:
+    assert not frame_equal(pd.DataFrame({"a": [1]}), pd.DataFrame({"a": [1.0]}), EqualityConfig())
+
+
+@pandas_available
+def test_frame_equal_different_index() -> None:
+    assert not frame_equal(
+        pd.DataFrame({"a": [1, 2]}, index=[0, 1]),
+        pd.DataFrame({"a": [1, 2]}, index=[0, 2]),
+        EqualityConfig(),
+    )
+
+
+@pandas_available
+def test_frame_equal_duplicated_column_names() -> None:
+    df1 = pd.DataFrame([[1, 2]], columns=["a", "a"])
+    assert not frame_equal(df1, pd.DataFrame([[1, 3]], columns=["a", "a"]), EqualityConfig())
+
+
+@pandas_available
+def test_frame_equal_mixed_columns_with_tolerance() -> None:
+    assert frame_equal(
+        pd.DataFrame({"a": [1.0], "b": ["x"], "c": [True]}),
+        pd.DataFrame({"a": [1.05], "b": ["x"], "c": [True]}),
+        EqualityConfig(atol=0.1),
+    )
+
+
+@pandas_available
+def test_frame_equal_stops_at_the_first_different_column() -> None:
+    df1 = pd.DataFrame({"a": [1.0], "b": [1.0]})
+    df2 = pd.DataFrame({"a": [2.0], "b": [1.0]})
+    with patch("coola.equality.handler.pandas._values_equal", return_value=False) as mock:
+        frame_equal(df1, df2, EqualityConfig())
+    assert mock.call_count == 1
+
+
+@pandas_available
+def test_frame_equal_float_nan_column_without_equal_nan() -> None:
+    df = pd.DataFrame({"a": [1.0, float("nan")]})
+    assert not frame_equal(df, df.copy(), EqualityConfig())
+
+
+@pandas_available
+def test_frame_equal_float_nan_column_with_equal_nan() -> None:
+    df = pd.DataFrame({"a": [1.0, float("nan")]})
+    assert frame_equal(df, df.copy(), EqualityConfig(equal_nan=True))
+
+
+@pandas_available
+def test_extension_array_equal_different_dtypes() -> None:
+    assert not extension_array_equal(
+        pd.array([1], dtype="Int64"), pd.array([1], dtype="Int32"), EqualityConfig()
     )

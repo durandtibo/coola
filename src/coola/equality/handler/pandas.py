@@ -16,7 +16,7 @@ from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
-from coola.utils.imports import is_numpy_available, is_pandas_available
+from coola.utils.imports import is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
     import pandas as pd
@@ -192,6 +192,10 @@ class PandasExtensionArrayEqualHandler(HandlerEqualityMixin, BaseEqualityHandler
 def index_equal(index1: pd.Index, index2: pd.Index, config: EqualityConfig) -> bool:
     r"""Indicate if the two indexes are equal or not.
 
+    The indexes are equal if they have the same class, shape, dtype,
+    names and values. An index is a label, not a quantity: the
+    tolerance does not apply to it.
+
     Args:
         index1: The first index to compare.
         index2: The second index to compare.
@@ -213,103 +217,64 @@ def index_equal(index1: pd.Index, index2: pd.Index, config: EqualityConfig) -> b
 
         ```
     """
-    if index1.shape != index2.shape:  # cheap check before scanning for NaN
+    if type(index1) is not type(index2) or index1.shape != index2.shape:
+        return False
+    if index1.names != index2.names or not _same_dtypes(index1, index2):
         return False
     if not config.equal_nan and _index_has_nan(index1):
         return False
-    try:
-        cast("Any", pd.testing).assert_index_equal(
-            index1,
-            index2,
-            exact=True,
-            check_exact=_check_exact(config, index1.dtype),
-            atol=config.atol,
-            rtol=config.rtol,
-        )
-    except AssertionError:
-        return False
-    return True
+    return bool(index1.equals(index2))
 
 
-def _is_same_duration_dtype(series1: pd.Series, series2: pd.Series) -> bool:
-    return series1.dtype == series2.dtype and series1.dtype.kind == "m"
+def _same_dtypes(obj1: pd.Index | pd.DataFrame, obj2: pd.Index | pd.DataFrame) -> bool:
+    if isinstance(obj1, pd.MultiIndex):
+        return list(obj1.dtypes) == list(cast("pd.MultiIndex", obj2).dtypes)
+    if isinstance(obj1, pd.DataFrame):
+        return list(obj1.dtypes) == list(cast("pd.DataFrame", obj2).dtypes)
+    return bool(obj1.dtype == obj2.dtype)
 
 
-def _to_seconds(series: pd.Series) -> pd.Series:
-    return cast("Any", series).dt.total_seconds()
-
-
-def _durations_to_seconds_frames(df1: pd.DataFrame, df2: pd.DataFrame) -> tuple[Any, Any]:
-    r"""Convert the duration columns that have the same dtype to float
-    seconds, so the tolerance applies to them (a duration is a quantity,
-    unlike an instant).
-
-    The other columns are not changed, and the dtypes are still compared
-    by pandas.
-    """
-    positions = [
-        i
-        for i, (dtype1, dtype2) in enumerate(zip(df1.dtypes, df2.dtypes, strict=True))
-        if dtype1 == dtype2 and dtype1.kind == "m"
-    ]
-    if not positions:
-        return df1, df2
-    df1, df2 = df1.copy(), df2.copy()
-    for i in positions:
-        cast("Any", df1).isetitem(i, _to_seconds(df1.iloc[:, i]))
-        cast("Any", df2).isetitem(i, _to_seconds(df2.iloc[:, i]))
-    return df1, df2
-
-
-def _tolerance_applies(config: EqualityConfig) -> bool:
-    # The tolerance of the numeric columns is applied with NumPy (the shared rule).
-    return (config.atol > 0 or config.rtol > 0) and is_numpy_available()
-
-
-def _check_exact(config: EqualityConfig, dtype: Any) -> bool:
-    # A boolean is a label, not a quantity: the tolerance never applies to it.
-    return (config.atol == 0 and config.rtol == 0) or bool(pd.api.types.is_bool_dtype(dtype))
-
-
-def _is_boolean_pair(series1: pd.Series, series2: pd.Series) -> bool:
-    return series1.dtype == series2.dtype and bool(pd.api.types.is_bool_dtype(series1.dtype))
-
-
-def _align_boolean_columns(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame | None:
-    r"""Compare the boolean columns exactly and copy the values of
-    ``df1`` in ``df2``, so ``pandas.testing`` does not apply the
-    tolerance to them.
-
-    Returns:
-        The data frame ``df2`` with the values of the boolean columns
-            of ``df1``, or ``None`` if one boolean column differs.
-    """
-    positions = [i for i in range(df1.shape[1]) if _is_boolean_pair(df1.iloc[:, i], df2.iloc[:, i])]
-    if not positions:
-        return df2
-    df2 = df2.copy()
-    for i in positions:
-        if not pd.Series(df1.iloc[:, i].array).equals(pd.Series(df2.iloc[:, i].array)):
-            return None
-        cast("Any", df2).isetitem(i, df1.iloc[:, i].array)
-    return df2
-
-
-def _is_numeric_pair(series1: pd.Series, series2: pd.Series) -> bool:
-    dtype = series1.dtype
-    return dtype == series2.dtype and bool(
-        pd.api.types.is_integer_dtype(dtype) or pd.api.types.is_float_dtype(dtype)
+def _is_numeric_dtype(dtype: Any) -> bool:
+    return bool(
+        pd.api.types.is_integer_dtype(dtype)
+        or pd.api.types.is_float_dtype(dtype)
+        or pd.api.types.is_complex_dtype(dtype)
     )
+
+
+def _is_duration_dtype(dtype: Any) -> bool:
+    return getattr(dtype, "kind", None) == "m"
+
+
+def _values_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig) -> bool:
+    r"""Compare the values of two series that have the same dtype and
+    the same index, by the kind of their dtype.
+
+    - numeric (integers, floats, complex, also the nullable ones): the
+      null values must be at the same positions, then the values are
+      compared with the shared numeric rule (tolerance, ``equal_nan``).
+    - duration (``timedelta64``): same, on the durations.
+    - other (booleans, strings, categories, instants, periods,
+      intervals, decimals, nested values and ``object``): the
+      ``equals`` of pandas. It never sees the tolerance or
+      ``equal_nan``, and a null is equal to a null.
+    """
+    dtype = series1.dtype
+    if _is_numeric_dtype(dtype) and not pd.api.types.is_bool_dtype(dtype):
+        return _numeric_values_close(series1, series2, config)
+    if _is_duration_dtype(dtype):
+        return _duration_values_close(series1, series2, config)
+    return bool(series1.equals(series2.set_axis(series1.index)))
 
 
 def _numeric_values_close(series1: pd.Series, series2: pd.Series, config: EqualityConfig) -> bool:
     r"""Indicate if the values of two numeric series are equal within a
     tolerance.
 
-    ``pandas.testing`` applies its own tolerance rule. The missing
-    values must be at the same positions, then the values are compared
-    with the NumPy rule (``|a - b| <= atol + rtol * max(|a|, |b|)``),
-    like the other libraries. The index and the name are not compared.
+    The missing values must be at the same positions (a float ``NaN``
+    is governed by ``equal_nan``), then the values are compared with the
+    NumPy rule (``|a - b| <= atol + rtol * max(|a|, |b|)``), like the
+    other libraries. The index and the name are not compared.
     """
     from coola.equality.handler.numpy import array_equal  # noqa: PLC0415
 
@@ -332,32 +297,20 @@ def _to_numpy(series: pd.Series) -> Any:
     return series.to_numpy()
 
 
-def _with_values(series: pd.Series, values: pd.Series) -> pd.Series:
-    r"""Return a series with the index and the name of ``series`` and
-    the values of ``values``."""
-    return pd.Series(values.array, index=series.index, name=series.name)
+def _duration_values_close(series1: pd.Series, series2: pd.Series, config: EqualityConfig) -> bool:
+    r"""Indicate if the values of two ``timedelta64`` series are equal
+    within a tolerance (``atol`` is a number of seconds).
 
-
-def _align_numeric_columns(
-    df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig
-) -> pd.DataFrame | None:
-    r"""Compare the numeric columns with the shared rule and copy the
-    values of ``df1`` in ``df2``, so the other checks of pandas (index,
-    columns, dtypes, other columns) do not see a difference.
-
-    Returns:
-        The data frame ``df2`` with the values of the numeric columns
-            of ``df1``, or ``None`` if one numeric column is not close.
+    ``NaT`` is a null: it must be at the same positions, whatever
+    ``equal_nan``.
     """
-    positions = [i for i in range(df1.shape[1]) if _is_numeric_pair(df1.iloc[:, i], df2.iloc[:, i])]
-    if not positions:
-        return df2
-    df2 = df2.copy()
-    for i in positions:
-        if not _numeric_values_close(df1.iloc[:, i], df2.iloc[:, i], config):
-            return None
-        cast("Any", df2).isetitem(i, df1.iloc[:, i].array)
-    return df2
+    from coola.equality.handler.numpy import array_equal  # noqa: PLC0415
+
+    nat1, nat2 = series1.isna().to_numpy(), series2.isna().to_numpy()
+    if not (nat1 == nat2).all():
+        return False
+    zero = pd.Timedelta(0)
+    return array_equal(series1.fillna(zero).to_numpy(), series2.fillna(zero).to_numpy(), config)
 
 
 def _index_has_nan(index: pd.Index) -> bool:
@@ -387,8 +340,11 @@ def _has_nan_dtype(dtype: Any) -> bool:
     return bool(pd.api.types.is_float_dtype(dtype) or pd.api.types.is_complex_dtype(dtype))
 
 
-def _frame_has_nan(df: pd.DataFrame) -> bool:
-    return any(_has_nan(df.iloc[:, i]) for i in range(df.shape[1]))
+def _same_label(label1: Any, label2: Any) -> bool:
+    # A name can be ``NaN`` or a tuple: compare them as the labels of an index.
+    return bool(
+        pd.Index([label1], tupleize_cols=False).equals(pd.Index([label2], tupleize_cols=False))
+    )
 
 
 def extension_array_equal(array1: Any, array2: Any, config: EqualityConfig) -> bool:
@@ -415,25 +371,20 @@ def extension_array_equal(array1: Any, array2: Any, config: EqualityConfig) -> b
 
         ```
     """
-    if array1.shape != array2.shape:  # cheap check before scanning for NaN
+    if array1.shape != array2.shape or array1.dtype != array2.dtype:
         return False
     if not config.equal_nan and _has_nan(array1):
         return False
-    try:
-        cast("Any", pd.testing).assert_extension_array_equal(
-            array1,
-            array2,
-            check_exact=_check_exact(config, array1.dtype),
-            atol=config.atol,
-            rtol=config.rtol,
-        )
-    except AssertionError:
-        return False
-    return True
+    return _values_equal(pd.Series(array1), pd.Series(array2), config)
 
 
 def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) -> bool:
     r"""Indicate if the two DataFrames are equal or not.
+
+    The structure is compared first (shape, index, columns and dtypes),
+    then the columns one by one, by the kind of their dtype (see
+    ``_values_equal``). The comparison stops at the first column that
+    differs.
 
     Args:
         df1: The first DataFrame to compare.
@@ -460,38 +411,26 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
 
         ```
     """
-    if df1.shape != df2.shape:  # cheap check before scanning for NaN
+    if df1.shape != df2.shape or not _same_dtypes(df1, df2):
         return False
-    if not config.equal_nan and _frame_has_nan(df1):
+    if not index_equal(df1.index, df2.index, config) or not index_equal(
+        df1.columns, df2.columns, config
+    ):
         return False
-    if config.atol > 0 or config.rtol > 0:
-        df1, df2 = _durations_to_seconds_frames(df1, df2)
-    if config.atol > 0 or config.rtol > 0:
-        aligned = _align_boolean_columns(df1, df2)
-        if aligned is None:
+    for i in range(df1.shape[1]):
+        column1, column2 = df1.iloc[:, i], df2.iloc[:, i]
+        if not config.equal_nan and _has_nan(column1):
             return False
-        df2 = aligned
-    if _tolerance_applies(config):
-        aligned = _align_numeric_columns(df1, df2, config)
-        if aligned is None:
+        if not _values_equal(column1, column2, config):
             return False
-        df2 = aligned
-    try:
-        cast("Any", pd.testing).assert_frame_equal(
-            df1,
-            df2,
-            check_exact=config.atol == 0 and config.rtol == 0,
-            check_index_type=True,
-            atol=config.atol,
-            rtol=config.rtol,
-        )
-    except AssertionError:
-        return False
     return True
 
 
 def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig) -> bool:
     r"""Indicate if the two series are equal or not.
+
+    The shape, the name, the dtype and the index are compared first,
+    then the values, by the kind of the dtype (see ``_values_equal``).
 
     Args:
         series1: The first series to compare.
@@ -514,25 +453,13 @@ def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig)
 
         ```
     """
-    if series1.shape != series2.shape:  # cheap check before scanning for NaN
+    if (
+        series1.shape != series2.shape
+        or series1.dtype != series2.dtype
+        or not _same_label(series1.name, series2.name)
+        or not index_equal(series1.index, series2.index, config)
+    ):
         return False
     if not config.equal_nan and _has_nan(series1):
         return False
-    if (config.atol > 0 or config.rtol > 0) and _is_same_duration_dtype(series1, series2):
-        series1, series2 = _to_seconds(series1), _to_seconds(series2)
-    if _tolerance_applies(config) and _is_numeric_pair(series1, series2):
-        if not _numeric_values_close(series1, series2, config):
-            return False
-        series2 = _with_values(series2, series1)
-    try:
-        cast("Any", pd.testing).assert_series_equal(
-            series1,
-            series2,
-            check_exact=_check_exact(config, series1.dtype),
-            check_index_type=True,
-            atol=config.atol,
-            rtol=config.rtol,
-        )
-    except AssertionError:
-        return False
-    return True
+    return _values_equal(series1, series2, config)

@@ -1113,7 +1113,11 @@ False
 
 #### pandas DataFrames and Series
 
-pandas DataFrames and Series are compared using pandas' built-in comparison methods.
+pandas DataFrames and Series are equal if they have the same shape, dtypes, index and columns
+(class, names, dtype and values; the tolerance never applies to an index), and the same values.
+The columns are compared one by one, and the comparison stops at the first column that differs.
+The numeric and duration columns follow the numeric rule (tolerance and `equal_nan`); the other
+columns, including the nested and `object` columns, are compared by the `equals` of pandas.
 
 ```pycon
 >>> import pandas as pd
