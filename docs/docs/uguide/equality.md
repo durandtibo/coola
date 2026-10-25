@@ -1263,6 +1263,13 @@ The tolerance also applies to `complex` numbers (the distance in the complex pla
 the NumPy scalars like `numpy.float32` or `numpy.int64`. Two numbers of different types are never
 equal, for example `numpy.float32(1.0)` and `numpy.float64(1.0)`.
 
+The tolerance is computed in double precision for the arrays: `float16`, `bfloat16` and `float32`
+are cast to `float64`, so the tolerance cannot overflow at the edge of their range. The difference of
+two integers is exact, whatever the size of the integers (`2**62` and `2**62 + 1` are not within
+`atol=0.5`); only its comparison to the tolerance is made in `float64`. In a rare case, a difference
+above 2^53 that is exactly equal to the tolerance can be rounded the other way. JAX without 64-bit
+mode has no `float64` and uses the widest dtype it has.
+
 Note that a boolean is a label, not a quantity: the tolerance never applies to booleans (Python
 `bool`, `numpy.bool_`, boolean arrays and tensors), even if `bool` is a subclass of `int`:
 

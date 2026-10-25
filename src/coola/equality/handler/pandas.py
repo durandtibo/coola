@@ -298,7 +298,8 @@ def _to_numpy(series: pd.Series) -> Any:
     if pd.api.types.is_float_dtype(series.dtype):
         return series.to_numpy(dtype="float64", na_value=float("nan"))
     if series.isna().any():
-        return series.fillna(0).to_numpy(dtype="float64")
+        # The integers stay integers: a conversion to ``float64`` rounds the large ones.
+        return series.fillna(0).to_numpy()
     return series.to_numpy()
 
 

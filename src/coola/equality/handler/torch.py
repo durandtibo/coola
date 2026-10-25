@@ -141,8 +141,8 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
 def _tensors_close(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig) -> bool:
     if tensor1.shape != tensor2.shape or tensor1.dtype != tensor2.dtype:
         return False
-    # The integers and the booleans are converted: an unsigned subtraction wraps around.
-    if not (tensor1.is_floating_point() or tensor1.is_complex()):
+    if tensor1.dtype == torch.uint64:
+        # ``torch.maximum`` is not implemented for ``uint64``: converted, like before.
         tensor1, tensor2 = tensor1.to(torch.float64), tensor2.to(torch.float64)
     close = elementwise_close(
         tensor1,

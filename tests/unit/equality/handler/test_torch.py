@@ -467,3 +467,21 @@ def test_tensor_equal_bool_equal_nan() -> None:
     assert tensor_equal(
         torch.tensor([True, False]), torch.tensor([True, False]), EqualityConfig(equal_nan=True)
     )
+
+
+@torch_available
+def test_tensor_equal_uint64_with_tolerance() -> None:
+    assert tensor_equal(
+        torch.tensor([3], dtype=torch.uint64),
+        torch.tensor([5], dtype=torch.uint64),
+        EqualityConfig(atol=2.0),
+    )
+
+
+@torch_available
+def test_tensor_equal_uint64_outside_the_tolerance() -> None:
+    assert not tensor_equal(
+        torch.tensor([3], dtype=torch.uint64),
+        torch.tensor([5], dtype=torch.uint64),
+        EqualityConfig(atol=1.0),
+    )

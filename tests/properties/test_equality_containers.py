@@ -170,7 +170,6 @@ def test_exact_float_container_agrees_with_list(
 ###########################################
 
 
-@pytest.mark.xfail(reason="C1: the integer difference goes through float64", strict=False)
 @pytest.mark.parametrize("name", OTHERS)
 @given(value=big_ints)
 def test_large_int_difference_is_exact(name: str, value: int) -> None:
