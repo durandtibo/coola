@@ -707,3 +707,70 @@ def test_pandas_extension_array_equal_handler_handle() -> None:
 def test_pandas_extension_array_equal_handler_handle_false() -> None:
     handler = PandasExtensionArrayEqualHandler()
     assert not handler.handle(pd.Categorical([1, 2]), pd.Categorical([1, 3]), EqualityConfig())
+
+
+def _durations(values: list[float | None]) -> pd.Series:
+    return pd.Series(pd.to_timedelta(values, unit="s")).astype("timedelta64[ns]")
+
+
+@pandas_available
+def test_series_equal_timedelta_atol_in_seconds() -> None:
+    assert series_equal(_durations([1, 2]), _durations([1.5, 2]), EqualityConfig(atol=1.0))
+
+
+@pandas_available
+def test_series_equal_timedelta_outside_atol() -> None:
+    assert not series_equal(_durations([1, 2]), _durations([4, 2]), EqualityConfig(atol=1.0))
+
+
+@pandas_available
+def test_series_equal_timedelta_exact_without_tolerance() -> None:
+    assert not series_equal(_durations([1, 2]), _durations([1.5, 2]), EqualityConfig())
+
+
+@pandas_available
+def test_series_equal_timedelta_nat_equal_nan() -> None:
+    assert series_equal(
+        _durations([1, None]), _durations([1.2, None]), EqualityConfig(atol=1.0, equal_nan=True)
+    )
+
+
+@pandas_available
+def test_series_equal_timedelta_different_dtype_with_tolerance() -> None:
+    assert not series_equal(
+        _durations([1, 2]), _durations([1, 2]).astype("timedelta64[s]"), EqualityConfig(atol=1.0)
+    )
+
+
+@pandas_available
+def test_frame_equal_timedelta_atol_in_seconds() -> None:
+    assert frame_equal(
+        pd.DataFrame({"a": _durations([1, 2]), "b": [1, 2]}),
+        pd.DataFrame({"a": _durations([1.5, 2]), "b": [1, 2]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+def test_frame_equal_timedelta_outside_atol() -> None:
+    assert not frame_equal(
+        pd.DataFrame({"a": _durations([1, 2]), "b": [1, 2]}),
+        pd.DataFrame({"a": _durations([4, 2]), "b": [1, 2]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+def test_frame_equal_timedelta_does_not_change_the_inputs() -> None:
+    df1 = pd.DataFrame({"a": _durations([1, 2])})
+    frame_equal(df1, pd.DataFrame({"a": _durations([1.5, 2])}), EqualityConfig(atol=1.0))
+    assert df1["a"].dtype == "timedelta64[ns]"
+
+
+@pandas_available
+def test_frame_equal_without_duration_column_with_tolerance() -> None:
+    assert frame_equal(
+        pd.DataFrame({"a": [1.0, 2.0]}),
+        pd.DataFrame({"a": [1.0, 2.0001]}),
+        EqualityConfig(atol=1.0),
+    )

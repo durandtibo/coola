@@ -285,3 +285,34 @@ def test_allclose_atol_and_rtol_add_up(pair: tuple) -> None:
 @pytest.mark.parametrize("pair", PAIRS_BY_TYPE.values(), ids=PAIRS_BY_TYPE.keys())
 def test_allclose_atol_and_rtol_add_up_is_symmetric(pair: tuple) -> None:
     assert objects_are_allclose(*reversed(pair), atol=0.5, rtol=0.5)
+
+
+########################################
+#     Tests for durations              #
+########################################
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (timedelta(seconds=1), timedelta(seconds=1.5)),
+        (np.array([1000], dtype="m8[ms]"), np.array([1500], dtype="m8[ms]")),
+    ],
+)
+@numpy_available
+def test_objects_are_allclose_durations_follow_atol(actual: object, expected: object) -> None:
+    assert objects_are_allclose(actual, expected, atol=1.0)
+
+
+@numpy_available
+def test_objects_are_allclose_instants_are_exact() -> None:
+    assert not objects_are_allclose(
+        np.array(["2020-01-01"], dtype="M8[D]"), np.array(["2020-01-02"], dtype="M8[D]"), atol=1e9
+    )
+
+
+@numpy_available
+def test_objects_are_allclose_duration_array_in_a_dict() -> None:
+    assert objects_are_allclose(
+        {"x": np.array([1000], dtype="m8[ms]")}, {"x": np.array([1500], dtype="m8[ms]")}, atol=1.0
+    )

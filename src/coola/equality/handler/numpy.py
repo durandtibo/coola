@@ -92,6 +92,14 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         )
     if (
         (config.atol > 0 or config.rtol > 0)
+        and array1.dtype.kind == "m"
+        and array2.dtype.kind == "m"
+    ):
+        # A duration is a quantity (unlike an instant): the tolerance applies, ``atol`` being a
+        # number of seconds.
+        return _durations_close(array1, array2, config)
+    if (
+        (config.atol > 0 or config.rtol > 0)
         and is_numeric_array(array1)
         and is_numeric_array(array2)
     ):
@@ -106,6 +114,29 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
     # ``equal_nan`` is only forwarded when both arrays support it.
     equal_nan = config.equal_nan and _supports_nan(array1) and _supports_nan(array2)
     return np.array_equal(array1, array2, equal_nan=equal_nan)
+
+
+def _durations_close(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) -> bool:
+    r"""Indicate if two arrays of ``timedelta64`` are equal within a
+    tolerance.
+
+    The durations are compared as integer nanoseconds with the rule
+    ``|a - b| <= atol + rtol * max(|a|, |b|)`` (``atol`` is a number of
+    seconds). ``NaT`` is equal to ``NaT`` only if ``config.equal_nan``
+    is ``True``.
+    """
+    if array1.shape != array2.shape:
+        return False
+    nat1, nat2 = np.isnat(array1), np.isnat(array2)
+    nanoseconds1 = array1.astype("timedelta64[ns]").astype(np.int64)
+    nanoseconds2 = array2.astype("timedelta64[ns]").astype(np.int64)
+    # The difference is computed with floats: the integers are exact below 2^53 ns (104 days)
+    # and the relative error is below 1e-16 above.
+    difference = np.abs(nanoseconds1.astype(float) - nanoseconds2.astype(float))
+    scale = np.maximum(np.abs(nanoseconds1.astype(float)), np.abs(nanoseconds2.astype(float)))
+    close = (nanoseconds1 == nanoseconds2) | (difference <= config.atol * 1e9 + config.rtol * scale)
+    close = np.where(nat1 | nat2, config.equal_nan & nat1 & nat2, close)
+    return bool(close.all())
 
 
 def _supports_nan(array: np.ndarray) -> bool:

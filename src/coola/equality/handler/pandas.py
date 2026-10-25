@@ -231,6 +231,36 @@ def index_equal(index1: pd.Index, index2: pd.Index, config: EqualityConfig) -> b
     return True
 
 
+def _is_same_duration_dtype(series1: pd.Series, series2: pd.Series) -> bool:
+    return series1.dtype == series2.dtype and series1.dtype.kind == "m"
+
+
+def _to_seconds(series: pd.Series) -> pd.Series:
+    return cast("Any", series).dt.total_seconds()
+
+
+def _durations_to_seconds_frames(df1: pd.DataFrame, df2: pd.DataFrame) -> tuple[Any, Any]:
+    r"""Convert the duration columns that have the same dtype to float
+    seconds, so the tolerance applies to them (a duration is a
+    quantity, unlike an instant).
+
+    The other columns are not changed, and the dtypes are still
+    compared by pandas.
+    """
+    positions = [
+        i
+        for i, (dtype1, dtype2) in enumerate(zip(df1.dtypes, df2.dtypes, strict=True))
+        if dtype1 == dtype2 and dtype1.kind == "m"
+    ]
+    if not positions:
+        return df1, df2
+    df1, df2 = df1.copy(), df2.copy()
+    for i in positions:
+        cast("Any", df1).isetitem(i, _to_seconds(df1.iloc[:, i]))
+        cast("Any", df2).isetitem(i, _to_seconds(df2.iloc[:, i]))
+    return df1, df2
+
+
 def _index_has_nan(index: pd.Index) -> bool:
     if isinstance(index, pd.MultiIndex):  # ``isna`` is not defined for MultiIndex
         return bool(cast("Any", index).to_frame(index=False).isna().to_numpy().any())
@@ -310,6 +340,8 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
         return False
     if not config.equal_nan and cast("Any", df1).isna().any().any():
         return False
+    if config.atol > 0 or config.rtol > 0:
+        df1, df2 = _durations_to_seconds_frames(df1, df2)
     try:
         cast("Any", pd.testing).assert_frame_equal(
             df1,
@@ -352,6 +384,8 @@ def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig)
         return False
     if not config.equal_nan and cast("Any", series1).isna().any():
         return False
+    if (config.atol > 0 or config.rtol > 0) and _is_same_duration_dtype(series1, series2):
+        series1, series2 = _to_seconds(series1), _to_seconds(series2)
     try:
         cast("Any", pd.testing).assert_series_equal(
             series1,

@@ -873,7 +873,9 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   (experimental): `equal_nan`, `atol` and `rtol` are honored for the integer and floating-point
   columns (this requires NumPy), and the other types are compared exactly
 - `numpy.ndarray` with a non-numeric dtype: `str`, `bytes` and `object` arrays are compared
-  exactly, and so are `datetime64` and `timedelta64` arrays, even if a tolerance is given
+  exactly, and so are `datetime64` arrays (an instant is not a quantity), even if a tolerance is
+  given. A `timedelta64` array, like a `datetime.timedelta`, follows the tolerance (`atol` is a
+  number of seconds), and so does a `pandas` series or column of timedeltas
 - `decimal.Decimal`, `fractions.Fraction` and `datetime.timedelta`: compared with `==`, or with their
   difference if `atol` or `rtol` is given (`atol` of a `timedelta` is a number of seconds). A
   `Decimal` NaN is equal to a NaN only if `equal_nan=True`
