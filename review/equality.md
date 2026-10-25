@@ -49,7 +49,7 @@ construction instead of by the discipline of each tester.
 | Failure modes           | Cycle: equal. Nesting above `max_depth`: `MaxDepthExceededError`. `==` that raises or returns a non-bool: `TypeError` naming the type; other exceptions propagate. No `RecursionError`, whatever the caller's stack.                                                                                                               | the engine (explicit stack)                   |
 | Consistent with hashing | Equal objects have the same `hash_object`. The equality rules above are the reference; where a hasher disagrees, the hasher is changed (last section).                                                                                                                                                                             | the hashers, later                            |
 | Fast, early exit        | A comparison stops at the first difference and visits nothing after it; the failing path costs what the passing path costs (benchmarked); only the first difference is explained, and only on demand.                                                                                                                              | the engine, lazy reasons, benchmark gates     |
-| Location                | `compare` and `assert_*` give the path of the first difference: keys, positions, attributes, the column and row of a frame, the index in an array, the element of a set.                                                                                                                                                           | the engine's stack and `ctx.fail`             |
+| Location                | `compare` and `assert_*` give the path of the first difference: keys, positions, attributes, the index in an array, the element of a set. A table (data frame, series, Arrow table) is one leaf: it is reported as different, and the user locates the difference with the library's own tools (R5). | the engine's stack and `ctx.fail`             |
 
 ## 2. Architecture
 
@@ -123,7 +123,7 @@ the named testers (`ObjectAttributesEqualityTester`, `EqualEqualityTester`,
 `OrderedMappingEqualityTester`, `SequenceEqualityTester`, `MappingEqualityTester`, ... and the
 library testers `NumpyArrayEqualityTester`, `TorchTensorEqualityTester`, `TableEqualityTester`, ...,
 decision Q12) so that a user can compose, subclass or register them. The handlers and the helpers
-(kernel, adapters) are private (`_numeric.py`, `_adapters`).
+are private; the kernel `close` is public (R3).
 
 ## 4. The engine and the testers
 
@@ -145,7 +145,7 @@ class BaseEqualityTester(ABC, Generic[T]):
 *path)`, `ctx.explaining` and `ctx.warn_once(key, message)`. `ctx.fail` returns `False`, so a tester
 writes `return ctx.fail(...)`. `reason` may be a callable; it is called only when `ctx.explaining`
 (`compare`, `assert_*`), so `objects_are_equal` formats nothing. `path` adds parts after the ones the
-engine knows (the index in an array, the row in a column).
+engine knows (the index in an array).
 
 ### 4.2 The engine
 
@@ -253,11 +253,11 @@ A tester has no state but its configuration; `__eq__` and `__repr__` come from t
 - `ComparisonResult` carries `equal`, `path` and `reason`. The reason holds the two differing values;
   the roots are not repeated.
 - Path parts: a key or a position is itself (`['a']`, `[3]`), `AttributeName("x")` is `.x`,
-  `Element(2)` is `{2}`. A frame reports `("price", 3)` (column, row position), an array `(1, 2)`.
+  `Element(2)` is `{2}`. An array reports its index `(1, 2)`. A table has no location below itself (R5).
 
 ```
-objects are not equal at actual['prices'][3]        # DataFrame, column "prices", row 3
-values differ: 4.0 vs 5.0 (|diff| 1.0 > atol 1e-08 + rtol 1e-05 * 5.0)
+objects are not equal at actual['prices']           # a dict holding a DataFrame
+tables have different values (use the library to find where)
 
 objects are not equal at actual.weights[1][2]       # dataclass field, array element
 values differ: 0.5 vs 0.25
@@ -319,19 +319,16 @@ class TableEqualityTester(BaseEqualityTester[object]):
         a, e = to_table(actual), to_table(expected)  # the adapter of the type
         if a.structure() != e.structure():
             return ctx.fail(lambda: describe_structure_difference(a, e))
-        for ca, ce in zip(
-            a.columns(), e.columns()
-        ):  # lazily: a column is only converted when reached
+        for ca, ce in zip(a.columns(), e.columns()):  # lazily: a column is converted only when reached
             if not column_close(ca, ce, ctx):  # the kernel, or the library's equals
-                return ctx.fail(
-                    lambda: describe_column_difference(ca, ce), ca.name, *first_row(ca, ce)
-                )
+                return ctx.fail("tables have different values")  # first differing column: stop
         return True
 ```
 
-A table is a leaf for the engine; the first differing column gives the path `(name, row)`. The row is
-looked up only when explaining; for an `exact` column it is the first position where the library
-reports a difference, or absent if the library cannot say.
+A table is a leaf for the engine and is reported as a whole (R5): "tables have a different structure"
+or "tables have different values". There is no column or row in the path: the user finds the
+difference with the library (`DataFrame.compare`, `polars.testing`, `Table.equals`). The comparison
+still stops at the first column that differs, so the failing path is as cheap as the passing one.
 
 | Kind       | Dtypes                                                                                                                                          | Comparison                                                                                  |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -414,7 +411,7 @@ met. The prototype bounds the gain of the engine, not of the whole rewrite.
 | C7  | **[verified]** `MappingProxyType` and `array.array` fall to `==`: no tolerance, a `mappingproxy` holding arrays raises `TypeError`                                                                                                                                                                                                                            | register both (two lines)                                                                                                |
 | C8  | **[verified]** `float16`/`float32` arrays at extreme values: `RuntimeWarning` and a wrong `True` (`60000` against `-60000`, `rtol=1.5`); a Python float gives `False`                                                                                                                                                                                         | cast to `float64` in the kernel                                                                                          |
 | C9  | **[verified]** masked arrays: the data under the mask is compared, so arrays that print identically differ; `hash_object` ignores it                                                                                                                                                                                                                          | **none (Q5)**: kept and documented (the hash ignores it, which keeps "equal implies same hash")                          |
-| C10 | **[verified]** `compare` gives an empty path for an array, a frame and an Arrow table; a set element is shown as an index (`actual[2]`)                                                                                                                                                                                                                       | engine path, `ctx.fail(*path)`, `Element`                                                                                |
+| C10 | **[verified]** `compare` gives an empty path for an array, a frame and an Arrow table; a set element is shown as an index (`actual[2]`) | the index in the path of an array (S2); `Element` for sets; a table stays one leaf (R5) |
 | C11 | **[verified]** `show_difference=True` is silent by default, exists on two functions, and there are 50 occurrences and 39 `report_difference` calls behind `if config.show_difference`                                                                                                                                                                         | one first-failure record; remove the option and the logger                                                               |
 | C12 | **[verified]** `compare` on 1M floats differing at index 0 takes 231 ms (`objects_are_equal`: 10 ms): it builds the `repr` of the roots                                                                                                                                                                                                                       | bounded reasons; drop the root `repr`s                                                                                   |
 | C13 | **[verified]** 6.4 frames per dict level; a 99-level dict fails with `RecursionError` from a 300-frame caller; 830k calls for 5 000 entries                                                                                                                                                                                                                   | the engine (section 4.2)                                                                                                 |
@@ -451,7 +448,7 @@ after each.
 | 10   | One reporting mechanism: `report_difference` forwards to `ctx.fail`; first-failure record; lazy bounded reasons; remove `show_difference`, the logger sink, `compare(tolerance=, max_repr_chars=)` and the root fields of the result                                                                                                                                                                                                                                        | C11, C12, C15      | B   | 9          |
 | 11   | Port the Python testers (object, scalar, sequence, mapping, set, dataclass, attributes, pydantic) from chains to `objects_are_equal` returning a verdict or children; a port reports its location; delete the handlers nobody uses                                                                                                                                                                                                                                          | C14                | B   | 10         |
 | 12   | Port the array testers (NumPy, masked, torch, JAX, xarray): index in the path, bounded value reasons; the library testers stay public (Q12)                                                                                                                                                                                                                                                                                                                                 | C14, C10           | B   | 11         |
-| 13   | `TableEqualityTester` and the three adapters replace the frame handlers; column and row in the path; `Element` for sets                                                                                                                                                                                                                                                                                                                                                     | C16, C10           | B   | 11, 7, 8   |
+| 13   | `TableEqualityTester` and the three adapters replace the frame handlers; a table is one leaf (R5); `Element` for sets                                                                                                                                                                                                                                                                                                                                                     | C16, C10           | B   | 11, 7, 8   |
 | 14   | Delete the chain machinery (`BaseEqualityHandler`, mixin, `create_chain`, `BaseChainEqualityTester`, `HandlerEqualityTester`, `check_recursion_depth`, `track_comparison`); freeze `EqualityConfig`; library code to private modules; trim `__all__`; `coola.io` and the others import from `coola.equality`; a migration guide (`docs/docs/migration/`, Q11) and a migration guide in `docs/docs/migration/` (Q11); rewrite `equality_handler.md` and `equality_tester.md` | C14, C15, C18      | B   | 12, 13     |
 
 Steps 11 to 14 break every custom handler and tester (`handle(actual, expected, config)` and
@@ -644,13 +641,18 @@ intermediate states, a large diff). Decision: A
 | Q5  | Masked arrays: keep comparing the data under the mask        | masked row of 4.4; step 6 dropped; C9 closed                                                                                      |
 | Q6  | Nested and `object` cells of frames left to the library      | section 7: three kinds only, no cell children, the tolerance and `equal_nan` do not reach nested cells; C4 reworded; C6 left open |
 | Q7  | Time resolution stays in the dtype                           | section 7                                                                                                                         |
-| Q8  | Integers: exact difference, tolerance in `float64`           | section 6; the cast of small floats is not covered by this answer (R2)                                                            |
+| Q8  | Integers: exact difference, tolerance in `float64`           | section 6; small floats cast to `float64` (R2)                                                            |
 | Q9  | Ignored state stays ignored and is documented                | guide sections                                                                                                                    |
 | Q10 | `bool` and every `Enum` exact                                | section 4.3                                                                                                                       |
 | Q11 | A migration guide in `docs/docs/migration/`                  | step 14                                                                                                                           |
 | Q12 | Library testers stay public                                  | section 3 exports; open details in R3                                                                                             |
 | Q13 | Per-call lookup cache                                        | section 4.2                                                                                                                       |
 | Q14 | Engine PR with chain testers called as leaves                | step 9                                                                                                                            |
+| R1  | Document the `NaN`-in-nested-cell exception               | property rows of section 1 |
+| R2  | Cast small floats to `float64`                            | section 6 |
+| R3  | `TableEqualityTester(adapter)` only, `Engine`, export both path parts, helpers private except `close` | section 3 |
+| R4  | Keep `max_depth=100` and `MaxDepthExceededError`          | section 4.2 |
+| R5  | A table is one leaf, reported as different, no column or row | sections 5, 7 |
 
 ### Follow-up questions
 
@@ -697,7 +699,7 @@ for JSON-like data.
 Recommendation: A, with C if a real structure goes beyond 100.
 Decision: A
 
-**R5. How are frames reported when the library cannot give a row?** For an `exact` column the
+**R5. How are tables reported?** For an `exact` column the
 library's `equals` returns a bool. The path is then `(column,)` and the reason names the column, or the
 row is found by a second, explaining-only pass (`a != b` on the column; `NaN`-aware for floats). The
 second is more helpful and costs nothing on the passing path and on the failing path of
@@ -705,6 +707,30 @@ second is more helpful and costs nothing on the passing path and on the failing 
 Recommendation: the explaining-only pass for pandas, polars and pyarrow, and the column alone when
 it is not available (nested columns).
 Decision: I think it does not need to give the exact row or column. I would suggest to keep things simple and efficient. It is okay to say the DataFrame are different. Then, the user can use a library specific function to find the difference between the DataFrames.
+
+**S1. Does a table report anything more than "different"?** R5 keeps tables as one leaf. The loop
+over the columns knows the name of the first column that differs at no cost, so the reason could say
+`column 'price' differs`. Options: A. only "tables have different values"; B. add the column name
+(free, no extra pass, helps a frame of 200 columns), but only the name, never a row.
+
+Recommendation: B.
+Decision: B. Anything that is free is fine. 
+
+**S2. Do arrays keep their index in the path?** For NumPy, torch and JAX the kernel returns a boolean
+array and the first `False` gives the index (`np.argmin`), looked up only when explaining, at no cost
+on the passing path or on `objects_are_equal`. Options: A. keep the index (`actual['w'][1][2]`);
+B. like tables, report the array as one leaf ("arrays have different values"), simplest.
+
+Recommendation: A.
+Decision: A
+
+**S3. Is a `Series` a table?** The adapters treat a `Series` or an `Array` as a one-column table, so a
+failing `Series` says "tables have different values". Options: A. keep it (one tester, no special
+case); B. give a `Series` its own wording ("series have different values") through the adapter's
+name for itself (a `kind_name` string), still one tester.
+
+Recommendation: B.
+Decision: B
 
 ## 12. Not covered
 
