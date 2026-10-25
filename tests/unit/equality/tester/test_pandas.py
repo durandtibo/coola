@@ -691,10 +691,10 @@ def test_pandas_index_equality_tester_objects_are_equal_without_tolerance() -> N
 
 
 @pandas_available
-def test_pandas_index_equality_tester_objects_are_equal_tolerance() -> None:
+def test_pandas_index_equality_tester_objects_are_equal_no_tolerance() -> None:
     tester = PandasIndexEqualityTester()
     actual, expected = pd.Index([1.0, 2.0]), pd.Index([1.0, 2.001])
-    assert tester.objects_are_equal(actual, expected, EqualityConfig(atol=0.01))
+    assert not tester.objects_are_equal(actual, expected, EqualityConfig(atol=0.01))
 
 
 def test_pandas_index_equality_tester_no_pandas() -> None:

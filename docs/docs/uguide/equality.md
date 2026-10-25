@@ -458,10 +458,14 @@ Two numbers are considered equal if `|actual - expected| <= atol + rtol * max(|a
 This is the rule of NumPy, PyTorch, JAX, PyArrow and xarray arrays, and it is also used for Python
 numbers (`float`, `int`, `complex`), NumPy scalars, `Decimal`, `Fraction` and `timedelta`. It is
 symmetric: `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result.
-The integer and floating-point columns of `pandas` and `polars` data frames and series follow the
-same rule (this requires NumPy); the other columns are compared by `pandas.testing` and
-`polars.testing`, which also apply the tolerance to the floats nested in a list or a struct with
-the rule of `math.isclose` (`max(atol, rtol * max(|actual|, |expected|))`).
+The numeric columns (integers, floats, complex numbers, also the nullable ones) and the duration
+columns of `pandas` data frames and series follow the same rule. The integer and floating-point
+columns of `polars` data frames and series follow it too; the other columns of `polars` are compared
+by `polars.testing`, which also applies the tolerance to the floats nested in a list or a struct with
+the rule of `math.isclose` (`max(atol, rtol * max(|actual|, |expected|))`). The other `pandas`
+columns (booleans, strings, categories, instants, periods, intervals, decimals, nested values and
+`object` columns) are compared exactly with the `equals` of pandas: the tolerance and `equal_nan`
+do not reach the values nested in a cell.
 
 The comparison within a tolerance is not transitive: `a` can be close to `b`, and `b` close to `c`,
 while `a` is not close to `c`.
@@ -1110,7 +1114,11 @@ False
 
 #### pandas DataFrames and Series
 
-pandas DataFrames and Series are compared using pandas' built-in comparison methods.
+pandas DataFrames and Series are equal if they have the same shape, dtypes, index and columns
+(class, names, dtype and values; the tolerance never applies to an index), and the same values.
+The columns are compared one by one, and the comparison stops at the first column that differs.
+The numeric and duration columns follow the numeric rule (tolerance and `equal_nan`); the other
+columns, including the nested and `object` columns, are compared by the `equals` of pandas.
 
 ```pycon
 >>> import pandas as pd
