@@ -86,6 +86,9 @@ def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
 
         ```
     """
+    if jnp.bool_ in (array1.dtype, array2.dtype):
+        # A boolean is a label, not a quantity: no tolerance.
+        return jnp.array_equal(array1, array2).item()
     if config.atol > 0 or config.rtol > 0:
         # ``jnp.allclose`` scales the tolerance with the second array only, so the two
         # directions are tried to make the comparison symmetric.

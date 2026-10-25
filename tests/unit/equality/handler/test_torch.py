@@ -397,3 +397,22 @@ def test_tensor_equal_rtol_outside_the_tolerance() -> None:
 def test_tensor_equal_rtol_outside_the_tolerance_reversed() -> None:
     config = EqualityConfig(rtol=0.01, atol=0.0)
     assert not tensor_equal(torch.tensor([100.0]), torch.tensor([101.5]), config)
+
+
+@torch_available
+def test_tensor_equal_bool_has_no_atol() -> None:
+    assert not tensor_equal(torch.tensor([True]), torch.tensor([False]), EqualityConfig(atol=1.0))
+
+
+@torch_available
+def test_tensor_equal_bool_equal_with_tolerance() -> None:
+    assert tensor_equal(
+        torch.tensor([True, False]), torch.tensor([True, False]), EqualityConfig(atol=1.0)
+    )
+
+
+@torch_available
+def test_tensor_equal_bool_equal_nan() -> None:
+    assert tensor_equal(
+        torch.tensor([True, False]), torch.tensor([True, False]), EqualityConfig(equal_nan=True)
+    )

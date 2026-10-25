@@ -399,3 +399,18 @@ def test_array_equal_rtol_outside_the_tolerance() -> None:
 def test_array_equal_rtol_outside_the_tolerance_reversed() -> None:
     config = EqualityConfig(rtol=0.01, atol=0.0)
     assert not array_equal(np.array([100.0]), np.array([101.5]), config)
+
+
+@numpy_available
+def test_array_equal_bool_has_no_atol() -> None:
+    assert not array_equal(np.array([True]), np.array([False]), EqualityConfig(atol=1.0))
+
+
+@numpy_available
+def test_array_equal_bool_has_no_rtol() -> None:
+    assert not array_equal(np.array([True]), np.array([False]), EqualityConfig(rtol=1.0))
+
+
+@numpy_available
+def test_array_equal_bool_equal_with_tolerance() -> None:
+    assert array_equal(np.array([True, False]), np.array([True, False]), EqualityConfig(atol=1.0))

@@ -216,3 +216,13 @@ def test_array_equal_rtol_outside_the_tolerance() -> None:
 def test_array_equal_rtol_outside_the_tolerance_reversed() -> None:
     config = EqualityConfig(rtol=0.01, atol=0.0)
     assert not array_equal(jnp.array([100.0]), jnp.array([101.5]), config)
+
+
+@jax_available
+def test_array_equal_bool_has_no_atol() -> None:
+    assert not array_equal(jnp.array([True]), jnp.array([False]), EqualityConfig(atol=1.0))
+
+
+@jax_available
+def test_array_equal_bool_equal_with_tolerance() -> None:
+    assert array_equal(jnp.array([True, False]), jnp.array([True, False]), EqualityConfig(atol=1.0))

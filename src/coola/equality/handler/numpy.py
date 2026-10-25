@@ -94,6 +94,9 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         (config.atol > 0 or config.rtol > 0)
         and is_numeric_array(array1)
         and is_numeric_array(array2)
+        # A boolean is a label, not a quantity: no tolerance.
+        and array1.dtype.kind != "b"
+        and array2.dtype.kind != "b"
     ):
         # ``np.allclose`` scales the tolerance with the second array only, so the two
         # directions are tried to make the comparison symmetric.

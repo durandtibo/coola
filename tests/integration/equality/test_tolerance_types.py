@@ -7,12 +7,19 @@ from dataclasses import dataclass, field
 from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
+from unittest.mock import Mock
 
 import numpy as np
 import pytest
 
 from coola.equality import objects_are_allclose, objects_are_equal
-from coola.testing.fixtures import numpy_available
+from coola.testing.fixtures import numpy_available, torch_available
+from coola.utils.imports import is_torch_available
+
+if is_torch_available():
+    import torch
+else:  # pragma: no cover
+    torch = Mock()
 
 NAN = float("nan")
 
@@ -285,3 +292,22 @@ def test_allclose_atol_and_rtol_add_up(pair: tuple) -> None:
 @pytest.mark.parametrize("pair", PAIRS_BY_TYPE.values(), ids=PAIRS_BY_TYPE.keys())
 def test_allclose_atol_and_rtol_add_up_is_symmetric(pair: tuple) -> None:
     assert objects_are_allclose(*reversed(pair), atol=0.5, rtol=0.5)
+
+
+@pytest.mark.parametrize("kwargs", [{"atol": 1.0}, {"rtol": 1.0}])
+def test_objects_are_allclose_bool_has_no_tolerance(kwargs: dict) -> None:
+    assert not objects_are_allclose(True, False, **kwargs)
+
+
+def test_objects_are_allclose_bool_in_a_list_has_no_tolerance() -> None:
+    assert not objects_are_allclose([True], [False], atol=1.0)
+
+
+@numpy_available
+def test_objects_are_allclose_numpy_bool_array_has_no_tolerance() -> None:
+    assert not objects_are_allclose(np.array([True]), np.array([False]), atol=1.0)
+
+
+@torch_available
+def test_objects_are_allclose_torch_bool_tensor_has_no_tolerance() -> None:
+    assert not objects_are_allclose(torch.tensor([True]), torch.tensor([False]), atol=1.0)
