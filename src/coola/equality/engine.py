@@ -228,7 +228,8 @@ class Engine:
     def _test(
         self, actual: object, expected: object, depth: int
     ) -> bool | Iterator[tuple[object, object, object]]:
-        r"""Test a pair: a verdict, or the child pairs of a container."""
+        r"""Test a pair: a verdict, or the child pairs of a
+        container."""
         if actual is expected:
             return True
         data_type = type(actual)
