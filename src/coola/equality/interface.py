@@ -83,8 +83,12 @@ def objects_are_allclose(
         ``False``.
 
     Raises:
-        ValueError: If ``rtol`` or ``atol`` is negative.
-        RecursionError: If recursion depth exceeds ``max_depth``.
+        ValueError: If ``rtol`` or ``atol`` is negative, or if
+            ``max_depth`` is not positive.
+        MaxDepthExceededError: If the nesting of the objects exceeds
+            ``max_depth``. It is a ``RecursionError``.
+        RecursionError: If the interpreter recursion limit is reached
+            before ``max_depth``.
 
     Example:
         ```pycon
@@ -155,7 +159,11 @@ def objects_are_equal(
         ``True`` if the two objects are exactly equal, otherwise ``False``.
 
     Raises:
-        RecursionError: If recursion depth exceeds ``max_depth``.
+        ValueError: If ``max_depth`` is not positive.
+        MaxDepthExceededError: If the nesting of the objects exceeds
+            ``max_depth``. It is a ``RecursionError``.
+        RecursionError: If the interpreter recursion limit is reached
+            before ``max_depth``.
 
     Example:
         ```pycon

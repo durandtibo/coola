@@ -11,6 +11,7 @@ import pytest
 import coola.equality as eq
 from coola.equality import (
     ComparisonResult,
+    MaxDepthExceededError,
     Tolerance,
     assert_objects_allclose,
     assert_objects_equal,
@@ -24,7 +25,7 @@ from coola.equality.tester.interface import get_default_registry
 from tests.helpers import nest
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Callable, Iterator
 
 LOGGER_NAME = "coola.equality"
 
@@ -259,8 +260,23 @@ def test_equal_entry_points_agree(actual: object, expected: object) -> None:
 
 
 def test_compare_max_depth() -> None:
-    with pytest.raises(RecursionError):
+    with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(2\) exceeded"):
         compare([[[[1]]]], [[[[2]]]], max_depth=2)
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        compare,
+        assert_objects_equal,
+        assert_objects_allclose,
+        objects_are_equal,
+        objects_are_allclose,
+    ],
+)
+def test_max_depth_not_positive(function: Callable) -> None:
+    with pytest.raises(ValueError, match="max_depth"):
+        function(1, 1, max_depth=0)
 
 
 def test_compare_explicit_registry() -> None:
