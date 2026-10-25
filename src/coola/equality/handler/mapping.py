@@ -11,6 +11,7 @@ from coola.equality.handler.format import format_mapping_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import (
     check_recursion_depth,
+    comparison_key,
     report_difference,
     track_comparison,
 )
@@ -47,10 +48,11 @@ class MappingSameKeysHandler(HandlerEqualityMixin, BaseEqualityHandler):
         expected: Mapping[Any, Any],
         config: EqualityConfig,
     ) -> bool:
-        # Keys are compared with their type, like the elements of sequences:
-        # ``{1: "a"}`` and ``{True: "a"}`` are not the same mapping.
-        keys1 = {(type(key), key): key for key in actual}
-        keys2 = {(type(key), key): key for key in expected}
+        # Keys are compared with their type, like the elements of sets:
+        # ``{1: "a"}`` and ``{True: "a"}`` are not the same mapping. With ``equal_nan=True``,
+        # two NaN keys are the same key.
+        keys1 = {comparison_key(key, config): key for key in actual}
+        keys2 = {comparison_key(key, config): key for key in expected}
         if keys1.keys() != keys2.keys():
             if config.show_difference:
                 report_difference(
@@ -99,7 +101,9 @@ class MappingSameKeyOrderHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         actual_keys = list(actual)
         expected_keys = list(expected)
-        if actual_keys != expected_keys:
+        if [comparison_key(key, config) for key in actual_keys] != [
+            comparison_key(key, config) for key in expected_keys
+        ]:
             if config.show_difference:
                 report_difference(
                     config,
@@ -162,7 +166,7 @@ class MappingSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                 # Cycle: the comparison of this pair is already in progress.
                 return True
             for key in actual:
-                value1, value2 = actual[key], expected[key]
+                value1, value2 = actual[key], _get_value(expected, key, config)
                 if not config.registry.objects_are_equal(value1, value2, config):
                     if config.show_difference:
                         report_difference(
@@ -172,3 +176,19 @@ class MappingSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                         )
                     return False
             return self._handle_next(actual, expected, config=config)
+
+
+def _get_value(mapping: Mapping[Any, Any], key: Any, config: EqualityConfig) -> Any:
+    r"""Return ``mapping[key]``, a NaN key matching another NaN key if
+    ``config.equal_nan`` is ``True``."""
+    try:
+        return mapping[key]
+    except KeyError:
+        if not config.equal_nan:
+            raise
+        # Two NaNs are different objects with different hashes: find the key by its comparison key.
+        target = comparison_key(key, config)
+        for other in mapping:
+            if comparison_key(other, config) == target:
+                return mapping[other]
+        raise

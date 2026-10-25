@@ -507,3 +507,69 @@ def test_mapping_same_keys_handler_handle_keys_of_different_types_logs_additiona
     with caplog.at_level(logging.INFO):
         MappingSameKeysHandler().handle({1: "a"}, {True: "a"}, config)
     assert "additional keys : [True]" in caplog.text
+
+
+def test_mapping_same_keys_handler_handle_nan_keys_equal_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert MappingSameKeysHandler(next_handler=TrueHandler()).handle(
+        {float("nan"): 1}, {float("nan"): 1}, config
+    )
+
+
+def test_mapping_same_keys_handler_handle_nan_keys_not_equal_nan(config: EqualityConfig) -> None:
+    assert not MappingSameKeysHandler(next_handler=TrueHandler()).handle(
+        {float("nan"): 1}, {float("nan"): 1}, config
+    )
+
+
+def test_mapping_same_keys_handler_handle_nan_in_tuple_keys_equal_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert MappingSameKeysHandler(next_handler=TrueHandler()).handle(
+        {(float("nan"), 1): 1}, {(float("nan"), 1): 1}, config
+    )
+
+
+def test_mapping_same_keys_handler_handle_nan_key_and_other_key_equal_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert not MappingSameKeysHandler(next_handler=TrueHandler()).handle(
+        {float("nan"): 1}, {1.0: 1}, config
+    )
+
+
+def test_mapping_same_key_order_handler_handle_nan_keys_equal_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert MappingSameKeyOrderHandler(next_handler=TrueHandler()).handle(
+        {float("nan"): 1, "a": 2}, {float("nan"): 1, "a": 2}, config
+    )
+
+
+def test_mapping_same_key_order_handler_handle_nan_keys_different_order_equal_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert not MappingSameKeyOrderHandler(next_handler=TrueHandler()).handle(
+        {float("nan"): 1, "a": 2}, {"a": 2, float("nan"): 1}, config
+    )
+
+
+def test_mapping_same_values_handler_handle_nan_keys_equal_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert MappingSameValuesHandler(next_handler=TrueHandler()).handle(
+        {float("nan"): 1}, {float("nan"): 1}, config
+    )
+
+
+def test_mapping_same_values_handler_handle_nan_keys_different_values_equal_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert not MappingSameValuesHandler(next_handler=TrueHandler()).handle(
+        {float("nan"): 1}, {float("nan"): 2}, config
+    )
+
+
+def test_mapping_same_values_handler_handle_missing_key_equal_nan_raises() -> None:
+    config = EqualityConfig(equal_nan=True)
+    with pytest.raises(KeyError):
+        MappingSameValuesHandler().handle({"a": 1}, {"b": 1}, config)
+
+
+def test_mapping_same_values_handler_handle_missing_key_raises(config: EqualityConfig) -> None:
+    with pytest.raises(KeyError):
+        MappingSameValuesHandler().handle({"a": 1}, {"b": 1}, config)

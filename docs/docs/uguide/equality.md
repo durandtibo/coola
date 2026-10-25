@@ -364,6 +364,18 @@ False
 
 ```
 
+With `equal_nan=True`, two `NaN` keys (also inside a `tuple` key) are the same key, as the `NaN` members
+of a `set` are:
+
+```pycon
+>>> from coola.equality import objects_are_equal
+>>> objects_are_equal({float("nan"): 1}, {float("nan"): 1})
+False
+>>> objects_are_equal({float("nan"): 1}, {float("nan"): 1}, equal_nan=True)
+True
+
+```
+
 ## Checking Equality with Tolerance
 
 ### First Example

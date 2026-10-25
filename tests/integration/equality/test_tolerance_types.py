@@ -3,6 +3,7 @@ numeric types."""
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import timedelta
 from decimal import Decimal
@@ -285,3 +286,32 @@ def test_allclose_atol_and_rtol_add_up(pair: tuple) -> None:
 @pytest.mark.parametrize("pair", PAIRS_BY_TYPE.values(), ids=PAIRS_BY_TYPE.keys())
 def test_allclose_atol_and_rtol_add_up_is_symmetric(pair: tuple) -> None:
     assert objects_are_allclose(*reversed(pair), atol=0.5, rtol=0.5)
+
+
+########################################
+#     Tests for NaN dictionary keys    #
+########################################
+
+
+def test_objects_are_equal_nan_keys_equal_nan() -> None:
+    assert objects_are_equal({float("nan"): 1}, {float("nan"): 1}, equal_nan=True)
+
+
+def test_objects_are_equal_nan_keys_not_equal_nan() -> None:
+    assert not objects_are_equal({float("nan"): 1}, {float("nan"): 1})
+
+
+def test_objects_are_equal_nan_keys_different_values_equal_nan() -> None:
+    assert not objects_are_equal({float("nan"): 1}, {float("nan"): 2}, equal_nan=True)
+
+
+def test_objects_are_equal_nan_keys_nested_equal_nan() -> None:
+    assert objects_are_equal({"a": {float("nan"): [1]}}, {"a": {float("nan"): [1]}}, equal_nan=True)
+
+
+def test_objects_are_equal_nan_keys_ordered_dict_equal_nan() -> None:
+    assert objects_are_equal(
+        OrderedDict([(float("nan"), 1), ("a", 2)]),
+        OrderedDict([(float("nan"), 1), ("a", 2)]),
+        equal_nan=True,
+    )
