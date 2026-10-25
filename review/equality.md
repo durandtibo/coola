@@ -507,7 +507,7 @@ explanation has one natural home: `compare` and `assert_*`.
 **Recommendation: A.** It is the only option that removes the guards and makes "nothing is formatted
 unless asked" true by construction; the break is mechanical and the release is a major one. B is the
 fallback if the maintainers want the old call sites to survive one release, but it contradicts the
-"no compatibility layer" constraint. Decision: ____
+"no compatibility layer" constraint. Decision: A
 
 ### Q4. Shape of `ComparisonResult` and of the entry points (step 10)
 
@@ -527,7 +527,7 @@ in about 21 lines of `src`, tests and docs together.
 | **B. Keep them, truncated, computed lazily** (properties built on first access) | Compatible; the cost is paid only by readers; `assert_*` messages do not include them, so the common path stays cheap.                                                                                                                   | A result must keep references to the roots (memory, and mutated objects give a different `repr` later); lazy properties on a frozen dataclass are awkward; still two ways to see a value.                       |
 | **C. Keep them, computed eagerly (today)**                                      | No change.                                                                                                                                                                                                                               | Keeps the 20x cost of the failure path and the dependency on the size of the roots; contradicts the performance constraint.                                                                                     |
 
-Recommendation: A. Decision: ____
+Recommendation: A. Decision: A
 
 **Q4b. How does `compare` take a tolerance?**
 
@@ -542,7 +542,7 @@ concept.
 | **B. Keep `tolerance: Tolerance \| None` on `compare`** | No break; a `Tolerance` is a reusable, validated, hashable value (`Tolerance.numpy_default()`), good for a test suite that shares one tolerance.                                                         | Two shapes in the public API; the other four functions cannot take it, or must also accept it (then every function has three ways to give a tolerance).                                                                        |
 | **C. All five take `tolerance: Tolerance`**             | One shape everywhere; a `Tolerance` is validated once.                                                                                                                                                   | Unlike every array library (`rtol=`, `atol=`); `objects_are_allclose(a, b, rtol=1e-3)` is the call people know and write; breaks the most used function.                                                                       |
 
-Recommendation: A. Decision: ____
+Recommendation: A. Decision: A
 
 **Q4c. Is `Tolerance` public?**
 
@@ -551,7 +551,7 @@ Recommendation: A. Decision: ____
 | **A. Public**, the value held by `EqualityConfig`        | Custom testers and a user-built `EqualityConfig` read `ctx.config.tolerance`; documented and tested already. | One more exported name that a caller of the five functions never needs.                                                     |
 | **B. Private** (`config` keeps `rtol` and `atol` fields) | Smaller public surface; no second tolerance concept.                                                         | A config has two loose floats again, validated twice; custom code that wants to pass a tolerance around has no type for it. |
 
-Recommendation: A. Decision: ____
+Recommendation: A. Decision: A
 
 ### Q5. Masked arrays (step 6)
 
