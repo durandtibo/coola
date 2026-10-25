@@ -176,6 +176,12 @@ def test_register_equality_testers_with_exist_ok_true() -> None:
     register_equality_testers({CustomList: SequenceEqualityTester()}, exist_ok=True)
 
 
+def test_register_equality_testers_exist_ok_is_keyword_only() -> None:
+    positional = (True,)
+    with pytest.raises(TypeError, match="positional"):
+        register_equality_testers({CustomList: SequenceEqualityTester()}, *positional)
+
+
 def test_register_equality_testers_with_exist_ok_false() -> None:
     register_equality_testers({CustomList: DefaultEqualityTester()})
     with pytest.raises(AlreadyRegisteredError, match=r"already registered"):

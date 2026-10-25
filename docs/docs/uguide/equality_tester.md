@@ -47,11 +47,10 @@ False
 
 ### Registry System
 
-!!! tip "Unambiguous alias"
+!!! tip "Import collisions"
 
-    `get_default_registry` exists in several `coola` subpackages with different return types.
-    `get_default_equality_tester_registry` is an alias of the same function with a more explicit name, which avoids
-    import collisions.
+    `get_default_registry` exists in several `coola` subpackages with different return types. Import it
+    from `coola.equality.tester`, or import the module and call `tester.get_default_registry()`.
 
 The registry maintains a mapping from types to testers and automatically selects the right tester:
 

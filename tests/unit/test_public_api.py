@@ -39,7 +39,6 @@ def test_all_names_are_importable(name: str, attr: str) -> None:
 @pytest.mark.parametrize(
     ("module", "alias"),
     [
-        ("coola.equality.tester", "get_default_equality_tester_registry"),
         ("coola.hashing", "get_default_hasher_registry"),
         ("coola.iterator.bfs", "get_default_child_finder_registry"),
         ("coola.iterator.dfs", "get_default_iterator_registry"),

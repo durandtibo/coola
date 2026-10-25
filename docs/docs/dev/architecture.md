@@ -70,8 +70,10 @@ The registry maps types to testers. It is built on `BaseTypeDispatchRegistry`
 - Lookup results are cached per type, and the cache is cleared whenever the registry changes
 
 `get_default_registry()` returns the global registry. Testers for optional libraries are only
-registered when the library is installed. `register_equality_testers(mapping, exist_ok=False)`
-adds testers to it.
+registered when the library is installed. `register_equality_testers(mapping, *, exist_ok=False)`
+adds testers to it. A test that registers a tester should not leak it: use
+`coola.utils.singleton.temporary_default_registries()` (see the testing guide), or work on
+`get_default_registry().copy()`.
 
 ### 4. Configuration
 
