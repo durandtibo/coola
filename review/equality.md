@@ -473,7 +473,7 @@ the maintainers; the steps of section 10.2 that depend on a choice are named.
 | A. Iterative | No `RecursionError`, explaining is free, container testers are pure functions of two objects | About 1.5x slower than B on the happy path (still 3 to 5x faster than `main`); a tester returns an iterator, which is less familiar |
 | B. Recursive | Fastest; testers call `ctx.compare`, the familiar shape                                      | Interpreter stack limit and `max_depth` stay; depth, cycle and path need a `try/finally`                                            |
 
-Recommendation: A. Decision: ____
+Recommendation: A. Decision: A
 
 ### Q2. Tester return protocol (step 9)
 
@@ -483,24 +483,75 @@ Recommendation: A. Decision: ____
 | B. Two methods, `equal` (leaf) and `expand` (container) plus a `container` flag | Explicit and type-checkable; two entry points to document and to forget |
 | C. Always an iterator (a leaf yields nothing and fails through `ctx.fail`)      | One shape; leaves pay for a generator                                   |
 
-Recommendation: A. Decision: ____
+Recommendation: A. Decision: A
 
-### Q3. Remove `show_difference` and the logger sink (step 10)
+### Q3. `show_difference` and the logger sink (step 10)
 
-Options: A. remove (`compare` and `assert_*` explain); B. keep it on all five functions and route it
-through the engine (an `INFO` log of `compare(...).format_message()`); C. keep as is.
-A removes the option, 50 occurrences and the silent-by-default behaviour, and breaks users and the
-guides' "Finding a Difference". B keeps the call sites working. Recommendation: A. Decision: ____
+**Facts.** `show_difference=True` exists on `objects_are_equal` and `objects_are_allclose` only. It
+logs at `INFO` on the `coola.equality` logger, which is silent with the default logging
+configuration (the guide tells the user to call `logging.basicConfig(level=logging.INFO)`). It is
+mentioned in 21 lines of the documentation, once in the README, in 4 lines of `examples/`, and used
+in about 547 lines of tests. In `src` it costs 50 occurrences, 39 `report_difference` calls, each
+behind an `if config.show_difference:` that every tester must remember, a `reporter` callback that
+`compare` installs, and a logger path that formats the message **before** the logger can drop it.
+Under the constraints (first difference only, on demand, no formatting when nobody asks), the
+explanation has one natural home: `compare` and `assert_*`.
+
+| Option                                                                | Pros                                                                                                                                                                                                                                                                                                                                                                                                                                                | Cons                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A. Remove it** (`compare` and `assert_*` explain)                   | One way to get an explanation, with a structured result (`path`, `reason`) instead of log text. No `if show_difference` guard in testers, no `reporter`, no logger, no global state, so the engine has one failure record and the entry points have the same signature. `objects_are_equal` is guaranteed to format nothing. Thread-safe by construction. Output appears by default (`assert_*` raises, `compare` returns) instead of being silent. | Breaking: every call site `objects_are_equal(a, b, show_difference=True)` must become `compare(a, b)` or `assert_objects_equal(a, b)` (a one-line change, but about 25 places in docs and examples and the README to rewrite). A user who wants "the answer and a log line in one call" now writes two lines (`log.info(compare(a, b).format_message())`). Tests that check log output (a large part of the 547 lines) are rewritten as tests of `ComparisonResult`. |
+| **B. Keep it on the five functions, implemented on top of `compare`** | Existing call sites and docs keep working; `show_difference` becomes a thin wrapper: run the explaining engine, log `format_message()`, return the bool. Still one engine path and one failure record; the `reporter`, the guards and the handler-side logging disappear. Could also be added to `assert_*` for symmetry.                                                                                                                           | Two ways to ask for an explanation, forever (the second one silent by default). `objects_are_equal` is no longer guaranteed to be free of formatting: with `show_difference=True` it explains, so the fast path and the explaining path share a signature and the "build no message" rule needs an exception. A logging side effect in a comparison function (threads, handlers, test log capture).                                                                  |
+| **C. Keep it as it is**                                               | No work, no break.                                                                                                                                                                                                                                                                                                                                                                                                                                  | Keeps the 50 occurrences, the guards that testers can forget (a forgotten guard formats on every call, a missing report loses the explanation), the two sinks and the reversal of reports in `compare`; contradicts "first difference only, on demand" and costs the failure path (`compare` of 1M floats: 231 ms against 10 ms).                                                                                                                                    |
+| **D. Replace it by `explain=` taking a callable** (`explain=print`)   | Lets a caller route the explanation (print, logger, collector) in one call without a global logger; no silent default.                                                                                                                                                                                                                                                                                                                              | A new parameter to design, test and document for a use that `compare` already covers; a callback invoked inside a comparison (re-entrancy, exceptions); still needs the explaining engine.                                                                                                                                                                                                                                                                           |
+
+**Recommendation: A.** It is the only option that removes the guards and makes "nothing is formatted
+unless asked" true by construction; the break is mechanical and the release is a major one. B is the
+fallback if the maintainers want the old call sites to survive one release, but it contradicts the
+"no compatibility layer" constraint. Decision: A
 
 ### Q4. Shape of `ComparisonResult` and of the entry points (step 10)
 
-- Drop the root `repr`s (`actual`, `expected`) and `max_repr_chars`: the reason holds the two
-  differing values (recommended), or keep the roots truncated.
-- `compare(rtol, atol)` like the other four functions (recommended), or keep `Tolerance` as the
-  parameter of `compare` only.
-- Keep `Tolerance` public as the config value (recommended) or make it private.
+Three independent sub-decisions.
 
-Decision: ____
+**Q4a. Do `ComparisonResult.actual` and `.expected` (the `repr` of the roots) stay?**
+
+**Facts.** Today they are `truncate_str(safe_repr(root), max_len=max_repr_chars)` of the **whole**
+objects, built on every failure (the 231 ms of `compare` on 1M floats, and 700 ms for a dataclass
+holding a dataclass holding the list). The caller already holds the roots, and the root `repr` does not
+say where the difference is; the message already contains the two **differing values**. They are used
+in about 21 lines of `src`, tests and docs together.
+
+| Option                                                                          | Pros                                                                                                                                                                                                                                     | Cons                                                                                                                                                                                                            |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A. Drop them and `max_repr_chars`** (reason has the two values)               | The failure path no longer depends on the size of the roots (honours "performance" and "first difference only"); a smaller result (`equal`, `path`, `reason`); one bounded formatter for the values in the reason; no parameter to tune. | Breaking for code that reads `result.actual`. A user who liked seeing the whole object in the assertion message loses it (the path and the differing values are shown instead, as pytest does for a long list). |
+| **B. Keep them, truncated, computed lazily** (properties built on first access) | Compatible; the cost is paid only by readers; `assert_*` messages do not include them, so the common path stays cheap.                                                                                                                   | A result must keep references to the roots (memory, and mutated objects give a different `repr` later); lazy properties on a frozen dataclass are awkward; still two ways to see a value.                       |
+| **C. Keep them, computed eagerly (today)**                                      | No change.                                                                                                                                                                                                                               | Keeps the 20x cost of the failure path and the dependency on the size of the roots; contradicts the performance constraint.                                                                                     |
+
+Recommendation: A. Decision: A
+
+**Q4b. How does `compare` take a tolerance?**
+
+**Facts.** `objects_are_allclose` and `assert_objects_allclose` take `rtol` and `atol` (the NumPy and
+torch names, with the defaults `1e-5` and `1e-8`); `compare` takes `tolerance: Tolerance | None`
+(exact by default). The config stores two floats. So a user moves between three shapes for one
+concept.
+
+| Option                                                  | Pros                                                                                                                                                                                                     | Cons                                                                                                                                                                                                                           |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **A. `compare(rtol=0.0, atol=0.0)`**                    | The five functions have the same keywords; a call can be moved from `objects_are_allclose` to `compare` by renaming; no import of `Tolerance` for the common case; validation in one place (the config). | Breaking for `compare(a, b, tolerance=Tolerance(...))`. Exact is `0.0`, allclose is `1e-5`/`1e-8`: `compare(a, b, rtol=..., atol=...)` does not share the defaults of `objects_are_allclose`, which can surprise (documented). |
+| **B. Keep `tolerance: Tolerance \| None` on `compare`** | No break; a `Tolerance` is a reusable, validated, hashable value (`Tolerance.numpy_default()`), good for a test suite that shares one tolerance.                                                         | Two shapes in the public API; the other four functions cannot take it, or must also accept it (then every function has three ways to give a tolerance).                                                                        |
+| **C. All five take `tolerance: Tolerance`**             | One shape everywhere; a `Tolerance` is validated once.                                                                                                                                                   | Unlike every array library (`rtol=`, `atol=`); `objects_are_allclose(a, b, rtol=1e-3)` is the call people know and write; breaks the most used function.                                                                       |
+
+Recommendation: A. Decision: A
+
+**Q4c. Is `Tolerance` public?**
+
+| Option                                                   | Pros                                                                                                         | Cons                                                                                                                        |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| **A. Public**, the value held by `EqualityConfig`        | Custom testers and a user-built `EqualityConfig` read `ctx.config.tolerance`; documented and tested already. | One more exported name that a caller of the five functions never needs.                                                     |
+| **B. Private** (`config` keeps `rtol` and `atol` fields) | Smaller public surface; no second tolerance concept.                                                         | A config has two loose floats again, validated twice; custom code that wants to pass a tolerance around has no type for it. |
+
+Recommendation: A. Decision: A
 
 ### Q5. Masked arrays (step 6)
 
@@ -514,7 +565,7 @@ Recommendation: A. Decision: B
 A. Compare each cell through the engine: one rule per value (`None` is not `NaN`, a nested float gets
 the tolerance), slower; keep the library's `equals` as the fast path when there is no NaN and no
 tolerance. B. Leave nested cells to the library (fast, three rules, wrong `equal_nan`). C. Forbid
-nested cells (raise). Recommendation: A. Decision: ____
+nested cells (raise). Recommendation: A. Decision: B
 
 ### Q7. Time resolution is part of the dtype (step 13)
 
@@ -545,7 +596,7 @@ B. Also `str`, `bytes` and every non-numeric type through an explicit "label" li
 
 Decided by the constraints: major release, no adapter, no alias, no deprecation period, deprecated and
 compatibility code removed. Remaining question: should the release notes carry a before/after
-example of a custom tester? Recommendation: yes, five lines. Decision: ____
+example of a custom tester? Recommendation: yes, five lines. Decision: yes, create a migration guide
 
 ### Q12. Public surface (step 14)
 
@@ -559,7 +610,7 @@ public name of the engine type (`Engine`, `ComparisonContext`) and whether `Elem
 
 A. Per-call `dict` (recommended: no lock in the hot path; a registration during a call is seen by
 the next call). B. A lock-free immutable snapshot inside the registry (benefits `hashing` and
-`summary`, which share the registry class, but changes a shared component). Decision: ____
+`summary`, which share the registry class, but changes a shared component). Decision: A
 
 ### Q14. Size of the first engine PR (step 9)
 
