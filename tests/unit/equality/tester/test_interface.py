@@ -2,12 +2,17 @@ from __future__ import annotations
 
 from collections import OrderedDict, deque
 from collections.abc import Generator, Mapping, Sequence
+from dataclasses import dataclass
+from datetime import timedelta
+from decimal import Decimal
+from fractions import Fraction
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import BaseEqualityHandler
+from coola.equality.handler import BaseEqualityHandler, SameObjectHandler
 from coola.equality.tester import (
     BaseEqualityTester,
     DefaultEqualityTester,
@@ -37,7 +42,10 @@ from coola.equality.tester import (
     interface as tester_interface,
     register_equality_testers,
 )
+from coola.io import TextLoader, TextSaver
+from coola.io.base import BaseLoader, BaseSaver
 from coola.registry import AlreadyRegisteredError
+from coola.registry.dispatch import DataclassMarker
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import (
     import_object,
@@ -296,3 +304,64 @@ def test_get_default_testers_returns_nothing_if_the_library_is_unavailable(modul
     name = module.rpartition(".")[2]
     with patch(f"{module}.is_{name}_available", lambda: False):
         assert import_object(f"{module}:get_default_testers")() == {}
+
+
+######################################################
+#     Tests for the testers of the default types     #
+######################################################
+
+
+@dataclass
+class Point:
+    x: int = 1
+
+
+# One sample for each type with a tester that does not need an optional library.
+# A new native type must be added here, so it is checked to be reflexive.
+NATIVE_SAMPLES = {
+    object: object(),
+    int: 1,
+    float: 1.5,
+    complex: 1 + 2j,
+    Decimal: Decimal("1.5"),
+    Fraction: Fraction(1, 3),
+    timedelta: timedelta(seconds=1),
+    DataclassMarker: Point(),
+    deque: deque([1, 2]),
+    list: [1, {"a": 2}],
+    tuple: (1, (2, 3)),
+    Sequence: [1, 2],
+    set: {1, 2},
+    frozenset: frozenset({1, 2}),
+    type({}.values()): {"a": 1}.values(),
+    dict: {"a": [1, 2]},
+    OrderedDict: OrderedDict(a=1, b=2),
+    Mapping: {"a": 1},
+    BaseEqualityHandler: SameObjectHandler(),
+    BaseEqualityTester: DefaultEqualityTester(),
+    BaseLoader: TextLoader(Path("a.txt")),
+    BaseSaver: TextSaver(),
+}
+
+
+@pytest.mark.parametrize("data_type", NATIVE_SAMPLES)
+def test_default_tester_is_reflexive(data_type: type) -> None:
+    sample = NATIVE_SAMPLES[data_type]
+    tester = get_default_registry().find(data_type)
+    assert tester.objects_are_equal(sample, sample, EqualityConfig())
+
+
+@pytest.mark.parametrize("data_type", NATIVE_SAMPLES)
+def test_default_tester_equals_itself(data_type: type) -> None:
+    tester = get_default_registry().find(data_type)
+    assert tester.equal(tester)
+
+
+def test_default_registry_native_types_have_a_sample() -> None:
+    optional = ("jax", "numpy", "pandas", "polars", "pyarrow", "pydantic", "torch", "xarray")
+    native = {
+        data_type
+        for data_type, _ in get_default_registry().items()
+        if not data_type.__module__.startswith(optional)
+    }
+    assert native == set(NATIVE_SAMPLES)
