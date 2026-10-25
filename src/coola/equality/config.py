@@ -50,11 +50,12 @@ class EqualityConfig:
             comparisons. Must be non-negative. Defaults to 0.0.
         show_difference: If ``True``, shows differences between
             non-equal objects. Defaults to ``False``.
-        max_depth: A limit that raises, not a display depth: the maximum
-            recursion depth for nested object comparisons (a deeper
-            structure raises ``MaxDepthExceededError``, unlike the
-            ``max_depth`` of ``summarize``, which truncates the output).
-            Must be positive. Defaults to 100.
+        max_depth: The nesting limit: the maximum nesting level of the
+            compared objects. A deeper structure raises
+            ``MaxDepthExceededError`` (it is not a display depth like
+            the ``max_depth`` of ``summarize``). Must be positive.
+            See the "Common options" section of the equality user
+            guide. Defaults to 100.
             Set to a lower value to protect against stack overflow
             with extremely deeply nested structures.
         reporter: An optional callable that receives the differences
