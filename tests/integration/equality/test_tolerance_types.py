@@ -287,6 +287,36 @@ def test_allclose_atol_and_rtol_add_up_is_symmetric(pair: tuple) -> None:
     assert objects_are_allclose(*reversed(pair), atol=0.5, rtol=0.5)
 
 
+############################################
+#     Tests for NumPy time scalars         #
+############################################
+
+
+@numpy_available
+def test_objects_are_allclose_timedelta64_scalar() -> None:
+    assert objects_are_allclose(np.timedelta64(1, "s"), np.timedelta64(1, "s"))
+
+
+@numpy_available
+def test_objects_are_allclose_timedelta64_scalar_in_list() -> None:
+    assert objects_are_allclose([np.timedelta64(1, "s")], [np.timedelta64(1, "s")])
+
+
+@numpy_available
+def test_objects_are_equal_timedelta64_nat_equal_nan() -> None:
+    assert objects_are_equal(np.timedelta64("NaT", "s"), np.timedelta64("NaT", "s"), equal_nan=True)
+
+
+@numpy_available
+def test_objects_are_equal_timedelta64_scalar() -> None:
+    assert objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(1, "s"))
+
+
+@numpy_available
+def test_objects_are_equal_timedelta64_scalar_different() -> None:
+    assert not objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(2, "s"))
+
+
 ########################################
 #     Tests for the option types       #
 ########################################
