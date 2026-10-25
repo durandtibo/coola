@@ -6,6 +6,7 @@ from __future__ import annotations
 __all__ = [
     "AttributeName",
     "ComparisonResult",
+    "Element",
     "MaxDepthExceededError",
     "Tolerance",
     "assert_objects_allclose",
@@ -15,6 +16,7 @@ __all__ = [
     "objects_are_equal",
 ]
 
+from coola.equality.engine import Element
 from coola.equality.handler.utils import AttributeName, MaxDepthExceededError
 from coola.equality.interface import objects_are_allclose, objects_are_equal
 from coola.equality.result import (

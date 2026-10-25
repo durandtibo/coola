@@ -7,6 +7,7 @@ __all__ = ["objects_are_allclose", "objects_are_equal", "run_comparison"]
 from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
+from coola.equality.engine import Engine
 from coola.equality.handler.utils import MaxDepthExceededError
 from coola.equality.tester.interface import get_default_registry
 from coola.utils.recursion import raise_recursion_limit_error
@@ -50,7 +51,7 @@ def run_comparison(
     # actionable error. The cycles do not reach this error, they are handled by
     # ``track_comparison``.
     try:
-        return registry.objects_are_equal(actual, expected, config)
+        return Engine(registry, config).run(actual, expected)
     except MaxDepthExceededError:
         raise  # already explains how to fix it
     except RecursionError as exc:
