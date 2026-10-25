@@ -438,7 +438,9 @@ lazy loading.
 
 ### 10.2 Steps
 
-One PR per row, as `CLAUDE.md` asks. "B" marks a breaking change. Steps 1 to 8 do not touch the handler
+One PR per row, as `CLAUDE.md` asks. All PRs target a long-lived major-release branch, not `main`, and
+nothing is released before step 14 (T1). The branch merges `origin/main` regularly (as `CLAUDE.md`
+asks for conflicts) so that it does not drift. "B" marks a breaking change. Steps 1 to 8 do not touch the handler
 API and fix wrong answers; steps 9 to 14 move the architecture one family at a time, with `main` green
 after each.
 
@@ -471,8 +473,9 @@ by returning `(a, b, part)`). They share the major release; the migration guide 
   difference, path, lazy reasons, a tester that returns a bool and one that returns an iterator).
 - **Properties** (step 1) are the safety net of the migration. Add: reflexive for a copy of each
   library type with and without nulls, symmetric for each library type, `equal` implies equal hash.
-- **Benchmarks** in `tests/benchmarks/test_equality_benchmark.py`, added **before step 9**, fail on a
-  regression above 10%: 20 000 floats in a list 15.5 ms; dict of 5 000 `{float, [int, int]}` 55.9 ms
+- **Benchmarks** in `tests/benchmarks/test_equality_benchmark.py`, added **before step 9**, are reported by the
+  benchmark job and checked by hand at each step (T2); a regression above 10% is a reason to stop the
+  PR, not a failing check: 20 000 floats in a list 15.5 ms; dict of 5 000 `{float, [int, int]}` 55.9 ms
   (targets after step 11: 6 ms and 15 ms); `compare` of 1M floats differing at index 0 231 ms
   (target below 30 ms after step 10); two pandas series of 2M floats differing at index 0 5 898 ms
   (target below 10 ms after step 7); a 200k x 10 frame differing in one cell 538 ms (target below
@@ -665,6 +668,9 @@ intermediate states, a large diff). Decision: A
 | S2  | Arrays keep their index in the path                                                                   | sections 4.3, 5                                                                                                                   |
 | S3  | A `Series` says "series", an `Array` "arrays" (`kind_name`)                                           | section 7                                                                                                                         |
 | H1  | The hasher of masked arrays is left as it is (may change later)                                       | last section                                                                                                                      |
+| T1  | All steps land on a major-release branch; nothing is released before step 14 | section 10.2 |
+| T2  | Benchmark gates are reported and checked by hand, not a failing CI check | section 10.3 |
+| T3  | The hashing follow-up is done after step 14 | last section |
 
 ### Follow-up questions
 
@@ -826,7 +832,7 @@ result; its output on the 5 000-entry dict, on cycles and on `max_depth` is the 
 ## Changes in other sub-packages (later, outside this design)
 
 The design above is for `coola.equality` only. Equality is the reference: the changes below follow
-from it and are made afterwards, one PR each, without driving any choice made above. They are listed
+from it and are made after step 14 (T3), one PR each, without driving any choice made above. They are listed
 so that nothing is forgotten.
 
 ### Hashing (`coola.hashing`)
@@ -845,8 +851,8 @@ design implies for the hashers:
 | `MappingProxyType`, `array.array`                     | compared as a mapping and a sequence    | check they have a hasher consistent with a `dict` and a `list` of the same content                 |
 | Time resolution (`timedelta64[s]` against `[ns]`)     | different dtypes                        | allowed to share a hash                                                                            |
 
-The hashing property tests (`tests/properties/test_hashing*.py`) get the cross-container equality
-properties of step 1 as a second source: any equal pair that the equality tests generate must hash
+After step 14, the hashing property tests (`tests/properties/test_hashing*.py`) get the cross-container
+equality properties of step 1 as a second source: any equal pair that the equality tests generate must hash
 equally. Where the hasher needs a rule that is not obvious, the rule is taken from the equality
 guide, not the other way round.
 
