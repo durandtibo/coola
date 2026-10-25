@@ -594,6 +594,73 @@ def test_time_scalar_equal_value_and_nat_equal_nan() -> None:
 
 
 @numpy_available
+def test_array_equal_timedelta_atol_in_seconds() -> None:
+    assert array_equal(
+        np.array([1000, 2000], dtype="m8[ms]"),
+        np.array([1500, 2000], dtype="m8[ms]"),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@numpy_available
+def test_array_equal_timedelta_outside_atol() -> None:
+    assert not array_equal(
+        np.array([1000], dtype="m8[ms]"), np.array([3000], dtype="m8[ms]"), EqualityConfig(atol=1.0)
+    )
+
+
+@numpy_available
+def test_array_equal_timedelta_rtol() -> None:
+    assert array_equal(
+        np.array([100], dtype="m8[s]"), np.array([101], dtype="m8[s]"), EqualityConfig(rtol=0.02)
+    )
+
+
+@numpy_available
+def test_array_equal_timedelta_exact_without_tolerance(config: EqualityConfig) -> None:
+    assert not array_equal(
+        np.array([1000], dtype="m8[ms]"), np.array([1500], dtype="m8[ms]"), config
+    )
+
+
+@numpy_available
+def test_array_equal_timedelta_different_shape() -> None:
+    assert not array_equal(
+        np.array([1, 1], dtype="m8[s]"), np.array([1], dtype="m8[s]"), EqualityConfig(atol=1.0)
+    )
+
+
+@numpy_available
+def test_array_equal_timedelta_nat_equal_nan() -> None:
+    array = np.array(["NaT", 1], dtype="m8[s]")
+    assert array_equal(array, array.copy(), EqualityConfig(atol=1.0, equal_nan=True))
+
+
+@numpy_available
+def test_array_equal_timedelta_nat_not_equal_nan() -> None:
+    array = np.array(["NaT", 1], dtype="m8[s]")
+    assert not array_equal(array, array.copy(), EqualityConfig(atol=1.0))
+
+
+@numpy_available
+def test_array_equal_timedelta_nat_and_value_equal_nan() -> None:
+    assert not array_equal(
+        np.array(["NaT"], dtype="m8[s]"),
+        np.array([0], dtype="m8[s]"),
+        EqualityConfig(atol=1.0, equal_nan=True),
+    )
+
+
+@numpy_available
+def test_array_equal_datetime_has_no_tolerance() -> None:
+    assert not array_equal(
+        np.array(["2020-01-01"], dtype="M8[D]"),
+        np.array(["2020-01-02"], dtype="M8[D]"),
+        EqualityConfig(atol=1e9),
+    )
+
+
+@numpy_available
 def test_array_equal_bool_has_no_atol() -> None:
     assert not array_equal(np.array([True]), np.array([False]), EqualityConfig(atol=1.0))
 

@@ -459,6 +459,37 @@ def test_objects_are_allclose_atol_bool() -> None:
         objects_are_allclose(1.0, 1.0, atol=True)
 
 
+########################################
+#     Tests for durations              #
+########################################
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [
+        (timedelta(seconds=1), timedelta(seconds=1.5)),
+        (np.array([1000], dtype="m8[ms]"), np.array([1500], dtype="m8[ms]")),
+    ],
+)
+@numpy_available
+def test_objects_are_allclose_durations_follow_atol(actual: object, expected: object) -> None:
+    assert objects_are_allclose(actual, expected, atol=1.0)
+
+
+@numpy_available
+def test_objects_are_allclose_instants_are_exact() -> None:
+    assert not objects_are_allclose(
+        np.array(["2020-01-01"], dtype="M8[D]"), np.array(["2020-01-02"], dtype="M8[D]"), atol=1e9
+    )
+
+
+@numpy_available
+def test_objects_are_allclose_duration_array_in_a_dict() -> None:
+    assert objects_are_allclose(
+        {"x": np.array([1000], dtype="m8[ms]")}, {"x": np.array([1500], dtype="m8[ms]")}, atol=1.0
+    )
+
+
 @pytest.mark.parametrize("kwargs", [{"atol": 1.0}, {"rtol": 1.0}])
 def test_objects_are_allclose_bool_has_no_tolerance(kwargs: dict) -> None:
     assert not objects_are_allclose(True, False, **kwargs)
