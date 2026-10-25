@@ -643,3 +643,52 @@ def test_allclose_is_monotonic_in_rtol(
     data, other = [x], [x + delta]
     assume(objects_are_allclose(data, other, atol=atol, rtol=rtol))
     assert objects_are_allclose(data, other, atol=atol, rtol=rtol + extra)
+
+
+###########################
+#     Monotonicity        #
+###########################
+
+tolerances = st.floats(min_value=0.0, max_value=1.0)
+
+
+@given(
+    x=finite_floats,
+    y=finite_floats,
+    atol=tolerances,
+    extra=tolerances,
+)
+def test_allclose_larger_atol_keeps_close_floats_close(
+    x: float, y: float, atol: float, extra: float
+) -> None:
+    assert not objects_are_allclose(x, y, atol=atol, rtol=0.0) or objects_are_allclose(
+        x, y, atol=atol + extra, rtol=0.0
+    )
+
+
+@given(
+    x=finite_floats,
+    y=finite_floats,
+    rtol=tolerances,
+    extra=tolerances,
+)
+def test_allclose_larger_rtol_keeps_close_floats_close(
+    x: float, y: float, rtol: float, extra: float
+) -> None:
+    assert not objects_are_allclose(x, y, atol=0.0, rtol=rtol) or objects_are_allclose(
+        x, y, atol=0.0, rtol=rtol + extra
+    )
+
+
+@given(
+    x=st.lists(finite_floats, max_size=5),
+    y=st.lists(finite_floats, max_size=5),
+    atol=tolerances,
+    extra=tolerances,
+)
+def test_allclose_larger_atol_keeps_close_lists_close(
+    x: list[float], y: list[float], atol: float, extra: float
+) -> None:
+    assert not objects_are_allclose(x, y, atol=atol, rtol=0.0) or objects_are_allclose(
+        x, y, atol=atol + extra, rtol=0.0
+    )

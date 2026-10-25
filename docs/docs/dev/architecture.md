@@ -219,6 +219,18 @@ To add support for a custom type:
 
 See the [extending guide](../uguide/extending.md) for more details.
 
+### Checklist: writing a tester
+
+- Check the type first (`SameTypeHandler`), so the comparison stays strict and symmetric
+- Report the difference with a path (`report_difference(config, msg, path=...)`), so `compare` can
+  locate it, and use `AttributeName` for an attribute
+- Recurse with the depth and cycle protections (`check_recursion_depth`, `track_comparison`), and pass the child location
+- Honour `equal_nan` and the tolerance (`rtol`, `atol`: `|a - e| <= atol + rtol * |e|`), or
+  document that your tester ignores them
+- Be reflexive: `objects_are_equal(x, x)` is `True` (except for a distinct `NaN`)
+- Do not modify the inputs
+- Add a sample of the type to the reflexivity test if the tester is registered by default
+
 ## Type System
 
 ### Strict Type Checking
@@ -289,7 +301,10 @@ The `coola` codebase uses:
 
 1. **Unit tests**: Test individual testers and handlers in isolation
 2. **Integration tests**: Test complete comparison workflows
-3. **Property-based tests**: Test invariants (e.g., reflexivity)
+3. **Property-based tests**: Test invariants (reflexivity, symmetry of the exact comparison, and
+   monotonicity of `*_allclose`: a larger `atol` or `rtol` never turns a `True` into `False`). The
+   unit tests also walk the default registry: every tester of a built-in type must be reflexive on
+   a sample of its type (`NATIVE_SAMPLES` in `tests/unit/equality/tester/test_interface.py`)
 4. **Cross-library tests**: Test integration with PyTorch, NumPy, etc.
 
 ## Dependencies
