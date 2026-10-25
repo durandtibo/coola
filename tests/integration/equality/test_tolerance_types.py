@@ -545,3 +545,74 @@ def test_objects_are_allclose_array_outside_tolerance() -> None:
 
 def test_objects_are_equal_array_and_list_differ() -> None:
     assert not objects_are_equal(array("d", [1.0]), [1.0])
+
+
+BIG = 2**62
+
+
+def test_objects_are_allclose_large_ints_in_a_list_differ() -> None:
+    assert not objects_are_allclose([BIG], [BIG + 1], atol=0.5, rtol=0.0)
+
+
+@numpy_available
+@pytest.mark.parametrize("dtype", ["int64", "uint64"])
+def test_objects_are_allclose_large_ints_in_a_numpy_array_differ(dtype: str) -> None:
+    assert not objects_are_allclose(
+        np.array([BIG], dtype=dtype), np.array([BIG + 1], dtype=dtype), atol=0.5, rtol=0.0
+    )
+
+
+@torch_available
+def test_objects_are_allclose_large_ints_in_a_torch_tensor_differ() -> None:
+    assert not objects_are_allclose(
+        torch.tensor([BIG]), torch.tensor([BIG + 1]), atol=0.5, rtol=0.0
+    )
+
+
+@pandas_available
+@pytest.mark.parametrize("dtype", ["int64", "Int64"])
+def test_objects_are_allclose_large_ints_in_a_pandas_series_differ(dtype: str) -> None:
+    assert not objects_are_allclose(
+        pd.Series([BIG], dtype=dtype), pd.Series([BIG + 1], dtype=dtype), atol=0.5, rtol=0.0
+    )
+
+
+@pandas_available
+def test_objects_are_allclose_large_ints_with_a_null_in_a_pandas_series_differ() -> None:
+    assert not objects_are_allclose(
+        pd.Series([BIG, None], dtype="Int64"),
+        pd.Series([BIG + 1, None], dtype="Int64"),
+        atol=0.5,
+        rtol=0.0,
+    )
+
+
+@pandas_available
+def test_objects_are_allclose_large_ints_in_a_pandas_frame_differ() -> None:
+    assert not objects_are_allclose(
+        pd.DataFrame({"a": [BIG]}), pd.DataFrame({"a": [BIG + 1]}), atol=0.5, rtol=0.0
+    )
+
+
+@polars_available
+def test_objects_are_allclose_large_ints_in_a_polars_series_differ() -> None:
+    assert not objects_are_allclose(pl.Series([BIG]), pl.Series([BIG + 1]), atol=0.5, rtol=0.0)
+
+
+@numpy_available
+@pytest.mark.parametrize("dtype", [np.float16, np.float32])
+def test_objects_are_allclose_small_floats_at_the_edge_of_the_range(dtype: type) -> None:
+    assert not objects_are_allclose(
+        np.array([60000], dtype=dtype), np.array([-60000], dtype=dtype), rtol=1.5, atol=0.0
+    )
+
+
+@torch_available
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32])
+def test_objects_are_allclose_small_torch_floats_at_the_edge_of_the_range(dtype: object) -> None:
+    assert not objects_are_allclose(
+        torch.tensor([60000.0], dtype=dtype),
+        torch.tensor([-60000.0], dtype=dtype),
+        rtol=1.5,
+        atol=0.0,
+    )

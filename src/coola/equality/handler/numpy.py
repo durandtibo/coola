@@ -141,12 +141,7 @@ def _durations_close(array1: np.ndarray, array2: np.ndarray, config: EqualityCon
 def _arrays_close(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) -> bool:
     if array1.shape != array2.shape:
         return False
-    # The integers and the booleans are converted: an unsigned subtraction wraps around.
-    if array1.dtype.kind not in {"f", "c"}:
-        array1 = array1.astype(np.float64)
-    if array2.dtype.kind not in {"f", "c"}:
-        array2 = array2.astype(np.float64)
-    with np.errstate(invalid="ignore"):  # ``inf - inf``
+    with np.errstate(invalid="ignore", over="ignore"):  # ``inf - inf``
         close = elementwise_close(
             array1, array2, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan, xp=np
         )

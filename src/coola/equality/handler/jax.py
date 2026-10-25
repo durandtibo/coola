@@ -98,9 +98,6 @@ def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
 def _arrays_close(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig) -> bool:
     if array1.shape != array2.shape or array1.dtype != array2.dtype:
         return False
-    # The integers and the booleans are converted: an unsigned subtraction wraps around.
-    if not jnp.issubdtype(array1.dtype, jnp.inexact):
-        array1, array2 = array1.astype(float), array2.astype(float)
     close = elementwise_close(
         array1, array2, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan, xp=jnp
     )

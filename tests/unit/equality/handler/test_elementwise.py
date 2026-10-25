@@ -1,9 +1,18 @@
 from __future__ import annotations
 
+from unittest.mock import Mock
+
 import numpy as np
 import pytest
 
 from coola.equality.handler.elementwise import elementwise_close
+from coola.testing.fixtures import torch_available
+from coola.utils.imports import is_torch_available
+
+if is_torch_available():
+    import torch
+else:  # pragma: no cover
+    torch = Mock()
 
 NAN = float("nan")
 INF = float("inf")
@@ -81,3 +90,177 @@ def test_elementwise_close_does_not_mutate_the_inputs(equal_nan: bool) -> None:
     x, y = np.array([1.0, NAN]), np.array([1.1, NAN])
     elementwise_close(x, y, atol=0.2, rtol=0.0, equal_nan=equal_nan, xp=np)
     assert np.array_equal(x, [1.0, NAN], equal_nan=True)
+
+
+def _int_close(
+    x: list[int], y: list[int], *, dtype: str = "int64", atol: float = 0.0, rtol: float = 0.0
+) -> list[bool]:
+    return elementwise_close(
+        np.array(x, dtype=dtype),
+        np.array(y, dtype=dtype),
+        atol=atol,
+        rtol=rtol,
+        equal_nan=False,
+        xp=np,
+    ).tolist()
+
+
+def _torch_int_close(
+    x: list[int], y: list[int], *, dtype: object = None, atol: float = 0.0, rtol: float = 0.0
+) -> list[bool]:
+    return elementwise_close(
+        torch.tensor(x, dtype=dtype or torch.int64),
+        torch.tensor(y, dtype=dtype or torch.int64),
+        atol=atol,
+        rtol=rtol,
+        equal_nan=False,
+        xp=torch,
+    ).tolist()
+
+
+def test_elementwise_close_integers_differ_by_one_above_2_53() -> None:
+    assert _int_close([2**62], [2**62 + 1], atol=0.5) == [False]
+
+
+def test_elementwise_close_integers_differ_by_one_above_2_53_reversed() -> None:
+    assert _int_close([2**62 + 1], [2**62], atol=0.5) == [False]
+
+
+def test_elementwise_close_integers_equal_above_2_53() -> None:
+    assert _int_close([2**62 + 1], [2**62 + 1]) == [True]
+
+
+def test_elementwise_close_integers_within_atol() -> None:
+    assert _int_close([3], [5], atol=2.0) == [True]
+
+
+def test_elementwise_close_integers_outside_atol() -> None:
+    assert _int_close([3], [5], atol=1.9) == [False]
+
+
+def test_elementwise_close_integers_rtol_scales_with_the_largest() -> None:
+    assert _int_close([100], [110], rtol=0.1) == [True]
+
+
+def test_elementwise_close_int64_difference_wraps_around() -> None:
+    # The exact difference is 2**64 - 1: the int64 subtraction wraps to -1.
+    assert _int_close([-(2**63)], [2**63 - 1], atol=1e19) == [False]
+
+
+def test_elementwise_close_int64_difference_wraps_around_within_atol() -> None:
+    assert _int_close([-(2**63)], [2**63 - 1], atol=1e30) == [True]
+
+
+def test_elementwise_close_uint64_extremes_outside_atol() -> None:
+    assert _int_close([0], [2**64 - 1], dtype="uint64", atol=1e19) == [False]
+
+
+def test_elementwise_close_uint64_extremes_within_atol() -> None:
+    assert _int_close([0], [2**64 - 1], dtype="uint64", atol=2e19) == [True]
+
+
+def test_elementwise_close_uint64_differ_by_one_above_2_53() -> None:
+    assert _int_close([2**64 - 1], [2**64 - 2], dtype="uint64", atol=0.5) == [False]
+
+
+def test_elementwise_close_uint8_does_not_wrap_around() -> None:
+    assert _int_close([255], [0], dtype="uint8", atol=254.0) == [False]
+
+
+def test_elementwise_close_int8_does_not_wrap_around() -> None:
+    assert _int_close([-128], [127], dtype="int8", atol=254.0) == [False]
+
+
+def test_elementwise_close_integers_is_symmetric() -> None:
+    x, y = [2**62, 1, -(2**63)], [2**62 + 1, 3, 2**63 - 1]
+    assert _int_close(x, y, atol=1.0, rtol=1e-3) == _int_close(y, x, atol=1.0, rtol=1e-3)
+
+
+def test_elementwise_close_integers_does_not_mutate_the_inputs() -> None:
+    x, y = np.array([1, 2], dtype="int8"), np.array([3, 4], dtype="int8")
+    elementwise_close(x, y, atol=5.0, rtol=0.0, equal_nan=False, xp=np)
+    assert x.dtype == np.int8
+
+
+@pytest.mark.parametrize("dtype", [np.float16, np.float32])
+def test_elementwise_close_small_float_does_not_overflow(dtype: type) -> None:
+    # |60000 - (-60000)| = 120000 > 1.5 * 60000: it overflows ``float16`` and wraps around.
+    result = elementwise_close(
+        np.array([60000], dtype=dtype),
+        np.array([-60000], dtype=dtype),
+        atol=0.0,
+        rtol=1.5,
+        equal_nan=False,
+        xp=np,
+    )
+    assert result.tolist() == [False]
+
+
+def test_elementwise_close_float32_tolerance_in_double_precision() -> None:
+    result = elementwise_close(
+        np.array([3.0e38], dtype=np.float32),
+        np.array([-3.0e38], dtype=np.float32),
+        atol=0.0,
+        rtol=2.1,
+        equal_nan=False,
+        xp=np,
+    )
+    assert result.tolist() == [True]
+
+
+def test_elementwise_close_small_float_does_not_warn() -> None:
+    with np.errstate(all="raise"):
+        elementwise_close(
+            np.array([60000], dtype=np.float16),
+            np.array([-60000], dtype=np.float16),
+            atol=0.0,
+            rtol=1.5,
+            equal_nan=False,
+            xp=np,
+        )
+
+
+def test_elementwise_close_complex64_tolerance_in_double_precision() -> None:
+    result = elementwise_close(
+        np.array([1 + 1j], dtype=np.complex64),
+        np.array([1.5 + 1j], dtype=np.complex64),
+        atol=0.6,
+        rtol=0.0,
+        equal_nan=False,
+        xp=np,
+    )
+    assert result.tolist() == [True]
+
+
+@torch_available
+def test_elementwise_close_torch_integers_differ_by_one_above_2_53() -> None:
+    assert _torch_int_close([2**62], [2**62 + 1], atol=0.5) == [False]
+
+
+@torch_available
+def test_elementwise_close_torch_int64_difference_wraps_around() -> None:
+    assert _torch_int_close([-(2**63)], [2**63 - 1], atol=1e19) == [False]
+
+
+@torch_available
+def test_elementwise_close_torch_int64_difference_wraps_around_within_atol() -> None:
+    assert _torch_int_close([-(2**63)], [2**63 - 1], atol=1e30) == [True]
+
+
+@torch_available
+def test_elementwise_close_torch_uint8_does_not_wrap_around() -> None:
+    assert _torch_int_close([255], [0], dtype=torch.uint8, atol=254.0) == [False]
+
+
+@torch_available
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32])
+def test_elementwise_close_torch_small_float_does_not_overflow(dtype: object) -> None:
+    result = elementwise_close(
+        torch.tensor([60000.0], dtype=dtype),
+        torch.tensor([-60000.0], dtype=dtype),
+        atol=0.0,
+        rtol=1.5,
+        equal_nan=False,
+        xp=torch,
+    )
+    assert result.tolist() == [False]
