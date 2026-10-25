@@ -487,7 +487,7 @@ Decision: ____
 A. Compare the mask and the unmasked values, ignore the data under the mask (the hasher already does;
 two arrays that print the same are equal). B. Keep comparing the data under the mask. Also decide
 whether `fill_value` stays compared (recommended: yes, it is visible through `filled()`).
-Recommendation: A. Decision: ____
+Recommendation: A. Decision: B
 
 ### Q6. Nested and `object` cells of frames (steps 7, 8, 13)
 
