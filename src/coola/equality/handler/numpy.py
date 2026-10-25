@@ -7,6 +7,7 @@ __all__ = ["NumpyArrayEqualHandler"]
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.elementwise import elementwise_close
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
@@ -95,17 +96,26 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         and is_numeric_array(array1)
         and is_numeric_array(array2)
     ):
-        # ``np.allclose`` scales the tolerance with the second array only, so the two
-        # directions are tried to make the comparison symmetric.
-        return np.allclose(
-            array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
-        ) or np.allclose(
-            array2, array1, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
-        )
+        return _arrays_close(array1, array2, config)
     # ``np.isnan`` is not defined for string/object/void dtypes, so
     # ``equal_nan`` is only forwarded when both arrays support it.
     equal_nan = config.equal_nan and _supports_nan(array1) and _supports_nan(array2)
     return np.array_equal(array1, array2, equal_nan=equal_nan)
+
+
+def _arrays_close(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) -> bool:
+    if array1.shape != array2.shape:
+        return False
+    # The integers and the booleans are converted: an unsigned subtraction wraps around.
+    if array1.dtype.kind not in {"f", "c"}:
+        array1 = array1.astype(np.float64)
+    if array2.dtype.kind not in {"f", "c"}:
+        array2 = array2.astype(np.float64)
+    with np.errstate(invalid="ignore"):  # ``inf - inf``
+        close = elementwise_close(
+            array1, array2, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan, xp=np
+        )
+    return bool(close.all())
 
 
 def _supports_nan(array: np.ndarray) -> bool:
