@@ -310,6 +310,8 @@ class Column:
 
 
 class Table(Protocol):  # what an adapter returns
+    kind_name: str  # "table", "series" or "array": the word used in the reasons (S3)
+
     def structure(self) -> Hashable: ...  # equal for the same shape, names, dtypes, index
     def columns(self) -> Iterator[Column]: ...
 
@@ -318,19 +320,23 @@ class TableEqualityTester(BaseEqualityTester[object]):
     def objects_are_equal(self, actual, expected, ctx):
         a, e = to_table(actual), to_table(expected)  # the adapter of the type
         if a.structure() != e.structure():
-            return ctx.fail(lambda: describe_structure_difference(a, e))
+            return ctx.fail(lambda: f"{a.kind_name}s have a different structure")
         for ca, ce in zip(
             a.columns(), e.columns()
         ):  # lazily: a column is converted only when reached
             if not column_close(ca, ce, ctx):  # the kernel, or the library's equals
-                return ctx.fail("tables have different values")  # first differing column: stop
+                return ctx.fail(  # first differing column: stop
+                    lambda: f"{a.kind_name}s have different values: column {ca.name!r} differs"
+                )
         return True
 ```
 
-A table is a leaf for the engine and is reported as a whole (R5): "tables have a different structure"
-or "tables have different values". There is no column or row in the path: the user finds the
-difference with the library (`DataFrame.compare`, `polars.testing`, `Table.equals`). The comparison
-still stops at the first column that differs, so the failing path is as cheap as the passing one.
+A table is a leaf for the engine and is reported as a whole (R5): "tables have a different structure",
+or "tables have different values: column 'price' differs" (S1: the name of the first differing
+column is free, since the loop knows it; a row is never looked up). A `Series` or an `Array` says
+"series" or "arrays" (S3, the `kind_name` of its adapter). There is no row in the path: the user finds
+the difference with the library (`DataFrame.compare`, `polars.testing`, `Table.equals`). The
+comparison stops at the first column that differs, so the failing path is as cheap as the passing one.
 
 | Kind       | Dtypes                                                                                                                                          | Comparison                                                                                  |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -413,7 +419,7 @@ met. The prototype bounds the gain of the engine, not of the whole rewrite.
 | C7  | **[verified]** `MappingProxyType` and `array.array` fall to `==`: no tolerance, a `mappingproxy` holding arrays raises `TypeError`                                                                                                                                                                                                                            | register both (two lines)                                                                                                |
 | C8  | **[verified]** `float16`/`float32` arrays at extreme values: `RuntimeWarning` and a wrong `True` (`60000` against `-60000`, `rtol=1.5`); a Python float gives `False`                                                                                                                                                                                         | cast to `float64` in the kernel                                                                                          |
 | C9  | **[verified]** masked arrays: the data under the mask is compared, so arrays that print identically differ; `hash_object` ignores it                                                                                                                                                                                                                          | **none (Q5)**: kept and documented (the hash ignores it, which keeps "equal implies same hash")                          |
-| C10 | **[verified]** `compare` gives an empty path for an array, a frame and an Arrow table; a set element is shown as an index (`actual[2]`)                                                                                                                                                                                                                       | the index in the path of an array (S2); `Element` for sets; a table stays one leaf (R5)                                  |
+| C10 | **[verified]** `compare` gives an empty path for an array, a frame and an Arrow table; a set element is shown as an index (`actual[2]`)                                                                                                                                                                                                                       | the index in the path of an array (S2, kept); `Element` for sets; a table stays one leaf (R5)                            |
 | C11 | **[verified]** `show_difference=True` is silent by default, exists on two functions, and there are 50 occurrences and 39 `report_difference` calls behind `if config.show_difference`                                                                                                                                                                         | one first-failure record; remove the option and the logger                                                               |
 | C12 | **[verified]** `compare` on 1M floats differing at index 0 takes 231 ms (`objects_are_equal`: 10 ms): it builds the `repr` of the roots                                                                                                                                                                                                                       | bounded reasons; drop the root `repr`s                                                                                   |
 | C13 | **[verified]** 6.4 frames per dict level; a 99-level dict fails with `RecursionError` from a 300-frame caller; 830k calls for 5 000 entries                                                                                                                                                                                                                   | the engine (section 4.2)                                                                                                 |
@@ -432,7 +438,9 @@ lazy loading.
 
 ### 10.2 Steps
 
-One PR per row, as `CLAUDE.md` asks. "B" marks a breaking change. Steps 1 to 8 do not touch the handler
+One PR per row, as `CLAUDE.md` asks. All PRs target a long-lived major-release branch, not `main`, and
+nothing is released before step 14 (T1). The branch merges `origin/main` regularly (as `CLAUDE.md`
+asks for conflicts) so that it does not drift. "B" marks a breaking change. Steps 1 to 8 do not touch the handler
 API and fix wrong answers; steps 9 to 14 move the architecture one family at a time, with `main` green
 after each.
 
@@ -465,8 +473,9 @@ by returning `(a, b, part)`). They share the major release; the migration guide 
   difference, path, lazy reasons, a tester that returns a bool and one that returns an iterator).
 - **Properties** (step 1) are the safety net of the migration. Add: reflexive for a copy of each
   library type with and without nulls, symmetric for each library type, `equal` implies equal hash.
-- **Benchmarks** in `tests/benchmarks/test_equality_benchmark.py`, added **before step 9**, fail on a
-  regression above 10%: 20 000 floats in a list 15.5 ms; dict of 5 000 `{float, [int, int]}` 55.9 ms
+- **Benchmarks** in `tests/benchmarks/test_equality_benchmark.py`, added **before step 9**, are reported by the
+  benchmark job and checked by hand at each step (T2); a regression above 10% is a reason to stop the
+  PR, not a failing check: 20 000 floats in a list 15.5 ms; dict of 5 000 `{float, [int, int]}` 55.9 ms
   (targets after step 11: 6 ms and 15 ms); `compare` of 1M floats differing at index 0 231 ms
   (target below 30 ms after step 10); two pandas series of 2M floats differing at index 0 5 898 ms
   (target below 10 ms after step 7); a 200k x 10 frame differing in one cell 538 ms (target below
@@ -654,7 +663,14 @@ intermediate states, a large diff). Decision: A
 | R2  | Cast small floats to `float64`                                                                        | section 6                                                                                                                         |
 | R3  | `TableEqualityTester(adapter)` only, `Engine`, export both path parts, helpers private except `close` | section 3                                                                                                                         |
 | R4  | Keep `max_depth=100` and `MaxDepthExceededError`                                                      | section 4.2                                                                                                                       |
-| R5  | A table is one leaf, reported as different, no column or row                                          | sections 5, 7                                                                                                                     |
+| R5  | A table is one leaf, reported as different, no row (the column name comes from S1)                    | sections 5, 7                                                                                                                     |
+| S1  | The reason of a table names the first differing column (never a row)                                  | section 7                                                                                                                         |
+| S2  | Arrays keep their index in the path                                                                   | sections 4.3, 5                                                                                                                   |
+| S3  | A `Series` says "series", an `Array` "arrays" (`kind_name`)                                           | section 7                                                                                                                         |
+| H1  | The hasher of masked arrays is left as it is (may change later)                                       | last section                                                                                                                      |
+| T1  | All steps land on a major-release branch; nothing is released before step 14                          | section 10.2                                                                                                                      |
+| T2  | Benchmark gates are reported and checked by hand, not a failing CI check                              | section 10.3                                                                                                                      |
+| T3  | The hashing follow-up is done after step 14                                                           | last section                                                                                                                      |
 
 ### Follow-up questions
 
@@ -734,6 +750,32 @@ name for itself (a `kind_name` string), still one tester.
 Recommendation: B.
 Decision: B
 
+**T1. Which release carries the breaking steps?** Steps 2, 7, 8 and 10 to 14 are breaking; the other
+steps are not. Options: A. every step lands in the next major release branch, in the order of
+section 10.2, and nothing is released until step 14 (one big break, a long-lived branch);
+B. the non-breaking steps (1, 3, 4, 5) are released in the current minor releases, the breaking ones
+wait for the major release, in order; C. all steps are released as they are merged, each breaking
+one with a version bump.
+
+Recommendation: B.
+Decision: A
+
+**T2. Are the benchmark gates a failing CI check?** `ci-benchmark.yaml` exists. The gates of
+section 10.3 (regression above 10%, and the targets after steps 7, 10, 11) can fail the build, or be
+reported only. Failing builds on timing are flaky on shared runners.
+Options: A. fail the build on a regression above 10% against the stored baseline of `main`, with a
+generous margin for the absolute targets; B. report only, and check by hand at each step.
+
+Recommendation: A for the relative gate, B for the absolute targets.
+Decision: B
+
+**T3. Who and when for the hashing follow-up?** The last section lists the hasher changes. Options:
+A. a separate design document and PRs after step 14; B. in parallel, after step 1 (the properties
+exist), so that the cross-container properties also test the hash from the start.
+
+Recommendation: B.
+Decision: A
+
 ## 12. Not covered
 
 - Per-library corner cases beyond the probes: sparse and quantized torch tensors, nested tensors,
@@ -790,7 +832,7 @@ result; its output on the 5 000-entry dict, on cycles and on `max_depth` is the 
 ## Changes in other sub-packages (later, outside this design)
 
 The design above is for `coola.equality` only. Equality is the reference: the changes below follow
-from it and are made afterwards, one PR each, without driving any choice made above. They are listed
+from it and are made after step 14 (T3), one PR each, without driving any choice made above. They are listed
 so that nothing is forgotten.
 
 ### Hashing (`coola.hashing`)
@@ -809,8 +851,8 @@ design implies for the hashers:
 | `MappingProxyType`, `array.array`                     | compared as a mapping and a sequence    | check they have a hasher consistent with a `dict` and a `list` of the same content                 |
 | Time resolution (`timedelta64[s]` against `[ns]`)     | different dtypes                        | allowed to share a hash                                                                            |
 
-The hashing property tests (`tests/properties/test_hashing*.py`) get the cross-container equality
-properties of step 1 as a second source: any equal pair that the equality tests generate must hash
+After step 14, the hashing property tests (`tests/properties/test_hashing*.py`) get the cross-container
+equality properties of step 1 as a second source: any equal pair that the equality tests generate must hash
 equally. Where the hasher needs a rule that is not obvious, the rule is taken from the equality
 guide, not the other way round.
 
