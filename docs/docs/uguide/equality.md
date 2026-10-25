@@ -1632,10 +1632,11 @@ not equal unless `equal_nan=True`.
 
 Details:
 
-- **pandas**: with `equal_nan=False` (the default), a data frame or a series that contains any
-  missing value is never equal to another one, **even to a copy of itself**, because the missing
-  values are not equal to each other. Use `equal_nan=True` to compare the data frames with missing
-  values.
+- **pandas**: with `equal_nan=False` (the default), a data frame or a series that contains a float
+  (or complex) `NaN` is never equal to another one, **even to a copy of itself**, because the `NaN`
+  values are not equal to each other. Use `equal_nan=True` to compare the data frames with `NaN`.
+  The other missing values (`None`, `pandas.NA`, `NaT`) are equal to each other, whatever
+  `equal_nan` is.
 - **PyArrow**: the objects are first compared with `equals`. If they are different and a tolerance
   or `equal_nan` is set, the integer and floating-point columns are compared like NumPy arrays, and
   the `null` values must be at the same positions. The other types (strings, nested types, etc.)

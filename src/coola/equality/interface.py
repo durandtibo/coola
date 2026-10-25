@@ -155,10 +155,8 @@ def objects_are_equal(
 
     Note:
         The types are compared first, so ``1`` and ``1.0`` are different
-        (as are ``[1]`` and ``[1.0]``), even with a tolerance. A boolean
-        is a label, not a quantity: ``True`` and ``False`` are never
-        close, even with ``atol=1`` (also for ``numpy.bool_`` and for
-        boolean arrays).
+        (as are ``[1]`` and ``[1.0]``). There is no tolerance: use
+        ``objects_are_allclose`` to compare numbers within a tolerance.
 
         An object is always equal to itself, even if it contains ``NaN``
         and ``equal_nan=False``: ``[n]`` equals ``[n]`` for
