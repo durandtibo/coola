@@ -473,7 +473,7 @@ the maintainers; the steps of section 10.2 that depend on a choice are named.
 | A. Iterative | No `RecursionError`, explaining is free, container testers are pure functions of two objects | About 1.5x slower than B on the happy path (still 3 to 5x faster than `main`); a tester returns an iterator, which is less familiar |
 | B. Recursive | Fastest; testers call `ctx.compare`, the familiar shape                                      | Interpreter stack limit and `max_depth` stay; depth, cycle and path need a `try/finally`                                            |
 
-Recommendation: A. Decision: ____
+Recommendation: A. Decision: A
 
 ### Q2. Tester return protocol (step 9)
 
@@ -483,7 +483,7 @@ Recommendation: A. Decision: ____
 | B. Two methods, `equal` (leaf) and `expand` (container) plus a `container` flag | Explicit and type-checkable; two entry points to document and to forget |
 | C. Always an iterator (a leaf yields nothing and fails through `ctx.fail`)      | One shape; leaves pay for a generator                                   |
 
-Recommendation: A. Decision: ____
+Recommendation: A. Decision: A
 
 ### Q3. Remove `show_difference` and the logger sink (step 10)
 
@@ -545,7 +545,7 @@ B. Also `str`, `bytes` and every non-numeric type through an explicit "label" li
 
 Decided by the constraints: major release, no adapter, no alias, no deprecation period, deprecated and
 compatibility code removed. Remaining question: should the release notes carry a before/after
-example of a custom tester? Recommendation: yes, five lines. Decision: ____
+example of a custom tester? Recommendation: yes, five lines. Decision: remove compatibility code
 
 ### Q12. Public surface (step 14)
 
@@ -559,7 +559,7 @@ public name of the engine type (`Engine`, `ComparisonContext`) and whether `Elem
 
 A. Per-call `dict` (recommended: no lock in the hot path; a registration during a call is seen by
 the next call). B. A lock-free immutable snapshot inside the registry (benefits `hashing` and
-`summary`, which share the registry class, but changes a shared component). Decision: ____
+`summary`, which share the registry class, but changes a shared component). Decision: A
 
 ### Q14. Size of the first engine PR (step 9)
 
