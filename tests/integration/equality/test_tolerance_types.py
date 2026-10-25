@@ -285,3 +285,25 @@ def test_allclose_atol_and_rtol_add_up(pair: tuple) -> None:
 @pytest.mark.parametrize("pair", PAIRS_BY_TYPE.values(), ids=PAIRS_BY_TYPE.keys())
 def test_allclose_atol_and_rtol_add_up_is_symmetric(pair: tuple) -> None:
     assert objects_are_allclose(*reversed(pair), atol=0.5, rtol=0.5)
+
+
+########################################
+#     Tests for masked arrays          #
+########################################
+
+
+@numpy_available
+def test_objects_are_equal_masked_array_ignores_the_data_under_the_mask() -> None:
+    assert objects_are_equal(np.ma.array([1, 2], mask=[0, 1]), np.ma.array([1, 3], mask=[0, 1]))
+
+
+@numpy_available
+def test_objects_are_equal_masked_array_different_unmasked_value() -> None:
+    assert not objects_are_equal(np.ma.array([1, 2], mask=[0, 1]), np.ma.array([3, 2], mask=[0, 1]))
+
+
+@numpy_available
+def test_objects_are_equal_masked_array_in_a_dict() -> None:
+    assert objects_are_equal(
+        {"x": np.ma.array([1, 2], mask=[0, 1])}, {"x": np.ma.array([1, 3], mask=[0, 1])}
+    )

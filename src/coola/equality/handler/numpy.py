@@ -2,15 +2,16 @@ r"""Implement handlers for ``numpy.ndarray``s."""
 
 from __future__ import annotations
 
-__all__ = ["NumpyArrayEqualHandler"]
+__all__ = ["NumpyArrayEqualHandler", "NumpyMaskedArrayDataHandler"]
 
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
-from coola.equality.handler.utils import report_difference
+from coola.equality.handler.utils import AttributeName, report_difference
 from coola.utils.imports import is_numpy_available
+from coola.utils.safe import safe_str
 
 if TYPE_CHECKING or is_numpy_available():
     import numpy as np
@@ -133,3 +134,64 @@ def is_numeric_array(array: np.ndarray) -> bool:
         ```
     """
     return array.dtype.kind in {"?", "b", "B", "i", "u", "f", "c"}
+
+
+class NumpyMaskedArrayDataHandler(HandlerEqualityMixin, BaseEqualityHandler):
+    r"""Check if the two NumPy masked arrays have the same mask and the
+    same unmasked values.
+
+    This handler returns ``False`` if the masks are different or if
+    the values that are not masked are different, otherwise it passes
+    the inputs to the next handler. The data under the mask is
+    ignored: it is unspecified (it is what the array held before
+    masking), so two arrays that print identically are equal. The
+    arrays must have the same shape, which another handler checks.
+
+    Example:
+        ```pycon
+        >>> import numpy as np
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler import NumpyMaskedArrayDataHandler, TrueHandler
+        >>> config = EqualityConfig()
+        >>> handler = NumpyMaskedArrayDataHandler(next_handler=TrueHandler())
+        >>> handler.handle(
+        ...     np.ma.array([1, 2], mask=[0, 1]), np.ma.array([1, 3], mask=[0, 1]), config
+        ... )
+        True
+        >>> handler.handle(
+        ...     np.ma.array([1, 2], mask=[0, 1]), np.ma.array([1, 2], mask=[1, 0]), config
+        ... )
+        False
+
+        ```
+    """
+
+    def handle(
+        self,
+        actual: np.ma.MaskedArray,
+        expected: np.ma.MaskedArray,
+        config: EqualityConfig,
+    ) -> bool:
+        mask1, mask2 = np.ma.getmaskarray(actual), np.ma.getmaskarray(expected)
+        if not np.array_equal(mask1, mask2):
+            if config.show_difference:
+                report_difference(
+                    config,
+                    "objects have different mask: %s vs %s",
+                    safe_str(mask1),
+                    safe_str(mask2),
+                    path=(AttributeName("mask"),),
+                )
+            return False
+        values1, values2 = actual.compressed(), expected.compressed()
+        if not config.registry.objects_are_equal(values1, values2, config):
+            if config.show_difference:
+                report_difference(
+                    config,
+                    "objects have different data: %s vs %s",
+                    safe_str(values1),
+                    safe_str(values2),
+                    path=(AttributeName("data"),),
+                )
+            return False
+        return self._handle_next(actual, expected, config=config)

@@ -575,3 +575,21 @@ def test_numpy_masked_array_equality_tester_no_numpy() -> None:
         pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyMaskedArrayEqualityTester()
+
+
+@numpy_available
+def test_numpy_masked_array_equality_tester_ignores_the_data_under_the_mask(
+    config: EqualityConfig,
+) -> None:
+    assert NumpyMaskedArrayEqualityTester().objects_are_equal(
+        np.ma.array([1, 2], mask=[0, 1]), np.ma.array([1, 3], mask=[0, 1]), config
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_equality_tester_fill_value_is_compared(config: EqualityConfig) -> None:
+    assert not NumpyMaskedArrayEqualityTester().objects_are_equal(
+        np.ma.array([1, 2], mask=[0, 1], fill_value=3),
+        np.ma.array([1, 2], mask=[0, 1], fill_value=4),
+        config,
+    )

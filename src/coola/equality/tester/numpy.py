@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
     NumpyArrayEqualHandler,
+    NumpyMaskedArrayDataHandler,
     SameAttributeHandler,
-    SameDataHandler,
     SameDTypeHandler,
     SameObjectHandler,
     SameShapeHandler,
@@ -100,16 +100,16 @@ class NumpyArrayEqualityTester(BaseChainEqualityTester[np.ndarray]):
 class NumpyMaskedArrayEqualityTester(BaseChainEqualityTester[np.ma.MaskedArray]):
     r"""Implement an equality tester for ``numpy.ma.MaskedArray``.
 
-    This tester compares NumPy masked arrays by checking data, mask, and fill_value.
+    This tester compares NumPy masked arrays by checking the mask, the unmasked
+    values and the fill_value. The data under the mask is ignored.
     The handler chain:
     1. SameObjectHandler: Check for object identity
     2. SameTypeHandler: Verify both are masked arrays
     3. SameDTypeHandler: Check arrays have the same dtype
     4. SameShapeHandler: Verify arrays have the same shape
-    5. SameDataHandler: Compare the underlying data arrays
-    6. SameAttributeHandler("mask"): Compare the mask arrays
-    7. SameAttributeHandler("fill_value"): Compare fill values
-    8. TrueHandler: Return True if all checks pass
+    5. NumpyMaskedArrayDataHandler: Compare the masks, then the unmasked values
+    6. SameAttributeHandler("fill_value"): Compare fill values
+    7. TrueHandler: Return True if all checks pass
 
     Example:
         Basic masked array comparison:
@@ -162,8 +162,7 @@ class NumpyMaskedArrayEqualityTester(BaseChainEqualityTester[np.ma.MaskedArray])
             SameTypeHandler(),
             SameDTypeHandler(),
             SameShapeHandler(),
-            SameDataHandler(),
-            SameAttributeHandler("mask"),
+            NumpyMaskedArrayDataHandler(),
             SameAttributeHandler("fill_value"),
             TrueHandler(),
         )

@@ -7,7 +7,12 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import FalseHandler, NumpyArrayEqualHandler, TrueHandler
+from coola.equality.handler import (
+    FalseHandler,
+    NumpyArrayEqualHandler,
+    NumpyMaskedArrayDataHandler,
+    TrueHandler,
+)
 from coola.equality.handler.numpy import array_equal, is_numeric_array
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
@@ -399,3 +404,108 @@ def test_array_equal_rtol_outside_the_tolerance() -> None:
 def test_array_equal_rtol_outside_the_tolerance_reversed() -> None:
     config = EqualityConfig(rtol=0.01, atol=0.0)
     assert not array_equal(np.array([100.0]), np.array([101.5]), config)
+
+
+####################################################
+#     Tests for NumpyMaskedArrayDataHandler        #
+####################################################
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_repr() -> None:
+    assert repr(NumpyMaskedArrayDataHandler()).startswith("NumpyMaskedArrayDataHandler(")
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_equal_same_values(config: EqualityConfig) -> None:
+    assert NumpyMaskedArrayDataHandler(next_handler=TrueHandler()).handle(
+        np.ma.array([1, 2], mask=[0, 1]), np.ma.array([1, 2], mask=[0, 1]), config
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_ignores_the_data_under_the_mask(
+    config: EqualityConfig,
+) -> None:
+    assert NumpyMaskedArrayDataHandler(next_handler=TrueHandler()).handle(
+        np.ma.array([1, 2], mask=[0, 1]), np.ma.array([1, 3], mask=[0, 1]), config
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_no_mask_equals_all_false_mask(
+    config: EqualityConfig,
+) -> None:
+    assert NumpyMaskedArrayDataHandler(next_handler=TrueHandler()).handle(
+        np.ma.array([1, 2]), np.ma.array([1, 2], mask=[0, 0]), config
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_different_mask(config: EqualityConfig) -> None:
+    assert not NumpyMaskedArrayDataHandler(next_handler=TrueHandler()).handle(
+        np.ma.array([1, 2], mask=[0, 1]), np.ma.array([1, 2], mask=[1, 0]), config
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_different_unmasked_values(config: EqualityConfig) -> None:
+    assert not NumpyMaskedArrayDataHandler(next_handler=TrueHandler()).handle(
+        np.ma.array([1, 2], mask=[0, 1]), np.ma.array([3, 2], mask=[0, 1]), config
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_different_mask_and_data_reports_the_mask(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        NumpyMaskedArrayDataHandler().handle(
+            np.ma.array([1, 2], mask=[0, 1]), np.ma.array([3, 2], mask=[1, 0]), config
+        )
+    assert caplog.messages[-1].startswith("objects have different mask:")
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_different_values_reports_the_data(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        NumpyMaskedArrayDataHandler().handle(
+            np.ma.array([1, 2], mask=[0, 1]), np.ma.array([3, 2], mask=[0, 1]), config
+        )
+    assert caplog.messages[-1].startswith("objects have different data:")
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_tolerance() -> None:
+    assert NumpyMaskedArrayDataHandler(next_handler=TrueHandler()).handle(
+        np.ma.array([1.0, 9.0], mask=[0, 1]),
+        np.ma.array([1.001, 0.0], mask=[0, 1]),
+        EqualityConfig(atol=0.01),
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_equal_nan_unmasked() -> None:
+    assert NumpyMaskedArrayDataHandler(next_handler=TrueHandler()).handle(
+        np.ma.array([float("nan"), 1.0], mask=[0, 1]),
+        np.ma.array([float("nan"), 2.0], mask=[0, 1]),
+        EqualityConfig(equal_nan=True),
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_calls_the_next_handler(config: EqualityConfig) -> None:
+    assert not NumpyMaskedArrayDataHandler(next_handler=FalseHandler()).handle(
+        np.ma.array([1, 2], mask=[0, 1]), np.ma.array([1, 2], mask=[0, 1]), config
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_data_handler_0d(config: EqualityConfig) -> None:
+    assert NumpyMaskedArrayDataHandler(next_handler=TrueHandler()).handle(
+        np.ma.array(5, mask=True), np.ma.array(6, mask=True), config
+    )
