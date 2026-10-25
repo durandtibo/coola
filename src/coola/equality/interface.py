@@ -105,6 +105,8 @@ def objects_are_allclose(
         ``False``.
 
     Raises:
+        TypeError: If ``rtol`` or ``atol`` is not a real number, or if
+            ``max_depth`` is not an ``int`` (a ``bool`` is rejected).
         ValueError: If ``rtol`` or ``atol`` is negative, or if
             ``max_depth`` is not positive.
         MaxDepthExceededError: If the nesting of the objects exceeds
@@ -180,6 +182,8 @@ def objects_are_equal(
         ``True`` if the two objects are exactly equal, otherwise ``False``.
 
     Raises:
+        TypeError: If ``max_depth`` is not an ``int`` (a ``bool`` is
+            rejected).
         ValueError: If ``max_depth`` is not positive.
         MaxDepthExceededError: If the nesting of the objects exceeds
             ``max_depth``. It is a ``RecursionError``.

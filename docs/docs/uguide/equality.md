@@ -771,7 +771,9 @@ There are three failure modes, and only the last two raise:
 | Nesting deeper than `max_depth`          | `coola.equality.MaxDepthExceededError`, a subclass of `RecursionError`                                            |
 | Interpreter recursion limit reached      | `RecursionError` with advice on `sys.setrecursionlimit()`, raised before `max_depth` is hit if it is set too high |
 
-`max_depth` must be positive, otherwise a `ValueError` is raised.
+`max_depth` must be a positive `int` (not a `bool`), otherwise a `ValueError` (not positive) or a
+`TypeError` (not an `int`) is raised. `rtol` and `atol` must be non-negative finite real numbers
+(not `bool`).
 
 For deeply nested structures, you can control the maximum recursion depth to prevent stack
 overflow. The `max_depth` parameter sets the maximum nesting level that will be compared. It is a

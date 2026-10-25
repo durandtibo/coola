@@ -21,6 +21,7 @@ __all__ = [
     "validate_non_negative",
     "validate_non_positive",
     "validate_not_empty",
+    "validate_number",
     "validate_positive",
     "validate_set",
     "validate_str",
@@ -38,7 +39,7 @@ from coola.validation.comparison import (
     validate_positive,
 )
 from coola.validation.container import validate_in, validate_not_empty
-from coola.validation.numeric import validate_finite
+from coola.validation.numeric import validate_finite, validate_number
 from coola.validation.type import (
     validate_bool,
     validate_dict,

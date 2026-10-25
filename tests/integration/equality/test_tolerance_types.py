@@ -315,3 +315,19 @@ def test_objects_are_equal_timedelta64_scalar() -> None:
 @numpy_available
 def test_objects_are_equal_timedelta64_scalar_different() -> None:
     assert not objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(2, "s"))
+
+
+########################################
+#     Tests for the option types       #
+########################################
+
+
+@pytest.mark.parametrize("value", [True, 1.5])
+def test_objects_are_equal_max_depth_wrong_type(value: object) -> None:
+    with pytest.raises(TypeError, match="max_depth must be an int"):
+        objects_are_equal([1], [1], max_depth=value)
+
+
+def test_objects_are_allclose_atol_bool() -> None:
+    with pytest.raises(TypeError, match="atol must be a real number"):
+        objects_are_allclose(1.0, 1.0, atol=True)
