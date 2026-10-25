@@ -319,7 +319,9 @@ class TableEqualityTester(BaseEqualityTester[object]):
         a, e = to_table(actual), to_table(expected)  # the adapter of the type
         if a.structure() != e.structure():
             return ctx.fail(lambda: describe_structure_difference(a, e))
-        for ca, ce in zip(a.columns(), e.columns()):  # lazily: a column is converted only when reached
+        for ca, ce in zip(
+            a.columns(), e.columns()
+        ):  # lazily: a column is converted only when reached
             if not column_close(ca, ce, ctx):  # the kernel, or the library's equals
                 return ctx.fail("tables have different values")  # first differing column: stop
         return True
