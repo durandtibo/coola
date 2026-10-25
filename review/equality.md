@@ -514,7 +514,7 @@ Recommendation: A. Decision: B
 A. Compare each cell through the engine: one rule per value (`None` is not `NaN`, a nested float gets
 the tolerance), slower; keep the library's `equals` as the fast path when there is no NaN and no
 tolerance. B. Leave nested cells to the library (fast, three rules, wrong `equal_nan`). C. Forbid
-nested cells (raise). Recommendation: A. Decision: ____
+nested cells (raise). Recommendation: A. Decision: B
 
 ### Q7. Time resolution is part of the dtype (step 13)
 
@@ -545,7 +545,7 @@ B. Also `str`, `bytes` and every non-numeric type through an explicit "label" li
 
 Decided by the constraints: major release, no adapter, no alias, no deprecation period, deprecated and
 compatibility code removed. Remaining question: should the release notes carry a before/after
-example of a custom tester? Recommendation: yes, five lines. Decision: remove compatibility code
+example of a custom tester? Recommendation: yes, five lines. Decision: yes, create a migration guide
 
 ### Q12. Public surface (step 14)
 
