@@ -5,6 +5,22 @@ the current implementation (`main`, `bb94c6fd`) to get there. The design follows
 table of `docs/docs/uguide/equality.md`. Its aim is a small package that is easy to read: one engine,
 one extension point, one numeric rule, one frame algorithm. Breaking changes are accepted.
 
+## Constraints
+
+1. **Performance is a requirement.** A comparison that is too slow is not useful. Both the passing and
+   the failing path are measured, every step of section 10.2 must keep the benchmark gates of
+   section 10.3, and a design that is simpler but slower is rejected unless the gate is met.
+2. **Early exit.** Two objects are different as soon as one difference is found: the comparison
+   stops there and nothing after it is visited, converted or formatted.
+3. **First difference only, on demand.** Only the first difference is explained, and only when an
+   explanation is asked for (`compare`, `assert_*`). `objects_are_equal` and `objects_are_allclose`
+   build no message and no path.
+4. **Major release.** Breaking changes are fine and compatibility is not a design input: there is no
+   adapter, no alias, no deprecation period. Deprecated and compatibility code is removed (for
+   example the `RuntimeError` base of `HandlerCycleError` and the `RecursionError` base of
+   `MaxDepthExceededError`, which has no reason to exist once the engine does not recurse). The
+   release notes list the changes.
+
 Evidence comes from probes and benchmarks run on `main` (Python 3.14, numpy 2.5, torch 2.14, pandas
 3.0, polars 2.0, pyarrow 26, jax 0.12, xarray 2026.9, pydantic 2.14) and from a throw-away prototype
 of the engine kept outside the repository (section 9). Items marked **[verified]** were reproduced on
@@ -28,6 +44,7 @@ construction instead of by the discipline of each tester.
 | Not transitive, pure    | A tolerance is not transitive; a comparison never modifies its inputs.                                                                                                                                                                                                                   | (documented)                                  |
 | Failure modes           | Cycle: equal. Nesting above `max_depth`: `MaxDepthExceededError`. `==` that raises or returns a non-bool: `TypeError` naming the type; other exceptions propagate. No `RecursionError`, whatever the caller's stack.                                                                     | the engine (explicit stack)                   |
 | Consistent with hashing | Equal objects have the same `hash_object`.                                                                                                                                                                                                                                               | the missing-value rule, the table comparer    |
+| Fast, early exit        | A comparison stops at the first difference and visits nothing after it; the failing path costs what the passing path costs (benchmarked); only the first difference is explained, and only on demand.                                                                                    | the engine, lazy reasons, benchmark gates     |
 | Location                | `compare` and `assert_*` give the path of the first difference: keys, positions, attributes, the column and row of a frame, the index in an array, the element of a set.                                                                                                                 | the engine's stack and `ctx.fail`             |
 
 ## 2. Architecture
@@ -136,9 +153,12 @@ order is the one reported). The full loop is in the appendix. For each pair:
    in the call (the registry lookup costs 300 ns, so it is paid once per type).
 4. Call the tester. A `bool` is the verdict. An iterator is a container: if its pair is already on
    the stack the pair is equal (cycle); if the stack is `max_depth` deep, raise
-   `MaxDepthExceededError`; otherwise push it and continue with its first child.
+   `MaxDepthExceededError` (a plain `Exception`, no longer a `RecursionError`); otherwise push it and continue with its first child.
 5. On `False`, the path is the path parts of the stack, the part of the failing pair and the parts
    given to `ctx.fail`. It is read once, here.
+
+The loop returns at the first `False`: nothing after the first difference is visited, and nothing
+is formatted unless the caller asked for an explanation.
 
 Consequences: stack use is constant (100 000 nested dicts compare under the default interpreter
 limit of 1 000), so `RecursionError` cannot happen and `max_depth` is a policy, not a safety net;
@@ -402,27 +422,27 @@ One PR per row, as `CLAUDE.md` asks. "B" marks a breaking change. Steps 1 to 8 d
 API and fix wrong answers; steps 9 to 14 move the architecture one family at a time, with `main` green
 after each.
 
-| Step | Content                                                                                                                                                                                                                                                                                                                                                                                                       | Closes             | B   | Depends on |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | --- | ---------- |
-| 1    | **Cross-container property tests**: the same random `list[float]` and `list[int]` in a list, NumPy, torch (float64, int64), pandas, polars, pyarrow, xarray give the same answer for random `rtol`, `atol`, `equal_nan`; a copy is equal; the swap is symmetric; `xfail` for C1, C3, C4, C6 until fixed                                                                                                       | C19                |     |            |
-| 2    | Enum members exact in the number tester; pandas booleans exact (`Series`, `DataFrame`, `Index`, extension arrays)                                                                                                                                                                                                                                                                                             | C2, C3             | B   | 1          |
-| 3    | Kernel: exact integer difference, cast of small floats to `float64`, `over` silenced; applies to NumPy, torch, JAX and the numeric columns of frames                                                                                                                                                                                                                                                          | C1, C8             |     | 1          |
-| 4    | Register `types.MappingProxyType` and `array.array`; regression test with arrays inside a `mappingproxy`                                                                                                                                                                                                                                                                                                      | C7                 |     |            |
-| 5    | Fix the four documentation statements; find why the Markdown doctest job did not stop on `extending.md`                                                                                                                                                                                                                                                                                                       | C17                |     |            |
-| 6    | Masked arrays: compare the mask and the unmasked values, keep `fill_value`                                                                                                                                                                                                                                                                                                                                    | C9                 | B   |            |
-| 7    | pandas on column kinds inside the current handler (no `pandas.testing`; `object` and nested cells through the registry); failing-path benchmark within 2x of the passing path                                                                                                                                                                                                                                 | C4, C5, C6         | B   | 1, 3       |
-| 8    | polars and pyarrow on column kinds: nested cells through the registry                                                                                                                                                                                                                                                                                                                                         | C4                 | B   | 1, 3       |
-| 9    | **Engine**: add `Engine`, the lookup cache, the explicit stack, identity/type/depth/cycle ownership. Every existing chain tester becomes a leaf tester that the engine calls with the engine as `config` (the old attributes stay as properties), so nothing breaks yet                                                                                                                                       | C13, part C14, C15 |     | 1          |
-| 10   | One reporting mechanism: `report_difference` forwards to `ctx.fail`; first-failure record; lazy bounded reasons; remove `show_difference`, the logger sink, `compare(tolerance=, max_repr_chars=)` and the root fields of the result                                                                                                                                                                          | C11, C12, C15      | B   | 9          |
-| 11   | Port the Python testers (object, scalar, sequence, mapping, set, dataclass, attributes, pydantic) from chains to `objects_are_equal` returning a verdict or children; a port reports its location; delete the handlers nobody uses                                                                                                                                                                            | C14                | B   | 10         |
-| 12   | Port the array testers (NumPy, masked, torch, JAX, xarray): index in the path, bounded value reasons                                                                                                                                                                                                                                                                                                          | C14, C10           | B   | 11         |
-| 13   | `TableEqualityTester` and the three adapters replace the frame handlers; column and row in the path; `Element` for sets                                                                                                                                                                                                                                                                                       | C16, C10           | B   | 11, 7, 8   |
-| 14   | Delete the chain machinery (`BaseEqualityHandler`, mixin, `create_chain`, `BaseChainEqualityTester`, `HandlerEqualityTester`, `check_recursion_depth`, `track_comparison`); freeze `EqualityConfig`; library code to private modules; trim `__all__`; `coola.io` and the others import from `coola.equality`; migration note in `docs/docs/migration`; rewrite `equality_handler.md` and `equality_tester.md` | C14, C15, C18      | B   | 12, 13     |
+| Step | Content                                                                                                                                                                                                                                                                                                                                                                             | Closes             | B   | Depends on |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | --- | ---------- |
+| 1    | **Cross-container property tests**: the same random `list[float]` and `list[int]` in a list, NumPy, torch (float64, int64), pandas, polars, pyarrow, xarray give the same answer for random `rtol`, `atol`, `equal_nan`; a copy is equal; the swap is symmetric; `xfail` for C1, C3, C4, C6 until fixed                                                                             | C19                |     |            |
+| 2    | Enum members exact in the number tester; pandas booleans exact (`Series`, `DataFrame`, `Index`, extension arrays)                                                                                                                                                                                                                                                                   | C2, C3             | B   | 1          |
+| 3    | Kernel: exact integer difference, cast of small floats to `float64`, `over` silenced; applies to NumPy, torch, JAX and the numeric columns of frames                                                                                                                                                                                                                                | C1, C8             |     | 1          |
+| 4    | Register `types.MappingProxyType` and `array.array`; regression test with arrays inside a `mappingproxy`                                                                                                                                                                                                                                                                            | C7                 |     |            |
+| 5    | Fix the four documentation statements; find why the Markdown doctest job did not stop on `extending.md`                                                                                                                                                                                                                                                                             | C17                |     |            |
+| 6    | Masked arrays: compare the mask and the unmasked values, keep `fill_value`                                                                                                                                                                                                                                                                                                          | C9                 | B   |            |
+| 7    | pandas on column kinds inside the current handler (no `pandas.testing`; `object` and nested cells through the registry); failing-path benchmark within 2x of the passing path                                                                                                                                                                                                       | C4, C5, C6         | B   | 1, 3       |
+| 8    | polars and pyarrow on column kinds: nested cells through the registry                                                                                                                                                                                                                                                                                                               | C4                 | B   | 1, 3       |
+| 9    | **Engine**: add `Engine`, the lookup cache, the explicit stack, identity/type/depth/cycle ownership. The existing chain testers are called as leaf testers while the families are ported, to keep each PR small and the benchmarks comparable; this staging is removed by step 14 and is not a compatibility layer                                                                  | C13, part C14, C15 |     | 1          |
+| 10   | One reporting mechanism: `report_difference` forwards to `ctx.fail`; first-failure record; lazy bounded reasons; remove `show_difference`, the logger sink, `compare(tolerance=, max_repr_chars=)` and the root fields of the result                                                                                                                                                | C11, C12, C15      | B   | 9          |
+| 11   | Port the Python testers (object, scalar, sequence, mapping, set, dataclass, attributes, pydantic) from chains to `objects_are_equal` returning a verdict or children; a port reports its location; delete the handlers nobody uses                                                                                                                                                  | C14                | B   | 10         |
+| 12   | Port the array testers (NumPy, masked, torch, JAX, xarray): index in the path, bounded value reasons                                                                                                                                                                                                                                                                                | C14, C10           | B   | 11         |
+| 13   | `TableEqualityTester` and the three adapters replace the frame handlers; column and row in the path; `Element` for sets                                                                                                                                                                                                                                                             | C16, C10           | B   | 11, 7, 8   |
+| 14   | Delete the chain machinery (`BaseEqualityHandler`, mixin, `create_chain`, `BaseChainEqualityTester`, `HandlerEqualityTester`, `check_recursion_depth`, `track_comparison`); freeze `EqualityConfig`; library code to private modules; trim `__all__`; `coola.io` and the others import from `coola.equality`; release notes; rewrite `equality_handler.md` and `equality_tester.md` | C14, C15, C18      | B   | 12, 13     |
 
 Steps 11 to 14 break every custom handler and tester (`handle(actual, expected, config)` and
 `objects_are_equal(actual, expected, config)` become `objects_are_equal(actual, expected, ctx)` that
 returns a verdict or the child pairs, with `config.registry.objects_are_equal(a, b, config)` replaced
-by returning `(a, b, part)`). They share one release and one migration note showing that change.
+by returning `(a, b, part)`). They share the major release; the release notes show that change.
 
 ### 10.3 Tests and gates
 
@@ -521,12 +541,11 @@ opt-in flags. Decision: keep ignored and document each
 A. `bool` and every `enum.Enum` member are compared exactly, tolerance never applies (recommended).
 B. Also `str`, `bytes` and every non-numeric type through an explicit "label" list. Decision: A
 
-### Q11. Compatibility and release strategy (steps 9 to 14)
+### Q11. Removal of compatibility code (steps 9 to 14)
 
-A. One breaking release for steps 11 to 14, with a migration note and the engine already present
-(recommended). B. A compatibility adapter that keeps `BaseEqualityHandler`/`create_chain` working for
-one more release, deprecated, at the cost of the 500 lines of chain machinery staying. C. Do not
-break: stop after step 8 and keep the chain. Decision: A
+Decided by the constraints: major release, no adapter, no alias, no deprecation period, deprecated and
+compatibility code removed. Remaining question: should the release notes carry a before/after
+example of a custom tester? Recommendation: yes, five lines. Decision: ____
 
 ### Q12. Public surface (step 14)
 
@@ -544,8 +563,8 @@ the next call). B. A lock-free immutable snapshot inside the registry (benefits 
 
 ### Q14. Size of the first engine PR (step 9)
 
-A. Engine plus an adapter that runs the current chain testers as leaves (recommended: nothing
-breaks, benchmarks can compare). B. Engine and the port of the Python testers in one PR (fewer
+A. Engine plus the current chain testers called as leaves during the port (recommended: small PRs,
+benchmarks can compare; removed in step 14). B. Engine and the port of the Python testers in one PR (fewer
 intermediate states, a large diff). Decision: A
 
 ## 12. Not covered

@@ -1699,6 +1699,17 @@ The `coola.equality` package is designed around several key principles:
 5. **Consistent**: The same comparison logic is used whether objects are at the top level or nested
    deep in a structure
 
+6. **Fast**: Performance is a requirement, not a nice-to-have: a comparison that is too slow is not
+   useful, so a new feature or a new type must not make the common cases slower, and the speed of
+   the passing and of the failing comparison are both measured by the benchmarks
+
+7. **Stops at the first difference**: As soon as two objects are found to be different, the
+   comparison stops and returns `False`; the rest of the objects is not visited
+
+8. **Explains the first difference only, on demand**: The explanation (`compare`, `assert_*`) is the
+   path and the reason of the **first** difference found. Nothing is formatted by
+   `objects_are_equal` and `objects_are_allclose`, which only return a `bool`
+
 ## See Also
 
 - [`coola.equality.handler`](equality_handler.md): Learn about the handler system for implementing custom comparisons
