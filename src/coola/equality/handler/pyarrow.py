@@ -69,15 +69,26 @@ def object_equal(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
     r"""Indicate if the two arrays or tables are equal within a
     tolerance.
 
-    The objects are first compared with ``equals``. If they are
-    different and ``config.equal_nan``, ``config.atol`` or
-    ``config.rtol`` is set, the integer and floating-point columns
-    (or arrays) are compared with the NumPy tolerance rules, and the
-    other types (strings, nested types, etc.) are compared exactly.
-    ``null`` values must be at the same positions. If NumPy is not
-    installed, these arguments are ignored and a ``RuntimeWarning`` is
-    emitted for each ignored argument, once per comparison (not for
-    each object).
+    The structure is compared first (the type and the length of an
+    array; the schema, without its metadata, and the number of rows of
+    a table). The columns (or the arrays) are then compared one by one,
+    by the kind of their type, and the comparison stops at the first
+    column that differs:
+
+    - integers and floats: the ``null`` values must be at the same
+      positions, then the values are compared with the NumPy tolerance
+      rule (``atol``, ``rtol``, ``equal_nan``);
+    - durations: same, on the durations (``atol`` is a number of
+      seconds);
+    - the other types (booleans, strings, instants, decimals, nested
+      types, ...): the ``equals`` of Arrow. It never sees the tolerance
+      or ``equal_nan``, a ``null`` is equal to a ``null`` and a ``NaN``
+      nested in a value is not equal to a ``NaN``.
+
+    If NumPy is not installed, ``config.equal_nan``, ``config.atol``
+    and ``config.rtol`` are ignored and a ``RuntimeWarning`` is emitted
+    for each ignored argument, once per comparison (not for each
+    object).
 
     Args:
         obj1: The first array or table to compare.
@@ -98,16 +109,11 @@ def object_equal(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
         True
         >>> object_equal(pa.array([1, 2, 3]), pa.array([1, 2, 4]), config)
         False
-        >>> object_equal(pa.array([1.0, 2.0]), pa.array([1.0, 2.1]), EqualityConfig(atol=0.2))
+        >>> object_equal(pa.array([1.0, 2.0]), pa.array([1.0, 2.05]), EqualityConfig(atol=0.1))
         True
 
         ```
     """
-    with suppress(TypeError):
-        if obj1.equals(obj2):
-            return True
-    if not (config.equal_nan or config.atol > 0 or config.rtol > 0):
-        return False
     if not is_numpy_available():  # pragma: no cover
         if config.equal_nan:
             _warn_ignored(config, "equal_nan", obj1)
@@ -115,45 +121,46 @@ def object_equal(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
             _warn_ignored(config, "atol", obj1)
         if config.rtol > 0:
             _warn_ignored(config, "rtol", obj1)
+        with suppress(TypeError):
+            return bool(obj1.equals(obj2))
         return False
-    return _close(obj1, obj2, config)
-
-
-def _close(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
-    r"""Compare two arrays or tables with a tolerance."""
     if isinstance(obj1, (pa.Table, pa.RecordBatch)):
-        return _close_table(obj1, obj2, config)
+        return _table_equal(obj1, obj2, config)
     if isinstance(obj1, (pa.Array, pa.ChunkedArray)):
-        return _close_array(obj1, obj2, config)
+        return _array_equal(obj1, obj2, config)
+    with suppress(TypeError):
+        return bool(obj1.equals(obj2))
     return False
 
 
-def _close_table(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
+def _table_equal(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
     if not isinstance(obj2, type(obj1)) or not obj1.schema.equals(obj2.schema):
         return False
     if obj1.num_rows != obj2.num_rows:
         return False
     return all(
-        _close_array(c1, c2, config) for c1, c2 in zip(obj1.columns, obj2.columns, strict=True)
+        _array_equal(c1, c2, config) for c1, c2 in zip(obj1.columns, obj2.columns, strict=True)
     )
 
 
-def _close_array(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
+def _array_equal(obj1: Any, obj2: Any, config: EqualityConfig) -> bool:
     if not isinstance(obj2, type(obj1)) or obj1.type != obj2.type or len(obj1) != len(obj2):
         return False
-    if not (pa.types.is_floating(obj1.type) or pa.types.is_integer(obj1.type)):
-        return bool(obj1.equals(obj2))
-    if not obj1.is_null().equals(obj2.is_null()):
-        return False
-    from coola.equality.handler.numpy import array_equal  # noqa: PLC0415
+    kind = obj1.type
+    if pa.types.is_floating(kind) or pa.types.is_integer(kind) or pa.types.is_duration(kind):
+        if not obj1.is_null().equals(obj2.is_null()):
+            return False
+        from coola.equality.handler.numpy import array_equal  # noqa: PLC0415
 
-    return array_equal(_to_numpy(obj1), _to_numpy(obj2), config)
+        return array_equal(_to_numpy(obj1), _to_numpy(obj2), config)
+    return bool(obj1.equals(obj2))
 
 
 def _to_numpy(array: Any) -> Any:
-    r"""Convert a numeric array to NumPy, with the ``null`` values
-    replaced by zero (the positions of the nulls are compared apart)."""
-    return pc.fill_null(array, 0).to_numpy(zero_copy_only=False)
+    r"""Convert a numeric or duration array to NumPy, with the ``null``
+    values replaced by zero (the positions of the nulls are compared
+    apart)."""
+    return pc.fill_null(array, pa.scalar(0, type=array.type)).to_numpy(zero_copy_only=False)
 
 
 def _warn_ignored(config: EqualityConfig, name: str, obj: Any) -> None:

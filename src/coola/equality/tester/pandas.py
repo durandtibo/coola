@@ -44,7 +44,7 @@ class PandasDataFrameEqualityTester(BaseChainEqualityTester[pd.DataFrame]):
     column names, data types, index, and values. The handler chain:
     1. SameObjectHandler: Check for object identity
     2. SameTypeHandler: Verify both are pandas DataFrames
-    3. PandasDataFrameEqualHandler: Use pandas' assert_frame_equal internally
+    3. PandasDataFrameEqualHandler: Compare the structure, then the columns by kind
 
     The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
     for floating-point tolerance.
@@ -105,7 +105,7 @@ class PandasSeriesEqualityTester(BaseChainEqualityTester[pd.Series]):
     data type, index, and values. The handler chain:
     1. SameObjectHandler: Check for object identity
     2. SameTypeHandler: Verify both are pandas Series
-    3. PandasSeriesEqualHandler: Use pandas' assert_series_equal internally
+    3. PandasSeriesEqualHandler: Compare the structure, then the values by kind
 
     The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
     for floating-point tolerance.

@@ -395,3 +395,120 @@ def test_object_equal_does_not_repeat_the_warning_without_numpy() -> None:
         with warnings.catch_warnings():
             warnings.simplefilter("error")
             object_equal(pa.array([1.0]), pa.array([1.05]), config)
+
+
+@pyarrow_available
+def test_object_equal_duration_with_tolerance() -> None:
+    assert object_equal(
+        pa.array([1_000_000], type=pa.duration("us")),
+        pa.array([1_500_000], type=pa.duration("us")),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pyarrow_available
+def test_object_equal_duration_outside_tolerance() -> None:
+    assert not object_equal(
+        pa.array([1_000_000], type=pa.duration("us")),
+        pa.array([3_000_000], type=pa.duration("us")),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pyarrow_available
+def test_object_equal_duration_nulls_at_different_positions() -> None:
+    assert not object_equal(
+        pa.array([1, None], type=pa.duration("s")),
+        pa.array([None, 1], type=pa.duration("s")),
+        EqualityConfig(atol=5.0),
+    )
+
+
+@pyarrow_available
+def test_object_equal_duration_different_units() -> None:
+    assert not object_equal(
+        pa.array([1], type=pa.duration("s")),
+        pa.array([1], type=pa.duration("ms")),
+        EqualityConfig(),
+    )
+
+
+@pyarrow_available
+def test_object_equal_nested_values_have_no_tolerance() -> None:
+    assert not object_equal(
+        pa.array([[1.0]]), pa.array([[1.0000001]]), EqualityConfig(atol=1.0, rtol=1.0)
+    )
+
+
+@pyarrow_available
+def test_object_equal_nested_nan_is_left_to_arrow() -> None:
+    assert not object_equal(
+        pa.array([[float("nan")]]), pa.array([[float("nan")]]), EqualityConfig(equal_nan=True)
+    )
+
+
+@pyarrow_available
+def test_object_equal_table_ignores_schema_metadata() -> None:
+    table = pa.table({"a": [1]})
+    assert object_equal(table, table.replace_schema_metadata({"k": "v"}), EqualityConfig())
+
+
+@pyarrow_available
+def test_object_equal_table_different_schema() -> None:
+    assert not object_equal(pa.table({"a": [1]}), pa.table({"b": [1]}), EqualityConfig())
+
+
+@pyarrow_available
+def test_object_equal_table_different_rows() -> None:
+    assert not object_equal(pa.table({"a": [1]}), pa.table({"a": [1, 2]}), EqualityConfig())
+
+
+@pyarrow_available
+def test_object_equal_table_stops_at_the_first_different_column() -> None:
+    table1 = pa.table({"a": [1.0], "b": [1.0]})
+    table2 = pa.table({"a": [2.0], "b": [1.0]})
+    with patch("coola.equality.handler.pyarrow._array_equal", return_value=False) as mock:
+        object_equal(table1, table2, EqualityConfig())
+    assert mock.call_count == 1
+
+
+@pyarrow_available
+def test_object_equal_table_mixed_columns_with_tolerance() -> None:
+    assert object_equal(
+        pa.table({"a": [1.0], "b": ["x"]}),
+        pa.table({"a": [1.05], "b": ["x"]}),
+        EqualityConfig(atol=0.1),
+    )
+
+
+@pyarrow_available
+def test_object_equal_record_batch() -> None:
+    batch = pa.record_batch({"a": [1.0]})
+    assert object_equal(batch, pa.record_batch({"a": [1.05]}), EqualityConfig(atol=0.1))
+
+
+@pyarrow_available
+def test_object_equal_chunked_array_with_different_chunks() -> None:
+    assert object_equal(pa.chunked_array([[1], [2]]), pa.chunked_array([[1, 2]]), EqualityConfig())
+
+
+@pyarrow_available
+def test_object_equal_other_object_with_equals() -> None:
+    assert object_equal(
+        pa.schema([("a", pa.int64())]), pa.schema([("a", pa.int64())]), EqualityConfig()
+    )
+
+
+@pyarrow_available
+def test_object_equal_other_object_without_equals_support() -> None:
+    assert not object_equal(pa.schema([("a", pa.int64())]), 1, EqualityConfig())
+
+
+@pyarrow_available
+def test_object_equal_null_equals_null() -> None:
+    assert object_equal(pa.array(["a", None]), pa.array(["a", None]), EqualityConfig())
+
+
+@pyarrow_available
+def test_object_equal_float_nan_without_equal_nan() -> None:
+    assert not object_equal(pa.array([float("nan")]), pa.array([float("nan")]), EqualityConfig())

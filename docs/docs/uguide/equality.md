@@ -458,10 +458,13 @@ Two numbers are considered equal if `|actual - expected| <= atol + rtol * max(|a
 This is the rule of NumPy, PyTorch, JAX, PyArrow and xarray arrays, and it is also used for Python
 numbers (`float`, `int`, `complex`), NumPy scalars, `Decimal`, `Fraction` and `timedelta`. It is
 symmetric: `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result.
-The integer and floating-point columns of `pandas` and `polars` data frames and series follow the
-same rule (this requires NumPy); the other columns are compared by `pandas.testing` and
-`polars.testing`, which also apply the tolerance to the floats nested in a list or a struct with
-the rule of `math.isclose` (`max(atol, rtol * max(|actual|, |expected|))`).
+The numeric columns (integers and floats, also the nullable ones, and complex numbers for pandas)
+and the duration columns of `pandas`, `polars` and `pyarrow` data frames, series and arrays follow
+the same rule (`atol` of a duration is a number of seconds). The other columns (booleans, strings,
+categories, instants, decimals, nested values and `object` columns) are compared exactly with the
+`equals` of the library: the tolerance and `equal_nan` do not reach the values nested in a cell.
+Whether a `NaN` nested in a cell equals a `NaN` is decided by the library: it does in `polars`, it
+does not in `pyarrow`, and it does in `pandas` only if both cells hold the same `NaN` object.
 
 The comparison within a tolerance is not transitive: `a` can be close to `b`, and `b` close to `c`,
 while `a` is not close to `c`.
@@ -1646,12 +1649,16 @@ Details:
   values are not equal to each other. Use `equal_nan=True` to compare the data frames with `NaN`.
   The other missing values (`None`, `pandas.NA`, `NaT`) are equal to each other, whatever
   `equal_nan` is.
-- **PyArrow**: the objects are first compared with `equals`. If they are different and a tolerance
-  or `equal_nan` is set, the integer and floating-point columns are compared like NumPy arrays, and
-  the `null` values must be at the same positions. The other types (strings, nested types, etc.)
-  are compared exactly. Without NumPy, these arguments are ignored and a `RuntimeWarning` is
-  emitted. `pyarrow.Array`, `pyarrow.ChunkedArray`, `pyarrow.RecordBatch` and `pyarrow.Table` are
-  supported.
+- **polars**: the shape, the column names, order and dtypes are compared first, then the columns
+  one by one, stopping at the first column that differs. A float `NaN` follows `equal_nan`, and a
+  `null` is equal to a `null`. The nested columns are left to polars.
+- **PyArrow**: the type and the length of an array, or the schema (without its metadata) and the
+  number of rows of a table, are compared first, then the columns one by one, stopping at the first
+  column that differs. The integer, floating-point and duration columns are compared like NumPy
+  arrays, and the `null` values must be at the same positions. The other types (strings, nested
+  types, etc.) are compared exactly with `equals`. Without NumPy, `equal_nan`, `atol` and `rtol` are
+  ignored and a `RuntimeWarning` is emitted. `pyarrow.Array`, `pyarrow.ChunkedArray`,
+  `pyarrow.RecordBatch` and `pyarrow.Table` are supported.
 - **NumPy**: `equal_nan=True` can safely be used with an object that contains arrays of strings:
   the argument is only applied to the dtypes that have a `NaN`.
 - **`-0.0`** is equal to `0.0` for all the types, whatever the tolerance.

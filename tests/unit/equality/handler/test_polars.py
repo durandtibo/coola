@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
@@ -15,11 +16,8 @@ from coola.equality.handler import (
 )
 from coola.equality.handler.polars import (
     PolarsLazyFrameEqualHandler,
-    assert_frame_equal,
-    assert_series_equal,
     frame_equal,
     has_nan,
-    is_new_naming,
     series_equal,
 )
 from coola.testing.fixtures import polars_available
@@ -1028,64 +1026,6 @@ def test_has_nan_false(df_or_series: pl.DataFrame | pl.Series) -> None:
     assert has_nan(df_or_series)
 
 
-########################################
-#     Tests for assert_frame_equal     #
-########################################
-
-
-@polars_available
-def test_assert_frame_equal_new_naming() -> None:
-    is_new_naming.cache_clear()
-    with (
-        patch("coola.equality.handler.polars.is_new_naming", lambda: True),
-        patch("polars.testing.assert_frame_equal") as mock,
-    ):
-        assert_frame_equal(
-            df1=pl.DataFrame({"col": [1, 2, 3]}), df2=pl.DataFrame({"col": [1, 2, 3]})
-        )
-        assert mock.call_args.kwargs == {"abs_tol": 1e-8, "rel_tol": 1e-5, "check_exact": False}
-
-
-@polars_available
-def test_assert_frame_equal_old_naming() -> None:
-    is_new_naming.cache_clear()
-    with (
-        patch("coola.equality.handler.polars.is_new_naming", lambda: False),
-        patch("polars.testing.assert_frame_equal") as mock,
-    ):
-        assert_frame_equal(
-            df1=pl.DataFrame({"col": [1, 2, 3]}), df2=pl.DataFrame({"col": [1, 2, 3]})
-        )
-        assert mock.call_args.kwargs == {"atol": 1e-8, "rtol": 1e-5, "check_exact": False}
-
-
-#########################################
-#     Tests for assert_series_equal     #
-#########################################
-
-
-@polars_available
-def test_assert_series_equal_new_naming() -> None:
-    is_new_naming.cache_clear()
-    with (
-        patch("coola.equality.handler.polars.is_new_naming", lambda: True),
-        patch("polars.testing.assert_series_equal") as mock,
-    ):
-        assert_series_equal(series1=pl.Series([1, 2, 3]), series2=pl.Series([1, 2, 3]))
-        assert mock.call_args.kwargs == {"abs_tol": 1e-8, "rel_tol": 1e-5, "check_exact": False}
-
-
-@polars_available
-def test_assert_series_equal_old_naming() -> None:
-    is_new_naming.cache_clear()
-    with (
-        patch("coola.equality.handler.polars.is_new_naming", lambda: False),
-        patch("polars.testing.assert_series_equal") as mock,
-    ):
-        assert_series_equal(series1=pl.Series([1, 2, 3]), series2=pl.Series([1, 2, 3]))
-        assert mock.call_args.kwargs == {"atol": 1e-8, "rtol": 1e-5, "check_exact": False}
-
-
 @polars_available
 def test_polars_frame_equal_different_shape() -> None:
     config = EqualityConfig(equal_nan=True)
@@ -1160,14 +1100,14 @@ NESTED_NAN_SERIES = [
 
 @polars_available
 @pytest.mark.parametrize("series", NESTED_NAN_SERIES)
-def test_has_nan_nested_true(series: pl.Series) -> None:
-    assert has_nan(series)
+def test_has_nan_nested_is_left_to_polars(series: pl.Series) -> None:
+    assert not has_nan(series)
 
 
 @polars_available
 @pytest.mark.parametrize("series", NESTED_NAN_SERIES)
-def test_has_nan_nested_true_dataframe(series: pl.Series) -> None:
-    assert has_nan(pl.DataFrame({"x": series}))
+def test_has_nan_nested_is_left_to_polars_dataframe(series: pl.Series) -> None:
+    assert not has_nan(pl.DataFrame({"x": series}))
 
 
 NESTED_NO_NAN_SERIES = [
@@ -1192,15 +1132,22 @@ def test_has_nan_nested_false_dataframe(series: pl.Series) -> None:
 
 
 @polars_available
-def test_series_equal_nested_nan_not_equal_nan() -> None:
+def test_series_equal_nested_nan_follows_polars_without_equal_nan() -> None:
     series = pl.Series([[1.0, float("nan")]])
-    assert not series_equal(series, series.clone(), EqualityConfig(equal_nan=False))
+    assert series_equal(series, series.clone(), EqualityConfig(equal_nan=False))
 
 
 @polars_available
 def test_series_equal_nested_nan_equal_nan() -> None:
     series = pl.Series([[1.0, float("nan")]])
     assert series_equal(series, series.clone(), EqualityConfig(equal_nan=True))
+
+
+@polars_available
+def test_series_equal_nested_floats_have_no_tolerance() -> None:
+    assert not series_equal(
+        pl.Series([[1.0]]), pl.Series([[1.0000001]]), EqualityConfig(atol=1.0, rtol=1.0)
+    )
 
 
 #############################################
@@ -1323,8 +1270,102 @@ def test_frame_equal_numeric_columns_with_equal_nan() -> None:
 
 
 @polars_available
-def test_frame_equal_without_numpy_uses_the_polars_tolerance() -> None:
-    with patch("coola.equality.handler.polars.is_numpy_available", lambda: False):
-        assert not frame_equal(
-            pl.DataFrame({"a": [100]}), pl.DataFrame({"a": [101]}), EqualityConfig(rtol=0.01)
-        )
+def test_series_equal_duration_with_tolerance() -> None:
+    assert series_equal(
+        pl.Series([timedelta(seconds=1)]),
+        pl.Series([timedelta(seconds=1.5)]),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@polars_available
+def test_series_equal_duration_outside_tolerance() -> None:
+    assert not series_equal(
+        pl.Series([timedelta(seconds=1)]),
+        pl.Series([timedelta(seconds=3)]),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@polars_available
+def test_series_equal_duration_without_tolerance() -> None:
+    assert not series_equal(
+        pl.Series([timedelta(seconds=1)]), pl.Series([timedelta(seconds=2)]), EqualityConfig()
+    )
+
+
+@polars_available
+def test_series_equal_duration_nulls_at_the_same_positions() -> None:
+    series = pl.Series([timedelta(seconds=1), None])
+    assert series_equal(series, series.clone(), EqualityConfig())
+
+
+@polars_available
+def test_series_equal_duration_nulls_at_different_positions() -> None:
+    assert not series_equal(
+        pl.Series([timedelta(seconds=1), None]),
+        pl.Series([None, timedelta(seconds=1)]),
+        EqualityConfig(atol=5.0),
+    )
+
+
+@polars_available
+def test_series_equal_duration_different_time_units() -> None:
+    assert not series_equal(
+        pl.Series([timedelta(seconds=1)], dtype=pl.Duration("ms")),
+        pl.Series([timedelta(seconds=1)], dtype=pl.Duration("ns")),
+        EqualityConfig(),
+    )
+
+
+@polars_available
+def test_series_equal_instants_have_no_tolerance() -> None:
+    assert not series_equal(
+        pl.Series([datetime(2020, 1, 1, tzinfo=UTC)]),
+        pl.Series([datetime(2020, 1, 2, tzinfo=UTC)]),
+        EqualityConfig(atol=1e9),
+    )
+
+
+@polars_available
+def test_series_equal_different_dtype_non_numeric() -> None:
+    assert not series_equal(
+        pl.Series(["a"]), pl.Series(["a"], dtype=pl.Categorical), EqualityConfig()
+    )
+
+
+@polars_available
+def test_series_equal_null_equals_null() -> None:
+    assert series_equal(pl.Series(["a", None]), pl.Series(["a", None]), EqualityConfig())
+
+
+@polars_available
+def test_series_equal_float_nan_without_equal_nan() -> None:
+    assert not series_equal(pl.Series([float("nan")]), pl.Series([float("nan")]), EqualityConfig())
+
+
+@polars_available
+def test_frame_equal_different_schema_order() -> None:
+    assert not frame_equal(
+        pl.DataFrame({"a": [1], "b": ["x"]}), pl.DataFrame({"b": ["x"], "a": [1]}), EqualityConfig()
+    )
+
+
+@polars_available
+def test_frame_equal_different_dtype() -> None:
+    assert not frame_equal(pl.DataFrame({"a": [1]}), pl.DataFrame({"a": [1.0]}), EqualityConfig())
+
+
+@polars_available
+def test_frame_equal_stops_at_the_first_different_column() -> None:
+    df1 = pl.DataFrame({"a": [1.0], "b": [1.0]})
+    df2 = pl.DataFrame({"a": [2.0], "b": [1.0]})
+    with patch("coola.equality.handler.polars._values_equal", return_value=False) as mock:
+        frame_equal(df1, df2, EqualityConfig())
+    assert mock.call_count == 1
+
+
+@polars_available
+def test_frame_equal_float_nan_column_without_equal_nan() -> None:
+    df = pl.DataFrame({"a": [1.0, float("nan")]})
+    assert not frame_equal(df, df.clone(), EqualityConfig())
