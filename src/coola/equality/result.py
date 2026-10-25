@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler.utils import AttributeName
-from coola.equality.interface import _compare
+from coola.equality.interface import run_comparison
 from coola.equality.tester.interface import get_default_registry
 from coola.equality.tolerance import Tolerance
 from coola.utils.safe import safe_repr
@@ -190,7 +190,7 @@ def compare(
     )
     reports: list[tuple[str, tuple[object, ...]]] = []
     config.reporter = lambda message, path: reports.append((message, path))
-    equal = _compare(registry, actual, expected, config)
+    equal = run_comparison(registry, actual, expected, config)
     if equal:
         # The ``repr`` of the objects is not computed for equal objects, because it
         # is expensive for large objects and ``compare`` is used for each passing
