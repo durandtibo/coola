@@ -15,7 +15,7 @@ from coola.equality.handler import (
     PandasSeriesEqualHandler,
     TrueHandler,
 )
-from coola.equality.handler.pandas import frame_equal, series_equal
+from coola.equality.handler.pandas import frame_equal, index_equal, series_equal
 from coola.testing.fixtures import pandas_available
 from coola.utils.imports import is_pandas_available
 from tests.unit.equality.tester.test_pandas import (
@@ -707,6 +707,89 @@ def test_pandas_extension_array_equal_handler_handle() -> None:
 def test_pandas_extension_array_equal_handler_handle_false() -> None:
     handler = PandasExtensionArrayEqualHandler()
     assert not handler.handle(pd.Categorical([1, 2]), pd.Categorical([1, 3]), EqualityConfig())
+
+
+####################################
+#     Tests for missing values     #
+####################################
+
+# A null (``None``, ``pd.NA``, ``NaT``) in a non-float column is equal to a null, whatever
+# ``equal_nan``: a copy of a frame is equal to the frame. A NaN is governed by ``equal_nan``.
+NULL_SERIES = [
+    pytest.param(pd.Series(["a", None]), id="object None"),
+    pytest.param(pd.Series(["a", None], dtype="string"), id="string"),
+    pytest.param(pd.Series(pd.array([1, None], dtype="Int64")), id="Int64"),
+    pytest.param(pd.Series(pd.to_datetime(["2020-01-01", None])), id="datetime NaT"),
+    pytest.param(pd.Series(pd.Categorical(["a", None])), id="categorical"),
+]
+NAN_SERIES = [
+    pytest.param(pd.Series([1.0, float("nan")]), id="float64"),
+    pytest.param(pd.Series(pd.array([1.0, None], dtype="Float64")), id="Float64"),
+    pytest.param(pd.Series([1.0 + 0j, complex("nan")]), id="complex"),
+]
+
+
+@pandas_available
+@pytest.mark.parametrize("series", NULL_SERIES)
+def test_series_equal_null_copy_is_equal(series: pd.Series) -> None:
+    assert series_equal(series, series.copy(), EqualityConfig())
+
+
+@pandas_available
+@pytest.mark.parametrize("series", NULL_SERIES)
+def test_frame_equal_null_copy_is_equal(series: pd.Series) -> None:
+    frame = series.to_frame("a")
+    assert frame_equal(frame, frame.copy(), EqualityConfig())
+
+
+@pandas_available
+@pytest.mark.parametrize("series", NAN_SERIES)
+def test_series_equal_nan_copy_is_not_equal(series: pd.Series) -> None:
+    assert not series_equal(series, series.copy(), EqualityConfig())
+
+
+@pandas_available
+@pytest.mark.parametrize("series", NAN_SERIES)
+def test_series_equal_nan_copy_is_equal_with_equal_nan(series: pd.Series) -> None:
+    assert series_equal(series, series.copy(), EqualityConfig(equal_nan=True))
+
+
+@pandas_available
+def test_frame_equal_nan_column_next_to_null_column_is_not_equal() -> None:
+    frame = pd.DataFrame({"a": ["x", None], "b": [1.0, float("nan")]})
+    assert not frame_equal(frame, frame.copy(), EqualityConfig())
+
+
+@pandas_available
+def test_frame_equal_nulls_at_different_positions() -> None:
+    assert not frame_equal(
+        pd.DataFrame({"a": ["x", None]}), pd.DataFrame({"a": [None, "x"]}), EqualityConfig()
+    )
+
+
+@pandas_available
+def test_frame_equal_null_and_value() -> None:
+    assert not frame_equal(
+        pd.DataFrame({"a": ["x", None]}), pd.DataFrame({"a": ["x", "y"]}), EqualityConfig()
+    )
+
+
+@pandas_available
+def test_index_equal_null_copy_is_equal() -> None:
+    index = pd.Index(["a", None])
+    assert index_equal(index, index.copy(), EqualityConfig())
+
+
+@pandas_available
+def test_index_equal_multi_index_null_copy_is_equal() -> None:
+    index = pd.MultiIndex.from_tuples([("a", 1.0), ("b", 2.0)]).set_codes([[0, -1], [0, 1]])
+    assert index_equal(index, index.copy(), EqualityConfig())
+
+
+@pandas_available
+def test_index_equal_multi_index_nan_copy_is_not_equal() -> None:
+    index = pd.MultiIndex.from_tuples([("a", 1.0), ("b", 2.0)]).set_codes([[0, 1], [0, -1]])
+    assert not index_equal(index, index.copy(), EqualityConfig())
 
 
 def _durations(values: list[float | None]) -> pd.Series:

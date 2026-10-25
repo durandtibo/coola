@@ -769,10 +769,25 @@ def test_pandas_extension_array_equality_tester_objects_are_equal_false_show_dif
 
 
 @pandas_available
-def test_pandas_extension_array_equality_tester_objects_are_equal_nan() -> None:
+def test_pandas_extension_array_equality_tester_objects_are_equal_null() -> None:
     array = pd.array([1, None], dtype="Int64")
     tester = PandasExtensionArrayEqualityTester()
+    assert tester.objects_are_equal(array, array.copy(), EqualityConfig())
+
+
+@pandas_available
+def test_pandas_extension_array_equality_tester_objects_are_equal_nan() -> None:
+    array = pd.array([1.0, None], dtype="Float64")
+    tester = PandasExtensionArrayEqualityTester()
     assert not tester.objects_are_equal(array, array.copy(), EqualityConfig())
+
+
+@pandas_available
+def test_pandas_extension_array_equality_tester_objects_are_equal_null_different() -> None:
+    tester = PandasExtensionArrayEqualityTester()
+    assert not tester.objects_are_equal(
+        pd.array([1, None], dtype="Int64"), pd.array([None, 1], dtype="Int64"), EqualityConfig()
+    )
 
 
 @pandas_available

@@ -216,3 +216,38 @@ def test_array_equal_rtol_outside_the_tolerance() -> None:
 def test_array_equal_rtol_outside_the_tolerance_reversed() -> None:
     config = EqualityConfig(rtol=0.01, atol=0.0)
     assert not array_equal(jnp.array([100.0]), jnp.array([101.5]), config)
+
+
+@jax_available
+def test_array_equal_rtol_each_element_in_its_own_direction() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert array_equal(jnp.array([100.0, 101.005]), jnp.array([101.005, 100.0]), config)
+
+
+@jax_available
+def test_array_equal_rtol_each_element_in_its_own_direction_reversed() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert array_equal(jnp.array([101.005, 100.0]), jnp.array([100.0, 101.005]), config)
+
+
+@jax_available
+def test_array_equal_rtol_one_element_outside_the_tolerance() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert not array_equal(jnp.array([100.0, 101.005]), jnp.array([101.005, 105.0]), config)
+
+
+@jax_available
+def test_array_equal_different_shape_with_tolerance() -> None:
+    assert not array_equal(jnp.ones(2), jnp.ones(3), EqualityConfig(atol=1.0))
+
+
+@jax_available
+def test_array_equal_different_dtype_with_tolerance() -> None:
+    assert not array_equal(
+        jnp.ones(2, dtype=jnp.float32), jnp.ones(2, dtype=jnp.int32), EqualityConfig(atol=1.0)
+    )
+
+
+@jax_available
+def test_array_equal_integers_with_tolerance() -> None:
+    assert array_equal(jnp.array([100, 101]), jnp.array([101, 100]), EqualityConfig(rtol=0.02))

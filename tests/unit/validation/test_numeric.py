@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from coola.validation import validate_finite
+from coola.validation import validate_finite, validate_number
 
 
 @pytest.mark.parametrize("value", [0, 1, -1.5, 1e300])
@@ -31,3 +31,19 @@ def test_validate_finite_huge_int() -> None:
 def test_validate_finite_not_a_number_raises(value: Any) -> None:
     with pytest.raises(TypeError, match="real number"):
         validate_finite(value)
+
+
+@pytest.mark.parametrize("value", [0, 1, -1.5, 1e300, float("inf")])
+def test_validate_number_valid(value: float) -> None:
+    validate_number(value)
+
+
+@pytest.mark.parametrize("value", [True, False, None, "a", [1], 1j])
+def test_validate_number_invalid(value: Any) -> None:
+    with pytest.raises(TypeError, match="must be a real number"):
+        validate_number(value)
+
+
+def test_validate_number_custom_name() -> None:
+    with pytest.raises(TypeError, match="foo must be a real number"):
+        validate_number("a", name="foo")
