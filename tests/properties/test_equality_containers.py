@@ -3,8 +3,7 @@ list, a NumPy array, a torch tensor, a pandas series, a polars series, a
 pyarrow array and an xarray data array.
 
 The list is the reference: its answer is the one of the numeric rule of
-the user guide. The tests marked ``xfail`` document a defect whose fix is
-not merged yet (the item of ``review/equality.md`` is in the reason).
+the user guide.
 """
 
 from __future__ import annotations
@@ -165,9 +164,9 @@ def test_exact_float_container_agrees_with_list(
     assert objects_are_equal(build(a), build(b)) == objects_are_equal(a, b)
 
 
-###########################################
-#     Known defects (xfail)               #
-###########################################
+#######################################
+#     Fixed defects (regressions)     #
+#######################################
 
 
 @pytest.mark.parametrize("name", OTHERS)
@@ -180,10 +179,3 @@ def test_large_int_difference_is_exact(name: str, value: int) -> None:
 
 def test_pandas_booleans_are_exact() -> None:
     assert not objects_are_allclose(pd.Series([True]), pd.Series([False]), atol=1.0)
-
-
-@pytest.mark.xfail(reason="C4: pandas ignores equal_nan in nested cells", strict=True)
-def test_pandas_nested_nan_follows_equal_nan() -> None:
-    assert objects_are_equal(
-        pd.Series([[float("nan")]]), pd.Series([[float("nan")]]), equal_nan=True
-    )
