@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import math
+import numbers
 
 import pytest
 
@@ -15,6 +16,25 @@ from coola.equality.handler import (
 from coola.equality.handler.scalar import complex_are_equal, int_isclose, number_equal
 from tests.unit.equality.tester.test_scalar import SCALAR_EQUAL_TOLERANCE
 from tests.unit.equality.utils import ExamplePair
+
+
+class Unconvertible:
+    """A ``numbers.Real`` that cannot be converted to a ``float``."""
+
+    def __init__(self, value: int = 0) -> None:
+        self.value = value
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Unconvertible) and self.value == other.value
+
+    __hash__ = None
+
+    def __float__(self) -> float:
+        msg = "no float"
+        raise TypeError(msg)
+
+
+numbers.Real.register(Unconvertible)
 
 
 @pytest.fixture
@@ -498,3 +518,19 @@ def test_number_equal_atol_and_rtol_add_up_huge_int() -> None:
 )
 def test_number_equal_outside_atol_and_rtol(number1: float, number2: float) -> None:
     assert not number_equal(number1, number2, EqualityConfig(atol=0.5, rtol=0.5))
+
+
+def test_number_equal_not_a_number_equal() -> None:
+    assert number_equal("a", "a", EqualityConfig(atol=0.5))
+
+
+def test_number_equal_not_a_number_different() -> None:
+    assert not number_equal("a", "b", EqualityConfig(atol=0.5))
+
+
+def test_number_equal_real_without_float_equal() -> None:
+    assert number_equal(Unconvertible(), Unconvertible(), EqualityConfig(atol=0.5))
+
+
+def test_number_equal_real_without_float_different() -> None:
+    assert not number_equal(Unconvertible(), Unconvertible(1), EqualityConfig(atol=0.5))

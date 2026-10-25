@@ -105,6 +105,8 @@ def objects_are_allclose(
         ``False``.
 
     Raises:
+        TypeError: If ``rtol`` or ``atol`` is not a real number, or if
+            ``max_depth`` is not an ``int`` (a ``bool`` is rejected).
         ValueError: If ``rtol`` or ``atol`` is negative, or if
             ``max_depth`` is not positive.
         MaxDepthExceededError: If the nesting of the objects exceeds
@@ -152,9 +154,7 @@ def objects_are_equal(
 
     Note:
         The types are compared first, so ``1`` and ``1.0`` are different
-        (as are ``[1]`` and ``[1.0]``), even with a tolerance. A ``bool``
-        is an ``int``, so ``True`` and ``False`` are close with
-        ``atol=1``, unlike ``numpy.bool_``.
+        (as are ``[1]`` and ``[1.0]``).
 
         An object is always equal to itself, even if it contains ``NaN``
         and ``equal_nan=False``: ``[n]`` equals ``[n]`` for
@@ -182,6 +182,8 @@ def objects_are_equal(
         ``True`` if the two objects are exactly equal, otherwise ``False``.
 
     Raises:
+        TypeError: If ``max_depth`` is not an ``int`` (a ``bool`` is
+            rejected).
         ValueError: If ``max_depth`` is not positive.
         MaxDepthExceededError: If the nesting of the objects exceeds
             ``max_depth``. It is a ``RecursionError``.
