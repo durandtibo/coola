@@ -43,3 +43,10 @@ def test_tolerance_not_finite(name: str, value: float) -> None:
 
 def test_tolerance_numpy_default() -> None:
     assert Tolerance.numpy_default() == Tolerance(rtol=1e-5, atol=1e-8)
+
+
+@pytest.mark.parametrize("name", ["rtol", "atol"])
+@pytest.mark.parametrize("value", [True, False, "a", None])
+def test_tolerance_wrong_type(name: str, value: object) -> None:
+    with pytest.raises(TypeError, match=f"{name} must be a real number"):
+        Tolerance(**{name: value})
