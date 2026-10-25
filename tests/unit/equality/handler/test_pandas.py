@@ -15,7 +15,12 @@ from coola.equality.handler import (
     PandasSeriesEqualHandler,
     TrueHandler,
 )
-from coola.equality.handler.pandas import frame_equal, index_equal, series_equal
+from coola.equality.handler.pandas import (
+    extension_array_equal,
+    frame_equal,
+    index_equal,
+    series_equal,
+)
 from coola.testing.fixtures import pandas_available
 from coola.utils.imports import is_pandas_available
 from tests.unit.equality.tester.test_pandas import (
@@ -1003,5 +1008,75 @@ def test_frame_equal_without_duration_column_with_tolerance() -> None:
     assert frame_equal(
         pd.DataFrame({"a": [1.0, 2.0]}),
         pd.DataFrame({"a": [1.0, 2.0001]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+@pytest.mark.parametrize("dtype", ["bool", "boolean"])
+def test_series_equal_boolean_has_no_tolerance(dtype: str) -> None:
+    assert not series_equal(
+        pd.Series([True, False], dtype=dtype),
+        pd.Series([False, False], dtype=dtype),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+@pytest.mark.parametrize("dtype", ["bool", "boolean"])
+def test_series_equal_boolean_equal_with_tolerance(dtype: str) -> None:
+    assert series_equal(
+        pd.Series([True, False], dtype=dtype),
+        pd.Series([True, False], dtype=dtype),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+def test_frame_equal_boolean_has_no_tolerance() -> None:
+    assert not frame_equal(
+        pd.DataFrame({"a": [True, False], "b": [1.0, 2.0]}),
+        pd.DataFrame({"a": [False, False], "b": [1.0, 2.0]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+def test_frame_equal_boolean_equal_and_numeric_close() -> None:
+    assert frame_equal(
+        pd.DataFrame({"a": [True, False], "b": [1.0, 2.0]}),
+        pd.DataFrame({"a": [True, False], "b": [1.5, 2.0]}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+def test_frame_equal_nullable_boolean_has_no_tolerance() -> None:
+    assert not frame_equal(
+        pd.DataFrame({"a": pd.array([True, None], dtype="boolean")}),
+        pd.DataFrame({"a": pd.array([True, False], dtype="boolean")}),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@pandas_available
+def test_frame_equal_boolean_does_not_change_the_inputs() -> None:
+    df2 = pd.DataFrame({"a": [True, False]})
+    frame_equal(pd.DataFrame({"a": [True, False]}), df2, EqualityConfig(atol=1.0))
+    assert df2["a"].tolist() == [True, False]
+
+
+@pandas_available
+def test_index_equal_boolean_has_no_tolerance() -> None:
+    assert not index_equal(
+        pd.Index([True, False]), pd.Index([False, False]), EqualityConfig(atol=1.0)
+    )
+
+
+@pandas_available
+def test_extension_array_equal_boolean_has_no_tolerance() -> None:
+    assert not extension_array_equal(
+        pd.array([True, False], dtype="boolean"),
+        pd.array([False, False], dtype="boolean"),
         EqualityConfig(atol=1.0),
     )

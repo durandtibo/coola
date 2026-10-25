@@ -1264,7 +1264,9 @@ the NumPy scalars like `numpy.float32` or `numpy.int64`. Two numbers of differen
 equal, for example `numpy.float32(1.0)` and `numpy.float64(1.0)`.
 
 Note that a boolean is a label, not a quantity: the tolerance never applies to booleans (Python
-`bool`, `numpy.bool_`, boolean arrays and tensors), even if `bool` is a subclass of `int`:
+`bool`, `numpy.bool_`, boolean arrays and tensors, pandas boolean Series, DataFrame columns, Index
+and arrays) or to enum members (`IntEnum` and `IntFlag` included), even if `bool` is a subclass of
+`int`:
 
 ```pycon
 >>> from coola.equality import objects_are_allclose

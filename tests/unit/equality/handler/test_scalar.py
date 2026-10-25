@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum
 import logging
 import math
 import numbers
@@ -537,6 +538,34 @@ def test_number_equal_real_without_float_equal() -> None:
 
 def test_number_equal_real_without_float_different() -> None:
     assert not number_equal(Unconvertible(), Unconvertible(1), EqualityConfig(atol=0.5))
+
+
+class Level(enum.IntEnum):
+    LOW = 1
+    HIGH = 2
+
+
+class Color(enum.Enum):
+    RED = 1
+    BLUE = 2
+
+
+@pytest.mark.parametrize(
+    ("number1", "number2"),
+    [
+        (Level.LOW, Level.HIGH),
+        (Level.LOW, 2),
+        (2, Level.LOW),
+        (Level.LOW, 1.5),
+        (Color.RED, Color.BLUE),
+    ],
+)
+def test_number_equal_enum_has_no_tolerance(number1: object, number2: object) -> None:
+    assert not number_equal(number1, number2, EqualityConfig(atol=5.0, rtol=1.0))
+
+
+def test_number_equal_same_enum_member_with_tolerance() -> None:
+    assert number_equal(Level.LOW, Level.LOW, EqualityConfig(atol=5.0))
 
 
 @pytest.mark.parametrize("example", SCALAR_NOT_EQUAL_TOLERANCE)
