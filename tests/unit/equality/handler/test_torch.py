@@ -400,6 +400,57 @@ def test_tensor_equal_rtol_outside_the_tolerance_reversed() -> None:
 
 
 @torch_available
+def test_tensor_equal_rtol_each_element_in_its_own_direction() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert tensor_equal(
+        torch.tensor([100.0, 101.005], dtype=torch.float64),
+        torch.tensor([101.005, 100.0], dtype=torch.float64),
+        config,
+    )
+
+
+@torch_available
+def test_tensor_equal_rtol_each_element_in_its_own_direction_reversed() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert tensor_equal(
+        torch.tensor([101.005, 100.0], dtype=torch.float64),
+        torch.tensor([100.0, 101.005], dtype=torch.float64),
+        config,
+    )
+
+
+@torch_available
+def test_tensor_equal_rtol_one_element_outside_the_tolerance() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert not tensor_equal(
+        torch.tensor([100.0, 101.005], dtype=torch.float64),
+        torch.tensor([101.005, 105.0], dtype=torch.float64),
+        config,
+    )
+
+
+@torch_available
+def test_tensor_equal_different_shape_with_tolerance() -> None:
+    assert not tensor_equal(torch.ones(2), torch.ones(3), EqualityConfig(atol=1.0))
+
+
+@torch_available
+def test_tensor_equal_different_dtype_with_tolerance() -> None:
+    assert not tensor_equal(
+        torch.ones(2, dtype=torch.float32),
+        torch.ones(2, dtype=torch.int32),
+        EqualityConfig(atol=1.0),
+    )
+
+
+@torch_available
+def test_tensor_equal_integers_with_tolerance() -> None:
+    assert tensor_equal(
+        torch.tensor([100, 101]), torch.tensor([101, 100]), EqualityConfig(rtol=0.02)
+    )
+
+
+@torch_available
 def test_tensor_equal_bool_has_no_atol() -> None:
     assert not tensor_equal(torch.tensor([True]), torch.tensor([False]), EqualityConfig(atol=1.0))
 

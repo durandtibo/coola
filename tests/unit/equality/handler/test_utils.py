@@ -14,6 +14,7 @@ from coola.equality.handler import (
     SameObjectHandler,
     SameTypeHandler,
     check_recursion_depth,
+    comparison_key,
     create_chain,
     handlers_are_equal,
     report_difference,
@@ -292,3 +293,44 @@ def test_track_comparison_inner_exit_keeps_outer_pair() -> None:
             pass
         with track_comparison(config, a, b) as in_progress:
             assert in_progress
+
+
+#####################################
+#     Tests for comparison_key      #
+#####################################
+
+
+@pytest.mark.parametrize("equal_nan", [True, False])
+def test_comparison_key_keeps_the_type(equal_nan: bool) -> None:
+    config = EqualityConfig(equal_nan=equal_nan)
+    assert comparison_key(1, config) != comparison_key(True, config)
+
+
+def test_comparison_key_equal_values() -> None:
+    assert comparison_key("a", EqualityConfig()) == comparison_key("a", EqualityConfig())
+
+
+def test_comparison_key_nan_equal_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert comparison_key(float("nan"), config) == comparison_key(float("nan"), config)
+
+
+def test_comparison_key_nan_not_equal_nan() -> None:
+    config = EqualityConfig()
+    assert comparison_key(float("nan"), config) != comparison_key(float("nan"), config)
+
+
+def test_comparison_key_nan_in_tuple_equal_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert comparison_key((float("nan"), 1), config) == comparison_key((float("nan"), 1), config)
+
+
+def test_comparison_key_nan_in_frozenset_equal_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert comparison_key(frozenset({float("nan")}), config) == comparison_key(
+        frozenset({float("nan")}), config
+    )
+
+
+def test_comparison_key_is_hashable() -> None:
+    assert isinstance(hash(comparison_key((float("nan"), frozenset({1})), EqualityConfig())), int)

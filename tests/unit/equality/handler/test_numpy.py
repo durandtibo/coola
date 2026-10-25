@@ -7,8 +7,13 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import FalseHandler, NumpyArrayEqualHandler, TrueHandler
-from coola.equality.handler.numpy import array_equal, is_numeric_array
+from coola.equality.handler import (
+    FalseHandler,
+    NumpyArrayEqualHandler,
+    NumpyTimeScalarEqualHandler,
+    TrueHandler,
+)
+from coola.equality.handler.numpy import array_equal, is_numeric_array, time_scalar_equal
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 from tests.unit.equality.tester.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
@@ -399,6 +404,193 @@ def test_array_equal_rtol_outside_the_tolerance() -> None:
 def test_array_equal_rtol_outside_the_tolerance_reversed() -> None:
     config = EqualityConfig(rtol=0.01, atol=0.0)
     assert not array_equal(np.array([100.0]), np.array([101.5]), config)
+
+
+@numpy_available
+def test_array_equal_rtol_each_element_in_its_own_direction() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert array_equal(np.array([100.0, 101.005]), np.array([101.005, 100.0]), config)
+
+
+@numpy_available
+def test_array_equal_rtol_each_element_in_its_own_direction_reversed() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert array_equal(np.array([101.005, 100.0]), np.array([100.0, 101.005]), config)
+
+
+@numpy_available
+def test_array_equal_rtol_one_element_outside_the_tolerance() -> None:
+    config = EqualityConfig(rtol=0.01, atol=0.0)
+    assert not array_equal(np.array([100.0, 101.005]), np.array([101.005, 105.0]), config)
+
+
+@numpy_available
+def test_array_equal_unsigned_integers_do_not_wrap_around() -> None:
+    config = EqualityConfig(atol=1.0)
+    assert not array_equal(np.array([0], dtype=np.uint8), np.array([200], dtype=np.uint8), config)
+
+
+@numpy_available
+def test_array_equal_unsigned_integers_within_atol() -> None:
+    config = EqualityConfig(atol=1.0)
+    assert array_equal(np.array([5], dtype=np.uint8), np.array([4], dtype=np.uint8), config)
+
+
+@numpy_available
+def test_array_equal_integers_within_rtol_reversed() -> None:
+    config = EqualityConfig(rtol=0.02)
+    assert array_equal(np.array([101, 100]), np.array([100, 101]), config)
+
+
+@numpy_available
+def test_array_equal_equal_infinities_with_tolerance() -> None:
+    config = EqualityConfig(atol=1.0)
+    assert array_equal(np.array([float("inf")]), np.array([float("inf")]), config)
+
+
+@numpy_available
+def test_array_equal_different_infinities_with_tolerance() -> None:
+    config = EqualityConfig(atol=1e300)
+    assert not array_equal(np.array([float("inf")]), np.array([float("-inf")]), config)
+
+
+@numpy_available
+def test_array_equal_complex_with_tolerance() -> None:
+    config = EqualityConfig(atol=0.6)
+    assert array_equal(np.array([1 + 1j]), np.array([1.5 + 1j]), config)
+
+
+@numpy_available
+def test_array_equal_different_shape_with_tolerance() -> None:
+    assert not array_equal(np.ones(2), np.ones(3), EqualityConfig(atol=1.0))
+
+
+################################################
+#     Tests for NumpyTimeScalarEqualHandler    #
+################################################
+
+
+@numpy_available
+def test_numpy_time_scalar_equal_handler_repr() -> None:
+    assert repr(NumpyTimeScalarEqualHandler()).startswith("NumpyTimeScalarEqualHandler(")
+
+
+@numpy_available
+def test_numpy_time_scalar_equal_handler_equal_true(config: EqualityConfig) -> None:
+    assert NumpyTimeScalarEqualHandler().handle(
+        np.timedelta64(1, "s"), np.timedelta64(1, "s"), config
+    )
+
+
+@numpy_available
+def test_numpy_time_scalar_equal_handler_equal_false(config: EqualityConfig) -> None:
+    assert not NumpyTimeScalarEqualHandler().handle(
+        np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
+    )
+
+
+@numpy_available
+def test_numpy_time_scalar_equal_handler_equal_false_show_difference(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    config.show_difference = True
+    with caplog.at_level(logging.INFO):
+        assert not NumpyTimeScalarEqualHandler().handle(
+            np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
+        )
+    assert caplog.messages[0].startswith("numpy time scalars are different")
+
+
+@numpy_available
+def test_numpy_time_scalar_equal_handler_equal_false_no_report(
+    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+) -> None:
+    with caplog.at_level(logging.INFO):
+        assert not NumpyTimeScalarEqualHandler().handle(
+            np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
+        )
+    assert not caplog.messages
+
+
+@numpy_available
+def test_numpy_time_scalar_equal_handler_set_next_handler() -> None:
+    handler = NumpyTimeScalarEqualHandler()
+    handler.set_next_handler(FalseHandler())
+    assert handler.next_handler.equal(FalseHandler())
+
+
+###################################
+#     Tests for time_scalar_equal #
+###################################
+
+
+@numpy_available
+def test_time_scalar_equal_timedelta_same_value_different_unit(config: EqualityConfig) -> None:
+    assert time_scalar_equal(np.timedelta64(1, "s"), np.timedelta64(1000, "ms"), config)
+
+
+@numpy_available
+def test_time_scalar_equal_timedelta_different(config: EqualityConfig) -> None:
+    assert not time_scalar_equal(np.timedelta64(1, "s"), np.timedelta64(2, "s"), config)
+
+
+@numpy_available
+def test_time_scalar_equal_timedelta_atol_in_seconds() -> None:
+    assert time_scalar_equal(
+        np.timedelta64(1, "s"), np.timedelta64(1500, "ms"), EqualityConfig(atol=1.0)
+    )
+
+
+@numpy_available
+def test_time_scalar_equal_timedelta_outside_atol() -> None:
+    assert not time_scalar_equal(
+        np.timedelta64(1, "s"), np.timedelta64(3, "s"), EqualityConfig(atol=1.0)
+    )
+
+
+@numpy_available
+def test_time_scalar_equal_timedelta_rtol() -> None:
+    assert time_scalar_equal(
+        np.timedelta64(100, "s"), np.timedelta64(101, "s"), EqualityConfig(rtol=0.02)
+    )
+
+
+@numpy_available
+def test_time_scalar_equal_datetime_same(config: EqualityConfig) -> None:
+    assert time_scalar_equal(np.datetime64("2020-01-01"), np.datetime64("2020-01-01"), config)
+
+
+@numpy_available
+def test_time_scalar_equal_datetime_has_no_tolerance() -> None:
+    assert not time_scalar_equal(
+        np.datetime64("2020-01-01"), np.datetime64("2020-01-02"), EqualityConfig(atol=1e9)
+    )
+
+
+@numpy_available
+@pytest.mark.parametrize("value", [np.timedelta64("NaT", "s"), np.datetime64("NaT", "s")])
+def test_time_scalar_equal_nat_equal_nan(value: object) -> None:
+    assert time_scalar_equal(value, value.copy(), EqualityConfig(equal_nan=True))
+
+
+@numpy_available
+@pytest.mark.parametrize("value", [np.timedelta64("NaT", "s"), np.datetime64("NaT", "s")])
+def test_time_scalar_equal_nat_not_equal_nan(value: object, config: EqualityConfig) -> None:
+    assert not time_scalar_equal(value, value.copy(), config)
+
+
+@numpy_available
+def test_time_scalar_equal_nat_and_value_equal_nan() -> None:
+    assert not time_scalar_equal(
+        np.timedelta64("NaT", "s"), np.timedelta64(1, "s"), EqualityConfig(equal_nan=True)
+    )
+
+
+@numpy_available
+def test_time_scalar_equal_value_and_nat_equal_nan() -> None:
+    assert not time_scalar_equal(
+        np.timedelta64(1, "s"), np.timedelta64("NaT", "s"), EqualityConfig(equal_nan=True)
+    )
 
 
 @numpy_available

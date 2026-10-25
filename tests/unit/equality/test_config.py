@@ -231,3 +231,21 @@ def test_equality_config_visiting_pair_is_removed_on_error() -> None:
         _fail()
     with config.visiting(a, b) as in_progress:
         assert in_progress is False
+
+
+@pytest.mark.parametrize("name", ["atol", "rtol"])
+@pytest.mark.parametrize("value", [True, False, "a", None])
+def test_equality_config_tolerance_wrong_type(name: str, value: object) -> None:
+    with pytest.raises(TypeError, match=f"{name} must be a real number"):
+        EqualityConfig(**{name: value})
+
+
+@pytest.mark.parametrize("value", [True, 1.5, "a", None])
+def test_equality_config_max_depth_wrong_type(value: object) -> None:
+    with pytest.raises(TypeError, match="max_depth must be an int"):
+        EqualityConfig(max_depth=value)
+
+
+@pytest.mark.parametrize("name", ["atol", "rtol"])
+def test_equality_config_tolerance_int(name: str) -> None:
+    assert getattr(EqualityConfig(**{name: 1}), name) == 1

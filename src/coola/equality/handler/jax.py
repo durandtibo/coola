@@ -7,6 +7,7 @@ __all__ = ["JaxArrayEqualHandler"]
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.base import BaseEqualityHandler
+from coola.equality.handler.elementwise import elementwise_close
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.utils import report_difference
@@ -90,14 +91,17 @@ def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
         # A boolean is a label, not a quantity: no tolerance.
         return jnp.array_equal(array1, array2).item()
     if config.atol > 0 or config.rtol > 0:
-        # ``jnp.allclose`` scales the tolerance with the second array only, so the two
-        # directions are tried to make the comparison symmetric.
-        return (
-            jnp.allclose(
-                array1, array2, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
-            ).item()
-            or jnp.allclose(
-                array2, array1, rtol=config.rtol, atol=config.atol, equal_nan=config.equal_nan
-            ).item()
-        )
+        return _arrays_close(array1, array2, config)
     return jnp.array_equal(array1, array2, equal_nan=config.equal_nan).item()
+
+
+def _arrays_close(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig) -> bool:
+    if array1.shape != array2.shape or array1.dtype != array2.dtype:
+        return False
+    # The integers and the booleans are converted: an unsigned subtraction wraps around.
+    if not jnp.issubdtype(array1.dtype, jnp.inexact):
+        array1, array2 = array1.astype(float), array2.astype(float)
+    close = elementwise_close(
+        array1, array2, atol=config.atol, rtol=config.rtol, equal_nan=config.equal_nan, xp=jnp
+    )
+    return bool(close.all().item())
