@@ -37,9 +37,9 @@ construction instead of by the discipline of each tester.
 | Reflexive               | `x` equals `x` and a copy of `x`; the exception is a NaN-like value without `equal_nan`.                                                                                                                                                                                                 | the engine (identity); the missing-value rule |
 | Recursive, order rules  | Containers item by item at any depth; sequences ordered; `dict` unordered; `OrderedDict` ordered.                                                                                                                                                                                        | container testers                             |
 | Value semantics         | `==` unless a tester exists; arrays and frames also compare dtype and shape.                                                                                                                                                                                                             | the registry, the default tester              |
-| Missing values          | A NaN-like value (float or complex `NaN`, `Decimal("NaN")`, NumPy `NaT`) equals another only with `equal_nan=True` or if it is the same object, **in every container**. A null (`None`, `pd.NA`, polars or Arrow null) equals a null, always.                                            | the numeric kernel and the table comparer     |
+| Missing values          | A NaN-like value (float or complex `NaN`, `Decimal("NaN")`, NumPy `NaT`) equals another only with `equal_nan=True` or if it is the same object, in every container **except the nested and `object` cells of frames, which follow the library (Q6)**. A null (`None`, `pd.NA`, polars or Arrow null) equals a null, always.                                            | the numeric kernel and the table comparer     |
 | Signed zero, time zones | `-0.0` equals `0.0`; aware datetimes compare by instant.                                                                                                                                                                                                                                 | kernel, `==`                                  |
-| Tolerance               | `abs(a - b) <= atol + rtol * max(abs(a), abs(b))` per element, for every number in every container, exact for integers. `bool`, enum members, instants, strings and the structure are exact. Durations follow the tolerance (`atol` in seconds). Nested cells follow the rule of a list. | one kernel, one number tester                 |
+| Tolerance               | `abs(a - b) <= atol + rtol * max(abs(a), abs(b))` per element, for every number in every container, exact for integers. `bool`, enum members, instants, strings and the structure are exact. Durations follow the tolerance (`atol` in seconds). The nested and `object` cells of frames are compared exactly by the library (Q6). | one kernel, one number tester                 |
 | Symmetric               | `eq(a, b)` and `eq(b, a)` agree, with and without tolerance.                                                                                                                                                                                                                             | kernel formula, engine type rule              |
 | Not transitive, pure    | A tolerance is not transitive; a comparison never modifies its inputs.                                                                                                                                                                                                                   | (documented)                                  |
 | Failure modes           | Cycle: equal. Nesting above `max_depth`: `MaxDepthExceededError`. `==` that raises or returns a non-bool: `TypeError` naming the type; other exceptions propagate. No `RecursionError`, whatever the caller's stack.                                                                     | the engine (explicit stack)                   |
@@ -70,7 +70,7 @@ Four rules keep it simple:
 2. **The engine owns the invariants**: identity, strict type, depth, cycles, path, first failure.
    A tester cannot forget them because it never recurses.
 3. **A container does not recurse, it decomposes**: it returns the child pairs that must all be
-   equal. A frame is a container of columns, a nested column a container of cells.
+   equal. A table compares its columns in a loop and stops at the first column that differs.
 4. **coola owns the semantics, the libraries own the structure**: every number goes through the
    kernel; a library says whether two frames have the same columns, never whether `1` is close to `2`.
 
@@ -115,10 +115,11 @@ class ComparisonResult:
 Exported by `coola.equality`: the five functions, `ComparisonResult`, `EqualityConfig`, `Tolerance`,
 `MaxDepthExceededError`, `AttributeName`, `Element`, `BaseEqualityTester`, `Engine` (the type of
 `ctx`), `EqualityTesterRegistry`, `get_default_registry`, `register_equality_testers`, and the
-testers a user composes for their own classes (`ObjectAttributesEqualityTester`,
-`EqualEqualityTester`, `OrderedMappingEqualityTester`, `SequenceEqualityTester`,
-`MappingEqualityTester`). About 25 names. Everything per library lives in private modules and is
-reached through the registry.
+the named testers (`ObjectAttributesEqualityTester`, `EqualEqualityTester`,
+`OrderedMappingEqualityTester`, `SequenceEqualityTester`, `MappingEqualityTester`, ... and the
+library testers `NumpyArrayEqualityTester`, `TorchTensorEqualityTester`, `TableEqualityTester`, ...,
+decision Q12) so that a user can compose, subclass or register them. The handlers and the helpers
+(kernel, adapters) are private (`_numeric.py`, `_adapters`).
 
 ## 4. The engine and the testers
 
@@ -234,7 +235,7 @@ A tester has no state but its configuration; `__eq__` and `__repr__` come from t
 | `OrderedDict`                                                               | `OrderedMappingEqualityTester`                           | and the same key order                                               |
 | `set`, `frozenset`                                                          | `SetEqualityTester`                                      | elements matched by hash and type; reports `Element`                 |
 | dataclasses, pydantic models                                                | `DataclassEqualityTester`, `PydanticModelEqualityTester` | fields as `AttributeName` children                                   |
-| `np.ndarray`, `np.ma.MaskedArray`, NumPy `datetime64`/`timedelta64` scalars | `Numpy*EqualityTester`                                   | dtype, shape, kernel; mask and unmasked values; `NaT` by `equal_nan` |
+| `np.ndarray`, `np.ma.MaskedArray`, NumPy `datetime64`/`timedelta64` scalars | `Numpy*EqualityTester`                                   | dtype, shape, kernel; for a masked array the data (masked values included), the mask and `fill_value` (Q5); `NaT` by `equal_nan` |
 | `torch.Tensor`, `PackedSequence`, `jax.Array`, xarray                       | `Torch*`, `Jax*`, `Xarray*EqualityTester`                | device, dtype, shape, layout, kernel; xarray parts as children       |
 | pandas, polars, pyarrow frames, series, arrays                              | `TableEqualityTester` (section 7)                        | structure, then columns by kind                                      |
 
@@ -293,14 +294,14 @@ variant needs `torch.maximum`; the NumPy caller silences `invalid` and `over`.
 ## 7. Frames, series and Arrow tables: one comparer, three adapters
 
 pandas, polars and pyarrow run the same algorithm: check the structure, then compare the columns,
-each by its kind. It is written once.
+each by its kind, and stop at the first column that differs. It is written once.
 
 ```python
 @dataclass(frozen=True, slots=True)
 class Column:
     name: object
-    kind: Literal["numeric", "duration", "exact", "nested"]
-    values: object  # NumPy array (numeric, duration) or the library's own column (exact, nested)
+    kind: Literal["numeric", "duration", "exact"]
+    values: object  # NumPy array (numeric, duration) or the library's own column (exact)
     nulls: np.ndarray | None  # boolean mask
 
 
@@ -314,19 +315,25 @@ class TableEqualityTester(BaseEqualityTester[object]):
         a, e = to_table(actual), to_table(expected)  # the adapter of the type
         if a.structure() != e.structure():
             return ctx.fail(lambda: describe_structure_difference(a, e))
-        return (
-            (ca, ce, ca.name) for ca, ce in zip(a.columns(), e.columns())
-        )  # Column has its own tester
+        for ca, ce in zip(a.columns(), e.columns()):  # lazily: a column is only converted when reached
+            if not column_close(ca, ce, ctx):  # the kernel, or the library's equals
+                return ctx.fail(lambda: describe_column_difference(ca, ce), ca.name, *first_row(ca, ce))
+        return True
 ```
 
-A `Column` is a value with its own tester, compared by its kind:
+A table is a leaf for the engine; the first differing column gives the path `(name, row)`. The row is
+looked up only when explaining; for an `exact` column it is the first position where the library
+reports a difference, or absent if the library cannot say.
 
-| Kind       | Dtypes                                                                  | Comparison                                                                          |
-| ---------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `numeric`  | integers, floats, nullable `Int64`/`Float64`, Arrow and polars numerics | null masks equal, then the kernel on the values (`0` under a null)                  |
-| `duration` | `timedelta64`, polars `Duration`, Arrow `duration`                      | kernel on integer nanoseconds                                                       |
-| `exact`    | booleans, strings, categories, instants, periods, intervals, decimals   | library `equals` (a null equals a null); never sees the tolerance                   |
-| `nested`   | polars `List`/`Array`/`Struct`, Arrow nested, pandas `object`           | cells are children of the engine; the library's `equals` is the fast path if no NaN |
+| Kind       | Dtypes                                                                                                                               | Comparison                                                                                |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `numeric`  | integers, floats, nullable `Int64`/`Float64`, Arrow and polars numerics                                                              | null masks equal, then the kernel on the values (`0` under a null)                        |
+| `duration` | `timedelta64`, polars `Duration`, Arrow `duration`                                                                                   | kernel on integer nanoseconds                                                             |
+| `exact`    | booleans, strings, categories, instants, periods, intervals, decimals, **and the nested (`List`, `Struct`, Arrow nested) and `object` columns** | the library's `equals` (a null equals a null); never sees the tolerance or `equal_nan` (Q6) |
+
+The nested and `object` columns are the one place where the library, not coola, decides (Q6): the
+tolerance is not applied to the floats inside them, and `NaN` equals `NaN` there (the `equals` of
+pandas, polars and Arrow). The three libraries then agree with each other, which they do not today.
 
 | Library | `structure()` is                                                               | Never used any more                                      |
 | ------- | ------------------------------------------------------------------------------ | -------------------------------------------------------- |
@@ -336,9 +343,9 @@ A `Column` is a value with its own tester, compared by its kind:
 
 A `Series` or an `Array` is a one-column table. pandas `attrs` and `flags` and Arrow schema metadata
 are ignored by design. The dtype includes the time resolution (`timedelta64[s]` and `timedelta64[ns]`
-differ, as in NumPy). Every comparison is a boolean array and `all()`, so a failing comparison costs
-what a passing one does, and the first `False` gives the column and the row. Adding a library means
-writing one adapter of about 40 lines.
+differ, as in NumPy). Every comparison is a boolean array and `all()` or the library's `equals`, so
+a failing comparison costs what a passing one does. Adding a library means writing one adapter of
+about 40 lines.
 
 ## 8. Package layout
 
@@ -393,12 +400,12 @@ met. The prototype bounds the gain of the engine, not of the whole rewrite.
 | C1  | **[verified]** `ac(np.array([2**62]), np.array([2**62 + 1]), atol=0.5, rtol=0)` is `True` (torch, pandas, polars, pyarrow, `uint64` too); a list and a Python `int` give `False`                                                                                                                                                                              | integer difference in integer arithmetic (section 6)        |
 | C2  | **[verified]** `ac(IntEnum.A, IntEnum.B, atol=5)` and `IntFlag` members are `True`; a plain `Enum` is `False`                                                                                                                                                                                                                                                 | `ScalarEqualityTester` is exact for `(bool, Enum)`          |
 | C3  | **[verified]** pandas `Series`, `DataFrame`, `Index`, `"boolean"` arrays: `True` is close to `False` with `atol=1`                                                                                                                                                                                                                                            | the `exact` column kind                                     |
-| C4  | **[verified]** nested cells: polars applies the tolerance inside a list, pyarrow does not, pandas uses its own rule and ignores `equal_nan` (`eq(pd.Series([[nan]]), same, equal_nan=True)` is `False`)                                                                                                                                                       | the `nested` kind: cells go through the engine              |
+| C4  | **[verified]** nested cells: polars applies the tolerance inside a list, pyarrow does not, pandas uses its own rule and ignores `equal_nan` (`eq(pd.Series([[nan]]), same, equal_nan=True)` is `False`) | the `exact` kind: nested cells are compared by the library's `equals`, with no tolerance (Q6); the three libraries agree |
 | C5  | **[verified]** a failing exact comparison of two pandas series of 2M floats takes 5 898 ms (equal copy: 2.9 ms; `pd.testing.assert_series_equal` alone: 5 804 ms); a 200k x 10 frame: 538 ms                                                                                                                                                                  | no `pandas.testing`; boolean arrays                         |
-| C6  | **[verified]** pandas `object` column: two distinct `NaN` are equal without `equal_nan`; `None` equals `NaN` but `hash_object` differs                                                                                                                                                                                                                        | `nested` kind: strict type per cell                         |
+| C6  | **[verified]** pandas `object` column: two distinct `NaN` are equal without `equal_nan`; `None` equals `NaN` but `hash_object` differs | **open (R1)**: under Q6 the `object` column stays with the library, so this remains unless the hasher or the rule changes |
 | C7  | **[verified]** `MappingProxyType` and `array.array` fall to `==`: no tolerance, a `mappingproxy` holding arrays raises `TypeError`                                                                                                                                                                                                                            | register both (two lines)                                   |
 | C8  | **[verified]** `float16`/`float32` arrays at extreme values: `RuntimeWarning` and a wrong `True` (`60000` against `-60000`, `rtol=1.5`); a Python float gives `False`                                                                                                                                                                                         | cast to `float64` in the kernel                             |
-| C9  | **[verified]** masked arrays: the data under the mask is compared, so arrays that print identically differ; `hash_object` ignores it                                                                                                                                                                                                                          | compare mask and unmasked values; keep `fill_value`         |
+| C9  | **[verified]** masked arrays: the data under the mask is compared, so arrays that print identically differ; `hash_object` ignores it | **none (Q5)**: kept; document that the data under the mask is part of the value (the hash ignores it, which is allowed: equal implies same hash) |
 | C10 | **[verified]** `compare` gives an empty path for an array, a frame and an Arrow table; a set element is shown as an index (`actual[2]`)                                                                                                                                                                                                                       | engine path, `ctx.fail(*path)`, `Element`                   |
 | C11 | **[verified]** `show_difference=True` is silent by default, exists on two functions, and there are 50 occurrences and 39 `report_difference` calls behind `if config.show_difference`                                                                                                                                                                         | one first-failure record; remove the option and the logger  |
 | C12 | **[verified]** `compare` on 1M floats differing at index 0 takes 231 ms (`objects_are_equal`: 10 ms): it builds the `repr` of the roots                                                                                                                                                                                                                       | bounded reasons; drop the root `repr`s                      |
@@ -429,20 +436,20 @@ after each.
 | 3    | Kernel: exact integer difference, cast of small floats to `float64`, `over` silenced; applies to NumPy, torch, JAX and the numeric columns of frames                                                                                                                                                                                                                                | C1, C8             |     | 1          |
 | 4    | Register `types.MappingProxyType` and `array.array`; regression test with arrays inside a `mappingproxy`                                                                                                                                                                                                                                                                            | C7                 |     |            |
 | 5    | Fix the four documentation statements; find why the Markdown doctest job did not stop on `extending.md`                                                                                                                                                                                                                                                                             | C17                |     |            |
-| 6    | Masked arrays: compare the mask and the unmasked values, keep `fill_value`                                                                                                                                                                                                                                                                                                          | C9                 | B   |            |
-| 7    | pandas on column kinds inside the current handler (no `pandas.testing`; `object` and nested cells through the registry); failing-path benchmark within 2x of the passing path                                                                                                                                                                                                       | C4, C5, C6         | B   | 1, 3       |
-| 8    | polars and pyarrow on column kinds: nested cells through the registry                                                                                                                                                                                                                                                                                                               | C4                 | B   | 1, 3       |
+| 6    | ~~Masked arrays~~ dropped by Q5 (documentation only: say that the masked values are compared)                                                                                                                                                                                                                | C9 (doc)           |     |            |
+| 7    | pandas on column kinds inside the current handler (no `pandas.testing`; the `object` and nested columns through `Series.equals`); failing-path benchmark within 2x of the passing path                                                                                                                       | C4, C5, C6 (R1)    | B   | 1, 3       |
+| 8    | polars and pyarrow on column kinds: nested columns through `equals` (polars loses the tolerance inside nested cells)                                                                                                                                                                                           | C4                 | B   | 1, 3       |
 | 9    | **Engine**: add `Engine`, the lookup cache, the explicit stack, identity/type/depth/cycle ownership. The existing chain testers are called as leaf testers while the families are ported, to keep each PR small and the benchmarks comparable; this staging is removed by step 14 and is not a compatibility layer                                                                  | C13, part C14, C15 |     | 1          |
 | 10   | One reporting mechanism: `report_difference` forwards to `ctx.fail`; first-failure record; lazy bounded reasons; remove `show_difference`, the logger sink, `compare(tolerance=, max_repr_chars=)` and the root fields of the result                                                                                                                                                | C11, C12, C15      | B   | 9          |
 | 11   | Port the Python testers (object, scalar, sequence, mapping, set, dataclass, attributes, pydantic) from chains to `objects_are_equal` returning a verdict or children; a port reports its location; delete the handlers nobody uses                                                                                                                                                  | C14                | B   | 10         |
-| 12   | Port the array testers (NumPy, masked, torch, JAX, xarray): index in the path, bounded value reasons                                                                                                                                                                                                                                                                                | C14, C10           | B   | 11         |
+| 12   | Port the array testers (NumPy, masked, torch, JAX, xarray): index in the path, bounded value reasons; the library testers stay public (Q12)                                                                                                                                                                                                                                                                                | C14, C10           | B   | 11         |
 | 13   | `TableEqualityTester` and the three adapters replace the frame handlers; column and row in the path; `Element` for sets                                                                                                                                                                                                                                                             | C16, C10           | B   | 11, 7, 8   |
-| 14   | Delete the chain machinery (`BaseEqualityHandler`, mixin, `create_chain`, `BaseChainEqualityTester`, `HandlerEqualityTester`, `check_recursion_depth`, `track_comparison`); freeze `EqualityConfig`; library code to private modules; trim `__all__`; `coola.io` and the others import from `coola.equality`; release notes; rewrite `equality_handler.md` and `equality_tester.md` | C14, C15, C18      | B   | 12, 13     |
+| 14   | Delete the chain machinery (`BaseEqualityHandler`, mixin, `create_chain`, `BaseChainEqualityTester`, `HandlerEqualityTester`, `check_recursion_depth`, `track_comparison`); freeze `EqualityConfig`; library code to private modules; trim `__all__`; `coola.io` and the others import from `coola.equality`; a migration guide (`docs/docs/migration/`, Q11) and a migration guide in `docs/docs/migration/` (Q11); rewrite `equality_handler.md` and `equality_tester.md` | C14, C15, C18      | B   | 12, 13     |
 
 Steps 11 to 14 break every custom handler and tester (`handle(actual, expected, config)` and
 `objects_are_equal(actual, expected, config)` become `objects_are_equal(actual, expected, ctx)` that
 returns a verdict or the child pairs, with `config.registry.objects_are_equal(a, b, config)` replaced
-by returning `(a, b, part)`). They share the major release; the release notes show that change.
+by returning `(a, b, part)`). They share the major release; the migration guide shows that change with a before/after custom tester.
 
 ### 10.3 Tests and gates
 
@@ -617,6 +624,70 @@ the next call). B. A lock-free immutable snapshot inside the registry (benefits 
 A. Engine plus the current chain testers called as leaves during the port (recommended: small PRs,
 benchmarks can compare; removed in step 14). B. Engine and the port of the Python testers in one PR (fewer
 intermediate states, a large diff). Decision: A
+
+### Decisions taken and their effect on the design
+
+| Q   | Decision                                                  | Effect, already applied in the sections above                                                                                          |
+| --- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Q1  | Iterative engine                                          | sections 2, 4                                                                                                                           |
+| Q2  | One method returns a verdict or an iterator               | section 4.1                                                                                                                             |
+| Q3  | Remove `show_difference` and the logger                   | section 3, steps 10                                                                                                                     |
+| Q4  | Drop root `repr`s; `compare(rtol, atol)`; `Tolerance` public | section 3                                                                                                                            |
+| Q5  | Masked arrays: keep comparing the data under the mask     | masked row of 4.4; step 6 dropped; C9 closed                                                                                            |
+| Q6  | Nested and `object` cells of frames left to the library   | section 7: three kinds only, no cell children, the tolerance and `equal_nan` do not reach nested cells; C4 reworded; C6 left open (R1) |
+| Q7  | Time resolution stays in the dtype                        | section 7                                                                                                                               |
+| Q8  | Integers: exact difference, tolerance in `float64`        | section 6; the cast of small floats is not covered by this answer (R2)                                                                  |
+| Q9  | Ignored state stays ignored and is documented             | guide sections                                                                                                                          |
+| Q10 | `bool` and every `Enum` exact                             | section 4.3                                                                                                                             |
+| Q11 | A migration guide in `docs/docs/migration/`               | step 14                                                                                                                                 |
+| Q12 | Library testers stay public                               | section 3 exports; open details in R3                                                                                                   |
+| Q13 | Per-call lookup cache                                     | section 4.2                                                                                                                             |
+| Q14 | Engine PR with chain testers called as leaves             | step 9                                                                                                                                  |
+
+### Follow-up questions
+
+**R1. What do we do about the properties that Q6 leaves unsatisfied?** With nested and `object` columns
+left to the library, two documented properties have an exception: `None` against `NaN` in a pandas
+`object` column are equal but have different `hash_object`s ("equal implies same hash"), and
+`NaN` in a nested cell equals `NaN` without `equal_nan` (the NaN row).
+Options: A. document both as exceptions of the frame section (no work, two exceptions in the
+Guarantees table); B. make the hasher treat `None` and `NaN` in an `object` column like pandas does,
+and keep the NaN exception (hash property true, one exception left); C. compare `object` columns
+(only these, not Arrow and polars nested columns) cell by cell through the engine (both properties
+true for pandas, a slower path for a rare dtype, and one more kind). Recommendation: B.
+
+**R2. Do small floats (`float16`, `bfloat16`, `float32`) keep their dtype in the kernel?** Q8 chose the
+integer rule only. Keeping the dtype means a `RuntimeWarning` and a wrong `True` at the edge of the
+range (`60000` against `-60000`, `rtol=1.5`); casting to `float64` costs temporaries twice as large.
+Options: A. cast to `float64` (recommended, correct, simple); B. keep the dtype and handle overflow
+explicitly (`errstate`, an `isfinite` check on the tolerance), which is faster for large `float32`
+arrays and adds branches to the kernel. Decision needed.
+
+**R3. Details of the public surface (Q12 B).** Library testers stay public, so decide: (a) the names
+for the pandas, polars and pyarrow testers now that one `TableEqualityTester` replaces the handlers:
+keep `PandasDataFrameEqualityTester` and friends as thin subclasses that fix the adapter (more names,
+familiar), or expose `TableEqualityTester(adapter)` only (fewer names; "no alias" constraint favours
+this); (b) the public name of the type of `ctx` (`Engine` or `ComparisonContext`); (c) whether
+`Element` and `AttributeName` are exported (they appear in `ComparisonResult.path`, so recommended:
+yes); (d) whether the helper functions that custom testers need (`comparison_key`, `describe_values`,
+the kernel `close`) are public. Recommendation: `TableEqualityTester(adapter)`, `Engine`, export both
+path parts, keep the helpers private except the kernel `close`.
+
+**R4. Is `max_depth` still needed?** With the explicit stack there is no `RecursionError`, and cycles
+are handled, so `max_depth` no longer protects the interpreter. It still bounds the work and memory
+on a pathological, non-cyclic structure (an object whose attribute creates a new child on each
+access). Options: A. keep `max_depth=100` and `MaxDepthExceededError` (documented today, cheap, the
+error no longer derives from `RecursionError`); B. remove the parameter and the error (one option
+less on five functions, one validator less; an infinite generated structure runs until memory is
+exhausted); C. keep it with a larger default (for example 1 000) because 100 is a legitimate nesting
+for JSON-like data. Recommendation: A, with C if a real structure goes beyond 100.
+
+**R5. How are frames reported when the library cannot give a row?** For an `exact` column the
+library's `equals` returns a bool. The path is then `(column,)` and the reason names the column, or the
+row is found by a second, explaining-only pass (`a != b` on the column; `NaN`-aware for floats). The
+second is more helpful and costs nothing on the passing path and on the failing path of
+`objects_are_equal`. Recommendation: the explaining-only pass for pandas, polars and pyarrow, and the
+column alone when it is not available (nested columns).
 
 ## 12. Not covered
 
