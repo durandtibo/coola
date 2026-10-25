@@ -116,7 +116,7 @@ class ScalarEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
 
     def handle(self, actual: float, expected: float, config: EqualityConfig) -> bool:
         object_equal = number_equal(actual, expected, config)
-        if not object_equal and config.show_difference:
+        if not object_equal and config.explaining:
             report_difference(
                 config,
                 format_value_difference(actual=actual, expected=expected, name="numbers"),

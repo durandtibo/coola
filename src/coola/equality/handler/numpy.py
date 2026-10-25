@@ -53,7 +53,7 @@ class NumpyArrayEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         object_equal = array_equal(actual, expected, config)
-        if config.show_difference and not object_equal:
+        if config.explaining and not object_equal:
             report_difference(
                 config, format_value_difference(actual, expected, name="numpy.ndarrays")
             )
@@ -206,7 +206,7 @@ class NumpyTimeScalarEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         object_equal = time_scalar_equal(actual, expected, config)
-        if config.show_difference and not object_equal:
+        if config.explaining and not object_equal:
             report_difference(
                 config, format_value_difference(actual, expected, name="numpy time scalars")
             )

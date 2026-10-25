@@ -13,7 +13,6 @@ __all__ = [
     "track_comparison",
 ]
 
-import logging
 from collections import Counter
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
@@ -23,8 +22,6 @@ if TYPE_CHECKING:
 
     from coola.equality.config import EqualityConfig
     from coola.equality.handler.base import BaseEqualityHandler
-
-LOGGER: logging.Logger = logging.getLogger("coola.equality")
 
 # A NaN is replaced by this marker when ``equal_nan=True``.
 _NAN: Any = object()
@@ -67,14 +64,13 @@ def report_difference(
 ) -> None:
     r"""Report a difference found while comparing two objects.
 
-    If the configuration has a ``reporter``, the formatted message is
-    sent to it together with the location of the difference, and
-    nothing is logged. Otherwise, the message is logged at the ``INFO``
-    level on the ``coola.equality`` logger, with the location in the
-    ``coola_path`` attribute of the log record.
+    The message and the location are appended to ``config.reports``,
+    which is the record of the explanation of the comparison
+    (``compare`` and ``assert_*``). Nothing is recorded if the
+    comparison does not explain the difference.
 
-    Handlers should call this function (instead of a logger) when
-    ``config.show_difference`` is ``True``.
+    Handlers should call this function when ``config.explaining`` is
+    ``True``, so the message is not formatted for nothing.
 
     Args:
         config: The equality configuration.
@@ -88,18 +84,15 @@ def report_difference(
         ```pycon
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler import report_difference
-        >>> reports = []
-        >>> config = EqualityConfig(reporter=lambda msg, path: reports.append((msg, path)))
+        >>> config = EqualityConfig(reports=[])
         >>> report_difference(config, "different %s", "values", path=("a",))
-        >>> reports
+        >>> config.reports
         [('different values', ('a',))]
 
         ```
     """
-    if config.reporter is None:
-        LOGGER.info(msg, *args, extra={"coola_path": path})
-        return
-    config.reporter(msg % args if args else msg, path)
+    if config.reports is not None:
+        config.reports.append((msg % args if args else msg, path))
 
 
 def create_chain(*handlers: BaseEqualityHandler) -> BaseEqualityHandler:

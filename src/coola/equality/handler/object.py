@@ -108,7 +108,7 @@ class ObjectSameAttributesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             attributes1 = get_object_attributes(actual)
             attributes2 = get_object_attributes(expected)
             if attributes1.keys() != attributes2.keys():
-                if config.show_difference:
+                if config.explaining:
                     report_difference(
                         config,
                         "objects have different attributes: %s vs %s",
@@ -119,7 +119,7 @@ class ObjectSameAttributesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             for name, value1 in attributes1.items():
                 value2 = attributes2[name]
                 if not config.registry.objects_are_equal(value1, value2, config):
-                    if config.show_difference:
+                    if config.explaining:
                         report_difference(
                             config,
                             "objects have different %s: %s vs %s",

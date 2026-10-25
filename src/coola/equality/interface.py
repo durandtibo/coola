@@ -25,7 +25,7 @@ def run_comparison(
     It is the code path shared by all the entry points
     (``objects_are_equal``, ``objects_are_allclose`` and ``compare``).
     Use it to run a comparison with an ``EqualityConfig`` that you
-    built, for example with a ``reporter``.
+    built, for example with ``reports`` set to a list.
 
     Args:
         registry: The registry that finds the tester of ``actual``.
@@ -65,7 +65,6 @@ def objects_are_allclose(
     rtol: float = 1e-5,
     atol: float = 1e-8,
     equal_nan: bool = False,
-    show_difference: bool = False,
     max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
@@ -90,9 +89,6 @@ def objects_are_allclose(
         rtol: The relative tolerance parameter. Must be non-negative.
         atol: The absolute tolerance parameter. Must be non-negative.
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
-        show_difference: If ``True``, log a readable description when the
-            comparison fails, at the ``INFO`` level on the
-            ``coola.equality`` logger.
         max_depth: The nesting limit: the maximum nesting level of the
             compared objects. A deeper structure raises
             ``MaxDepthExceededError`` (it is not a display depth like
@@ -134,7 +130,6 @@ def objects_are_allclose(
         registry = get_default_registry()
     config = EqualityConfig(
         registry=registry,
-        show_difference=show_difference,
         equal_nan=equal_nan,
         atol=atol,
         rtol=rtol,
@@ -148,7 +143,6 @@ def objects_are_equal(
     expected: object,
     *,
     equal_nan: bool = False,
-    show_difference: bool = False,
     max_depth: int = 100,
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
@@ -169,9 +163,6 @@ def objects_are_equal(
         actual: The actual object.
         expected: The expected object.
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
-        show_difference: If ``True``, log a readable description when the
-            comparison fails, at the ``INFO`` level on the
-            ``coola.equality`` logger.
         max_depth: The nesting limit: the maximum nesting level of the
             compared objects. A deeper structure raises
             ``MaxDepthExceededError`` (it is not a display depth like
@@ -207,7 +198,6 @@ def objects_are_equal(
         registry = get_default_registry()
     config = EqualityConfig(
         registry=registry,
-        show_difference=show_difference,
         equal_nan=equal_nan,
         max_depth=max_depth,
     )

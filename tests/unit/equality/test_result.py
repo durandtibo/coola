@@ -12,7 +12,6 @@ import coola.equality as eq
 from coola.equality import (
     ComparisonResult,
     MaxDepthExceededError,
-    Tolerance,
     assert_objects_allclose,
     assert_objects_equal,
     compare,
@@ -35,11 +34,9 @@ def equal_result(*_args: object) -> ComparisonResult:
 
 
 def different_result(
-    actual: object, expected: object, path: tuple, reason: str
+    _actual: object, _expected: object, path: tuple, reason: str
 ) -> ComparisonResult:
-    return ComparisonResult(
-        False, path=path, reason=reason, actual=repr(actual), expected=repr(expected)
-    )
+    return ComparisonResult(False, path=path, reason=reason)
 
 
 def numbers(actual: object, expected: object) -> str:
@@ -58,9 +55,7 @@ def logger_state() -> tuple[int, bool, list[logging.Handler]]:
 
 
 def test_comparison_result_defaults() -> None:
-    assert ComparisonResult(True) == ComparisonResult(
-        equal=True, path=(), reason=None, actual="", expected=""
-    )
+    assert ComparisonResult(True) == ComparisonResult(equal=True, path=(), reason=None)
 
 
 @pytest.mark.parametrize("equal", [True, False])
@@ -190,8 +185,8 @@ def test_compare_shared_objects_reused() -> None:
 @pytest.mark.parametrize(
     ("actual", "expected", "kwargs"),
     [
-        ([1.0], [1.05], {"tolerance": Tolerance(atol=0.1)}),
-        ([100.0], [101.0], {"tolerance": Tolerance(rtol=0.05)}),
+        ([1.0], [1.05], {"atol": 0.1}),
+        ([100.0], [101.0], {"rtol": 0.05}),
         ([float("nan")], [float("nan")], {"equal_nan": True}),
     ],
 )
@@ -203,7 +198,7 @@ def test_compare_options_equal(actual: list, expected: list, kwargs: dict) -> No
     ("actual", "expected", "kwargs", "reason"),
     [
         ([1.0], [1.05], {}, numbers(1.0, 1.05)),
-        ([100.0], [101.0], {"tolerance": Tolerance(rtol=0.001)}, numbers(100.0, 101.0)),
+        ([100.0], [101.0], {"rtol": 0.001}, numbers(100.0, 101.0)),
         ([float("nan")], [float("nan")], {}, numbers("nan", "nan")),
     ],
 )
@@ -216,7 +211,7 @@ def test_compare_default_is_exact() -> None:
 
 
 def test_compare_numpy_default_tolerance() -> None:
-    assert compare(1.0, 1.0 + 1e-9, tolerance=Tolerance.numpy_default())
+    assert compare(1.0, 1.0 + 1e-9, rtol=1e-5, atol=1e-8)
 
 
 @pytest.mark.parametrize(
@@ -245,9 +240,8 @@ def test_compare_numpy_default_tolerance() -> None:
     ],
 )
 def test_allclose_entry_points_agree(actual: object, expected: object) -> None:
-    tolerance = Tolerance.numpy_default()
     assert objects_are_allclose(actual, expected) == bool(
-        compare(actual, expected, tolerance=tolerance)
+        compare(actual, expected, rtol=1e-5, atol=1e-8)
     )
 
 
@@ -552,43 +546,12 @@ def test_compare_equal_does_not_compute_the_repr() -> None:
     assert compare([obj], [obj]).equal
 
 
-def test_compare_equal_has_an_empty_actual_repr() -> None:
-    obj = NoRepr()
-    assert compare([obj], [obj]).actual == ""
-
-
-def test_compare_equal_has_an_empty_expected_repr() -> None:
-    obj = NoRepr()
-    assert compare([obj], [obj]).expected == ""
-
-
 def test_compare_equal_result() -> None:
     assert compare({"a": [1, 2]}, {"a": [1, 2]}) == ComparisonResult(True)
 
 
-def test_compare_equal_has_empty_representations() -> None:
-    result = compare({"a": [1, 2]}, {"a": [1, 2]})
-    assert (result.actual, result.expected) == ("", "")
-
-
-def test_compare_different_has_the_actual_representation() -> None:
-    assert compare([1], [2]).actual == "[1]"
-
-
-def test_compare_different_has_the_expected_representation() -> None:
-    assert compare([1], [2]).expected == "[2]"
-
-
 def test_compare_different_with_failing_repr() -> None:
     assert not compare([NoRepr()], [NoRepr()]).equal
-
-
-def test_compare_different_with_failing_repr_actual() -> None:
-    assert compare([NoRepr()], [NoRepr()]).actual.startswith("<list object at 0x")
-
-
-def test_compare_different_with_failing_repr_expected() -> None:
-    assert compare([NoRepr()], [NoRepr()]).expected.startswith("<list object at 0x")
 
 
 @dataclasses.dataclass
@@ -616,33 +579,3 @@ def test_compare_dataclass_field_path_in_container() -> None:
 
 def test_attribute_name_format_path_without_root() -> None:
     assert ComparisonResult(False, (AttributeName("x"), 0)).format_path() == ".x[0]"
-
-
-def test_compare_different_truncates_the_actual_representation() -> None:
-    assert compare(list(range(1000)), [0], max_repr_chars=10).actual == "[0, 1, ..."
-
-
-def test_compare_different_truncates_the_expected_representation() -> None:
-    assert compare([0], list(range(1000)), max_repr_chars=10).expected == "[0, 1, ..."
-
-
-def test_compare_different_truncates_to_1000_characters_by_default() -> None:
-    assert len(compare(list(range(1000)), [0]).actual) == 1000
-
-
-def test_compare_different_default_truncation_ends_with_ellipsis() -> None:
-    assert compare(list(range(1000)), [0]).actual.endswith("...")
-
-
-def test_compare_different_representation_within_the_limit_is_not_truncated() -> None:
-    assert compare([1], [2], max_repr_chars=3).actual == "[1]"
-
-
-def test_compare_max_repr_chars_too_small_raises() -> None:
-    with pytest.raises(ValueError, match="max_repr_chars must be at least 3"):
-        compare([1], [2], max_repr_chars=2)
-
-
-def test_compare_max_repr_chars_too_small_raises_for_equal_objects() -> None:
-    with pytest.raises(ValueError, match="max_repr_chars must be at least 3"):
-        compare([1], [1], max_repr_chars=2)

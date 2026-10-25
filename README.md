@@ -126,9 +126,8 @@ numbers are different:
 
 ```
 
-`objects_are_equal(actual, expected, show_difference=True)` logs the differences with
-`logger.info`, so they are only visible if the logging level of the `coola` logger is `INFO` or
-lower.
+`compare(actual, expected)` explains the first difference (its path and its reason), and
+`assert_objects_equal(actual, expected)` raises an `AssertionError` with the same message.
 
 See the [user guide](https://durandtibo.github.io/coola/uguide/equality) for detailed examples.
 

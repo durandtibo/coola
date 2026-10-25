@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-import logging
 from unittest.mock import Mock
 
 import pytest
@@ -10,7 +9,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, PydanticModelSameFieldsHandler, TrueHandler
 from coola.testing.fixtures import pydantic_available
 from coola.utils.imports import is_pydantic_available
-from tests.unit.equality.utils import BadStr
+from tests.unit.equality.utils import BadStr, messages
 
 if is_pydantic_available():
     from pydantic import BaseModel, ConfigDict, PrivateAttr
@@ -111,26 +110,23 @@ def test_pydantic_model_same_fields_handler_handle_tolerance() -> None:
 
 
 @pydantic_available
-def test_pydantic_model_same_fields_handler_handle_show_difference() -> None:
-    config = EqualityConfig(show_difference=True)
+def test_pydantic_model_same_fields_handler_handle_explaining() -> None:
+    config = EqualityConfig(reports=[])
     handler = PydanticModelSameFieldsHandler(next_handler=TrueHandler())
     assert not handler.handle(Point(x=1.0, y=2.0), Point(x=1.0, y=3.0), config)
 
 
 @pydantic_available
-def test_pydantic_model_same_fields_handler_handle_show_difference_logs(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    config = EqualityConfig(show_difference=True)
+def test_pydantic_model_same_fields_handler_handle_explaining_reports() -> None:
+    config = EqualityConfig(reports=[])
     handler = PydanticModelSameFieldsHandler(next_handler=TrueHandler())
-    with caplog.at_level(logging.INFO):
-        handler.handle(Point(x=1.0, y=2.0), Point(x=1.0, y=3.0), config)
-    assert caplog.messages[-1] == "objects have different y: 2.0 vs 3.0"
+    handler.handle(Point(x=1.0, y=2.0), Point(x=1.0, y=3.0), config)
+    assert messages(config)[-1] == "objects have different y: 2.0 vs 3.0"
 
 
 @pydantic_available
 def test_pydantic_model_same_fields_handler_handle_field_with_failing_str() -> None:
-    config = EqualityConfig(show_difference=True, reporter=lambda _msg, _path: None)
+    config = EqualityConfig(reports=[])
     handler = PydanticModelSameFieldsHandler(next_handler=TrueHandler())
     assert not handler.handle(Holder(value=BadStr(1)), Holder(value=BadStr(2)), config)
 

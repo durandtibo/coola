@@ -65,7 +65,7 @@ class PandasDataFrameEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         object_equal = frame_equal(actual, expected, config)
-        if config.show_difference and not object_equal:
+        if config.explaining and not object_equal:
             report_difference(
                 config,
                 format_value_difference(actual=actual, expected=expected, name="pandas.DataFrames"),
@@ -103,7 +103,7 @@ class PandasSeriesEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         object_equal = series_equal(actual, expected, config)
-        if config.show_difference and not object_equal:
+        if config.explaining and not object_equal:
             report_difference(
                 config,
                 format_value_difference(actual=actual, expected=expected, name="pandas.Series"),
@@ -141,7 +141,7 @@ class PandasIndexEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         object_equal = index_equal(actual, expected, config)
-        if config.show_difference and not object_equal:
+        if config.explaining and not object_equal:
             report_difference(
                 config,
                 format_value_difference(actual=actual, expected=expected, name="pandas.Index"),
@@ -181,7 +181,7 @@ class PandasExtensionArrayEqualHandler(HandlerEqualityMixin, BaseEqualityHandler
         config: EqualityConfig,
     ) -> bool:
         object_equal = extension_array_equal(actual, expected, config)
-        if config.show_difference and not object_equal:
+        if config.explaining and not object_equal:
             report_difference(
                 config,
                 format_value_difference(actual=actual, expected=expected, name="pandas arrays"),

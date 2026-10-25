@@ -55,7 +55,7 @@ class SameDataHandler(HandlerEqualityMixin, BaseEqualityHandler):
 
     def handle(self, actual: SupportsData, expected: SupportsData, config: EqualityConfig) -> bool:
         if not config.registry.objects_are_equal(actual.data, expected.data, config):
-            if config.show_difference:
+            if config.explaining:
                 report_difference(
                     config,
                     "objects have different data: %s vs %s",

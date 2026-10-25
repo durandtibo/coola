@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
@@ -11,6 +10,7 @@ from coola.equality.handler import FalseHandler, SequenceSameValuesHandler, True
 from coola.equality.handler.sequence import is_exact_scalar_sequence
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
+from tests.unit.equality.utils import messages
 
 if is_numpy_available():
     import numpy as np
@@ -148,22 +148,21 @@ def test_sequence_same_values_handler_handle_false(
     assert not SequenceSameValuesHandler().handle(actual, expected, config)
 
 
-def test_sequence_same_values_handler_handle_false_different_length_show_difference(
+def test_sequence_same_values_handler_handle_false_different_length_explaining(
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     handler = SequenceSameValuesHandler()
     assert not handler.handle(actual=[1, 2, 3], expected=[1, 2], config=config)
 
 
-def test_sequence_same_values_handler_handle_false_different_length_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+def test_sequence_same_values_handler_handle_false_different_length_explaining_reports(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     handler = SequenceSameValuesHandler()
-    with caplog.at_level(logging.INFO):
-        handler.handle(actual=[1, 2, 3], expected=[1, 2], config=config)
-    assert "sequences have different lengths" in caplog.messages[-1]
+    handler.handle(actual=[1, 2, 3], expected=[1, 2], config=config)
+    assert "sequences have different lengths" in messages(config)[-1]
 
 
 def test_sequence_same_values_handler_handle_different_length(config: EqualityConfig) -> None:
@@ -205,30 +204,26 @@ def test_sequence_same_values_handler_handle_false_numpy(
     )
 
 
-def test_sequence_same_values_handler_handle_false_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_sequence_same_values_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     handler = SequenceSameValuesHandler()
     assert not handler.handle(actual=[1, 2, 3], expected=[1, 2, 4], config=config)
 
 
-def test_sequence_same_values_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+def test_sequence_same_values_handler_handle_false_explaining_reports(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     handler = SequenceSameValuesHandler()
-    with caplog.at_level(logging.INFO):
-        handler.handle(actual=[1, 2, 3], expected=[1, 2, 4], config=config)
-    assert "sequences have different values at index 2" in caplog.messages[-1]
+    handler.handle(actual=[1, 2, 3], expected=[1, 2, 4], config=config)
+    assert "sequences have different values at index 2" in messages(config)[-1]
 
 
-def test_sequence_same_values_handler_handle_false_log_record_path(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
+def test_sequence_same_values_handler_handle_false_log_record_path(config: EqualityConfig) -> None:
+    config.reports = []
     handler = SequenceSameValuesHandler()
-    with caplog.at_level(logging.INFO):
-        handler.handle(actual=[1, 2, 3], expected=[1, 2, 4], config=config)
-    assert caplog.records[-1].coola_path == (2,)
+    handler.handle(actual=[1, 2, 3], expected=[1, 2, 4], config=config)
+    assert config.reports[-1][1] == (2,)
 
 
 def test_sequence_same_values_handler_handle_without_next_handler(config: EqualityConfig) -> None:
@@ -316,20 +311,19 @@ def test_sequence_same_values_handler_handle_fast_path_different_item_types(
     )
 
 
-def test_sequence_same_values_handler_handle_fast_path_false_show_difference(
+def test_sequence_same_values_handler_handle_fast_path_false_explaining(
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     assert not SequenceSameValuesHandler().handle([1, 2, 3], [1, 2, 4], config)
 
 
-def test_sequence_same_values_handler_handle_fast_path_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+def test_sequence_same_values_handler_handle_fast_path_false_explaining_reports(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        SequenceSameValuesHandler().handle([1, 2, 3], [1, 2, 4], config)
-    assert caplog.messages
+    config.reports = []
+    SequenceSameValuesHandler().handle([1, 2, 3], [1, 2, 4], config)
+    assert messages(config)
 
 
 @pytest.mark.parametrize("seq", [[1, "a", None, True], (b"a", 2), [], ()])
@@ -361,10 +355,10 @@ def test_sequence_same_values_handler_handle_fast_path_false_does_not_call_next_
     next_handler.handle.assert_not_called()
 
 
-def test_sequence_same_values_handler_handle_fast_path_false_show_difference_locates_the_item(
+def test_sequence_same_values_handler_handle_fast_path_false_explaining_locates_the_item(
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     registry = Mock(wraps=config.registry)
     config.registry = registry
     SequenceSameValuesHandler().handle([1, 2, 3], [1, 2, 4], config)

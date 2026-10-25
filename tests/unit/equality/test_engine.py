@@ -6,7 +6,7 @@ import pytest
 
 from coola.equality import Element, MaxDepthExceededError
 from coola.equality.config import EqualityConfig
-from coola.equality.engine import Engine
+from coola.equality.engine import Engine, failure_from_reports
 from coola.equality.tester import BaseEqualityTester, EqualityTesterRegistry
 
 if TYPE_CHECKING:
@@ -219,7 +219,7 @@ def test_run_container_children_are_lazy(registry: EqualityTesterRegistry) -> No
 
 
 def test_run_first_difference_in_iteration_order(registry: EqualityTesterRegistry) -> None:
-    engine = _engine(registry, show_difference=True)
+    engine = _engine(registry, reports=[])
     engine.run({"a": 1, "b": 2}, {"a": 5, "b": 6})
     assert engine.failure == (("a",), "1 vs 5")
 
@@ -374,19 +374,19 @@ def test_failure_is_none_when_equal(registry: EqualityTesterRegistry) -> None:
 
 
 def test_failure_at_the_root(registry: EqualityTesterRegistry) -> None:
-    engine = _engine(registry)
+    engine = _engine(registry, reports=[])
     engine.run(1, 2)
-    assert engine.failure == ((), None)
+    assert engine.failure == ((), "1 vs 2")
 
 
 def test_failure_path_of_a_nested_difference(registry: EqualityTesterRegistry) -> None:
-    engine = _engine(registry, show_difference=True)
+    engine = _engine(registry, reports=[])
     engine.run({"a": [1, {"b": 2}]}, {"a": [1, {"b": 3}]})
     assert engine.failure == (("a", 1, "b"), "2 vs 3")
 
 
 def test_failure_path_of_a_container_that_fails(registry: EqualityTesterRegistry) -> None:
-    engine = _engine(registry, show_difference=True)
+    engine = _engine(registry, reports=[])
     engine.run({"a": [1, 2]}, {"a": [1]})
     assert engine.failure == (("a",), "lengths differ")
 
@@ -394,19 +394,19 @@ def test_failure_path_of_a_container_that_fails(registry: EqualityTesterRegistry
 def test_failure_path_of_a_container_that_fails_at_the_root(
     registry: EqualityTesterRegistry,
 ) -> None:
-    engine = _engine(registry, show_difference=True)
+    engine = _engine(registry, reports=[])
     engine.run([1, 2], [1])
     assert engine.failure == ((), "lengths differ")
 
 
 def test_failure_path_parts_of_fail_are_added(registry: EqualityTesterRegistry) -> None:
-    engine = _engine(registry, show_difference=True)
+    engine = _engine(registry, reports=[])
     engine.run({"w": (1, 2)}, {"w": (1, 3)})
     assert engine.failure == (("w", 1, 2), "values differ")
 
 
 def test_failure_types_differ_reason(registry: EqualityTesterRegistry) -> None:
-    engine = _engine(registry, show_difference=True)
+    engine = _engine(registry, reports=[])
     engine.run({"a": 1}, {"a": 1.0})
     assert engine.failure == (("a",), "types differ: int vs float")
 
@@ -414,7 +414,7 @@ def test_failure_types_differ_reason(registry: EqualityTesterRegistry) -> None:
 def test_failure_of_a_legacy_tester_has_no_reason() -> None:
     reg = EqualityTesterRegistry()
     reg.register(object, LegacyTester())
-    engine = Engine(reg, EqualityConfig(registry=reg))
+    engine = Engine(reg, EqualityConfig(registry=reg, reports=[]))
     engine.run(1, 2)
     assert engine.failure == ((), None)
 
@@ -442,12 +442,12 @@ def test_reason_is_built_when_explaining(registry: EqualityTesterRegistry) -> No
         FuncTester(lambda _a, _e, ctx: ctx.fail(lambda: calls.append(1) or "reason")),
         exist_ok=True,
     )
-    _engine(registry, show_difference=True).run(1, 2)
+    _engine(registry, reports=[]).run(1, 2)
     assert calls == [1]
 
 
-def test_explaining_with_a_reporter(registry: EqualityTesterRegistry) -> None:
-    assert _engine(registry, reporter=lambda *_: None).explaining
+def test_explaining_with_reports(registry: EqualityTesterRegistry) -> None:
+    assert _engine(registry, reports=[]).explaining
 
 
 def test_not_explaining_by_default(registry: EqualityTesterRegistry) -> None:
@@ -514,3 +514,37 @@ def test_element_equal() -> None:
 
 def test_element_is_hashable() -> None:
     assert len({Element(2), Element(2)}) == 1
+
+
+def test_failure_is_none_when_not_explaining(registry: EqualityTesterRegistry) -> None:
+    engine = _engine(registry)
+    engine.run(1, 2)
+    assert engine.failure is None
+
+
+def test_failure_is_recorded_in_the_reports(registry: EqualityTesterRegistry) -> None:
+    engine = _engine(registry, reports=[])
+    engine.run({"a": 1}, {"a": 2})
+    assert engine.config.reports == [("1 vs 2", ("a",))]
+
+
+def test_failure_of_a_nested_engine_is_added_to_the_reports() -> None:
+    reg = EqualityTesterRegistry()
+    reg.register(list, RecursiveLegacyTester())
+    reg.register(dict, DictTester())
+    reg.register(object, LeafTester())
+    config = EqualityConfig(registry=reg, reports=[])
+    Engine(reg, config).run([{"a": 1}], [{"a": 2}])
+    assert config.reports == [("1 vs 2", ("a",)), ("", ())]
+
+
+def test_failure_from_reports_outermost_path_first() -> None:
+    assert failure_from_reports([("inner", (2,)), ("", ("a",))]) == (("a", 2), "inner")
+
+
+def test_failure_from_reports_without_reason() -> None:
+    assert failure_from_reports([("", ("a",))]) == (("a",), None)
+
+
+def test_failure_from_reports_empty() -> None:
+    assert failure_from_reports([]) == ((), None)

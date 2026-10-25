@@ -52,7 +52,7 @@ class TorchTensorEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         object_equal = tensor_equal(actual, expected, config)
-        if config.show_difference and not object_equal:
+        if config.explaining and not object_equal:
             report_difference(
                 config,
                 format_value_difference(actual=actual, expected=expected, name="torch.Tensors"),
@@ -86,7 +86,7 @@ class TorchTensorSameDeviceHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         if actual.device != expected.device:
-            if config.show_difference:
+            if config.explaining:
                 report_difference(
                     config,
                     "torch.Tensors have different devices: %s vs %s",

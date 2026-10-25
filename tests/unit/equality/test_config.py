@@ -23,8 +23,12 @@ def test_equality_config_default_rtol() -> None:
     assert EqualityConfig().rtol == 0.0
 
 
-def test_equality_config_default_show_difference() -> None:
-    assert EqualityConfig().show_difference is False
+def test_equality_config_default_reports() -> None:
+    assert EqualityConfig().reports is None
+
+
+def test_equality_config_default_is_not_explaining() -> None:
+    assert not EqualityConfig().explaining
 
 
 def test_equality_config_with_parameters_equal_nan() -> None:
@@ -39,8 +43,8 @@ def test_equality_config_with_parameters_rtol() -> None:
     assert EqualityConfig(rtol=1e-5).rtol == 1e-5
 
 
-def test_equality_config_with_parameters_show_difference() -> None:
-    assert EqualityConfig(show_difference=True).show_difference is True
+def test_equality_config_with_reports_is_explaining() -> None:
+    assert EqualityConfig(reports=[]).explaining
 
 
 def test_equality_config_negative_atol() -> None:
@@ -129,9 +133,9 @@ def test_equality_config_eq_true() -> None:
 
 
 def test_equality_config_eq_true_with_parameters() -> None:
-    assert EqualityConfig(
-        equal_nan=True, atol=1e-6, rtol=1e-5, show_difference=True
-    ) == EqualityConfig(equal_nan=True, atol=1e-6, rtol=1e-5, show_difference=True)
+    assert EqualityConfig(equal_nan=True, atol=1e-6, rtol=1e-5, reports=[]) == EqualityConfig(
+        equal_nan=True, atol=1e-6, rtol=1e-5, reports=[]
+    )
 
 
 def test_equality_config_eq_true_different_depth() -> None:
@@ -152,8 +156,8 @@ def test_equality_config_eq_false_different_rtol() -> None:
     assert EqualityConfig() != EqualityConfig(rtol=1e-6)
 
 
-def test_equality_config_eq_false_different_show_difference() -> None:
-    assert EqualityConfig() != EqualityConfig(show_difference=True)
+def test_equality_config_eq_true_different_reports() -> None:
+    assert EqualityConfig() == EqualityConfig(reports=[])
 
 
 def test_equality_config_eq_false_different_max_depth() -> None:

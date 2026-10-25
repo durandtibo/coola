@@ -30,13 +30,10 @@ def test_compare_concurrent_threads() -> None:
     run_threads([threading.Thread(target=worker, args=(i,)) for i in range(num_threads)])
 
     for i in range(num_threads):
-        actual, expected = {"k": [0, i]}, {"k": [0, i + 1]}
         assert results[i] == ComparisonResult(
             equal=False,
             path=("k", 1),
             reason=f"numbers are different:\n  actual   : {i}\n  expected : {i + 1}",
-            actual=repr(actual),
-            expected=repr(expected),
         )
 
 

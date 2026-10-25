@@ -677,11 +677,10 @@ def test_run_comparison_different() -> None:
     assert not run_comparison(get_default_registry(), [1, 2], [1, 3], EqualityConfig())
 
 
-def test_run_comparison_calls_reporter() -> None:
-    reports = []
-    config = EqualityConfig(show_difference=True, reporter=lambda _, path: reports.append(path))
+def test_run_comparison_records_the_paths_in_the_reports() -> None:
+    config = EqualityConfig(reports=[])
     run_comparison(get_default_registry(), [1, 2], [1, 3], config)
-    assert reports == [(), (1,)]
+    assert [path for _, path in config.reports] == [(), (1,), ()]
 
 
 def test_run_comparison_max_depth_error_is_not_rewritten() -> None:

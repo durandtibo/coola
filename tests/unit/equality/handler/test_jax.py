@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
@@ -12,6 +11,7 @@ from coola.equality.handler.jax import array_equal
 from coola.testing.fixtures import jax_available
 from coola.utils.imports import is_jax_available
 from tests.unit.equality.tester.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
+from tests.unit.equality.utils import messages
 
 if is_jax_available():
     import jax.numpy as jnp
@@ -145,23 +145,20 @@ def test_jax_array_equal_handler_handle_equal_nan_true(config: EqualityConfig) -
 
 
 @jax_available
-def test_jax_array_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_jax_array_equal_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert not JaxArrayEqualHandler().handle(
         actual=jnp.ones(shape=(2, 3)), expected=jnp.ones(shape=(3, 2)), config=config
     )
 
 
 @jax_available
-def test_jax_array_equal_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        JaxArrayEqualHandler().handle(
-            actual=jnp.ones(shape=(2, 3)), expected=jnp.ones(shape=(3, 2)), config=config
-        )
-    assert caplog.messages[0].startswith("jax.numpy.ndarrays are different:")
+def test_jax_array_equal_handler_handle_false_explaining_reports(config: EqualityConfig) -> None:
+    config.reports = []
+    JaxArrayEqualHandler().handle(
+        actual=jnp.ones(shape=(2, 3)), expected=jnp.ones(shape=(3, 2)), config=config
+    )
+    assert messages(config)[0].startswith("jax.numpy.ndarrays are different:")
 
 
 @jax_available

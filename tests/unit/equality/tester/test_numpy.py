@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from unittest.mock import Mock, patch
 
 import pytest
@@ -13,7 +12,7 @@ from coola.equality.tester import (
 )
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import MissingPackageError, is_numpy_available
-from tests.unit.equality.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair, messages
 
 if is_numpy_available():
     import numpy as np
@@ -293,37 +292,33 @@ def test_numpy_array_equality_tester_objects_are_equal_true(
 def test_numpy_array_equality_tester_objects_are_equal_true_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = NumpyArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL)
-def test_numpy_array_equality_tester_objects_are_equal_true_show_difference(
+def test_numpy_array_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = NumpyArrayEqualityTester()
     assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
 
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL)
-def test_numpy_array_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+def test_numpy_array_equality_tester_objects_are_equal_true_explaining_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = NumpyArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @numpy_available
@@ -343,21 +338,19 @@ def test_numpy_array_equality_tester_objects_are_equal_false(
 def test_numpy_array_equality_tester_objects_are_equal_false_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = NumpyArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_ARRAY_NOT_EQUAL)
-def test_numpy_array_equality_tester_objects_are_equal_false_show_difference(
+def test_numpy_array_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = NumpyArrayEqualityTester()
     assert not tester.objects_are_equal(
         actual=example.actual, expected=example.expected, config=config
@@ -366,16 +359,14 @@ def test_numpy_array_equality_tester_objects_are_equal_false_show_difference(
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_ARRAY_NOT_EQUAL)
-def test_numpy_array_equality_tester_objects_are_equal_false_show_difference_logs(
+def test_numpy_array_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = NumpyArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert caplog.messages[-1].startswith(example.expected_message)
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert messages(config)[-1].startswith(example.expected_message)
 
 
 @numpy_available
@@ -469,37 +460,33 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_true(
 def test_numpy_masked_array_equality_tester_objects_are_equal_true_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = NumpyMaskedArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_EQUAL)
-def test_numpy_masked_array_equality_tester_objects_are_equal_true_show_difference(
+def test_numpy_masked_array_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = NumpyMaskedArrayEqualityTester()
     assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
 
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_EQUAL)
-def test_numpy_masked_array_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+def test_numpy_masked_array_equality_tester_objects_are_equal_true_explaining_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = NumpyMaskedArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @numpy_available
@@ -519,21 +506,19 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_false(
 def test_numpy_masked_array_equality_tester_objects_are_equal_false_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = NumpyMaskedArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_NOT_EQUAL)
-def test_numpy_masked_array_equality_tester_objects_are_equal_false_show_difference(
+def test_numpy_masked_array_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = NumpyMaskedArrayEqualityTester()
     assert not tester.objects_are_equal(
         actual=example.actual, expected=example.expected, config=config
@@ -542,16 +527,14 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_false_show_differe
 
 @numpy_available
 @pytest.mark.parametrize("example", NUMPY_MASKED_ARRAY_NOT_EQUAL)
-def test_numpy_masked_array_equality_tester_objects_are_equal_false_show_difference_logs(
+def test_numpy_masked_array_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = NumpyMaskedArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert caplog.messages[-1].startswith(example.expected_message)
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert messages(config)[-1].startswith(example.expected_message)
 
 
 @numpy_available

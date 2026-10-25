@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from unittest.mock import Mock
 
 import pytest
@@ -13,7 +12,7 @@ from coola.equality.handler import (
 )
 from coola.testing.fixtures import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
-from tests.unit.equality.utils import BadStr
+from tests.unit.equality.utils import BadStr, messages
 
 if is_numpy_available():
     import numpy as np
@@ -128,23 +127,20 @@ def test_same_data_handler_handle_false(
 
 
 @numpy_available
-def test_same_data_handler_handle_false_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_same_data_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert not SameDataHandler().handle(
         actual=np.ones(shape=(2, 3)), expected=np.zeros(shape=(2, 3)), config=config
     )
 
 
 @numpy_available
-def test_same_data_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        SameDataHandler().handle(
-            actual=np.ones(shape=(2, 3)), expected=np.zeros(shape=(2, 3)), config=config
-        )
-    assert caplog.messages[-1].startswith("objects have different data:")
+def test_same_data_handler_handle_false_explaining_reports(config: EqualityConfig) -> None:
+    config.reports = []
+    SameDataHandler().handle(
+        actual=np.ones(shape=(2, 3)), expected=np.zeros(shape=(2, 3)), config=config
+    )
+    assert messages(config)[-1].startswith("objects have different data:")
 
 
 @numpy_available
@@ -208,13 +204,11 @@ class WithData:
 
 
 def test_same_data_handler_handle_data_with_failing_str() -> None:
-    reports: list[str] = []
-    config = EqualityConfig(show_difference=True, reporter=lambda msg, _: reports.append(msg))
+    config = EqualityConfig(reports=[])
     assert not SameDataHandler().handle(WithData(BadStr(1)), WithData(BadStr(2)), config)
 
 
 def test_same_data_handler_handle_data_with_failing_str_message() -> None:
-    reports: list[str] = []
-    config = EqualityConfig(show_difference=True, reporter=lambda msg, _: reports.append(msg))
+    config = EqualityConfig(reports=[])
     SameDataHandler().handle(WithData(BadStr(1)), WithData(BadStr(2)), config)
-    assert reports[-1].startswith("objects have different data: <BadStr object at 0x")
+    assert messages(config)[-1].startswith("objects have different data: <BadStr object at 0x")

@@ -56,7 +56,7 @@ class SetSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
     ) -> bool:
         with check_recursion_depth(config):
             if len(actual) != len(expected):
-                if config.show_difference:
+                if config.explaining:
                     report_difference(
                         config,
                         "sets have different lengths: %s vs %s",
@@ -66,7 +66,7 @@ class SetSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                 return False
             unmatched = self._find_unmatched(actual, expected, config)
             if unmatched is not _NO_ELEMENT:
-                if config.show_difference:
+                if config.explaining:
                     report_difference(
                         config,
                         "sets have different elements: %s of actual has no match in expected",

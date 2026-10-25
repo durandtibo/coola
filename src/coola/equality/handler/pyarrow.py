@@ -60,7 +60,7 @@ class PyarrowEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         equal = object_equal(actual, expected, config)
-        if config.show_difference and not equal:
+        if config.explaining and not equal:
             report_difference(config, format_value_difference(actual=actual, expected=expected))
         return equal
 

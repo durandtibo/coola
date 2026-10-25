@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from unittest.mock import Mock
 
 import pytest
@@ -21,6 +20,7 @@ from coola.utils.imports import (
     is_polars_available,
     is_torch_available,
 )
+from tests.unit.equality.utils import messages
 
 if is_numpy_available():
     import numpy as np
@@ -142,23 +142,20 @@ def test_same_shape_handler_handle_false(
 
 
 @numpy_available
-def test_same_shape_handler_handle_false_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_same_shape_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert not SameShapeHandler().handle(
         actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
     )
 
 
 @numpy_available
-def test_same_shape_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        SameShapeHandler().handle(
-            actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
-        )
-    assert caplog.messages[0].startswith("objects have different shapes:")
+def test_same_shape_handler_handle_false_explaining_reports(config: EqualityConfig) -> None:
+    config.reports = []
+    SameShapeHandler().handle(
+        actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
+    )
+    assert messages(config)[0].startswith("objects have different shapes:")
 
 
 @numpy_available

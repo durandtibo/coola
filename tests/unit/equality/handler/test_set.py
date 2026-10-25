@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import logging
-
 import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, SetSameValuesHandler, TrueHandler
+from tests.unit.equality.utils import messages
 
 
 @pytest.fixture
@@ -134,44 +133,32 @@ def test_set_same_values_handler_handle_does_not_change_the_inputs(config: Equal
     assert (actual, expected) == ({1.5, 2.5}, {2.5, 1.5})
 
 
-def test_set_same_values_handler_handle_show_difference_logs_the_element(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    config = EqualityConfig(show_difference=True)
-    with caplog.at_level(logging.INFO):
-        SetSameValuesHandler(next_handler=TrueHandler()).handle({1.5}, {2.5}, config)
-    assert caplog.messages == [
+def test_set_same_values_handler_handle_explaining_reports_the_element() -> None:
+    config = EqualityConfig(reports=[])
+    SetSameValuesHandler(next_handler=TrueHandler()).handle({1.5}, {2.5}, config)
+    assert messages(config) == [
         "sets have different elements: 1.5 of actual has no match in expected"
     ]
 
 
-def test_set_same_values_handler_handle_show_difference_reports_the_element_as_the_path() -> None:
-    reports: list[tuple[str, tuple]] = []
-    config = EqualityConfig(
-        show_difference=True, reporter=lambda msg, path: reports.append((msg, path))
-    )
+def test_set_same_values_handler_handle_explaining_reports_the_element_as_the_path() -> None:
+    config = EqualityConfig(reports=[])
     SetSameValuesHandler(next_handler=TrueHandler()).handle({1.5}, {2.5}, config)
-    assert reports == [
+    assert config.reports == [
         ("sets have different elements: 1.5 of actual has no match in expected", (1.5,))
     ]
 
 
-def test_set_same_values_handler_handle_show_difference_different_lengths(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    config = EqualityConfig(show_difference=True)
-    with caplog.at_level(logging.INFO):
-        SetSameValuesHandler(next_handler=TrueHandler()).handle({1, 2}, {1}, config)
-    assert caplog.messages == ["sets have different lengths: 2 vs 1"]
+def test_set_same_values_handler_handle_explaining_different_lengths() -> None:
+    config = EqualityConfig(reports=[])
+    SetSameValuesHandler(next_handler=TrueHandler()).handle({1, 2}, {1}, config)
+    assert messages(config) == ["sets have different lengths: 2 vs 1"]
 
 
-def test_set_same_values_handler_handle_show_difference_does_not_log_when_equal(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    config = EqualityConfig(show_difference=True)
-    with caplog.at_level(logging.INFO):
-        SetSameValuesHandler(next_handler=TrueHandler()).handle({1.5}, {1.5}, config)
-    assert not caplog.messages
+def test_set_same_values_handler_handle_explaining_does_not_log_when_equal() -> None:
+    config = EqualityConfig(reports=[])
+    SetSameValuesHandler(next_handler=TrueHandler()).handle({1.5}, {1.5}, config)
+    assert not messages(config)
 
 
 class BadRepr:
@@ -192,9 +179,8 @@ class BadRepr:
 
 
 def test_set_same_values_handler_handle_element_with_failing_repr() -> None:
-    reports: list[str] = []
-    config = EqualityConfig(show_difference=True, reporter=lambda msg, _path: reports.append(msg))
+    config = EqualityConfig(reports=[])
     SetSameValuesHandler(next_handler=TrueHandler()).handle(
         frozenset({BadRepr(1)}), frozenset({BadRepr(2)}), config
     )
-    assert reports[-1].startswith("sets have different elements: <BadRepr object at 0x")
+    assert messages(config)[-1].startswith("sets have different elements: <BadRepr object at 0x")

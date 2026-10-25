@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
@@ -10,6 +9,7 @@ import pytest
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import DifferenceCloseHandler
 from coola.equality.handler.difference import difference_close
+from tests.unit.equality.utils import messages
 
 
 @pytest.fixture
@@ -40,22 +40,18 @@ def test_difference_close_handler_handle_atol() -> None:
     )
 
 
-def test_difference_close_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        DifferenceCloseHandler().handle(Decimal("1.0"), Decimal("2.0"), config)
-    assert caplog.messages == ["values are different:\n  actual   : 1.0\n  expected : 2.0"]
+def test_difference_close_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
+    DifferenceCloseHandler().handle(Decimal("1.0"), Decimal("2.0"), config)
+    assert messages(config) == ["values are different:\n  actual   : 1.0\n  expected : 2.0"]
 
 
-def test_difference_close_handler_handle_true_show_difference_does_not_log(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+def test_difference_close_handler_handle_true_explaining_does_not_log(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        DifferenceCloseHandler().handle(Decimal("1.0"), Decimal("1.0"), config)
-    assert not caplog.messages
+    config.reports = []
+    DifferenceCloseHandler().handle(Decimal("1.0"), Decimal("1.0"), config)
+    assert not messages(config)
 
 
 ###################################

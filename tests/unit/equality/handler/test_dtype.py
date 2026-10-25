@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from unittest.mock import Mock
 
 import pytest
@@ -9,6 +8,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.handler import FalseHandler, SameDTypeHandler, TrueHandler
 from coola.testing.fixtures import jax_available, numpy_available, torch_available
 from coola.utils.imports import is_jax_available, is_numpy_available, is_torch_available
+from tests.unit.equality.utils import messages
 
 if is_numpy_available():
     import numpy as np
@@ -126,8 +126,8 @@ def test_same_dtype_handler_handle_false(
 
 
 @numpy_available
-def test_same_dtype_handler_handle_false_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_same_dtype_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert not SameDTypeHandler().handle(
         actual=np.ones(shape=(2, 3), dtype=float),
         expected=np.ones(shape=(2, 3), dtype=int),
@@ -136,17 +136,14 @@ def test_same_dtype_handler_handle_false_show_difference(config: EqualityConfig)
 
 
 @numpy_available
-def test_same_dtype_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        SameDTypeHandler().handle(
-            actual=np.ones(shape=(2, 3), dtype=float),
-            expected=np.ones(shape=(2, 3), dtype=int),
-            config=config,
-        )
-    assert caplog.messages[0].startswith("objects have different data types:")
+def test_same_dtype_handler_handle_false_explaining_reports(config: EqualityConfig) -> None:
+    config.reports = []
+    SameDTypeHandler().handle(
+        actual=np.ones(shape=(2, 3), dtype=float),
+        expected=np.ones(shape=(2, 3), dtype=int),
+        config=config,
+    )
+    assert messages(config)[0].startswith("objects have different data types:")
 
 
 @numpy_available

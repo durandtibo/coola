@@ -14,7 +14,7 @@ Note:
 
 from __future__ import annotations
 
-__all__ = ["Element", "Engine"]
+__all__ = ["Element", "Engine", "failure_from_reports"]
 
 import warnings
 from dataclasses import dataclass
@@ -97,7 +97,7 @@ class Engine:
         self.rtol = config.rtol
         self.equal_nan = config.equal_nan
         self.max_depth = config.max_depth
-        self.explaining = config.show_difference or config.reporter is not None
+        self.explaining = config.explaining
         self.failure: tuple[tuple[object, ...], str | None] | None = None
         self._testers: dict[type, BaseEqualityTester[Any]] = {}
         self._warned: set[Any] = set()
@@ -247,9 +247,53 @@ class Engine:
         return tester.objects_are_equal(actual, expected, self)
 
     def _record_failure(self, parts: list[object], part: object) -> bool:
+        r"""Record the first difference in ``config.reports``.
+
+        The reports are the single record of the explanation, innermost
+        first. A reason given to ``fail`` is added with the path of the
+        stack; for a chain tester, which reported its own differences,
+        a path-only report carries the path of the stack.
+        """
+        reports = self.config.reports
+        if reports is None:
+            return False
         # ``parts[0]`` is the part of the root, which is not in the path. The failing pair is
         # the root if the stack is empty.
         path = (*parts[1:], part) if parts else ()
-        reason = self._reason() if callable(self._reason) and self.explaining else self._reason
-        self.failure = (path + self._extra, reason if isinstance(reason, str) else None)
+        if self._reason is None:
+            reports.append(("", path))
+        else:
+            reason = self._reason if isinstance(self._reason, str) else self._reason()
+            reports.append((reason, path + self._extra))
+        self.failure = failure_from_reports(reports)
         return False
+
+
+def failure_from_reports(
+    reports: list[tuple[str, tuple[object, ...]]],
+) -> tuple[tuple[object, ...], str | None]:
+    r"""Assemble the location and the reason of the first difference.
+
+    The testers report the innermost difference first and the outermost
+    path component last.
+
+    Args:
+        reports: The ``(message, path)`` reports of the comparison.
+
+    Returns:
+        The path of the first difference, and its reason (``None`` if
+            no tester gave one).
+
+    Example:
+        ```pycon
+        >>> from coola.equality.engine import failure_from_reports
+        >>> failure_from_reports([("numbers are different", (1,)), ("", ("a",))])
+        (('a', 1), 'numbers are different')
+
+        ```
+    """
+    path: list[object] = []
+    for _, location in reversed(reports):
+        path.extend(location)
+    reason = next((message for message, _ in reports if message), None)
+    return tuple(path), reason

@@ -64,7 +64,7 @@ class PydanticModelSameFieldsHandler(HandlerEqualityMixin, BaseEqualityHandler):
                 value1 = getattr(actual, name)
                 value2 = getattr(expected, name)
                 if not config.registry.objects_are_equal(value1, value2, config):
-                    if config.show_difference:
+                    if config.explaining:
                         report_difference(
                             config,
                             "objects have different %s: %s vs %s",

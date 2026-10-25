@@ -13,19 +13,14 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
-from coola.equality.engine import Element
+from coola.equality.engine import Element, failure_from_reports
 from coola.equality.handler.utils import AttributeName
 from coola.equality.interface import run_comparison
 from coola.equality.tester.interface import get_default_registry
 from coola.equality.tolerance import Tolerance
-from coola.utils.safe import safe_repr
-from coola.utils.string import truncate_str
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
-
-
-_TRUNCATION_SUFFIX = "..."
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,15 +41,6 @@ class ComparisonResult:
             difference is at the root.
         reason: A description of the first difference found, or
             ``None`` if the objects are equal.
-        actual: The ``repr`` of the actual object if the objects are
-            different (a placeholder if its ``__repr__`` raises),
-            otherwise an empty string. The ``repr`` is truncated to
-            ``max_repr_chars`` characters (see ``compare``). It is not
-            computed for equal objects because it can be expensive for
-            large objects.
-        expected: The ``repr`` of the expected object if the objects
-            are different, otherwise an empty string. It is truncated
-            like ``actual``.
 
     Example:
         ```pycon
@@ -73,8 +59,6 @@ class ComparisonResult:
     equal: bool
     path: tuple[object, ...] = ()
     reason: str | None = None
-    actual: str = ""
-    expected: str = ""
 
     def __bool__(self) -> bool:
         return self.equal
@@ -119,33 +103,30 @@ def compare(
     actual: object,
     expected: object,
     *,
-    tolerance: Tolerance | None = None,
+    rtol: float = 0.0,
+    atol: float = 0.0,
     equal_nan: bool = False,
     max_depth: int = 100,
-    max_repr_chars: int = 1000,
     registry: EqualityTesterRegistry | None = None,
 ) -> ComparisonResult:
     r"""Compare two objects and explain the first difference.
 
-    Exact equality is used by default. Set ``tolerance`` to compare
-    within a tolerance: ``Tolerance.numpy_default()`` is the tolerance
-    of ``objects_are_allclose`` (``rtol=1e-5``, ``atol=1e-8``).
-    Comparison stops at the first difference.
+    Exact equality is used by default. Set ``rtol`` or ``atol`` to
+    compare within a tolerance: ``rtol=1e-5`` and ``atol=1e-8`` are the
+    defaults of ``objects_are_allclose``. Comparison stops at the first
+    difference, and only this difference is explained.
 
     Note:
         The difference is collected from the reports the equality
-        handlers send to the ``reporter`` of the comparison
-        configuration (see ``report_difference``). Nothing is logged,
-        and no global state is modified, so this function can be called
-        concurrently from several threads. Custom handlers that write
-        to a logger directly instead of calling ``report_difference``
-        are not captured, and the result then has no explanation.
+        handlers add to ``config.reports`` (see ``report_difference``).
+        Nothing is logged, and no global state is modified, so this
+        function can be called concurrently from several threads.
 
     Args:
         actual: The actual object.
         expected: The expected object.
-        tolerance: The tolerance of the comparison. If ``None``, the
-            comparison is exact.
+        rtol: The relative tolerance parameter. Must be non-negative.
+        atol: The absolute tolerance parameter. Must be non-negative.
         equal_nan: If ``True``, treat two ``NaN`` values as equal.
         max_depth: The nesting limit: the maximum nesting level of the
             compared objects. A deeper structure raises
@@ -153,9 +134,6 @@ def compare(
             the ``max_depth`` of ``summarize``). Must be positive.
             See the "Common options" section of the equality user
             guide. Defaults to 100.
-        max_repr_chars: The maximum number of characters of the
-            ``actual`` and ``expected`` attributes of the result. A
-            longer ``repr`` is truncated and ends with ``...``.
         registry: Registry used to resolve type-specific equality
             testers. If ``None``, the default registry is used.
 
@@ -163,7 +141,7 @@ def compare(
         The comparison result.
 
     Raises:
-        ValueError: If ``max_repr_chars`` is less than 3, or if
+        ValueError: If ``rtol`` or ``atol`` is negative, or if
             ``max_depth`` is not positive.
         MaxDepthExceededError: If the nesting of the objects exceeds
             ``max_depth``. It is a ``RecursionError``.
@@ -180,50 +158,28 @@ def compare(
         ('a',)
         >>> result.equal
         False
-        >>> from coola.equality import Tolerance
         >>> compare(1.0, 1.0 + 1e-9).equal
         False
-        >>> compare(1.0, 1.0 + 1e-9, tolerance=Tolerance.numpy_default()).equal
+        >>> compare(1.0, 1.0 + 1e-9, rtol=1e-5, atol=1e-8).equal
         True
 
         ```
     """
-    if max_repr_chars < len(_TRUNCATION_SUFFIX):
-        msg = f"max_repr_chars must be at least {len(_TRUNCATION_SUFFIX)}, got {max_repr_chars}"
-        raise ValueError(msg)
     if registry is None:
         registry = get_default_registry()
-    if tolerance is None:
-        tolerance = Tolerance()
+    tolerance = Tolerance(rtol=rtol, atol=atol)
     config = EqualityConfig(
         registry=registry,
-        show_difference=True,
         equal_nan=equal_nan,
         atol=tolerance.atol,
         rtol=tolerance.rtol,
         max_depth=max_depth,
+        reports=[],
     )
-    reports: list[tuple[str, tuple[object, ...]]] = []
-    config.reporter = lambda message, path: reports.append((message, path))
-    equal = run_comparison(registry, actual, expected, config)
-    if equal:
-        # The ``repr`` of the objects is not computed for equal objects, because it
-        # is expensive for large objects and ``compare`` is used for each passing
-        # assertion in the tests (see ``assert_objects_equal``).
+    if run_comparison(registry, actual, expected, config):
         return ComparisonResult(True)
-    # Handlers report innermost differences first: the outermost path
-    # component is reported last.
-    path: list[object] = []
-    for _, location in reversed(reports):
-        path.extend(location)
-    reason = reports[0][0] if reports else None
-    return ComparisonResult(
-        False,
-        tuple(path),
-        reason,
-        actual=truncate_str(safe_repr(actual), max_len=max_repr_chars),
-        expected=truncate_str(safe_repr(expected), max_len=max_repr_chars),
-    )
+    path, reason = failure_from_reports(config.reports or [])
+    return ComparisonResult(False, path, reason)
 
 
 def assert_objects_allclose(
@@ -283,7 +239,8 @@ def assert_objects_allclose(
     result = compare(
         actual,
         expected,
-        tolerance=Tolerance(rtol=rtol, atol=atol),
+        rtol=rtol,
+        atol=atol,
         equal_nan=equal_nan,
         max_depth=max_depth,
         registry=registry,

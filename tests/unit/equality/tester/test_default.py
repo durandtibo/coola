@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 from unittest.mock import Mock
 
@@ -8,7 +7,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import DefaultEqualityTester
-from tests.unit.equality.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair, messages
 
 
 @pytest.fixture
@@ -127,35 +126,31 @@ def test_default_equality_tester_objects_are_equal_true(
 def test_default_equality_tester_objects_are_equal_true_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = DefaultEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @pytest.mark.parametrize("example", DEFAULT_EQUAL)
-def test_default_equality_tester_objects_are_equal_true_show_difference(
+def test_default_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = DefaultEqualityTester()
     assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
 
 
 @pytest.mark.parametrize("example", DEFAULT_EQUAL)
-def test_default_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+def test_default_equality_tester_objects_are_equal_true_explaining_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = DefaultEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @pytest.mark.parametrize(
@@ -192,33 +187,30 @@ def test_default_equality_tester_objects_are_equal_false_scalar(
     ],
 )
 def test_default_equality_tester_objects_are_equal_false_scalar_does_not_log(
-    caplog: pytest.LogCaptureFixture,
     actual: bool | float,
     expected: bool | float | None,
     config: EqualityConfig,
 ) -> None:
     tester = DefaultEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual, expected, config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual, expected, config)
+    assert not messages(config)
 
 
-def test_default_equality_tester_objects_are_equal_different_value_show_difference(
+def test_default_equality_tester_objects_are_equal_different_value_explaining(
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = DefaultEqualityTester()
     assert not tester.objects_are_equal(actual=1, expected=2, config=config)
 
 
-def test_default_equality_tester_objects_are_equal_different_value_show_difference_logs(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+def test_default_equality_tester_objects_are_equal_different_value_explaining_reports(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = DefaultEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=1, expected=2, config=config)
-        assert caplog.messages[0].startswith("objects are different:")
+    tester.objects_are_equal(actual=1, expected=2, config=config)
+    assert messages(config)[0].startswith("objects are different:")
 
 
 def test_default_equality_tester_objects_are_equal_different_type(config: EqualityConfig) -> None:
@@ -227,30 +219,28 @@ def test_default_equality_tester_objects_are_equal_different_type(config: Equali
 
 
 def test_default_equality_tester_objects_are_equal_different_type_does_not_log(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
-) -> None:
-    tester = DefaultEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=[], expected=(), config=config)
-        assert not caplog.messages
-
-
-def test_default_equality_tester_objects_are_equal_different_type_show_difference(
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    tester = DefaultEqualityTester()
+    tester.objects_are_equal(actual=[], expected=(), config=config)
+    assert not messages(config)
+
+
+def test_default_equality_tester_objects_are_equal_different_type_explaining(
+    config: EqualityConfig,
+) -> None:
+    config.reports = []
     tester = DefaultEqualityTester()
     assert not tester.objects_are_equal(actual=[], expected=(), config=config)
 
 
-def test_default_equality_tester_objects_are_equal_different_type_show_difference_logs(
-    caplog: pytest.LogCaptureFixture, config: EqualityConfig
+def test_default_equality_tester_objects_are_equal_different_type_explaining_reports(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = DefaultEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=[], expected=(), config=config)
-        assert caplog.messages[0].startswith("objects have different types:")
+    tester.objects_are_equal(actual=[], expected=(), config=config)
+    assert messages(config)[0].startswith("objects have different types:")
 
 
 @pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL + DEFAULT_SPECIFIC_NOT_EQUAL)
@@ -268,20 +258,18 @@ def test_default_equality_tester_objects_are_equal_false(
 def test_default_equality_tester_objects_are_equal_false_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = DefaultEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL + DEFAULT_SPECIFIC_NOT_EQUAL)
-def test_default_equality_tester_objects_are_equal_false_show_difference(
+def test_default_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = DefaultEqualityTester()
     assert not tester.objects_are_equal(
         actual=example.actual, expected=example.expected, config=config
@@ -289,13 +277,11 @@ def test_default_equality_tester_objects_are_equal_false_show_difference(
 
 
 @pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL + DEFAULT_SPECIFIC_NOT_EQUAL)
-def test_default_equality_tester_objects_are_equal_false_show_difference_logs(
+def test_default_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = DefaultEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert caplog.messages[-1].startswith(example.expected_message)
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert messages(config)[-1].startswith(example.expected_message)

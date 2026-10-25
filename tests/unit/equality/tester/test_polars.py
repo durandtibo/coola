@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from unittest.mock import Mock, patch
 
 import pytest
@@ -13,7 +12,7 @@ from coola.equality.tester import (
 )
 from coola.testing.fixtures import polars_available
 from coola.utils.imports import MissingPackageError, is_polars_available
-from tests.unit.equality.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair, messages
 
 if is_polars_available():
     import polars as pl
@@ -401,37 +400,33 @@ def test_polars_dataframe_equality_tester_objects_are_equal_true(
 def test_polars_dataframe_equality_tester_objects_are_equal_true_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsDataFrameEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_DATAFRAME_EQUAL)
-def test_polars_dataframe_equality_tester_objects_are_equal_true_show_difference(
+def test_polars_dataframe_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsDataFrameEqualityTester()
     assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
 
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_DATAFRAME_EQUAL)
-def test_polars_dataframe_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+def test_polars_dataframe_equality_tester_objects_are_equal_true_explaining_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsDataFrameEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @polars_available
@@ -451,21 +446,19 @@ def test_polars_dataframe_equality_tester_objects_are_equal_false(
 def test_polars_dataframe_equality_tester_objects_are_equal_false_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsDataFrameEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_DATAFRAME_NOT_EQUAL)
-def test_polars_dataframe_equality_tester_objects_are_equal_false_show_difference(
+def test_polars_dataframe_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsDataFrameEqualityTester()
     assert not tester.objects_are_equal(
         actual=example.actual, expected=example.expected, config=config
@@ -474,16 +467,14 @@ def test_polars_dataframe_equality_tester_objects_are_equal_false_show_differenc
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_DATAFRAME_NOT_EQUAL)
-def test_polars_dataframe_equality_tester_objects_are_equal_false_show_difference_logs(
+def test_polars_dataframe_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsDataFrameEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert caplog.messages[0].startswith(example.expected_message)
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @polars_available
@@ -579,37 +570,33 @@ def test_polars_lazyframe_equality_tester_objects_are_equal_true(
 def test_polars_lazyframe_equality_tester_objects_are_equal_true_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsLazyFrameEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_LAZYFRAME_EQUAL)
-def test_polars_lazyframe_equality_tester_objects_are_equal_true_show_difference(
+def test_polars_lazyframe_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsLazyFrameEqualityTester()
     assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
 
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_LAZYFRAME_EQUAL)
-def test_polars_lazyframe_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+def test_polars_lazyframe_equality_tester_objects_are_equal_true_explaining_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsLazyFrameEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @polars_available
@@ -629,21 +616,19 @@ def test_polars_lazyframe_equality_tester_objects_are_equal_false(
 def test_polars_lazyframe_equality_tester_objects_are_equal_false_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsLazyFrameEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_LAZYFRAME_NOT_EQUAL)
-def test_polars_lazyframe_equality_tester_objects_are_equal_false_show_difference(
+def test_polars_lazyframe_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsLazyFrameEqualityTester()
     assert not tester.objects_are_equal(
         actual=example.actual, expected=example.expected, config=config
@@ -652,16 +637,14 @@ def test_polars_lazyframe_equality_tester_objects_are_equal_false_show_differenc
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_LAZYFRAME_NOT_EQUAL)
-def test_polars_lazyframe_equality_tester_objects_are_equal_false_show_difference_logs(
+def test_polars_lazyframe_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsLazyFrameEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert caplog.messages[0].startswith(example.expected_message)
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @polars_available
@@ -757,37 +740,33 @@ def test_polars_series_equality_tester_objects_are_equal_true(
 def test_polars_series_equality_tester_objects_are_equal_true_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsSeriesEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_SERIES_EQUAL)
-def test_polars_series_equality_tester_objects_are_equal_true_show_difference(
+def test_polars_series_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsSeriesEqualityTester()
     assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
 
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_SERIES_EQUAL)
-def test_polars_series_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+def test_polars_series_equality_tester_objects_are_equal_true_explaining_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsSeriesEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @polars_available
@@ -807,21 +786,19 @@ def test_polars_series_equality_tester_objects_are_equal_false(
 def test_polars_series_equality_tester_objects_are_equal_false_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PolarsSeriesEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_SERIES_NOT_EQUAL)
-def test_polars_series_equality_tester_objects_are_equal_false_show_difference(
+def test_polars_series_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsSeriesEqualityTester()
     assert not tester.objects_are_equal(
         actual=example.actual, expected=example.expected, config=config
@@ -830,16 +807,14 @@ def test_polars_series_equality_tester_objects_are_equal_false_show_difference(
 
 @polars_available
 @pytest.mark.parametrize("example", POLARS_SERIES_NOT_EQUAL)
-def test_polars_series_equality_tester_objects_are_equal_false_show_difference_logs(
+def test_polars_series_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PolarsSeriesEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert caplog.messages[0].startswith(example.expected_message)
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @polars_available

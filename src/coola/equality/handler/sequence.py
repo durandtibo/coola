@@ -65,7 +65,7 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
                 # Cycle: the comparison of this pair is already in progress.
                 return True
             if len(actual) != len(expected):
-                if config.show_difference:
+                if config.explaining:
                     report_difference(
                         config,
                         "sequences have different lengths: %s vs %s",
@@ -85,11 +85,11 @@ class SequenceSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             ):
                 if actual == expected:
                     return self._handle_next(actual, expected, config=config)
-                if not config.show_difference and config.atol == 0.0 and config.rtol == 0.0:
+                if not config.explaining and config.atol == 0.0 and config.rtol == 0.0:
                     return False
             for idx, (value1, value2) in enumerate(zip(actual, expected, strict=True)):
                 if not config.registry.objects_are_equal(value1, value2, config):
-                    if config.show_difference:
+                    if config.explaining:
                         report_difference(
                             config,
                             format_sequence_difference(

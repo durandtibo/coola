@@ -640,7 +640,7 @@ Testers are commonly used in testing frameworks:
 >>> from coola.equality.config import EqualityConfig
 >>> def assert_equal(actual, expected):
 ...     registry = get_default_registry()
-...     config = EqualityConfig(show_difference=True)
+...     config = EqualityConfig()
 ...     if not registry.objects_are_equal(actual, expected, config):
 ...         raise AssertionError(f"{actual} != {expected}")
 >>> assert_equal([1, 2, 3], [1, 2, 3])  # Passes

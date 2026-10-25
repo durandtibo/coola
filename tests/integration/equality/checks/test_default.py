@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests.integration.equality.checks.utils import EQUALITY_TESTER_FUNCTIONS
+from tests.integration.equality.checks.utils import EQUALITY_TESTER_FUNCTIONS, reported_messages
 from tests.unit.equality.tester.test_default import (
     DEFAULT_EQUAL,
     DEFAULT_NOT_EQUAL,
@@ -19,26 +19,22 @@ if TYPE_CHECKING:
 
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", DEFAULT_EQUAL)
-@pytest.mark.parametrize("show_difference", [True, False])
 def test_objects_are_equal_true(
     function: Callable,
     example: ExamplePair,
-    show_difference: bool,
 ) -> None:
-    assert function(example.actual, example.expected, show_difference=show_difference)
+    assert function(example.actual, example.expected)
 
 
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", DEFAULT_EQUAL)
-@pytest.mark.parametrize("show_difference", [True, False])
 def test_objects_are_equal_true_does_not_log(
     function: Callable,
     example: ExamplePair,
-    show_difference: bool,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     with caplog.at_level(logging.INFO):
-        function(example.actual, example.expected, show_difference=show_difference)
+        function(example.actual, example.expected)
         assert not caplog.messages
 
 
@@ -58,17 +54,8 @@ def test_objects_are_equal_false_does_not_log(
         assert not caplog.messages
 
 
-@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL)
-def test_objects_are_equal_false_show_difference(function: Callable, example: ExamplePair) -> None:
-    assert not function(example.actual, example.expected, show_difference=True)
-
-
-@pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
-@pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL)
-def test_objects_are_equal_false_show_difference_logs(
-    function: Callable, example: ExamplePair, caplog: pytest.LogCaptureFixture
-) -> None:
-    with caplog.at_level(logging.INFO):
-        function(example.actual, example.expected, show_difference=True)
-        assert caplog.messages[-1].startswith(example.expected_message)
+def test_objects_are_equal_false_reports_the_difference(example: ExamplePair) -> None:
+    assert reported_messages(example.actual, example.expected)[-1].startswith(
+        example.expected_message
+    )

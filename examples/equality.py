@@ -58,20 +58,13 @@ def cases() -> list[tuple[str, object, object]]:
 
 
 def main() -> None:
-    section("objects_are_equal(..., show_difference=True)  -- messages are logged")
+    section("objects_are_equal(...) and objects_are_allclose(..., atol=1e-5)  -- a bool")
     for name, actual, expected in cases():
         logger.info("\n# %s", name)
-        logger.info("result: %s", objects_are_equal(actual, expected, show_difference=True))
+        logger.info("equal   : %s", objects_are_equal(actual, expected))
+        logger.info("allclose: %s", objects_are_allclose(actual, expected, atol=1e-5))
 
-    section("objects_are_allclose(..., show_difference=True)  -- atol=1e-5")
-    for name, actual, expected in cases():
-        logger.info("\n# %s", name)
-        logger.info(
-            "result: %s",
-            objects_are_allclose(actual, expected, atol=1e-5, show_difference=True),
-        )
-
-    section("compare(...)  -- structured result (nothing is logged)")
+    section("compare(...)  -- structured result")
     for name, actual, expected in cases():
         result = compare(actual, expected)
         logger.info("\n# %s", name)

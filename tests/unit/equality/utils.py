@@ -2,10 +2,13 @@ r"""Define some utility functions/classes."""
 
 from __future__ import annotations
 
-__all__ = ["ExamplePair"]
+__all__ = ["ExamplePair", "messages"]
 
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from coola.equality.config import EqualityConfig
 
 
 @dataclass
@@ -30,3 +33,9 @@ class BadStr:
     def __str__(self) -> str:
         msg = "broken __str__"
         raise ZeroDivisionError(msg)
+
+
+def messages(config: EqualityConfig) -> list[str]:
+    r"""Return the messages of the differences reported while ``config``
+    was used, innermost first."""
+    return [message for message, _ in config.reports or [] if message]

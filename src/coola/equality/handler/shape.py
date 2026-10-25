@@ -59,7 +59,7 @@ class SameShapeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         self, actual: SupportsShape, expected: SupportsShape, config: EqualityConfig
     ) -> bool:
         if actual.shape != expected.shape:
-            if config.show_difference:
+            if config.explaining:
                 report_difference(config, format_shape_difference(actual.shape, expected.shape))
             return False
         return self._handle_next(actual, expected, config=config)

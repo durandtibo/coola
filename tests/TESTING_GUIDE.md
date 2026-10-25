@@ -370,14 +370,14 @@ Stack multiple `@pytest.mark.parametrize` decorators:
 ```python
 @pytest.mark.parametrize("function", [func1, func2, func3])
 @pytest.mark.parametrize("example", [example1, example2])
-@pytest.mark.parametrize("show_difference", [True, False])
+@pytest.mark.parametrize("explaining", [True, False])
 def test_function_combinations(
     function: Callable,
     example: ExamplePair,
-    show_difference: bool,
+    explaining: bool,
 ) -> None:
     """Test all combinations of parameters."""
-    assert function(example.actual, example.expected, show_difference=show_difference)
+    assert function(example.actual, example.expected, explaining=explaining)
 ```
 
 ### Shared Parameter Sets

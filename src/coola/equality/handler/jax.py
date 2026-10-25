@@ -52,7 +52,7 @@ class JaxArrayEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         object_equal = array_equal(actual, expected, config)
-        if config.show_difference and not object_equal:
+        if config.explaining and not object_equal:
             report_difference(
                 config,
                 format_value_difference(

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass, field
 
 import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import DataclassSameFieldsHandler, FalseHandler, TrueHandler
-from tests.unit.equality.utils import BadStr
+from tests.unit.equality.utils import BadStr, messages
 
 
 @dataclass
@@ -71,20 +70,17 @@ def test_dataclass_same_fields_handler_handle_tolerance() -> None:
     assert handler.handle(Point(1.0), Point(1.05), config)
 
 
-def test_dataclass_same_fields_handler_handle_show_difference() -> None:
-    config = EqualityConfig(show_difference=True)
+def test_dataclass_same_fields_handler_handle_explaining() -> None:
+    config = EqualityConfig(reports=[])
     handler = DataclassSameFieldsHandler(next_handler=TrueHandler())
     assert not handler.handle(Point(1.0, 2.0), Point(1.0, 3.0), config)
 
 
-def test_dataclass_same_fields_handler_handle_show_difference_logs(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    config = EqualityConfig(show_difference=True)
+def test_dataclass_same_fields_handler_handle_explaining_reports() -> None:
+    config = EqualityConfig(reports=[])
     handler = DataclassSameFieldsHandler(next_handler=TrueHandler())
-    with caplog.at_level(logging.INFO):
-        handler.handle(Point(1.0, 2.0), Point(1.0, 3.0), config)
-    assert caplog.messages[-1] == "objects have different y: 2.0 vs 3.0"
+    handler.handle(Point(1.0, 2.0), Point(1.0, 3.0), config)
+    assert messages(config)[-1] == "objects have different y: 2.0 vs 3.0"
 
 
 @dataclass
@@ -93,16 +89,14 @@ class Holder:
 
 
 def test_dataclass_same_fields_handler_handle_field_with_failing_str() -> None:
-    reports: list[str] = []
-    config = EqualityConfig(show_difference=True, reporter=lambda msg, _: reports.append(msg))
+    config = EqualityConfig(reports=[])
     handler = DataclassSameFieldsHandler(next_handler=TrueHandler())
     assert not handler.handle(Holder(BadStr(1)), Holder(BadStr(2)), config)
 
 
 def test_dataclass_same_fields_handler_handle_field_with_failing_str_message() -> None:
-    reports: list[str] = []
-    config = EqualityConfig(show_difference=True, reporter=lambda msg, _: reports.append(msg))
+    config = EqualityConfig(reports=[])
     DataclassSameFieldsHandler(next_handler=TrueHandler()).handle(
         Holder(BadStr(1)), Holder(BadStr(2)), config
     )
-    assert reports[-1].startswith("objects have different value: <BadStr object at 0x")
+    assert messages(config)[-1].startswith("objects have different value: <BadStr object at 0x")

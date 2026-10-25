@@ -122,7 +122,7 @@ class TolerantEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         else:
             result = actual.equal(expected, equal_nan=config.equal_nan)
         if not result:
-            if config.show_difference:
+            if config.explaining:
                 report_difference(config, format_value_difference(actual=actual, expected=expected))
             return False
         return True

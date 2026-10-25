@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from datetime import UTC, datetime
 from unittest.mock import Mock, patch
 
@@ -10,7 +9,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.tester import PyarrowEqualityTester
 from coola.testing.fixtures import pyarrow_available
 from coola.utils.imports import MissingPackageError, is_pyarrow_available
-from tests.unit.equality.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair, messages
 
 if is_pyarrow_available():
     import pyarrow as pa
@@ -437,37 +436,33 @@ def test_pyarrow_equality_tester_objects_are_equal_true(
 def test_pyarrow_equality_tester_objects_are_equal_true_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PyarrowEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @pyarrow_available
 @pytest.mark.parametrize("example", PYARROW_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_true_show_difference(
+def test_pyarrow_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PyarrowEqualityTester()
     assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
 
 
 @pyarrow_available
 @pytest.mark.parametrize("example", PYARROW_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+def test_pyarrow_equality_tester_objects_are_equal_true_explaining_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PyarrowEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @pyarrow_available
@@ -487,21 +482,19 @@ def test_pyarrow_equality_tester_objects_are_equal_false(
 def test_pyarrow_equality_tester_objects_are_equal_false_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = PyarrowEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @pyarrow_available
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_false_show_difference(
+def test_pyarrow_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PyarrowEqualityTester()
     assert not tester.objects_are_equal(
         actual=example.actual, expected=example.expected, config=config
@@ -510,16 +503,14 @@ def test_pyarrow_equality_tester_objects_are_equal_false_show_difference(
 
 @pyarrow_available
 @pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_false_show_difference_logs(
+def test_pyarrow_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = PyarrowEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert caplog.messages[-1].startswith(example.expected_message)
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert messages(config)[-1].startswith(example.expected_message)
 
 
 @pyarrow_available

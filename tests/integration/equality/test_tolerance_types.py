@@ -15,7 +15,7 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 
-from coola.equality import objects_are_allclose, objects_are_equal
+from coola.equality import compare, objects_are_allclose, objects_are_equal
 from coola.testing.fixtures import (
     numpy_available,
     pandas_available,
@@ -242,14 +242,8 @@ def test_dataclass_with_custom_eq_keeps_its_eq() -> None:
     assert objects_are_equal(CustomEq(1.0), CustomEq(2.0))
 
 
-def test_dataclass_show_difference() -> None:
-    assert not objects_are_equal(Point(1.0, 2.0), Point(1.0, 3.0), show_difference=True)
-
-
-def test_dataclass_show_difference_logs(caplog: pytest.LogCaptureFixture) -> None:
-    with caplog.at_level("INFO"):
-        objects_are_equal(Point(1.0, 2.0), Point(1.0, 3.0), show_difference=True)
-    assert "objects have different y" in caplog.text
+def test_dataclass_compare_path() -> None:
+    assert compare(Point(1.0, 2.0), Point(1.0, 3.0)).format_path("actual") == "actual.y"
 
 
 def test_dataclass_class_is_not_an_instance() -> None:

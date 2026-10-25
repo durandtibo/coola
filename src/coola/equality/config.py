@@ -17,7 +17,7 @@ from coola.validation import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Generator
+    from collections.abc import Generator
 
     from coola.equality.tester.registry import EqualityTesterRegistry
 
@@ -54,22 +54,17 @@ class EqualityConfig:
             comparisons. Must be non-negative. Defaults to 0.0.
         rtol: The relative tolerance parameter for floating-point
             comparisons. Must be non-negative. Defaults to 0.0.
-        show_difference: If ``True``, shows differences between
-            non-equal objects. Defaults to ``False``.
         max_depth: The nesting limit: the maximum nesting level of the
             compared objects. A deeper structure raises
             ``MaxDepthExceededError`` (it is not a display depth like
             the ``max_depth`` of ``summarize``). Must be positive.
             See the "Common options" section of the equality user
             guide. Defaults to 100.
-            Set to a lower value to protect against stack overflow
-            with extremely deeply nested structures.
-        reporter: An optional callable that receives the differences
-            found while ``show_difference`` is ``True``. It is called
-            with the message and the location of the difference in the
-            compared objects (relative to the current nesting level).
-            When it is set, the differences are sent to it instead of
-            being logged. Defaults to ``None`` (log the differences).
+        reports: ``None`` (the default) if the comparison does not
+            explain the difference: nothing is formatted. Otherwise a
+            list that receives, innermost first, the ``(message, path)``
+            of the differences found by the testers (see
+            ``report_difference``); ``compare`` and ``assert_*`` use it.
 
     Raises:
         TypeError: if ``atol`` or ``rtol`` is not a real number (a
@@ -83,7 +78,7 @@ class EqualityConfig:
         >>> from coola.equality.config import EqualityConfig
         >>> config = EqualityConfig()
         >>> config
-        EqualityConfig(registry=EqualityTesterRegistry(...), equal_nan=False, atol=0.0, rtol=0.0, show_difference=False, max_depth=100)
+        EqualityConfig(registry=EqualityTesterRegistry(...), equal_nan=False, atol=0.0, rtol=0.0, max_depth=100)
 
         ```
     """
@@ -92,13 +87,12 @@ class EqualityConfig:
     equal_nan: bool = False
     atol: float = 0.0
     rtol: float = 0.0
-    show_difference: bool = False
     # With the default Python recursion limit (1000 frames) and about 6 frames per
     # nesting level, the interpreter limit is reached at roughly 150 levels, so the
     # default is below it and the clear ``MaxDepthExceededError`` comes first (the
     # cycles do not need it, they are detected with ``_in_progress``).
     max_depth: int = 100
-    reporter: Callable[[str, tuple[object, ...]], None] | None = field(
+    reports: list[tuple[str, tuple[object, ...]]] | None = field(
         default=None, repr=False, compare=False
     )
     # Internal state of one comparison: a config must not be shared by
@@ -125,6 +119,16 @@ class EqualityConfig:
         validate_positive(self.max_depth, name="max_depth")
         validate_finite(self.atol, name="atol")
         validate_finite(self.rtol, name="rtol")
+
+    @property
+    def explaining(self) -> bool:
+        r"""Indicate if the comparison explains the difference.
+
+        Returns:
+            ``True`` if ``reports`` is a list, i.e. the testers must
+            build the description of the difference.
+        """
+        return self.reports is not None
 
     @property
     def depth(self) -> int:
