@@ -7,12 +7,17 @@ comparisons, and dtype/shape checking.
 
 from __future__ import annotations
 
-__all__ = ["NumpyArrayEqualityTester", "NumpyMaskedArrayEqualityTester"]
+__all__ = [
+    "NumpyArrayEqualityTester",
+    "NumpyMaskedArrayEqualityTester",
+    "NumpyTimeScalarEqualityTester",
+]
 
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler import (
     NumpyArrayEqualHandler,
+    NumpyTimeScalarEqualHandler,
     SameAttributeHandler,
     SameDataHandler,
     SameDTypeHandler,
@@ -169,6 +174,40 @@ class NumpyMaskedArrayEqualityTester(BaseChainEqualityTester[np.ma.MaskedArray])
         )
 
 
+class NumpyTimeScalarEqualityTester(BaseChainEqualityTester[object]):
+    r"""Implement an equality tester for ``numpy.timedelta64`` and
+    ``numpy.datetime64`` scalars.
+
+    These scalars are not integers: ``numpy.timedelta64`` is a subclass
+    of ``numpy.signedinteger``, so it must not use the scalar tester.
+    The handler chain:
+    1. SameObjectHandler: Check for object identity
+    2. SameTypeHandler: Verify same type
+    3. NumpyTimeScalarEqualHandler: ``NaT`` follows ``equal_nan``; a
+        duration follows the tolerances, an instant is exact
+
+    Example:
+        ```pycon
+        >>> import numpy as np
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.tester import NumpyTimeScalarEqualityTester
+        >>> config = EqualityConfig()
+        >>> tester = NumpyTimeScalarEqualityTester()
+        >>> tester.objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(1, "s"), config)
+        True
+        >>> tester.objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(2, "s"), config)
+        False
+
+        ```
+    """
+
+    def _check_dependencies(self) -> None:
+        check_numpy()
+
+    def _create_handler(self) -> BaseEqualityHandler:
+        return create_chain(SameObjectHandler(), SameTypeHandler(), NumpyTimeScalarEqualHandler())
+
+
 def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
     r"""Get the default equality testers of the NumPy arrays and scalars.
 
@@ -183,6 +222,7 @@ def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
         return {}
 
     scalar = ScalarEqualityTester()
+    time_scalar = NumpyTimeScalarEqualityTester()
     return {
         # NumPy scalars use the scalar tester to get the tolerance and ``equal_nan``;
         # without it, ``==`` is used and both are ignored. ``np.float64`` is also a
@@ -191,6 +231,10 @@ def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
         np.floating: scalar,
         np.integer: scalar,
         np.complexfloating: scalar,
+        # ``np.timedelta64`` is a subclass of ``np.signedinteger``: it needs its own tester,
+        # which must be more specific than ``np.integer`` (the MRO decides).
+        np.timedelta64: time_scalar,
+        np.datetime64: time_scalar,
         np.ndarray: NumpyArrayEqualityTester(),
         np.ma.MaskedArray: NumpyMaskedArrayEqualityTester(),
     }
