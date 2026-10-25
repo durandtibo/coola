@@ -809,13 +809,15 @@ True
 
 ```
 
-The default `max_depth` is 100. The comparison is recursive and uses several Python frames per
-nesting level, so the interpreter limit (`sys.getrecursionlimit()`, 1000 by default) is reached
-at roughly 60-150 nesting levels depending on the container types. The default `max_depth` is
-below that for a list, but not for every container: a nesting of about 90 dictionaries already
-raises a `RecursionError` (with advice on `sys.setrecursionlimit()`) before `max_depth` is reached,
-and the stack of the caller (a test runner, a web framework) is subtracted from the same limit. For extremely deeply nested structures, reduce the nesting, or raise the
-interpreter limit with `sys.setrecursionlimit()` and `max_depth` accordingly. Comparison does not use an explicit stack.
+The default `max_depth` is 100. The comparison is recursive and uses a few Python frames per
+nesting level (about 7 for a `dict`, fewer for the other containers), so the default is reached
+before the interpreter limit (`sys.getrecursionlimit()`, 1000 by default) as long as the caller of
+`objects_are_equal` is less than about 250 frames deep: a `MaxDepthExceededError` with an
+explanatory message is raised instead of a `RecursionError`. A caller that is deeper (a test runner
+or a web framework use some frames) can still hit the interpreter limit first, which raises a
+`RecursionError` with advice. For extremely deeply nested structures, reduce the nesting, or raise
+the interpreter limit with `sys.setrecursionlimit()` and `max_depth` accordingly. Comparison does
+not use an explicit stack.
 
 ### Using Custom Registries
 
