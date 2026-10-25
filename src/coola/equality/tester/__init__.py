@@ -53,7 +53,6 @@ __all__ = [
     "XarrayDataArrayEqualityTester",
     "XarrayDatasetEqualityTester",
     "XarrayVariableEqualityTester",
-    "get_default_equality_tester_registry",
     "get_default_registry",
     "register_equality_testers",
 ]
@@ -74,7 +73,6 @@ from coola.equality.tester.difference import DifferenceCloseEqualityTester
 from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
 from coola.equality.tester.handler import HandlerEqualityTester
 from coola.equality.tester.interface import (
-    get_default_equality_tester_registry,
     get_default_registry,
     register_equality_testers,
 )

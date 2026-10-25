@@ -4,7 +4,6 @@ management."""
 from __future__ import annotations
 
 __all__ = [
-    "get_default_equality_tester_registry",
     "get_default_registry",
     "register_equality_testers",
 ]
@@ -48,6 +47,7 @@ _LAZY_TESTERS = (
 
 def register_equality_testers(
     mapping: Mapping[type, BaseEqualityTester[Any]],
+    *,
     exist_ok: bool = False,
 ) -> None:
     """Register custom equality testers to the default global registry.
@@ -123,9 +123,6 @@ def get_default_registry() -> EqualityTesterRegistry:
         ```
     """
     return _default_registry.get()
-
-
-get_default_equality_tester_registry = get_default_registry
 
 
 def _register_default_equality_testers(registry: EqualityTesterRegistry) -> None:
