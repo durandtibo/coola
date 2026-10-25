@@ -251,3 +251,13 @@ def test_array_equal_different_dtype_with_tolerance() -> None:
 @jax_available
 def test_array_equal_integers_with_tolerance() -> None:
     assert array_equal(jnp.array([100, 101]), jnp.array([101, 100]), EqualityConfig(rtol=0.02))
+
+
+@jax_available
+def test_array_equal_bool_has_no_atol() -> None:
+    assert not array_equal(jnp.array([True]), jnp.array([False]), EqualityConfig(atol=1.0))
+
+
+@jax_available
+def test_array_equal_bool_equal_with_tolerance() -> None:
+    assert array_equal(jnp.array([True, False]), jnp.array([True, False]), EqualityConfig(atol=1.0))

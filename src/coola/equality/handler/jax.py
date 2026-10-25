@@ -87,6 +87,9 @@ def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
 
         ```
     """
+    if jnp.bool_ in (array1.dtype, array2.dtype):
+        # A boolean is a label, not a quantity: no tolerance.
+        return jnp.array_equal(array1, array2).item()
     if config.atol > 0 or config.rtol > 0:
         return _arrays_close(array1, array2, config)
     return jnp.array_equal(array1, array2, equal_nan=config.equal_nan).item()

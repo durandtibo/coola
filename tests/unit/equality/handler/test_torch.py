@@ -448,3 +448,22 @@ def test_tensor_equal_integers_with_tolerance() -> None:
     assert tensor_equal(
         torch.tensor([100, 101]), torch.tensor([101, 100]), EqualityConfig(rtol=0.02)
     )
+
+
+@torch_available
+def test_tensor_equal_bool_has_no_atol() -> None:
+    assert not tensor_equal(torch.tensor([True]), torch.tensor([False]), EqualityConfig(atol=1.0))
+
+
+@torch_available
+def test_tensor_equal_bool_equal_with_tolerance() -> None:
+    assert tensor_equal(
+        torch.tensor([True, False]), torch.tensor([True, False]), EqualityConfig(atol=1.0)
+    )
+
+
+@torch_available
+def test_tensor_equal_bool_equal_nan() -> None:
+    assert tensor_equal(
+        torch.tensor([True, False]), torch.tensor([True, False]), EqualityConfig(equal_nan=True)
+    )

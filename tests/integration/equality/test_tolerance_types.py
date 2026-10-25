@@ -14,13 +14,23 @@ import numpy as np
 import pytest
 
 from coola.equality import objects_are_allclose, objects_are_equal
-from coola.testing.fixtures import numpy_available, pandas_available, polars_available
-from coola.utils.imports import is_pandas_available, is_polars_available
+from coola.testing.fixtures import (
+    numpy_available,
+    pandas_available,
+    polars_available,
+    torch_available,
+)
+from coola.utils.imports import is_pandas_available, is_polars_available, is_torch_available
 
 if is_pandas_available():
     import pandas as pd
 else:  # pragma: no cover
     pd = Mock()
+
+if is_torch_available():
+    import torch
+else:  # pragma: no cover
+    torch = Mock()
 
 if is_polars_available():
     import polars as pl
@@ -447,3 +457,22 @@ def test_objects_are_equal_max_depth_wrong_type(value: object) -> None:
 def test_objects_are_allclose_atol_bool() -> None:
     with pytest.raises(TypeError, match="atol must be a real number"):
         objects_are_allclose(1.0, 1.0, atol=True)
+
+
+@pytest.mark.parametrize("kwargs", [{"atol": 1.0}, {"rtol": 1.0}])
+def test_objects_are_allclose_bool_has_no_tolerance(kwargs: dict) -> None:
+    assert not objects_are_allclose(True, False, **kwargs)
+
+
+def test_objects_are_allclose_bool_in_a_list_has_no_tolerance() -> None:
+    assert not objects_are_allclose([True], [False], atol=1.0)
+
+
+@numpy_available
+def test_objects_are_allclose_numpy_bool_array_has_no_tolerance() -> None:
+    assert not objects_are_allclose(np.array([True]), np.array([False]), atol=1.0)
+
+
+@torch_available
+def test_objects_are_allclose_torch_bool_tensor_has_no_tolerance() -> None:
+    assert not objects_are_allclose(torch.tensor([True]), torch.tensor([False]), atol=1.0)

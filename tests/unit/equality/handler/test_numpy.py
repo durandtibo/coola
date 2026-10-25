@@ -591,3 +591,18 @@ def test_time_scalar_equal_value_and_nat_equal_nan() -> None:
     assert not time_scalar_equal(
         np.timedelta64(1, "s"), np.timedelta64("NaT", "s"), EqualityConfig(equal_nan=True)
     )
+
+
+@numpy_available
+def test_array_equal_bool_has_no_atol() -> None:
+    assert not array_equal(np.array([True]), np.array([False]), EqualityConfig(atol=1.0))
+
+
+@numpy_available
+def test_array_equal_bool_has_no_rtol() -> None:
+    assert not array_equal(np.array([True]), np.array([False]), EqualityConfig(rtol=1.0))
+
+
+@numpy_available
+def test_array_equal_bool_equal_with_tolerance() -> None:
+    assert array_equal(np.array([True, False]), np.array([True, False]), EqualityConfig(atol=1.0))

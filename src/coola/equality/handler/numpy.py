@@ -96,6 +96,9 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         (config.atol > 0 or config.rtol > 0)
         and is_numeric_array(array1)
         and is_numeric_array(array2)
+        # A boolean is a label, not a quantity: no tolerance.
+        and array1.dtype.kind != "b"
+        and array2.dtype.kind != "b"
     ):
         return _arrays_close(array1, array2, config)
     # ``np.isnan`` is not defined for string/object/void dtypes, so
