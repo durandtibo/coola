@@ -222,7 +222,7 @@ def index_equal(index1: pd.Index, index2: pd.Index, config: EqualityConfig) -> b
             index1,
             index2,
             exact=True,
-            check_exact=config.atol == 0 and config.rtol == 0,
+            check_exact=_check_exact(config, index1.dtype),
             atol=config.atol,
             rtol=config.rtol,
         )
@@ -264,6 +264,35 @@ def _durations_to_seconds_frames(df1: pd.DataFrame, df2: pd.DataFrame) -> tuple[
 def _tolerance_applies(config: EqualityConfig) -> bool:
     # The tolerance of the numeric columns is applied with NumPy (the shared rule).
     return (config.atol > 0 or config.rtol > 0) and is_numpy_available()
+
+
+def _check_exact(config: EqualityConfig, dtype: Any) -> bool:
+    # A boolean is a label, not a quantity: the tolerance never applies to it.
+    return (config.atol == 0 and config.rtol == 0) or bool(pd.api.types.is_bool_dtype(dtype))
+
+
+def _is_boolean_pair(series1: pd.Series, series2: pd.Series) -> bool:
+    return series1.dtype == series2.dtype and bool(pd.api.types.is_bool_dtype(series1.dtype))
+
+
+def _align_boolean_columns(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame | None:
+    r"""Compare the boolean columns exactly and copy the values of
+    ``df1`` in ``df2``, so ``pandas.testing`` does not apply the
+    tolerance to them.
+
+    Returns:
+        The data frame ``df2`` with the values of the boolean columns
+            of ``df1``, or ``None`` if one boolean column differs.
+    """
+    positions = [i for i in range(df1.shape[1]) if _is_boolean_pair(df1.iloc[:, i], df2.iloc[:, i])]
+    if not positions:
+        return df2
+    df2 = df2.copy()
+    for i in positions:
+        if not pd.Series(df1.iloc[:, i].array).equals(pd.Series(df2.iloc[:, i].array)):
+            return None
+        cast("Any", df2).isetitem(i, df1.iloc[:, i].array)
+    return df2
 
 
 def _is_numeric_pair(series1: pd.Series, series2: pd.Series) -> bool:
@@ -393,7 +422,7 @@ def extension_array_equal(array1: Any, array2: Any, config: EqualityConfig) -> b
         cast("Any", pd.testing).assert_extension_array_equal(
             array1,
             array2,
-            check_exact=config.atol == 0 and config.rtol == 0,
+            check_exact=_check_exact(config, array1.dtype),
             atol=config.atol,
             rtol=config.rtol,
         )
@@ -436,6 +465,11 @@ def frame_equal(df1: pd.DataFrame, df2: pd.DataFrame, config: EqualityConfig) ->
         return False
     if config.atol > 0 or config.rtol > 0:
         df1, df2 = _durations_to_seconds_frames(df1, df2)
+    if config.atol > 0 or config.rtol > 0:
+        aligned = _align_boolean_columns(df1, df2)
+        if aligned is None:
+            return False
+        df2 = aligned
     if _tolerance_applies(config):
         aligned = _align_numeric_columns(df1, df2, config)
         if aligned is None:
@@ -493,7 +527,7 @@ def series_equal(series1: pd.Series, series2: pd.Series, config: EqualityConfig)
         cast("Any", pd.testing).assert_series_equal(
             series1,
             series2,
-            check_exact=config.atol == 0 and config.rtol == 0,
+            check_exact=_check_exact(config, series1.dtype),
             check_index_type=True,
             atol=config.atol,
             rtol=config.rtol,
