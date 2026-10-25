@@ -6,7 +6,7 @@ __all__ = ["Tolerance"]
 
 from dataclasses import dataclass
 
-from coola.validation import validate_finite, validate_non_negative
+from coola.validation import validate_finite, validate_non_negative, validate_number
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,6 +24,8 @@ class Tolerance:
             and finite. Defaults to 0.0.
 
     Raises:
+        TypeError: If ``rtol`` or ``atol`` is not a real number (a
+            ``bool`` is rejected).
         ValueError: If ``rtol`` or ``atol`` is negative or not finite.
 
     Example:
@@ -41,6 +43,8 @@ class Tolerance:
     atol: float = 0.0
 
     def __post_init__(self) -> None:
+        validate_number(self.rtol, name="rtol")
+        validate_number(self.atol, name="atol")
         validate_non_negative(self.rtol, name="rtol")
         validate_non_negative(self.atol, name="atol")
         validate_finite(self.rtol, name="rtol")
