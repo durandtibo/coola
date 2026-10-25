@@ -91,11 +91,12 @@ def objects_are_allclose(
         show_difference: If ``True``, log a readable description when the
             comparison fails, at the ``INFO`` level on the
             ``coola.equality`` logger.
-        max_depth: A limit that raises, not a display depth: the maximum
-            recursion depth for nested comparisons (a deeper structure
-            raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
-            ``summarize``, which truncates the output).
-            Must be positive. Defaults to 100.
+        max_depth: The nesting limit: the maximum nesting level of the
+            compared objects. A deeper structure raises
+            ``MaxDepthExceededError`` (it is not a display depth like
+            the ``max_depth`` of ``summarize``). Must be positive.
+            See the "Common options" section of the equality user
+            guide. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
 
@@ -164,11 +165,12 @@ def objects_are_equal(
         show_difference: If ``True``, log a readable description when the
             comparison fails, at the ``INFO`` level on the
             ``coola.equality`` logger.
-        max_depth: A limit that raises, not a display depth: the maximum
-            recursion depth for nested comparisons (a deeper structure
-            raises ``MaxDepthExceededError``, unlike the ``max_depth`` of
-            ``summarize``, which truncates the output).
-            Must be positive. Defaults to 100.
+        max_depth: The nesting limit: the maximum nesting level of the
+            compared objects. A deeper structure raises
+            ``MaxDepthExceededError`` (it is not a display depth like
+            the ``max_depth`` of ``summarize``). Must be positive.
+            See the "Common options" section of the equality user
+            guide. Defaults to 100.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
 

@@ -744,9 +744,24 @@ True
 
 ```
 
+## Common options
+
+All the entry points (`objects_are_equal`, `objects_are_allclose`, `compare`, `assert_objects_equal`
+and `assert_objects_allclose`) share the same options, with the same meaning:
+
+| Option      | Meaning                                                                                                                                         |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `equal_nan` | Treat `NaN` as equal to `NaN`. See [Handling NaN Values](#handling-nan-values).                                                                  |
+| `max_depth` | The nesting limit (default 100): a deeper structure raises `MaxDepthExceededError`. See [Controlling Recursion Depth](#controlling-recursion-depth). It is not the display depth of `summarize`. |
+| `registry`  | The registry that maps a type to its tester (default: the default registry). See [Using Custom Registries](#using-custom-registries).            |
+
+The `*_allclose` functions also take `rtol` and `atol`, and `compare` takes `tolerance`.
+
 ## Advanced Usage
 
 ### Controlling Recursion Depth
+
+The `max_depth` option is the **nesting limit** of the comparison.
 
 For deeply nested structures, you can control the maximum recursion depth to prevent stack
 overflow. The `max_depth` parameter sets the maximum nesting level that will be compared. It is a
