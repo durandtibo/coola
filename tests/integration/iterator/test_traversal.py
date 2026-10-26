@@ -1,6 +1,6 @@
-r"""Integration tests that run ``dfs_iterate`` and ``bfs_iterate`` on one
-table of inputs, and that compare the containers entered by ``iterator``
-with the ones of ``recursive``."""
+r"""Integration tests that run ``dfs_iterate`` and ``bfs_iterate`` on
+one table of inputs, and that compare the containers entered by
+``iterator`` with the ones of ``recursive``."""
 
 from __future__ import annotations
 

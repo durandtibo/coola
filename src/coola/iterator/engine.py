@@ -1,11 +1,11 @@
-r"""Define the engines that walk nested data in depth-first and
-breadth-first order.
+r"""Define the engines that walk nested data in depth-first and breadth-
+first order.
 
 The engines own the invariants of a traversal (the leaf rule, the
 cycles, the depth, the order and the laziness). A child finder only
-describes the shape of a type, so both orders visit the same leaves.
-The state of a traversal (stack or queue, cache, ancestors) is local to
-the call.
+describes the shape of a type, so both orders visit the same leaves. The
+state of a traversal (stack or queue, cache, ancestors) is local to the
+call.
 """
 
 from __future__ import annotations
