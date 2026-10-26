@@ -29,8 +29,9 @@ These functions work with a wide variety of types, including:
 - PyArrow arrays and tables
 - pydantic models
 
-The comparison is recursive, so nested structures like lists of dictionaries containing arrays are
-handled correctly.
+Nested structures like lists of dictionaries containing arrays are handled correctly. The comparison
+uses an explicit stack, not the Python call stack, so the nesting depth cannot overflow the
+interpreter.
 
 ## Guarantees
 
@@ -728,7 +729,9 @@ and `assert_objects_allclose`) share the same options, with the same meaning:
 | `max_depth` | The nesting limit (default 100): a deeper structure raises `MaxDepthExceededError`. See [Controlling Recursion Depth](#controlling-recursion-depth). It is not the display depth of `summarize`. |
 | `registry`  | The registry that maps a type to its tester (default: the default registry). See [Using Custom Registries](#using-custom-registries).                                                            |
 
-The `*_allclose` functions also take `rtol` and `atol`, and `compare` takes `tolerance`.
+The `*_allclose` functions also take `rtol` and `atol`. `compare` takes `rtol` and `atol` too, and is
+exact unless one of them is given. The assert functions take a `root` name (default `"actual"`) for
+the message.
 
 ## Advanced Usage
 
@@ -736,20 +739,22 @@ The `*_allclose` functions also take `rtol` and `atol`, and `compare` takes `tol
 
 The `max_depth` option is the **nesting limit** of the comparison.
 
-There are three failure modes, and only the last two raise:
+There are two special cases, and only the second raises:
 
-| Case                                     | Result                                                                                                            |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Cycle (a container that contains itself) | No error: a pair that is already being compared is considered equal                                               |
-| Nesting deeper than `max_depth`          | `coola.equality.MaxDepthExceededError`, a subclass of `RecursionError`                                            |
-| Interpreter recursion limit reached      | `RecursionError` with advice on `sys.setrecursionlimit()`, raised before `max_depth` is hit if it is set too high |
+| Case                                     | Result                                                                               |
+| ---------------------------------------- | ------------------------------------------------------------------------------------ |
+| Cycle (a container that contains itself) | No error: a pair that is already being compared is considered equal                  |
+| Nesting deeper than `max_depth`          | `coola.equality.MaxDepthExceededError`, a plain `Exception` (not a `RecursionError`) |
 
 `max_depth` must be a positive `int` (not a `bool`), otherwise a `ValueError` (not positive) or a
 `TypeError` (not an `int`) is raised. `rtol` and `atol` must be non-negative finite real numbers
 (not `bool`).
 
-For deeply nested structures, you can control the maximum recursion depth to prevent stack
-overflow. The `max_depth` parameter sets the maximum nesting level that will be compared. It is a
+The comparison does not recurse: the engine keeps the child iterators on an explicit stack, so a
+`RecursionError` cannot happen whatever the nesting (100 000 nested dictionaries compare under the
+default interpreter limit). `max_depth` is therefore a policy, not a safety net: it bounds the work
+and the memory on a pathological structure, for example an object that creates a new child each time
+an attribute is read. The `max_depth` parameter sets the maximum nesting level that will be compared. It is a
 **limit that raises** (`MaxDepthExceededError`) for a deeper structure, unlike the `max_depth` of
 `summarize`, which is a **display depth** that truncates the output:
 
@@ -768,15 +773,8 @@ True
 
 ```
 
-The default `max_depth` is 100. The comparison is recursive and uses a few Python frames per
-nesting level (about 7 for a `dict`, fewer for the other containers), so the default is reached
-before the interpreter limit (`sys.getrecursionlimit()`, 1000 by default) as long as the caller of
-`objects_are_equal` is less than about 250 frames deep: a `MaxDepthExceededError` with an
-explanatory message is raised instead of a `RecursionError`. A caller that is deeper (a test runner
-or a web framework use some frames) can still hit the interpreter limit first, which raises a
-`RecursionError` with advice. For extremely deeply nested structures, reduce the nesting, or raise
-the interpreter limit with `sys.setrecursionlimit()` and `max_depth` accordingly. Comparison does
-not use an explicit stack.
+The default `max_depth` is 100, which is more than the nesting of usual data (JSON-like documents,
+configurations, model outputs). Raise it if a legitimate structure is deeper.
 
 ### Using Custom Registries
 
@@ -868,7 +866,8 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   `TypeError` is raised: register a tester for this type
 - Objects with a reference cycle (a list that contains itself) are supported: a pair of objects that
   is already being compared is considered equal, so two cyclic structures are equal if they unfold to
-  the same values. Very deep (but not cyclic) structures can still raise a `RecursionError`
+  the same values. Very deep (but not cyclic) structures raise a `MaxDepthExceededError` beyond
+  `max_depth`, never a `RecursionError`
 - Two objects are only compared if they have exactly the same type: a subclass is not equal to
   its parent class, and `numpy.float32(1)` is not equal to `numpy.float64(1)`
 
@@ -1645,6 +1644,13 @@ numbers are different:
 
 `assert_objects_equal` and `assert_objects_allclose` raise an `AssertionError` with the same
 message, for the tests.
+
+The path is read as follows: a key or a position is itself (`['a']`, `[3]`), a field or an attribute
+is `.x`, an element of a set is `{2}`, and an array reports its index (`[1][2]`). A pandas, polars or
+PyArrow table is reported as a whole, with the first differing column in the reason (for example
+`tables have different values: column 'a' differs`); use the library (`DataFrame.compare`,
+`polars.testing`, `Table.equals`) to find the row. The design behind this is described in
+[Architecture](../dev/architecture.md#design-of-coolaequality).
 
 - `compare` and the assert functions do not log and do not change the logging configuration, so they
   can be called from several threads at the same time.
