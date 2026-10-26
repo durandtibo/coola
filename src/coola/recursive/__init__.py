@@ -33,7 +33,6 @@ from __future__ import annotations
 
 __all__ = [
     "BaseTransformer",
-    "ConditionalTransformer",
     "DataclassTransformer",
     "DefaultTransformer",
     "IdentityTransformer",
@@ -51,7 +50,6 @@ __all__ = [
 ]
 
 from coola.recursive.base import BaseTransformer, Transformer
-from coola.recursive.conditional import ConditionalTransformer
 from coola.recursive.dataclass import DataclassTransformer
 from coola.recursive.default import DefaultTransformer
 from coola.recursive.identity import IdentityTransformer

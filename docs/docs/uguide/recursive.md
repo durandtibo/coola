@@ -175,7 +175,6 @@ The `coola.recursive` package provides several built-in transformers:
 - **`SequenceTransformer`**: For sequences (list, tuple) - recursive transformation preserving order
 - **`MappingTransformer`**: For mappings (dict) - recursive transformation of the values (the keys are kept)
 - **`SetTransformer`**: For sets - recursive transformation without order
-- **`ConditionalTransformer`**: For conditional transformation based on predicates
 - **`IdentityTransformer`**: For leaf values that must be kept as they are: the function is never
   applied
 - **`KeyFilterTransformer`**: For mappings: drops the entries whose key satisfies a predicate and
