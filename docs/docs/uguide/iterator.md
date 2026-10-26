@@ -20,19 +20,19 @@ collections.
 
 ## Properties
 
-| Property                     | Statement                                                                                                                                                                                                                                  |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Leaves only                  | A traversal yields the leaves, once per occurrence, never a container. An empty container has no leaf and yields nothing.                                                                                                                  |
-| Type dispatch                | The iterator (or child finder) is chosen from the type of the data along the Method Resolution Order, so the most specific registered type wins.                                                                                           |
+| Property                     | Statement                                                                                                                                                                                                                                     |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Leaves only                  | A traversal yields the leaves, once per occurrence, never a container. An empty container has no leaf and yields nothing.                                                                                                                     |
+| Type dispatch                | The iterator (or child finder) is chosen from the type of the data along the Method Resolution Order, so the most specific registered type wins.                                                                                              |
 | Deterministic order          | DFS is pre-order and BFS is level order, both left to right. A mapping gives its values in insertion order (the keys are never yielded) and a dataclass its fields in the order of their definition. The order inside a set is not specified. |
-| Same leaves, different order | DFS and BFS visit the same leaves. Only the order differs.                                                                                                                                                                                 |
-| Lazy                         | Both `dfs_iterate` and `bfs_iterate` are generators: leaves are produced one at a time, and nothing is walked before the first `next`.                                                                                                    |
-| Read-only                    | The input is never modified.                                                                                                                                                                                                               |
-| Every leaf is returned       | A container that appears several times, without containing itself, gives its leaves each time.                                                                                                                                             |
-| Cycle-safe                   | A container that contains itself raises `ValueError` instead of looping forever or hitting the recursion limit.                                                                                                                            |
-| Iterators are leaves         | The default registries never consume an iterator or a generator, so an infinite iterator cannot hang the traversal.                                                                                                                        |
-| Depth                        | Both functions use an explicit stack or queue: there is no `RecursionError`, whatever the nesting. The depth is bounded by memory only. |
-| Extensible                   | Support for a new container type is added with one child finder (`find_children`) registered for the type. It serves both orders. |
+| Same leaves, different order | DFS and BFS visit the same leaves. Only the order differs.                                                                                                                                                                                    |
+| Lazy                         | Both `dfs_iterate` and `bfs_iterate` are generators: leaves are produced one at a time, and nothing is walked before the first `next`.                                                                                                        |
+| Read-only                    | The input is never modified.                                                                                                                                                                                                                  |
+| Every leaf is returned       | A container that appears several times, without containing itself, gives its leaves each time.                                                                                                                                                |
+| Cycle-safe                   | A container that contains itself raises `ValueError` instead of looping forever or hitting the recursion limit.                                                                                                                               |
+| Iterators are leaves         | The default registries never consume an iterator or a generator, so an infinite iterator cannot hang the traversal.                                                                                                                           |
+| Depth                        | Both functions use an explicit stack or queue: there is no `RecursionError`, whatever the nesting. The depth is bounded by memory only.                                                                                                       |
+| Extensible                   | Support for a new container type is added with one child finder (`find_children`) registered for the type. It serves both orders.                                                                                                             |
 
 Not guaranteed: the order of a `ChainMap` (its values follow the lookup order of the maps), a
 container that is changed during the traversal, and a registry that is modified during a traversal.
@@ -270,11 +270,9 @@ mapping, and `IterableChildFinder` the container itself:
 >>> class Node:
 ...     def __init__(self, left, right):
 ...         self.left, self.right = left, right
-...
 >>> class NodeChildFinder(BaseChildFinder[Node]):
 ...     def find_children(self, data):
 ...         return [data.left, data.right]
-...
 >>> register_child_finders({Node: NodeChildFinder()})
 >>> tree = Node(Node(1, 2), 3)
 >>> list(dfs_iterate(tree))
