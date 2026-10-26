@@ -2,8 +2,8 @@ r"""Implement the engine that runs a comparison with an explicit stack.
 
 The engine owns the invariants of a comparison: identity, strict type,
 depth, cycles and the location of the first difference. A tester that
-uses the engine never recurses: it returns a verdict, or the child
-pairs that must all be equal.
+uses the engine never recurses: it returns a verdict, or the child pairs
+that must all be equal.
 """
 
 from __future__ import annotations
