@@ -85,7 +85,15 @@ def factory(
         wrote, or a configuration file you control). Never resolve a
         ``_target_`` derived from untrusted input, such as a
         third-party-uploaded config file or a network payload, as this
-        is a remote-code-execution vector.
+        is a remote-code-execution vector. ``_allowed_prefixes_`` is a
+        filter on a path, not a sandbox: it limits *what* is called,
+        not the arguments. A prefix that contains a function that
+        imports or resolves objects from its arguments (any
+        ``resolve_*``, ``import_object``, ``importlib``, ``pickle``,
+        ``eval``, ``os.system``, ...) makes the list worthless: never
+        allow ``"coola"`` or ``"coola.factory"``. The path is checked,
+        not the module that defines the object, so a re-export is
+        allowed by the prefix of the re-exporting module.
 
     Example:
         ```pycon
@@ -262,7 +270,11 @@ def resolve_object(
         cannot be fully trusted, pass ``allowed_prefixes`` to restrict
         the ``"_target_"`` to the modules you expect, and check the
         arguments of the allowed objects too: an allow-list limits
-        *what* can be called, not the arguments it is called with.
+        *what* can be called, not the arguments it is called with, and
+        a prefix that contains a function that resolves its arguments
+        (any ``resolve_*``, ``import_object``, ``pickle``, ``eval``,
+        ...) makes it worthless: never allow ``"coola"`` or
+        ``"coola.factory"``.
 
     Example:
         ```pycon
