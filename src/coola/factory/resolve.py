@@ -137,10 +137,9 @@ def _build(
 ) -> Any:
     r"""Build the object of a configuration.
 
-    The target is imported once. It is refused before it is called if
-    it is known not to build an instance of ``cls`` (or if it is not
-    known and ``strict`` is ``True``). The configuration is not
-    modified.
+    The target is imported once. It is refused before it is called if it
+    is known not to build an instance of ``cls`` (or if it is not known
+    and ``strict`` is ``True``). The configuration is not modified.
     """
     kwargs = {k: v for k, v in config.items() if k not in _RESERVED}
     init = config.get(OBJECT_INIT, "__init__")
