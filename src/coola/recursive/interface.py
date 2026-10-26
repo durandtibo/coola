@@ -109,55 +109,13 @@ def register_transformers(
     get_default_registry().register_many(mapping, exist_ok=exist_ok)
 
 
-def enter_dataclasses(*, registry: TransformerRegistry | None = None) -> None:
-    """Make ``recursive_apply`` enter the dataclass instances.
-
-    By default, a dataclass instance is a leaf: ``recursive_apply``
-    calls the function on the whole object, unlike ``objects_are_equal``,
-    ``hash_object`` and ``summarize``, which enter it. After this
-    function, the fields of a dataclass are transformed and the instance
-    is rebuilt with ``dataclasses.replace`` (see ``DataclassTransformer``).
-    It is opt-in so that the default behavior does not change. A
-    transformer registered for the type of the dataclass has priority.
-
-    Args:
-        registry: The registry to change. If ``None``, the default
-            registry is used.
-
-    Example:
-        ```pycon
-        >>> from dataclasses import dataclass
-        >>> from coola.recursive import (
-        ...     DefaultTransformer,
-        ...     TransformerRegistry,
-        ...     enter_dataclasses,
-        ...     recursive_apply,
-        ... )
-        >>> @dataclass
-        ... class Config:
-        ...     lr: float
-        ...
-        >>> registry = TransformerRegistry({object: DefaultTransformer()})
-        >>> recursive_apply(Config(0.1), str, registry=registry)
-        'Config(lr=0.1)'
-        >>> enter_dataclasses(registry=registry)
-        >>> recursive_apply(Config(0.1), str, registry=registry)
-        Config(lr='0.1')
-
-        ```
-    """
-    if registry is None:
-        registry = get_default_registry()
-    registry.register(DataclassMarker, DataclassTransformer(), exist_ok=True)
-
-
 def get_default_registry() -> TransformerRegistry:
     """Get or create the default global registry with common Python
     types.
 
     Returns a singleton registry instance that is pre-configured with transformers
     for Python's built-in types including sequences (list, tuple), mappings (dict),
-    sets, and scalar types (int, float, str, bool).
+    sets, dataclasses, and scalar types (int, float, str, bool).
 
     This function uses a singleton pattern to ensure the same registry instance
     is returned on subsequent calls, which is efficient and maintains consistency
@@ -203,6 +161,7 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
         - Sequences use SequenceTransformer for recursive list/tuple processing
         - Sets use SetTransformer for recursive set processing
         - Mappings use MappingTransformer for recursive dict processing
+        - Dataclasses use DataclassTransformer (the fields are transformed)
 
     Args:
         registry: The registry to populate with default transformers
@@ -237,7 +196,9 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
             # Sets - recursive transformation without order
             set: set_transformer,
             frozenset: set_transformer,
-            # Mappings - recursive transformation of keys and values
+            # Dataclasses - the fields are transformed
+            DataclassMarker: DataclassTransformer(),
+            # Mappings - recursive transformation of the values
             dict: mapping_transformer,
             Mapping: mapping_transformer,
             MappingProxyType: mapping_transformer,

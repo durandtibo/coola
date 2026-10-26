@@ -12,7 +12,13 @@ __all__ = [
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
-from coola.recursive import BaseTransformer, get_default_registry, recursive_apply
+from coola.recursive import (
+    BaseTransformer,
+    DefaultTransformer,
+    get_default_registry,
+    recursive_apply,
+)
+from coola.registry import DataclassMarker
 from coola.utils.conversion import to_jsonable
 
 if TYPE_CHECKING:
@@ -148,6 +154,8 @@ def convert_to_jsonable(data: Any) -> Any:
         ```
     """
     registry = get_default_registry().copy()
+    # A dataclass is converted whole by ``to_jsonable``, it is not entered.
+    registry.register(DataclassMarker, DefaultTransformer(), exist_ok=True)
     transformer = SetToListTransformer()
     registry.register(set, transformer, exist_ok=True)
     registry.register(frozenset, transformer, exist_ok=True)

@@ -15,7 +15,6 @@ from coola.recursive import (
     SequenceTransformer,
     SetTransformer,
     TransformerRegistry,
-    enter_dataclasses,
     get_default_registry,
     interface as recursive_interface,
     recursive_apply,
@@ -314,47 +313,23 @@ def local_registry() -> TransformerRegistry:
     return TransformerRegistry({object: DefaultTransformer(), list: SequenceTransformer()})
 
 
-def test_recursive_apply_dataclass_is_a_leaf_by_default(
+def test_recursive_apply_enters_the_dataclass() -> None:
+    assert recursive_apply(Config(0.1, [1, 2]), str) == Config("0.1", ["1", "2"])
+
+
+def test_recursive_apply_dataclass_in_a_dict() -> None:
+    assert recursive_apply({"config": Config(1, [2])}, str) == {"config": Config("1", ["2"])}
+
+
+def test_recursive_apply_dataclass_registered_as_a_leaf(
     local_registry: TransformerRegistry,
 ) -> None:
+    local_registry.register(Config, DefaultTransformer())
     assert recursive_apply(Config(0.1, [1]), type, registry=local_registry) is Config
 
 
-def test_enter_dataclasses_registers_the_transformer(local_registry: TransformerRegistry) -> None:
-    enter_dataclasses(registry=local_registry)
-    assert isinstance(local_registry.find_transformer(Config), DataclassTransformer)
-
-
-def test_enter_dataclasses_recursive_apply_enters_the_dataclass(
-    local_registry: TransformerRegistry,
-) -> None:
-    enter_dataclasses(registry=local_registry)
-    assert recursive_apply(Config(0.1, [1, 2]), str, registry=local_registry) == Config(
-        "0.1", ["1", "2"]
-    )
-
-
-def test_enter_dataclasses_can_be_called_twice(local_registry: TransformerRegistry) -> None:
-    enter_dataclasses(registry=local_registry)
-    enter_dataclasses(registry=local_registry)
-    assert len(local_registry) == 3
-
-
-def test_enter_dataclasses_default_registry(
-    monkeypatch: pytest.MonkeyPatch, local_registry: TransformerRegistry
-) -> None:
-    monkeypatch.setattr(recursive_interface, "get_default_registry", lambda: local_registry)
-    enter_dataclasses()
-    assert isinstance(local_registry.find_transformer(Config), DataclassTransformer)
-
-
-def test_enter_dataclasses_keeps_the_transformer_registered_for_a_type(
-    local_registry: TransformerRegistry,
-) -> None:
-    transformer = SequenceTransformer()
-    local_registry.register(Config, transformer)
-    enter_dataclasses(registry=local_registry)
-    assert local_registry.find_transformer(Config) is transformer
+def test_default_registry_dataclass_uses_the_marker() -> None:
+    assert isinstance(get_default_registry().find_transformer(Config), DataclassTransformer)
 
 
 def test_register_transformers_exist_ok_is_keyword_only() -> None:
