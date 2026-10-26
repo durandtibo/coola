@@ -640,6 +640,16 @@ def make_unresolvable() -> UndefinedName:  # noqa: F821
     return Tracked()
 
 
+def make_animal_or_none() -> Tracked | None:
+    CALLS.append("make_animal_or_none")
+    return Tracked()
+
+
+def make_str_or_int() -> str | int:
+    CALLS.append("make_str_or_int")
+    return "a"
+
+
 @pytest.fixture(autouse=True)
 def _clear_calls() -> None:
     CALLS.clear()
@@ -833,3 +843,19 @@ def test_resolve_object_init_new_is_refused() -> None:
     config = {OBJECT_TARGET: "tests.unit.factory.test_resolve.FakeClass", OBJECT_INIT: "__new__"}
     with pytest.raises(TypeError, match=r"`_init_` must be '__init__' or the name of a public"):
         resolve_object(config)
+
+
+def test_resolve_object_union_hint_without_subclass_is_not_called() -> None:
+    with pytest.raises(TypeError, match="it was not called"):
+        resolve_object({OBJECT_TARGET: f"{__name__}.make_str_or_int"}, cls=list)
+    assert CALLS == []
+
+
+def test_resolve_object_union_hint_with_subclass_is_called() -> None:
+    resolve_object({OBJECT_TARGET: f"{__name__}.make_animal_or_none"}, cls=Animal)
+    assert CALLS == ["make_animal_or_none", "Tracked"]
+
+
+def test_resolve_object_strict_union_hint_with_classes_is_called() -> None:
+    resolve_object({OBJECT_TARGET: f"{__name__}.make_animal_or_none"}, cls=Animal, strict=True)
+    assert CALLS == ["make_animal_or_none", "Tracked"]

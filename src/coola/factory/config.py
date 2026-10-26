@@ -9,12 +9,11 @@ from __future__ import annotations
 
 __all__ = ["is_object_config"]
 
-import inspect
-from types import UnionType
-from typing import TYPE_CHECKING, Any, Union, get_args, get_origin, get_type_hints
+from typing import TYPE_CHECKING, Any
 
 from coola.factory.constants import OBJECT_TARGET
 from coola.factory.instantiation import import_object
+from coola.factory.target import builds
 from coola.utils.imports import is_module_imported
 
 if TYPE_CHECKING:
@@ -37,8 +36,8 @@ def is_object_config(
     the class. A function whose return type hint cannot be resolved
     (e.g. a forward reference to an undefined name, or a string
     annotation that is not valid Python) is not a configuration for
-    ``cls``. A ``config`` that is not a ``dict`` is not a
-    configuration for ``cls``.
+    ``cls``. A ``config`` that is not a ``dict``, or whose ``_target_``
+    is not a string, is not a configuration for ``cls``.
 
     The module of ``_target_`` is not imported to answer: if it is not
     imported yet, the configuration is not a configuration for ``cls``
@@ -92,23 +91,8 @@ def is_object_config(
     if not isinstance(config, dict):
         return False
     target = config.get(OBJECT_TARGET)
-    if target is None:
+    if not isinstance(target, str):
         return False
     if not (import_target or allowed_prefixes is not None or is_module_imported(target)):
         return False
-    target = import_object(target, allowed_prefixes=allowed_prefixes)
-    if inspect.isfunction(target):
-        try:
-            target = get_type_hints(target).get("return")
-        except (NameError, SyntaxError, TypeError):
-            # The return type hint cannot be resolved (e.g. a forward reference
-            # to a name that is not defined): it cannot be checked.
-            return False
-    if target is None:
-        return False
-    origin = get_origin(target)
-    # Union[T1, T2] or T1 | T2
-    targets = get_args(target) if origin in (Union, UnionType) else (target,)
-    # A generic alias such as ``list[int]`` is not a class: check its origin (``list``).
-    targets = tuple(get_origin(t) or t for t in targets)
-    return any(inspect.isclass(t) and issubclass(t, cls) for t in targets)
+    return builds(import_object(target, allowed_prefixes=allowed_prefixes), cls) is True
