@@ -175,6 +175,17 @@ The `coola.recursive` package provides several built-in transformers:
 
 ```
 
+### Rebuilding Containers
+
+A container is rebuilt with the constructor of its type, so the subclasses keep their type. The
+`coola.recursive.rebuild` module contains the helpers (`rebuild_sequence`, `rebuild_mapping` and
+`rebuild_set`), which a custom container transformer can reuse. They handle the named tuples, the
+`deque` (`maxlen`) and the `defaultdict` (factory). A `collections.ChainMap` is rebuilt with a
+single flat map: its parents are not part of the structure.
+
+If the constructor of a subclass differs from the one of its base type, a `TypeError` that names
+the type is raised: register a transformer for this type.
+
 ## Registry System
 
 ### Getting the Default Registry
