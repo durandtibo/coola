@@ -433,16 +433,22 @@ and the guide warning are deleted, `Mapping`, `dict` and `object` work the same,
 of the rule is one sentence. Alternative: keep today's rule; it needs the `issubclass` special case,
 fails for generics, and leaves F4 open.
 
+Decision: yes
+
 **D2. Remove `_init_="__new__"` and the underscore names.** _Recommended: yes._ `cls(...)` runs
 `__new__` and `__init__`; `cls.__new__(cls, ...)` alone gives a partially initialised object, and the
 data can choose it. A public class method (`from_config`, `fromkeys`, `now`) is what `_init_` is for.
 Breaking for anybody who wrote `_init_: __new__` (the migration page says to use a class method).
+
+Decision: follow recommendation
 
 **D3. The allow-list is never read from the data.** _Recommended: yes._ The key
 `_allowed_prefixes_` stays as a keyword of `factory` (so `factory(**config, ...)` keeps working), but
 `resolve_object` ignores it in a configuration. A policy that the data can narrow looks like a
 feature, and it is a hole in the day somebody lets the data widen it. Alternative: keep reading it
 when the caller passes none (today); costs nothing, keeps the smell.
+
+Decision: follow recommendation
 
 **D4. Refuse a nested configuration when an allow-list is active.** _Recommended: yes._ It closes the
 exact case of F5 (an allowed function that resolves its arguments) in 5 lines, and it fails closed:
@@ -452,9 +458,13 @@ and it does not help against a prefix that contains `import_object`. It is a mit
 the guide says which prefixes must never be allowed. Alternative: documentation only; cheaper, but the
 fix of F1 then exposes F5.
 
+Decision: follow recommendation
+
 **D5. `dict` or `Mapping` for configurations?** _Recommended: `dict`._ JSON and YAML load into
 `dict`; a `DictConfig` is converted by the caller (`to_container`). Accepting any `Mapping` costs one
 word but widens what counts as "a configuration" in a security-relevant check.
+
+Decision: follow recommendation
 
 **D6. Check the module that defines the target?** _Recommended: no._ Comparing `target.__module__` to
 the prefixes would stop a re-export from another package, but it does not close F5 (the functions
@@ -462,19 +472,27 @@ of `coola.factory` are defined under `coola`), and it rejects legitimate aliases
 defined in `posixpath`, `numpy` functions in private modules of other names). The guide states that
 the list filters paths.
 
+Decision: follow recommendation
+
 **D7. Rename one of the two `import_object`?** _Recommended: no, cross-reference._ The colon form is
 the internal syntax of the lazy registries, the dotted form is the user-facing one; renaming
 `coola.utils.imports.import_object` touches `registry`, `random`, `reducer` and their tests for a
 naming gain. Both docstrings state the path syntax and link to each other.
+
+Decision: follow recommendation
 
 **D8. Support attribute paths (`pkg.module.Class.method`)?** _Recommended: no._ It needs a
 loop over prefixes with the "does not exist" detection of section 3.2 at each step. A class method
 is reached with `_init_`, a nested class is rare. (`import_object("collections.OrderedDict.fromkeys")`
 raises `ImportError: The target object does not exist`, with the prototype.)
 
+Decision: follow recommendation
+
 **D9. Where does `builds` live?** _Recommended: `coola/factory/target.py`, public name, not
 exported._ It is a helper of two modules of one package; `coola.utils` is for helpers shared by
 several packages (`CLAUDE.md`), and `builds` has no other user.
+
+Decision: follow recommendation
 
 ## 10. Not covered
 
