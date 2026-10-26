@@ -18,6 +18,25 @@ dicts, tuples, sets, etc.) using two different traversal strategies:
 The package also provides filtering utilities to extract only specific types from heterogeneous
 collections.
 
+## Properties
+
+| Property                     | Statement                                                                                                                                                                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Leaves only                  | A traversal yields the leaves, once per occurrence, never a container. An empty container has no leaf and yields nothing.                                                                                                                  |
+| Type dispatch                | The iterator (or child finder) is chosen from the type of the data along the Method Resolution Order, so the most specific registered type wins.                                                                                           |
+| Deterministic order          | DFS is pre-order and BFS is level order, both left to right. A mapping gives its values in insertion order (the keys are never yielded) and a dataclass its fields in the order of their definition. The order inside a set is not specified. |
+| Same leaves, different order | DFS and BFS visit the same leaves. Only the order differs.                                                                                                                                                                                 |
+| Lazy                         | Both `dfs_iterate` and `bfs_iterate` are generators: leaves are produced one at a time, and nothing is walked before the first `next`.                                                                                                    |
+| Read-only                    | The input is never modified.                                                                                                                                                                                                               |
+| Every leaf is returned       | A container that appears several times, without containing itself, gives its leaves each time.                                                                                                                                             |
+| Cycle-safe                   | A container that contains itself raises `ValueError` instead of looping forever or hitting the recursion limit.                                                                                                                            |
+| Iterators are leaves         | The default registries never consume an iterator or a generator, so an infinite iterator cannot hang the traversal.                                                                                                                        |
+| Depth                        | `bfs_iterate` is iterative. `dfs_iterate` is recursive (the iterators visit their children with `registry.iterate`), so a structure nested about a thousand levels deep raises `RecursionError`: use `bfs_iterate` for a very deep structure. |
+| Extensible                   | Support for a new container type is added with an iterator (DFS) or a child finder (BFS) registered for the type. `is_leaf` must return `True` for the leaf types of BFS.                                                                  |
+
+Not guaranteed: the order of a `ChainMap` (its values follow the lookup order of the maps), a
+container that is changed during the traversal, and a registry that is modified during a traversal.
+
 ## Depth-First Search (DFS) Iteration
 
 ### Basic Usage
@@ -94,7 +113,7 @@ Depth-first search goes deep into each branch before moving to the next branch:
 ...     "branch2": [4, [5, 6]],
 ... }
 >>> # DFS will fully explore branch1 before moving to branch2
->>> list(dfs_iterate(data))  # Note: dict order may vary in Python < 3.7
+>>> list(dfs_iterate(data))
 [1, 2, 3, 4, 5, 6]
 
 ```
@@ -417,24 +436,12 @@ ValueError: Cycle detected: an object of type <class 'list'> contains itself
 A custom child finder for leaf types must override `is_leaf` to return `True` (like
 `DefaultChildFinder`) so `bfs_iterate` yields the value instead of expanding it.
 
-## Properties
-
-| Property                     | Statement                                                                                                                                                                                                                                  |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Lazy                         | Both `dfs_iterate` and `bfs_iterate` are generators: leaves are produced one at a time.                                                                                                                                                    |
-| Every leaf is returned       | A container that appears several times, without containing itself, gives its leaves each time.                                                                                                                                             |
-| Cycle-safe                   | A container that contains itself raises `ValueError` instead of looping forever or hitting the recursion limit.                                                                                                                            |
-| Iterators are leaves         | The default registries never consume an iterator or a generator, so an infinite iterator cannot hang the traversal.                                                                                                                        |
-| Depth                        | `bfs_iterate` is iterative. `dfs_iterate` is recursive (the iterators visit their children with `registry.iterate`), so a structure nested a few hundred levels deep raises `RecursionError`: use `bfs_iterate` for a very deep structure. |
-| Same leaves, different order | DFS and BFS visit the same leaves. Only the order differs.                                                                                                                                                                                 |
-| Extensible                   | Support for a new container type is added with a child finder that registers its children. `is_leaf` must return `True` for leaf types.                                                                                                    |
-
 ## Design Principles
 
 The `coola.iterator` package design provides:
 
 1. **Multiple traversal strategies**: Choose between DFS and BFS based on your needs
-2. **Generator-based**: Memory-efficient iteration without loading entire structures
+2. **Generator-based**: The leaves are produced on demand (a BFS keeps one level in memory)
 3. **Type-aware**: Built-in support for common Python types with extensibility
 4. **Clean API**: Simple functions that compose well with other Python tools
 
