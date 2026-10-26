@@ -117,7 +117,7 @@ OrderedDict({'a': 1})
 
 `resolve_object` is convenient in code that accepts either an already-built instance or a
 configuration dictionary. If the input is already an instance of the expected type, it is
-returned unchanged; if it is a `dict`, it is instantiated via `factory`:
+returned unchanged; if it is a `dict` with a `_target_` key, it is built:
 
 ```pycon
 
@@ -130,12 +130,9 @@ datetime.date(2020, 1, 1)
 
 ```
 
-!!! warning
-
-    Any `dict` (including `dict` subclasses such as `Counter` or `OrderedDict`) is always
-    treated as a factory configuration, even when it is already a valid instance of the
-    expected class. Do not use `resolve_object` to resolve objects whose expected type is
-    itself a `dict` subclass.
+A `dict` that has the key `_target_` is always a configuration, whatever `cls` is: the key is
+reserved, so such a `dict` cannot be passed through `resolve_object` as data. Any other object,
+including a `dict` without `_target_`, is returned as is if it is an instance of `cls`.
 
 ## Nested configurations
 

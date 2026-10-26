@@ -18,6 +18,8 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
+_RESERVED = (OBJECT_TARGET, OBJECT_INIT, OBJECT_PREFIXES)
+
 
 def factory(
     _target_: str,
@@ -117,40 +119,42 @@ def _refuse_nested_configurations(args: Sequence[Any], kwargs: dict[str, Any]) -
             raise ValueError(msg)
 
 
-def _check_target(
+def _build(
     config: dict[str, Any],
     cls: type | tuple[type, ...],
     cls_name: str,
     *,
+    allowed_prefixes: Sequence[str] | None,
     strict: bool,
-) -> None:
-    r"""Refuse a configuration whose target cannot build an instance of
-    ``cls``, before the target is called.
+) -> Any:
+    r"""Build the object of a configuration.
 
-    A class that is not a subclass of ``cls`` is refused. A function is
-    refused if its return type hint is a class that is not a subclass
-    of ``cls``; a function without a usable type hint is accepted
-    (the result is checked after the call) unless ``strict`` is
-    ``True``, in which case it is refused. A configuration with an
-    alternative constructor (``_init_``) is not checked.
+    The target is imported once. It is refused before it is called if
+    it is known not to build an instance of ``cls`` (or if it is not
+    known and ``strict`` is ``True``). The configuration is not
+    modified.
     """
-    if cls is object or OBJECT_INIT in config:
-        return
-    target = import_object(config[OBJECT_TARGET], allowed_prefixes=config.get(OBJECT_PREFIXES))
-    built = builds(target, cls)
-    if built is False:
-        msg = (
-            f"Received object is not a {cls_name} instance (the target "
-            f"{config[OBJECT_TARGET]!r} does not build one: it was not called)"
-        )
-        raise TypeError(msg)
-    if built is None and strict:
-        msg = (
-            f"Cannot check that the target {config[OBJECT_TARGET]!r} builds a {cls_name} "
-            "instance because it is not a class and has no return type hint that is a class: "
-            "it was not called"
-        )
-        raise TypeError(msg)
+    kwargs = {k: v for k, v in config.items() if k not in _RESERVED}
+    init = config.get(OBJECT_INIT, "__init__")
+    if allowed_prefixes is not None:
+        _refuse_nested_configurations((), kwargs)
+    target = import_object(config[OBJECT_TARGET], allowed_prefixes=allowed_prefixes)
+    if cls is not object and init == "__init__":
+        built = builds(target, cls)
+        if built is False:
+            msg = (
+                f"Received object is not a {cls_name} instance (the target "
+                f"{config[OBJECT_TARGET]!r} does not build one: it was not called)"
+            )
+            raise TypeError(msg)
+        if built is None and strict:
+            msg = (
+                f"Cannot check that the target {config[OBJECT_TARGET]!r} builds a {cls_name} "
+                "instance because it is not a class and has no return type hint that is a "
+                "class: it was not called"
+            )
+            raise TypeError(msg)
+    return instantiate_object(target, _init_=init, **kwargs)
 
 
 @overload
@@ -189,10 +193,13 @@ def resolve_object(
     """Resolve an instance of ``cls`` from an existing object or a
     configuration dictionary.
 
-    If ``obj`` is already an instance of ``cls`` it is returned
-    as-is. Otherwise, if it is a ``dict``, it is treated as a
-    factory configuration and instantiated via
-    ``coola.factory.factory``.
+    A ``dict`` with the key ``"_target_"`` is always a factory
+    configuration: it is built, and the result is checked against
+    ``cls``. Any other object, including a ``dict`` without
+    ``"_target_"``, is returned as-is if it is an instance of ``cls``.
+    The key ``"_target_"`` is reserved: a ``dict`` that has it (for
+    example ``Counter({"_target_": 2})``) cannot be passed through as
+    data.
 
     Note:
         ``"_target_"`` is resolved at the top level only: a nested
@@ -202,23 +209,12 @@ def resolve_object(
         configurations with ``resolve_object`` (with the same
         ``allowed_prefixes``) and pass the results.
 
-    Note:
-        If ``cls`` is itself a ``dict`` subclass (e.g.
-        ``Counter`` or ``OrderedDict``), a ``dict`` (or ``dict``
-        subclass) instance that is already a valid instance of
-        ``cls`` is returned as-is rather than being treated as a
-        factory configuration. Any other ``dict`` is treated as
-        a factory configuration, including a plain ``dict``
-        used to describe how to build a ``dict``-subclass instance,
-        and a ``dict`` subclass instance that is not itself a valid
-        ``cls`` instance (e.g. a ``Counter`` when ``cls`` is
-        ``OrderedDict``).
-
     Args:
         obj: Either a fully configured instance of ``cls``, or a
-            ``dict`` containing a factory specification (must
-            include a ``"_target_"`` key pointing to the
-            fully-qualified class name).
+            ``dict`` containing a factory specification (with a
+            ``"_target_"`` key pointing to the fully-qualified class
+            name). The other keys are passed to the target by keyword,
+            except ``"_init_"`` and ``"_allowed_prefixes_"``.
         cls: The expected type, or a tuple of types (as accepted by
             ``isinstance``). Used to validate the resolved object,
             whether ``obj`` was already an instance or was built from
@@ -244,11 +240,11 @@ def resolve_object(
         A configured instance of ``cls``.
 
     Raises:
-        TypeError: If ``obj`` is a ``dict`` missing the
-            ``"_target_"`` key, if the ``"_target_"`` is a class (or a
-            function whose return type hint is a class) that is not a
-            subclass of ``cls`` -- it is then not called --, or if
-            the resolved object is not an instance of ``cls``.
+        TypeError: If the ``"_target_"`` is a class (or a function
+            whose return type hint is a class) that is not a subclass
+            of ``cls`` -- it is then not called --, or if the resolved
+            object (including a ``dict`` without ``"_target_"``) is not
+            an instance of ``cls``.
         ImportError: If the ``"_target_"`` does not match
             ``allowed_prefixes``, or if it cannot be found.
         ValueError: If ``allowed_prefixes`` is set and an argument of
@@ -256,8 +252,8 @@ def resolve_object(
             with a ``"_target_"`` key).
 
     Security:
-        When ``obj`` is a ``dict``, its ``"_target_"`` value is
-        passed to ``coola.factory.factory``, which imports and
+        When ``obj`` is a ``dict`` with a ``"_target_"`` key, its
+        value is imported and the target is called: this imports and
         instantiates arbitrary objects from a dotted path string with
         no allowlist by default. Only call this function with a
         configuration dictionary that comes from a trusted source;
@@ -282,27 +278,14 @@ def resolve_object(
         ```
     """
     classes = cls if isinstance(cls, tuple) else (cls,)
-    cls_name = " | ".join(c.__qualname__ for c in classes)
-    cls_is_dict_subclass = any(issubclass(c, dict) for c in classes)
-    if isinstance(obj, dict) and not (cls_is_dict_subclass and isinstance(obj, cls)):
-        if OBJECT_TARGET not in obj:
-            msg = (
-                f"Cannot resolve a {cls_name} instance from the configuration because it is "
-                f"missing the `{OBJECT_TARGET}` key (received: {obj})"
-            )
-            raise TypeError(msg)
+    cls_name = " | ".join(getattr(c, "__qualname__", repr(c)) for c in classes)
+    # The key `_target_` is reserved: a dict that has it is always a configuration.
+    if isinstance(obj, dict) and OBJECT_TARGET in obj:
         logger.info("Initializing a %s instance from its configuration...", cls_name)
-        config: dict[str, Any] = dict(cast("dict[str, Any]", obj))
-        # The policy comes from the caller: the key of the configuration is ignored.
-        config.pop(OBJECT_PREFIXES, None)
-        if allowed_prefixes is not None:
-            _refuse_nested_configurations((), config)
-            config[OBJECT_PREFIXES] = allowed_prefixes
-        _check_target(config, cls, cls_name, strict=strict)
-        obj = factory(**config)
+        obj = _build(obj, cls, cls_name, allowed_prefixes=allowed_prefixes, strict=strict)
     if not isinstance(obj, cls):
-        msg = (
-            f"Received object is not a {cls_name} instance (received: {type(cast('object', obj))})"
-        )
-        raise TypeError(msg)
+        msg = f"Received object is not a {cls_name} instance (received: {type(cast('object', obj))}"
+        if isinstance(obj, dict):
+            msg += f"; a configuration needs the `{OBJECT_TARGET}` key"
+        raise TypeError(msg + ")")
     return obj

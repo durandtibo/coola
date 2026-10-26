@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import importlib
 from abc import ABC, abstractmethod
 from collections import Counter, OrderedDict
+from collections.abc import Mapping
 from unittest.mock import patch
 
 import pytest
@@ -461,45 +463,111 @@ def test_resolve_object_from_dict_wrong_cls_raises_incorrect_type_error() -> Non
 
 
 def test_resolve_object_from_dict_missing_target_raises_incorrect_type_error() -> None:
-    with pytest.raises(TypeError, match=r"missing the `_target_` key"):
+    with pytest.raises(TypeError, match=r"a configuration needs the `_target_` key"):
         resolve_object({"name": "Rex"}, cls=Dog)
 
 
-# --- Dict subclasses that are already a valid ``cls`` instance are
-# --- passed through, not treated as configuration ---
+# --- A dict with the key ``_target_`` is always a configuration ---
 
 
-def test_resolve_object_dict_subclass_instance_matching_cls_is_passed_through() -> None:
-    # `od` is already a valid `OrderedDict` instance, so it is returned
-    # as-is instead of being (incorrectly) treated as a factory configuration.
-    od = OrderedDict(a=1)
-    assert resolve_object(od, cls=OrderedDict) is od
-
-
-def test_resolve_object_counter_instance_matching_cls_is_passed_through() -> None:
-    counter = Counter(a=1, b=2)
-    assert resolve_object(counter, cls=Counter) is counter
-
-
-def test_resolve_object_plain_dict_with_dict_subclass_cls_is_treated_as_config_type() -> None:
-    # A plain `dict` (not already an instance of `cls`) describing a
-    # `dict`-subclass target is still treated as a factory configuration.
+def test_resolve_object_plain_dict_with_dict_subclass_cls_is_built_type() -> None:
     result = resolve_object({OBJECT_TARGET: "collections.OrderedDict", "a": 1}, cls=OrderedDict)
     assert isinstance(result, OrderedDict)
 
 
-def test_resolve_object_plain_dict_with_dict_subclass_cls_is_treated_as_config_value() -> None:
-    # A plain `dict` (not already an instance of `cls`) describing a
-    # `dict`-subclass target is still treated as a factory configuration.
+def test_resolve_object_plain_dict_with_dict_subclass_cls_is_built_value() -> None:
     result = resolve_object({OBJECT_TARGET: "collections.OrderedDict", "a": 1}, cls=OrderedDict)
     assert result == OrderedDict(a=1)
 
 
-def test_resolve_object_dict_subclass_instance_not_matching_cls_is_treated_as_config() -> None:
-    # `Counter` is a `dict` but not an `OrderedDict`, so it is not a valid
-    # `cls` instance and is (still) treated as a factory configuration.
-    with pytest.raises(TypeError, match=r"missing the `_target_` key"):
+def test_resolve_object_configuration_with_dict_cls_is_built() -> None:
+    assert resolve_object({OBJECT_TARGET: "collections.OrderedDict", "a": 1}, dict) == OrderedDict(
+        a=1
+    )
+
+
+def test_resolve_object_dict_subclass_instance_without_target_is_passed_through() -> None:
+    od = OrderedDict(a=1)
+    assert resolve_object(od, cls=OrderedDict) is od
+
+
+def test_resolve_object_counter_instance_without_target_is_passed_through() -> None:
+    counter = Counter(a=1, b=2)
+    assert resolve_object(counter, cls=Counter) is counter
+
+
+def test_resolve_object_dict_without_target_is_passed_through_for_dict() -> None:
+    config = {"a": 1}
+    assert resolve_object(config, dict) is config
+
+
+def test_resolve_object_dict_without_target_is_passed_through_for_mapping() -> None:
+    config = {"a": 1}
+    assert resolve_object(config, Mapping) is config
+
+
+def test_resolve_object_dict_without_target_is_passed_through_by_default() -> None:
+    config = {"a": 1}
+    assert resolve_object(config) is config
+
+
+def test_resolve_object_dict_without_target_for_another_cls_raises() -> None:
+    with pytest.raises(TypeError, match=r"received: <class 'dict'>; a configuration needs"):
+        resolve_object({"a": 1}, cls=OrderedDict)
+
+
+def test_resolve_object_dict_subclass_instance_not_matching_cls_raises() -> None:
+    with pytest.raises(TypeError, match=r"a configuration needs the `_target_` key"):
         resolve_object(Counter(a=1), cls=OrderedDict)
+
+
+def test_resolve_object_non_dict_error_has_no_configuration_hint() -> None:
+    with pytest.raises(TypeError, match=r"received: <class 'int'>\)"):
+        resolve_object(1, cls=str)
+
+
+def test_resolve_object_dict_subclass_with_target_key_is_a_configuration() -> None:
+    assert resolve_object(Counter({OBJECT_TARGET: "collections.Counter", "a": 2})) == Counter(a=2)
+
+
+def test_resolve_object_dict_subclass_with_target_key_is_not_passed_through() -> None:
+    with pytest.raises(TypeError, match=r"does not build one"):
+        resolve_object(Counter({OBJECT_TARGET: "collections.OrderedDict"}), cls=Counter)
+
+
+def test_resolve_object_generic_cls_raises_the_isinstance_error() -> None:
+    with pytest.raises(TypeError, match=r"isinstance\(\) argument 2 cannot be a parameterized"):
+        resolve_object([1], cls=list[int])
+
+
+def test_resolve_object_imports_the_target_once() -> None:
+    with patch(
+        "coola.factory.instantiation.importlib.import_module", wraps=importlib.import_module
+    ) as m:
+        resolve_object({OBJECT_TARGET: "collections.Counter"}, Counter)
+    assert m.call_count == 1
+
+
+def test_resolve_object_explicit_init_is_checked_like_the_default() -> None:
+    with pytest.raises(TypeError, match="it was not called"):
+        resolve_object({OBJECT_TARGET: f"{__name__}.Tracked", OBJECT_INIT: "__init__"}, cls=str)
+    assert CALLS == []
+
+
+def test_resolve_object_does_not_modify_the_configuration() -> None:
+    config = {
+        OBJECT_TARGET: "collections.Counter",
+        OBJECT_INIT: "__init__",
+        OBJECT_PREFIXES: ["collections"],
+        "a": 1,
+    }
+    resolve_object(config, Counter)
+    assert config == {
+        OBJECT_TARGET: "collections.Counter",
+        OBJECT_INIT: "__init__",
+        OBJECT_PREFIXES: ["collections"],
+        "a": 1,
+    }
 
 
 def test_factory_allowed_prefixes() -> None:
