@@ -27,6 +27,28 @@ Unlike [`coola.registry`](registry.md), which requires classes to be registered 
 before they can be looked up, `coola.factory` resolves objects directly from their fully
 qualified Python path, so any importable object can be used without registration.
 
+## Properties
+
+These rules hold for every function of the package. Each one is enforced in a single place, not by
+the discipline of each entry point.
+
+| Property                                    | Statement                                                                                                                                                                                                                 |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Explicit target                             | The object to import or call is named only by the `_target_` string. Every other key is an argument, passed unchanged, by keyword. The reserved keys are `_target_`, `_init_` and `_allowed_prefixes_`.                   |
+| No collision                                | No parameter of the API can shadow an argument of the target: the target receives every key that is not reserved, whatever its name (`obj`, `cls`, `config`, ...).                                                        |
+| Top level only                              | `_target_` is resolved once per call, at the top level. A nested dictionary is data and is passed unchanged.                                                                                                              |
+| Import once, call once                      | The target is imported once per call and called once. Nothing else is imported or called.                                                                                                                                 |
+| Fails loudly                                | A target that does not exist raises `ImportError` with one message, whichever function is used. A wrong type raises `TypeError`. A default is never substituted for a missing object.                                    |
+| Check before call                           | When `cls` is given, a target that is known not to build a `cls` is refused **before** it is called. The result is checked again after the call. With `strict=True`, a target whose result type is unknown is refused too. |
+| Opt-in restriction                          | `allowed_prefixes` is checked against the string **before** the module is imported. An empty list allows nothing. Without it, any importable object can be called.                                                        |
+| Policy comes from code                      | The allow-list is an argument of the caller. `resolve_object` ignores the `_allowed_prefixes_` key of a configuration, so the data cannot set, widen or narrow the list.                                                 |
+| No nested configuration under an allow-list | With `allowed_prefixes`, an argument that is itself a configuration (a `dict` with `_target_`) is refused. Resolve it first, with the same list.                                                                         |
+| Public constructors only                    | `_init_` is `"__init__"` (default) or the name of a public class method or static method that returns an instance of the class. A name that starts with `_` is refused.                                                   |
+| Predicates do not import                    | `is_object_config` imports nothing by default. `allowed_prefixes` or `import_target=True` opt in. A malformed configuration is `False`; a violation of the allow-list raises.                                            |
+| Pure, stateless                             | The configuration is never modified. The package keeps no registry, cache or lock, so it is safe to call from any thread and after a `fork`.                                                                             |
+| Lazy                                        | Nothing is imported at import time except the standard library. A target is imported when it is named.                                                                                                                   |
+| Keyword-only options                        | `allowed_prefixes`, `import_target`, `strict`, `_init_` and `_allowed_prefixes_` are keyword-only.                                                                                                                       |
+
 ## Importing an object by name
 
 `import_object` dynamically imports a class, function, or other object using its fully
@@ -75,14 +97,18 @@ Counter({'a': 4, 'b': 2})
 
 ### Controlling how the object is created
 
-By default, `factory` calls the target's `__init__`. The special `OBJECT_INIT` key
-(`"_init_"`) can be set to `"__new__"`, or to the name of a class method, to control how the
-object is created instead:
+By default, `factory` calls the class, which runs `__new__` and `__init__`. The special
+`OBJECT_INIT` key (`"_init_"`) names a public class method or static method to call instead,
+for example an alternative constructor. The method must return an instance of the class. A name
+that starts with `_` (such as `"__new__"`) is refused. `_init_` is ignored when the target is a
+function:
 
 ```pycon
 
 >>> from coola.factory import factory, OBJECT_INIT
->>> factory("collections.OrderedDict", _init_="__init__", a=1)
+>>> factory("collections.OrderedDict", ["a", "b"], _init_="fromkeys")
+OrderedDict({'a': None, 'b': None})
+>>> factory("collections.OrderedDict", a=1)
 OrderedDict({'a': 1})
 
 ```
@@ -105,10 +131,11 @@ datetime.date(2020, 1, 1)
 ```
 
 !!! warning
-Any `dict` (including `dict` subclasses such as `Counter` or `OrderedDict`) is always
-treated as a factory configuration, even when it is already a valid instance of the
-expected class. Do not use `resolve_object` to resolve objects whose expected type is
-itself a `dict` subclass.
+
+    Any `dict` (including `dict` subclasses such as `Counter` or `OrderedDict`) is always
+    treated as a factory configuration, even when it is already a valid instance of the
+    expected class. Do not use `resolve_object` to resolve objects whose expected type is
+    itself a `dict` subclass.
 
 ## Nested configurations
 
@@ -176,15 +203,25 @@ available in `resolve_loader`, `resolve_saver`, `is_object_config`, `is_loader_c
 This is a mitigation, not a sandbox: it limits _what_ can be called, not the arguments it is called
 with. Only allow objects that are safe to call with arbitrary arguments.
 
-## Properties
+!!! danger "Never allow a prefix that contains a function that resolves its arguments"
 
-| Property                  | Statement                                                                                                                      |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Explicit target           | The object to import or call is named only by the `_target_` key. The other keys are passed as keyword arguments.              |
-| Fails loudly              | A target that cannot be imported raises `ImportError`, and a missing object is never replaced by a default.                    |
-| Opt-in restriction        | `allowed_prefixes` is checked **before** the module is imported. Without it, any importable object can be called.              |
-| Not widenable by the data | The `allowed_prefixes` argument of the caller replaces the `_allowed_prefixes_` key, so a configuration cannot widen the list. |
-| Not a sandbox             | The restriction limits _what_ is called, not the arguments. Never resolve an untrusted configuration without it.               |
+    A prefix that contains a function that imports or resolves objects from its arguments (any
+    `resolve_*`, `import_object`, `importlib`, `pickle`, `eval`, `os.system`, ...) makes the list
+    worthless. In particular, `"coola"` and `"coola.factory"` must never be allowed prefixes.
+    For example, `coola.io.resolve_loader` resolves its `loader` argument without the allow-list:
+
+    ```python
+    factory(
+        "coola.io.resolve_loader",
+        loader={"_target_": "os.getcwd"},
+        _allowed_prefixes_=["coola.io"],
+    )  # calls os.getcwd
+    ```
+
+    The same holds for a path that is checked but not the module that defines the object: a
+    re-export (`mypkg.helper` defined elsewhere) is allowed by `"mypkg"`.
+
+    Allow the narrowest prefix, and resolve nested configurations yourself, with the same list.
 
 ## Checking if a configuration targets a class
 

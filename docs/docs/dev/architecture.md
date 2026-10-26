@@ -475,6 +475,19 @@ coola/equality/
 | Library testers are public                                             | users can compose, subclass or register them          |
 | `max_depth=100` and `MaxDepthExceededError` are kept                   | bound the work on pathological structures             |
 
+## Design of `coola.factory`
+
+The package builds an object from a fully qualified name. It is small on purpose and has no state:
+it keeps no registry, cache or singleton, and it imports the standard library and
+`coola.utils.imports` only. A configuration names the code to run, so every change is judged first
+by what the data can make the process do. The three entry points (`factory`, `resolve_object` and
+`is_object_config`) are compositions of functions that each own one invariant: `import_object` is the
+only place that imports a target (allow-list checked before the import, one `ImportError` for a
+missing target), and `instantiate_object` is the only place that calls one (abstract classes
+refused, the `_init_` rule, the target's keywords never shadowed by a parameter of the API). The
+allow-list is a filter on a path and always comes from the caller's code, never from the data. See
+the [user guide](../uguide/factory.md#properties) for the properties of the package.
+
 ## Design Decisions
 
 ### Why Strict Type Checking?
