@@ -453,19 +453,19 @@ def test_xarray_data_array_equality_tester_str() -> None:
 
 @xarray_available
 def test_xarray_data_array_equality_tester_equal_true() -> None:
-    assert XarrayDataArrayEqualityTester().equal(XarrayDataArrayEqualityTester())
+    assert XarrayDataArrayEqualityTester() == XarrayDataArrayEqualityTester()
 
 
 @xarray_available
 def test_xarray_data_array_equality_tester_equal_false_different_type() -> None:
-    assert not XarrayDataArrayEqualityTester().equal(123)
+    assert XarrayDataArrayEqualityTester() != 123
 
 
 @xarray_available
 def test_xarray_data_array_equality_tester_equal_false_different_type_child() -> None:
     class Child(XarrayDataArrayEqualityTester): ...
 
-    assert not XarrayDataArrayEqualityTester().equal(Child())
+    assert XarrayDataArrayEqualityTester() != Child()
 
 
 @xarray_available
@@ -618,19 +618,19 @@ def test_xarray_dataset_equality_tester_str() -> None:
 
 @xarray_available
 def test_xarray_dataset_equality_tester_equal_true() -> None:
-    assert XarrayDatasetEqualityTester().equal(XarrayDatasetEqualityTester())
+    assert XarrayDatasetEqualityTester() == XarrayDatasetEqualityTester()
 
 
 @xarray_available
 def test_xarray_dataset_equality_tester_equal_false_different_type() -> None:
-    assert not XarrayDatasetEqualityTester().equal(123)
+    assert XarrayDatasetEqualityTester() != 123
 
 
 @xarray_available
 def test_xarray_dataset_equality_tester_equal_false_different_type_child() -> None:
     class Child(XarrayDatasetEqualityTester): ...
 
-    assert not XarrayDatasetEqualityTester().equal(Child())
+    assert XarrayDatasetEqualityTester() != Child()
 
 
 @xarray_available
@@ -783,19 +783,19 @@ def test_xarray_variable_equality_tester_str() -> None:
 
 @xarray_available
 def test_xarray_variable_equality_tester_equal_true() -> None:
-    assert XarrayVariableEqualityTester().equal(XarrayVariableEqualityTester())
+    assert XarrayVariableEqualityTester() == XarrayVariableEqualityTester()
 
 
 @xarray_available
 def test_xarray_variable_equality_tester_equal_false_different_type() -> None:
-    assert not XarrayVariableEqualityTester().equal(123)
+    assert XarrayVariableEqualityTester() != 123
 
 
 @xarray_available
 def test_xarray_variable_equality_tester_equal_false_different_type_child() -> None:
     class Child(XarrayVariableEqualityTester): ...
 
-    assert not XarrayVariableEqualityTester().equal(Child())
+    assert XarrayVariableEqualityTester() != Child()
 
 
 @xarray_available

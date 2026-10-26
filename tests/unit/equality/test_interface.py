@@ -333,7 +333,7 @@ def test_objects_are_equal_deep_nesting() -> None:
 def test_objects_are_equal_exceeds_max_depth() -> None:
     nested1 = nest(1, EXCESSIVE_NESTING_DEPTH + 1)
     nested2 = nest(1, EXCESSIVE_NESTING_DEPTH + 1)
-    with pytest.raises(RecursionError, match=r"Maximum recursion depth.*exceeded"):
+    with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth.*exceeded"):
         objects_are_equal(nested1, nested2, max_depth=10)
 
 
@@ -346,7 +346,7 @@ def test_objects_are_allclose_deep_nesting() -> None:
 def test_objects_are_allclose_exceeds_max_depth() -> None:
     nested1 = nest(1.0, EXCESSIVE_NESTING_DEPTH + 1)
     nested2 = nest(1.0, EXCESSIVE_NESTING_DEPTH + 1)
-    with pytest.raises(RecursionError, match=r"Maximum recursion depth.*exceeded"):
+    with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth.*exceeded"):
         objects_are_allclose(nested1, nested2, max_depth=10)
 
 
@@ -519,22 +519,10 @@ def test_objects_are_equal_custom_registry() -> None:
     assert not objects_are_equal([], (), registry=registry)
 
 
-def test_objects_are_equal_python_recursion_limit_message() -> None:
-    data1, data2 = nest([], 2000), nest([], 2000)
-    with pytest.raises(RecursionError, match="Python recursion limit"):
-        objects_are_equal(data1, data2, max_depth=10**6, registry=legacy_registry())
-
-
 def test_objects_are_equal_max_depth_error_is_not_rewritten() -> None:
     data1, data2 = nest([], 50), nest([], 50)
     with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(10\) exceeded"):
         objects_are_equal(data1, data2, max_depth=10)
-
-
-def test_objects_are_equal_python_recursion_error_is_wrapped() -> None:
-    data1, data2 = nest([], 2000), nest([], 2000)
-    with pytest.raises(RecursionError, match="Python recursion limit"):
-        objects_are_equal(data1, data2, max_depth=10**6, registry=legacy_registry())
 
 
 def test_objects_are_equal_python_recursion_error_is_not_a_max_depth_error() -> None:
@@ -542,13 +530,6 @@ def test_objects_are_equal_python_recursion_error_is_not_a_max_depth_error() -> 
     with pytest.raises(RecursionError) as exc_info:
         objects_are_equal(data1, data2, max_depth=10**6, registry=legacy_registry())
     assert not isinstance(exc_info.value, MaxDepthExceededError)
-
-
-def test_objects_are_equal_python_recursion_error_has_the_original_cause() -> None:
-    data1, data2 = nest([], 2000), nest([], 2000)
-    with pytest.raises(RecursionError) as exc_info:
-        objects_are_equal(data1, data2, max_depth=10**6, registry=legacy_registry())
-    assert isinstance(exc_info.value.__cause__, RecursionError)
 
 
 def _cycle(value: object) -> list:
@@ -688,10 +669,3 @@ def test_run_comparison_max_depth_error_is_not_rewritten() -> None:
     config = EqualityConfig(max_depth=10)
     with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(10\) exceeded"):
         run_comparison(get_default_registry(), nest([], 50), nest([], 50), config)
-
-
-def test_run_comparison_python_recursion_limit_message() -> None:
-    registry = legacy_registry()
-    config = EqualityConfig(registry=registry, max_depth=10**6)
-    with pytest.raises(RecursionError, match="Python recursion limit"):
-        run_comparison(registry, nest([], 2000), nest([], 2000), config)

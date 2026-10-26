@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.jax import array_close, array_equal
 from coola.equality.tester._array import check_dtype_and_shape
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_jax, is_jax_available
 
 if TYPE_CHECKING or is_jax_available():
@@ -24,10 +24,9 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.engine import Engine
-    from coola.equality.tester.base import BaseEqualityTester
 
 
-class JaxArrayEqualityTester(BaseEngineEqualityTester[jnp.ndarray]):
+class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
     r"""Implement an equality tester for ``jax.numpy.ndarray``.
 
     Two arrays are equal if they have the same data type, the same

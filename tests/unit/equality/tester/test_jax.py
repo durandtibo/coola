@@ -121,19 +121,19 @@ def test_jax_array_equality_tester_str() -> None:
 
 @jax_available
 def test_jax_array_equality_tester_equal_true() -> None:
-    assert JaxArrayEqualityTester().equal(JaxArrayEqualityTester())
+    assert JaxArrayEqualityTester() == JaxArrayEqualityTester()
 
 
 @jax_available
 def test_jax_array_equality_tester_equal_false_different_type() -> None:
-    assert not JaxArrayEqualityTester().equal(123)
+    assert JaxArrayEqualityTester() != 123
 
 
 @jax_available
 def test_jax_array_equality_tester_equal_false_different_type_child() -> None:
     class Child(JaxArrayEqualityTester): ...
 
-    assert not JaxArrayEqualityTester().equal(Child())
+    assert JaxArrayEqualityTester() != Child()
 
 
 @jax_available

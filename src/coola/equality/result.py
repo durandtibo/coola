@@ -117,8 +117,8 @@ def compare(
     difference, and only this difference is explained.
 
     Note:
-        The difference is collected from the reports the equality
-        handlers add to ``config.reports`` (see ``report_difference``).
+        The difference is the first failure recorded by the engine
+        (``ctx.fail`` of a tester).
         Nothing is logged, and no global state is modified, so this
         function can be called concurrently from several threads.
 
@@ -144,9 +144,7 @@ def compare(
         ValueError: If ``rtol`` or ``atol`` is negative, or if
             ``max_depth`` is not positive.
         MaxDepthExceededError: If the nesting of the objects exceeds
-            ``max_depth``. It is a ``RecursionError``.
-        RecursionError: If the interpreter recursion limit is reached
-            before ``max_depth``.
+            ``max_depth``.
 
     Example:
         ```pycon
@@ -218,9 +216,7 @@ def assert_objects_allclose(
         ValueError: If ``rtol`` or ``atol`` is negative, or if
             ``max_depth`` is not positive.
         MaxDepthExceededError: If the nesting of the objects exceeds
-            ``max_depth``. It is a ``RecursionError``.
-        RecursionError: If the interpreter recursion limit is reached
-            before ``max_depth``.
+            ``max_depth``.
 
     Example:
         ```pycon
@@ -279,9 +275,7 @@ def assert_objects_equal(
             contains the path to the first difference.
         ValueError: If ``max_depth`` is not positive.
         MaxDepthExceededError: If the nesting of the objects exceeds
-            ``max_depth``. It is a ``RecursionError``.
-        RecursionError: If the interpreter recursion limit is reached
-            before ``max_depth``.
+            ``max_depth``.
 
     Example:
         ```pycon

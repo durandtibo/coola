@@ -4,12 +4,6 @@ The engine owns the invariants of a comparison: identity, strict type,
 depth, cycles and the location of the first difference. A tester that
 uses the engine never recurses: it returns a verdict, or the child
 pairs that must all be equal.
-
-Note:
-    The testers of the chain (``BaseChainEqualityTester``) are called as
-    leaves with the ``EqualityConfig`` until the families are ported to
-    the engine. They recurse through the registry and do their own
-    identity, type, depth and cycle checks.
 """
 
 from __future__ import annotations
@@ -184,10 +178,6 @@ class Engine:
             MaxDepthExceededError: If the nesting of the objects
                 exceeds ``max_depth``.
         """
-        # The depth of the comparisons that started this one, for a comparison nested in a
-        # legacy tester (see the note of the module).
-        config = self.config
-        base = config.depth
         testers = self._testers
         stack: list[Iterator[tuple[object, object, object]]] = []
         keys: list[tuple[int, int]] = []
@@ -202,22 +192,17 @@ class Engine:
             else:
                 data_type = type(actual)
                 tester: Any = testers.get(data_type) or self.find(data_type)
-                if not tester.engine_protocol:
-                    # A chain tester does its own identity and type checks, and recurses.
-                    config.depth = base + len(stack)
-                    result = bool(tester.objects_are_equal(actual, expected, config))
-                elif data_type is not type(expected):
+                if data_type is not type(expected):
                     result = self._fail_types(data_type, type(expected))
                 else:
                     result = tester.objects_are_equal(actual, expected, self)
             if result is False:
-                config.depth = base
                 return self._record_failure(parts, part)
             if result is not True:
                 # Child pairs. A pair that is already on the stack is equal (a cycle).
                 key = (id(actual), id(expected))
                 if key not in visiting:
-                    self._check_depth(base + len(stack))
+                    self._check_depth(len(stack))
                     visiting.add(key)
                     stack.append(iter(result))
                     keys.append(key)
@@ -231,7 +216,6 @@ class Engine:
                 visiting.discard(keys.pop())
                 parts.pop()
             else:
-                config.depth = base
                 return True
 
     def _fail_types(self, actual_type: type, expected_type: type) -> bool:
@@ -252,8 +236,7 @@ class Engine:
 
         The reports are the single record of the explanation, innermost
         first. A reason given to ``fail`` is added with the path of the
-        stack; for a chain tester, which reported its own differences, a
-        path-only report carries the path of the stack.
+        stack.
         """
         reports = self.config.reports
         if reports is None:

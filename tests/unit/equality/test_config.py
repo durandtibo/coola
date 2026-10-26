@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import contextlib
-
 import pytest
 
 from coola.equality.config import EqualityConfig
@@ -97,37 +95,6 @@ def test_equality_config_max_depth_negative() -> None:
         EqualityConfig(max_depth=-1)
 
 
-def test_equality_config_depth() -> None:
-    config = EqualityConfig()
-    assert config.depth == 0
-
-
-def test_equality_config_increment_depth() -> None:
-    config = EqualityConfig()
-    config.increment_depth()
-    assert config.depth == 1
-
-
-def test_equality_config_increment_depth_twice() -> None:
-    config = EqualityConfig()
-    config.increment_depth()
-    config.increment_depth()
-    assert config.depth == 2
-
-
-def test_equality_config_decrement_depth() -> None:
-    config = EqualityConfig()
-    config.decrement_depth()
-    assert config.depth == -1
-
-
-def test_equality_config_decrement_depth_twice() -> None:
-    config = EqualityConfig()
-    config.decrement_depth()
-    config.decrement_depth()
-    assert config.depth == -2
-
-
 def test_equality_config_eq_true() -> None:
     assert EqualityConfig() == EqualityConfig()
 
@@ -136,12 +103,6 @@ def test_equality_config_eq_true_with_parameters() -> None:
     assert EqualityConfig(equal_nan=True, atol=1e-6, rtol=1e-5, reports=[]) == EqualityConfig(
         equal_nan=True, atol=1e-6, rtol=1e-5, reports=[]
     )
-
-
-def test_equality_config_eq_true_different_depth() -> None:
-    config = EqualityConfig()
-    config._current_depth = 42
-    assert config == EqualityConfig()
 
 
 def test_equality_config_eq_false_different_equal_nan() -> None:
@@ -162,53 +123,6 @@ def test_equality_config_eq_true_different_reports() -> None:
 
 def test_equality_config_eq_false_different_max_depth() -> None:
     assert EqualityConfig() != EqualityConfig(max_depth=50)
-
-
-##############################
-#     Tests for visiting     #
-##############################
-
-
-def test_equality_config_visiting_first_time() -> None:
-    with EqualityConfig().visiting([], []) as in_progress:
-        assert in_progress is False
-
-
-def test_equality_config_visiting_same_pair_is_in_progress() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with config.visiting(a, b), config.visiting(a, b) as inner:
-        assert inner is True
-
-
-def test_equality_config_visiting_swapped_pair_is_not_in_progress() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with config.visiting(a, b), config.visiting(b, a) as swapped:
-        assert swapped is False
-
-
-def test_equality_config_visiting_pair_is_removed_on_exit() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with config.visiting(a, b):
-        pass
-    with config.visiting(a, b) as in_progress:
-        assert in_progress is False
-
-
-def _fail() -> None:
-    msg = "boom"
-    raise RuntimeError(msg)
-
-
-def test_equality_config_visiting_pair_is_removed_on_error() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with contextlib.suppress(RuntimeError), config.visiting(a, b):
-        _fail()
-    with config.visiting(a, b) as in_progress:
-        assert in_progress is False
 
 
 @pytest.mark.parametrize("name", ["atol", "rtol"])

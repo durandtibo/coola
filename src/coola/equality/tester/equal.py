@@ -12,13 +12,13 @@ __all__ = ["EqualEqualityTester", "EqualNanEqualityTester"]
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.format import format_value_difference
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:
     from coola.equality.engine import Engine
 
 
-class EqualEqualityTester(BaseEngineEqualityTester[object]):
+class EqualEqualityTester(BaseEqualityTester[object]):
     r"""Implement an equality tester for objects with equal method.
 
     This tester is designed for objects that implement an
@@ -26,9 +26,6 @@ class EqualEqualityTester(BaseEngineEqualityTester[object]):
     have the same type (the engine checks it) and the tester calls the
     ``equal`` method of the first one. An object without a callable
     ``equal`` is different.
-
-    This tester is used for comparing ``BaseEqualityTester`` instances
-    themselves in the default registry.
 
     Example:
         ```pycon
@@ -62,7 +59,7 @@ class EqualEqualityTester(BaseEngineEqualityTester[object]):
         )
 
 
-class EqualNanEqualityTester(BaseEngineEqualityTester[object]):
+class EqualNanEqualityTester(BaseEqualityTester[object]):
     r"""Implement an equality tester for objects with equal method that
     supports NaN equality.
 

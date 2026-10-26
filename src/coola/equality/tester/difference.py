@@ -13,13 +13,13 @@ from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.difference import difference_close
 from coola.equality.handler.format import format_value_difference
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:
     from coola.equality.engine import Engine
 
 
-class DifferenceCloseEqualityTester(BaseEngineEqualityTester[Any]):
+class DifferenceCloseEqualityTester(BaseEqualityTester[Any]):
     r"""Implement an equality tester for ``decimal.Decimal``,
     ``fractions.Fraction`` and ``datetime.timedelta``.
 

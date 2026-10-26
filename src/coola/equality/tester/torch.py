@@ -15,7 +15,7 @@ from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.torch import tensor_close, tensor_equal
 from coola.equality.handler.utils import AttributeName
 from coola.equality.tester._array import check_dtype_and_shape
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_torch, is_torch_available
 
 if TYPE_CHECKING or is_torch_available():
@@ -27,12 +27,9 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from coola.equality.engine import Engine
-    from coola.equality.tester.base import BaseEqualityTester
 
 
-class TorchPackedSequenceEqualityTester(
-    BaseEngineEqualityTester[torch.nn.utils.rnn.PackedSequence]
-):
+class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.PackedSequence]):
     r"""Implement an equality tester for
     ``torch.nn.utils.rnn.PackedSequence``.
 
@@ -80,7 +77,7 @@ class TorchPackedSequenceEqualityTester(
         )
 
 
-class TorchTensorEqualityTester(BaseEngineEqualityTester[torch.Tensor]):
+class TorchTensorEqualityTester(BaseEqualityTester[torch.Tensor]):
     r"""Implement an equality tester for ``torch.Tensor``.
 
     Two tensors are equal if they have the same data type, shape,

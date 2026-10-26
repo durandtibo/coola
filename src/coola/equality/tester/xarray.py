@@ -17,7 +17,7 @@ from operator import attrgetter
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.utils import AttributeName
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_xarray, is_xarray_available
 
 if TYPE_CHECKING or is_xarray_available():
@@ -29,7 +29,6 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from coola.equality.engine import Engine
-    from coola.equality.tester.base import BaseEqualityTester
 
 
 def _attributes(
@@ -46,7 +45,7 @@ def _attributes(
         yield getter(actual), getter(expected), AttributeName(name)
 
 
-class XarrayDataArrayEqualityTester(BaseEngineEqualityTester[xr.DataArray]):
+class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
     r"""Implement an equality tester for ``xarray.DataArray``.
 
     This tester compares the variable (data, dimensions and attributes),
@@ -78,7 +77,7 @@ class XarrayDataArrayEqualityTester(BaseEngineEqualityTester[xr.DataArray]):
         return _attributes(actual, expected, ("variable", "name", "coords.variables"))
 
 
-class XarrayDatasetEqualityTester(BaseEngineEqualityTester[xr.Dataset]):
+class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
     r"""Implement an equality tester for ``xarray.Dataset``.
 
     This tester compares the data variables, the coordinates and the
@@ -114,7 +113,7 @@ class XarrayDatasetEqualityTester(BaseEngineEqualityTester[xr.Dataset]):
         return _attributes(actual, expected, ("data_vars", "coords", "attrs"))
 
 
-class XarrayVariableEqualityTester(BaseEngineEqualityTester[xr.Variable]):
+class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
     r"""Implement an equality tester for ``xarray.Variable``.
 
     This tester compares the data, the dimension names and the

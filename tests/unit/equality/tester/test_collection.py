@@ -243,17 +243,17 @@ def test_mapping_equality_tester_str() -> None:
 
 
 def test_mapping_equality_tester_equal_true() -> None:
-    assert MappingEqualityTester().equal(MappingEqualityTester())
+    assert MappingEqualityTester() == MappingEqualityTester()
 
 
 def test_mapping_equality_tester_equal_false_different_type() -> None:
-    assert not MappingEqualityTester().equal(123)
+    assert MappingEqualityTester() != 123
 
 
 def test_mapping_equality_tester_equal_false_different_type_child() -> None:
     class Child(MappingEqualityTester): ...
 
-    assert not MappingEqualityTester().equal(Child())
+    assert MappingEqualityTester() != Child()
 
 
 def test_mapping_equality_tester_objects_are_equal_true_same_object(
@@ -416,11 +416,11 @@ def test_ordered_mapping_equality_tester_str() -> None:
 
 
 def test_ordered_mapping_equality_tester_equal_true() -> None:
-    assert OrderedMappingEqualityTester().equal(OrderedMappingEqualityTester())
+    assert OrderedMappingEqualityTester() == OrderedMappingEqualityTester()
 
 
 def test_ordered_mapping_equality_tester_equal_false_different_type() -> None:
-    assert not OrderedMappingEqualityTester().equal(MappingEqualityTester())
+    assert OrderedMappingEqualityTester() != MappingEqualityTester()
 
 
 def test_ordered_mapping_equality_tester_objects_are_equal_true_same_order(
@@ -510,17 +510,17 @@ def test_sequence_equality_tester_str() -> None:
 
 
 def test_sequence_equality_tester_equal_true() -> None:
-    assert SequenceEqualityTester().equal(SequenceEqualityTester())
+    assert SequenceEqualityTester() == SequenceEqualityTester()
 
 
 def test_sequence_equality_tester_equal_false_different_type() -> None:
-    assert not SequenceEqualityTester().equal(123)
+    assert SequenceEqualityTester() != 123
 
 
 def test_sequence_equality_tester_equal_false_different_type_child() -> None:
     class Child(SequenceEqualityTester): ...
 
-    assert not SequenceEqualityTester().equal(Child())
+    assert SequenceEqualityTester() != Child()
 
 
 def test_sequence_equality_tester_objects_are_equal_true_same_object(
@@ -674,11 +674,11 @@ def test_set_equality_tester_repr() -> None:
 
 
 def test_set_equality_tester_equal_true() -> None:
-    assert SetEqualityTester().equal(SetEqualityTester())
+    assert SetEqualityTester() == SetEqualityTester()
 
 
 def test_set_equality_tester_equal_false_different_type() -> None:
-    assert not SetEqualityTester().equal(SequenceEqualityTester())
+    assert SetEqualityTester() != SequenceEqualityTester()
 
 
 def test_set_equality_tester_objects_are_equal_true_same_object(config: EqualityConfig) -> None:

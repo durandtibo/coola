@@ -13,7 +13,7 @@ __all__ = ["PydanticModelEqualityTester"]
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.utils import AttributeName
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_pydantic, is_pydantic_available
 
 if TYPE_CHECKING or is_pydantic_available():
@@ -25,10 +25,9 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from coola.equality.engine import Engine
-    from coola.equality.tester.base import BaseEqualityTester
 
 
-class PydanticModelEqualityTester(BaseEngineEqualityTester[pydantic.BaseModel]):
+class PydanticModelEqualityTester(BaseEqualityTester[pydantic.BaseModel]):
     r"""Implement an equality tester for ``pydantic.BaseModel``.
 
     The two models must have the same type, the same field values and

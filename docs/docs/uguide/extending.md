@@ -19,20 +19,20 @@ registry of its package, so the top-level functions (`objects_are_equal`, `summa
 
 ## 1. Equality
 
-Subclass `BaseEqualityTester`, implement `equal` (used to compare testers) and
-`objects_are_equal`, then register it.
+Subclass `BaseEqualityTester`, implement `objects_are_equal`, then register it. A tester never
+recurses: it returns a verdict (`True`, or `ctx.fail(reason)` which returns `False`), or the
+`(actual, expected, path part)` pairs that must all be equal. The engine checks the identity and the
+type, applies the tolerance, detects the cycles and locates the difference.
 
 ```pycon
 >>> from coola.equality import objects_are_equal
->>> from coola.equality.config import EqualityConfig
+>>> from coola.equality import AttributeName
 >>> from coola.equality.tester import BaseEqualityTester, register_equality_testers
 >>> class PointEqualityTester(BaseEqualityTester[Point]):
-...     def equal(self, other: object) -> bool:
-...         return type(other) is type(self)
-...
-...     def objects_are_equal(self, actual: Point, expected: Point, config: EqualityConfig) -> bool:
-...         return config.registry.objects_are_equal(
-...             (actual.x, actual.y), (expected.x, expected.y), config
+...     def objects_are_equal(self, actual: Point, expected: Point, ctx):
+...         return (
+...             (actual.x, expected.x, AttributeName("x")),
+...             (actual.y, expected.y, AttributeName("y")),
 ...         )
 >>> register_equality_testers({Point: PointEqualityTester()})
 >>> objects_are_equal(Point(1, 2), Point(1, 2))

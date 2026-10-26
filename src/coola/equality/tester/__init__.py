@@ -20,8 +20,6 @@ Example:
 from __future__ import annotations
 
 __all__ = [
-    "BaseChainEqualityTester",
-    "BaseEngineEqualityTester",
     "BaseEqualityTester",
     "DataclassEqualityTester",
     "DefaultEqualityTester",
@@ -29,7 +27,6 @@ __all__ = [
     "EqualEqualityTester",
     "EqualNanEqualityTester",
     "EqualityTesterRegistry",
-    "HandlerEqualityTester",
     "JaxArrayEqualityTester",
     "MappingEqualityTester",
     "NumpyArrayEqualityTester",
@@ -54,8 +51,7 @@ __all__ = [
 
 from typing import TYPE_CHECKING
 
-from coola.equality.tester.base import BaseEngineEqualityTester, BaseEqualityTester
-from coola.equality.tester.chain import BaseChainEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 from coola.equality.tester.collection import (
     MappingEqualityTester,
     OrderedMappingEqualityTester,
@@ -66,7 +62,6 @@ from coola.equality.tester.dataclass import DataclassEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester
 from coola.equality.tester.difference import DifferenceCloseEqualityTester
 from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
-from coola.equality.tester.handler import HandlerEqualityTester
 from coola.equality.tester.interface import (
     get_default_registry,
     register_equality_testers,

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.object import get_object_attributes
 from coola.equality.handler.utils import AttributeName
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from coola.equality.engine import Engine
 
 
-class ObjectAttributesEqualityTester(BaseEngineEqualityTester[Any]):
+class ObjectAttributesEqualityTester(BaseEqualityTester[Any]):
     r"""Implement an equality tester for objects without value
     semantics.
 
