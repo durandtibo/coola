@@ -17,7 +17,6 @@ from coola.iterator.bfs import (
     DefaultChildFinder,
     IterableChildFinder,
     MappingChildFinder,
-    enter_dataclasses,
     get_default_registry,
     interface as bfs_interface,
     register_child_finders,
@@ -307,41 +306,28 @@ def local_registry() -> ChildFinderRegistry:
     return ChildFinderRegistry({object: DefaultChildFinder(), list: IterableChildFinder()})
 
 
-def test_bfs_iterate_dataclass_is_a_leaf_by_default(local_registry: ChildFinderRegistry) -> None:
+def test_default_registry_dataclass_uses_the_dataclasschildfinder() -> None:
+    assert isinstance(get_default_registry().find_child_finder(Config), DataclassChildFinder)
+
+
+def test_bfs_iterate_enters_the_dataclass_with_the_default_registry() -> None:
+    assert list(bfs_iterate(Config(0.1, [1, 2]))) == [0.1, 1, 2]
+
+
+def test_bfs_iterate_enters_the_dataclass_in_a_dict() -> None:
+    assert list(bfs_iterate({"a": Config(0.1, [1]), "b": 2})) == [2, 0.1, 1]
+
+
+def test_bfs_iterate_dataclass_is_a_leaf_with_a_defaultchildfinder(
+    local_registry: ChildFinderRegistry,
+) -> None:
     config = Config(0.1, [1])
+    local_registry.register(Config, DefaultChildFinder())
     assert list(bfs_iterate(config, registry=local_registry)) == [config]
 
 
-def test_enter_dataclasses_registers_the_child_finder(local_registry: ChildFinderRegistry) -> None:
-    enter_dataclasses(registry=local_registry)
-    assert isinstance(local_registry.find_child_finder(Config), DataclassChildFinder)
-
-
-def test_enter_dataclasses_bfs_iterate_enters_the_dataclass(
+def test_bfs_iterate_dataclass_is_a_leaf_without_the_marker(
     local_registry: ChildFinderRegistry,
 ) -> None:
-    enter_dataclasses(registry=local_registry)
-    assert list(bfs_iterate(Config(0.1, [1, 2]), registry=local_registry)) == [0.1, 1, 2]
-
-
-def test_enter_dataclasses_can_be_called_twice(local_registry: ChildFinderRegistry) -> None:
-    enter_dataclasses(registry=local_registry)
-    enter_dataclasses(registry=local_registry)
-    assert len(local_registry) == 3
-
-
-def test_enter_dataclasses_default_registry(
-    monkeypatch: pytest.MonkeyPatch, local_registry: ChildFinderRegistry
-) -> None:
-    monkeypatch.setattr(bfs_interface, "get_default_registry", lambda: local_registry)
-    enter_dataclasses()
-    assert isinstance(local_registry.find_child_finder(Config), DataclassChildFinder)
-
-
-def test_enter_dataclasses_keeps_the_child_finder_registered_for_a_type(
-    local_registry: ChildFinderRegistry,
-) -> None:
-    child_finder = IterableChildFinder()
-    local_registry.register(Config, child_finder)
-    enter_dataclasses(registry=local_registry)
-    assert local_registry.find_child_finder(Config) is child_finder
+    config = Config(0.1, [1])
+    assert list(bfs_iterate(config, registry=local_registry)) == [config]

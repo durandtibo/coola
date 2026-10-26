@@ -22,8 +22,10 @@ class DataclassIterator(InlineDisplayMixin, BaseIterator[Any]):
     of a dataclass instance.
 
     The values of the fields are visited in the order of the
-    definition of the fields. It is not registered by default: see
-    ``coola.iterator.dfs.enter_dataclasses``.
+    definition of the fields. It is registered for ``DataclassMarker``
+    in the default registry. An iterator registered for the type of the
+    dataclass has priority; register ``DefaultIterator`` to keep a
+    dataclass as a leaf.
 
     Example:
         ```pycon

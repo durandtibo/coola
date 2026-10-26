@@ -11,7 +11,6 @@ __all__ = [
     "MappingIterator",
     "PathRegistry",
     "dfs_iterate",
-    "enter_dataclasses",
     "get_default_iterator_registry",
     "get_default_registry",
     "register_iterators",
@@ -22,7 +21,6 @@ from coola.iterator.dfs.dataclass import DataclassIterator
 from coola.iterator.dfs.default import DefaultIterator
 from coola.iterator.dfs.interface import (
     dfs_iterate,
-    enter_dataclasses,
     get_default_iterator_registry,
     get_default_registry,
     register_iterators,
