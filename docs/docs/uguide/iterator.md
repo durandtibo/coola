@@ -163,7 +163,7 @@ deeper, while DFS goes as deep as possible before backtracking.
 
 `dfs_iterate` and `bfs_iterate` enter the dataclass instances, like `objects_are_equal`,
 `hash_object`, `summarize` and `recursive_apply`: they visit the values of the fields, in the order
-of their definition (`DataclassIterator` and `DataclassChildFinder`):
+of their definition (`DataclassChildFinder`):
 
 ```pycon
 >>> from dataclasses import dataclass
@@ -177,14 +177,13 @@ of their definition (`DataclassIterator` and `DataclassChildFinder`):
 
 ```
 
-An iterator registered for the type of the dataclass has priority over the default one. To keep a
-dataclass as a leaf, register `DefaultIterator()` (or `DefaultChildFinder()` for `bfs_iterate`) for
-its type:
+A child finder registered for the type of the dataclass has priority over the default one. To keep
+a dataclass as a leaf, register `DefaultChildFinder()` for its type:
 
 ```pycon
->>> from coola.iterator.dfs import DefaultIterator, get_default_registry
+>>> from coola.iterator import DefaultChildFinder, get_default_registry
 >>> registry = get_default_registry().copy()
->>> registry.register(Config, DefaultIterator())
+>>> registry.register(Config, DefaultChildFinder())
 >>> list(dfs_iterate(Config(0.1, [1, 2]), registry=registry))
 [Config(lr=0.1, layers=[1, 2])]
 
@@ -250,81 +249,64 @@ You can combine type filtering with nested iteration:
 
 ## Advanced Usage
 
-### Custom Iterators
+### Writing a Child Finder
 
-For more control over how specific types are iterated, you can register custom iterators using the
-registry system.
-
-**DFS Custom Registry:**
-
-```pycon
->>> from coola.iterator.dfs import register_iterators, IterableIterator
->>> # Register custom behavior for specific types
->>> register_iterators({list: IterableIterator()}, exist_ok=True)
-
-```
-
-**BFS Custom Registry:**
+A child finder inherits from `BaseChildFinder` and implements `find_children(data)`, which returns
+the direct children of the object in the order they are visited, or `None` for a leaf. It does not
+call the registry and does not recurse: `dfs_iterate` and `bfs_iterate` walk the children, so one
+child finder serves both orders. An empty container returns an empty iterable (it yields nothing),
+a leaf returns `None` (the value itself is yielded). `MappingChildFinder` returns the values of a
+mapping, and `IterableChildFinder` the container itself:
 
 ```pycon
->>> from coola.iterator.bfs import register_child_finders, IterableChildFinder
->>> # Register custom behavior for specific types
->>> register_child_finders({list: IterableChildFinder()}, exist_ok=True)
-
-```
-
-### Writing an Iterator
-
-A DFS iterator inherits from `BaseIterator` and implements `iterate(data, registry)`. A container
-iterator calls `registry.iterate()` on its children, so the nested values are iterated with the
-iterator registered for their type. `MappingIterator` is the built-in iterator for the mappings
-(it iterates over the values), and `IterableIterator` the one for the other containers:
-
-```pycon
->>> from coola.iterator.dfs import BaseIterator, MappingIterator, get_default_registry
->>> class ReversedListIterator(BaseIterator[list]):
-...     def iterate(self, data, registry):
-...         for item in reversed(data):
-...             yield from registry.iterate(item)
->>> list(MappingIterator().iterate({"a": 1, "b": 2}, get_default_registry()))
+>>> from coola.iterator import (
+...     BaseChildFinder,
+...     MappingChildFinder,
+...     bfs_iterate,
+...     dfs_iterate,
+...     register_child_finders,
+... )
+>>> list(MappingChildFinder().find_children({"a": 1, "b": 2}))
 [1, 2]
->>> registry = get_default_registry()
->>> list(ReversedListIterator().iterate([1, 2, 3], registry))
-[3, 2, 1]
+>>> class Node:
+...     def __init__(self, left, right):
+...         self.left, self.right = left, right
+...
+>>> class NodeChildFinder(BaseChildFinder[Node]):
+...     def find_children(self, data):
+...         return [data.left, data.right]
+...
+>>> register_child_finders({Node: NodeChildFinder()})
+>>> tree = Node(Node(1, 2), 3)
+>>> list(dfs_iterate(tree))
+[1, 2, 3]
+>>> list(bfs_iterate(tree))
+[3, 1, 2]
 
 ```
 
-A BFS child finder inherits from `BaseChildFinder` and implements `find_children(data)`, which
-yields the direct children of the object. Override `is_leaf` to return `True` for a type that must
-be yielded as a value instead of being expanded. `MappingChildFinder` yields the values of a mapping:
+### Default Registry
 
-```pycon
->>> from coola.iterator.bfs import MappingChildFinder
->>> list(MappingChildFinder().find_children({"a": {"b": 1, "c": 2}, "d": 3}))
-[{'b': 1, 'c': 2}, 3]
-
-```
-
-### Default Registries
-
-`get_default_registry()` returns the process-wide registry used by `dfs_iterate` (and the BFS
-equivalent by `bfs_iterate`). They are also available as `get_default_iterator_registry()` (DFS) and
-`get_default_child_finder_registry()` (BFS). `register_iterators()` and `register_child_finders()`
-register types on these registries. The registry that `IteratorRegistry.iterate` gives to the
-iterators is a `PathRegistry`, a view of the registry that remembers the containers on the path to
-the current object, so that a container that contains itself is detected (see
-[Iterators and Cycles](#iterators-and-cycles)).
+`get_default_registry()` (alias `get_default_child_finder_registry()`) returns the process-wide
+registry used by `dfs_iterate` and `bfs_iterate`. `register_child_finders()` registers types on
+this registry. The default registry enters `list`, `tuple`, `deque`, `Sequence`, `set`,
+`frozenset`, `dict`, `Mapping`, `MappingProxyType` and the dataclasses (the containers of
+`recursive_apply`); everything else is a leaf.
 
 ### Using Custom Registry
 
 You can create and use a custom registry:
 
 ```pycon
->>> from coola.iterator.dfs import IteratorRegistry, dfs_iterate
->>> from coola.iterator.dfs import DefaultIterator, IterableIterator
->>> registry = IteratorRegistry()
->>> registry.register(list, IterableIterator())
->>> registry.register(object, DefaultIterator())
+>>> from coola.iterator import (
+...     ChildFinderRegistry,
+...     DefaultChildFinder,
+...     IterableChildFinder,
+...     dfs_iterate,
+... )
+>>> registry = ChildFinderRegistry()
+>>> registry.register(list, IterableChildFinder())
+>>> registry.register(object, DefaultChildFinder())
 >>> list(dfs_iterate([1, 2, 3], registry=registry))
 [1, 2, 3]
 
@@ -392,7 +374,7 @@ True
 
 ## Iterators and Cycles
 
-The default registries expand collections (`list`, `tuple`, `set`, `dict`, `range`, ...) but treat
+The default registry expands the containers (`list`, `tuple`, `set`, `dict`, ...) but treat
 iterators and generators as leaves: they are returned as they are and never consumed, so a
 generator (or an infinite iterator) in the data cannot be exhausted or hang the traversal.
 
@@ -401,7 +383,7 @@ A container that contains itself cannot be traversed. Both `dfs_iterate` and `bf
 several times without containing itself is not a cycle, and its leaves are returned each time:
 
 ```pycon
->>> from coola.iterator.dfs import dfs_iterate
+>>> from coola.iterator import dfs_iterate
 >>> shared = [1, 2]
 >>> list(dfs_iterate([shared, shared]))
 [1, 2, 1, 2]
@@ -414,20 +396,20 @@ ValueError: Cycle detected: an object of type <class 'list'> contains itself
 
 ```
 
-A custom child finder for leaf types must override `is_leaf` to return `True` (like
-`DefaultChildFinder`) so `bfs_iterate` yields the value instead of expanding it.
+A child finder for a leaf type returns `None` (like `DefaultChildFinder`), so both functions yield
+the value instead of expanding it.
 
 ## Properties
 
-| Property                     | Statement                                                                                                                                                                                                                                  |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Lazy                         | Both `dfs_iterate` and `bfs_iterate` are generators: leaves are produced one at a time.                                                                                                                                                    |
-| Every leaf is returned       | A container that appears several times, without containing itself, gives its leaves each time.                                                                                                                                             |
-| Cycle-safe                   | A container that contains itself raises `ValueError` instead of looping forever or hitting the recursion limit.                                                                                                                            |
-| Iterators are leaves         | The default registries never consume an iterator or a generator, so an infinite iterator cannot hang the traversal.                                                                                                                        |
-| Depth                        | `bfs_iterate` is iterative. `dfs_iterate` is recursive (the iterators visit their children with `registry.iterate`), so a structure nested a few hundred levels deep raises `RecursionError`: use `bfs_iterate` for a very deep structure. |
-| Same leaves, different order | DFS and BFS visit the same leaves. Only the order differs.                                                                                                                                                                                 |
-| Extensible                   | Support for a new container type is added with a child finder that registers its children. `is_leaf` must return `True` for leaf types.                                                                                                    |
+| Property                     | Statement                                                                                                                               |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Lazy                         | Both `dfs_iterate` and `bfs_iterate` are generators: leaves are produced one at a time.                                                 |
+| Every leaf is returned       | A container that appears several times, without containing itself, gives its leaves each time.                                          |
+| Cycle-safe                   | A container that contains itself raises `ValueError` instead of looping forever or hitting the recursion limit.                         |
+| Iterators are leaves         | The default registries never consume an iterator or a generator, so an infinite iterator cannot hang the traversal.                     |
+| Depth                        | Both functions use an explicit stack or queue: there is no `RecursionError`, whatever the nesting. The depth is bounded by memory only. |
+| Same leaves, different order | DFS and BFS visit the same leaves. Only the order differs.                                                                              |
+| Extensible                   | Support for a new type is added with one child finder (`find_children`) registered for the type. It serves both orders.                 |
 
 ## Design Principles
 

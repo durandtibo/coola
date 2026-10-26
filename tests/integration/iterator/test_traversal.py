@@ -154,11 +154,6 @@ def test_dfs_and_bfs_iterate_yield_the_same_leaves() -> None:
 #     Same containers as recursive_apply     #
 ##################################################
 
-F8 = pytest.mark.xfail(
-    reason="iterator enters every Collection, recursive only the Sequence (review/iterator.md F8)",
-    strict=True,
-)
-
 
 def called_on(data: Any) -> list:
     calls = []
@@ -182,9 +177,9 @@ def called_on(data: Any) -> list:
         pytest.param("abc", id="str"),
         pytest.param(b"abc", id="bytes"),
         pytest.param(ChainMap({"a": 1}), id="chain map"),
-        pytest.param(MySet([1]), id="user set", marks=F8),
-        pytest.param(MyCollection([1]), id="user collection", marks=F8),
-        pytest.param(range(3), id="range", marks=F8),
+        pytest.param(MySet([1]), id="user set"),
+        pytest.param(MyCollection([1]), id="user collection"),
+        pytest.param(range(3), id="range"),
     ],
 )
 def test_dfs_iterate_visits_the_leaves_recursive_apply_calls_func_on(data: Any) -> None:

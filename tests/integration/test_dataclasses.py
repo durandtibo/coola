@@ -5,16 +5,7 @@ from typing import Any
 
 import pytest
 
-from coola.iterator.bfs import (
-    DefaultChildFinder,
-    bfs_iterate,
-    get_default_registry as get_bfs_registry,
-)
-from coola.iterator.dfs import (
-    DefaultIterator,
-    dfs_iterate,
-    get_default_registry as get_dfs_registry,
-)
+from coola.iterator import DefaultChildFinder, bfs_iterate, dfs_iterate, get_default_registry
 from coola.recursive import recursive_apply
 
 
@@ -49,9 +40,9 @@ def test_dfs_iterate_enters_the_dataclasses(model: Model) -> None:
     assert list(dfs_iterate(model)) == ["net", 8, "relu", 4, "tanh", 0.1, 2, 3]
 
 
-def test_dfs_iterate_dataclass_with_its_own_iterator_is_a_leaf(model: Model) -> None:
-    registry = get_dfs_registry().copy()
-    registry.register(Layer, DefaultIterator())
+def test_dfs_iterate_dataclass_with_its_own_child_finder_is_a_leaf(model: Model) -> None:
+    registry = get_default_registry().copy()
+    registry.register(Layer, DefaultChildFinder())
     assert list(dfs_iterate(model, registry=registry)) == [
         "net",
         Layer(8),
@@ -67,7 +58,7 @@ def test_bfs_iterate_enters_the_dataclasses(model: Model) -> None:
 
 
 def test_bfs_iterate_dataclass_with_its_own_child_finder_is_a_leaf(model: Model) -> None:
-    registry = get_bfs_registry().copy()
+    registry = get_default_registry().copy()
     registry.register(Layer, DefaultChildFinder())
     assert list(bfs_iterate(model, registry=registry)) == [
         "net",

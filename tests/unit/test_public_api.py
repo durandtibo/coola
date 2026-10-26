@@ -40,8 +40,7 @@ def test_all_names_are_importable(name: str, attr: str) -> None:
     ("module", "alias"),
     [
         ("coola.hashing", "get_default_hasher_registry"),
-        ("coola.iterator.bfs", "get_default_child_finder_registry"),
-        ("coola.iterator.dfs", "get_default_iterator_registry"),
+        ("coola.iterator", "get_default_child_finder_registry"),
         ("coola.random", "get_default_random_manager_registry"),
         ("coola.recursive", "get_default_transformer_registry"),
         ("coola.summary", "get_default_summarizer_registry"),

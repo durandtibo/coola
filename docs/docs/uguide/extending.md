@@ -108,8 +108,7 @@ groups:
 | `coola.summary.summarizers`    | summarizers            |
 | `coola.hashing.hashers`        | hashers                |
 | `coola.recursive.transformers` | recursive transformers |
-| `coola.iterator.dfs`           | DFS iterators          |
-| `coola.iterator.bfs`           | BFS child finders      |
+| `coola.iterator.child_finders` | Iterator child finders |
 | `coola.random.managers`        | random managers        |
 
 ```toml

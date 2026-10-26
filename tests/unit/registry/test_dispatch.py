@@ -6,8 +6,7 @@ import pytest
 
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.hashing.registry import HasherRegistry
-from coola.iterator.bfs.registry import ChildFinderRegistry
-from coola.iterator.dfs.registry import IteratorRegistry
+from coola.iterator.registry import ChildFinderRegistry
 from coola.recursive.registry import TransformerRegistry
 from coola.registry import AlreadyRegisteredError, KeyNotRegisteredError
 from coola.registry.dispatch import BaseTypeDispatchRegistry
@@ -104,7 +103,6 @@ REGISTRY_CLASSES = [
     TransformerRegistry,
     SummarizerRegistry,
     ChildFinderRegistry,
-    IteratorRegistry,
 ]
 
 
@@ -294,7 +292,6 @@ def test_base_type_dispatch_registry_copy_does_not_copy_the_handlers() -> None:
         EqualityTesterRegistry,
         HasherRegistry,
         ChildFinderRegistry,
-        IteratorRegistry,
         TransformerRegistry,
         SummarizerRegistry,
     ],
