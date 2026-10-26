@@ -16,7 +16,6 @@ from coola.iterator.dfs import (
     IterableIterator,
     IteratorRegistry,
     MappingIterator,
-    enter_dataclasses,
     get_default_registry,
     interface as dfs_interface,
     register_iterators,
@@ -263,41 +262,28 @@ def local_registry() -> IteratorRegistry:
     return IteratorRegistry({object: DefaultIterator(), list: IterableIterator()})
 
 
-def test_dfs_iterate_dataclass_is_a_leaf_by_default(local_registry: IteratorRegistry) -> None:
+def test_default_registry_dataclass_uses_the_dataclassiterator() -> None:
+    assert isinstance(get_default_registry().find_iterator(Config), DataclassIterator)
+
+
+def test_dfs_iterate_enters_the_dataclass_with_the_default_registry() -> None:
+    assert list(dfs_iterate(Config(0.1, [1, 2]))) == [0.1, 1, 2]
+
+
+def test_dfs_iterate_enters_the_dataclass_in_a_dict() -> None:
+    assert list(dfs_iterate({"a": Config(0.1, [1]), "b": 2})) == [0.1, 1, 2]
+
+
+def test_dfs_iterate_dataclass_is_a_leaf_with_a_defaultiterator(
+    local_registry: IteratorRegistry,
+) -> None:
     config = Config(0.1, [1])
+    local_registry.register(Config, DefaultIterator())
     assert list(dfs_iterate(config, registry=local_registry)) == [config]
 
 
-def test_enter_dataclasses_registers_the_iterator(local_registry: IteratorRegistry) -> None:
-    enter_dataclasses(registry=local_registry)
-    assert isinstance(local_registry.find_iterator(Config), DataclassIterator)
-
-
-def test_enter_dataclasses_dfs_iterate_enters_the_dataclass(
+def test_dfs_iterate_dataclass_is_a_leaf_without_the_marker(
     local_registry: IteratorRegistry,
 ) -> None:
-    enter_dataclasses(registry=local_registry)
-    assert list(dfs_iterate(Config(0.1, [1, 2]), registry=local_registry)) == [0.1, 1, 2]
-
-
-def test_enter_dataclasses_can_be_called_twice(local_registry: IteratorRegistry) -> None:
-    enter_dataclasses(registry=local_registry)
-    enter_dataclasses(registry=local_registry)
-    assert len(local_registry) == 3
-
-
-def test_enter_dataclasses_default_registry(
-    monkeypatch: pytest.MonkeyPatch, local_registry: IteratorRegistry
-) -> None:
-    monkeypatch.setattr(dfs_interface, "get_default_registry", lambda: local_registry)
-    enter_dataclasses()
-    assert isinstance(local_registry.find_iterator(Config), DataclassIterator)
-
-
-def test_enter_dataclasses_keeps_the_iterator_registered_for_a_type(
-    local_registry: IteratorRegistry,
-) -> None:
-    iterator = IterableIterator()
-    local_registry.register(Config, iterator)
-    enter_dataclasses(registry=local_registry)
-    assert local_registry.find_iterator(Config) is iterator
+    config = Config(0.1, [1])
+    assert list(dfs_iterate(config, registry=local_registry)) == [config]

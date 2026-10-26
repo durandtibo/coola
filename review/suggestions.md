@@ -603,5 +603,5 @@ Checked against `git log 0287a61a..HEAD` and by re-running the repros.
 | ID   | Status     | Notes                                                                                                                                                  |
 | ---- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 25.1 | Partly     | `recursive_apply`: cycles and any depth with an explicit stack (#2375). `dfs_iterate` still has the depth limit.                                       |
-| 25.3 | Partly     | `recursive_apply` and `round_values` enter dataclasses by default (#2377). `dfs_iterate` / `bfs_iterate` keep `enter_dataclasses`.                       |
+| 25.3 | Fixed      | `recursive_apply`, `round_values` (#2377), `dfs_iterate` and `bfs_iterate` enter dataclasses by default; `enter_dataclasses` is removed (#2379).         |
 | 28.2 | Partly     | `recursive_apply`: `registry` is keyword-only, the deprecated paths are removed (#2373). `summarize`, `dfs_iterate` and `bfs_iterate` still warn.       |
