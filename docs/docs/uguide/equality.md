@@ -182,18 +182,17 @@ objects: its location (`path`) and the reason. For example, you can see which el
 >>> result.equal
 False
 >>> result.path
-('torch',)
+('torch', 0, 0)
 >>> print(result.format_message())
-objects are not equal at actual['torch']
-torch.Tensors are different:
-  actual   : tensor([[1., 1., 1.],
-        [1., 1., 1.]])
-  expected : tensor([[0., 0., 0.],
-        [0., 0., 0.]])
+objects are not equal at actual['torch'][0][0]
+values are different:
+  actual   : tensor(1.)
+  expected : tensor(0.)
 
 ```
 
-The result gives the location of the difference and the two values that differ. Note that it only
+The result gives the location of the difference (for an array or a tensor, the index of the first
+element that differs) and the two values that differ. Note that it only
 shows the first difference, not all the differences. Two objects are different if any of these
 elements are different. In the previous example, only the difference for key `'torch'` is explained.
 `objects_are_equal` and `objects_are_allclose` do not build any explanation: they stop at the first
@@ -458,7 +457,7 @@ between the two objects within a tolerance, use `compare` with the same `rtol` a
 >>> result.equal
 False
 >>> result.path
-('torch',)
+('torch', 0, 0)
 
 ```
 

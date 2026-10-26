@@ -13,21 +13,14 @@ __all__ = [
     "NumpyTimeScalarEqualityTester",
 ]
 
+from itertools import count
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler import (
-    NumpyArrayEqualHandler,
-    NumpyTimeScalarEqualHandler,
-    SameAttributeHandler,
-    SameDataHandler,
-    SameDTypeHandler,
-    SameObjectHandler,
-    SameShapeHandler,
-    SameTypeHandler,
-    TrueHandler,
-    create_chain,
-)
-from coola.equality.tester.chain import BaseChainEqualityTester
+from coola.equality.handler.format import format_value_difference
+from coola.equality.handler.numpy import array_close, array_equal, time_scalar_equal
+from coola.equality.handler.utils import AttributeName
+from coola.equality.tester._array import check_dtype_and_shape
+from coola.equality.tester.base import BaseEngineEqualityTester
 from coola.equality.tester.scalar import ScalarEqualityTester
 from coola.utils.imports import check_numpy, is_numpy_available
 
@@ -37,175 +30,146 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING:
-    from coola.equality.handler import BaseEqualityHandler
+    from collections.abc import Iterator
+
+    from coola.equality.engine import Engine
     from coola.equality.tester.base import BaseEqualityTester
 
 
-class NumpyArrayEqualityTester(BaseChainEqualityTester[np.ndarray]):
+class NumpyArrayEqualityTester(BaseEngineEqualityTester[np.ndarray]):
     r"""Implement an equality tester for ``numpy.ndarray``.
 
-    This tester compares NumPy arrays element-wise with support for NaN equality
-    and tolerance-based comparisons. The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are numpy arrays
-    3. SameDTypeHandler: Check arrays have the same dtype
-    4. SameShapeHandler: Verify arrays have the same shape
-    5. NumpyArrayEqualHandler: Element-wise comparison with tolerance support
-
-    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
-    for floating-point tolerance.
+    Two arrays are equal if they have the same data type, the same
+    shape and equal elements. The numbers are compared with the
+    tolerance and ``equal_nan`` of the comparison (a boolean, a string
+    and an instant are exact; ``atol`` of a duration is a number of
+    seconds). The elements of an ``object`` array are compared by the
+    engine, one by one. The location of a difference is the index of
+    the first element that differs (the position in the flattened
+    array for an ``object`` array).
 
     Example:
-        Basic array comparison:
-
         ```pycon
         >>> import numpy as np
+        >>> from coola.equality import compare
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import NumpyArrayEqualityTester
-        >>> config = EqualityConfig()
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import NumpyArrayEqualityTester, get_default_registry
+        >>> engine = Engine(get_default_registry(), EqualityConfig())
         >>> tester = NumpyArrayEqualityTester()
-        >>> tester.objects_are_equal(np.ones((2, 3)), np.ones((2, 3)), config)
+        >>> tester.objects_are_equal(np.ones((2, 3)), np.ones((2, 3)), engine)
         True
-        >>> tester.objects_are_equal(np.ones((2, 3)), np.zeros((2, 3)), config)
+        >>> tester.objects_are_equal(np.ones((2, 3)), np.zeros((2, 3)), engine)
         False
-
-        ```
-
-        NaN comparison with equal_nan:
-
-        ```pycon
-        >>> import numpy as np
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import NumpyArrayEqualityTester
-        >>> config = EqualityConfig(equal_nan=True)
-        >>> tester = NumpyArrayEqualityTester()
-        >>> tester.objects_are_equal(
-        ...     np.array([1.0, float("nan")]),
-        ...     np.array([1.0, float("nan")]),
-        ...     config,
-        ... )
-        True
+        >>> compare(np.ones((2, 3)), np.zeros((2, 3))).path
+        (0, 0)
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
+    def __init__(self) -> None:
         check_numpy()
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(
-            SameObjectHandler(),
-            SameTypeHandler(),
-            SameDTypeHandler(),
-            SameShapeHandler(),
-            NumpyArrayEqualHandler(),
+    def objects_are_equal(
+        self, actual: np.ndarray, expected: np.ndarray, ctx: Engine
+    ) -> bool | Iterator[tuple[object, object, object]]:
+        failure = check_dtype_and_shape(actual, expected, ctx)
+        if failure is not None:
+            return failure
+        if actual.dtype.kind == "O":
+            # The elements are objects: they are children of the engine.
+            return zip(actual.ravel().tolist(), expected.ravel().tolist(), count(), strict=False)
+        if array_equal(actual, expected, ctx.config):
+            return True
+        if not ctx.explaining:
+            return False
+        # The index is looked up only when the difference is explained.
+        index = tuple(int(i) for i in np.argwhere(~array_close(actual, expected, ctx.config))[0])
+        return ctx.fail(
+            lambda: format_value_difference(actual[index], expected[index], name="values"), *index
         )
 
 
-class NumpyMaskedArrayEqualityTester(BaseChainEqualityTester[np.ma.MaskedArray]):
+class NumpyMaskedArrayEqualityTester(BaseEngineEqualityTester[np.ma.MaskedArray]):
     r"""Implement an equality tester for ``numpy.ma.MaskedArray``.
 
-    This tester compares NumPy masked arrays by checking data, mask, and fill_value.
-    The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are masked arrays
-    3. SameDTypeHandler: Check arrays have the same dtype
-    4. SameShapeHandler: Verify arrays have the same shape
-    5. SameDataHandler: Compare the underlying data arrays
-    6. SameAttributeHandler("mask"): Compare the mask arrays
-    7. SameAttributeHandler("fill_value"): Compare fill values
-    8. TrueHandler: Return True if all checks pass
+    Two masked arrays are equal if they have the same data type, the
+    same shape, the same data (the masked values are compared too), the
+    same mask and the same ``fill_value``. The location of a difference
+    is ``.data``, ``.mask`` or ``.fill_value``, and then the index in
+    the array.
 
     Example:
-        Basic masked array comparison:
-
         ```pycon
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import NumpyMaskedArrayEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = NumpyMaskedArrayEqualityTester()
-        >>> tester.objects_are_equal(
-        ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
-        ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
-        ...     config,
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import get_default_registry
+        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine.run(
+        ...     np.ma.array([1, 2, 3], mask=[0, 0, 1]), np.ma.array([1, 2, 3], mask=[0, 0, 1])
         ... )
         True
-        >>> tester.objects_are_equal(
-        ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
-        ...     np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
-        ...     config,
-        ... )
-        False
-
-        ```
-
-        Different masks are not equal:
-
-        ```pycon
-        >>> import numpy as np
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import NumpyMaskedArrayEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = NumpyMaskedArrayEqualityTester()
-        >>> tester.objects_are_equal(
-        ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
-        ...     np.ma.array(data=[0.0, 1.0, 1.2], mask=[1, 1, 0]),
-        ...     config,
+        >>> engine.run(
+        ...     np.ma.array([1, 2, 3], mask=[0, 0, 1]), np.ma.array([1, 2, 3], mask=[0, 1, 1])
         ... )
         False
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
+    def __init__(self) -> None:
         check_numpy()
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(
-            SameObjectHandler(),
-            SameTypeHandler(),
-            SameDTypeHandler(),
-            SameShapeHandler(),
-            SameDataHandler(),
-            SameAttributeHandler("mask"),
-            SameAttributeHandler("fill_value"),
-            TrueHandler(),
+    def objects_are_equal(
+        self, actual: np.ma.MaskedArray, expected: np.ma.MaskedArray, ctx: Engine
+    ) -> bool | Iterator[tuple[object, object, object]]:
+        failure = check_dtype_and_shape(actual, expected, ctx)
+        if failure is not None:
+            return failure
+        return iter(
+            (
+                (actual.data, expected.data, AttributeName("data")),
+                (actual.mask, expected.mask, AttributeName("mask")),
+                (actual.fill_value, expected.fill_value, AttributeName("fill_value")),
+            )
         )
 
 
-class NumpyTimeScalarEqualityTester(BaseChainEqualityTester[object]):
+class NumpyTimeScalarEqualityTester(BaseEngineEqualityTester[object]):
     r"""Implement an equality tester for ``numpy.timedelta64`` and
     ``numpy.datetime64`` scalars.
 
-    These scalars are not integers: ``numpy.timedelta64`` is a subclass
-    of ``numpy.signedinteger``, so it must not use the scalar tester.
-    The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify same type
-    3. NumpyTimeScalarEqualHandler: ``NaT`` follows ``equal_nan``; a
-        duration follows the tolerances, an instant is exact
+    ``NaT`` is equal to ``NaT`` only if ``equal_nan`` is ``True``. A
+    ``numpy.timedelta64`` is a duration: the tolerances apply (``atol``
+    is a number of seconds). A ``numpy.datetime64`` is an instant and
+    is compared exactly.
 
     Example:
         ```pycon
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import NumpyTimeScalarEqualityTester
-        >>> config = EqualityConfig()
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import NumpyTimeScalarEqualityTester, get_default_registry
         >>> tester = NumpyTimeScalarEqualityTester()
-        >>> tester.objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(1, "s"), config)
+        >>> engine = Engine(get_default_registry(), EqualityConfig(atol=1.0))
+        >>> tester.objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(2000, "ms"), engine)
         True
-        >>> tester.objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(2, "s"), config)
+        >>> tester.objects_are_equal(
+        ...     np.datetime64("2020-01-01"), np.datetime64("2020-01-02"), engine
+        ... )
         False
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
+    def __init__(self) -> None:
         check_numpy()
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(SameObjectHandler(), SameTypeHandler(), NumpyTimeScalarEqualHandler())
+    def objects_are_equal(self, actual: Any, expected: Any, ctx: Engine) -> bool:
+        return time_scalar_equal(actual, expected, ctx.config) or ctx.fail(
+            lambda: format_value_difference(actual, expected, name="numpy time scalars")
+        )
 
 
 def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:

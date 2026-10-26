@@ -1,203 +1,28 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import (
-    FalseHandler,
-    NumpyArrayEqualHandler,
-    NumpyTimeScalarEqualHandler,
-    TrueHandler,
+from coola.equality.handler.numpy import (
+    array_close,
+    array_equal,
+    is_numeric_array,
+    time_scalar_equal,
 )
-from coola.equality.handler.numpy import array_equal, is_numeric_array, time_scalar_equal
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
-from tests.unit.equality.tester.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
-from tests.unit.equality.utils import messages
 
 if is_numpy_available():
     import numpy as np
 else:
     np = Mock()
 
-if TYPE_CHECKING:
-    from tests.unit.equality.utils import ExamplePair
-
 
 @pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig()
-
-
-############################################
-#     Tests for NumpyArrayEqualHandler     #
-############################################
-
-
-def test_numpy_array_equal_handler_repr() -> None:
-    assert repr(NumpyArrayEqualHandler()) == "NumpyArrayEqualHandler()"
-
-
-def test_numpy_array_equal_handler_repr_with_next_handler() -> None:
-    assert (
-        repr(NumpyArrayEqualHandler(FalseHandler()))
-        == "NumpyArrayEqualHandler(next_handler=FalseHandler())"
-    )
-
-
-def test_numpy_array_equal_handler_str() -> None:
-    assert str(NumpyArrayEqualHandler()) == "NumpyArrayEqualHandler()"
-
-
-def test_numpy_array_equal_handler_str_with_next_handler() -> None:
-    assert str(NumpyArrayEqualHandler(FalseHandler())) == "NumpyArrayEqualHandler()"
-
-
-@pytest.mark.parametrize(
-    ("handler1", "handler2"),
-    [
-        pytest.param(NumpyArrayEqualHandler(), NumpyArrayEqualHandler(), id="without next handler"),
-        pytest.param(
-            NumpyArrayEqualHandler(FalseHandler()),
-            NumpyArrayEqualHandler(FalseHandler()),
-            id="with next handler",
-        ),
-    ],
-)
-def test_numpy_array_equal_handler_equal_true(
-    handler1: NumpyArrayEqualHandler, handler2: NumpyArrayEqualHandler
-) -> None:
-    assert handler1.equal(handler2)
-
-
-@pytest.mark.parametrize(
-    ("handler1", "handler2"),
-    [
-        pytest.param(
-            NumpyArrayEqualHandler(TrueHandler()),
-            NumpyArrayEqualHandler(FalseHandler()),
-            id="different next handler",
-        ),
-        pytest.param(
-            NumpyArrayEqualHandler(),
-            NumpyArrayEqualHandler(FalseHandler()),
-            id="next handler is none",
-        ),
-        pytest.param(
-            NumpyArrayEqualHandler(FalseHandler()),
-            NumpyArrayEqualHandler(),
-            id="other next handler is none",
-        ),
-        pytest.param(NumpyArrayEqualHandler(), FalseHandler(), id="different type"),
-    ],
-)
-def test_numpy_array_equal_handler_equal_false(
-    handler1: NumpyArrayEqualHandler, handler2: object
-) -> None:
-    assert not handler1.equal(handler2)
-
-
-def test_numpy_array_equal_handler_equal_false_different_type_child() -> None:
-    class Child(NumpyArrayEqualHandler): ...
-
-    assert not NumpyArrayEqualHandler().equal(Child())
-
-
-@numpy_available
-@pytest.mark.parametrize(
-    ("actual", "expected"),
-    [
-        (np.ones(shape=(2, 3), dtype=float), np.ones(shape=(2, 3), dtype=float)),
-        (np.ones(shape=(2, 3), dtype=int), np.ones(shape=(2, 3), dtype=int)),
-        (np.ones(shape=(2, 3, 4), dtype=bool), np.ones(shape=(2, 3, 4), dtype=bool)),
-    ],
-)
-def test_numpy_array_equal_handler_handle_true(
-    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
-) -> None:
-    assert NumpyArrayEqualHandler().handle(actual, expected, config)
-
-
-@numpy_available
-@pytest.mark.parametrize(
-    ("actual", "expected"),
-    [
-        (np.ones(shape=(2, 3)), np.ones(shape=(3, 2))),
-        (np.ones(shape=(2, 3)), np.ones(shape=(2, 1))),
-        (np.ones(shape=(2, 3)), np.ones(shape=(2, 3, 1))),
-    ],
-)
-def test_numpy_array_equal_handler_handle_false(
-    actual: np.ndarray, expected: np.ndarray, config: EqualityConfig
-) -> None:
-    assert not NumpyArrayEqualHandler().handle(actual, expected, config)
-
-
-@numpy_available
-def test_numpy_array_equal_handler_handle_equal_nan_false(config: EqualityConfig) -> None:
-    assert not NumpyArrayEqualHandler().handle(
-        np.array([0.0, np.nan, np.nan, 1.2]), np.array([0.0, np.nan, np.nan, 1.2]), config
-    )
-
-
-@numpy_available
-def test_numpy_array_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> None:
-    config.equal_nan = True
-    assert NumpyArrayEqualHandler().handle(
-        np.array([0.0, np.nan, np.nan, 1.2]), np.array([0.0, np.nan, np.nan, 1.2]), config
-    )
-
-
-@numpy_available
-def test_numpy_array_equal_handler_handle_false_explaining(config: EqualityConfig) -> None:
-    config.reports = []
-    assert not NumpyArrayEqualHandler().handle(
-        actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
-    )
-
-
-@numpy_available
-def test_numpy_array_equal_handler_handle_false_explaining_reports(
-    config: EqualityConfig,
-) -> None:
-    config.reports = []
-    NumpyArrayEqualHandler().handle(
-        actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
-    )
-    assert messages(config)[0].startswith("numpy.ndarrays are different:")
-
-
-@numpy_available
-@pytest.mark.parametrize("example", NUMPY_ARRAY_EQUAL_TOLERANCE)
-def test_numpy_array_equal_handler_handle_true_tolerance(
-    example: ExamplePair, config: EqualityConfig
-) -> None:
-    config.atol = example.atol
-    config.rtol = example.rtol
-    assert NumpyArrayEqualHandler().handle(
-        actual=example.actual, expected=example.expected, config=config
-    )
-
-
-def test_numpy_array_equal_handle_set_next_handler() -> None:
-    handler = NumpyArrayEqualHandler()
-    handler.set_next_handler(FalseHandler())
-    assert handler.next_handler.equal(FalseHandler())
-
-
-def test_numpy_array_equal_handle_set_next_handler_none() -> None:
-    handler = NumpyArrayEqualHandler()
-    handler.set_next_handler(None)
-    assert handler.next_handler is None
-
-
-def test_numpy_array_equal_handle_set_next_handler_incorrect() -> None:
-    handler = NumpyArrayEqualHandler()
-    with pytest.raises(TypeError, match=r"Incorrect type for 'handler'."):
-        handler.set_next_handler(42)
 
 
 #################################
@@ -347,41 +172,6 @@ def test_array_equal_equal_nan_datetime_dtype(config: EqualityConfig) -> None:
 
 
 @numpy_available
-def test_array_equal_object_dtype_equal_nan() -> None:
-    array1 = np.array([float("nan")], dtype=object)
-    array2 = np.array([float("nan")], dtype=object)
-    assert array_equal(array1, array2, EqualityConfig(equal_nan=True))
-
-
-@numpy_available
-def test_array_equal_object_dtype_not_equal_nan() -> None:
-    array1 = np.array([float("nan")], dtype=object)
-    array2 = np.array([float("nan")], dtype=object)
-    assert not array_equal(array1, array2, EqualityConfig(equal_nan=False))
-
-
-def _object_array(second: np.ndarray) -> np.ndarray:
-    array = np.empty(2, dtype=object)
-    array[0], array[1] = np.ones(2), second
-    return array
-
-
-@numpy_available
-def test_array_equal_object_dtype_nested_arrays() -> None:
-    assert array_equal(_object_array(np.zeros(3)), _object_array(np.zeros(3)), EqualityConfig())
-
-
-@numpy_available
-def test_array_equal_object_dtype_nested_arrays_different() -> None:
-    assert not array_equal(_object_array(np.zeros(3)), _object_array(np.ones(3)), EqualityConfig())
-
-
-@numpy_available
-def test_array_equal_object_dtype_different_shape(config: EqualityConfig) -> None:
-    assert not array_equal(np.array([1, 2], dtype=object), np.array([[1, 2]], dtype=object), config)
-
-
-@numpy_available
 def test_array_equal_rtol_scales_with_the_second_array() -> None:
     config = EqualityConfig(rtol=0.01, atol=0.0)
     assert array_equal(np.array([100.0]), np.array([101.005]), config)
@@ -462,56 +252,6 @@ def test_array_equal_complex_with_tolerance() -> None:
 @numpy_available
 def test_array_equal_different_shape_with_tolerance() -> None:
     assert not array_equal(np.ones(2), np.ones(3), EqualityConfig(atol=1.0))
-
-
-################################################
-#     Tests for NumpyTimeScalarEqualHandler    #
-################################################
-
-
-@numpy_available
-def test_numpy_time_scalar_equal_handler_repr() -> None:
-    assert repr(NumpyTimeScalarEqualHandler()).startswith("NumpyTimeScalarEqualHandler(")
-
-
-@numpy_available
-def test_numpy_time_scalar_equal_handler_equal_true(config: EqualityConfig) -> None:
-    assert NumpyTimeScalarEqualHandler().handle(
-        np.timedelta64(1, "s"), np.timedelta64(1, "s"), config
-    )
-
-
-@numpy_available
-def test_numpy_time_scalar_equal_handler_equal_false(config: EqualityConfig) -> None:
-    assert not NumpyTimeScalarEqualHandler().handle(
-        np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
-    )
-
-
-@numpy_available
-def test_numpy_time_scalar_equal_handler_equal_false_explaining(
-    config: EqualityConfig,
-) -> None:
-    config.reports = []
-    assert not NumpyTimeScalarEqualHandler().handle(
-        np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
-    )
-    assert messages(config)[0].startswith("numpy time scalars are different")
-
-
-@numpy_available
-def test_numpy_time_scalar_equal_handler_equal_false_no_report(config: EqualityConfig) -> None:
-    assert not NumpyTimeScalarEqualHandler().handle(
-        np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
-    )
-    assert not messages(config)
-
-
-@numpy_available
-def test_numpy_time_scalar_equal_handler_set_next_handler() -> None:
-    handler = NumpyTimeScalarEqualHandler()
-    handler.set_next_handler(FalseHandler())
-    assert handler.next_handler.equal(FalseHandler())
 
 
 ###################################
@@ -668,3 +408,57 @@ def test_array_equal_bool_has_no_rtol() -> None:
 @numpy_available
 def test_array_equal_bool_equal_with_tolerance() -> None:
     assert array_equal(np.array([True, False]), np.array([True, False]), EqualityConfig(atol=1.0))
+
+
+@numpy_available
+def test_array_close_exact() -> None:
+    assert array_close(np.array([1.0, 2.0]), np.array([1.0, 3.0]), EqualityConfig()).tolist() == [
+        True,
+        False,
+    ]
+
+
+@numpy_available
+def test_array_close_nan_without_equal_nan() -> None:
+    array = np.array([float("nan")])
+    assert array_close(array, array.copy(), EqualityConfig()).tolist() == [False]
+
+
+@numpy_available
+def test_array_close_nan_with_equal_nan() -> None:
+    array = np.array([float("nan")])
+    assert array_close(array, array.copy(), EqualityConfig(equal_nan=True)).tolist() == [True]
+
+
+@numpy_available
+def test_array_close_nat_with_equal_nan() -> None:
+    array = np.array(["NaT"], dtype="M8[s]")
+    assert array_close(array, array.copy(), EqualityConfig(equal_nan=True)).tolist() == [True]
+
+
+@numpy_available
+def test_array_close_strings_with_equal_nan() -> None:
+    assert array_close(
+        np.array(["a", "b"]), np.array(["a", "c"]), EqualityConfig(equal_nan=True)
+    ).tolist() == [True, False]
+
+
+@numpy_available
+def test_array_close_with_tolerance() -> None:
+    assert array_close(
+        np.array([1.0, 2.0]), np.array([1.05, 3.0]), EqualityConfig(atol=0.1)
+    ).tolist() == [True, False]
+
+
+@numpy_available
+def test_array_close_durations_with_tolerance() -> None:
+    assert array_close(
+        np.array([1, 2], dtype="m8[s]"), np.array([1, 9], dtype="m8[s]"), EqualityConfig(atol=1.0)
+    ).tolist() == [True, False]
+
+
+@numpy_available
+def test_array_close_booleans_have_no_tolerance() -> None:
+    assert array_close(
+        np.array([True, False]), np.array([False, False]), EqualityConfig(atol=1.0)
+    ).tolist() == [False, True]

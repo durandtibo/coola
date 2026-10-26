@@ -174,7 +174,7 @@ def test_scalar_equality_tester_objects_are_equal_false_explaining_reports(
     config.reports = []
     tester = ScalarEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @pytest.mark.parametrize("equal_nan", [False, True])

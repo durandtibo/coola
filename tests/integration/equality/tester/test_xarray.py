@@ -12,7 +12,7 @@ from coola.equality.tester import (
 )
 from coola.testing.fixtures import xarray_available, xarray_not_available
 from coola.utils.imports import MissingPackageError, is_numpy_available, is_xarray_available
-from tests.unit.equality.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair, run_tester
 
 if is_numpy_available():
     import numpy as np
@@ -278,8 +278,11 @@ XARRAY_VARIABLE_EQUAL_TOLERANCE = [
 
 @xarray_available
 def test_xarray_data_array_equality_tester_with_xarray(config: EqualityConfig) -> None:
-    assert XarrayDataArrayEqualityTester().objects_are_equal(
-        xr.DataArray(np.arange(6)), xr.DataArray(np.arange(6)), config=config
+    assert run_tester(
+        XarrayDataArrayEqualityTester(),
+        xr.DataArray(np.arange(6)),
+        xr.DataArray(np.arange(6)),
+        config,
     )
 
 
@@ -298,10 +301,11 @@ def test_xarray_data_array_equality_tester_without_xarray() -> None:
 
 @xarray_available
 def test_xarray_dataset_equality_tester_with_xarray(config: EqualityConfig) -> None:
-    assert XarrayDatasetEqualityTester().objects_are_equal(
+    assert run_tester(
+        XarrayDatasetEqualityTester(),
         xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6))}),
         xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6))}),
-        config=config,
+        config,
     )
 
 
@@ -320,10 +324,11 @@ def test_xarray_dataset_equality_tester_without_xarray() -> None:
 
 @xarray_available
 def test_xarray_variable_equality_tester_with_xarray(config: EqualityConfig) -> None:
-    assert XarrayVariableEqualityTester().objects_are_equal(
+    assert run_tester(
+        XarrayVariableEqualityTester(),
         xr.Variable(dims=["z"], data=np.arange(6)),
         xr.Variable(dims=["z"], data=np.arange(6)),
-        config=config,
+        config,
     )
 
 

@@ -6,6 +6,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.tester import JaxArrayEqualityTester
 from coola.testing.fixtures import jax_available, jax_not_available
 from coola.utils.imports import MissingPackageError, is_jax_available
+from tests.unit.equality.utils import run_tester
 
 if is_jax_available():
     import jax.numpy as jnp
@@ -18,9 +19,7 @@ def config() -> EqualityConfig:
 
 @jax_available
 def test_jax_array_equality_tester_with_jax(config: EqualityConfig) -> None:
-    assert JaxArrayEqualityTester().objects_are_equal(
-        jnp.ones((2, 3)), jnp.ones((2, 3)), config=config
-    )
+    assert run_tester(JaxArrayEqualityTester(), jnp.ones((2, 3)), jnp.ones((2, 3)), config)
 
 
 @jax_not_available

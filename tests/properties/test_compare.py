@@ -11,6 +11,7 @@ import pytest
 from hypothesis import assume, given, strategies as st
 
 from coola.equality import (
+    Element,
     assert_objects_allclose,
     assert_objects_equal,
     compare,
@@ -153,7 +154,10 @@ def test_message_contains_the_path(data: Any, other: Any) -> None:
 def test_path_contains_the_representation_of_every_key(data: Any, other: Any) -> None:
     result = compare(data, other)
     assume(not result.equal)
-    assert all(repr(key) in result.format_path("actual") for key in result.path)
+    assert all(
+        repr(key.value if isinstance(key, Element) else key) in result.format_path("actual")
+        for key in result.path
+    )
 
 
 @given(data=small_values, other=small_values)

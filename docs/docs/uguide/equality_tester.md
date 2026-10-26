@@ -215,27 +215,29 @@ Handles NumPy arrays:
 ```pycon
 >>> import numpy as np
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import NumpyArrayEqualityTester
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import get_default_registry, NumpyArrayEqualityTester
 >>> config = EqualityConfig()
+>>> engine = Engine(get_default_registry(), config)
 >>> tester = NumpyArrayEqualityTester()
 >>> tester.objects_are_equal(
 ...     np.array([1, 2, 3]),
 ...     np.array([1, 2, 3]),
-...     config,
+...     engine,
 ... )
 True
 >>> tester.objects_are_equal(
 ...     np.array([1, 2, 3]),
 ...     np.array([1, 2, 4]),
-...     config,
+...     engine,
 ... )
 False
 >>> # With tolerance
->>> config_tol = EqualityConfig(atol=0.01)
+>>> engine_tol = Engine(get_default_registry(), EqualityConfig(atol=0.01))
 >>> tester.objects_are_equal(
 ...     np.array([1.0, 2.0, 3.0]),
 ...     np.array([1.0, 2.0, 3.001]),
-...     config_tol,
+...     engine_tol,
 ... )
 True
 
@@ -248,12 +250,14 @@ Handles NumPy masked arrays:
 ```pycon
 >>> import numpy as np
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import NumpyMaskedArrayEqualityTester
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import get_default_registry, NumpyMaskedArrayEqualityTester
 >>> config = EqualityConfig()
+>>> engine = Engine(get_default_registry(), config)
 >>> tester = NumpyMaskedArrayEqualityTester()
 >>> arr1 = np.ma.array([1, 2, 3], mask=[0, 0, 1])
 >>> arr2 = np.ma.array([1, 2, 99], mask=[0, 0, 1])  # Masked value differs
->>> tester.objects_are_equal(arr1, arr2, config)
+>>> engine.run(arr1, arr2)
 False
 
 ```
@@ -267,21 +271,23 @@ Handles PyTorch tensors:
 ```pycon
 >>> import torch
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import TorchTensorEqualityTester
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import get_default_registry, TorchTensorEqualityTester
 >>> config = EqualityConfig()
+>>> engine = Engine(get_default_registry(), config)
 >>> tester = TorchTensorEqualityTester()
 >>> tester.objects_are_equal(
 ...     torch.tensor([1, 2, 3]),
 ...     torch.tensor([1, 2, 3]),
-...     config,
+...     engine,
 ... )
 True
 >>> # With tolerance
->>> config_tol = EqualityConfig(atol=0.01)
+>>> engine_tol = Engine(get_default_registry(), EqualityConfig(atol=0.01))
 >>> tester.objects_are_equal(
 ...     torch.tensor([1.0, 2.0, 3.0]),
 ...     torch.tensor([1.0, 2.0, 3.001]),
-...     config_tol,
+...     engine_tol,
 ... )
 True
 
@@ -295,8 +301,10 @@ Handles PyTorch PackedSequence objects:
 >>> import torch
 >>> from torch.nn.utils.rnn import pack_padded_sequence
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import TorchPackedSequenceEqualityTester
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import get_default_registry, TorchPackedSequenceEqualityTester
 >>> config = EqualityConfig()
+>>> engine = Engine(get_default_registry(), config)
 >>> tester = TorchPackedSequenceEqualityTester()
 >>> ps1 = pack_padded_sequence(
 ...     torch.arange(10).view(2, 5).float(),
@@ -308,7 +316,7 @@ Handles PyTorch PackedSequence objects:
 ...     torch.tensor([5, 3], dtype=torch.long),
 ...     batch_first=True,
 ... )
->>> tester.objects_are_equal(ps1, ps2, config)
+>>> engine.run(ps1, ps2)
 True
 
 ```

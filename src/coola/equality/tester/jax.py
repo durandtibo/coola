@@ -10,15 +10,10 @@ __all__ = ["JaxArrayEqualityTester"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler import (
-    JaxArrayEqualHandler,
-    SameDTypeHandler,
-    SameObjectHandler,
-    SameShapeHandler,
-    SameTypeHandler,
-    create_chain,
-)
-from coola.equality.tester.chain import BaseChainEqualityTester
+from coola.equality.handler.format import format_value_difference
+from coola.equality.handler.jax import array_close, array_equal
+from coola.equality.tester._array import check_dtype_and_shape
+from coola.equality.tester.base import BaseEngineEqualityTester
 from coola.utils.imports import check_jax, is_jax_available
 
 if TYPE_CHECKING or is_jax_available():
@@ -28,51 +23,54 @@ else:  # pragma: no cover
 
 
 if TYPE_CHECKING:
-    from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.engine import Engine
     from coola.equality.tester.base import BaseEqualityTester
 
 
-class JaxArrayEqualityTester(BaseChainEqualityTester[jnp.ndarray]):
+class JaxArrayEqualityTester(BaseEngineEqualityTester[jnp.ndarray]):
     r"""Implement an equality tester for ``jax.numpy.ndarray``.
 
-    This tester compares JAX arrays element-wise with support for NaN equality
-    and tolerance-based comparisons. The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are JAX arrays
-    3. SameDTypeHandler: Check arrays have the same dtype
-    4. SameShapeHandler: Verify arrays have the same shape
-    5. JaxArrayEqualHandler: Element-wise comparison with tolerance support
-
-    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
-    for floating-point tolerance.
+    Two arrays are equal if they have the same data type, the same
+    shape and equal elements. The numbers are compared with the
+    tolerance and ``equal_nan`` of the comparison, and a boolean array
+    is exact. The location of a difference is the index of the first
+    element that differs. Without 64-bit mode, JAX has no ``float64``:
+    the tolerance is computed in the widest dtype JAX has.
 
     Example:
-        Basic array comparison:
-
         ```pycon
         >>> import jax.numpy as jnp
+        >>> from coola.equality import compare
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import JaxArrayEqualityTester
-        >>> config = EqualityConfig()
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import JaxArrayEqualityTester, get_default_registry
+        >>> engine = Engine(get_default_registry(), EqualityConfig())
         >>> tester = JaxArrayEqualityTester()
-        >>> tester.objects_are_equal(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
+        >>> tester.objects_are_equal(jnp.ones((2, 3)), jnp.ones((2, 3)), engine)
         True
-        >>> tester.objects_are_equal(jnp.ones((2, 3)), jnp.zeros((2, 3)), config)
+        >>> tester.objects_are_equal(jnp.ones((2, 3)), jnp.zeros((2, 3)), engine)
         False
+        >>> compare(jnp.ones((2, 3)), jnp.zeros((2, 3))).path
+        (0, 0)
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
+    def __init__(self) -> None:
         check_jax()
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(
-            SameObjectHandler(),
-            SameTypeHandler(),
-            SameDTypeHandler(),
-            SameShapeHandler(),
-            JaxArrayEqualHandler(),
+    def objects_are_equal(self, actual: jnp.ndarray, expected: jnp.ndarray, ctx: Engine) -> bool:
+        failure = check_dtype_and_shape(actual, expected, ctx)
+        if failure is not None:
+            return failure
+        if array_equal(actual, expected, ctx.config):
+            return True
+        if not ctx.explaining:
+            return False
+        # The index is looked up only when the difference is explained.
+        index = tuple(int(i) for i in jnp.argwhere(~array_close(actual, expected, ctx.config))[0])
+        return ctx.fail(
+            lambda: format_value_difference(actual[index], expected[index], name="values"), *index
         )
 
 

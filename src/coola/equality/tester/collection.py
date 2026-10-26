@@ -48,12 +48,9 @@ class MappingEqualityTester(BaseEngineEqualityTester["Mapping[Any, Any]"]):
         ```pycon
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
-        >>> from coola.equality.tester import MappingEqualityTester, get_default_registry
+        >>> from coola.equality.tester import get_default_registry
         >>> registry = get_default_registry()
-        >>> tester = MappingEqualityTester()
         >>> engine = Engine(registry, EqualityConfig())
-        >>> tester.objects_are_equal({"a": 1}, {"a": 1}, engine)  # doctest: +ELLIPSIS
-        <generator object ...>
         >>> engine.run({"a": 1, "b": 2}, {"a": 1, "b": 2})
         True
         >>> engine.run({"a": 1, "b": 2}, {"a": 1, "b": 4})

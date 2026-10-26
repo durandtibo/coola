@@ -59,8 +59,12 @@ class PointTester(BaseEngineEqualityTester[Point]):
         return ((actual.coords, expected.coords, AttributeName("coords")),)
 ```
 
-The testers of the optional libraries are still chain testers (see below) that receive the
-`EqualityConfig`. They are called by the engine as leaves until they are ported.
+The testers of NumPy, PyTorch, JAX and xarray use the engine too: an array tester checks the data
+type and the shape (and the device for a tensor), then compares the elements with the shared kernel;
+the location of a difference is the index of the first element that differs, looked up only when the
+difference is explained. The testers of pandas, polars and PyArrow are still chain testers (see
+below) that receive the `EqualityConfig`. They are called by the engine as leaves until they are
+ported.
 
 #### Built-in Testers
 
@@ -129,10 +133,8 @@ Handlers (`coola.equality.handler`) are small reusable checks that are chained t
 next handler in the chain. Examples:
 
 - **`SameObjectHandler`**, **`SameTypeHandler`**, **`SameLengthHandler`**: Generic checks
-- **`SameDTypeHandler`**, **`SameShapeHandler`**: Metadata checks
-- **`TorchTensorSameDeviceHandler`**: Compares PyTorch device placement
 - **`ObjectEqualHandler`**, **`AllCloseNanHandler`**: Value checks
-- Library-specific handlers such as `NumpyArrayEqualHandler` or `PandasDataFrameEqualHandler`
+- Library-specific handlers such as `PandasDataFrameEqualHandler`
 
 `create_chain(*handlers)` links handlers and returns the first one. A `HandlerEqualityTester`
 turns a chain into a tester. Handlers promote code reuse and consistency across testers.

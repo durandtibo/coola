@@ -118,14 +118,15 @@ class BaseEqualityTester(ABC, Generic[T]):
 
         Example:
             ```pycon
-            >>> from coola.equality.config import EqualityConfig
-            >>> from coola.equality.tester import NumpyArrayEqualityTester
             >>> import numpy as np
-            >>> config = EqualityConfig()
+            >>> from coola.equality.config import EqualityConfig
+            >>> from coola.equality.engine import Engine
+            >>> from coola.equality.tester import NumpyArrayEqualityTester, get_default_registry
+            >>> engine = Engine(get_default_registry(), EqualityConfig())
             >>> tester = NumpyArrayEqualityTester()
-            >>> tester.objects_are_equal(np.ones(2), np.ones(2), config)
+            >>> tester.objects_are_equal(np.ones(2), np.ones(2), engine)
             True
-            >>> tester.objects_are_equal(np.ones(2), np.zeros(2), config)
+            >>> tester.objects_are_equal(np.ones(2), np.zeros(2), engine)
             False
 
             ```
