@@ -37,11 +37,11 @@ def dfs_iterate(data: object, *, registry: IteratorRegistry | None = None) -> It
     traversing all levels of nested structures. It uses the appropriate iterators registered
     for the data types (e.g., lists, dictionaries, etc.).
 
-    The traversal is recursive: each nesting level uses a few Python frames, so a very deep
-    structure (a few hundred levels) reaches the interpreter recursion limit and raises a
-    ``RecursionError`` that explains how to fix it. ``bfs_iterate`` is iterative and has no such limit. The recursion is
-    the contract of the iterators (they visit the children with ``registry.iterate``), which
-    lets a custom iterator choose the order of its children.
+    The traversal is recursive: each nesting level uses a few Python frames, so a structure
+    nested about a thousand levels deep reaches the interpreter recursion limit and raises a
+    ``RecursionError`` that explains how to fix it. ``bfs_iterate`` is iterative and has no such
+    limit. The recursion is the contract of the iterators (they visit the children with
+    ``registry.iterate``), which lets a custom iterator choose the order of its children.
 
     The ``registry`` option must be passed by keyword. Passing it as a positional argument is
     deprecated and emits a ``DeprecationWarning``.

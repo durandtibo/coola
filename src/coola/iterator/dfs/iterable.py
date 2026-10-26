@@ -31,9 +31,9 @@ class IterableIterator(InlineDisplayMixin, BaseIterator[Iterable[Any]]):
         >>> # Iterating over a simple list
         >>> list(iterator.iterate([1, 2, 3], registry))
         [1, 2, 3]
-        >>> # Iterating over a string (iterable of characters)
-        >>> list(iterator.iterate("hello", registry))
-        ['h', 'e', 'l', 'l', 'o']
+        >>> # A registry that only knows list and object: a str is not a container
+        >>> list(iterator.iterate(["ab", 1], registry))
+        ['ab', 1]
         >>> # Iterating over nested iterables (lists within lists)
         >>> list(iterator.iterate([[1, 2, 3], [4, 5, 6]], registry))
         [1, 2, 3, 4, 5, 6]
