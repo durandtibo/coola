@@ -13,9 +13,10 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 T_contra = TypeVar("T_contra", contravariant=True)
 
+# The children of a container and the function that rebuilds the
+# container from the transformed children.
 Expansion = tuple["Sequence[Any]", "Callable[[list[Any]], Any]"]
-r"""The children of a container and the function that rebuilds the
-container from the transformed children."""
+
 
 class Transformer(Protocol[T_contra]):
     r"""Structural interface of a type-specific transformer.
