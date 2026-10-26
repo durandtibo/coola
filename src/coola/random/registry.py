@@ -11,262 +11,93 @@ from __future__ import annotations
 
 __all__ = ["RandomManagerRegistry"]
 
-import copy
-import logging
-from typing import TYPE_CHECKING, Any, Self
+from typing import Any
 
-from coola.display import MultilineDisplayMixin
 from coola.random.base import BaseRandomManager
 from coola.random.seed import validate_seed
 from coola.registry import Registry
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
 
-logger: logging.Logger = logging.getLogger(__name__)
+class RandomManagerRegistry(Registry[str, BaseRandomManager], BaseRandomManager):
+    r"""Implement a registry of random managers that is a manager.
 
+    The registry maps string keys to random managers, in registration
+    order. It has the API of ``coola.registry.Registry`` (``register``,
+    ``register_many``, ``unregister``, ``copy``, ``in``, ``[]``, ...)
+    and it is a ``BaseRandomManager``, so it seeds, saves and restores
+    the state of all its managers, and a registry can be registered in
+    another registry.
 
-class RandomManagerRegistry(MultilineDisplayMixin, BaseRandomManager):
-    """Registry that manages random number generator managers.
-
-    This registry maintains a mapping from string keys to random manager instances,
-    enabling centralized control of random number generator states across multiple
-    libraries. It provides methods to seed all managers, get and set their states,
-    and check for registered managers.
+    The state of the registry is a ``dict`` that maps each key to the
+    state of its manager.
 
     Args:
-        initial_state: Optional initial mapping of string keys to managers.
-            If provided, the state is copied to prevent external mutations.
-
-    Attributes:
-        _state: Internal registry mapping keys to random managers
+        initial_state: Optional initial mapping of string keys to
+            managers. The mapping is copied.
 
     Example:
-        Basic usage with a random manager:
-
         ```pycon
         >>> from coola.random import RandomManagerRegistry, RandomRandomManager
         >>> registry = RandomManagerRegistry({"random": RandomRandomManager()})
         >>> registry
         RandomManagerRegistry(
-          (state): Registry(
-              (random): RandomRandomManager()
-            )
+          (random): RandomRandomManager()
         )
         >>> registry.manual_seed(42)
 
         ```
     """
 
-    def __init__(self, initial_state: dict[str, BaseRandomManager] | None = None) -> None:
-        self._state: Registry[str, BaseRandomManager] = Registry[str, BaseRandomManager](
-            initial_state
-        )
-
-    def _display_fields(self) -> dict[str, Any]:
-        return {"state": self._state}
-
-    def copy(self) -> Self:
-        """Create a copy of the registry.
-
-        The copy has the same managers as the registry, and is
-        independent from it: registering a manager in one registry does
-        not change the other. The managers are not copied.
-
-        Returns:
-            A new registry of the same class.
-
-        Example:
-            ```pycon
-            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
-            >>> registry = RandomManagerRegistry({"random": RandomRandomManager()})
-            >>> other = registry.copy()
-            >>> other.register("other", RandomRandomManager())
-            >>> registry.has_manager("other")
-            False
-
-            ```
-        """
-        new = copy.copy(self)
-        new._state = self._state.copy()
-        return new
-
-    def register(
-        self,
-        key: str,
-        manager: BaseRandomManager,
-        exist_ok: bool = False,
-    ) -> None:
-        """Register a random manager with a given key.
-
-        This method associates a manager instance with a specific string key.
-        The manager will be used to control the random number generator state
-        for its corresponding library.
-
-        Args:
-            key: The string key to register (e.g., "random", "torch", "numpy")
-            manager: The random manager instance that handles RNG state
-            exist_ok: If False (default), raises an error if the key is already
-                registered. If True, overwrites the existing registration silently.
-
-        Raises:
-            AlreadyRegisteredError: If the key is already registered and exist_ok is False
-
-        Example:
-            ```pycon
-            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
-            >>> registry = RandomManagerRegistry()
-            >>> registry.register("random", RandomRandomManager())
-            >>> registry.has_manager("random")
-            True
-
-            ```
-        """
-        self._state.register(key, manager, exist_ok=exist_ok)
-
-    def register_many(
-        self,
-        mapping: Mapping[str, BaseRandomManager],
-        exist_ok: bool = False,
-    ) -> None:
-        """Register multiple random managers at once.
-
-        This is a convenience method for bulk registration that internally calls
-        register() for each key-manager pair.
-
-        Args:
-            mapping: Dictionary mapping string keys to random manager instances
-            exist_ok: If False (default), raises an error if any key is already
-                registered. If True, overwrites existing registrations silently.
-
-        Raises:
-            AlreadyRegisteredError: If any key is already registered and exist_ok is False
-
-        Example:
-            ```pycon
-            >>> from coola.random import (
-            ...     RandomManagerRegistry,
-            ...     RandomRandomManager,
-            ...     TorchRandomManager,
-            ... )
-            >>> registry = RandomManagerRegistry()
-            >>> registry.register_many(
-            ...     {
-            ...         "random": RandomRandomManager(),
-            ...         "torch": TorchRandomManager(),
-            ...     }
-            ... )
-            >>> registry
-            RandomManagerRegistry(
-              (state): Registry(
-                  (random): RandomRandomManager()
-                  (torch): TorchRandomManager()
-                )
-            )
-
-            ```
-        """
-        self._state.register_many(mapping, exist_ok=exist_ok)
-
-    def has_manager(self, key: str) -> bool:
-        """Check if a random manager is registered for the given key.
-
-        Args:
-            key: The string key to check
-
-        Returns:
-            True if a manager is registered for this key, False otherwise
-
-        Example:
-            ```pycon
-            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
-            >>> registry = RandomManagerRegistry()
-            >>> registry.register("random", RandomRandomManager())
-            >>> registry.has_manager("random")
-            True
-            >>> registry.has_manager("torch")
-            False
-
-            ```
-        """
-        return key in self._state
-
-    def find_manager(self, key: str) -> BaseRandomManager:
-        """Find the random manager registered for the given key.
-
-        Args:
-            key: The string key of the manager.
-
-        Returns:
-            The random manager registered for ``key``.
-
-        Raises:
-            KeyNotRegisteredError: If no manager is registered for ``key``.
-
-        Example:
-            ```pycon
-            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
-            >>> registry = RandomManagerRegistry()
-            >>> registry.register("random", RandomRandomManager())
-            >>> registry.find_manager("random")
-            RandomRandomManager()
-
-            ```
-        """
-        return self._state[key]
-
-    def unregister(self, key: str) -> BaseRandomManager:
-        """Unregister the random manager of the given key.
-
-        The state of the removed manager is no longer saved, restored
-        or seeded by the registry.
-
-        Args:
-            key: The string key of the manager.
-
-        Returns:
-            The random manager that was registered for ``key``.
-
-        Raises:
-            KeyNotRegisteredError: If no manager is registered for ``key``.
-
-        Example:
-            ```pycon
-            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
-            >>> registry = RandomManagerRegistry()
-            >>> registry.register("random", RandomRandomManager())
-            >>> registry.unregister("random")
-            RandomRandomManager()
-            >>> registry.has_manager("random")
-            False
-
-            ```
-        """
-        return self._state.unregister(key)
-
     def get_rng_state(self) -> dict[str, Any]:
-        return {key: value.get_rng_state() for key, value in self._state.items()}
+        return {key: manager.get_rng_state() for key, manager in self.items()}
 
     def manual_seed(self, seed: int) -> None:
         # Validate once before seeding, so a seed rejected by one backend
         # does not leave the others half-seeded.
         validate_seed(seed)
-        for value in self._state.values():
-            value.manual_seed(seed)
+        for manager in self.values():
+            manager.manual_seed(seed)
 
     def set_rng_state(self, state: dict[str, Any]) -> None:
-        missing = sorted(key for key in self._state if key not in state)
-        if missing:
-            logger.warning(
-                "No RNG state for the registered key(s) %s; their state is not restored",
-                missing,
+        r"""Set the RNG state of all the managers.
+
+        The keys of the state must be the registered keys. All the
+        managers are restored before an error is raised.
+
+        Args:
+            state: The state to restore, as returned by
+                ``get_rng_state``.
+
+        Raises:
+            ValueError: If the keys of the state differ from the
+                registered keys. Nothing is restored.
+            Exception: If one manager fails to restore its state, the
+                error of this manager is raised. If several managers
+                fail, an ``ExceptionGroup`` is raised.
+
+        Example:
+            ```pycon
+            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
+            >>> registry = RandomManagerRegistry({"random": RandomRandomManager()})
+            >>> state = registry.get_rng_state()
+            >>> registry.set_rng_state(state)
+
+            ```
+        """
+        if set(state) != set(self.keys()):
+            msg = (
+                f"The state has the keys {sorted(state)} but the registered keys are "
+                f"{sorted(self.keys())}"
             )
-        for key, value in state.items():
-            if key not in self._state:
-                logger.warning(
-                    "Ignoring RNG state for unregistered key %r; registered keys are %s",
-                    key,
-                    sorted(self._state.keys()),
-                )
-                continue
-            self._state[key].set_rng_state(value)
+            raise ValueError(msg)
+        errors: list[Exception] = []
+        for key, manager in self.items():
+            try:
+                manager.set_rng_state(state[key])
+            except Exception as exc:  # noqa: BLE001  restore the other managers first
+                errors.append(exc)
+        if len(errors) == 1:
+            raise errors[0]
+        if errors:
+            msg = "Failed to restore the RNG state"
+            raise ExceptionGroup(msg, errors)
