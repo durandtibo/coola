@@ -10,6 +10,9 @@ the cause). Its aim is a small package that is easy to maintain: **one way to im
 way to call it, one way to ask what it builds**. Breaking changes are accepted, and the future state
 is more important than the past one.
 
+**Status: the nine decisions of section 9 are settled** (D1 to D9, all as recommended). The design
+below is the one to implement; section 9 records why, and what each decision costs.
+
 Evidence comes from probes run on `main` (Python 3.14, scripts kept outside the repository) and from
 a throw-away prototype of the target modules. Items marked **[verified]** were reproduced;
 **[reading]** comes from the code. Nothing in `src`, `tests` or `docs` was changed.
@@ -36,23 +39,23 @@ These are the rules of the user guide (the five rows of its **Properties** table
 design choice below exists to make one of them true **by construction** (in one function) instead of
 by the discipline of each entry point.
 
-| Property                                    | Statement                                                                                                                                                                                                                             | Enforced by                       |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| Explicit target                             | The object to import or call is named only by the `_target_` string (`package.module.Name`). Every other key is an argument, passed unchanged, by keyword. The reserved keys are `_target_`, `_init_` and `_allowed_prefixes_`.       | `factory`, `resolve_object`       |
-| No collision                                | No name of a parameter of the API can shadow an argument of the target: the target receives every key that is not reserved, whatever its name (`obj`, `cls`, `config`, ...).                                                          | positional-only parameters        |
-| Top level only                              | `_target_` is resolved once per call, at the top level. A nested dictionary is data and is passed unchanged. There is no recursion and no hidden import.                                                                              | `resolve_object`                  |
-| Import once, call once                      | The target is imported once per call and called once. Nothing else is imported or called, in particular nothing that the checks need.                                                                                                 | `import_object`, `resolve_object` |
-| Fails loudly                                | A target that does not exist raises `ImportError` with one message, whichever entry point is used. A wrong type raises `TypeError`. A default is never substituted for a missing object, and an exception of the target propagates.   | `import_object`                   |
-| Check before call                           | When `cls` is given, a target that is known not to build a `cls` (a class that is not a subclass, a function whose return hint is not a subclass) is refused **before** it is called. The result is checked again after the call.     | `builds`, `resolve_object`        |
-| Strict mode                                 | With `strict=True` a target whose result type cannot be known beforehand (no usable return hint, a built-in) is refused before it is called.                                                                                          | `builds`, `resolve_object`        |
-| Opt-in restriction                          | `allowed_prefixes` is checked against the string **before** the module is imported. An empty list allows nothing; a bare string is one prefix. Without it, any importable object can be called.                                       | `import_object`                   |
-| Policy comes from code                      | The allow-list is an argument of the caller. A key of the configuration cannot set, widen or narrow it (`resolve_object` ignores `_allowed_prefixes_`; `factory` takes it as a keyword, never from the data it receives).             | `resolve_object`                  |
-| No nested configuration under an allow-list | With `allowed_prefixes`, an argument that is itself a configuration (a dict with `_target_`) is refused: the callee could resolve it without the allow-list. Resolve it first, with the same list.                                    | `factory`, `resolve_object`       |
-| Public constructors only                    | `_init_` is `"__init__"` (default) or the name of a public class method or static method that returns an instance of the class. A name that starts with `_` is refused. The data cannot reach `__new__`, `__subclasses__`, ...        | `instantiate_object`              |
-| Predicates do not import                    | `is_object_config` imports nothing by default: a target whose module is not imported is not a configuration. `allowed_prefixes` or `import_target=True` opt in. A malformed configuration is `False`, a violation of the list raises. | `is_object_config`                |
-| Pure, stateless                             | The configuration is never modified. No global state: the functions can be called from any thread, and after a `fork`, with no lock.                                                                                                  | the functions are free of state   |
-| Lazy                                        | Nothing is imported at import time except the standard library; a target is imported when it is named.                                                                                                                                | `import_object`                   |
-| Keyword-only options                        | `allowed_prefixes`, `import_target`, `strict`, `_init_` and `_allowed_prefixes_` are keyword-only.                                                                                                                                    | the signatures                    |
+| Property                                    | Statement                                                                                                                                                                                                                                                                                                                                                                                  | Enforced by                       |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- |
+| Explicit target                             | The object to import or call is named only by the `_target_` string (`package.module.Name`). Every other key is an argument, passed unchanged, by keyword. The reserved keys are `_target_`, `_init_` and `_allowed_prefixes_`.                                                                                                                                                            | `factory`, `resolve_object`       |
+| No collision                                | No name of a parameter of the API can shadow an argument of the target: the target receives every key that is not reserved, whatever its name (`obj`, `cls`, `config`, ...).                                                                                                                                                                                                               | positional-only parameters        |
+| Top level only                              | `_target_` is resolved once per call, at the top level. A nested dictionary is data and is passed unchanged. There is no recursion and no hidden import.                                                                                                                                                                                                                                   | `resolve_object`                  |
+| Import once, call once                      | The target is imported once per call and called once. Nothing else is imported or called, in particular nothing that the checks need.                                                                                                                                                                                                                                                      | `import_object`, `resolve_object` |
+| Fails loudly                                | A target that does not exist raises `ImportError` with one message, whichever entry point is used. A wrong type raises `TypeError`. A default is never substituted for a missing object, and an exception of the target propagates.                                                                                                                                                        | `import_object`                   |
+| Check before call                           | When `cls` is given, a target that is known not to build a `cls` (a class that is not a subclass, a function whose return hint is not a subclass) is refused **before** it is called. The result is checked again after the call.                                                                                                                                                          | `builds`, `resolve_object`        |
+| Strict mode                                 | With `strict=True` a target whose result type cannot be known beforehand (no usable return hint, a built-in) is refused before it is called.                                                                                                                                                                                                                                               | `builds`, `resolve_object`        |
+| Opt-in restriction                          | `allowed_prefixes` is checked against the string **before** the module is imported. An empty list allows nothing; a bare string is one prefix. Without it, any importable object can be called.                                                                                                                                                                                            | `import_object`                   |
+| Policy comes from code                      | The allow-list is an argument of the caller. `resolve_object`, the API that receives configurations, ignores the key `_allowed_prefixes_`, so the data cannot set, widen or narrow the list. `factory` has the list as a keyword for code that unpacks its own arguments (`factory(**args, _allowed_prefixes_=...)`); whoever unpacks untrusted data into `factory` owns that choice (D3). | `resolve_object`                  |
+| No nested configuration under an allow-list | With `allowed_prefixes`, an argument that is itself a configuration (a dict with `_target_`) is refused: the callee could resolve it without the allow-list. Resolve it first, with the same list.                                                                                                                                                                                         | `factory`, `resolve_object`       |
+| Public constructors only                    | `_init_` is `"__init__"` (default) or the name of a public class method or static method that returns an instance of the class. A name that starts with `_` is refused. The data cannot reach `__new__`, `__subclasses__`, ...                                                                                                                                                             | `instantiate_object`              |
+| Predicates do not import                    | `is_object_config` imports nothing by default: a target whose module is not imported is not a configuration. `allowed_prefixes` or `import_target=True` opt in. A malformed configuration is `False`, a violation of the list raises.                                                                                                                                                      | `is_object_config`                |
+| Pure, stateless                             | The configuration is never modified. No global state: the functions can be called from any thread, and after a `fork`, with no lock.                                                                                                                                                                                                                                                       | the functions are free of state   |
+| Lazy                                        | Nothing is imported at import time except the standard library; a target is imported when it is named.                                                                                                                                                                                                                                                                                     | `import_object`                   |
+| Keyword-only options                        | `allowed_prefixes`, `import_target`, `strict`, `_init_` and `_allowed_prefixes_` are keyword-only.                                                                                                                                                                                                                                                                                         | the signatures                    |
 
 Not guaranteed, and documented as such:
 
@@ -361,16 +364,16 @@ imports once and caches nothing; it is not slower.
 One branch and one pull request per step (`CLAUDE.md`). The order keeps every step releasable and
 **never exposes F5**: the step that fixes F1 ships with the step that closes the allow-list.
 
-| Step | Change                                                                                                                                                                                                                                                                                                                                                                                      |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | **Fix the guide (F9).** Indent the admonition, remove the unused `OBJECT_INIT` import, add a class method example, move the **Properties** table to the top and complete it with section 1, add the "allow-list is not a sandbox" rule with the `coola.io` example (F5), add the architecture paragraph. No code change.                                                                    |
-| 2    | **One import, one error (F2, F8).** The "does not exist" translation moves into `import_object`; `factory` loses its `try/except`; cross-reference the two `import_object` docstrings. Tests: the three error messages through the three entry points.                                                                                                                                      |
-| 3    | **Close the allow-list and fix the collisions (F1, F5, F6).** `_refuse_nested_configurations` in `factory` and `resolve_object` (D4), positional-only `obj`, `_allowed_prefixes_` ignored in a configuration and keyword in `factory` (D3), `OBJECT_PREFIXES`. **One PR**, because F1 alone opens F5. Regression tests for each (check that they fail on `main` with `git stash push src`). |
-| 4    | **`_init_` rule (F6, D2).** Delete the `__new__` branch and the private `_instantiate_class_object`; refuse names that start with `_`; tests for every branch.                                                                                                                                                                                                                              |
-| 5    | **One answer to "what does it build?" (F3, F7).** New `target.py` with `builds`; `is_object_config` and `resolve_object` use it; `is_object_config` returns `False` for a non-string target. Regression tests for the union cases.                                                                                                                                                          |
-| 6    | **The dict rule and one import (F4, F2).** `resolve_object` treats a `dict` with `_target_` as a configuration, imports once and calls `instantiate_object` itself (D1). Update the two message tests of `tests/unit/factory/test_resolve.py`. Delete the dict-subclass tests and the guide warning.                                                                                        |
-| 7    | **Tests (F10).** Integration and property tests of section 8.                                                                                                                                                                                                                                                                                                                               |
-| 8    | **Documentation.** Migration page (section 4 table), `dev/architecture.md` paragraph, status table of `review/suggestions.md` with the PR numbers, docstrings (`Security:` sections state the limits of section 1).                                                                                                                                                                         |
+| Step | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | **Fix the guide (F9).** Indent the admonition, remove the unused `OBJECT_INIT` import, add a class method example, move the **Properties** table to the top and complete it with section 1, add the "allow-list is not a sandbox" rule with the `coola.io` example (F5), add the architecture paragraph. No code change.                                                                                                                                                      |
+| 2    | **One import, one error (F2, F8).** The "does not exist" translation moves into `import_object`; `factory` loses its `try/except`; cross-reference the two `import_object` docstrings. Tests: the three error messages through the three entry points.                                                                                                                                                                                                                        |
+| 3    | **Close the allow-list and fix the collisions (F1, F5, F6).** `_refuse_nested_configurations` in `factory` and `resolve_object` (D4), positional-only `obj`, `_allowed_prefixes_` ignored in a configuration and keyword in `factory` (D3), `OBJECT_PREFIXES`. **One PR**, because F1 alone opens F5. The refusal is added to the current `resolve_object` (before step 6 rewrites it). Regression tests for each (check that they fail on `main` with `git stash push src`). |
+| 4    | **`_init_` rule (F6, D2).** Delete the `__new__` branch and the private `_instantiate_class_object`; refuse names that start with `_`; tests for every branch.                                                                                                                                                                                                                                                                                                                |
+| 5    | **One answer to "what does it build?" (F3, F7).** New `target.py` with `builds`; `is_object_config` and `resolve_object` use it; `is_object_config` returns `False` for a non-string target. Regression tests for the union cases.                                                                                                                                                                                                                                            |
+| 6    | **The dict rule and one import (F4, F2).** `resolve_object` treats a `dict` with `_target_` as a configuration, imports once and calls `instantiate_object` itself (D1). Update the two message tests of `tests/unit/factory/test_resolve.py`. Delete the dict-subclass tests and the guide warning.                                                                                                                                                                          |
+| 7    | **Tests (F10).** Integration and property tests of section 8.                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 8    | **Documentation.** Migration page (section 4 table), `dev/architecture.md` paragraph, status table of `review/suggestions.md` with the PR numbers, docstrings (`Security:` sections state the limits of section 1).                                                                                                                                                                                                                                                           |
 
 ## 8. Tests and gates
 
@@ -424,56 +427,76 @@ behaviour per test, literal expected values, a regression test for every bug, no
   shows the refusal of a nested configuration.
 - Coverage: 100 % of `src/coola/factory` (`--cov=coola`), no `# pragma: no cover`.
 
-## 9. Decisions for the maintainers
+## 9. Decisions (settled)
 
-**D1. A `dict` with the key `_target_` is always a configuration.** _Recommended: yes._ It replaces
+Summary (every decision follows the recommendation):
+
+| #   | Decision                                             | Outcome                                 | Steps |
+| --- | ---------------------------------------------------- | --------------------------------------- | ----- |
+| D1  | A dict with `_target_` is always a configuration     | yes                                     | 6     |
+| D2  | `_init_`: no `__new__`, no name that starts with `_` | yes                                     | 4     |
+| D3  | The allow-list is never read from the data           | yes                                     | 3     |
+| D4  | Refuse a nested configuration under an allow-list    | yes                                     | 3     |
+| D5  | Configurations are `dict`, not `Mapping`             | `dict`                                  | 6     |
+| D6  | Check the defining module of the target              | no (the list filters paths)             | none  |
+| D7  | Rename one of the two `import_object`                | no, cross-reference                     | 2     |
+| D8  | Attribute paths (`pkg.module.Class.method`)          | no                                      | none  |
+| D9  | Location of `builds`                                 | `coola/factory/target.py`, not exported | 5     |
+
+**D1. A `dict` with the key `_target_` is always a configuration.** **Decided: yes.** It replaces
 the rule that depends on `cls` (F4). The key is reserved, as in Hydra: a dict that has it cannot be
 passed through `resolve_object` as data, and the guide says so. Consequence: the dict-subclass tests
 and the guide warning are deleted, `Mapping`, `dict` and `object` work the same, and the explanation
-of the rule is one sentence. Alternative: keep today's rule; it needs the `issubclass` special case,
+of the rule is one sentence. Rejected alternative: keep today's rule; it needs the `issubclass` special case,
 fails for generics, and leaves F4 open.
 
-**D2. Remove `_init_="__new__"` and the underscore names.** _Recommended: yes._ `cls(...)` runs
+**D2. Remove `_init_="__new__"` and the underscore names.** **Decided: yes.** `cls(...)` runs
 `__new__` and `__init__`; `cls.__new__(cls, ...)` alone gives a partially initialised object, and the
 data can choose it. A public class method (`from_config`, `fromkeys`, `now`) is what `_init_` is for.
 Breaking for anybody who wrote `_init_: __new__` (the migration page says to use a class method).
 
-**D3. The allow-list is never read from the data.** _Recommended: yes._ The key
+**D3. The allow-list is never read from the data.** **Decided: yes.** The key
 `_allowed_prefixes_` stays as a keyword of `factory` (so `factory(**config, ...)` keeps working), but
 `resolve_object` ignores it in a configuration. A policy that the data can narrow looks like a
-feature, and it is a hole in the day somebody lets the data widen it. Alternative: keep reading it
+feature, and it is a hole in the day somebody lets the data widen it. Rejected alternative: keep reading it
 when the caller passes none (today); costs nothing, keeps the smell.
 
-**D4. Refuse a nested configuration when an allow-list is active.** _Recommended: yes._ It closes the
+**D4. Refuse a nested configuration when an allow-list is active.** **Decided: yes.** It closes the
 exact case of F5 (an allowed function that resolves its arguments) in 5 lines, and it fails closed:
 whoever needs the nested object resolves it first, with the same list, as the guide already tells.
 Limits: it scans the top level of the arguments only (a configuration deeper in a list is not found),
 and it does not help against a prefix that contains `import_object`. It is a mitigation, not a proof;
-the guide says which prefixes must never be allowed. Alternative: documentation only; cheaper, but the
+the guide says which prefixes must never be allowed. Rejected alternative: documentation only; cheaper, but the
 fix of F1 then exposes F5.
 
-**D5. `dict` or `Mapping` for configurations?** _Recommended: `dict`._ JSON and YAML load into
+**D5. `dict` or `Mapping` for configurations?** **Decided: `dict`.** JSON and YAML load into
 `dict`; a `DictConfig` is converted by the caller (`to_container`). Accepting any `Mapping` costs one
 word but widens what counts as "a configuration" in a security-relevant check.
 
-**D6. Check the module that defines the target?** _Recommended: no._ Comparing `target.__module__` to
+**D6. Check the module that defines the target?** **Decided: no.** Comparing `target.__module__` to
 the prefixes would stop a re-export from another package, but it does not close F5 (the functions
 of `coola.factory` are defined under `coola`), and it rejects legitimate aliases (`os.path.join` is
 defined in `posixpath`, `numpy` functions in private modules of other names). The guide states that
 the list filters paths.
 
-**D7. Rename one of the two `import_object`?** _Recommended: no, cross-reference._ The colon form is
+**D7. Rename one of the two `import_object`?** **Decided: no, cross-reference.** The colon form is
 the internal syntax of the lazy registries, the dotted form is the user-facing one; renaming
 `coola.utils.imports.import_object` touches `registry`, `random`, `reducer` and their tests for a
 naming gain. Both docstrings state the path syntax and link to each other.
 
-**D8. Support attribute paths (`pkg.module.Class.method`)?** _Recommended: no._ It needs a
+**D8. Support attribute paths (`pkg.module.Class.method`)?** **Decided: no.** It needs a
 loop over prefixes with the "does not exist" detection of section 3.2 at each step. A class method
 is reached with `_init_`, a nested class is rare. (`import_object("collections.OrderedDict.fromkeys")`
-raises `ImportError: The target object does not exist`, with the prototype.)
+raises `ImportError: The target object does not exist`, with the prototype.) Three reasons: (1) the
+fallback loop must tell an expected failure (`collections.OrderedDict` is not a module) from a real
+one (a module that exists but whose own dependency is missing), which is the `err.name` rule of
+section 3.2 repeated at every step; (2) `_init_` already reaches class methods, and D2 keeps it
+public; (3) walking attributes widens what a prefix reaches: `"mypkg"` would allow
+`mypkg.module.Class.helper.os.system`, whereas today only the last segment goes through `getattr`.
+Cost accepted: a nested class (`pkg.Outer.Inner`) needs a module-level alias.
 
-**D9. Where does `builds` live?** _Recommended: `coola/factory/target.py`, public name, not
-exported._ It is a helper of two modules of one package; `coola.utils` is for helpers shared by
+**D9. Where does `builds` live?** **Decided: `coola/factory/target.py`, public name, not
+exported.** It is a helper of two modules of one package; `coola.utils` is for helpers shared by
 several packages (`CLAUDE.md`), and `builds` has no other user.
 
 ## 10. Not covered
