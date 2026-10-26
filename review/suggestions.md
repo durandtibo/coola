@@ -605,3 +605,4 @@ Checked against `git log 0287a61a..HEAD` and by re-running the repros.
 | 25.1 | Fixed  | `recursive_apply`: cycles and any depth with an explicit stack (#2375). `dfs_iterate` and `bfs_iterate` too (#2395).                                          |
 | 25.3 | Fixed  | `recursive_apply`, `round_values` (#2377), `dfs_iterate` and `bfs_iterate` enter dataclasses by default; `enter_dataclasses` is removed (#2381).              |
 | 28.2 | Partly | `recursive_apply`: `registry` is keyword-only, the deprecated paths are removed (#2373), as `dfs_iterate` and `bfs_iterate` (#2395). `summarize` still warns. |
+| F1 to F10 (`review/factory.md`) | Fixed | Steps 1 to 8 of the factory design: guide (#2405), one import error (#2406), allow-list and collisions (#2407), `_init_` rule (#2408), `builds` (#2409), dict rule and one import (#2410), integration and property tests (#2411), migration page (this PR). |
