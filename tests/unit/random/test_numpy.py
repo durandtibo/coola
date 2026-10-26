@@ -186,16 +186,6 @@ def test_numpy_random_manager_manual_seed_is_folded_modulo_2_32() -> None:
 
 
 @numpy_available
-def test_numpy_random_manager_manual_seed_negative_seed_wraps() -> None:
-    manager = NumpyRandomManager()
-    manager.manual_seed(-1)
-    first = np.random.rand(3)  # noqa: NPY002
-    manager.manual_seed(2**32 - 1)
-    second = np.random.rand(3)  # noqa: NPY002
-    assert objects_are_equal(first, second)
-
-
-@numpy_available
 def test_numpy_random_manager_different_seeds_give_different_numbers() -> None:
     manager = NumpyRandomManager()
     manager.manual_seed(1)
@@ -213,3 +203,17 @@ def test_numpy_random_manager_does_not_manage_default_rng_generators() -> None:
     with manager.seed(42):
         values = rng.random(3)  # the independent generator is not affected by the seed
     assert objects_are_equal(values, expected)
+
+
+@numpy_available
+@pytest.mark.parametrize("seed", [-1, 2**63])
+def test_numpy_random_manager_manual_seed_invalid_value_raises(seed: int) -> None:
+    with pytest.raises(ValueError, match=r"seed must be in the range"):
+        NumpyRandomManager().manual_seed(seed)
+
+
+@numpy_available
+@pytest.mark.parametrize("seed", ["a", 1.5, True])
+def test_numpy_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
+    with pytest.raises(TypeError, match=r"seed must be an int"):
+        NumpyRandomManager().manual_seed(seed)  # type: ignore[arg-type]
