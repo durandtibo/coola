@@ -193,10 +193,11 @@ def time_scalar_equal(
 
     Example:
         ```pycon
+        >>> from coola.equality import Tolerance
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.handler.numpy import time_scalar_equal
-        >>> config = EqualityConfig(atol=1.0)
+        >>> config = EqualityConfig(tolerance=Tolerance(atol=1.0))
         >>> time_scalar_equal(np.timedelta64(1, "s"), np.timedelta64(2000, "ms"), config)
         True
         >>> time_scalar_equal(np.datetime64("2020-01-01"), np.datetime64("2020-01-02"), config)

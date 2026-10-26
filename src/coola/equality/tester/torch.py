@@ -45,7 +45,7 @@ class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.Pa
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> def make(value):
         ...     return pack_padded_sequence(
         ...         torch.tensor([[1.0, value], [3.0, 4.0]]),
@@ -94,7 +94,7 @@ class TorchTensorEqualityTester(BaseEqualityTester[torch.Tensor]):
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import TorchTensorEqualityTester, get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> tester = TorchTensorEqualityTester()
         >>> tester.objects_are_equal(torch.ones(2, 3), torch.ones(2, 3), engine)
         True

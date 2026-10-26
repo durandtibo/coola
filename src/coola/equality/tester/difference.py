@@ -33,6 +33,7 @@ class DifferenceCloseEqualityTester(BaseEqualityTester[Any]):
 
     Example:
         ```pycon
+        >>> from coola.equality import Tolerance
         >>> from decimal import Decimal
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
@@ -40,11 +41,11 @@ class DifferenceCloseEqualityTester(BaseEqualityTester[Any]):
         >>> registry = get_default_registry()
         >>> tester = DifferenceCloseEqualityTester()
         >>> tester.objects_are_equal(
-        ...     Decimal("1.0"), Decimal("1.00001"), Engine(registry, EqualityConfig())
+        ...     Decimal("1.0"), Decimal("1.00001"), Engine(EqualityConfig())
         ... )
         False
         >>> tester.objects_are_equal(
-        ...     Decimal("1.0"), Decimal("1.00001"), Engine(registry, EqualityConfig(atol=1e-3))
+        ...     Decimal("1.0"), Decimal("1.00001"), Engine(EqualityConfig(tolerance=Tolerance(atol=1e-3)))
         ... )
         True
 

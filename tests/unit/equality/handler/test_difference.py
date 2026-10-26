@@ -8,6 +8,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler.difference import difference_close
+from coola.equality.tolerance import Tolerance
 
 
 @pytest.fixture
@@ -29,7 +30,7 @@ def config() -> EqualityConfig:
     ],
 )
 def test_difference_close_atol(actual: object, expected: object) -> None:
-    assert difference_close(actual, expected, EqualityConfig(atol=1e-3))
+    assert difference_close(actual, expected, EqualityConfig(tolerance=Tolerance(atol=1e-3)))
 
 
 @pytest.mark.parametrize(
@@ -69,25 +70,31 @@ def test_difference_close_equal_without_tolerance(
     ],
 )
 def test_difference_close_outside_the_tolerance(actual: object, expected: object) -> None:
-    assert not difference_close(actual, expected, EqualityConfig(atol=1e-3))
+    assert not difference_close(actual, expected, EqualityConfig(tolerance=Tolerance(atol=1e-3)))
 
 
 def test_difference_close_rtol_decimal() -> None:
-    assert difference_close(Decimal(100), Decimal(101), EqualityConfig(rtol=0.02))
+    assert difference_close(
+        Decimal(100), Decimal(101), EqualityConfig(tolerance=Tolerance(rtol=0.02))
+    )
 
 
 def test_difference_close_rtol_fraction() -> None:
-    assert difference_close(Fraction(100), Fraction(101), EqualityConfig(rtol=0.02))
+    assert difference_close(
+        Fraction(100), Fraction(101), EqualityConfig(tolerance=Tolerance(rtol=0.02))
+    )
 
 
 def test_difference_close_rtol_timedelta() -> None:
     assert difference_close(
-        timedelta(seconds=100), timedelta(seconds=101), EqualityConfig(rtol=0.02)
+        timedelta(seconds=100),
+        timedelta(seconds=101),
+        EqualityConfig(tolerance=Tolerance(rtol=0.02)),
     )
 
 
 def test_difference_close_is_symmetric_with_rtol() -> None:
-    config = EqualityConfig(rtol=0.01)
+    config = EqualityConfig(tolerance=Tolerance(rtol=0.01))
     assert difference_close(Decimal("101.005"), Decimal(100), config) == difference_close(
         Decimal(100), Decimal("101.005"), config
     )
@@ -106,19 +113,27 @@ def test_difference_close_decimal_nan_and_number_with_equal_nan() -> None:
 
 
 def test_difference_close_decimal_nan_with_tolerance() -> None:
-    assert not difference_close(Decimal("NaN"), Decimal("NaN"), EqualityConfig(atol=1.0))
+    assert not difference_close(
+        Decimal("NaN"), Decimal("NaN"), EqualityConfig(tolerance=Tolerance(atol=1.0))
+    )
 
 
 def test_difference_close_decimal_infinity_equal() -> None:
-    assert difference_close(Decimal("Infinity"), Decimal("Infinity"), EqualityConfig(atol=1.0))
+    assert difference_close(
+        Decimal("Infinity"), Decimal("Infinity"), EqualityConfig(tolerance=Tolerance(atol=1.0))
+    )
 
 
 def test_difference_close_decimal_infinity_and_number() -> None:
-    assert not difference_close(Decimal("Infinity"), Decimal(1), EqualityConfig(atol=1.0))
+    assert not difference_close(
+        Decimal("Infinity"), Decimal(1), EqualityConfig(tolerance=Tolerance(atol=1.0))
+    )
 
 
 def test_difference_close_decimal_opposite_infinities() -> None:
-    assert not difference_close(Decimal("Infinity"), Decimal("-Infinity"), EqualityConfig(atol=1.0))
+    assert not difference_close(
+        Decimal("Infinity"), Decimal("-Infinity"), EqualityConfig(tolerance=Tolerance(atol=1.0))
+    )
 
 
 ########################################
@@ -139,7 +154,9 @@ def test_difference_close_decimal_opposite_infinities() -> None:
     ],
 )
 def test_difference_close_atol_and_rtol_add_up(actual: object, expected: object) -> None:
-    assert difference_close(actual, expected, EqualityConfig(atol=0.5, rtol=0.5))
+    assert difference_close(
+        actual, expected, EqualityConfig(tolerance=Tolerance(atol=0.5, rtol=0.5))
+    )
 
 
 @pytest.mark.parametrize(
@@ -151,4 +168,6 @@ def test_difference_close_atol_and_rtol_add_up(actual: object, expected: object)
     ],
 )
 def test_difference_close_outside_atol_and_rtol(actual: object, expected: object) -> None:
-    assert not difference_close(actual, expected, EqualityConfig(atol=0.5, rtol=0.5))
+    assert not difference_close(
+        actual, expected, EqualityConfig(tolerance=Tolerance(atol=0.5, rtol=0.5))
+    )

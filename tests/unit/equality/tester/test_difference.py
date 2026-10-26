@@ -8,6 +8,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import DifferenceCloseEqualityTester
+from coola.equality.tolerance import Tolerance
 from tests.unit.equality.utils import run_tester
 
 
@@ -44,5 +45,5 @@ def test_difference_close_equality_tester_atol() -> None:
         DifferenceCloseEqualityTester(),
         Decimal("1.0"),
         Decimal("1.00001"),
-        EqualityConfig(atol=1e-3),
+        EqualityConfig(tolerance=Tolerance(atol=1e-3)),
     )

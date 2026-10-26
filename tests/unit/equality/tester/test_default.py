@@ -7,7 +7,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import DefaultEqualityTester
-from tests.unit.equality.utils import ExamplePair, messages, run_tester
+from tests.unit.equality.utils import ExamplePair, explaining, messages, run_tester
 
 
 @pytest.fixture
@@ -137,7 +137,7 @@ def test_default_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = DefaultEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -147,7 +147,7 @@ def test_default_equality_tester_objects_are_equal_true_explaining_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = DefaultEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -199,7 +199,7 @@ def test_default_equality_tester_objects_are_equal_false_scalar_does_not_log(
 def test_default_equality_tester_objects_are_equal_different_value_explaining(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = DefaultEqualityTester()
     assert not run_tester(tester, 1, 2, config)
 
@@ -207,7 +207,7 @@ def test_default_equality_tester_objects_are_equal_different_value_explaining(
 def test_default_equality_tester_objects_are_equal_different_value_explaining_reports(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = DefaultEqualityTester()
     run_tester(tester, 1, 2, config)
     assert messages(config)[0].startswith("objects are different:")
@@ -229,7 +229,7 @@ def test_default_equality_tester_objects_are_equal_different_type_does_not_log(
 def test_default_equality_tester_objects_are_equal_different_type_explaining(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = DefaultEqualityTester()
     assert not run_tester(tester, [], (), config)
 
@@ -237,7 +237,7 @@ def test_default_equality_tester_objects_are_equal_different_type_explaining(
 def test_default_equality_tester_objects_are_equal_different_type_explaining_reports(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = DefaultEqualityTester()
     run_tester(tester, [], (), config)
     assert messages(config)[0].startswith("objects have different types:")
@@ -267,7 +267,7 @@ def test_default_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = DefaultEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -277,7 +277,7 @@ def test_default_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = DefaultEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)

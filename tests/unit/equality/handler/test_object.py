@@ -15,7 +15,7 @@ from coola.equality.tester import (
     ObjectAttributesEqualityTester,
     ScalarEqualityTester,
 )
-from tests.unit.equality.utils import messages, run_tester
+from tests.unit.equality.utils import ExplainingConfig, explaining, messages, run_tester
 
 
 class Point:
@@ -174,7 +174,7 @@ def test_object_attributes_equality_tester_different_types(config: EqualityConfi
 
 
 def test_object_attributes_equality_tester_different_types_logs() -> None:
-    config = EqualityConfig(reports=[])
+    config = ExplainingConfig()
     run_tester(ObjectAttributesEqualityTester(), Point(1), Slotted(1), config)
     assert "different types" in "\n".join(messages(config))
 
@@ -192,6 +192,6 @@ def test_object_attributes_equality_tester_different_attribute_names_reason(
 ) -> None:
     other = Point(1, 2)
     other.z = 3  # ty: ignore[unresolved-attribute]
-    config.reports = []
+    config = explaining(config)
     run_tester(ObjectAttributesEqualityTester(), Point(1, 2), other, config)
     assert messages(config) == ["objects have different attributes: ['x', 'y'] vs ['x', 'y', 'z']"]

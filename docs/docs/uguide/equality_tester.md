@@ -38,7 +38,7 @@ An equality tester is responsible for comparing objects of a specific type. Each
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.engine import Engine
 >>> from coola.equality.tester import SequenceEqualityTester, get_default_registry
->>> engine = Engine(get_default_registry(), EqualityConfig())
+>>> engine = Engine(EqualityConfig())
 >>> tester = SequenceEqualityTester()
 >>> list(tester.objects_are_equal([1.0, 2.0], [1.0, 3.0], engine))
 [(1.0, 1.0, 0), (2.0, 3.0, 1)]
@@ -88,7 +88,7 @@ Handles sequence types like `list`, `tuple`, and `deque`:
 >>> from coola.equality.engine import Engine
 >>> from coola.equality.tester import get_default_registry
 >>> config = EqualityConfig()
->>> engine = Engine(get_default_registry(), config)
+>>> engine = Engine(config)
 >>> engine.run([1, 2, 3], [1, 2, 3])
 True
 >>> engine.run([1, 2, 3], [1, 2, 4])
@@ -115,7 +115,7 @@ Handles `set` and `frozenset`. Unlike `==`, the elements are matched by hash and
 >>> from coola.equality.engine import Engine
 >>> from coola.equality.tester import get_default_registry
 >>> config = EqualityConfig(equal_nan=True)
->>> engine = Engine(get_default_registry(), config)
+>>> engine = Engine(config)
 >>> engine.run({1.0, float("nan")}, {1.0, float("nan")})
 True
 >>> engine.run({1.0, 2.0}, {1.0, 3.0})
@@ -132,7 +132,7 @@ Handles mapping types like `dict`:
 >>> from coola.equality.engine import Engine
 >>> from coola.equality.tester import get_default_registry
 >>> config = EqualityConfig()
->>> engine = Engine(get_default_registry(), config)
+>>> engine = Engine(config)
 >>> engine.run({"a": 1, "b": 2}, {"a": 1, "b": 2})
 True
 >>> engine.run({"a": 1, "b": 2}, {"a": 1, "b": 3})
@@ -158,7 +158,7 @@ between two `OrderedDict`s). The other mappings ignore the order of the keys:
 >>> from coola.equality.engine import Engine
 >>> from coola.equality.tester import get_default_registry
 >>> config = EqualityConfig()
->>> engine = Engine(get_default_registry(), config)
+>>> engine = Engine(config)
 >>> engine.run(OrderedDict(a=1, b=2), OrderedDict(a=1, b=2))
 True
 >>> engine.run(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1))
@@ -173,18 +173,19 @@ False
 Handles scalar types like `int`, `float`, and `bool`:
 
 ```pycon
+>>> from coola.equality import Tolerance
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.engine import Engine
 >>> from coola.equality.tester import get_default_registry, ScalarEqualityTester
 >>> config = EqualityConfig()
->>> engine = Engine(get_default_registry(), config)
+>>> engine = Engine(config)
 >>> tester = ScalarEqualityTester()
 >>> tester.objects_are_equal(42, 42, engine)
 True
 >>> tester.objects_are_equal(3.14, 3.14, engine)
 True
 >>> # With tolerance
->>> engine_tol = Engine(get_default_registry(), EqualityConfig(atol=0.01))
+>>> engine_tol = Engine(EqualityConfig(tolerance=Tolerance(atol=0.01)))
 >>> tester.objects_are_equal(1.0, 1.005, engine_tol)
 True
 
@@ -201,7 +202,7 @@ Generic tester that uses Python's `==` operator:
 ...     def equal(self, other: object) -> bool:
 ...         return self == other
 >>> config = EqualityConfig()
->>> engine = Engine(get_default_registry(), config)
+>>> engine = Engine(config)
 >>> tester = EqualEqualityTester()
 >>> tester.objects_are_equal(MyList([1, 2, 3]), MyList([1, 2, 3]), engine)
 True
@@ -217,12 +218,13 @@ False
 Handles NumPy arrays:
 
 ```pycon
+>>> from coola.equality import Tolerance
 >>> import numpy as np
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.engine import Engine
 >>> from coola.equality.tester import get_default_registry, NumpyArrayEqualityTester
 >>> config = EqualityConfig()
->>> engine = Engine(get_default_registry(), config)
+>>> engine = Engine(config)
 >>> tester = NumpyArrayEqualityTester()
 >>> tester.objects_are_equal(
 ...     np.array([1, 2, 3]),
@@ -237,7 +239,7 @@ True
 ... )
 False
 >>> # With tolerance
->>> engine_tol = Engine(get_default_registry(), EqualityConfig(atol=0.01))
+>>> engine_tol = Engine(EqualityConfig(tolerance=Tolerance(atol=0.01)))
 >>> tester.objects_are_equal(
 ...     np.array([1.0, 2.0, 3.0]),
 ...     np.array([1.0, 2.0, 3.001]),
@@ -257,7 +259,7 @@ Handles NumPy masked arrays:
 >>> from coola.equality.engine import Engine
 >>> from coola.equality.tester import get_default_registry, NumpyMaskedArrayEqualityTester
 >>> config = EqualityConfig()
->>> engine = Engine(get_default_registry(), config)
+>>> engine = Engine(config)
 >>> tester = NumpyMaskedArrayEqualityTester()
 >>> arr1 = np.ma.array([1, 2, 3], mask=[0, 0, 1])
 >>> arr2 = np.ma.array([1, 2, 99], mask=[0, 0, 1])  # Masked value differs
@@ -273,12 +275,13 @@ False
 Handles PyTorch tensors:
 
 ```pycon
+>>> from coola.equality import Tolerance
 >>> import torch
 >>> from coola.equality.config import EqualityConfig
 >>> from coola.equality.engine import Engine
 >>> from coola.equality.tester import get_default_registry, TorchTensorEqualityTester
 >>> config = EqualityConfig()
->>> engine = Engine(get_default_registry(), config)
+>>> engine = Engine(config)
 >>> tester = TorchTensorEqualityTester()
 >>> tester.objects_are_equal(
 ...     torch.tensor([1, 2, 3]),
@@ -287,7 +290,7 @@ Handles PyTorch tensors:
 ... )
 True
 >>> # With tolerance
->>> engine_tol = Engine(get_default_registry(), EqualityConfig(atol=0.01))
+>>> engine_tol = Engine(EqualityConfig(tolerance=Tolerance(atol=0.01)))
 >>> tester.objects_are_equal(
 ...     torch.tensor([1.0, 2.0, 3.0]),
 ...     torch.tensor([1.0, 2.0, 3.001]),
@@ -308,7 +311,7 @@ Handles PyTorch PackedSequence objects:
 >>> from coola.equality.engine import Engine
 >>> from coola.equality.tester import get_default_registry, TorchPackedSequenceEqualityTester
 >>> config = EqualityConfig()
->>> engine = Engine(get_default_registry(), config)
+>>> engine = Engine(config)
 >>> tester = TorchPackedSequenceEqualityTester()
 >>> ps1 = pack_padded_sequence(
 ...     torch.arange(10).view(2, 5).float(),
@@ -642,11 +645,12 @@ Add support for your custom types:
 Use testers with tolerance configurations:
 
 ```pycon
+>>> from coola.equality import Tolerance
 >>> import numpy as np
 >>> from coola.equality.tester import get_default_registry
 >>> from coola.equality.config import EqualityConfig
 >>> registry = get_default_registry()
->>> config = EqualityConfig(atol=1e-5, rtol=1e-5)
+>>> config = EqualityConfig(tolerance=Tolerance(atol=1e-5, rtol=1e-5))
 >>> registry.objects_are_equal(
 ...     np.array([1.0, 2.0, 3.0]),
 ...     np.array([1.00001, 2.00001, 3.00001]),

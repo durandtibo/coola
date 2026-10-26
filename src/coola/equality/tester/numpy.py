@@ -54,7 +54,7 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import NumpyArrayEqualityTester, get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> tester = NumpyArrayEqualityTester()
         >>> tester.objects_are_equal(np.ones((2, 3)), np.ones((2, 3)), engine)
         True
@@ -104,7 +104,7 @@ class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> engine.run(
         ...     np.ma.array([1, 2, 3], mask=[0, 0, 1]), np.ma.array([1, 2, 3], mask=[0, 0, 1])
         ... )
@@ -146,12 +146,13 @@ class NumpyTimeScalarEqualityTester(BaseEqualityTester[object]):
 
     Example:
         ```pycon
+        >>> from coola.equality import Tolerance
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import NumpyTimeScalarEqualityTester, get_default_registry
         >>> tester = NumpyTimeScalarEqualityTester()
-        >>> engine = Engine(get_default_registry(), EqualityConfig(atol=1.0))
+        >>> engine = Engine(EqualityConfig(tolerance=Tolerance(atol=1.0)))
         >>> tester.objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(2000, "ms"), engine)
         True
         >>> tester.objects_are_equal(

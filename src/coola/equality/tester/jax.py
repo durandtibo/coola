@@ -43,7 +43,7 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import JaxArrayEqualityTester, get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> tester = JaxArrayEqualityTester()
         >>> tester.objects_are_equal(jnp.ones((2, 3)), jnp.ones((2, 3)), engine)
         True

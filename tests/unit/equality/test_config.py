@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
 from coola.equality.config import EqualityConfig
+from coola.equality.tolerance import Tolerance
 
 ####################################
 #     Tests for EqualityConfig     #
@@ -21,45 +24,35 @@ def test_equality_config_default_rtol() -> None:
     assert EqualityConfig().rtol == 0.0
 
 
-def test_equality_config_default_reports() -> None:
-    assert EqualityConfig().reports is None
-
-
-def test_equality_config_default_is_not_explaining() -> None:
-    assert not EqualityConfig().explaining
-
-
 def test_equality_config_with_parameters_equal_nan() -> None:
     assert EqualityConfig(equal_nan=True).equal_nan is True
 
 
 def test_equality_config_with_parameters_atol() -> None:
-    assert EqualityConfig(atol=1e-6).atol == 1e-6
+    assert EqualityConfig(tolerance=Tolerance(atol=1e-6)).atol == 1e-6
 
 
 def test_equality_config_with_parameters_rtol() -> None:
-    assert EqualityConfig(rtol=1e-5).rtol == 1e-5
-
-
-def test_equality_config_with_reports_is_explaining() -> None:
-    assert EqualityConfig(reports=[]).explaining
+    assert EqualityConfig(tolerance=Tolerance(rtol=1e-5)).rtol == 1e-5
 
 
 def test_equality_config_negative_atol() -> None:
     with pytest.raises(ValueError, match="atol must be non-negative"):
-        EqualityConfig(atol=-1.0)
+        EqualityConfig(tolerance=Tolerance(atol=-1.0))
 
 
 def test_equality_config_negative_rtol() -> None:
     with pytest.raises(ValueError, match="rtol must be non-negative"):
-        EqualityConfig(rtol=-0.5)
+        EqualityConfig(tolerance=Tolerance(rtol=-0.5))
 
 
-@pytest.mark.parametrize("value", [float("inf"), float("nan")])
-@pytest.mark.parametrize("name", ["atol", "rtol"])
-def test_equality_config_non_finite_tolerance(name: str, value: float) -> None:
-    with pytest.raises(ValueError, match=f"{name} must be"):
-        EqualityConfig(**{name: value})
+def test_equality_config_is_frozen() -> None:
+    with pytest.raises(AttributeError):
+        EqualityConfig().equal_nan = True
+
+
+def test_equality_config_replace_keeps_the_other_settings() -> None:
+    assert replace(EqualityConfig(equal_nan=True), max_depth=5).equal_nan is True
 
 
 def test_equality_config_unknown_option() -> None:
@@ -68,11 +61,11 @@ def test_equality_config_unknown_option() -> None:
 
 
 def test_equality_config_zero_atol() -> None:
-    assert EqualityConfig(atol=0.0, rtol=0.0).atol == 0.0
+    assert EqualityConfig(tolerance=Tolerance(atol=0.0, rtol=0.0)).atol == 0.0
 
 
 def test_equality_config_zero_rtol() -> None:
-    assert EqualityConfig(atol=0.0, rtol=0.0).rtol == 0.0
+    assert EqualityConfig(tolerance=Tolerance(atol=0.0, rtol=0.0)).rtol == 0.0
 
 
 def test_equality_config_max_depth_default() -> None:
@@ -100,9 +93,9 @@ def test_equality_config_eq_true() -> None:
 
 
 def test_equality_config_eq_true_with_parameters() -> None:
-    assert EqualityConfig(equal_nan=True, atol=1e-6, rtol=1e-5, reports=[]) == EqualityConfig(
-        equal_nan=True, atol=1e-6, rtol=1e-5, reports=[]
-    )
+    assert EqualityConfig(
+        equal_nan=True, tolerance=Tolerance(atol=1e-6, rtol=1e-5)
+    ) == EqualityConfig(equal_nan=True, tolerance=Tolerance(atol=1e-6, rtol=1e-5))
 
 
 def test_equality_config_eq_false_different_equal_nan() -> None:
@@ -110,26 +103,15 @@ def test_equality_config_eq_false_different_equal_nan() -> None:
 
 
 def test_equality_config_eq_false_different_atol() -> None:
-    assert EqualityConfig() != EqualityConfig(atol=1e-6)
+    assert EqualityConfig() != EqualityConfig(tolerance=Tolerance(atol=1e-6))
 
 
 def test_equality_config_eq_false_different_rtol() -> None:
-    assert EqualityConfig() != EqualityConfig(rtol=1e-6)
-
-
-def test_equality_config_eq_true_different_reports() -> None:
-    assert EqualityConfig() == EqualityConfig(reports=[])
+    assert EqualityConfig() != EqualityConfig(tolerance=Tolerance(rtol=1e-6))
 
 
 def test_equality_config_eq_false_different_max_depth() -> None:
     assert EqualityConfig() != EqualityConfig(max_depth=50)
-
-
-@pytest.mark.parametrize("name", ["atol", "rtol"])
-@pytest.mark.parametrize("value", [True, False, "a", None])
-def test_equality_config_tolerance_wrong_type(name: str, value: object) -> None:
-    with pytest.raises(TypeError, match=f"{name} must be a real number"):
-        EqualityConfig(**{name: value})
 
 
 @pytest.mark.parametrize("value", [True, 1.5, "a", None])
@@ -140,4 +122,4 @@ def test_equality_config_max_depth_wrong_type(value: object) -> None:
 
 @pytest.mark.parametrize("name", ["atol", "rtol"])
 def test_equality_config_tolerance_int(name: str) -> None:
-    assert getattr(EqualityConfig(**{name: 1}), name) == 1
+    assert getattr(EqualityConfig(tolerance=Tolerance(**{name: 1})), name) == 1

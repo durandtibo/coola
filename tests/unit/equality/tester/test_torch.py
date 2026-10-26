@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from unittest.mock import Mock, patch
 
 import pytest
@@ -10,13 +11,14 @@ from coola.equality.tester import (
     TorchPackedSequenceEqualityTester,
     TorchTensorEqualityTester,
 )
+from coola.equality.tolerance import Tolerance
 from coola.testing.fixtures import (
     torch_available,
     torch_cuda_available,
     torch_mps_available,
 )
 from coola.utils.imports import MissingPackageError, is_torch_available
-from tests.unit.equality.utils import ExamplePair, messages, run_tester
+from tests.unit.equality.utils import ExamplePair, explaining, messages, run_tester
 
 if is_torch_available():
     import torch
@@ -401,7 +403,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_true_explaining
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchPackedSequenceEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -412,7 +414,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_true_explaining
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchPackedSequenceEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -445,7 +447,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_false_explainin
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchPackedSequenceEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -456,7 +458,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_false_explainin
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchPackedSequenceEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
@@ -467,7 +469,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_false_explainin
 def test_torch_packed_sequence_equality_tester_objects_are_equal_nan_false(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
-    config.equal_nan = equal_nan
+    config = replace(config, equal_nan=equal_nan)
     assert (
         run_tester(
             TorchPackedSequenceEqualityTester(),
@@ -568,7 +570,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchTensorEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -579,7 +581,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_true_explaining_does_not
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchTensorEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -612,7 +614,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchTensorEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -623,7 +625,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_explaining_reports
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchTensorEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
@@ -634,7 +636,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_m
     config: EqualityConfig,
 ) -> None:
     # The meta device exists without a GPU, so the check of the devices always runs.
-    config.reports = []
+    config = explaining(config)
     tester = TorchTensorEqualityTester()
     assert not run_tester(
         tester,
@@ -649,7 +651,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_m
     config: EqualityConfig,
 ) -> None:
     # The meta device exists without a GPU, so the check of the devices always runs.
-    config.reports = []
+    config = explaining(config)
     tester = TorchTensorEqualityTester()
     run_tester(
         tester,
@@ -665,7 +667,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_m
 def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_cuda(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchTensorEqualityTester()
     assert not run_tester(
         tester,
@@ -680,7 +682,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_c
 def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_cuda_logs(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchTensorEqualityTester()
     run_tester(
         tester,
@@ -696,7 +698,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_c
 def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_mps(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchTensorEqualityTester()
     assert not run_tester(
         tester,
@@ -711,7 +713,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_m
 def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_mps_logs(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TorchTensorEqualityTester()
     run_tester(
         tester,
@@ -727,7 +729,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_m
 def test_torch_tensor_equality_tester_objects_are_equal_nan_true(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
-    config.equal_nan = equal_nan
+    config = replace(config, equal_nan=equal_nan)
     assert (
         run_tester(
             TorchTensorEqualityTester(),
@@ -744,8 +746,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_nan_true(
 def test_torch_tensor_equality_tester_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
-    config.atol = example.atol
-    config.rtol = example.rtol
+    config = replace(config, tolerance=Tolerance(atol=example.atol, rtol=example.rtol))
     assert run_tester(TorchTensorEqualityTester(), example.actual, example.expected, config)
 
 

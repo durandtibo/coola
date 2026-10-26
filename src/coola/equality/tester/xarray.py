@@ -59,7 +59,7 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> engine.run(xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"]))
         True
         >>> engine.run(xr.DataArray(np.ones(6), dims=["z"]), xr.DataArray(np.zeros(6), dims=["z"]))
@@ -91,7 +91,7 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> engine.run(
         ...     xr.Dataset({"x": ("z", np.arange(6))}), xr.Dataset({"x": ("z", np.arange(6))})
         ... )
@@ -127,7 +127,7 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> engine.run(
         ...     xr.Variable(dims=["z"], data=np.arange(6)),
         ...     xr.Variable(dims=["z"], data=np.arange(6)),

@@ -16,6 +16,7 @@ from coola.equality.tester import (
     SequenceEqualityTester,
 )
 from coola.equality.tester.registry import DataclassMarker
+from coola.equality.tolerance import Tolerance
 from coola.registry import AlreadyRegisteredError
 
 
@@ -186,7 +187,7 @@ def test_equality_tester_registry_objects_are_equal_true_atol() -> None:
             int: ScalarEqualityTester(),
         }
     )
-    config = EqualityConfig(atol=1.1)
+    config = EqualityConfig(tolerance=Tolerance(atol=1.1))
     assert registry.objects_are_equal([1, 2, 3], [0, 1, 2], config)
 
 

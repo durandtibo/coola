@@ -2,43 +2,17 @@ r"""Define the public interface to compare nested data for equality."""
 
 from __future__ import annotations
 
-__all__ = ["objects_are_allclose", "objects_are_equal", "run_comparison"]
+__all__ = ["objects_are_allclose", "objects_are_equal"]
 
 from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
 from coola.equality.engine import Engine
 from coola.equality.tester.interface import get_default_registry
+from coola.equality.tolerance import Tolerance
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
-
-
-def run_comparison(
-    registry: EqualityTesterRegistry, actual: object, expected: object, config: EqualityConfig
-) -> bool:
-    """Run the comparison.
-
-    It is the code path shared by all the entry points
-    (``objects_are_equal``, ``objects_are_allclose`` and ``compare``).
-    Use it to run a comparison with an ``EqualityConfig`` that you
-    built, for example with ``reports`` set to a list.
-
-    Args:
-        registry: The registry that finds the tester of ``actual``.
-        actual: The actual object.
-        expected: The expected object.
-        config: The settings of the comparison. A config holds the state
-            of one comparison, so do not share it between comparisons.
-
-    Returns:
-        ``True`` if the objects are equal, otherwise ``False``.
-
-    Raises:
-        MaxDepthExceededError: If the nesting of the objects exceeds
-            ``config.max_depth``.
-    """
-    return Engine(registry, config).run(actual, expected)
 
 
 def objects_are_allclose(
@@ -111,12 +85,11 @@ def objects_are_allclose(
         registry = get_default_registry()
     config = EqualityConfig(
         registry=registry,
+        tolerance=Tolerance(rtol=rtol, atol=atol),
         equal_nan=equal_nan,
-        atol=atol,
-        rtol=rtol,
         max_depth=max_depth,
     )
-    return run_comparison(registry, actual, expected, config)
+    return Engine(config).run(actual, expected)
 
 
 def objects_are_equal(
@@ -175,9 +148,5 @@ def objects_are_equal(
     """
     if registry is None:
         registry = get_default_registry()
-    config = EqualityConfig(
-        registry=registry,
-        equal_nan=equal_nan,
-        max_depth=max_depth,
-    )
-    return run_comparison(registry, actual, expected, config)
+    config = EqualityConfig(registry=registry, equal_nan=equal_nan, max_depth=max_depth)
+    return Engine(config).run(actual, expected)

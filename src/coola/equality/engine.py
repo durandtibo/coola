@@ -8,7 +8,7 @@ pairs that must all be equal.
 
 from __future__ import annotations
 
-__all__ = ["Element", "Engine", "failure_from_reports"]
+__all__ = ["Element", "Engine"]
 
 import warnings
 from dataclasses import dataclass
@@ -22,7 +22,6 @@ if TYPE_CHECKING:
 
     from coola.equality.config import EqualityConfig
     from coola.equality.tester.base import BaseEqualityTester
-    from coola.equality.tester.registry import EqualityTesterRegistry
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,10 +57,11 @@ class Engine:
     no ``RecursionError`` whatever the nesting.
 
     Args:
-        registry: The registry that finds the tester of a type.
-        config: The settings of the comparison. A config holds the
-            state of one comparison, so do not share it between
-            comparisons.
+        config: The settings of the comparison (the registry that finds
+            the tester of a type, the tolerance, ``equal_nan`` and
+            ``max_depth``). A config is immutable and can be shared.
+        explaining: If ``True``, the reasons are built and the first
+            difference is recorded in ``failure``.
 
     Attributes:
         atol: The absolute tolerance.
@@ -75,24 +75,22 @@ class Engine:
         ```pycon
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
-        >>> from coola.equality.tester import get_default_registry
-        >>> registry = get_default_registry()
-        >>> Engine(registry, EqualityConfig()).run([1, {"a": 2}], [1, {"a": 2}])
+        >>> Engine(EqualityConfig()).run([1, {"a": 2}], [1, {"a": 2}])
         True
-        >>> Engine(registry, EqualityConfig()).run([1, {"a": 2}], [1, {"a": 3}])
+        >>> Engine(EqualityConfig()).run([1, {"a": 2}], [1, {"a": 3}])
         False
 
         ```
     """
 
-    def __init__(self, registry: EqualityTesterRegistry, config: EqualityConfig) -> None:
-        self.registry = registry
+    def __init__(self, config: EqualityConfig, *, explaining: bool = False) -> None:
+        self.registry = config.registry
         self.config = config
         self.atol = config.atol
         self.rtol = config.rtol
         self.equal_nan = config.equal_nan
         self.max_depth = config.max_depth
-        self.explaining = config.explaining
+        self.explaining = explaining
         self.failure: tuple[tuple[object, ...], str | None] | None = None
         self._testers: dict[type, BaseEqualityTester[Any]] = {}
         self._warned: set[Any] = set()
@@ -135,7 +133,7 @@ class Engine:
             >>> from coola.equality.config import EqualityConfig
             >>> from coola.equality.engine import Engine
             >>> from coola.equality.tester import get_default_registry
-            >>> engine = Engine(get_default_registry(), EqualityConfig())
+            >>> engine = Engine(EqualityConfig())
             >>> engine.fail("values differ", 3)
             False
 
@@ -232,52 +230,20 @@ class Engine:
             raise MaxDepthExceededError(msg)
 
     def _record_failure(self, parts: list[object], part: object) -> bool:
-        r"""Record the first difference in ``config.reports``.
+        r"""Record the first difference in ``failure``.
 
-        The reports are the single record of the explanation, innermost
-        first. A reason given to ``fail`` is added with the path of the
-        stack.
+        A reason given to ``fail`` is recorded with the path of the
+        stack and the parts given to ``fail``.
         """
-        reports = self.config.reports
-        if reports is None:
+        if not self.explaining:
             return False
         # ``parts[0]`` is the part of the root, which is not in the path. The failing pair is
         # the root if the stack is empty.
         path = (*parts[1:], part) if parts else ()
-        if self._reason is None:
-            reports.append(("", path))
-        else:
-            reason = self._reason if isinstance(self._reason, str) else self._reason()
-            reports.append((reason, path + self._extra))
-        self.failure = failure_from_reports(reports)
+        reason = (
+            self._reason
+            if isinstance(self._reason, str) or self._reason is None
+            else self._reason()
+        )
+        self.failure = (path + self._extra, reason)
         return False
-
-
-def failure_from_reports(
-    reports: list[tuple[str, tuple[object, ...]]],
-) -> tuple[tuple[object, ...], str | None]:
-    r"""Assemble the location and the reason of the first difference.
-
-    The testers report the innermost difference first and the outermost
-    path component last.
-
-    Args:
-        reports: The ``(message, path)`` reports of the comparison.
-
-    Returns:
-        The path of the first difference, and its reason (``None`` if
-            no tester gave one).
-
-    Example:
-        ```pycon
-        >>> from coola.equality.engine import failure_from_reports
-        >>> failure_from_reports([("numbers are different", (1,)), ("", ("a",))])
-        (('a', 1), 'numbers are different')
-
-        ```
-    """
-    path: list[object] = []
-    for _, location in reversed(reports):
-        path.extend(location)
-    reason = next((message for message, _ in reports if message), None)
-    return tuple(path), reason

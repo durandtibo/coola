@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import ScalarEqualityTester
-from tests.unit.equality.utils import ExamplePair, messages, run_tester
+from coola.equality.tolerance import Tolerance
+from tests.unit.equality.utils import ExamplePair, explaining, messages, run_tester
 
 
 @pytest.fixture
@@ -121,7 +124,7 @@ def test_scalar_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = ScalarEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -131,7 +134,7 @@ def test_scalar_equality_tester_objects_are_equal_true_explaining_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = ScalarEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -161,7 +164,7 @@ def test_scalar_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = ScalarEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -171,7 +174,7 @@ def test_scalar_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = ScalarEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
@@ -181,7 +184,7 @@ def test_scalar_equality_tester_objects_are_equal_false_explaining_reports(
 def test_scalar_equality_tester_objects_are_equal_nan(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
-    config.equal_nan = equal_nan
+    config = replace(config, equal_nan=equal_nan)
     assert run_tester(ScalarEqualityTester(), float("nan"), float("nan"), config) == equal_nan
 
 
@@ -189,8 +192,7 @@ def test_scalar_equality_tester_objects_are_equal_nan(
 def test_scalar_equality_tester_objects_are_equal_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
-    config.atol = example.atol
-    config.rtol = example.rtol
+    config = replace(config, tolerance=Tolerance(atol=example.atol, rtol=example.rtol))
     assert run_tester(ScalarEqualityTester(), example.actual, example.expected, config)
 
 
@@ -198,15 +200,14 @@ def test_scalar_equality_tester_objects_are_equal_true_tolerance(
 def test_scalar_equality_tester_objects_are_equal_false_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
-    config.atol = example.atol
-    config.rtol = example.rtol
+    config = replace(config, tolerance=Tolerance(atol=example.atol, rtol=example.rtol))
     assert not run_tester(ScalarEqualityTester(), example.actual, example.expected, config)
 
 
 def test_scalar_equality_tester_objects_are_equal_true_bool_tolerance(
     config: EqualityConfig,
 ) -> None:
-    config.atol = 1.0
+    config = replace(config, tolerance=Tolerance(atol=1.0))
     assert run_tester(ScalarEqualityTester(), True, True, config)
 
 

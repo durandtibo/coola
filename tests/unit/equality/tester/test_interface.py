@@ -348,7 +348,7 @@ NATIVE_SAMPLES = {
 @pytest.mark.parametrize("data_type", NATIVE_SAMPLES)
 def test_default_tester_is_reflexive(data_type: type) -> None:
     sample = NATIVE_SAMPLES[data_type]
-    assert Engine(get_default_registry(), EqualityConfig()).run(sample, sample)
+    assert Engine(EqualityConfig()).run(sample, sample)
 
 
 @pytest.mark.parametrize("data_type", NATIVE_SAMPLES)
