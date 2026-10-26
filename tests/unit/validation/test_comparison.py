@@ -3,13 +3,16 @@ from __future__ import annotations
 import pytest
 
 from coola.validation import (
+    validate_closed_range,
     validate_ge,
     validate_gt,
+    validate_half_open_range,
     validate_le,
     validate_lt,
     validate_negative,
     validate_non_negative,
     validate_non_positive,
+    validate_open_range,
     validate_positive,
 )
 
@@ -194,3 +197,102 @@ def test_validate_non_negative_list_raises() -> None:
 def test_validate_non_negative_nan_raises() -> None:
     with pytest.raises(ValueError, match="non-negative"):
         validate_non_negative(float("nan"))
+
+
+def test_validate_open_range_inside() -> None:
+    validate_open_range(0.5, 0, 1)
+
+
+def test_validate_open_range_low_invalid() -> None:
+    with pytest.raises(ValueError, match=r"value must be in the open range \(0, 1\), got 0"):
+        validate_open_range(0, 0, 1)
+
+
+def test_validate_open_range_high_invalid() -> None:
+    with pytest.raises(ValueError, match=r"value must be in the open range \(0, 1\), got 1"):
+        validate_open_range(1, 0, 1)
+
+
+def test_validate_open_range_custom_name() -> None:
+    with pytest.raises(ValueError, match="count must be in the"):
+        validate_open_range(5, 0, 1, name="count")
+
+
+def test_validate_open_range_nan() -> None:
+    with pytest.raises(ValueError, match="value must be in the"):
+        validate_open_range(float("nan"), 0, 1)
+
+
+def test_validate_open_range_none() -> None:
+    with pytest.raises(TypeError, match="value must be a number that can be compared"):
+        validate_open_range(None, 0, 1)
+
+
+def test_validate_closed_range_inside() -> None:
+    validate_closed_range(0.5, 0, 1)
+
+
+def test_validate_closed_range_low() -> None:
+    validate_closed_range(0, 0, 1)
+
+
+def test_validate_closed_range_high() -> None:
+    validate_closed_range(1, 0, 1)
+
+
+def test_validate_closed_range_below_invalid() -> None:
+    with pytest.raises(ValueError, match=r"value must be in the closed range \[0, 1\], got -1"):
+        validate_closed_range(-1, 0, 1)
+
+
+def test_validate_closed_range_above_invalid() -> None:
+    with pytest.raises(ValueError, match=r"value must be in the closed range \[0, 1\], got 2"):
+        validate_closed_range(2, 0, 1)
+
+
+def test_validate_closed_range_custom_name() -> None:
+    with pytest.raises(ValueError, match="count must be in the"):
+        validate_closed_range(5, 0, 1, name="count")
+
+
+def test_validate_closed_range_nan() -> None:
+    with pytest.raises(ValueError, match="value must be in the"):
+        validate_closed_range(float("nan"), 0, 1)
+
+
+def test_validate_closed_range_none() -> None:
+    with pytest.raises(TypeError, match="value must be a number that can be compared"):
+        validate_closed_range(None, 0, 1)
+
+
+def test_validate_half_open_range_inside() -> None:
+    validate_half_open_range(0.5, 0, 1)
+
+
+def test_validate_half_open_range_low() -> None:
+    validate_half_open_range(0, 0, 1)
+
+
+def test_validate_half_open_range_below_invalid() -> None:
+    with pytest.raises(ValueError, match=r"value must be in the half-open range \[0, 1\), got -1"):
+        validate_half_open_range(-1, 0, 1)
+
+
+def test_validate_half_open_range_high_invalid() -> None:
+    with pytest.raises(ValueError, match=r"value must be in the half-open range \[0, 1\), got 1"):
+        validate_half_open_range(1, 0, 1)
+
+
+def test_validate_half_open_range_custom_name() -> None:
+    with pytest.raises(ValueError, match="count must be in the"):
+        validate_half_open_range(5, 0, 1, name="count")
+
+
+def test_validate_half_open_range_nan() -> None:
+    with pytest.raises(ValueError, match="value must be in the"):
+        validate_half_open_range(float("nan"), 0, 1)
+
+
+def test_validate_half_open_range_none() -> None:
+    with pytest.raises(TypeError, match="value must be a number that can be compared"):
+        validate_half_open_range(None, 0, 1)
