@@ -1,0 +1,81 @@
+r"""Implement the rounding of the pandas Series and DataFrames."""
+
+from __future__ import annotations
+
+__all__ = ["round_pandas"]
+
+from typing import TYPE_CHECKING, Any
+
+from coola.rounding.numpy import round_numpy
+from coola.utils.imports import is_pandas_available
+
+if TYPE_CHECKING:
+    from coola.rounding.common import RoundMode
+
+if is_pandas_available():
+    import pandas as pd
+else:  # pragma: no cover
+    from coola.utils.fallback.pandas import pandas as pd
+
+
+def round_pandas(data: Any, mode: RoundMode, decimals: int) -> Any:
+    r"""Round a pandas Series or DataFrame.
+
+    Only the floating-point columns are rounded. The integer columns
+    are not changed, and neither are the columns that are not numerical
+    (strings, booleans, dates, ...). The missing values are kept.
+
+    Args:
+        data: The ``pandas.Series`` or ``pandas.DataFrame`` to round.
+        mode: The rounding mode.
+        decimals: The number of decimals.
+
+    Returns:
+        The rounded Series or DataFrame. It never shares memory with
+            ``data``.
+
+    Raises:
+        TypeError: If ``data`` is not a Series or a DataFrame, or if
+            ``data`` is a Series that is not numerical.
+
+    Example:
+        ```pycon
+        >>> import pandas as pd
+        >>> from coola.rounding.pandas import round_pandas
+        >>> round_pandas(pd.DataFrame({"a": [1.234, 5.678], "b": ["x", "y"]}), "round", 1)
+             a  b
+        0  1.2  x
+        1  5.7  y
+
+        ```
+    """
+    if isinstance(data, pd.DataFrame):
+        result = data.copy()
+        for position, dtype in enumerate(data.dtypes):
+            if pd.api.types.is_float_dtype(dtype):
+                result.isetitem(position, _round_series(data.iloc[:, position], mode, decimals))
+        return result
+    if isinstance(data, pd.Series):
+        if not _is_supported(data.dtype):
+            msg = f"Unsupported dtype: {data.dtype}"
+            raise TypeError(msg)
+        return _round_series(data, mode, decimals)
+    msg = f"Unsupported type: {type(data).__qualname__}"
+    raise TypeError(msg)
+
+
+def _is_supported(dtype: Any) -> bool:
+    return pd.api.types.is_float_dtype(dtype) or (
+        pd.api.types.is_integer_dtype(dtype) and not pd.api.types.is_bool_dtype(dtype)
+    )
+
+
+def _round_series(series: pd.Series, mode: RoundMode, decimals: int) -> pd.Series:
+    if not pd.api.types.is_float_dtype(series.dtype):
+        return series.copy()
+    values = series.to_numpy(dtype="float64", na_value=float("nan"))
+    result = pd.Series(
+        round_numpy(values, mode, decimals), index=series.index, name=series.name
+    ).astype(series.dtype)
+    # A missing value (``NaN`` or ``NA``) is kept as it is.
+    return result.where(series.notna(), series)
