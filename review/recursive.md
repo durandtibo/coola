@@ -429,3 +429,48 @@ more names grows the top-level namespace for little gain; the guide names the mo
 
 The line counts are estimates from the prototype and from the code to delete; the gate is the
 behaviour (sections 1 and 8), not the size.
+
+## Appendix: benchmark of the current implementation
+
+Baseline of `tests/benchmarks/test_recursive_benchmark.py` on the implementation before the change
+(`main`, `273015ac`; `src/coola/recursive` is identical to `b3b8753f`). The benchmarks only use
+`recursive_apply(data, func)` with the default registry, so they run unchanged on the new design.
+Compare with `inv test.benchmark` (or `pytest tests/benchmarks/test_recursive_benchmark.py
+--benchmark-only --benchmark-save=<name>`, then `--benchmark-compare=<name>`).
+
+Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark`. One run, nothing else
+heavy running; the absolute numbers depend on the machine, so compare two runs on the same
+machine and read the ratios.
+
+| Benchmark (`test_recursive_apply_<name>_benchmark`) | Input                                                                       | `func`   | Min      | Median   | Std dev  | Rounds  |
+| --------------------------------------------------- | --------------------------------------------------------------------------- | -------- | -------- | -------- | -------- | ------- |
+| `scalar`                                            | `1`                                                                         | `x * 2`  | 0.7 µs   | 0.7 µs   | 0.1 µs   | 66,116  |
+| `empty_list`                                        | `[]`                                                                        | `x * 2`  | 0.8 µs   | 1.0 µs   | 0.7 µs   | 119,403 |
+| `small_dict`                                        | `{"a": 1, "b": [2, 3], "c": {"d": 4}}`                                      | `x * 2`  | 4.7 µs   | 4.9 µs   | 0.6 µs   | 74,300  |
+| `deep_list[10]`                                     | list nested 10 times                                                        | `x * 2`  | 8.0 µs   | 8.2 µs   | 0.8 µs   | 62,174  |
+| `deep_list[100]`                                    | list nested 100 times                                                       | `x * 2`  | 79.3 µs  | 80.7 µs  | 6.5 µs   | 8,508   |
+| `deep_list[300]`                                    | list nested 300 times                                                       | `x * 2`  | 249.1 µs | 254.3 µs | 20.1 µs  | 3,461   |
+| `tree[4-10]`                                        | dicts and lists, depth 4, width 10 (10^4 leaves)                            | `x * 2`  | 6.11 ms  | 6.15 ms  | 187.0 µs | 163     |
+| `tree[14-2]`                                        | depth 14, width 2 (2^14 leaves)                                             | `x * 2`  | 22.67 ms | 23.42 ms | 2.18 ms  | 42      |
+| `tree[10-3]`                                        | depth 10, width 3 (3^10 = 59,049 leaves)                                    | `x * 2`  | 56.15 ms | 57.41 ms | 3.73 ms  | 18      |
+| `flat_list_identity`                                | list of 100,000 ints                                                        | identity | 50.49 ms | 51.24 ms | 686.5 µs | 19      |
+| `flat_list_of_strings`                              | list of 100,000 `str`                                                       | identity | 51.20 ms | 51.80 ms | 674.3 µs | 20      |
+| `flat_list`                                         | list of 100,000 ints                                                        | `x * 2`  | 52.80 ms | 52.97 ms | 429.8 µs | 18      |
+| `flat_tuple`                                        | tuple of 100,000 ints                                                       | `x * 2`  | 52.87 ms | 53.21 ms | 409.0 µs | 19      |
+| `flat_set`                                          | set of 100,000 ints                                                         | `x * 2`  | 54.05 ms | 54.91 ms | 2.25 ms  | 19      |
+| `flat_dict`                                         | dict of 100,000 ints                                                        | `x * 2`  | 58.31 ms | 58.95 ms | 808.6 µs | 17      |
+| `list_of_small_dicts`                               | 10,000 dicts of an int, a list and a tuple                                  | identity | 50.74 ms | 52.18 ms | 2.78 ms  | 20      |
+| `mixed_containers`                                  | list, tuple, `deque`, set, `frozenset`, named tuples and `str`, 10,000 each | identity | 50.88 ms | 52.36 ms | 3.98 ms  | 20      |
+
+Reading the numbers:
+
+- **The cost is about 0.5 µs per node.** 100,000 leaves take about 51 ms whatever the container
+  (list, tuple, set, dict) and whatever `func` (identity or `x * 2`), so the time is dominated by
+  the engine, not by `func`. `tree[10-3]` has 59,049 leaves and about 88,000 nodes and takes 56 ms.
+  This is the figure the new engine must not exceed (constraint 3 and the gate of section 8).
+- **A call costs about 0.7 µs** for a leaf and 4.7 µs for a small nested dict. The per-call cache
+  of the new engine must not make small inputs slower.
+- **Depth is linear** (0.8 µs per level) up to the largest depth benchmarked. A list nested about a
+  thousand times raises `RecursionError` on the current implementation (F2), so the benchmark stops
+  at 300. Add deeper cases (for example 10,000 levels) when the explicit stack lands; they cannot
+  run on the old design.
