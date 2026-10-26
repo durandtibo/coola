@@ -281,3 +281,16 @@ def test_default_equality_tester_objects_are_equal_false_explaining_reports(
     tester = DefaultEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
+
+
+class RaisingEq:
+    def __eq__(self, other: object) -> bool:
+        msg = "cannot compare"
+        raise ValueError(msg)
+
+
+def test_default_equality_tester_objects_are_equal_eq_raises_a_type_error(
+    config: EqualityConfig,
+) -> None:
+    with pytest.raises(TypeError, match="Register an equality tester for this type"):
+        run_tester(DefaultEqualityTester(), RaisingEq(), RaisingEq(), config)
