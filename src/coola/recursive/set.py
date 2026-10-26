@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.recursive.base import BaseTransformer
-from coola.utils.introspection import get_type_constructor
+from coola.recursive.rebuild import rebuild_set
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -66,9 +66,8 @@ class SetTransformer(InlineDisplayMixin, BaseTransformer[AbstractSet[Any]]):
         registry: TransformerRegistry,
     ) -> AbstractSet[Any]:
         # Transform all elements recursively using the registry
-        # Note: This will raise TypeError if transformed values are not hashable
-        transformed = {registry.transform(item, func) for item in data}
+        transformed = [registry.transform(item, func) for item in data]
 
         # Rebuild with original type to preserve set characteristics
-        data_type = get_type_constructor(data)
-        return data_type(transformed)
+        # Note: This will raise TypeError if transformed values are not hashable
+        return rebuild_set(data, transformed)
