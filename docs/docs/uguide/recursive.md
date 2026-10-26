@@ -11,10 +11,32 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 The `coola.recursive` package allows you to apply a function to all leaf values in nested data
 structures (lists, dicts, tuples, sets, etc.) while preserving the original structure. It provides:
 
-1. Memory-efficient generator-based traversal
-2. Clean separation between transformation logic and type dispatch
-3. Easy extensibility via registry pattern
-4. Support for custom types
+1. Clean separation between transformation logic and type dispatch
+2. Easy extensibility via registry pattern
+3. Support for custom types
+
+## Properties
+
+| Property                 | Statement                                                                                                                                                                           |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Leaves only              | `func` is called on the leaves, once per occurrence, never on a container.                                                                                                          |
+| Structure-preserving     | A container is rebuilt from the transformed children with its original type. Keys are never transformed.                                                                            |
+| Type dispatch            | The transformer is chosen from the type of the data, along the Method Resolution Order, so the most specific type wins.                                                             |
+| Registry-extensible      | A new type is supported by registering a transformer, without changing the existing ones.                                                                                           |
+| Deterministic order      | The leaves are visited depth first, left to right. The elements of a set are visited in the iteration order of the set, which is not specified.                                     |
+| Pure                     | The input is never modified. The output shares no container with the input (leaves can be shared).                                                                                  |
+| Cycle-safe               | A container that contains itself raises a `ValueError`.                                                                                                                             |
+| Errors propagate         | An exception raised by `func` propagates unchanged. A container that cannot be rebuilt raises a `TypeError`.                                                                        |
+
+Not guaranteed:
+
+- **Laziness.** The output is built whole: the traversal does not use generators and does not
+  reduce the memory usage.
+- **Shared references.** A container reachable by several paths is transformed once per path, so
+  `func` is called once per occurrence and the cost is proportional to the number of paths.
+- **Order of the calls inside a set**, and the result of a `func` that is not deterministic.
+- **Depth.** The recursion limit of Python applies: a very deep structure raises a
+  `RecursionError`.
 
 ## Basic Usage
 
@@ -162,7 +184,7 @@ The `coola.recursive` package provides several built-in transformers:
 
 - **`DefaultTransformer`**: For scalar/leaf values (no children)
 - **`SequenceTransformer`**: For sequences (list, tuple) - recursive transformation preserving order
-- **`MappingTransformer`**: For mappings (dict) - recursive transformation of keys and values
+- **`MappingTransformer`**: For mappings (dict) - recursive transformation of the values (the keys are kept)
 - **`SetTransformer`**: For sets - recursive transformation without order
 - **`IdentityTransformer`**: For leaf values that must be kept as they are: the function is never
   applied
@@ -243,24 +265,12 @@ You can extend the default registry to support custom types:
 
 ```
 
-## Properties
-
-| Property             | Statement                                                                                                               |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Type dispatch        | The transformer is chosen from the type of the data, along the Method Resolution Order, so the most specific type wins. |
-| Structure-preserving | A container is rebuilt with the transformed children, so the nesting of the output matches the input.                   |
-| Registry-extensible  | A new type is supported by registering a transformer, without changing the existing ones.                               |
-| Lazy traversal       | The traversal relies on generators and does not load the whole structure at once.                                       |
-
-Not guaranteed: self-referencing containers are not detected, so they must not be passed to a transformer.
-
 ## Design Principles
 
 The `coola.recursive` package design is inspired by the DFS pattern and provides:
 
-1. **Memory-efficient traversal**: Uses generators to avoid loading entire structures into memory
-2. **Type dispatch**: Automatically selects the right transformer based on data type
-3. **Extensibility**: Easy to add support for new types via the registry pattern
+1. **Type dispatch**: Automatically selects the right transformer based on data type
+2. **Extensibility**: Easy to add support for new types via the registry pattern
 
 ## Common Use Cases
 
