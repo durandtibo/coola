@@ -210,6 +210,16 @@ def test_torch_random_manager_set_rng_state_wrong_number_of_cuda_devices_raises(
 
 
 @torch_available
+def test_torch_random_manager_set_rng_state_with_cuda() -> None:
+    with (
+        patch("torch.cuda.device_count", lambda: 1),
+        patch("torch.cuda.set_rng_state_all") as mock_set_rng_state_all,
+    ):
+        TorchRandomManager().set_rng_state({"torch.cuda": [torch.zeros(1)]})
+    mock_set_rng_state_all.assert_called_once()
+
+
+@torch_available
 def test_torch_random_manager_set_rng_state_restored_values() -> None:
     rng = TorchRandomManager()
     state = rng.get_rng_state()
