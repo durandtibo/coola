@@ -4,12 +4,12 @@ from __future__ import annotations
 
 __all__ = ["factory", "resolve_object"]
 
-import inspect
 import logging
-from typing import TYPE_CHECKING, Any, TypeVar, cast, get_type_hints, overload
+from typing import TYPE_CHECKING, Any, TypeVar, cast, overload
 
 from coola.factory.constants import OBJECT_INIT, OBJECT_PREFIXES, OBJECT_TARGET
 from coola.factory.instantiation import import_object, instantiate_object
+from coola.factory.target import builds
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -120,7 +120,6 @@ def _refuse_nested_configurations(args: Sequence[Any], kwargs: dict[str, Any]) -
 def _check_target(
     config: dict[str, Any],
     cls: type | tuple[type, ...],
-    classes: tuple[type, ...],
     cls_name: str,
     *,
     strict: bool,
@@ -138,21 +137,18 @@ def _check_target(
     if cls is object or OBJECT_INIT in config:
         return
     target = import_object(config[OBJECT_TARGET], allowed_prefixes=config.get(OBJECT_PREFIXES))
-    if inspect.isfunction(target):
-        try:
-            target = get_type_hints(target).get("return")
-        except (NameError, SyntaxError, TypeError):
-            target = None
-    if inspect.isclass(target) and not issubclass(target, classes):
+    built = builds(target, cls)
+    if built is False:
         msg = (
             f"Received object is not a {cls_name} instance (the target "
-            f"{config[OBJECT_TARGET]!r} builds a {target.__qualname__}: it was not called)"
+            f"{config[OBJECT_TARGET]!r} does not build one: it was not called)"
         )
         raise TypeError(msg)
-    if strict and not inspect.isclass(target):
+    if built is None and strict:
         msg = (
             f"Cannot check that the target {config[OBJECT_TARGET]!r} builds a {cls_name} "
-            "instance because it is not a class and has no return type hint: it was not called"
+            "instance because it is not a class and has no return type hint that is a class: "
+            "it was not called"
         )
         raise TypeError(msg)
 
@@ -302,7 +298,7 @@ def resolve_object(
         if allowed_prefixes is not None:
             _refuse_nested_configurations((), config)
             config[OBJECT_PREFIXES] = allowed_prefixes
-        _check_target(config, cls, classes, cls_name, strict=strict)
+        _check_target(config, cls, cls_name, strict=strict)
         obj = factory(**config)
     if not isinstance(obj, cls):
         msg = (

@@ -338,9 +338,12 @@ def test_is_object_config_module_name_target_is_not_imported() -> None:
     assert not is_object_config({OBJECT_TARGET: "coola_side_effect_module"}, object)
 
 
-def test_is_object_config_target_that_is_not_a_string_raises() -> None:
-    with pytest.raises(TypeError, match="is not a string"):
-        is_object_config({OBJECT_TARGET: 1}, object)
+def test_is_object_config_target_that_is_not_a_string() -> None:
+    assert not is_object_config({OBJECT_TARGET: 1}, object)
+
+
+def test_is_object_config_target_that_is_not_a_string_with_import_target() -> None:
+    assert not is_object_config({OBJECT_TARGET: 5}, int, import_target=True)
 
 
 def test_is_object_config_allowed_prefixes_without_target() -> None:
