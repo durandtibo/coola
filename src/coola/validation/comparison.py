@@ -3,13 +3,16 @@ r"""Contain functions to validate comparisons."""
 from __future__ import annotations
 
 __all__ = [
+    "validate_closed_range",
     "validate_ge",
     "validate_gt",
+    "validate_half_open_range",
     "validate_le",
     "validate_lt",
     "validate_negative",
     "validate_non_negative",
     "validate_non_positive",
+    "validate_open_range",
     "validate_positive",
 ]
 
@@ -226,3 +229,134 @@ def validate_non_positive(value: Any, *, name: str = "value") -> None:
         ```
     """
     _check(operator.le, value, 0, name, "non-positive")
+
+
+def _check_range(
+    value: Any, low: Any, high: Any, name: str, requirement: str, *, low_open: bool, high_open: bool
+) -> None:
+    r"""Check that a value is in a range and raise a clear error if it is
+    not.
+
+    Args:
+        value: The value to validate.
+        low: The lower bound.
+        high: The upper bound.
+        name: The name of the value, used in the error message.
+        requirement: The requirement, used in the error message.
+        low_open: If ``True``, the lower bound is excluded.
+        high_open: If ``True``, the upper bound is excluded.
+
+    Raises:
+        TypeError: If ``value`` cannot be compared with the bounds.
+        ValueError: If ``value`` is not in the range (or is NaN).
+    """
+    lower = operator.gt if low_open else operator.ge
+    upper = operator.lt if high_open else operator.le
+    try:
+        is_valid = bool(lower(value, low)) and bool(upper(value, high))
+    except (TypeError, ValueError) as exc:
+        # ValueError: the truth value of an array with several items is ambiguous.
+        msg = f"{name} must be a number that can be compared with {low} and {high}, got {value!r}"
+        raise TypeError(msg) from exc
+    if not is_valid:
+        msg = f"{name} must be {requirement}, got {value}"
+        raise ValueError(msg)
+
+
+def validate_open_range(value: Any, low: Any, high: Any, *, name: str = "value") -> None:
+    r"""Validate that ``value`` is in the open range ``low < value <
+    high``.
+
+    Args:
+        value: The value to validate.
+        low: The lower bound, exclusive.
+        high: The upper bound, exclusive.
+        name: The name of the value, used in the error message.
+
+    Raises:
+        TypeError: If ``value`` cannot be compared (for example ``None``, a
+            ``str`` or an array with several items).
+        ValueError: If ``value`` is not in the range (or is NaN).
+
+    Example:
+        ```pycon
+        >>> from coola.validation import validate_open_range
+        >>> validate_open_range(0.5, 0, 1)
+
+        ```
+    """
+    _check_range(
+        value,
+        low,
+        high,
+        name,
+        f"in the open range ({low}, {high})",
+        low_open=True,
+        high_open=True,
+    )
+
+
+def validate_closed_range(value: Any, low: Any, high: Any, *, name: str = "value") -> None:
+    r"""Validate that ``value`` is in the closed range ``low <= value <=
+    high``.
+
+    Args:
+        value: The value to validate.
+        low: The lower bound, inclusive.
+        high: The upper bound, inclusive.
+        name: The name of the value, used in the error message.
+
+    Raises:
+        TypeError: If ``value`` cannot be compared (for example ``None``, a
+            ``str`` or an array with several items).
+        ValueError: If ``value`` is not in the range (or is NaN).
+
+    Example:
+        ```pycon
+        >>> from coola.validation import validate_closed_range
+        >>> validate_closed_range(1, 0, 1)
+
+        ```
+    """
+    _check_range(
+        value,
+        low,
+        high,
+        name,
+        f"in the closed range [{low}, {high}]",
+        low_open=False,
+        high_open=False,
+    )
+
+
+def validate_half_open_range(value: Any, low: Any, high: Any, *, name: str = "value") -> None:
+    r"""Validate that ``value`` is in the half-open range ``low <= value
+    < high``.
+
+    Args:
+        value: The value to validate.
+        low: The lower bound, inclusive.
+        high: The upper bound, exclusive.
+        name: The name of the value, used in the error message.
+
+    Raises:
+        TypeError: If ``value`` cannot be compared (for example ``None``, a
+            ``str`` or an array with several items).
+        ValueError: If ``value`` is not in the range (or is NaN).
+
+    Example:
+        ```pycon
+        >>> from coola.validation import validate_half_open_range
+        >>> validate_half_open_range(0, 0, 1)
+
+        ```
+    """
+    _check_range(
+        value,
+        low,
+        high,
+        name,
+        f"in the half-open range [{low}, {high})",
+        low_open=False,
+        high_open=True,
+    )

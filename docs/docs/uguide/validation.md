@@ -17,7 +17,8 @@ The `coola.validation` package provides:
 2. **Container checks** - `validate_not_empty` to check a value is not empty, and `validate_in`
    to check a value belongs to a set of valid values
 3. **Comparison checks** - `validate_ge`, `validate_gt`, `validate_le`, and `validate_lt` to
-   check a value against a bound
+   check a value against a bound, and `validate_open_range`, `validate_closed_range` and
+   `validate_half_open_range` to check a value is in a range
 4. **Sign and finiteness checks** - `validate_positive`, `validate_non_negative`,
    `validate_negative`, `validate_non_positive` and `validate_finite`
 
@@ -75,6 +76,25 @@ exclusive bounds:
 Traceback (most recent call last):
     ...
 ValueError: count must be greater than 1, got 1
+
+```
+
+`validate_open_range` checks `low < value < high`, `validate_closed_range` checks
+`low <= value <= high` and `validate_half_open_range` checks `low <= value < high`:
+
+```pycon
+>>> from coola.validation import (
+...     validate_closed_range,
+...     validate_half_open_range,
+...     validate_open_range,
+... )
+>>> validate_open_range(0.5, 0, 1)
+>>> validate_closed_range(1, 0, 1)
+>>> validate_half_open_range(0, 0, 1)
+>>> validate_half_open_range(1, 0, 1, name="ratio")
+Traceback (most recent call last):
+    ...
+ValueError: ratio must be in the half-open range [0, 1), got 1
 
 ```
 
