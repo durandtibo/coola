@@ -7,9 +7,12 @@ Run them explicitly with:
 
 from __future__ import annotations
 
-from pytest_benchmark.fixture import BenchmarkFixture
+from typing import TYPE_CHECKING
 
 from coola.registry import TypeRegistry
+
+if TYPE_CHECKING:
+    from pytest_benchmark.fixture import BenchmarkFixture
 
 
 def test_type_registry_resolve_cached_benchmark(benchmark: BenchmarkFixture) -> None:
