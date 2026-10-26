@@ -10,23 +10,14 @@ __all__ = [
     "AllCloseNanHandler",
     "AttributeName",
     "BaseEqualityHandler",
-    "DataclassSameFieldsHandler",
-    "DifferenceCloseHandler",
-    "EqualHandler",
-    "EqualNanHandler",
     "FalseHandler",
     "HandlerCycleError",
     "HandlerEqualityMixin",
     "JaxArrayEqualHandler",
-    "MappingSameKeyOrderHandler",
-    "MappingSameKeysHandler",
-    "MappingSameValuesHandler",
     "MaxDepthExceededError",
-    "NanEqualHandler",
     "NumpyArrayEqualHandler",
     "NumpyTimeScalarEqualHandler",
     "ObjectEqualHandler",
-    "ObjectSameAttributesHandler",
     "PandasDataFrameEqualHandler",
     "PandasExtensionArrayEqualHandler",
     "PandasIndexEqualHandler",
@@ -35,7 +26,6 @@ __all__ = [
     "PolarsLazyFrameEqualHandler",
     "PolarsSeriesEqualHandler",
     "PyarrowEqualHandler",
-    "PydanticModelSameFieldsHandler",
     "SameAttributeHandler",
     "SameDTypeHandler",
     "SameDataHandler",
@@ -43,10 +33,6 @@ __all__ = [
     "SameObjectHandler",
     "SameShapeHandler",
     "SameTypeHandler",
-    "ScalarEqualHandler",
-    "SequenceSameValuesHandler",
-    "SetSameValuesHandler",
-    "TolerantEqualHandler",
     "TorchTensorEqualHandler",
     "TorchTensorSameDeviceHandler",
     "TrueHandler",
@@ -55,6 +41,7 @@ __all__ = [
     "create_chain",
     "get_object_attributes",
     "handlers_are_equal",
+    "is_exact_scalar_sequence",
     "report_difference",
     "track_comparison",
 ]
@@ -64,15 +51,7 @@ from typing import TYPE_CHECKING
 from coola.equality.handler.allclose import AllCloseNanHandler
 from coola.equality.handler.base import BaseEqualityHandler, HandlerCycleError
 from coola.equality.handler.data import SameDataHandler
-from coola.equality.handler.dataclass import DataclassSameFieldsHandler
-from coola.equality.handler.difference import DifferenceCloseHandler
 from coola.equality.handler.dtype import SameDTypeHandler
-from coola.equality.handler.equal import EqualHandler, EqualNanHandler
-from coola.equality.handler.mapping import (
-    MappingSameKeyOrderHandler,
-    MappingSameKeysHandler,
-    MappingSameValuesHandler,
-)
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.native import (
     FalseHandler,
@@ -83,13 +62,8 @@ from coola.equality.handler.native import (
     SameTypeHandler,
     TrueHandler,
 )
-from coola.equality.handler.object import ObjectSameAttributesHandler, get_object_attributes
-from coola.equality.handler.pydantic import PydanticModelSameFieldsHandler
-from coola.equality.handler.scalar import NanEqualHandler, ScalarEqualHandler
-from coola.equality.handler.sequence import SequenceSameValuesHandler
-from coola.equality.handler.set import SetSameValuesHandler
+from coola.equality.handler.object import get_object_attributes
 from coola.equality.handler.shape import SameShapeHandler
-from coola.equality.handler.tolerant import TolerantEqualHandler
 from coola.equality.handler.utils import (
     AttributeName,
     MaxDepthExceededError,
@@ -97,6 +71,7 @@ from coola.equality.handler.utils import (
     comparison_key,
     create_chain,
     handlers_are_equal,
+    is_exact_scalar_sequence,
     report_difference,
     track_comparison,
 )

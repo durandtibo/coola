@@ -7,20 +7,17 @@ __all__ = ["ObjectAttributesEqualityTester"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler import (
-    ObjectSameAttributesHandler,
-    SameObjectHandler,
-    SameTypeHandler,
-    TrueHandler,
-    create_chain,
-)
-from coola.equality.tester.chain import BaseChainEqualityTester
+from coola.equality.handler.object import get_object_attributes
+from coola.equality.handler.utils import AttributeName
+from coola.equality.tester.base import BaseEngineEqualityTester
 
 if TYPE_CHECKING:
-    from coola.equality.handler import BaseEqualityHandler
+    from collections.abc import Iterator
+
+    from coola.equality.engine import Engine
 
 
-class ObjectAttributesEqualityTester(BaseChainEqualityTester[Any]):
+class ObjectAttributesEqualityTester(BaseEngineEqualityTester[Any]):
     r"""Implement an equality tester for objects without value
     semantics.
 
@@ -34,11 +31,9 @@ class ObjectAttributesEqualityTester(BaseChainEqualityTester[Any]):
 
     It is not registered by default, because it changes the result for
     the classes that rely on the identity: register it for the classes
-    that must be compared by their attributes. The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both have the same type
-    3. ObjectSameAttributesHandler: Compare the attributes
-    4. TrueHandler: Return True if all checks pass
+    that must be compared by their attributes. The two objects have the
+    same type, the same attribute names and equal values. The location
+    of a difference is the name of the attribute.
 
     Example:
         ```pycon
@@ -64,10 +59,18 @@ class ObjectAttributesEqualityTester(BaseChainEqualityTester[Any]):
         ```
     """
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(
-            SameObjectHandler(),
-            SameTypeHandler(),
-            ObjectSameAttributesHandler(),
-            TrueHandler(),
+    def objects_are_equal(
+        self, actual: Any, expected: Any, ctx: Engine
+    ) -> bool | Iterator[tuple[object, object, object]]:
+        attributes_a = get_object_attributes(actual)
+        attributes_e = get_object_attributes(expected)
+        if attributes_a.keys() != attributes_e.keys():
+            return ctx.fail(
+                lambda: (
+                    f"objects have different attributes: {sorted(attributes_a)} "
+                    f"vs {sorted(attributes_e)}"
+                )
+            )
+        return (
+            (value, attributes_e[name], AttributeName(name)) for name, value in attributes_a.items()
         )

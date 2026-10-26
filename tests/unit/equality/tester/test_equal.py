@@ -7,7 +7,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import EqualEqualityTester, EqualNanEqualityTester
-from tests.unit.equality.utils import ExamplePair, messages
+from tests.unit.equality.utils import ExamplePair, messages, run_tester
 
 
 @pytest.fixture
@@ -136,7 +136,7 @@ def test_equal_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     obj = Mock()
-    assert EqualEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(EqualEqualityTester(), obj, obj, config)
 
 
 @pytest.mark.parametrize("example", CUSTOM_EQUAL_EQUAL)
@@ -145,7 +145,7 @@ def test_equal_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = EqualEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", CUSTOM_EQUAL_EQUAL)
@@ -154,7 +154,7 @@ def test_equal_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = EqualEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -165,7 +165,7 @@ def test_equal_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = EqualEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", CUSTOM_EQUAL_EQUAL)
@@ -175,7 +175,7 @@ def test_equal_equality_tester_objects_are_equal_true_explaining_does_not_log(
 ) -> None:
     config.reports = []
     tester = EqualEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -185,9 +185,7 @@ def test_equal_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = EqualEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", CUSTOM_EQUAL_NOT_EQUAL)
@@ -196,7 +194,7 @@ def test_equal_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = EqualEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -207,9 +205,7 @@ def test_equal_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = EqualEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", CUSTOM_EQUAL_NOT_EQUAL)
@@ -219,20 +215,20 @@ def test_equal_equality_tester_objects_are_equal_false_explaining_reports(
 ) -> None:
     config.reports = []
     tester = EqualEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[-1].startswith(example.expected_message)
 
 
 def test_equal_equality_tester_objects_are_equal_true_nan(config: EqualityConfig) -> None:
     config.equal_nan = True
-    assert not EqualEqualityTester().objects_are_equal(
-        actual=MyFloat(float("nan")), expected=MyFloat(float("nan")), config=config
+    assert not run_tester(
+        EqualEqualityTester(), MyFloat(float("nan")), MyFloat(float("nan")), config
     )
 
 
 def test_equal_equality_tester_objects_are_equal_false_nan(config: EqualityConfig) -> None:
-    assert not EqualEqualityTester().objects_are_equal(
-        actual=MyFloat(float("nan")), expected=MyFloat(float("nan")), config=config
+    assert not run_tester(
+        EqualEqualityTester(), MyFloat(float("nan")), MyFloat(float("nan")), config
     )
 
 
@@ -267,7 +263,7 @@ def test_equal_nan_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     obj = Mock()
-    assert EqualNanEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(EqualNanEqualityTester(), obj, obj, config)
 
 
 @pytest.mark.parametrize("example", CUSTOM_EQUAL_NAN_EQUAL)
@@ -276,7 +272,7 @@ def test_equal_nan_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = EqualNanEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", CUSTOM_EQUAL_NAN_EQUAL)
@@ -285,7 +281,7 @@ def test_equal_nan_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = EqualNanEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -296,7 +292,7 @@ def test_equal_nan_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = EqualNanEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", CUSTOM_EQUAL_NAN_EQUAL)
@@ -306,7 +302,7 @@ def test_equal_nan_equality_tester_objects_are_equal_true_explaining_does_not_lo
 ) -> None:
     config.reports = []
     tester = EqualNanEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -316,9 +312,7 @@ def test_equal_nan_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = EqualNanEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", CUSTOM_EQUAL_NAN_NOT_EQUAL)
@@ -327,7 +321,7 @@ def test_equal_nan_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = EqualNanEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -338,9 +332,7 @@ def test_equal_nan_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = EqualNanEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", CUSTOM_EQUAL_NAN_NOT_EQUAL)
@@ -350,18 +342,30 @@ def test_equal_nan_equality_tester_objects_are_equal_false_explaining_reports(
 ) -> None:
     config.reports = []
     tester = EqualNanEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[-1].startswith(example.expected_message)
 
 
 def test_equal_nan_equality_tester_objects_are_equal_true_nan(config: EqualityConfig) -> None:
     config.equal_nan = True
-    assert EqualNanEqualityTester().objects_are_equal(
-        actual=MyFloatNan(float("nan")), expected=MyFloatNan(float("nan")), config=config
+    assert run_tester(
+        EqualNanEqualityTester(), MyFloatNan(float("nan")), MyFloatNan(float("nan")), config
     )
 
 
 def test_equal_nan_equality_tester_objects_are_equal_false_nan(config: EqualityConfig) -> None:
-    assert not EqualNanEqualityTester().objects_are_equal(
-        actual=MyFloatNan(float("nan")), expected=MyFloatNan(float("nan")), config=config
+    assert not run_tester(
+        EqualNanEqualityTester(), MyFloatNan(float("nan")), MyFloatNan(float("nan")), config
     )
+
+
+class NoEqual:
+    """An object without an ``equal`` method."""
+
+
+def test_equal_equality_tester_object_without_equal_method(config: EqualityConfig) -> None:
+    assert not run_tester(EqualEqualityTester(), NoEqual(), NoEqual(), config)
+
+
+def test_equal_nan_equality_tester_object_without_equal_method(config: EqualityConfig) -> None:
+    assert not run_tester(EqualNanEqualityTester(), NoEqual(), NoEqual(), config)

@@ -11,28 +11,22 @@ __all__ = ["DifferenceCloseEqualityTester"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler import (
-    DifferenceCloseHandler,
-    SameObjectHandler,
-    SameTypeHandler,
-    create_chain,
-)
-from coola.equality.tester.chain import BaseChainEqualityTester
+from coola.equality.handler.difference import difference_close
+from coola.equality.handler.format import format_value_difference
+from coola.equality.tester.base import BaseEngineEqualityTester
 
 if TYPE_CHECKING:
-    from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.engine import Engine
 
 
-class DifferenceCloseEqualityTester(BaseChainEqualityTester[Any]):
+class DifferenceCloseEqualityTester(BaseEngineEqualityTester[Any]):
     r"""Implement an equality tester for ``decimal.Decimal``,
     ``fractions.Fraction`` and ``datetime.timedelta``.
 
-    These types have no ``allclose``, so they were compared with ``==``
-    and ignored the tolerances. This tester compares their difference
-    with the tolerance (see ``difference_close``). The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify same type
-    3. DifferenceCloseHandler: Compare the difference with the tolerance
+    These types have no ``allclose``, so the tester compares their
+    difference with the tolerance (see ``difference_close``). A
+    ``Decimal`` NaN is equal to a NaN only if ``equal_nan`` is
+    ``True``, and ``atol`` of a ``timedelta`` is a number of seconds.
 
     This tester is registered for ``Decimal``, ``Fraction`` and
     ``timedelta`` in the default registry.
@@ -41,15 +35,23 @@ class DifferenceCloseEqualityTester(BaseChainEqualityTester[Any]):
         ```pycon
         >>> from decimal import Decimal
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import DifferenceCloseEqualityTester
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import DifferenceCloseEqualityTester, get_default_registry
+        >>> registry = get_default_registry()
         >>> tester = DifferenceCloseEqualityTester()
-        >>> tester.objects_are_equal(Decimal("1.0"), Decimal("1.00001"), EqualityConfig())
+        >>> tester.objects_are_equal(
+        ...     Decimal("1.0"), Decimal("1.00001"), Engine(registry, EqualityConfig())
+        ... )
         False
-        >>> tester.objects_are_equal(Decimal("1.0"), Decimal("1.00001"), EqualityConfig(atol=1e-3))
+        >>> tester.objects_are_equal(
+        ...     Decimal("1.0"), Decimal("1.00001"), Engine(registry, EqualityConfig(atol=1e-3))
+        ... )
         True
 
         ```
     """
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(SameObjectHandler(), SameTypeHandler(), DifferenceCloseHandler())
+    def objects_are_equal(self, actual: Any, expected: Any, ctx: Engine) -> bool:
+        return difference_close(actual, expected, ctx.config) or ctx.fail(
+            lambda: format_value_difference(actual=actual, expected=expected, name="values")
+        )

@@ -14,6 +14,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.equality.config import EqualityConfig
+from coola.equality.engine import Engine
 from coola.equality.handler import BaseEqualityHandler, SameObjectHandler
 from coola.equality.tester import (
     BaseEqualityTester,
@@ -359,8 +360,7 @@ NATIVE_SAMPLES = {
 @pytest.mark.parametrize("data_type", NATIVE_SAMPLES)
 def test_default_tester_is_reflexive(data_type: type) -> None:
     sample = NATIVE_SAMPLES[data_type]
-    tester = get_default_registry().find(data_type)
-    assert tester.objects_are_equal(sample, sample, EqualityConfig())
+    assert Engine(get_default_registry(), EqualityConfig()).run(sample, sample)
 
 
 @pytest.mark.parametrize("data_type", NATIVE_SAMPLES)

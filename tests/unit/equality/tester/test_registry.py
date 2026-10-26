@@ -12,6 +12,7 @@ from coola.equality.tester import (
     DefaultEqualityTester,
     EqualityTesterRegistry,
     MappingEqualityTester,
+    ScalarEqualityTester,
     SequenceEqualityTester,
 )
 from coola.equality.tester.registry import DataclassMarker
@@ -179,7 +180,11 @@ def test_equality_tester_registry_objects_are_equal_true(config: EqualityConfig)
 
 def test_equality_tester_registry_objects_are_equal_true_atol() -> None:
     registry = EqualityTesterRegistry(
-        {object: DefaultEqualityTester(), list: SequenceEqualityTester()}
+        {
+            object: DefaultEqualityTester(),
+            list: SequenceEqualityTester(),
+            int: ScalarEqualityTester(),
+        }
     )
     config = EqualityConfig(atol=1.1)
     assert registry.objects_are_equal([1, 2, 3], [0, 1, 2], config)

@@ -6,6 +6,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import DataclassEqualityTester
+from tests.unit.equality.utils import run_tester
 
 
 @dataclass
@@ -36,17 +37,17 @@ def test_dataclass_equality_tester_equal_false() -> None:
 
 
 def test_dataclass_equality_tester_objects_are_equal_true(config: EqualityConfig) -> None:
-    assert DataclassEqualityTester().objects_are_equal(Point(1.0), Point(1.0), config)
+    assert run_tester(DataclassEqualityTester(), Point(1.0), Point(1.0), config)
 
 
 def test_dataclass_equality_tester_objects_are_equal_same_object(config: EqualityConfig) -> None:
     point = Point(1.0)
-    assert DataclassEqualityTester().objects_are_equal(point, point, config)
+    assert run_tester(DataclassEqualityTester(), point, point, config)
 
 
 def test_dataclass_equality_tester_objects_are_equal_false_value(config: EqualityConfig) -> None:
-    assert not DataclassEqualityTester().objects_are_equal(Point(1.0), Point(2.0), config)
+    assert not run_tester(DataclassEqualityTester(), Point(1.0), Point(2.0), config)
 
 
 def test_dataclass_equality_tester_objects_are_equal_false_type(config: EqualityConfig) -> None:
-    assert not DataclassEqualityTester().objects_are_equal(Point(1.0), Other(1.0), config)
+    assert not run_tester(DataclassEqualityTester(), Point(1.0), Other(1.0), config)

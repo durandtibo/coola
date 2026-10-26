@@ -81,18 +81,18 @@ Handles sequence types like `list`, `tuple`, and `deque`:
 
 ```pycon
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import SequenceEqualityTester
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import get_default_registry
 >>> config = EqualityConfig()
->>> tester = SequenceEqualityTester()
->>> tester.objects_are_equal([1, 2, 3], [1, 2, 3], config)
+>>> engine = Engine(get_default_registry(), config)
+>>> engine.run([1, 2, 3], [1, 2, 3])
 True
->>> tester.objects_are_equal([1, 2, 3], [1, 2, 4], config)
+>>> engine.run([1, 2, 3], [1, 2, 4])
 False
 >>> # Works with nested structures
->>> tester.objects_are_equal(
+>>> engine.run(
 ...     [1, {"a": 2}, [3, 4]],
 ...     [1, {"a": 2}, [3, 4]],
-...     config,
 ... )
 True
 
@@ -108,12 +108,13 @@ Handles `set` and `frozenset`. Unlike `==`, the elements are matched by hash and
 
 ```pycon
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import SetEqualityTester
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import get_default_registry
 >>> config = EqualityConfig(equal_nan=True)
->>> tester = SetEqualityTester()
->>> tester.objects_are_equal({1.0, float("nan")}, {1.0, float("nan")}, config)
+>>> engine = Engine(get_default_registry(), config)
+>>> engine.run({1.0, float("nan")}, {1.0, float("nan")})
 True
->>> tester.objects_are_equal({1.0, 2.0}, {1.0, 3.0}, config)
+>>> engine.run({1.0, 2.0}, {1.0, 3.0})
 False
 
 ```
@@ -124,18 +125,18 @@ Handles mapping types like `dict`:
 
 ```pycon
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import MappingEqualityTester
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import get_default_registry
 >>> config = EqualityConfig()
->>> tester = MappingEqualityTester()
->>> tester.objects_are_equal({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
+>>> engine = Engine(get_default_registry(), config)
+>>> engine.run({"a": 1, "b": 2}, {"a": 1, "b": 2})
 True
->>> tester.objects_are_equal({"a": 1, "b": 2}, {"a": 1, "b": 3}, config)
+>>> engine.run({"a": 1, "b": 2}, {"a": 1, "b": 3})
 False
 >>> # Works with nested structures
->>> tester.objects_are_equal(
+>>> engine.run(
 ...     {"x": [1, 2], "y": {"z": 3}},
 ...     {"x": [1, 2], "y": {"z": 3}},
-...     config,
 ... )
 True
 
@@ -150,12 +151,13 @@ between two `OrderedDict`s). The other mappings ignore the order of the keys:
 ```pycon
 >>> from collections import OrderedDict
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import OrderedMappingEqualityTester
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import get_default_registry
 >>> config = EqualityConfig()
->>> tester = OrderedMappingEqualityTester()
->>> tester.objects_are_equal(OrderedDict(a=1, b=2), OrderedDict(a=1, b=2), config)
+>>> engine = Engine(get_default_registry(), config)
+>>> engine.run(OrderedDict(a=1, b=2), OrderedDict(a=1, b=2))
 True
->>> tester.objects_are_equal(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config)
+>>> engine.run(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1))
 False
 
 ```
@@ -168,16 +170,18 @@ Handles scalar types like `int`, `float`, and `bool`:
 
 ```pycon
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import ScalarEqualityTester
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import get_default_registry, ScalarEqualityTester
 >>> config = EqualityConfig()
+>>> engine = Engine(get_default_registry(), config)
 >>> tester = ScalarEqualityTester()
->>> tester.objects_are_equal(42, 42, config)
+>>> tester.objects_are_equal(42, 42, engine)
 True
->>> tester.objects_are_equal(3.14, 3.14, config)
+>>> tester.objects_are_equal(3.14, 3.14, engine)
 True
 >>> # With tolerance
->>> config_tol = EqualityConfig(atol=0.01)
->>> tester.objects_are_equal(1.0, 1.005, config_tol)
+>>> engine_tol = Engine(get_default_registry(), EqualityConfig(atol=0.01))
+>>> tester.objects_are_equal(1.0, 1.005, engine_tol)
 True
 
 ```
@@ -193,10 +197,11 @@ Generic tester that uses Python's `==` operator:
 ...     def equal(self, other: object) -> bool:
 ...         return self == other
 >>> config = EqualityConfig()
+>>> engine = Engine(get_default_registry(), config)
 >>> tester = EqualEqualityTester()
->>> tester.objects_are_equal(MyList([1, 2, 3]), MyList([1, 2, 3]), config)
+>>> tester.objects_are_equal(MyList([1, 2, 3]), MyList([1, 2, 3]), engine)
 True
->>> tester.objects_are_equal(MyList([1, 2, 3]), MyList([1, 2, 4]), config)
+>>> tester.objects_are_equal(MyList([1, 2, 3]), MyList([1, 2, 4]), engine)
 False
 
 ```

@@ -1,13 +1,38 @@
 from __future__ import annotations
 
+import math
 from unittest.mock import Mock
 
 import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import TolerantEqualEqualityTester
-from tests.unit.equality.handler.test_tolerant import MyFloat
-from tests.unit.equality.utils import ExamplePair, messages
+from tests.unit.equality.utils import ExamplePair, messages, run_tester
+
+
+class MyFloat:
+    def __init__(self, value: float) -> None:
+        self._value = float(value)
+
+    def allclose(
+        self,
+        other: object,
+        rtol: float = 1e-5,
+        atol: float = 1e-8,
+        equal_nan: bool = False,
+    ) -> bool:
+        if type(other) is not type(self):
+            return False
+        if equal_nan and math.isnan(self._value) and math.isnan(other._value):
+            return True
+        return math.isclose(self._value, other._value, rel_tol=rtol, abs_tol=atol)
+
+    def equal(self, other: object, equal_nan: bool = False) -> bool:
+        if type(other) is not type(self):
+            return False
+        if equal_nan and math.isnan(self._value) and math.isnan(other._value):
+            return True
+        return self._value == other._value
 
 
 @pytest.fixture
@@ -109,7 +134,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     obj = Mock()
-    assert TolerantEqualEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(TolerantEqualEqualityTester(), obj, obj, config)
 
 
 @pytest.mark.parametrize("example", TOLERANT_EQUAL_EQUAL)
@@ -118,7 +143,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = TolerantEqualEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", TOLERANT_EQUAL_EQUAL)
@@ -127,7 +152,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = TolerantEqualEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -138,7 +163,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = TolerantEqualEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", TOLERANT_EQUAL_EQUAL)
@@ -148,7 +173,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_explaining_does_n
 ) -> None:
     config.reports = []
     tester = TolerantEqualEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -158,9 +183,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = TolerantEqualEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", TOLERANT_EQUAL_NOT_EQUAL)
@@ -169,7 +192,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = TolerantEqualEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -180,9 +203,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = TolerantEqualEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", TOLERANT_EQUAL_NOT_EQUAL)
@@ -192,7 +213,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_explaining_repor
 ) -> None:
     config.reports = []
     tester = TolerantEqualEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[-1].startswith(example.expected_message)
 
 
@@ -200,16 +221,16 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_nan(
     config: EqualityConfig,
 ) -> None:
     config.equal_nan = True
-    assert TolerantEqualEqualityTester().objects_are_equal(
-        actual=MyFloat(float("nan")), expected=MyFloat(float("nan")), config=config
+    assert run_tester(
+        TolerantEqualEqualityTester(), MyFloat(float("nan")), MyFloat(float("nan")), config
     )
 
 
 def test_tolerant_equal_equality_tester_objects_are_equal_false_nan(
     config: EqualityConfig,
 ) -> None:
-    assert not TolerantEqualEqualityTester().objects_are_equal(
-        actual=MyFloat(float("nan")), expected=MyFloat(float("nan")), config=config
+    assert not run_tester(
+        TolerantEqualEqualityTester(), MyFloat(float("nan")), MyFloat(float("nan")), config
     )
 
 
@@ -220,7 +241,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_with_tolerance(
 ) -> None:
     config.atol = 0.5
     tester = TolerantEqualEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", TOLERANT_EQUAL_EQUAL_WITH_TOLERANCE)
@@ -230,7 +251,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_with_tolerance_do
 ) -> None:
     config.atol = 0.5
     tester = TolerantEqualEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -241,9 +262,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_with_tolerance(
 ) -> None:
     config.atol = 0.5
     tester = TolerantEqualEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", TOLERANT_EQUAL_NOT_EQUAL_WITH_TOLERANCE)
@@ -253,7 +272,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_with_tolerance_d
 ) -> None:
     config.atol = 0.5
     tester = TolerantEqualEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -265,9 +284,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_explaining_with_
     config.atol = 0.5
     config.reports = []
     tester = TolerantEqualEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", TOLERANT_EQUAL_NOT_EQUAL_WITH_TOLERANCE)
@@ -278,5 +295,13 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_explaining_with_
     config.atol = 0.5
     config.reports = []
     tester = TolerantEqualEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[-1].startswith(example.expected_message)
+
+
+class NoMethods:
+    """An object that implements neither ``allclose`` nor ``equal``."""
+
+
+def test_tolerant_equal_equality_tester_object_without_methods(config: EqualityConfig) -> None:
+    assert not run_tester(TolerantEqualEqualityTester(), NoMethods(), NoMethods(), config)

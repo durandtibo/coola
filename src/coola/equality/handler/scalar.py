@@ -2,7 +2,7 @@ r"""Implement handlers to check if the objects are equal."""
 
 from __future__ import annotations
 
-__all__ = ["NanEqualHandler", "ScalarEqualHandler"]
+__all__ = ["complex_are_equal", "int_isclose", "number_equal"]
 
 import cmath
 import enum
@@ -11,46 +11,8 @@ import numbers
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
-from coola.equality.handler.base import BaseEqualityHandler
-from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.mixin import HandlerEqualityMixin
-from coola.equality.handler.utils import report_difference
-
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-
-class NanEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
-    r"""Check if the two NaNs are equal.
-
-    This handler returns ``True`` if the two numbers are NaNs,
-    otherwise it passes the inputs to the next handler.
-
-    Example:
-        ```pycon
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler import NanEqualHandler, FalseHandler
-        >>> config = EqualityConfig()
-        >>> handler = NanEqualHandler(next_handler=FalseHandler())
-        >>> handler.handle(float("nan"), float("nan"), config)
-        False
-        >>> config.equal_nan = True
-        >>> handler.handle(float("nan"), float("nan"), config)
-        True
-
-        ```
-    """
-
-    def handle(
-        self,
-        actual: float,
-        expected: float,
-        config: EqualityConfig,
-    ) -> bool:
-        if config.equal_nan and cmath.isnan(actual) and cmath.isnan(expected):
-            # ``complex(nan, 1)`` and ``complex(nan, 2)`` differ: compare the parts.
-            return complex_are_equal(actual, expected, config)
-        return self._handle_next(actual, expected, config=config)
 
 
 def complex_are_equal(actual: complex, expected: complex, config: EqualityConfig) -> bool:
@@ -87,41 +49,6 @@ def complex_are_equal(actual: complex, expected: complex, config: EqualityConfig
         if not number_equal(a, b, config):
             return False
     return True
-
-
-class ScalarEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
-    r"""Check if the two numbers are equal or not.
-
-    This handler returns ``False`` if the two numbers are
-    different, otherwise it returns ``True``. It is possible to
-    control the tolerance by using ``atol`` and ``rtol``.
-    By default, the tolerances are set to 0.
-
-    Example:
-        ```pycon
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler import ScalarEqualHandler
-        >>> config = EqualityConfig()
-        >>> handler = ScalarEqualHandler()
-        >>> handler.handle(42.0, 42.0, config)
-        True
-        >>> config.atol = 1e-3
-        >>> handler.handle(42.0, 42.0001, config)
-        True
-        >>> handler.handle(float("nan"), float("nan"), config)
-        False
-
-        ```
-    """
-
-    def handle(self, actual: float, expected: float, config: EqualityConfig) -> bool:
-        object_equal = number_equal(actual, expected, config)
-        if not object_equal and config.explaining:
-            report_difference(
-                config,
-                format_value_difference(actual=actual, expected=expected, name="numbers"),
-            )
-        return object_equal
 
 
 def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool:

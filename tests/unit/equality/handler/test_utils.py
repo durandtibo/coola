@@ -11,9 +11,12 @@ from coola.equality.handler import (
     SameObjectHandler,
     SameTypeHandler,
     check_recursion_depth,
+    comparison_key,
     create_chain,
     handlers_are_equal,
+    is_exact_scalar_sequence,
     report_difference,
+    track_comparison,
 )
 from tests.unit.equality.utils import messages
 
@@ -177,3 +180,75 @@ def test_report_difference_records_nothing_when_not_explaining() -> None:
     config = EqualityConfig()
     report_difference(config, "different")
     assert config.reports is None
+
+
+###############################################
+#     Tests for is_exact_scalar_sequence      #
+###############################################
+
+
+@pytest.mark.parametrize("seq", [[1, "a", None, True], (b"a", 2), [], ()])
+def test_is_exact_scalar_sequence_true(seq: object) -> None:
+    assert is_exact_scalar_sequence(seq)
+
+
+@pytest.mark.parametrize("seq", [[1.0], [1, [2]], {1, 2}, "abc", range(3)])
+def test_is_exact_scalar_sequence_false(seq: object) -> None:
+    assert not is_exact_scalar_sequence(seq)
+
+
+def test_is_exact_scalar_sequence_subclass_of_list() -> None:
+    class MyList(list):
+        pass
+
+    assert not is_exact_scalar_sequence(MyList([1]))
+
+
+############################################
+#     Tests for track_comparison           #
+############################################
+
+
+def test_track_comparison_first_visit() -> None:
+    config = EqualityConfig()
+    with track_comparison(config, [], []) as in_progress:
+        assert not in_progress
+
+
+def test_track_comparison_nested_visit_of_the_same_pair() -> None:
+    config = EqualityConfig()
+    x, y = [], []
+    with track_comparison(config, x, y), track_comparison(config, x, y) as in_progress:
+        assert in_progress
+
+
+def test_track_comparison_forgets_the_pair_on_exit() -> None:
+    config = EqualityConfig()
+    x, y = [], []
+    with track_comparison(config, x, y):
+        pass
+    with track_comparison(config, x, y) as in_progress:
+        assert not in_progress
+
+
+###########################################
+#     Tests for comparison_key            #
+###########################################
+
+
+def test_comparison_key_frozenset_with_nan() -> None:
+    config = EqualityConfig(equal_nan=True)
+    assert comparison_key(frozenset({float("nan")}), config) == comparison_key(
+        frozenset({float("nan")}), config
+    )
+
+
+def test_comparison_key_frozenset_without_equal_nan() -> None:
+    config = EqualityConfig()
+    assert comparison_key(frozenset({float("nan")}), config) != comparison_key(
+        frozenset({float("nan")}), config
+    )
+
+
+def test_comparison_key_keeps_the_type() -> None:
+    assert comparison_key(1, EqualityConfig()) != comparison_key(True, EqualityConfig())

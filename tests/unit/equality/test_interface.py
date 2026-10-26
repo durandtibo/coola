@@ -17,6 +17,7 @@ from coola.equality.tester import (
 )
 from coola.testing.fixtures import numpy_available, torch_available
 from tests.helpers import nest
+from tests.unit.equality.utils import legacy_registry
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -521,7 +522,7 @@ def test_objects_are_equal_custom_registry() -> None:
 def test_objects_are_equal_python_recursion_limit_message() -> None:
     data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError, match="Python recursion limit"):
-        objects_are_equal(data1, data2, max_depth=10**6)
+        objects_are_equal(data1, data2, max_depth=10**6, registry=legacy_registry())
 
 
 def test_objects_are_equal_max_depth_error_is_not_rewritten() -> None:
@@ -533,20 +534,20 @@ def test_objects_are_equal_max_depth_error_is_not_rewritten() -> None:
 def test_objects_are_equal_python_recursion_error_is_wrapped() -> None:
     data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError, match="Python recursion limit"):
-        objects_are_equal(data1, data2, max_depth=10**6)
+        objects_are_equal(data1, data2, max_depth=10**6, registry=legacy_registry())
 
 
 def test_objects_are_equal_python_recursion_error_is_not_a_max_depth_error() -> None:
     data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError) as exc_info:
-        objects_are_equal(data1, data2, max_depth=10**6)
+        objects_are_equal(data1, data2, max_depth=10**6, registry=legacy_registry())
     assert not isinstance(exc_info.value, MaxDepthExceededError)
 
 
 def test_objects_are_equal_python_recursion_error_has_the_original_cause() -> None:
     data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError) as exc_info:
-        objects_are_equal(data1, data2, max_depth=10**6)
+        objects_are_equal(data1, data2, max_depth=10**6, registry=legacy_registry())
     assert isinstance(exc_info.value.__cause__, RecursionError)
 
 
@@ -680,7 +681,7 @@ def test_run_comparison_different() -> None:
 def test_run_comparison_records_the_paths_in_the_reports() -> None:
     config = EqualityConfig(reports=[])
     run_comparison(get_default_registry(), [1, 2], [1, 3], config)
-    assert [path for _, path in config.reports] == [(), (1,), ()]
+    assert [path for _, path in config.reports] == [(1,)]
 
 
 def test_run_comparison_max_depth_error_is_not_rewritten() -> None:
@@ -690,6 +691,7 @@ def test_run_comparison_max_depth_error_is_not_rewritten() -> None:
 
 
 def test_run_comparison_python_recursion_limit_message() -> None:
-    config = EqualityConfig(max_depth=10**6)
+    registry = legacy_registry()
+    config = EqualityConfig(registry=registry, max_depth=10**6)
     with pytest.raises(RecursionError, match="Python recursion limit"):
-        run_comparison(get_default_registry(), nest([], 2000), nest([], 2000), config)
+        run_comparison(registry, nest([], 2000), nest([], 2000), config)

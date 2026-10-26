@@ -4,49 +4,51 @@ from __future__ import annotations
 
 __all__ = ["DataclassEqualityTester"]
 
+import dataclasses
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler import (
-    DataclassSameFieldsHandler,
-    SameObjectHandler,
-    SameTypeHandler,
-    TrueHandler,
-    create_chain,
-)
-from coola.equality.tester.chain import BaseChainEqualityTester
+from coola.equality.handler.utils import AttributeName
+from coola.equality.tester.base import BaseEngineEqualityTester
 
 if TYPE_CHECKING:
-    from coola.equality.handler import BaseEqualityHandler
+    from collections.abc import Iterator
+
+    from coola.equality.engine import Engine
 
 
-class DataclassEqualityTester(BaseChainEqualityTester[Any]):
+class DataclassEqualityTester(BaseEngineEqualityTester[Any]):
     r"""Implement an equality tester for dataclass instances.
 
-    The two instances must have the same type and equal fields. The
-    fields are compared with the registry, so they support the
-    tolerance and ``equal_nan``.
+    The two instances have the same type, and the tester compares their
+    fields, in the order of declaration. The fields with
+    ``compare=False`` are ignored. The fields are compared with the
+    engine, so they support the tolerance and ``equal_nan``, and the
+    location of a difference is the name of the field.
 
     Example:
         ```pycon
         >>> from dataclasses import dataclass
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import DataclassEqualityTester
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import get_default_registry
         >>> @dataclass
         ... class Point:
         ...     x: float
         ...
-        >>> config = EqualityConfig()
-        >>> tester = DataclassEqualityTester()
-        >>> tester.objects_are_equal(Point(1.0), Point(1.0), config)
+        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine.run(Point(1.0), Point(1.0))
         True
+        >>> engine.run(Point(1.0), Point(2.0))
+        False
 
         ```
     """
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(
-            SameObjectHandler(),
-            SameTypeHandler(),
-            DataclassSameFieldsHandler(),
-            TrueHandler(),
+    def objects_are_equal(
+        self, actual: Any, expected: Any, _ctx: Engine
+    ) -> bool | Iterator[tuple[object, object, object]]:
+        return (
+            (getattr(actual, field.name), getattr(expected, field.name), AttributeName(field.name))
+            for field in dataclasses.fields(actual)
+            if field.compare
         )

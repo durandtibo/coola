@@ -21,6 +21,7 @@ from __future__ import annotations
 
 __all__ = [
     "BaseChainEqualityTester",
+    "BaseEngineEqualityTester",
     "BaseEqualityTester",
     "DataclassEqualityTester",
     "DefaultEqualityTester",
@@ -60,7 +61,7 @@ __all__ = [
 
 from typing import TYPE_CHECKING
 
-from coola.equality.tester.base import BaseEqualityTester
+from coola.equality.tester.base import BaseEngineEqualityTester, BaseEqualityTester
 from coola.equality.tester.chain import BaseChainEqualityTester
 from coola.equality.tester.collection import (
     MappingEqualityTester,
