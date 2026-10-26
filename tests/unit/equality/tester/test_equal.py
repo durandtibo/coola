@@ -119,17 +119,17 @@ def test_equal_equality_tester_str() -> None:
 
 
 def test_equal_equality_tester_equal_true() -> None:
-    assert EqualEqualityTester().equal(EqualEqualityTester())
+    assert EqualEqualityTester() == EqualEqualityTester()
 
 
 def test_equal_equality_tester_equal_false_different_type() -> None:
-    assert not EqualEqualityTester().equal(42)
+    assert EqualEqualityTester() != 42
 
 
 def test_equal_equality_tester_equal_false_different_type_child() -> None:
     class Child(EqualEqualityTester): ...
 
-    assert not EqualEqualityTester().equal(Child())
+    assert EqualEqualityTester() != Child()
 
 
 def test_equal_equality_tester_objects_are_equal_true_same_object(
@@ -246,17 +246,17 @@ def test_equal_nan_equality_tester_str() -> None:
 
 
 def test_equal_nan_equality_tester_equal_true() -> None:
-    assert EqualNanEqualityTester().equal(EqualNanEqualityTester())
+    assert EqualNanEqualityTester() == EqualNanEqualityTester()
 
 
 def test_equal_nan_equality_tester_equal_false_different_type() -> None:
-    assert not EqualNanEqualityTester().equal(42)
+    assert EqualNanEqualityTester() != 42
 
 
 def test_equal_nan_equality_tester_equal_false_different_type_child() -> None:
     class Child(EqualNanEqualityTester): ...
 
-    assert not EqualNanEqualityTester().equal(Child())
+    assert EqualNanEqualityTester() != Child()
 
 
 def test_equal_nan_equality_tester_objects_are_equal_true_same_object(

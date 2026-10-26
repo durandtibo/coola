@@ -38,7 +38,7 @@ In this page, `<pkg>` is the name of the library, e.g. `pandas`.
    A column is `numeric` or `duration` (compared by the numeric kernel, with the tolerance and
    `equal_nan`; the null values are given as a mask) or `exact` (compared by the `equals` of the
    library). Register `TableEqualityTester(adapter)` for the types of the library.
-2. For an array library, write a tester that derives from `BaseEngineEqualityTester` (follow
+2. For an array library, write a tester that derives from `BaseEqualityTester` (follow
    `numpy.py`): it checks the data type and the shape, then compares the values with the shared
    kernel, and returns a verdict (`ctx.fail(reason, *path)` returns `False`) or the child pairs.
    For an optional library, `__init__` calls `check_<pkg>()`. Export the tester in

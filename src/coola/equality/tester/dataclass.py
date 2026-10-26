@@ -8,7 +8,7 @@ import dataclasses
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.utils import AttributeName
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from coola.equality.engine import Engine
 
 
-class DataclassEqualityTester(BaseEngineEqualityTester[Any]):
+class DataclassEqualityTester(BaseEqualityTester[Any]):
     r"""Implement an equality tester for dataclass instances.
 
     The two instances have the same type, and the tester compares their

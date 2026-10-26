@@ -15,10 +15,8 @@ from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
 from types import MappingProxyType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.base import BaseEqualityHandler
-from coola.equality.tester.base import BaseEqualityTester
 from coola.equality.tester.collection import (
     MappingEqualityTester,
     OrderedMappingEqualityTester,
@@ -28,11 +26,14 @@ from coola.equality.tester.collection import (
 from coola.equality.tester.dataclass import DataclassEqualityTester
 from coola.equality.tester.default import DefaultEqualityTester
 from coola.equality.tester.difference import DifferenceCloseEqualityTester
-from coola.equality.tester.equal import EqualEqualityTester, EqualNanEqualityTester
+from coola.equality.tester.equal import EqualNanEqualityTester
 from coola.equality.tester.registry import DataclassMarker, EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
 from coola.utils.imports import package_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
+
+if TYPE_CHECKING:
+    from coola.equality.tester.base import BaseEqualityTester
 
 # (names of the library in the module of the types, module with the testers)
 _LAZY_TESTERS = (
@@ -63,21 +64,14 @@ def register_equality_testers(
 
     Example:
         ```pycon
-        >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.tester import register_equality_testers, BaseEqualityTester
         >>> class MyType:
         ...     def __init__(self, value):
         ...         self.value = value
         ...
         >>> class MyEqualityTester(BaseEqualityTester[MyType]):
-        ...     def equal(self, other: object) -> bool:
-        ...         return type(other) is type(self)
-        ...     def objects_are_equal(
-        ...         self, actual: MyType, expected: object, config: EqualityConfig
-        ...     ) -> bool:
-        ...         if type(expected) is not type(actual):
-        ...             return False
-        ...         return actual.value == expected.value
+        ...     def objects_are_equal(self, actual: MyType, expected: MyType, ctx) -> bool:
+        ...         return actual.value == expected.value or ctx.fail("values differ")
         ...
         >>> register_equality_testers({MyType: MyEqualityTester()})
 
@@ -172,7 +166,6 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
     ordered_mapping = OrderedMappingEqualityTester()
     sequence = SequenceEqualityTester()
     set_tester = SetEqualityTester()
-    equal = EqualEqualityTester()
     difference = DifferenceCloseEqualityTester()
     return {
         # Object is the catch-all base for unregistered types
@@ -204,8 +197,6 @@ def _get_native_equality_testers() -> dict[type, BaseEqualityTester[Any]]:
         MappingProxyType: mapping,
         Mapping: mapping,
         # coola types
-        BaseEqualityHandler: equal,
-        BaseEqualityTester: equal,
     }
 
 

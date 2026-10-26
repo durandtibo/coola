@@ -1648,16 +1648,12 @@ message, for the tests.
 
 - `compare` and the assert functions do not log and do not change the logging configuration, so they
   can be called from several threads at the same time.
-- A custom handler is only explained by `compare` if it reports its difference with
-  `coola.equality.handler.report_difference(config, message, path=...)` when `config.explaining`
-  is `True`. `report_difference` is the only reporting mechanism: it adds the message and the path to
-  `config.reports`, which is `None` (nothing is formatted) unless `compare` or an `assert_*`
-  function explains the comparison.
+- A custom tester is explained by `compare` if it returns the child pairs (the engine adds the
+  path) or calls `ctx.fail(reason, *path)`. The reason can be a callable, which is called only when
+  the difference is explained.
 - Only the first difference is explained, and only on demand: `objects_are_equal` and
   `objects_are_allclose` build no message and no path. The values in a reason are bounded, so
   explaining a difference in a large object does not format the object.
-- `EqualityConfig` is **not** thread-safe: it contains the depth counter of the comparison. The
-  functions create one for each call; do not share an instance between threads.
 
 ## Design Principles
 
@@ -1691,5 +1687,4 @@ The `coola.equality` package is designed around several key principles:
 
 ## See Also
 
-- [`coola.equality.handler`](equality_handler.md): Learn about the handler system for implementing custom comparisons
 - [`coola.equality.tester`](equality_tester.md): Learn about the tester registry system

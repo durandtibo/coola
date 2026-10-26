@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any
 from coola.equality.engine import Element
 from coola.equality.handler.format import format_mapping_difference
 from coola.equality.handler.utils import comparison_key, is_exact_scalar_sequence
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.safe import safe_repr
 
 if TYPE_CHECKING:
@@ -34,7 +34,7 @@ _NO_ELEMENT: Any = object()
 _PLAIN_KEY_TYPES: frozenset[type] = frozenset({str, int})
 
 
-class MappingEqualityTester(BaseEngineEqualityTester["Mapping[Any, Any]"]):
+class MappingEqualityTester(BaseEqualityTester["Mapping[Any, Any]"]):
     r"""Implement a mapping equality tester.
 
     This tester handles dictionary-like objects (dict, Mapping ABC). The
@@ -126,7 +126,7 @@ class OrderedMappingEqualityTester(MappingEqualityTester):
         return result
 
 
-class SequenceEqualityTester(BaseEngineEqualityTester["Sequence[Any]"]):
+class SequenceEqualityTester(BaseEqualityTester["Sequence[Any]"]):
     r"""Implement a sequence equality tester.
 
     This tester handles sequence types (list, tuple, deque, Sequence
@@ -174,7 +174,7 @@ class SequenceEqualityTester(BaseEngineEqualityTester["Sequence[Any]"]):
         return zip(actual, expected, count(), strict=False)
 
 
-class SetEqualityTester(BaseEngineEqualityTester["AbstractSet[Any]"]):
+class SetEqualityTester(BaseEqualityTester["AbstractSet[Any]"]):
     r"""Implement a set equality tester.
 
     This tester handles ``set`` and ``frozenset``. Unlike ``==``, the

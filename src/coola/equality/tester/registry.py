@@ -206,10 +206,6 @@ class EqualityTesterRegistry(BaseTypeDispatchRegistry[BaseEqualityTester[Any]]):
 
             ```
         """
-        tester = self.find_equality_tester(type(actual))
-        if tester.engine_protocol:
-            # Reached from a tester that recurses: the engine runs the nested comparison.
-            from coola.equality.engine import Engine  # noqa: PLC0415
+        from coola.equality.engine import Engine  # noqa: PLC0415
 
-            return Engine(self, config).run(actual, expected)
-        return bool(tester.objects_are_equal(actual, expected, config))
+        return Engine(self, config).run(actual, expected)

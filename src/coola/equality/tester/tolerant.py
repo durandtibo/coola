@@ -12,14 +12,14 @@ __all__ = ["TolerantEqualEqualityTester"]
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.handler.format import format_value_difference
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.introspection import supports_methods
 
 if TYPE_CHECKING:
     from coola.equality.engine import Engine
 
 
-class TolerantEqualEqualityTester(BaseEngineEqualityTester[object]):
+class TolerantEqualEqualityTester(BaseEqualityTester[object]):
     r"""Implement an equality tester for objects that support both
     ``allclose`` and ``equal`` methods.
 

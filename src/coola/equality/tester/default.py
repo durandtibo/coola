@@ -11,13 +11,13 @@ __all__ = ["DefaultEqualityTester"]
 from typing import TYPE_CHECKING
 
 from coola.equality.handler.format import format_value_difference
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:
     from coola.equality.engine import Engine
 
 
-class DefaultEqualityTester(BaseEngineEqualityTester[object]):
+class DefaultEqualityTester(BaseEqualityTester[object]):
     r"""Implement a default equality tester.
 
     This tester serves as the fallback for types without specialized

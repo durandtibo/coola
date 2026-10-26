@@ -5,24 +5,17 @@ from __future__ import annotations
 __all__ = [
     "AttributeName",
     "MaxDepthExceededError",
-    "check_recursion_depth",
     "comparison_key",
-    "create_chain",
-    "handlers_are_equal",
     "is_exact_scalar_sequence",
-    "report_difference",
-    "track_comparison",
 ]
 
 from collections import Counter
-from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Sequence
+    from collections.abc import Sequence
 
     from coola.equality.config import EqualityConfig
-    from coola.equality.handler.base import BaseEqualityHandler
 
 # A NaN is replaced by this marker when ``equal_nan=True``.
 _NAN: Any = object()
@@ -50,204 +43,9 @@ class AttributeName(str):
     __slots__ = ()
 
 
-class MaxDepthExceededError(RecursionError):
+class MaxDepthExceededError(Exception):
     r"""Raised when the nesting of the compared objects exceeds the
-    ``max_depth`` of the equality configuration.
-
-    It derives from ``RecursionError`` for backward compatibility. It
-    allows telling this error apart from the interpreter's own stack
-    overflow, which is also a ``RecursionError``.
-    """
-
-
-def report_difference(
-    config: EqualityConfig,
-    msg: str,
-    *args: object,
-    path: tuple[object, ...] = (),
-) -> None:
-    r"""Report a difference found while comparing two objects.
-
-    The message and the location are appended to ``config.reports``,
-    which is the record of the explanation of the comparison
-    (``compare`` and ``assert_*``). Nothing is recorded if the
-    comparison does not explain the difference.
-
-    Handlers should call this function when ``config.explaining`` is
-    ``True``, so the message is not formatted for nothing.
-
-    Args:
-        config: The equality configuration.
-        msg: The message, optionally with ``%`` placeholders.
-        *args: The values for the placeholders of ``msg``.
-        path: The location of the difference in the compared objects,
-            relative to the current level of nesting. The components
-            that are attributes are ``AttributeName`` instances.
-
-    Example:
-        ```pycon
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler import report_difference
-        >>> config = EqualityConfig(reports=[])
-        >>> report_difference(config, "different %s", "values", path=("a",))
-        >>> config.reports
-        [('different values', ('a',))]
-
-        ```
-    """
-    if config.reports is not None:
-        config.reports.append((msg % args if args else msg, path))
-
-
-def create_chain(*handlers: BaseEqualityHandler) -> BaseEqualityHandler:
-    r"""Create a chain of handlers and return the first handler.
-
-    Args:
-        handlers: Handlers to chain.
-
-    Returns:
-        The first handler of the chain.
-
-    Raises:
-        ValueError: If no handler is provided.
-
-    Example:
-        ```pycon
-        >>> from coola.equality.handler import (
-        ...     create_chain,
-        ...     SameObjectHandler,
-        ...     SameTypeHandler,
-        ...     ObjectEqualHandler,
-        ... )
-        >>> handler = create_chain(SameObjectHandler(), SameTypeHandler(), ObjectEqualHandler())
-        >>> print(handler.visualize_chain())
-        (0): SameObjectHandler()
-        (1): SameTypeHandler()
-        (2): ObjectEqualHandler()
-
-        ```
-    """
-    if not handlers:
-        msg = "At least one handler is required to create a chain."
-        raise ValueError(msg)
-    handler = handlers[0]
-    handler.chain_all(*handlers[1:])
-    return handler
-
-
-def handlers_are_equal(
-    handler1: BaseEqualityHandler | None, handler2: BaseEqualityHandler | None
-) -> bool:
-    r"""Indicate whether two handlers are equal.
-
-    Args:
-        handler1: The first handler.
-        handler2: The second handler.
-
-    Returns:
-        ``True`` if both handlers are equal, otherwise ``False``.
-
-    Example:
-        ```pycon
-        >>> from coola.equality.handler import SameObjectHandler, FalseHandler, handlers_are_equal
-        >>> handlers_are_equal(SameObjectHandler(), SameObjectHandler())
-        True
-        >>> handlers_are_equal(SameObjectHandler(), FalseHandler())
-        False
-        >>> handlers_are_equal(None, SameObjectHandler())
-        False
-        >>> handlers_are_equal(SameObjectHandler(), None)
-        False
-        >>> handlers_are_equal(None, None)
-        True
-
-        ```
-    """
-    if handler1 is None:
-        return handler1 == handler2
-    return handler1.equal(handler2)
-
-
-@contextmanager
-def check_recursion_depth(config: EqualityConfig) -> Generator[None]:
-    r"""Context manager to track and enforce recursion depth limits.
-
-    This context manager increments the recursion depth counter on entry
-    and decrements it on exit (even if an exception occurs). It raises
-    a RecursionError if the maximum depth is exceeded.
-
-    Args:
-        config: The equality configuration containing depth settings.
-
-    Yields:
-        ``None``.
-
-    Raises:
-        MaxDepthExceededError: if the current depth exceeds max_depth.
-
-    Example:
-        ```pycon
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler import check_recursion_depth
-        >>> config = EqualityConfig(max_depth=5)
-        >>> with check_recursion_depth(config):
-        ...     print(config.depth)
-        ...
-        1
-
-        ```
-    """
-    if config.depth >= config.max_depth:
-        msg = (
-            f"Maximum recursion depth ({config.max_depth}) exceeded. "
-            f"Consider increasing max_depth parameter or simplifying the data structure."
-        )
-        raise MaxDepthExceededError(msg)
-    config.increment_depth()
-    try:
-        yield
-    finally:
-        config.decrement_depth()
-
-
-@contextmanager
-def track_comparison(config: EqualityConfig, actual: object, expected: object) -> Generator[bool]:
-    r"""Context manager to detect the cycles in the objects to compare.
-
-    It records that ``actual`` and ``expected`` are being compared. If
-    this pair is already being compared higher in the call stack, the
-    objects contain a cycle (for example, a list that contains
-    itself). The pair is then not recorded again and ``True`` is
-    yielded: the handler should consider the pair as equal, because
-    the cycle only repeats the comparison that is already in progress.
-
-    Args:
-        config: The equality configuration that stores the pairs.
-        actual: The actual object.
-        expected: The expected object.
-
-    Yields:
-        ``True`` if the pair is already being compared, otherwise
-            ``False``.
-
-    Example:
-        ```pycon
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler import track_comparison
-        >>> config = EqualityConfig()
-        >>> x, y = [], []
-        >>> with track_comparison(config, x, y) as in_progress:
-        ...     print(in_progress)
-        ...     with track_comparison(config, x, y) as in_progress:
-        ...         print(in_progress)
-        ...
-        False
-        True
-
-        ```
-    """
-    with config.visiting(actual, expected) as in_progress:
-        yield in_progress
+    ``max_depth`` of the equality configuration."""
 
 
 def comparison_key(value: Any, config: EqualityConfig) -> Any:

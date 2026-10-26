@@ -16,22 +16,12 @@ if TYPE_CHECKING:
 class LeafTester(BaseEqualityTester[Any]):
     r"""Compare the values with ``==`` and explain the difference."""
 
-    engine_protocol = True
-
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def objects_are_equal(self, actual: Any, expected: Any, ctx: Any) -> bool:
         return actual == expected or ctx.fail(lambda: f"{actual!r} vs {expected!r}")
 
 
 class ListTester(BaseEqualityTester[list]):
     r"""Return the pairs of the items of two lists."""
-
-    engine_protocol = True
-
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
 
     def objects_are_equal(
         self, actual: list, expected: list, ctx: Any
@@ -44,11 +34,6 @@ class ListTester(BaseEqualityTester[list]):
 class DictTester(BaseEqualityTester[dict]):
     r"""Return the pairs of the values of two dicts."""
 
-    engine_protocol = True
-
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def objects_are_equal(
         self, actual: dict, expected: dict, ctx: Any
     ) -> bool | Iterator[tuple[object, object, object]]:
@@ -60,11 +45,6 @@ class DictTester(BaseEqualityTester[dict]):
 class IndexTester(BaseEqualityTester[tuple]):
     r"""Fail with a path part given to ``ctx.fail``."""
 
-    engine_protocol = True
-
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def objects_are_equal(self, actual: tuple, expected: tuple, ctx: Any) -> bool:
         return actual == expected or ctx.fail("values differ", 1, 2)
 
@@ -72,48 +52,11 @@ class IndexTester(BaseEqualityTester[tuple]):
 class FuncTester(BaseEqualityTester[Any]):
     r"""A tester that uses the engine and calls a function."""
 
-    engine_protocol = True
-
     def __init__(self, func: Callable[[Any, Any, Any], Any]) -> None:
         self.func = func
 
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
     def objects_are_equal(self, actual: Any, expected: Any, ctx: Any) -> Any:
         return self.func(actual, expected, ctx)
-
-
-class LegacyTester(BaseEqualityTester[Any]):
-    r"""A tester that receives the config and returns a ``bool``."""
-
-    def __init__(self) -> None:
-        self.configs: list[EqualityConfig] = []
-
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
-        self.configs.append(config)
-        return actual == expected
-
-
-class RecursiveLegacyTester(BaseEqualityTester[list]):
-    r"""A tester that recurses through the registry, like the chain
-    testers."""
-
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(self, actual: list, expected: list, config: EqualityConfig) -> bool:
-        config.increment_depth()
-        try:
-            return all(
-                config.registry.objects_are_equal(a, e, config)
-                for a, e in zip(actual, expected, strict=True)
-            )
-        finally:
-            config.decrement_depth()
 
 
 @pytest.fixture
@@ -164,12 +107,12 @@ def test_run_empty_container(registry: EqualityTesterRegistry) -> None:
 
 
 def test_run_identical_objects_do_not_call_the_tester() -> None:
-    tester = LegacyTester()
+    calls = []
     reg = EqualityTesterRegistry()
-    reg.register(object, tester)
+    reg.register(object, FuncTester(lambda *args: calls.append(args)))
     obj = object()
     Engine(reg, EqualityConfig(registry=reg)).run(obj, obj)
-    assert tester.configs == []
+    assert calls == []
 
 
 def test_run_different_types_are_different(registry: EqualityTesterRegistry) -> None:
@@ -243,50 +186,6 @@ def test_run_engine_tester_receives_the_engine(registry: EqualityTesterRegistry)
     assert received == [engine]
 
 
-def test_run_legacy_tester_receives_the_config() -> None:
-    tester = LegacyTester()
-    reg = EqualityTesterRegistry()
-    reg.register(object, tester)
-    config = EqualityConfig(registry=reg)
-    Engine(reg, config).run(1, 2)
-    assert tester.configs == [config]
-
-
-def test_run_legacy_tester_verdict_is_a_bool() -> None:
-    reg = EqualityTesterRegistry()
-    reg.register(object, LegacyTester())
-    assert Engine(reg, EqualityConfig(registry=reg)).run(1, 2) is False
-
-
-def test_run_legacy_tester_sees_the_depth_of_the_stack(registry: EqualityTesterRegistry) -> None:
-    depths = []
-
-    class Spy(LegacyTester):
-        def objects_are_equal(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
-            depths.append(config.depth)
-            return actual == expected
-
-    registry.register(int, Spy())
-    _engine(registry).run([[1]], [[2]])
-    assert depths == [2]
-
-
-def test_run_restores_the_depth_of_the_config(registry: EqualityTesterRegistry) -> None:
-    engine = _engine(registry)
-    engine.run([[1]], [[2]])
-    assert engine.config.depth == 0
-
-
-def test_run_nested_in_a_legacy_tester_adds_the_depth() -> None:
-    reg = EqualityTesterRegistry()
-    reg.register(list, RecursiveLegacyTester())
-    reg.register(dict, DictTester())
-    reg.register(object, LeafTester())
-    config = EqualityConfig(registry=reg, max_depth=3)
-    with pytest.raises(MaxDepthExceededError, match="Maximum recursion depth"):
-        Engine(reg, config).run([[[{"a": {"b": {"c": 1}}}]]], [[[{"a": {"b": {"c": 2}}}]]])
-
-
 def test_registry_runs_a_nested_comparison_with_the_engine(
     registry: EqualityTesterRegistry,
 ) -> None:
@@ -340,13 +239,6 @@ def test_run_depth_exceeded_raises(registry: EqualityTesterRegistry) -> None:
 
 def test_run_depth_at_the_limit_is_accepted(registry: EqualityTesterRegistry) -> None:
     assert _engine(registry, max_depth=10).run(_nested(10), _nested(10))
-
-
-def test_registry_nested_comparison_adds_the_depth(registry: EqualityTesterRegistry) -> None:
-    config = EqualityConfig(registry=registry, max_depth=2)
-    config.depth = 2
-    with pytest.raises(MaxDepthExceededError):
-        registry.objects_are_equal([[1]], [[1]], config)
 
 
 def test_run_very_deep_nesting_has_no_recursion_error(registry: EqualityTesterRegistry) -> None:
@@ -412,19 +304,6 @@ def test_failure_types_differ_reason(registry: EqualityTesterRegistry) -> None:
         ("a",),
         "objects have different types:\n  actual   : <class 'int'>\n  expected : <class 'float'>",
     )
-
-
-def test_failure_of_a_legacy_tester_has_no_reason() -> None:
-    reg = EqualityTesterRegistry()
-    reg.register(object, LegacyTester())
-    engine = Engine(reg, EqualityConfig(registry=reg, reports=[]))
-    engine.run(1, 2)
-    assert engine.failure == ((), None)
-
-
-#####################################
-#     Tests lazy reasons / cache    #
-#####################################
 
 
 def test_reason_is_not_built_when_not_explaining(registry: EqualityTesterRegistry) -> None:
@@ -531,16 +410,6 @@ def test_failure_is_recorded_in_the_reports(registry: EqualityTesterRegistry) ->
     assert engine.config.reports == [("1 vs 2", ("a",))]
 
 
-def test_failure_of_a_nested_engine_is_added_to_the_reports() -> None:
-    reg = EqualityTesterRegistry()
-    reg.register(list, RecursiveLegacyTester())
-    reg.register(dict, DictTester())
-    reg.register(object, LeafTester())
-    config = EqualityConfig(registry=reg, reports=[])
-    Engine(reg, config).run([{"a": 1}], [{"a": 2}])
-    assert config.reports == [("1 vs 2", ("a",)), ("", ())]
-
-
 def test_failure_from_reports_outermost_path_first() -> None:
     assert failure_from_reports([("inner", (2,)), ("", ("a",))]) == (("a", 2), "inner")
 
@@ -556,3 +425,11 @@ def test_failure_from_reports_empty() -> None:
 def test_find_returns_the_cached_tester(registry: EqualityTesterRegistry) -> None:
     engine = _engine(registry)
     assert engine.find(int) is engine.find(int)
+
+
+def test_failure_of_a_tester_that_returns_false_has_no_reason() -> None:
+    registry = EqualityTesterRegistry()
+    registry.register(object, FuncTester(lambda *_: False))
+    engine = _engine(registry, reports=[])
+    engine.run([1], [2])
+    assert engine.failure == ((), None)

@@ -29,11 +29,11 @@ def test_dataclass_equality_tester_str() -> None:
 
 
 def test_dataclass_equality_tester_equal_true() -> None:
-    assert DataclassEqualityTester().equal(DataclassEqualityTester())
+    assert DataclassEqualityTester() == DataclassEqualityTester()
 
 
 def test_dataclass_equality_tester_equal_false() -> None:
-    assert not DataclassEqualityTester().equal(42)
+    assert DataclassEqualityTester() != 42
 
 
 def test_dataclass_equality_tester_objects_are_equal_true(config: EqualityConfig) -> None:

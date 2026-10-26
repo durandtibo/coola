@@ -43,18 +43,18 @@ class BaseEqualityTester(ABC, Generic[T]):
         """Indicate if two objects are equal."""
 ```
 
-#### `BaseEngineEqualityTester` and the engine
+#### `BaseEqualityTester` and the engine
 
 The Python testers use the engine (`coola.equality.engine.Engine`). The engine owns the invariants of
 a comparison: identity, strict type, depth, cycles and the location of the first difference. A tester
-that derives from `BaseEngineEqualityTester` never recurses: its `objects_are_equal(actual, expected,
+that derives from `BaseEqualityTester` never recurses: its `objects_are_equal(actual, expected,
 ctx)` receives two objects of the same type and the engine, and returns a verdict (`True`, or
 `ctx.fail(reason, *path)`, which returns `False`) or the child pairs `(actual, expected, path part)`
 that must all be equal, produced lazily. The engine keeps the child iterators on an explicit stack, so
 there is no `RecursionError` whatever the nesting, and a comparison stops at the first difference.
 
 ```python
-class PointTester(BaseEngineEqualityTester[Point]):
+class PointTester(BaseEqualityTester[Point]):
     def objects_are_equal(self, actual, expected, ctx):
         return ((actual.coords, expected.coords, AttributeName("coords")),)
 ```
@@ -62,11 +62,7 @@ class PointTester(BaseEngineEqualityTester[Point]):
 The testers of NumPy, PyTorch, JAX and xarray use the engine too: an array tester checks the data
 type and the shape (and the device for a tensor), then compares the elements with the shared kernel;
 the location of a difference is the index of the first element that differs, looked up only when the
-difference is explained. The testers of pandas, polars and PyArrow are still chain testers (see
-below) that receive the `EqualityConfig`. They are called by the engine as leaves until they are
-ported.
-
-#### Built-in Testers
+difference is explained. #### Built-in Testers
 
 - **`DefaultEqualityTester`**: Fallback for any type (`==` on two objects of the same type)
 - **`MappingEqualityTester`**, **`OrderedMappingEqualityTester`** (also checks the key order, used
@@ -80,7 +76,6 @@ ported.
 - Array testers for NumPy, PyTorch, xarray and JAX (for example `NumpyArrayEqualityTester`,
   `TorchTensorEqualityTester`)
 - **`TableEqualityTester`**: pandas, polars and PyArrow tables, with one adapter per library
-- **`HandlerEqualityTester`**: Wraps a chain of handlers (see below)
 
 ### 3. Registry
 
@@ -116,29 +111,11 @@ class EqualityConfig:
     atol: float = 0.0
     rtol: float = 0.0
     max_depth: int = 100
-    reports: list[tuple[str, tuple[object, ...]]] | None = None
 ```
 
-This allows behavior to be customized without changing tester signatures. `reports` is `None`
-unless the comparison explains the difference (`compare` and `assert_*`): then it receives the
-description and the location of each difference, innermost first (it is how `compare` builds its
-result). A config tracks the current recursion depth and the pairs of objects being compared (to
-detect the structures that contain themselves), so it is not thread-safe: create one config per
-comparison.
+This allows behavior to be customized without changing tester signatures.
 
-### 5. Handlers
-
-Handlers (`coola.equality.handler`) are small reusable checks that are chained together
-(chain of responsibility). Each handler either returns a result or passes the comparison to the
-next handler in the chain. Examples:
-
-- **`SameObjectHandler`**, **`SameTypeHandler`**, **`SameLengthHandler`**: Generic checks
-- **`ObjectEqualHandler`**, **`AllCloseNanHandler`**: Value checks
-
-`create_chain(*handlers)` links handlers and returns the first one. A `HandlerEqualityTester`
-turns a chain into a tester. Handlers promote code reuse and consistency across testers.
-
-### 6. Comparison Results
+### 5. Comparison Results
 
 `compare` returns a `ComparisonResult`, and `assert_objects_equal` / `assert_objects_allclose`
 raise an `AssertionError` with a description of the difference.
@@ -159,9 +136,6 @@ For each pair: identity, strict type, tester lookup (cached per call, MRO lookup
 Calls tester.objects_are_equal(obj1, obj2, engine): a verdict, or the child pairs
 (pushed on the explicit stack, depth first)
     ↓
-A chain tester (optional libraries) receives the config, runs its handler chain and
-may call registry.objects_are_equal() for nested objects
-    ↓
 Returns boolean result
 ```
 
@@ -172,13 +146,7 @@ Returns boolean result
 Testers implement different comparison strategies for different types, allowing the algorithm to
 vary independently from the clients that use it.
 
-### 2. Chain of Responsibility
-
-Handlers are chained: each one either decides the result or passes the comparison to the next
-handler. The MRO-based tester lookup also tries more specific testers before falling back to
-general ones.
-
-### 3. Template Method
+### 2. Template Method
 
 Many testers follow a template:
 
@@ -187,11 +155,11 @@ Many testers follow a template:
 3. Check values
 4. Optionally show differences
 
-### 4. Registry Pattern
+### 3. Registry Pattern
 
 The tester registry allows runtime type-to-tester mapping, enabling extensibility.
 
-### 5. Visitor Pattern
+### 4. Visitor Pattern
 
 The recursive nature of comparison through nested structures follows a visitor-like pattern.
 
@@ -244,15 +212,13 @@ See the [extending guide](../uguide/extending.md) for more details.
 
 ### Checklist: writing a tester
 
-- Check the type first (`SameTypeHandler`), so the comparison stays strict and symmetric
-- Report the difference with a path (`report_difference(config, msg, path=...)`), so `compare` can
-  locate it, and use `AttributeName` for an attribute
-- Recurse with the depth and cycle protections (`check_recursion_depth`, `track_comparison`), and pass the child location
-- Honour `equal_nan` and the tolerance (`rtol`, `atol`: `|a - e| <= atol + rtol * |e|`), or
-  document that your tester ignores them
-- Be reflexive: `objects_are_equal(x, x)` is `True` (except for a distinct `NaN`)
-- Do not modify the inputs
-- Add a sample of the type to the reflexivity test if the tester is registered by default
+- Return a verdict (`ctx.fail(reason)` for a difference) or the child pairs `(actual, expected,
+  path part)`; never recurse: the engine checks the identity, the type, the depth and the cycles
+- Use `AttributeName` for an attribute and `ctx.fail(reason, *path)` for the location inside a leaf
+  (the index in an array)
+- Build the reason lazily (a callable), so `objects_are_equal` formats nothing
+- Honour `ctx.equal_nan` and the tolerance (`ctx.rtol`, `ctx.atol`: `|a - e| <= atol + rtol *
+  max(|a|, |e|)`), or document that your tester ignores them
 
 ## Type System
 
@@ -322,7 +288,7 @@ When the comparison explains the difference (`compare`, `assert_*`), testers rep
 
 The `coola` codebase uses:
 
-1. **Unit tests**: Test individual testers and handlers in isolation
+1. **Unit tests**: Test individual testers in isolation
 2. **Integration tests**: Test complete comparison workflows
 3. **Property-based tests**: Test invariants (reflexivity, symmetry of the exact comparison, and
    monotonicity of `*_allclose`: a larger `atol` or `rtol` never turns a `True` into `False`). The
@@ -361,7 +327,7 @@ coola/
 │   ├── result.py         # compare, assert_objects_equal, ...
 │   ├── config.py         # EqualityConfig
 │   ├── tester/           # Type-specific testers and the registry
-│   └── handler/          # Reusable comparison logic
+│   └── handler/          # Helpers: numeric kernels, formatting, path parts
 ├── registry/             # Generic registries and type dispatch
 ├── summary/, hashing/, recursive/, iterator/, nested/, random/, reducer/
 ├── io/, factory/, identifier/, display/, validation/, testing/
@@ -383,19 +349,6 @@ that `1` (int) and `1.0` (float) are treated differently can catch numerical iss
 types.
 
 **Trade-off**: Slightly more complex than if/else chains, but much more maintainable.
-
-### Why Separate Testers and Handlers?
-
-**Rationale**: Separation of concerns. Testers are the per-type entry points found by the registry,
-handlers are small reusable checks that testers chain together.
-
-**Trade-off**: More classes/files, but better modularity.
-
-### Why Handlers?
-
-**Rationale**: Code reuse. Many testers need similar checks (dtype, shape, etc.).
-
-**Trade-off**: One more abstraction layer, but reduces duplication.
 
 ## Future Directions
 

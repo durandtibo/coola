@@ -16,7 +16,7 @@ import operator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal, Protocol
 
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -78,7 +78,7 @@ class Table(Protocol):
         converted only when it is reached."""
 
 
-class TableEqualityTester(BaseEngineEqualityTester[Any]):
+class TableEqualityTester(BaseEqualityTester[Any]):
     r"""Implement an equality tester for the tables of pandas, polars and
     pyarrow.
 
@@ -119,9 +119,6 @@ class TableEqualityTester(BaseEngineEqualityTester[Any]):
 
     def __init__(self, adapter: Callable[[Any], Table]) -> None:
         self._adapter = adapter
-
-    def equal(self, other: object) -> bool:
-        return isinstance(other, type(self)) and self._adapter is other._adapter
 
     def _display_fields(self) -> dict[str, Any]:
         return {"adapter": getattr(self._adapter, "__name__", repr(self._adapter))}

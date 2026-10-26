@@ -15,11 +15,9 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.engine import Engine
-from coola.equality.handler import BaseEqualityHandler, SameObjectHandler
 from coola.equality.tester import (
     BaseEqualityTester,
     DefaultEqualityTester,
-    EqualEqualityTester,
     EqualityTesterRegistry,
     JaxArrayEqualityTester,
     MappingEqualityTester,
@@ -110,9 +108,8 @@ TESTER_TYPES: list[tuple[type, type, bool]] = [
     (Mapping, MappingEqualityTester, True),
     (OrderedDict, OrderedMappingEqualityTester, True),
     (MappingProxyType, MappingEqualityTester, True),
-    # coola types
-    (BaseEqualityTester, EqualEqualityTester, True),
-    (BaseEqualityHandler, EqualEqualityTester, True),
+    # coola types: unregistered, compared with ``==``
+    (BaseEqualityTester, DefaultEqualityTester, False),
 ]
 if is_jax_available():
     TESTER_TYPES.extend(
@@ -343,8 +340,6 @@ NATIVE_SAMPLES = {
     OrderedDict: OrderedDict(a=1, b=2),
     MappingProxyType: MappingProxyType({"a": [1, 2]}),
     Mapping: {"a": 1},
-    BaseEqualityHandler: SameObjectHandler(),
-    BaseEqualityTester: DefaultEqualityTester(),
     BaseLoader: TextLoader(Path("a.txt")),
     BaseSaver: TextSaver(),
 }
@@ -359,7 +354,7 @@ def test_default_tester_is_reflexive(data_type: type) -> None:
 @pytest.mark.parametrize("data_type", NATIVE_SAMPLES)
 def test_default_tester_equals_itself(data_type: type) -> None:
     tester = get_default_registry().find(data_type)
-    assert tester.equal(tester)
+    assert tester == tester
 
 
 def test_default_registry_native_types_have_a_sample() -> None:

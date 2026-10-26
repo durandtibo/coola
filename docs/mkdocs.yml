@@ -35,7 +35,6 @@ nav:
       - uguide/display.md
       - uguide/equality.md
       - uguide/equality_tester.md
-      - uguide/equality_handler.md
       - uguide/extending.md
       - uguide/factory.md
       - uguide/hashing.md

@@ -8,9 +8,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
 from coola.equality.engine import Engine
-from coola.equality.handler.utils import MaxDepthExceededError
 from coola.equality.tester.interface import get_default_registry
-from coola.utils.recursion import raise_recursion_limit_error
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
@@ -19,8 +17,7 @@ if TYPE_CHECKING:
 def run_comparison(
     registry: EqualityTesterRegistry, actual: object, expected: object, config: EqualityConfig
 ) -> bool:
-    """Run the comparison and make interpreter stack overflows
-    actionable.
+    """Run the comparison.
 
     It is the code path shared by all the entry points
     (``objects_are_equal``, ``objects_are_allclose`` and ``compare``).
@@ -40,22 +37,8 @@ def run_comparison(
     Raises:
         MaxDepthExceededError: If the nesting of the objects exceeds
             ``config.max_depth``.
-        RecursionError: If the interpreter recursion limit is reached
-            before ``config.max_depth``.
-
-    The comparison recurses through several Python frames per nesting
-    level, so the interpreter limit (``sys.getrecursionlimit()``) is
-    usually reached well before ``config.max_depth``.
     """
-    # Shared by all the entry points (including ``compare``) so they raise the same,
-    # actionable error. The cycles do not reach this error, they are handled by
-    # ``track_comparison``.
-    try:
-        return Engine(registry, config).run(actual, expected)
-    except MaxDepthExceededError:
-        raise  # already explains how to fix it
-    except RecursionError as exc:
-        raise_recursion_limit_error("comparing", exc)
+    return Engine(registry, config).run(actual, expected)
 
 
 def objects_are_allclose(
@@ -108,9 +91,7 @@ def objects_are_allclose(
         ValueError: If ``rtol`` or ``atol`` is negative, or if
             ``max_depth`` is not positive.
         MaxDepthExceededError: If the nesting of the objects exceeds
-            ``max_depth``. It is a ``RecursionError``.
-        RecursionError: If the interpreter recursion limit is reached
-            before ``max_depth``.
+            ``max_depth``.
 
     Example:
         ```pycon
@@ -180,9 +161,7 @@ def objects_are_equal(
             rejected).
         ValueError: If ``max_depth`` is not positive.
         MaxDepthExceededError: If the nesting of the objects exceeds
-            ``max_depth``. It is a ``RecursionError``.
-        RecursionError: If the interpreter recursion limit is reached
-            before ``max_depth``.
+            ``max_depth``.
 
     Example:
         ```pycon

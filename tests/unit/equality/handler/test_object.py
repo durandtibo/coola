@@ -149,11 +149,11 @@ def test_object_attributes_equality_tester_repr() -> None:
 
 
 def test_object_attributes_equality_tester_equal_true() -> None:
-    assert ObjectAttributesEqualityTester().equal(ObjectAttributesEqualityTester())
+    assert ObjectAttributesEqualityTester() == ObjectAttributesEqualityTester()
 
 
 def test_object_attributes_equality_tester_equal_false_different_type() -> None:
-    assert not ObjectAttributesEqualityTester().equal(DefaultEqualityTester())
+    assert ObjectAttributesEqualityTester() != DefaultEqualityTester()
 
 
 def test_object_attributes_equality_tester_same_object(config: EqualityConfig) -> None:

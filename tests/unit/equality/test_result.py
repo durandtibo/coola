@@ -22,8 +22,6 @@ from coola.equality import (
 from coola.equality.handler import AttributeName
 from coola.equality.tester import EqualityTesterRegistry
 from coola.equality.tester.interface import get_default_registry
-from tests.helpers import nest
-from tests.unit.equality.utils import legacy_registry
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -529,12 +527,6 @@ def test_compare_self_referencing_list() -> None:
     b: list = []
     b.append(b)
     assert compare(a, b).equal
-
-
-def test_compare_python_recursion_limit_message() -> None:
-    data1, data2 = nest([], 2000), nest([], 2000)
-    with pytest.raises(RecursionError, match="Python recursion limit"):
-        compare(data1, data2, max_depth=10**6, registry=legacy_registry())
 
 
 class NoRepr:

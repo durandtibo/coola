@@ -81,15 +81,15 @@ def reason(actual: Grid, expected: Grid) -> str | None:
 
 
 def test_table_equality_tester_equal_true() -> None:
-    assert TableEqualityTester(grid_table).equal(TableEqualityTester(grid_table))
+    assert TableEqualityTester(grid_table) == TableEqualityTester(grid_table)
 
 
 def test_table_equality_tester_equal_false_different_adapter() -> None:
-    assert not TableEqualityTester(grid_table).equal(TableEqualityTester(GridTable))
+    assert TableEqualityTester(grid_table) != TableEqualityTester(GridTable)
 
 
 def test_table_equality_tester_equal_false_different_type() -> None:
-    assert not TableEqualityTester(grid_table).equal(42)
+    assert TableEqualityTester(grid_table) != 42
 
 
 def test_table_equality_tester_repr() -> None:

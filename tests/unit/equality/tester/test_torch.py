@@ -347,19 +347,19 @@ def test_torch_packed_sequence_equality_tester_str() -> None:
 
 @torch_available
 def test_torch_packed_sequence_equality_tester_equal_true() -> None:
-    assert TorchPackedSequenceEqualityTester().equal(TorchPackedSequenceEqualityTester())
+    assert TorchPackedSequenceEqualityTester() == TorchPackedSequenceEqualityTester()
 
 
 @torch_available
 def test_torch_packed_sequence_equality_tester_equal_false_different_type() -> None:
-    assert not TorchPackedSequenceEqualityTester().equal(123)
+    assert TorchPackedSequenceEqualityTester() != 123
 
 
 @torch_available
 def test_torch_packed_sequence_equality_tester_equal_false_different_type_child() -> None:
     class Child(TorchPackedSequenceEqualityTester): ...
 
-    assert not TorchPackedSequenceEqualityTester().equal(Child())
+    assert TorchPackedSequenceEqualityTester() != Child()
 
 
 @torch_available
@@ -518,19 +518,19 @@ def test_torch_tensor_equality_tester_str() -> None:
 
 @torch_available
 def test_torch_tensor_equality_tester_equal_true() -> None:
-    assert TorchTensorEqualityTester().equal(TorchTensorEqualityTester())
+    assert TorchTensorEqualityTester() == TorchTensorEqualityTester()
 
 
 @torch_available
 def test_torch_tensor_equality_tester_equal_false_different_type() -> None:
-    assert not TorchTensorEqualityTester().equal(123)
+    assert TorchTensorEqualityTester() != 123
 
 
 @torch_available
 def test_torch_tensor_equality_tester_equal_false_different_type_child() -> None:
     class Child(TorchTensorEqualityTester): ...
 
-    assert not TorchTensorEqualityTester().equal(Child())
+    assert TorchTensorEqualityTester() != Child()
 
 
 @torch_available

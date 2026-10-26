@@ -20,7 +20,7 @@ from coola.equality.handler.format import format_value_difference
 from coola.equality.handler.numpy import array_close, array_equal, time_scalar_equal
 from coola.equality.handler.utils import AttributeName
 from coola.equality.tester._array import check_dtype_and_shape
-from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.equality.tester.base import BaseEqualityTester
 from coola.equality.tester.scalar import ScalarEqualityTester
 from coola.utils.imports import check_numpy, is_numpy_available
 
@@ -33,10 +33,9 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from coola.equality.engine import Engine
-    from coola.equality.tester.base import BaseEqualityTester
 
 
-class NumpyArrayEqualityTester(BaseEngineEqualityTester[np.ndarray]):
+class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
     r"""Implement an equality tester for ``numpy.ndarray``.
 
     Two arrays are equal if they have the same data type, the same
@@ -90,7 +89,7 @@ class NumpyArrayEqualityTester(BaseEngineEqualityTester[np.ndarray]):
         )
 
 
-class NumpyMaskedArrayEqualityTester(BaseEngineEqualityTester[np.ma.MaskedArray]):
+class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
     r"""Implement an equality tester for ``numpy.ma.MaskedArray``.
 
     Two masked arrays are equal if they have the same data type, the
@@ -136,7 +135,7 @@ class NumpyMaskedArrayEqualityTester(BaseEngineEqualityTester[np.ma.MaskedArray]
         )
 
 
-class NumpyTimeScalarEqualityTester(BaseEngineEqualityTester[object]):
+class NumpyTimeScalarEqualityTester(BaseEqualityTester[object]):
     r"""Implement an equality tester for ``numpy.timedelta64`` and
     ``numpy.datetime64`` scalars.
 

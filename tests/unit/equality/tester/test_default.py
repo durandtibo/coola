@@ -93,17 +93,17 @@ def test_default_equality_tester_str() -> None:
 
 
 def test_default_equality_tester_equal_true() -> None:
-    assert DefaultEqualityTester().equal(DefaultEqualityTester())
+    assert DefaultEqualityTester() == DefaultEqualityTester()
 
 
 def test_default_equality_tester_equal_false_different_type() -> None:
-    assert not DefaultEqualityTester().equal(42)
+    assert DefaultEqualityTester() != 42
 
 
 def test_default_equality_tester_equal_false_different_type_child() -> None:
     class Child(DefaultEqualityTester): ...
 
-    assert not DefaultEqualityTester().equal(Child())
+    assert DefaultEqualityTester() != Child()
 
 
 def test_default_equality_tester_objects_are_equal_true_same_object(

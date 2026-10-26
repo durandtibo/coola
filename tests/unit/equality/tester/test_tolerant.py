@@ -117,17 +117,17 @@ def test_tolerant_equal_equality_tester_str() -> None:
 
 
 def test_tolerant_equal_equality_tester_equal_true() -> None:
-    assert TolerantEqualEqualityTester().equal(TolerantEqualEqualityTester())
+    assert TolerantEqualEqualityTester() == TolerantEqualEqualityTester()
 
 
 def test_tolerant_equal_equality_tester_equal_false_different_type() -> None:
-    assert not TolerantEqualEqualityTester().equal(42)
+    assert TolerantEqualEqualityTester() != 42
 
 
 def test_tolerant_equal_equality_tester_equal_false_different_type_child() -> None:
     class Child(TolerantEqualEqualityTester): ...
 
-    assert not TolerantEqualEqualityTester().equal(Child())
+    assert TolerantEqualEqualityTester() != Child()
 
 
 def test_tolerant_equal_equality_tester_objects_are_equal_true_same_object(

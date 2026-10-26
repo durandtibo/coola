@@ -20,8 +20,8 @@ Key components:
 - **Type-specific testers**: Specialized testers for Python built-ins and third-party libraries
 - **Default registry**: Pre-configured registry with testers for common types
 
-The tester system uses handler chains (from `coola.equality.handler`) to perform the actual
-comparisons.
+A tester never recurses: it returns a verdict or the child pairs that must all be equal, and the
+`Engine` compares them with an explicit stack.
 
 ## Key Concepts
 
@@ -30,17 +30,21 @@ comparisons.
 An equality tester is responsible for comparing objects of a specific type. Each tester:
 
 1. Checks if it can handle the given type
-2. Uses a handler chain to perform the comparison
-3. Returns `True` if objects are equal, `False` otherwise
+2. Returns `True` if the objects are equal, `False` if they are different (`ctx.fail(reason)`), or
+   the child pairs that must all be equal
 
 ```pycon
+>>> from coola.equality import objects_are_equal
 >>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import SequenceEqualityTester
->>> config = EqualityConfig()
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import SequenceEqualityTester, get_default_registry
+>>> engine = Engine(get_default_registry(), EqualityConfig())
 >>> tester = SequenceEqualityTester()
->>> tester.objects_are_equal([1, 2, 3], [1, 2, 3], config)
+>>> list(tester.objects_are_equal([1.0, 2.0], [1.0, 3.0], engine))
+[(1.0, 1.0, 0), (2.0, 3.0, 1)]
+>>> engine.run([1, 2, 3], [1, 2, 3])
 True
->>> tester.objects_are_equal([1, 2, 3], [1, 2, 4], config)
+>>> engine.run([1, 2, 3], [1, 2, 4])
 False
 
 ```
@@ -367,10 +371,6 @@ method that yields `Column`s, and register `TableEqualityTester(adapter)` for th
 - **`TolerantEqualEqualityTester`**: Compare objects that have both an `allclose` method and an
   `equal` method. `allclose` is used when `atol` or `rtol` is not zero, otherwise `equal`
 
-`BaseChainEqualityTester` is the base class of the testers that compare two objects with a chain of
-handlers. A child class only implements `_create_handler`, which returns the first handler of the
-chain, and can override `_check_dependencies` to raise an error if an optional package is missing.
-
 ### Other Library Testers
 
 - **`JaxArrayEqualityTester`**: Compare JAX arrays
@@ -497,67 +497,48 @@ True
 
 ## Creating Custom Testers
 
-To create a custom tester, inherit from `BaseEqualityTester`:
+To create a custom tester, inherit from `BaseEqualityTester` and implement `objects_are_equal`. It
+receives two objects of the same type and the `Engine` (`ctx`). For a leaf, return a verdict:
 
 ```pycon
->>> from coola.equality.tester import BaseEqualityTester
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import (
-...     create_chain,
-...     SameObjectHandler,
-...     SameTypeHandler,
-...     SameAttributeHandler,
-...     TrueHandler,
-... )
->>> class MyObjectEqualityTester(BaseEqualityTester):
-...     """Tester for objects with a 'value' attribute."""
-...
-...     def __init__(self):
-...         self._handler = create_chain(
-...             SameObjectHandler(),
-...             SameTypeHandler(),
-...             SameAttributeHandler("value"),
-...             TrueHandler(),
+>>> from coola.equality import objects_are_equal
+>>> from coola.equality.tester import BaseEqualityTester, register_equality_testers
+>>> class Version:
+...     def __init__(self, major: int, minor: int) -> None:
+...         self.major = major
+...         self.minor = minor
+>>> class VersionEqualityTester(BaseEqualityTester[Version]):
+...     def objects_are_equal(self, actual: Version, expected: Version, ctx) -> bool:
+...         return (actual.major, actual.minor) == (expected.major, expected.minor) or ctx.fail(
+...             lambda: f"versions differ: {actual.major}.{actual.minor} vs {expected.major}.{expected.minor}"
 ...         )
-...
-...     def equal(self, other: object) -> bool:
-...         return type(other) is type(self)
-...
-...     def objects_are_equal(self, actual, expected, config: EqualityConfig) -> bool:
-...         return self._handler.handle(actual, expected, config)
 
 ```
 
-The tester uses a handler chain to implement the comparison logic.
-
-## Handler Integration
-
-Testers use handler chains from `coola.equality.handler` to implement their comparison logic:
+`ctx.fail(reason, *path)` records the reason and returns `False`. A reason can be a callable: it is
+called only when the difference is explained (`compare`, `assert_*`), so `objects_are_equal` formats
+nothing. For a container, return the child pairs `(actual, expected, path part)`; they are produced
+lazily and in the order the first difference is wanted. The engine compares them, applies the
+tolerance, detects the cycles and locates the difference:
 
 ```pycon
->>> from coola.equality.tester import HandlerEqualityTester
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import (
-...     create_chain,
-...     SameObjectHandler,
-...     SameTypeHandler,
-...     ObjectEqualHandler,
-... )
->>> # Create a custom handler chain
->>> handler_chain = create_chain(
-...     SameObjectHandler(),
-...     SameTypeHandler(),
-...     ObjectEqualHandler(),
-... )
->>> # Create a tester with this handler
->>> tester = HandlerEqualityTester(handler_chain)
->>> config = EqualityConfig()
->>> tester.objects_are_equal("hello", "hello", config)
-True
+>>> from coola.equality import AttributeName, compare
+>>> class Point:
+...     def __init__(self, x: float, y: float) -> None:
+...         self.x = x
+...         self.y = y
+>>> class PointEqualityTester(BaseEqualityTester[Point]):
+...     def objects_are_equal(self, actual: Point, expected: Point, ctx):
+...         return (
+...             (actual.x, expected.x, AttributeName("x")),
+...             (actual.y, expected.y, AttributeName("y")),
+...         )
+>>> register_equality_testers({Point: PointEqualityTester()})  # doctest: +SKIP
 
 ```
 
-This allows you to mix and match handlers to create custom comparison logic.
+Two testers are equal if they have the same type and the same attributes (`==`); a tester has no
+state but its configuration.
 
 ## Advanced Usage
 
@@ -643,37 +624,14 @@ Testers are commonly used in testing frameworks:
 Add support for your custom types:
 
 ```pycon
->>> from coola.equality.tester import (
-...     register_equality_testers,
-...     BaseEqualityTester,
-... )
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import (
-...     create_chain,
-...     SameObjectHandler,
-...     SameTypeHandler,
-...     ObjectEqualHandler,
-... )
+>>> from coola.equality.tester import BaseEqualityTester, register_equality_testers
 >>> class Point:
 ...     def __init__(self, x, y):
 ...         self.x = x
 ...         self.y = y
-...
-...     def __eq__(self, other):
-...         return isinstance(other, Point) and self.x == other.x and self.y == other.y
->>> class PointEqualityTester(BaseEqualityTester):
-...     def __init__(self):
-...         self._handler = create_chain(
-...             SameObjectHandler(),
-...             SameTypeHandler(),
-...             ObjectEqualHandler(),
-...         )
-...
-...     def equal(self, other):
-...         return type(other) is type(self)
-...
-...     def objects_are_equal(self, actual, expected, config):
-...         return self._handler.handle(actual, expected, config)
+>>> class PointEqualityTester(BaseEqualityTester[Point]):
+...     def objects_are_equal(self, actual, expected, ctx):
+...         return ((actual.x, expected.x, 0), (actual.y, expected.y, 1))
 >>> # Register the tester (modifies global state, so skipped in doctests)
 >>> register_equality_testers({Point: PointEqualityTester()})  # doctest: +SKIP
 
@@ -706,9 +664,10 @@ The tester system is designed around several key principles:
 
 2. **Extensibility**: Easy to add support for new types by registering custom testers
 
-3. **Handler composition**: Testers use composable handler chains for flexible comparison logic
+3. **One extension point**: A tester is a class with one method, and it never recurses
 
-4. **Recursive comparison**: Nested structures are compared recursively using the registry
+4. **Iterative comparison**: Nested structures are compared with an explicit stack, so there is no
+   `RecursionError`
 
 5. **Performance**: LRU caching of type lookups for efficient repeated comparisons
 
@@ -717,5 +676,4 @@ The tester system is designed around several key principles:
 ## See Also
 
 - [`coola.equality`](equality.md): Main equality comparison functions
-- [`coola.equality.handler`](equality_handler.md): Handler system for implementing comparisons
 - [`coola.registry`](registry.md): General registry pattern used by the tester system

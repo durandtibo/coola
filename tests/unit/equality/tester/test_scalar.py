@@ -77,17 +77,17 @@ def test_scalar_equality_tester_str() -> None:
 
 
 def test_scalar_equality_tester_equal_true() -> None:
-    assert ScalarEqualityTester().equal(ScalarEqualityTester())
+    assert ScalarEqualityTester() == ScalarEqualityTester()
 
 
 def test_scalar_equality_tester_equal_false_different_type() -> None:
-    assert not ScalarEqualityTester().equal(123)
+    assert ScalarEqualityTester() != 123
 
 
 def test_scalar_equality_tester_equal_false_different_type_child() -> None:
     class Child(ScalarEqualityTester): ...
 
-    assert not ScalarEqualityTester().equal(Child())
+    assert ScalarEqualityTester() != Child()
 
 
 def test_scalar_equality_tester_objects_are_equal_true_same_object(
