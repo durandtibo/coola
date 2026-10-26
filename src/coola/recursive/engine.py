@@ -2,8 +2,8 @@ r"""Define the engine that applies a function to the leaves of nested
 data.
 
 The engine owns the invariants of the traversal (type dispatch, leaf
-call, cycle detection, depth and order). A transformer only describes the
-shape of a type: its children and how to rebuild it.
+call, cycle detection, depth and order). A transformer only describes
+the shape of a type: its children and how to rebuild it.
 """
 
 from __future__ import annotations
@@ -55,7 +55,8 @@ def transform(data: object, func: Callable[[Any], Any], registry: TransformerReg
     expansion = transformer.expand(data)
     if expansion is None:
         return func(data)
-    cache: dict[type, Any] = {data_type: transformer}  # type -> transformer, for this call only
+    # map: type -> transformer, for this call only
+    cache: dict[type, Any] = {data_type: transformer}
     key = id(data)
     ancestors = {key}  # the ids of the containers being transformed
     children, rebuild = expansion
