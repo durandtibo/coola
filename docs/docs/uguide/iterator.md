@@ -223,7 +223,7 @@ The `filter_by_type` function filters an iterator to yield only values of specif
 
 ### Filtering Multiple Types
 
-You can filter for multiple types using a tuple:
+You can filter for multiple types using a tuple (the type checker infers the union of the types):
 
 ```pycon
 >>> from coola.iterator import filter_by_type
@@ -243,26 +243,6 @@ You can combine type filtering with nested iteration:
 >>> # Get all numeric values (int and float) from nested structure
 >>> list(filter_by_type(dfs_iterate(data), (int, float)))
 [1, 2, 3.14]
-
-```
-
-**Extract only strings:**
-
-```pycon
->>> from coola.iterator import dfs_iterate, filter_by_type
->>> data = [1, "a", [2, "b", [3, "c"]]]
->>> list(filter_by_type(dfs_iterate(data), str))
-['a', 'b', 'c']
-
-```
-
-**Extract only integers:**
-
-```pycon
->>> from coola.iterator import bfs_iterate, filter_by_type
->>> data = {"nums": [1, 2.5, 3], "text": "hello", "value": 2}
->>> list(filter_by_type(bfs_iterate(data), int))
-[2, 1, 3]
 
 ```
 

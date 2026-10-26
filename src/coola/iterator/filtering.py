@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-def filter_by_type(iterator: Iterable[Any], types: type[T] | tuple[type, ...]) -> Iterator[T]:
+def filter_by_type(iterator: Iterable[Any], types: type[T] | tuple[type[T], ...]) -> Iterator[T]:
     """Filter an iterator to yield only values of specified types.
 
     This function acts as a type-safe filter that passes through only values
@@ -58,6 +58,8 @@ def filter_by_type(iterator: Iterable[Any], types: type[T] | tuple[type, ...]) -
     Notes:
         - This function uses isinstance() internally, so subclass relationships
           are respected (e.g., bool values will match int type).
+        - With a tuple of types, the type checker infers the union of the types
+          (``Iterator[int | float]`` for ``(int, float)``).
         - The input iterator is consumed as items are yielded.
         - For empty iterators or when no items match, the generator yields nothing.
     """

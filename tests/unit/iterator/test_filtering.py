@@ -42,3 +42,13 @@ def test_filter_by_type_iterable_input_generator() -> None:
         yield 4
 
     assert list(filter_by_type(gen(), int)) == [1, 2, 4]
+
+
+def test_filter_by_type_tuple_of_types_keeps_the_order_of_the_input() -> None:
+    result: list[str | int] = list(filter_by_type(["b", 2, "a", 1], (int, str)))
+    assert result == ["b", 2, "a", 1]
+
+
+def test_filter_by_type_tuple_with_one_type() -> None:
+    result: list[int] = list(filter_by_type([1, "a", 2], (int,)))
+    assert result == [1, 2]
