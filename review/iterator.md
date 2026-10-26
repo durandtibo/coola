@@ -247,6 +247,34 @@ list(dfs_iterate(tree))
 list(bfs_iterate(tree))
 ```
 
+### 3.4 Planned extension: the path of each leaf (`dfs_items`, `bfs_items`)
+
+Not implemented by this work (decision D9), but the design is chosen so that it is an addition, not
+a rewrite:
+
+- **The frame of the engine is one pair.** DFS keeps `(owner, iterator over the children)` per level.
+  Paths add a parallel list of labels (the label of the child being visited at each level) that is
+  appended and popped with the frame; BFS adds the path tuple to each queue entry. No existing line
+  changes meaning.
+- **The shape of a type is known in one place: its finder.** A finder gets one more, optional method,
+  `find_items(data) -> Iterable[tuple[label, child]] | None`, with the same `None` for a leaf. The
+  base class derives a default from `find_children` (`enumerate` of the children, so a custom finder
+  works with no change and gets integer labels), and the four built-in finders override it
+  (`data.items()` for a mapping, `enumerate(data)` for a sequence, the field names for a dataclass, the
+  element itself for a set: a set has no stable position).
+  `find_children` stays the method of the hot path, so `dfs_iterate` and `bfs_iterate` pay nothing.
+- **The labels are the path parts of `equality`** (a key or an index `['a']`, `[3]`, an
+  `AttributeName("x")`, an `Element(2)`), so a path printed by `compare` and a path yielded by
+  `dfs_items` read the same. A path is a tuple of parts, built only by the `*_items` functions.
+- **The engines are generators over a per-call finder cache** (`_make_find`). `_make_find` is
+  parametrised by the method name, so the items loop reuses the cache, the cycle rule and the
+  leaf rule; only the loop that carries the labels is new (about 25 lines for DFS, 15 for BFS).
+- **Same leaves, same order.** `dfs_items(data)` yields the leaves of `dfs_iterate(data)` in the same
+  order; a property test (section 8) ties the two as soon as the function exists.
+
+What the planned addition does **not** require: a change to the registry, to the plugin group, to
+`dfs_iterate`, or to a finder written for this release.
+
 ## 4. Public API after the change
 
 ```python
@@ -330,6 +358,7 @@ One branch and one pull request per step (`CLAUDE.md`). The order keeps every st
 | 5    | **Remove the deprecated and positional paths (F9).** The positional `registry` of `dfs_iterate` and `bfs_iterate`, `exist_ok` keyword-only. Can be merged into step 3.                                                                                                                                                                                                                                                  | yes                                |
 | 6    | **`filter_by_type` (F10).** The typed signature and a test for the tuple case (checked with `ty`); shorten the guide section.                                                                                                                                                                                                                                                                                           | no                                 |
 | 7    | **Documentation.** Rewrite `uguide/iterator.md` (finder example, container table, properties, DAG and set-order notes), the plugin table of `uguide/extending.md`, `refs/iterator.md`, the other links of section 5, the migration page, and the status table of `review/suggestions.md` (items 25.1 `dfs_iterate`, 28.2 with the PR numbers).                                                                          | no                                 |
+| 8    | **Later, not part of this work (D9): `dfs_items` and `bfs_items`.** `find_items` on `BaseChildFinder` (default derived from `find_children`), the four built-in overrides, the labelled loops of `engine.py`, the guide section. Additive: no breaking change. | no |
 
 ## 8. Tests and gates
 
@@ -362,6 +391,9 @@ values, a regression test for every bug, no local imports, section headers).
 - **Contract test over the default registry**: every finder of the default registry returns `None`
   or an iterable whose leaves equal the leaves of the sample (one sample per registered type, like
   `NATIVE_SAMPLES`); the finder is pure (two calls give the same children).
+- **Ready for the paths (D9)**: the contract test checks that `find_children` is the only method a
+  custom finder must write (a finder with that method alone is accepted by the registry and by both
+  engines), so adding the optional `find_items` later breaks no finder.
 - **Registry** (`test_registry.py`): MRO lookup, `has_child_finder`, `find_child_finder` for a
   dataclass, `copy`, repr.
 - **Interface** (`test_interface.py`): `registry=None` uses the default, a custom registry is used,
@@ -385,7 +417,11 @@ values, a regression test for every bug, no local imports, section headers).
   `main` can run (expected: 2 to 6 times faster). A failing gate rejects the step.
 - Coverage: 100 % of `src/coola/iterator` (`--cov=coola`), no `# pragma: no cover`.
 
-## 9. Decisions for the maintainers
+## 9. Decisions of the maintainers
+
+All the decisions are taken. D1 to D8 and D10 follow the recommendation; D9 changes the plan: the
+paths (`dfs_items`) are wanted, not now, and the design must make them easy to add (section 3.4).
+The sections above are written for the decisions as taken.
 
 **D1. One child finder and one registry for DFS and BFS?** _Recommended: yes._ The two packages
 differ only by the order in which the same children are visited. One `find_children` per type,
@@ -455,13 +491,13 @@ millions of paths is slow; that is documented, not hidden.
 
 Decision: no
 
-**D9. Yield the path of each leaf?** _Recommended: not now._ A `dfs_items(data)` that yields
-`(path, leaf)` would answer "where is the NaN" and is the natural next feature, but it needs a label
-for each child (`find_children` would return `(label, child)` pairs, a tuple per child on the hot
-path). The contract can be extended without changing the structure of the engines; revisit if users
-ask. Same decision as D4 of `recursive.md`.
-
-Decision: it is a good idea, and I think it should be added. I like `dfs_items(data)`. We do not need to do it now, but the implementation should be easy to adapt/extend to add this use case in the future.
+**D9. Yield the path of each leaf?** _Decided: yes, later; design for it now._ A `dfs_items(data)`
+that yields `(path, leaf)` answers "where is the NaN" and is the natural next feature. It is not part
+of this work, but nothing in this design may make it harder: section 3.4 lists the choices that keep
+it cheap (the frame of the engine, the single place that knows the shape of a type, the path parts
+shared with `equality`, the cached lookup) and the additive change it needs (an optional `find_items` on the
+finder, a third engine loop). The hot path of `dfs_iterate` and `bfs_iterate` stays free of labels.
+Same direction as D4 of `recursive.md`.
 
 **D10. `registry.iterate` kept as a method?** _Recommended: removed._ `recursive` keeps
 `TransformerRegistry.transform` as the registry-level entry point; here the registry is a dispatcher
@@ -472,8 +508,8 @@ Decision: removed
 
 ## 10. Not covered
 
-- Keys: no iterator over the keys or the items of a mapping. `dfs_items(data)` with paths (D9) is
-  the natural next function once the engines exist.
+- Keys and paths: no iterator over the keys, the items or the paths of the leaves in this work.
+  `dfs_items(data)` (D9) is decided and planned; section 3.4 says what the design keeps ready for it.
 - Pydantic models, attrs classes and plain objects with `__dict__`: leaves, as today. `equality`
   enters pydantic models; a lazily registered `PydanticChildFinder` is a separate item, with the same
   one for `recursive`.
