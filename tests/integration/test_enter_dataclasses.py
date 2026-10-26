@@ -17,12 +17,7 @@ from coola.iterator.dfs import (
     enter_dataclasses as enter_dfs,
     get_default_registry as get_dfs_registry,
 )
-from coola.recursive import (
-    TransformerRegistry,
-    enter_dataclasses as enter_recursive,
-    get_default_registry as get_recursive_registry,
-    recursive_apply,
-)
+from coola.recursive import recursive_apply
 
 
 @dataclass
@@ -48,13 +43,6 @@ def model() -> Model:
 
 
 @pytest.fixture
-def transformer_registry() -> TransformerRegistry:
-    registry = TransformerRegistry(dict(get_recursive_registry().items()))
-    enter_recursive(registry=registry)
-    return registry
-
-
-@pytest.fixture
 def dfs_registry() -> IteratorRegistry:
     registry = IteratorRegistry(dict(get_dfs_registry().items()))
     enter_dfs(registry=registry)
@@ -68,24 +56,13 @@ def bfs_registry() -> ChildFinderRegistry:
     return registry
 
 
-def test_recursive_apply_dataclass_is_a_leaf_with_the_default_registry(model: Model) -> None:
-    assert recursive_apply(model, type) is Model
-
-
-def test_recursive_apply_enters_the_dataclasses(
-    model: Model, transformer_registry: TransformerRegistry
-) -> None:
-    result = recursive_apply(
-        model, lambda x: x * 2 if isinstance(x, int) else x, registry=transformer_registry
-    )
+def test_recursive_apply_enters_the_dataclasses(model: Model) -> None:
+    result = recursive_apply(model, lambda x: x * 2 if isinstance(x, int) else x)
     assert result == Model("net", [Layer(16), Layer(8, "tanh")], {"lr": 0.1, "shape": (4, 6)})
 
 
-def test_recursive_apply_dataclass_that_is_a_dict_value(
-    transformer_registry: TransformerRegistry,
-) -> None:
-    result = recursive_apply({"layer": Layer(2)}, str, registry=transformer_registry)
-    assert result == {"layer": Layer("2", "relu")}
+def test_recursive_apply_dataclass_that_is_a_dict_value() -> None:
+    assert recursive_apply({"layer": Layer(2)}, str) == {"layer": Layer("2", "relu")}
 
 
 def test_dfs_iterate_dataclass_is_a_leaf_with_the_default_registry(model: Model) -> None:

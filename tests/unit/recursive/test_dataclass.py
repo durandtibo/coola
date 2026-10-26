@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from typing import Any
 
 import pytest
@@ -46,6 +46,40 @@ class Slotted:
     x: float
 
 
+@dataclass(frozen=True, slots=True)
+class FrozenSlotted:
+    a: Any
+    b: Any
+
+
+@dataclass
+class WithInitVar:
+    x: Any
+    scale: InitVar[int]
+
+    def __post_init__(self, scale: int) -> None:
+        self.x = self.x * scale
+
+
+@dataclass
+class Empty:
+    pass
+
+
+@dataclass
+class SubPoint(Point):
+    pass
+
+
+@dataclass
+class CountInit:
+    x: Any
+    calls: list
+
+    def __post_init__(self) -> None:
+        self.calls.append(self.x)
+
+
 @pytest.fixture
 def registry() -> TransformerRegistry:
     return TransformerRegistry(
@@ -58,6 +92,11 @@ def registry() -> TransformerRegistry:
             Container: DataclassTransformer(),
             WithDerived: DataclassTransformer(),
             Slotted: DataclassTransformer(),
+            FrozenSlotted: DataclassTransformer(),
+            WithInitVar: DataclassTransformer(),
+            Empty: DataclassTransformer(),
+            SubPoint: DataclassTransformer(),
+            CountInit: DataclassTransformer(),
         }
     )
 
@@ -118,11 +157,51 @@ def test_dataclass_transformer_transform_field_that_is_a_dataclass_uses_the_regi
     assert registry.transform(data, str) == Frozen(Point("1", "2"))
 
 
-def test_dataclass_transformer_transform_field_without_init_is_recomputed(
+def test_dataclass_transformer_transform_field_without_init_is_transformed(
     registry: TransformerRegistry,
 ) -> None:
     result = registry.transform(WithDerived(2.0), lambda x: x + 1)
-    assert result.double == 6.0
+    assert result.double == 5.0
+
+
+def test_dataclass_transformer_transform_post_init_is_not_run(
+    registry: TransformerRegistry,
+) -> None:
+    result = registry.transform(WithDerived(2.0), lambda x: x + 1)
+    assert result.x == 3.0
+
+
+def test_dataclass_transformer_transform_frozen_slotted_dataclass(
+    registry: TransformerRegistry,
+) -> None:
+    assert registry.transform(FrozenSlotted(1, 2), str) == FrozenSlotted("1", "2")
+
+
+def test_dataclass_transformer_transform_init_var_without_default(
+    registry: TransformerRegistry,
+) -> None:
+    # ``__post_init__`` of the input set x to 2, and the copy gets the transformed field.
+    assert registry.transform(WithInitVar(1, 2), str).x == "2"
+
+
+def test_dataclass_transformer_transform_dataclass_without_field(
+    registry: TransformerRegistry,
+) -> None:
+    assert registry.transform(Empty(), str) == Empty()
+
+
+def test_dataclass_transformer_transform_subclass_keeps_the_type(
+    registry: TransformerRegistry,
+) -> None:
+    assert type(registry.transform(SubPoint(1.0), str)) is SubPoint
+
+
+def test_dataclass_transformer_transform_does_not_run_post_init(
+    registry: TransformerRegistry,
+) -> None:
+    calls: list[Any] = []
+    registry.transform(CountInit(1, calls), str)
+    assert calls == [1]
 
 
 def test_dataclass_transformer_transform_applies_func_to_the_fields_not_to_the_object(

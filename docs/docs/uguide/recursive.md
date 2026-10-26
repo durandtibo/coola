@@ -127,34 +127,37 @@ You can create and use a custom registry for more control:
 
 ### Dataclasses
 
-By default, a dataclass instance is a leaf: `recursive_apply` calls the function on the whole
-object, while `objects_are_equal`, `hash_object` and `summarize` enter the dataclasses. Call
-`enter_dataclasses()` to transform the fields instead. The instance is rebuilt with
-`dataclasses.replace` (`DataclassTransformer`), so frozen dataclasses are supported and the input
-is not modified. The fields with `init=False` are recomputed by `__init__`/`__post_init__`:
+A dataclass instance is entered, like `objects_are_equal`, `hash_object` and `summarize` do: the
+function is applied to the fields, not to the instance. The instance is rebuilt (`DataclassTransformer`)
+from a shallow copy in which every field is set with `object.__setattr__`, so frozen and slotted
+dataclasses are supported, the fields with `init=False` are transformed, the input is not modified
+and no user code (`__init__`, `__post_init__`) runs during the traversal:
 
 ```pycon
 >>> from dataclasses import dataclass
->>> from coola.recursive import (
-...     DefaultTransformer,
-...     SequenceTransformer,
-...     TransformerRegistry,
-...     enter_dataclasses,
-...     recursive_apply,
-... )
+>>> from coola.recursive import recursive_apply
 >>> @dataclass
 ... class Config:
 ...     lr: float
 ...     layers: list
->>> registry = TransformerRegistry({object: DefaultTransformer(), list: SequenceTransformer()})
->>> enter_dataclasses(registry=registry)
->>> recursive_apply(Config(0.1, [1, 2]), str, registry=registry)
+>>> recursive_apply(Config(0.1, [1, 2]), str)
 Config(lr='0.1', layers=['1', '2'])
 
 ```
 
-Without `registry`, `enter_dataclasses()` changes the default registry for the whole process. A
-transformer registered for the type of the dataclass has priority.
+`__post_init__` is not run again, so a field that `__post_init__` derives from another field is
+transformed like the other fields and is not recomputed. A transformer registered for the type of
+the dataclass has priority over the dataclass transformer, so a dataclass is kept as a leaf by
+registering `DefaultTransformer()` for its type:
+
+```pycon
+>>> from coola.recursive import DefaultTransformer, get_default_registry
+>>> registry = get_default_registry().copy()
+>>> registry.register(Config, DefaultTransformer())
+>>> recursive_apply(Config(0.1, [1, 2]), repr, registry=registry)
+'Config(lr=0.1, layers=[1, 2])'
+
+```
 
 ## Available Transformers
 

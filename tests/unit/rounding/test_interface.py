@@ -104,9 +104,8 @@ class Point:
     x: float
 
 
-def test_round_values_recursive_dataclass_is_a_leaf() -> None:
-    point = Point(1.234)
-    assert round_values(point, recursive=True) is point
+def test_round_values_recursive_enters_the_dataclass() -> None:
+    assert round_values(Point(1.234), decimals=1, recursive=True) == Point(1.2)
 
 
 @numpy_available

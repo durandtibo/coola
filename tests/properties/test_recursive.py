@@ -18,7 +18,7 @@ from coola.iterator import dfs_iterate
 from coola.recursive import (
     DefaultTransformer,
     TransformerRegistry,
-    enter_dataclasses,
+    get_default_registry,
     recursive_apply,
 )
 from tests.properties.strategies import nested, scalars, small_values, values
@@ -206,18 +206,18 @@ def test_shared_reference_is_not_a_cycle(data: Any) -> None:
 ####################################
 
 
-@given(a=small_values, b=small_values)
-def test_dataclass_is_a_leaf_by_default(a: Any, b: Any) -> None:
-    config = Config(a, b)
-    assert recursive_apply(config, lambda x: x) is config
-
-
 @given(a=scalars, b=scalars)
-def test_enter_dataclasses_transforms_the_fields(a: Any, b: Any) -> None:
-    registry = TransformerRegistry({object: DefaultTransformer()})
-    enter_dataclasses(registry=registry)
-    out = recursive_apply(Config(a, b), repr, registry=registry)
+def test_dataclass_is_entered_by_default(a: Any, b: Any) -> None:
+    out = recursive_apply(Config(a, b), repr)
     assert repr(out) == repr(Config(repr(a), repr(b)))
+
+
+@given(a=small_values, b=small_values)
+def test_dataclass_registered_as_a_leaf(a: Any, b: Any) -> None:
+    registry = get_default_registry().copy()
+    registry.register(Config, DefaultTransformer())
+    config = Config(a, b)
+    assert recursive_apply(config, lambda x: x, registry=registry) is config
 
 
 @given(data=st.text(max_size=5))

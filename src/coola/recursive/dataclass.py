@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["DataclassTransformer"]
 
+import copy
 import dataclasses
 from typing import Any
 
@@ -15,19 +16,23 @@ class DataclassTransformer(InlineDisplayMixin, BaseTransformer[Any]):
     r"""Transformer for dataclass instances that recursively transforms
     the fields.
 
-    The fields are the children and the instance is
-    rebuilt with ``dataclasses.replace``, so a frozen dataclass is
-    supported and the input is not modified.
+    The fields are the children. The instance is rebuilt with a shallow
+    copy in which every field is set with ``object.__setattr__``, so a
+    frozen or slotted dataclass is supported, the fields with
+    ``init=False`` are transformed, an ``InitVar`` without a default
+    value is not a problem, the input is not modified, and no user code
+    (``__init__``, ``__post_init__``) runs during the traversal.
 
     Notes:
-        - The fields with ``init=False`` are not passed to the
-          constructor: they get the value that ``__init__`` or
-          ``__post_init__`` gives them.
-        - A dataclass with an ``InitVar`` without a default value
-          cannot be rebuilt with ``dataclasses.replace`` and raises a
-          ``ValueError``.
-        - It is not registered by default: see
-          ``coola.recursive.enter_dataclasses``.
+        - ``__post_init__`` is not run again, so a field derived from
+          another field in ``__post_init__`` is not recomputed: it can
+          become inconsistent with the field it was derived from after
+          the function is applied. Register a transformer for the type
+          to rebuild it differently.
+        - It is registered for ``DataclassMarker`` in the default
+          registry. A transformer registered for the type of the
+          dataclass has priority; register ``DefaultTransformer`` to
+          keep a dataclass as a leaf.
 
     Example:
         ```pycon
@@ -54,7 +59,12 @@ class DataclassTransformer(InlineDisplayMixin, BaseTransformer[Any]):
     """
 
     def expand(self, data: Any) -> Expansion | None:
-        names = [field.name for field in dataclasses.fields(data) if field.init]
-        return [getattr(data, name) for name in names], lambda items: dataclasses.replace(
-            data, **dict(zip(names, items, strict=True))
-        )
+        names = [field.name for field in dataclasses.fields(data)]
+
+        def rebuild(items: list[Any]) -> Any:
+            result = copy.copy(data)
+            for name, item in zip(names, items, strict=True):
+                object.__setattr__(result, name, item)
+            return result
+
+        return [getattr(data, name) for name in names], rebuild
