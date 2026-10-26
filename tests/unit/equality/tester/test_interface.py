@@ -25,17 +25,10 @@ from coola.equality.tester import (
     MappingEqualityTester,
     NumpyArrayEqualityTester,
     OrderedMappingEqualityTester,
-    PandasDataFrameEqualityTester,
-    PandasExtensionArrayEqualityTester,
-    PandasIndexEqualityTester,
-    PandasSeriesEqualityTester,
-    PolarsDataFrameEqualityTester,
-    PolarsLazyFrameEqualityTester,
-    PolarsSeriesEqualityTester,
-    PyarrowEqualityTester,
     ScalarEqualityTester,
     SequenceEqualityTester,
     SetEqualityTester,
+    TableEqualityTester,
     TorchPackedSequenceEqualityTester,
     TorchTensorEqualityTester,
     XarrayDataArrayEqualityTester,
@@ -133,28 +126,28 @@ if is_numpy_available():
 if is_pandas_available():
     TESTER_TYPES.extend(
         [
-            (pd.DataFrame, PandasDataFrameEqualityTester, True),
-            (pd.Series, PandasSeriesEqualityTester, True),
-            (pd.Index, PandasIndexEqualityTester, True),
-            (pd.MultiIndex, PandasIndexEqualityTester, False),
-            (pd.Categorical, PandasExtensionArrayEqualityTester, False),
+            (pd.DataFrame, TableEqualityTester, True),
+            (pd.Series, TableEqualityTester, True),
+            (pd.Index, TableEqualityTester, True),
+            (pd.MultiIndex, TableEqualityTester, False),
+            (pd.Categorical, TableEqualityTester, False),
         ]
     )
 if is_polars_available():
     TESTER_TYPES.extend(
         [
-            (pl.DataFrame, PolarsDataFrameEqualityTester, True),
-            (pl.LazyFrame, PolarsLazyFrameEqualityTester, True),
-            (pl.Series, PolarsSeriesEqualityTester, True),
+            (pl.DataFrame, TableEqualityTester, True),
+            (pl.LazyFrame, TableEqualityTester, True),
+            (pl.Series, TableEqualityTester, True),
         ]
     )
 if is_pyarrow_available():
     TESTER_TYPES.extend(
         [
-            (pa.Array, PyarrowEqualityTester, True),
-            (pa.ChunkedArray, PyarrowEqualityTester, True),
-            (pa.RecordBatch, PyarrowEqualityTester, True),
-            (pa.Table, PyarrowEqualityTester, True),
+            (pa.Array, TableEqualityTester, True),
+            (pa.ChunkedArray, TableEqualityTester, True),
+            (pa.RecordBatch, TableEqualityTester, True),
+            (pa.Table, TableEqualityTester, True),
         ],
     )
 if is_torch_available():

@@ -31,15 +31,18 @@ In this page, `<pkg>` is the name of the library, e.g. `pandas`.
 
 ## 2. Equality
 
-1. Create `src/coola/equality/handler/<pkg>.py` with the handler that compares two objects
-   (follow `pandas.py` or `numpy.py`). It must honor `config.equal_nan`, `config.atol` and
-   `config.rtol` when the library supports them, and report the difference with
-   `report_difference(config, message)` when `config.explaining` is `True`. Export it in
-   `equality/handler/__init__.py` as a lazy name (see [Lazy imports](#lazy-imports)).
-2. Create `src/coola/equality/tester/<pkg>.py`. A tester is a `BaseChainEqualityTester` that
-   implements `_create_handler` (the chain, usually `SameObjectHandler`, `SameTypeHandler`, some
-   checks such as the dtype or the shape, and the handler of step 1) and, for an optional library,
-   `_check_dependencies`. Export it in `equality/tester/__init__.py` as a lazy name.
+1. Create `src/coola/equality/tester/<pkg>.py`. For a library of tables (data frames, series,
+   columnar arrays), write an adapter (follow `pandas.py`, `polars.py` or `pyarrow.py`): a class
+   with a `kind_name` (the plural word used in the reasons), a `same_structure(other, ctx)` method
+   and a `columns()` method that yields `Column`s, and a function that builds it from an object.
+   A column is `numeric` or `duration` (compared by the numeric kernel, with the tolerance and
+   `equal_nan`; the null values are given as a mask) or `exact` (compared by the `equals` of the
+   library). Register `TableEqualityTester(adapter)` for the types of the library.
+2. For an array library, write a tester that derives from `BaseEngineEqualityTester` (follow
+   `numpy.py`): it checks the data type and the shape, then compares the values with the shared
+   kernel, and returns a verdict (`ctx.fail(reason, *path)` returns `False`) or the child pairs.
+   For an optional library, `__init__` calls `check_<pkg>()`. Export the tester in
+   `equality/tester/__init__.py` as a lazy name.
 3. Register the tester: add a `get_default_testers` function to `equality/tester/<pkg>.py` that
    returns the `{type: tester}` mapping of the library (and returns `{}` if `is_<pkg>_available()`
    is `False`), and add the library to `_LAZY_TESTERS` in `equality/tester/interface.py`.

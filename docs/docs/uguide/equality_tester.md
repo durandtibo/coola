@@ -321,65 +321,43 @@ True
 
 ```
 
-### pandas Testers
+### Table Testers
 
-#### `PandasDataFrameEqualityTester`
+pandas, polars and PyArrow run the same algorithm, written once in `TableEqualityTester`: the
+structure is compared first (shape, names, data types, index), then the columns one by one, each by
+its kind, and the comparison stops at the first column that differs. An adapter converts an object
+of a library to a table. The default registry registers one `TableEqualityTester` per type:
 
-Handles pandas DataFrames:
+| Library | Types                                                                |
+| ------- | -------------------------------------------------------------------- |
+| pandas  | `DataFrame`, `Series`, `Index` (also `MultiIndex`), extension arrays |
+| polars  | `DataFrame`, `LazyFrame`, `Series`                                   |
+| PyArrow | `Array`, `ChunkedArray`, `RecordBatch`, `Table`                      |
+
+The numbers (integers, floats, durations) go through the numeric kernel: the tolerance and
+`equal_nan` apply and the null values must be at the same positions. The other columns (booleans,
+strings, categories, instants, decimals, nested values and `object` columns) are compared by the
+library (`equals`), which never sees the tolerance or `equal_nan`.
+
+A table is one leaf for the engine: `compare` reports it as different, with the name of the first
+column that differs and no row. Use the tools of the library to find the row.
 
 ```pycon
 >>> import pandas as pd
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import PandasDataFrameEqualityTester
->>> config = EqualityConfig()
->>> tester = PandasDataFrameEqualityTester()
+>>> from coola.equality import compare
 >>> df1 = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
->>> df2 = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
->>> tester.objects_are_equal(df1, df2, config)
-True
+>>> df2 = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 7]})
+>>> result = compare({"prices": df1}, {"prices": df2})
+>>> result.path
+('prices',)
+>>> print(result.reason)
+tables have different values: column 'b' differs
 
 ```
 
-#### `PandasSeriesEqualityTester`
-
-Handles pandas Series:
-
-```pycon
->>> import pandas as pd
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import PandasSeriesEqualityTester
->>> config = EqualityConfig()
->>> tester = PandasSeriesEqualityTester()
->>> s1 = pd.Series([1, 2, 3])
->>> s2 = pd.Series([1, 2, 3])
->>> tester.objects_are_equal(s1, s2, config)
-True
-
-```
-
-#### `PandasIndexEqualityTester` and `PandasExtensionArrayEqualityTester`
-
-Handle pandas `Index` (including `MultiIndex`, with the dtype and names compared) and the pandas
-extension arrays such as `Categorical`:
-
-```pycon
->>> import pandas as pd
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.tester import PandasIndexEqualityTester
->>> config = EqualityConfig()
->>> tester = PandasIndexEqualityTester()
->>> tester.objects_are_equal(pd.Index([1, 2, 3]), pd.Index([1, 2, 3]), config)
-True
-
-```
-
-### polars Testers
-
-The package includes testers for polars DataFrames, Series, and LazyFrames:
-
-- **`PolarsDataFrameEqualityTester`**: Compare polars DataFrames
-- **`PolarsSeriesEqualityTester`**: Compare polars Series
-- **`PolarsLazyFrameEqualityTester`**: Compare polars LazyFrames
+To support another library, write an adapter: a function that returns an object with a `kind_name`
+(the plural word used in the reasons), a `same_structure(other, ctx)` method and a `columns()`
+method that yields `Column`s, and register `TableEqualityTester(adapter)` for the type.
 
 ### Testers for Objects with Methods
 
@@ -399,7 +377,6 @@ chain, and can override `_check_dependencies` to raise an error if an optional p
 - **`XarrayDataArrayEqualityTester`**: Compare xarray DataArrays
 - **`XarrayDatasetEqualityTester`**: Compare xarray Datasets
 - **`XarrayVariableEqualityTester`**: Compare xarray Variables
-- **`PyarrowEqualityTester`**: Compare PyArrow arrays and tables
 
 ### Tester for Objects Without Value Semantics
 

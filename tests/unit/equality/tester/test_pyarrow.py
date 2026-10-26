@@ -1,26 +1,28 @@
 from __future__ import annotations
 
+import warnings
 from datetime import UTC, datetime
 from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.equality.config import EqualityConfig
-from coola.equality.tester import PyarrowEqualityTester
-from coola.testing.fixtures import pyarrow_available
-from coola.utils.imports import MissingPackageError, is_pyarrow_available
-from tests.unit.equality.utils import ExamplePair, messages
+from coola.equality import compare, objects_are_allclose, objects_are_equal
+from coola.equality.tester import TableEqualityTester
+from coola.equality.tester.pyarrow import (
+    PyarrowArrayTable,
+    PyarrowTableTable,
+    get_default_testers,
+)
+from coola.testing.fixtures import numpy_available, pyarrow_available
+from coola.utils.imports import is_pyarrow_available
+from tests.unit.equality.utils import ExamplePair
 
 if is_pyarrow_available():
     import pyarrow as pa
 else:
     pa = Mock()
 
-
-@pytest.fixture
-def config() -> EqualityConfig:
-    return EqualityConfig()
-
+NAN = float("nan")
 
 PYARROW_ARRAY_EQUAL = [
     pytest.param(
@@ -84,7 +86,7 @@ PYARROW_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
             expected=pa.array([1.0, 2.0, 4.0], type=pa.float64()),
-            expected_message="objects are different:",
+            expected_message="arrays have",
         ),
         id="array different values",
     ),
@@ -313,7 +315,7 @@ PYARROW_TABLE_NOT_EQUAL = [
                 {"nums": [1.0, 2.0, 3.0, 4.0, 5.0], "chars": ["a", "b", "c", "d", "e"]},
                 schema=pa.schema({"nums": pa.float64(), "chars": pa.string()}),
             ),
-            expected_message="objects are different:",
+            expected_message="tables have",
         ),
         id="table different dtypes",
     ),
@@ -327,7 +329,7 @@ PYARROW_TABLE_NOT_EQUAL = [
                 {"nums": [1, 2, 3, 4, 6], "chars": ["a", "b", "c", "d", "e"]},
                 schema=pa.schema({"nums": pa.int64(), "chars": pa.string()}),
             ),
-            expected_message="objects are different:",
+            expected_message="tables have",
         ),
         id="table different values",
     ),
@@ -341,7 +343,7 @@ PYARROW_TABLE_NOT_EQUAL = [
                 {"nums2": [1, 2, 3, 4, 5], "chars": ["a", "b", "c", "d", "e"]},
                 schema=pa.schema({"nums2": pa.int64(), "chars": pa.string()}),
             ),
-            expected_message="objects are different:",
+            expected_message="tables have",
         ),
         id="table different columns",
     ),
@@ -380,175 +382,284 @@ PYARROW_NOT_EQUAL_TOLERANCE = [
     ),
 ]
 
+ARRAY_EQUAL = [
+    pytest.param(pa.array([1, 2, 3]), pa.array([1, 2, 3]), id="integers"),
+    pytest.param(pa.array([1.0, None]), pa.array([1.0, None]), id="float with null"),
+    pytest.param(pa.array([1, None]), pa.array([1, None]), id="integer with null"),
+    pytest.param(pa.array(["a", None]), pa.array(["a", None]), id="strings"),
+    pytest.param(pa.array([True, None]), pa.array([True, None]), id="bool"),
+    pytest.param(pa.array([[1.0], None]), pa.array([[1.0], None]), id="list"),
+    pytest.param(pa.array([], type=pa.float64()), pa.array([], type=pa.float64()), id="empty"),
+    pytest.param(pa.chunked_array([[1, 2], [3]]), pa.chunked_array([[1], [2, 3]]), id="chunks"),
+    pytest.param(
+        pa.array([1, None], type=pa.duration("s")),
+        pa.array([1, None], type=pa.duration("s")),
+        id="duration",
+    ),
+]
 
-###########################################
-#     Tests for PyarrowEqualityTester     #
-###########################################
+ARRAY_NOT_EQUAL = [
+    pytest.param(pa.array([1, 2]), pa.array([1, 3]), id="values"),
+    pytest.param(pa.array([1, 2]), pa.array([1.0, 2.0]), id="type"),
+    pytest.param(pa.array([1, 2]), pa.array([1]), id="length"),
+    pytest.param(pa.array([1, None]), pa.array([None, 1]), id="null position"),
+    pytest.param(pa.array(["a"]), pa.array(["b"]), id="strings"),
+    pytest.param(pa.array([True]), pa.array([False]), id="bool"),
+    pytest.param(pa.array([[1.0]]), pa.array([[2.0]]), id="list"),
+    pytest.param(
+        pa.array([1], type=pa.duration("s")), pa.array([2], type=pa.duration("s")), id="duration"
+    ),
+]
+
+TABLE_EQUAL = [
+    pytest.param(pa.table({"a": [1, 2]}), pa.table({"a": [1, 2]}), id="1 column"),
+    pytest.param(
+        pa.table({"a": [1, 2], "b": ["x", None]}),
+        pa.table({"a": [1, 2], "b": ["x", None]}),
+        id="2 columns",
+    ),
+    pytest.param(pa.record_batch({"a": [1, 2]}), pa.record_batch({"a": [1, 2]}), id="record batch"),
+    pytest.param(
+        pa.table({"a": [1]}).replace_schema_metadata({"k": "v"}),
+        pa.table({"a": [1]}),
+        id="metadata is ignored",
+    ),
+]
+
+TABLE_NOT_EQUAL = [
+    pytest.param(pa.table({"a": [1, 2]}), pa.table({"a": [1, 3]}), id="values"),
+    pytest.param(pa.table({"a": [1, 2]}), pa.table({"b": [1, 2]}), id="column names"),
+    pytest.param(pa.table({"a": [1, 2]}), pa.table({"a": [1.0, 2.0]}), id="types"),
+    pytest.param(pa.table({"a": [1, 2]}), pa.table({"a": [1]}), id="rows"),
+    pytest.param(pa.record_batch({"a": [1]}), pa.record_batch({"a": [2]}), id="record batch"),
+    pytest.param(pa.table({"a": [1]}), pa.record_batch({"a": [1]}), id="table and batch"),
+]
 
 
-@pyarrow_available
-def test_pyarrow_equality_tester_repr() -> None:
-    assert str(PyarrowEqualityTester()).startswith("PyarrowEqualityTester(")
-
-
-@pyarrow_available
-def test_pyarrow_equality_tester_str() -> None:
-    assert str(PyarrowEqualityTester()).startswith("PyarrowEqualityTester(")
-
-
-@pyarrow_available
-def test_pyarrow_equality_tester_equal_true() -> None:
-    assert PyarrowEqualityTester().equal(PyarrowEqualityTester())
-
-
-@pyarrow_available
-def test_pyarrow_equality_tester_equal_false_different_type() -> None:
-    assert not PyarrowEqualityTester().equal(123)
-
-
-@pyarrow_available
-def test_pyarrow_equality_tester_equal_false_different_type_child() -> None:
-    class Child(PyarrowEqualityTester): ...
-
-    assert not PyarrowEqualityTester().equal(Child())
-
-
-@pyarrow_available
-def test_pyarrow_equality_tester_objects_are_equal_true_same_object(
-    config: EqualityConfig,
-) -> None:
-    array = pa.array([1.0, 2.0, 3.0], type=pa.float64())
-    assert PyarrowEqualityTester().objects_are_equal(array, array, config)
-
-
-@pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_true(
-    example: ExamplePair,
-    config: EqualityConfig,
-) -> None:
-    tester = PyarrowEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-
-
-@pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_true_does_not_log(
-    example: ExamplePair,
-    config: EqualityConfig,
-) -> None:
-    tester = PyarrowEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert not messages(config)
+########################################
+#     Tests for the pyarrow arrays     #
+########################################
 
 
 @pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_true_explaining(
-    example: ExamplePair,
-    config: EqualityConfig,
-) -> None:
-    config.reports = []
-    tester = PyarrowEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+@pytest.mark.parametrize(("actual", "expected"), ARRAY_EQUAL)
+def test_array_equal(actual: pa.Array, expected: pa.Array) -> None:
+    assert objects_are_equal(actual, expected)
 
 
 @pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_true_explaining_does_not_log(
-    example: ExamplePair,
-    config: EqualityConfig,
-) -> None:
-    config.reports = []
-    tester = PyarrowEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert not messages(config)
+@pytest.mark.parametrize(("actual", "expected"), ARRAY_NOT_EQUAL)
+def test_array_not_equal(actual: pa.Array, expected: pa.Array) -> None:
+    assert not objects_are_equal(actual, expected)
 
 
 @pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_false(
-    example: ExamplePair,
-    config: EqualityConfig,
-) -> None:
-    tester = PyarrowEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
+@pytest.mark.parametrize(("actual", "expected"), ARRAY_NOT_EQUAL)
+def test_array_not_equal_symmetric(actual: pa.Array, expected: pa.Array) -> None:
+    assert not objects_are_equal(expected, actual)
+
+
+@pyarrow_available
+def test_array_not_equal_to_a_chunked_array() -> None:
+    assert not objects_are_equal(pa.array([1]), pa.chunked_array([[1]]))
+
+
+@pyarrow_available
+def test_array_nan_is_not_equal_by_default() -> None:
+    assert not objects_are_equal(pa.array([NAN]), pa.array([NAN]))
+
+
+@pyarrow_available
+def test_array_nan_is_equal_with_equal_nan() -> None:
+    assert objects_are_equal(pa.array([NAN]), pa.array([NAN]), equal_nan=True)
+
+
+@pyarrow_available
+def test_array_null_is_not_nan() -> None:
+    assert not objects_are_equal(pa.array([None], type=pa.float64()), pa.array([NAN]))
+
+
+@pyarrow_available
+def test_array_nested_nan_is_not_equal() -> None:
+    assert not objects_are_equal(pa.array([[NAN]]), pa.array([[NAN]]), equal_nan=True)
+
+
+@pyarrow_available
+def test_array_tolerance_true() -> None:
+    assert objects_are_allclose(pa.array([1.0, 2.0]), pa.array([1.0, 2.05]), atol=0.1, rtol=0.0)
+
+
+@pyarrow_available
+def test_array_tolerance_false() -> None:
+    assert not objects_are_allclose(pa.array([1.0]), pa.array([1.5]), atol=0.1, rtol=0.0)
+
+
+@pyarrow_available
+def test_array_tolerance_with_nulls() -> None:
+    assert objects_are_allclose(pa.array([1.0, None]), pa.array([1.05, None]), atol=0.1)
+
+
+@pyarrow_available
+def test_array_tolerance_on_durations_is_in_seconds() -> None:
+    assert objects_are_allclose(
+        pa.array([1], type=pa.duration("s")), pa.array([2], type=pa.duration("s")), atol=1.5
     )
 
 
 @pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_false_does_not_log(
-    example: ExamplePair,
-    config: EqualityConfig,
-) -> None:
-    tester = PyarrowEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert not messages(config)
+def test_array_tolerance_does_not_apply_to_nested_values() -> None:
+    assert not objects_are_allclose(pa.array([[1.0]]), pa.array([[1.0001]]), atol=0.1)
 
 
 @pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_false_explaining(
-    example: ExamplePair,
-    config: EqualityConfig,
-) -> None:
-    config.reports = []
-    tester = PyarrowEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
+def test_array_tolerance_does_not_apply_to_booleans() -> None:
+    assert not objects_are_allclose(pa.array([True]), pa.array([False]), atol=1.0)
+
+
+@pyarrow_available
+def test_array_integers_above_2_53_are_exact() -> None:
+    assert not objects_are_allclose(pa.array([2**62]), pa.array([2**62 + 1]), atol=0.5, rtol=0.0)
+
+
+@pyarrow_available
+def test_array_compare_different_values() -> None:
+    assert compare(pa.array([1]), pa.array([2])).reason == "arrays have different values"
+
+
+@pyarrow_available
+def test_array_compare_different_structure() -> None:
+    assert compare(pa.array([1]), pa.array([1, 2])).reason == "arrays have a different structure"
+
+
+########################################
+#     Tests for the pyarrow tables     #
+########################################
+
+
+@pyarrow_available
+@pytest.mark.parametrize(("actual", "expected"), TABLE_EQUAL)
+def test_table_equal(actual: pa.Table, expected: pa.Table) -> None:
+    assert objects_are_equal(actual, expected)
+
+
+@pyarrow_available
+@pytest.mark.parametrize(("actual", "expected"), TABLE_NOT_EQUAL)
+def test_table_not_equal(actual: pa.Table, expected: pa.Table) -> None:
+    assert not objects_are_equal(actual, expected)
+
+
+@pyarrow_available
+@pytest.mark.parametrize(("actual", "expected"), TABLE_NOT_EQUAL)
+def test_table_not_equal_symmetric(actual: pa.Table, expected: pa.Table) -> None:
+    assert not objects_are_equal(expected, actual)
+
+
+@pyarrow_available
+def test_table_tolerance() -> None:
+    assert objects_are_allclose(pa.table({"a": [1.0]}), pa.table({"a": [1.05]}), atol=0.1)
+
+
+@pyarrow_available
+def test_table_nan_is_equal_with_equal_nan() -> None:
+    assert objects_are_equal(pa.table({"a": [NAN]}), pa.table({"a": [NAN]}), equal_nan=True)
+
+
+@pyarrow_available
+def test_table_chunked_columns() -> None:
+    table = pa.Table.from_batches([pa.record_batch({"a": [1]}), pa.record_batch({"a": [2]})])
+    assert objects_are_equal(table, pa.table({"a": [1, 2]}))
+
+
+@pyarrow_available
+def test_table_compare_different_values() -> None:
+    result = compare(pa.table({"a": [1], "b": [1]}), pa.table({"a": [1], "b": [2]}))
+    assert result.reason == "tables have different values: column 'b' differs"
+
+
+@pyarrow_available
+def test_table_compare_different_structure() -> None:
+    result = compare(pa.table({"a": [1]}), pa.table({"b": [1]}))
+    assert result.reason == "tables have a different structure"
+
+
+@pyarrow_available
+def test_table_compare_in_a_dict() -> None:
+    result = compare({"k": pa.table({"a": [1]})}, {"k": pa.table({"a": [2]})})
+    assert result.path == ("k",)
+
+
+@pyarrow_available
+def test_table_compare_the_whole_result() -> None:
+    result = compare(pa.table({"a": [1]}), pa.table({"a": [2]}))
+    assert (result.equal, result.path, result.reason) == (
+        False,
+        (),
+        "tables have different values: column 'a' differs",
     )
 
 
-@pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_NOT_EQUAL)
-def test_pyarrow_equality_tester_objects_are_equal_false_explaining_reports(
-    example: ExamplePair,
-    config: EqualityConfig,
-) -> None:
-    config.reports = []
-    tester = PyarrowEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[0].startswith(example.expected_message)
+############################################
+#     Tests for pyarrow without NumPy     #
+#########################################
 
 
 @pyarrow_available
-def test_pyarrow_equality_tester_objects_are_equal_nan_false(config: EqualityConfig) -> None:
-    assert not PyarrowEqualityTester().objects_are_equal(
-        actual=pa.array([0.0, float("nan"), float("nan"), 1.2]),
-        expected=pa.array([0.0, float("nan"), float("nan"), 1.2]),
-        config=config,
-    )
-
-
-@pyarrow_available
-def test_pyarrow_equality_tester_objects_are_equal_nan_true(config: EqualityConfig) -> None:
-    config.equal_nan = True
-    assert PyarrowEqualityTester().objects_are_equal(
-        actual=pa.array([0.0, float("nan"), float("nan"), 1.2]),
-        expected=pa.array([0.0, float("nan"), float("nan"), 1.2]),
-        config=config,
-    )
-
-
-@pyarrow_available
-@pytest.mark.parametrize("example", PYARROW_EQUAL_TOLERANCE)
-def test_pyarrow_equality_tester_objects_are_equal_true_tolerance(
-    example: ExamplePair, config: EqualityConfig
-) -> None:
-    config.atol = example.atol
-    config.rtol = example.rtol
-    assert PyarrowEqualityTester().objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
-
-
-def test_pyarrow_equality_tester_no_pyarrow() -> None:
+@numpy_available
+@pytest.mark.parametrize("name", ["equal_nan", "atol", "rtol"])
+def test_a_setting_is_ignored_with_a_warning_without_numpy(name: str) -> None:
+    settings = {"equal_nan": {"equal_nan": True}, "atol": {"atol": 0.1}, "rtol": {"rtol": 0.1}}
     with (
-        patch("coola.utils.imports.pyarrow.is_pyarrow_available", lambda: False),
-        pytest.raises(
-            MissingPackageError, match=r"'pyarrow' package is required but not installed."
-        ),
+        patch("coola.equality.tester.pyarrow.is_numpy_available", return_value=False),
+        pytest.warns(RuntimeWarning, match=f"{name} is ignored"),
     ):
-        PyarrowEqualityTester()
+        compare(pa.array([1.0]), pa.array([1.0]), **{"rtol": 0.0, "atol": 0.0, **settings[name]})
+
+
+@pyarrow_available
+@numpy_available
+def test_the_warning_is_emitted_once_per_comparison_without_numpy() -> None:
+    with (
+        patch("coola.equality.tester.pyarrow.is_numpy_available", return_value=False),
+        warnings.catch_warnings(record=True) as caught,
+    ):
+        warnings.simplefilter("always")
+        objects_are_allclose(
+            pa.table({"a": [1.0], "b": [2.0]}), pa.table({"a": [1.0], "b": [2.0]}), atol=0.1
+        )
+    assert len([w for w in caught if "atol is ignored" in str(w.message)]) == 1
+
+
+@pyarrow_available
+@numpy_available
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+def test_columns_are_compared_by_arrow_without_numpy() -> None:
+    with patch("coola.equality.tester.pyarrow.is_numpy_available", return_value=False):
+        assert not objects_are_allclose(pa.array([1.0]), pa.array([1.05]), atol=0.1)
+
+
+###################################
+#     Tests for the adapters     #
+###################################
+
+
+@pyarrow_available
+@pytest.mark.parametrize(
+    ("table", "name"),
+    [
+        (PyarrowTableTable(pa.table({"a": [1]})), "tables"),
+        (PyarrowArrayTable(pa.array([1])), "arrays"),
+    ],
+)
+def test_kind_name(table: object, name: str) -> None:
+    assert table.kind_name == name
+
+
+@pyarrow_available
+@pytest.mark.parametrize("dtype", [pa.Array, pa.ChunkedArray, pa.RecordBatch, pa.Table])
+def test_get_default_testers(dtype: type) -> None:
+    assert isinstance(get_default_testers()[dtype], TableEqualityTester)
+
+
+def test_get_default_testers_without_pyarrow() -> None:
+    with patch("coola.equality.tester.pyarrow.is_pyarrow_available", return_value=False):
+        assert get_default_testers() == {}

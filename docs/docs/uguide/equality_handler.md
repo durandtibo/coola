@@ -148,17 +148,8 @@ False
 
 ### Type-Specific Handlers
 
-The package includes specialized handlers for the data frames and the tables (the arrays, the
-tensors and the xarray objects are compared by testers that use the engine):
-
-- **`PandasDataFrameEqualHandler`**: Compare pandas DataFrames
-- **`PandasSeriesEqualHandler`**: Compare pandas Series
-- **`PandasIndexEqualHandler`**: Compare pandas Index and MultiIndex
-- **`PandasExtensionArrayEqualHandler`**: Compare pandas extension arrays (e.g. Categorical)
-- **`PolarsDataFrameEqualHandler`**: Compare polars DataFrames
-- **`PolarsSeriesEqualHandler`**: Compare polars Series
-- **`PolarsLazyFrameEqualHandler`**: Compare polars LazyFrames
-- **`PyarrowEqualHandler`**: Compare PyArrow arrays and tables
+The arrays, the tensors, the xarray objects, the data frames, the series and the Arrow tables are
+compared by testers that use the engine, not by handlers (see the page on equality testers).
 
 ### Handlers for Objects with Methods
 

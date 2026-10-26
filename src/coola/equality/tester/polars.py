@@ -1,31 +1,26 @@
-r"""Implement equality testers for Polars DataFrames, LazyFrames, and
-Series.
+r"""Implement the adapters of the polars objects.
 
-This module provides equality testers for polars.DataFrame,
-polars.LazyFrame, and polars.Series using Polars' built-in equality
-testing methods.
+This module provides the adapters that convert a ``polars.DataFrame``,
+``polars.LazyFrame`` or ``polars.Series`` to a table, which is compared
+by the ``TableEqualityTester``.
 """
 
 from __future__ import annotations
 
 __all__ = [
-    "PolarsDataFrameEqualityTester",
-    "PolarsLazyFrameEqualityTester",
-    "PolarsSeriesEqualityTester",
+    "PolarsFrameTable",
+    "PolarsLazyFrameTable",
+    "PolarsSeriesTable",
+    "polars_frame",
+    "polars_lazy_frame",
+    "polars_series",
 ]
 
+from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler import (
-    PolarsDataFrameEqualHandler,
-    PolarsLazyFrameEqualHandler,
-    PolarsSeriesEqualHandler,
-    SameObjectHandler,
-    SameTypeHandler,
-    create_chain,
-)
-from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_polars, is_polars_available
+from coola.equality.tester.table import Column, TableEqualityTester
+from coola.utils.imports import is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
     import polars as pl
@@ -33,133 +28,163 @@ else:  # pragma: no cover
     from coola.utils.fallback.polars import polars as pl
 
 if TYPE_CHECKING:
-    from coola.equality.handler import BaseEqualityHandler
+    from collections.abc import Iterator
+
+    from coola.equality.engine import Engine
     from coola.equality.tester.base import BaseEqualityTester
 
 
-class PolarsDataFrameEqualityTester(BaseChainEqualityTester[pl.DataFrame]):
-    r"""Implement an equality tester for ``polars.DataFrame``.
+class PolarsFrameTable:
+    r"""Adapt a ``polars.DataFrame`` to a table.
 
-    This tester uses Polars' DataFrame equality testing. The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are polars DataFrames
-    3. PolarsDataFrameEqualHandler: Use Polars' internal equality testing
+    The structure is the shape and the schema (names, order and data
+    types of the columns). The columns are compared one by one, by the
+    kind of their data type.
 
-    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
-    for floating-point tolerance.
+    Args:
+        frame: The data frame.
 
     Example:
-        Basic DataFrame comparison:
-
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import PolarsDataFrameEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = PolarsDataFrameEqualityTester()
-        >>> tester.objects_are_equal(
-        ...     pl.DataFrame({"col": [1, 2, 3]}),
-        ...     pl.DataFrame({"col": [1, 2, 3]}),
-        ...     config,
-        ... )
-        True
-        >>> tester.objects_are_equal(
-        ...     pl.DataFrame({"col": [1, 2, 3]}),
-        ...     pl.DataFrame({"col": [1, 2, 4]}),
-        ...     config,
-        ... )
-        False
+        >>> from coola.equality.tester.polars import PolarsFrameTable
+        >>> table = PolarsFrameTable(pl.DataFrame({"a": [1, 2]}))
+        >>> table.kind_name
+        'tables'
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
-        check_polars()
+    kind_name = "tables"
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(SameObjectHandler(), SameTypeHandler(), PolarsDataFrameEqualHandler())
+    def __init__(self, frame: pl.DataFrame) -> None:
+        self._frame = frame
+
+    def same_structure(self, other: PolarsFrameTable, ctx: Engine) -> bool:  # noqa: ARG002
+        return self._frame.shape == other._frame.shape and self._frame.schema == other._frame.schema
+
+    def columns(self) -> Iterator[Column]:
+        for name in self._frame.columns:
+            yield _column(name, self._frame[name])
 
 
-class PolarsLazyFrameEqualityTester(BaseChainEqualityTester[pl.LazyFrame]):
-    r"""Implement an equality tester for ``polars.LazyFrame``.
+class PolarsLazyFrameTable:
+    r"""Adapt a ``polars.LazyFrame`` to a table.
 
-    This tester uses Polars' LazyFrame equality testing. The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are polars LazyFrames
-    3. PolarsLazyFrameEqualHandler: Use Polars' internal equality testing
+    The schemas are compared first, without collecting the data. The
+    frames are then collected and compared as data frames. The query
+    plan is ignored.
 
-    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
-    for floating-point tolerance.
-
-    Note:
-        LazyFrames represent query plans and are collected (materialized) for
-        comparison, which may have performance implications for large datasets.
+    Args:
+        frame: The lazy frame.
 
     Example:
-        Basic LazyFrame comparison:
-
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import PolarsLazyFrameEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = PolarsLazyFrameEqualityTester()
-        >>> tester.objects_are_equal(
-        ...     pl.LazyFrame({"col": [1, 2, 3]}),
-        ...     pl.LazyFrame({"col": [1, 2, 3]}),
-        ...     config,
-        ... )
-        True
-        >>> tester.objects_are_equal(
-        ...     pl.LazyFrame({"col": [1, 2, 3]}),
-        ...     pl.LazyFrame({"col": [1, 2, 4]}),
-        ...     config,
-        ... )
-        False
+        >>> from coola.equality.tester.polars import PolarsLazyFrameTable
+        >>> table = PolarsLazyFrameTable(pl.LazyFrame({"a": [1, 2]}))
+        >>> table.kind_name
+        'tables'
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
-        check_polars()
+    kind_name = "tables"
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(SameObjectHandler(), SameTypeHandler(), PolarsLazyFrameEqualHandler())
+    def __init__(self, frame: pl.LazyFrame) -> None:
+        self._frame = frame
+        self._collected: pl.DataFrame | None = None
+
+    def same_structure(self, other: PolarsLazyFrameTable, ctx: Engine) -> bool:
+        if self._frame.collect_schema() != other._frame.collect_schema():
+            return False
+        return PolarsFrameTable(self.collect()).same_structure(
+            PolarsFrameTable(other.collect()), ctx
+        )
+
+    def collect(self) -> pl.DataFrame:
+        r"""Collect the lazy frame (once)."""
+        if self._collected is None:
+            self._collected = self._frame.collect()
+        return self._collected
+
+    def columns(self) -> Iterator[Column]:
+        return PolarsFrameTable(self.collect()).columns()
 
 
-class PolarsSeriesEqualityTester(BaseChainEqualityTester[pl.Series]):
-    r"""Implement an equality tester for ``polars.Series``.
+class PolarsSeriesTable:
+    r"""Adapt a ``polars.Series`` to a table with one column.
 
-    This tester uses Polars' Series equality testing. The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are polars Series
-    3. PolarsSeriesEqualHandler: Use Polars' internal equality testing
+    The structure is the shape, the name and the data type.
 
-    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
-    for floating-point tolerance.
+    Args:
+        series: The series.
 
     Example:
-        Basic Series comparison:
-
         ```pycon
         >>> import polars as pl
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import PolarsSeriesEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = PolarsSeriesEqualityTester()
-        >>> tester.objects_are_equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 3]), config)
-        True
-        >>> tester.objects_are_equal(pl.Series([1, 2, 3]), pl.Series([1, 2, 4]), config)
-        False
+        >>> from coola.equality.tester.polars import PolarsSeriesTable
+        >>> table = PolarsSeriesTable(pl.Series([1, 2]))
+        >>> table.kind_name
+        'series'
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
-        check_polars()
+    kind_name = "series"
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(SameObjectHandler(), SameTypeHandler(), PolarsSeriesEqualHandler())
+    def __init__(self, series: pl.Series) -> None:
+        self._series = series
+
+    def same_structure(self, other: PolarsSeriesTable, ctx: Engine) -> bool:  # noqa: ARG002
+        s1, s2 = self._series, other._series
+        return s1.shape == s2.shape and s1.name == s2.name and s1.dtype == s2.dtype
+
+    def columns(self) -> Iterator[Column]:
+        yield _column(None, self._series)
+
+
+def polars_frame(frame: pl.DataFrame) -> PolarsFrameTable:
+    r"""Adapt a ``polars.DataFrame`` to a table."""
+    return PolarsFrameTable(frame)
+
+
+def polars_lazy_frame(frame: pl.LazyFrame) -> PolarsLazyFrameTable:
+    r"""Adapt a ``polars.LazyFrame`` to a table."""
+    return PolarsLazyFrameTable(frame)
+
+
+def polars_series(series: pl.Series) -> PolarsSeriesTable:
+    r"""Adapt a ``polars.Series`` to a table."""
+    return PolarsSeriesTable(series)
+
+
+def _column(name: object, series: pl.Series) -> Column:
+    r"""Convert a series to a column, by the kind of its data type.
+
+    - numeric (integers and floats): the nulls are at the same
+      positions, then the values are compared with the shared numeric
+      rule (tolerance, ``equal_nan``);
+    - duration: same, on the durations;
+    - other (booleans, strings, categories, instants, decimals, nested
+      values, ...): the ``equals`` of polars. It never sees the
+      tolerance or ``equal_nan``, and a null is equal to a null.
+    """
+    dtype = series.dtype
+    if dtype.is_integer() or dtype.is_float():
+        return Column(name, "numeric", series.fill_null(0).to_numpy(), series.is_null().to_numpy())
+    if isinstance(dtype, pl.Duration):
+        return Column(
+            name,
+            "duration",
+            series.fill_null(timedelta(0)).to_numpy(),
+            series.is_null().to_numpy(),
+        )
+    return Column(name, "exact", series, equals=_series_equals)
+
+
+def _series_equals(series1: pl.Series, series2: pl.Series) -> bool:
+    return bool(series1.equals(series2, check_dtypes=True, check_names=True, null_equal=True))
 
 
 def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
@@ -176,7 +201,7 @@ def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
         return {}
 
     return {
-        pl.DataFrame: PolarsDataFrameEqualityTester(),
-        pl.LazyFrame: PolarsLazyFrameEqualityTester(),
-        pl.Series: PolarsSeriesEqualityTester(),
+        pl.DataFrame: TableEqualityTester(polars_frame),
+        pl.LazyFrame: TableEqualityTester(polars_lazy_frame),
+        pl.Series: TableEqualityTester(polars_series),
     }

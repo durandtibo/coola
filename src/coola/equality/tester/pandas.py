@@ -1,31 +1,27 @@
-r"""Implement equality testers for pandas DataFrames and Series.
+r"""Implement the adapters of the pandas objects.
 
-This module provides equality testers for pandas.DataFrame and
-pandas.Series using pandas' built-in equality testing methods.
+This module provides the adapters that convert a ``pandas.DataFrame``,
+``pandas.Series``, ``pandas.Index`` or pandas extension array to a
+table, which is compared by the ``TableEqualityTester``.
 """
 
 from __future__ import annotations
 
 __all__ = [
-    "PandasDataFrameEqualityTester",
-    "PandasExtensionArrayEqualityTester",
-    "PandasIndexEqualityTester",
-    "PandasSeriesEqualityTester",
+    "PandasArrayTable",
+    "PandasFrameTable",
+    "PandasIndexTable",
+    "PandasSeriesTable",
+    "pandas_array",
+    "pandas_frame",
+    "pandas_index",
+    "pandas_series",
 ]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
-from coola.equality.handler import (
-    PandasDataFrameEqualHandler,
-    PandasExtensionArrayEqualHandler,
-    PandasIndexEqualHandler,
-    PandasSeriesEqualHandler,
-    SameObjectHandler,
-    SameTypeHandler,
-    create_chain,
-)
-from coola.equality.tester.chain import BaseChainEqualityTester
-from coola.utils.imports import check_pandas, is_pandas_available
+from coola.equality.tester.table import Column, TableEqualityTester
+from coola.utils.imports import is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
     import pandas as pd
@@ -33,188 +29,260 @@ else:  # pragma: no cover
     from coola.utils.fallback.pandas import pandas as pd
 
 if TYPE_CHECKING:
-    from coola.equality.handler import BaseEqualityHandler
+    from collections.abc import Iterator
+
+    from coola.equality.engine import Engine
     from coola.equality.tester.base import BaseEqualityTester
 
 
-class PandasDataFrameEqualityTester(BaseChainEqualityTester[pd.DataFrame]):
-    r"""Implement an equality tester for ``pandas.DataFrame``.
+class PandasFrameTable:
+    r"""Adapt a ``pandas.DataFrame`` to a table.
 
-    This tester uses pandas' DataFrame equality testing which compares shape,
-    column names, data types, index, and values. The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are pandas DataFrames
-    3. PandasDataFrameEqualHandler: Compare the structure, then the columns by kind
+    The structure is the shape, the data types, the index and the
+    columns. The columns are compared one by one, by the kind of their
+    data type.
 
-    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
-    for floating-point tolerance.
-
-    Example:
-        Basic DataFrame comparison:
-
-        ```pycon
-        >>> import pandas as pd
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import PandasDataFrameEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = PandasDataFrameEqualityTester()
-        >>> tester.objects_are_equal(
-        ...     pd.DataFrame({"col": [1, 2, 3]}),
-        ...     pd.DataFrame({"col": [1, 2, 3]}),
-        ...     config,
-        ... )
-        True
-        >>> tester.objects_are_equal(
-        ...     pd.DataFrame({"col": [1, 2, 3]}),
-        ...     pd.DataFrame({"col": [1, 2, 4]}),
-        ...     config,
-        ... )
-        False
-
-        ```
-
-        Different column names are not equal:
-
-        ```pycon
-        >>> import pandas as pd
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import PandasDataFrameEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = PandasDataFrameEqualityTester()
-        >>> tester.objects_are_equal(
-        ...     pd.DataFrame({"col1": [1, 2, 3]}),
-        ...     pd.DataFrame({"col2": [1, 2, 3]}),
-        ...     config,
-        ... )
-        False
-
-        ```
-    """
-
-    def _check_dependencies(self) -> None:
-        check_pandas()
-
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(SameObjectHandler(), SameTypeHandler(), PandasDataFrameEqualHandler())
-
-
-class PandasSeriesEqualityTester(BaseChainEqualityTester[pd.Series]):
-    r"""Implement an equality tester for ``pandas.Series``.
-
-    This tester uses pandas' Series equality testing which compares length,
-    data type, index, and values. The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are pandas Series
-    3. PandasSeriesEqualHandler: Compare the structure, then the values by kind
-
-    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
-    for floating-point tolerance.
-
-    Example:
-        Basic Series comparison:
-
-        ```pycon
-        >>> import pandas as pd
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import PandasSeriesEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = PandasSeriesEqualityTester()
-        >>> tester.objects_are_equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 3]), config)
-        True
-        >>> tester.objects_are_equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 4]), config)
-        False
-
-        ```
-
-        Different index values are not equal:
-
-        ```pycon
-        >>> import pandas as pd
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import PandasSeriesEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = PandasSeriesEqualityTester()
-        >>> tester.objects_are_equal(
-        ...     pd.Series([1, 2, 3], index=["a", "b", "c"]),
-        ...     pd.Series([1, 2, 3], index=["x", "y", "z"]),
-        ...     config,
-        ... )
-        False
-
-        ```
-    """
-
-    def _check_dependencies(self) -> None:
-        check_pandas()
-
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(SameObjectHandler(), SameTypeHandler(), PandasSeriesEqualHandler())
-
-
-class PandasIndexEqualityTester(BaseChainEqualityTester[pd.Index]):
-    r"""Implement an equality tester for ``pandas.Index``.
-
-    The comparison checks the values, the dtype and the names. The
-    handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are the same pandas Index type
-    3. PandasIndexEqualHandler: Use pandas' assert_index_equal internally
+    Args:
+        frame: The data frame.
 
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import PandasIndexEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = PandasIndexEqualityTester()
-        >>> tester.objects_are_equal(pd.Index([1, 2, 3]), pd.Index([1, 2, 3]), config)
-        True
-        >>> tester.objects_are_equal(pd.Index([1, 2, 3]), pd.Index([1, 2, 4]), config)
-        False
+        >>> from coola.equality.tester.pandas import PandasFrameTable
+        >>> table = PandasFrameTable(pd.DataFrame({"a": [1, 2]}))
+        >>> table.kind_name
+        'tables'
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
-        check_pandas()
+    kind_name = "tables"
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(SameObjectHandler(), SameTypeHandler(), PandasIndexEqualHandler())
+    def __init__(self, frame: pd.DataFrame) -> None:
+        self._frame = frame
+
+    def same_structure(self, other: PandasFrameTable, ctx: Engine) -> bool:
+        df1, df2 = self._frame, other._frame
+        return (
+            df1.shape == df2.shape
+            and _same_dtypes(df1, df2)
+            and _same_index(df1.index, df2.index, ctx)
+            and _same_index(df1.columns, df2.columns, ctx)
+        )
+
+    def columns(self) -> Iterator[Column]:
+        for i, name in enumerate(self._frame.columns):
+            yield _column(name, self._frame.iloc[:, i])
 
 
-class PandasExtensionArrayEqualityTester(BaseChainEqualityTester[Any]):
-    r"""Implement an equality tester for pandas extension arrays.
+class PandasSeriesTable:
+    r"""Adapt a ``pandas.Series`` to a table with one column.
+
+    The structure is the shape, the name, the data type and the index.
+
+    Args:
+        series: The series.
+
+    Example:
+        ```pycon
+        >>> import pandas as pd
+        >>> from coola.equality.tester.pandas import PandasSeriesTable
+        >>> table = PandasSeriesTable(pd.Series([1, 2]))
+        >>> table.kind_name
+        'series'
+
+        ```
+    """
+
+    kind_name = "series"
+
+    def __init__(self, series: pd.Series) -> None:
+        self._series = series
+
+    def same_structure(self, other: PandasSeriesTable, ctx: Engine) -> bool:
+        s1, s2 = self._series, other._series
+        return (
+            s1.shape == s2.shape
+            and s1.dtype == s2.dtype
+            and _same_label(s1.name, s2.name)
+            and _same_index(s1.index, s2.index, ctx)
+        )
+
+    def columns(self) -> Iterator[Column]:
+        yield _column(None, self._series)
+
+
+class PandasArrayTable:
+    r"""Adapt a pandas extension array to a table with one column.
 
     The extension arrays include ``pandas.Categorical`` and the arrays
-    behind the nullable, string, interval and period dtypes. The
-    handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are the same array type
-    3. PandasExtensionArrayEqualHandler: Use pandas'
-        assert_extension_array_equal internally
+    behind the nullable, string, interval and period data types.
+
+    Args:
+        array: The extension array.
 
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import PandasExtensionArrayEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = PandasExtensionArrayEqualityTester()
-        >>> tester.objects_are_equal(pd.Categorical(["a", "b"]), pd.Categorical(["a", "b"]), config)
-        True
-        >>> tester.objects_are_equal(pd.Categorical(["a", "b"]), pd.Categorical(["a", "c"]), config)
-        False
+        >>> from coola.equality.tester.pandas import PandasArrayTable
+        >>> table = PandasArrayTable(pd.array([1, 2], dtype="Int64"))
+        >>> table.kind_name
+        'arrays'
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
-        check_pandas()
+    kind_name = "arrays"
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(
-            SameObjectHandler(), SameTypeHandler(), PandasExtensionArrayEqualHandler()
+    def __init__(self, array: Any) -> None:
+        self._array = array
+
+    def same_structure(self, other: PandasArrayTable, ctx: Engine) -> bool:  # noqa: ARG002
+        return bool(
+            self._array.shape == other._array.shape and self._array.dtype == other._array.dtype
         )
+
+    def columns(self) -> Iterator[Column]:
+        yield _column(None, pd.Series(self._array))
+
+
+class PandasIndexTable:
+    r"""Adapt a ``pandas.Index`` to a table with one exact column.
+
+    An index is a label, not a quantity: the tolerance does not apply to
+    it. It has the same class, shape, data type and names, and equal
+    values.
+
+    Args:
+        index: The index.
+
+    Example:
+        ```pycon
+        >>> import pandas as pd
+        >>> from coola.equality.tester.pandas import PandasIndexTable
+        >>> table = PandasIndexTable(pd.Index([1, 2]))
+        >>> table.kind_name
+        'indexes'
+
+        ```
+    """
+
+    kind_name = "indexes"
+
+    def __init__(self, index: pd.Index) -> None:
+        self._index = index
+
+    def same_structure(self, other: PandasIndexTable, ctx: Engine) -> bool:
+        i1, i2 = self._index, other._index
+        return (
+            type(i1) is type(i2)
+            and i1.shape == i2.shape
+            and i1.names == i2.names
+            and _same_dtypes(i1, i2)
+            and (ctx.equal_nan or not _index_has_nan(i1))
+        )
+
+    def columns(self) -> Iterator[Column]:
+        yield Column(None, "exact", self._index, equals=_index_equals)
+
+
+def pandas_frame(frame: pd.DataFrame) -> PandasFrameTable:
+    r"""Adapt a ``pandas.DataFrame`` to a table."""
+    return PandasFrameTable(frame)
+
+
+def pandas_series(series: pd.Series) -> PandasSeriesTable:
+    r"""Adapt a ``pandas.Series`` to a table."""
+    return PandasSeriesTable(series)
+
+
+def pandas_array(array: Any) -> PandasArrayTable:
+    r"""Adapt a pandas extension array to a table."""
+    return PandasArrayTable(array)
+
+
+def pandas_index(index: pd.Index) -> PandasIndexTable:
+    r"""Adapt a ``pandas.Index`` to a table."""
+    return PandasIndexTable(index)
+
+
+def _same_index(index1: pd.Index, index2: pd.Index, ctx: Engine) -> bool:
+    return PandasIndexTable(index1).same_structure(PandasIndexTable(index2), ctx) and bool(
+        index1.equals(index2)
+    )
+
+
+def _index_equals(index1: pd.Index, index2: pd.Index) -> bool:
+    return bool(index1.equals(index2))
+
+
+def _same_dtypes(obj1: pd.Index | pd.DataFrame, obj2: pd.Index | pd.DataFrame) -> bool:
+    if isinstance(obj1, pd.MultiIndex):
+        return list(obj1.dtypes) == list(cast("pd.MultiIndex", obj2).dtypes)
+    if isinstance(obj1, pd.DataFrame):
+        return list(obj1.dtypes) == list(cast("pd.DataFrame", obj2).dtypes)
+    return bool(obj1.dtype == obj2.dtype)
+
+
+def _column(name: object, series: pd.Series) -> Column:
+    r"""Convert a series to a column, by the kind of its data type.
+
+    - numeric (integers, floats, complex, also the nullable ones): the
+      null values are at the same positions, then the values are
+      compared with the shared numeric rule. A float ``NaN`` (also the
+      missing value of a nullable float) is governed by ``equal_nan``.
+    - duration (``timedelta64``): same, on the durations.
+    - other (booleans, strings, categories, instants, periods,
+      intervals, decimals, nested values and ``object``): the
+      ``equals`` of pandas. It never sees the tolerance or
+      ``equal_nan``, and a null is equal to a null.
+    """
+    dtype = series.dtype
+    if _is_numeric_dtype(dtype) and not pd.api.types.is_bool_dtype(dtype):
+        if pd.api.types.is_float_dtype(dtype):
+            return Column(name, "numeric", series.to_numpy(dtype="float64", na_value=float("nan")))
+        nulls = series.isna().to_numpy()
+        # The integers stay integers: a conversion to ``float64`` rounds the large ones.
+        values = series.fillna(0).to_numpy() if nulls.any() else series.to_numpy()
+        return Column(name, "numeric", values, nulls)
+    if getattr(dtype, "kind", None) == "m":
+        nulls = series.isna().to_numpy()
+        return Column(name, "duration", series.fillna(pd.Timedelta(0)).to_numpy(), nulls)
+    return Column(name, "exact", series, equals=_series_equals)
+
+
+def _series_equals(series1: pd.Series, series2: pd.Series) -> bool:
+    return bool(series1.equals(series2.set_axis(series1.index)))
+
+
+def _is_numeric_dtype(dtype: Any) -> bool:
+    return bool(
+        pd.api.types.is_integer_dtype(dtype)
+        or pd.api.types.is_float_dtype(dtype)
+        or pd.api.types.is_complex_dtype(dtype)
+    )
+
+
+def _index_has_nan(index: pd.Index) -> bool:
+    if isinstance(index, pd.MultiIndex):  # ``isna`` is not defined for MultiIndex
+        # A level that holds only missing values has the dtype ``object``, whatever the values
+        # were: it is conservatively considered as ``NaN``.
+        return any(
+            bool((codes == -1).any()) and (len(level) == 0 or _has_nan_dtype(level.dtype))
+            for level, codes in zip(index.levels, index.codes, strict=True)
+        )
+    return _has_nan_dtype(index.dtype) and bool(index.isna().any())
+
+
+def _has_nan_dtype(dtype: Any) -> bool:
+    return bool(pd.api.types.is_float_dtype(dtype) or pd.api.types.is_complex_dtype(dtype))
+
+
+def _same_label(label1: Any, label2: Any) -> bool:
+    # A name can be ``NaN`` or a tuple: compare them as the labels of an index.
+    return bool(
+        pd.Index([label1], tupleize_cols=False).equals(pd.Index([label2], tupleize_cols=False))
+    )
 
 
 def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
@@ -231,8 +299,8 @@ def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
         return {}
 
     return {
-        pd.DataFrame: PandasDataFrameEqualityTester(),
-        pd.Series: PandasSeriesEqualityTester(),
-        pd.Index: PandasIndexEqualityTester(),
-        pd.api.extensions.ExtensionArray: PandasExtensionArrayEqualityTester(),
+        pd.DataFrame: TableEqualityTester(pandas_frame),
+        pd.Series: TableEqualityTester(pandas_series),
+        pd.Index: TableEqualityTester(pandas_index),
+        pd.api.extensions.ExtensionArray: TableEqualityTester(pandas_array),
     }

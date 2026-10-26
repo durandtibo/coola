@@ -15,14 +15,6 @@ __all__ = [
     "HandlerEqualityMixin",
     "MaxDepthExceededError",
     "ObjectEqualHandler",
-    "PandasDataFrameEqualHandler",
-    "PandasExtensionArrayEqualHandler",
-    "PandasIndexEqualHandler",
-    "PandasSeriesEqualHandler",
-    "PolarsDataFrameEqualHandler",
-    "PolarsLazyFrameEqualHandler",
-    "PolarsSeriesEqualHandler",
-    "PyarrowEqualHandler",
     "SameAttributeHandler",
     "SameLengthHandler",
     "SameObjectHandler",
@@ -37,8 +29,6 @@ __all__ = [
     "report_difference",
     "track_comparison",
 ]
-
-from typing import TYPE_CHECKING
 
 from coola.equality.handler.allclose import AllCloseNanHandler
 from coola.equality.handler.base import BaseEqualityHandler, HandlerCycleError
@@ -64,33 +54,3 @@ from coola.equality.handler.utils import (
     report_difference,
     track_comparison,
 )
-from coola.utils.imports import lazy_exports
-
-if TYPE_CHECKING:
-    from coola.equality.handler.pandas import (
-        PandasDataFrameEqualHandler,
-        PandasExtensionArrayEqualHandler,
-        PandasIndexEqualHandler,
-        PandasSeriesEqualHandler,
-    )
-    from coola.equality.handler.polars import (
-        PolarsDataFrameEqualHandler,
-        PolarsLazyFrameEqualHandler,
-        PolarsSeriesEqualHandler,
-    )
-    from coola.equality.handler.pyarrow import PyarrowEqualHandler
-
-
-# The names defined in the modules that import an optional library are imported the first time they
-# are used, so the library is not imported with the package.
-_LAZY_EXPORTS = {
-    "PandasDataFrameEqualHandler": "coola.equality.handler.pandas",
-    "PandasExtensionArrayEqualHandler": "coola.equality.handler.pandas",
-    "PandasIndexEqualHandler": "coola.equality.handler.pandas",
-    "PandasSeriesEqualHandler": "coola.equality.handler.pandas",
-    "PolarsDataFrameEqualHandler": "coola.equality.handler.polars",
-    "PolarsLazyFrameEqualHandler": "coola.equality.handler.polars",
-    "PolarsSeriesEqualHandler": "coola.equality.handler.polars",
-    "PyarrowEqualHandler": "coola.equality.handler.pyarrow",
-}
-__getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())
