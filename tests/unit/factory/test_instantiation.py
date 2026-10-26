@@ -511,3 +511,15 @@ def test_import_object_allowed_prefixes_string_is_a_single_prefix() -> None:
 def test_import_object_allowed_prefixes_string_rejects_other_modules() -> None:
     with pytest.raises(ImportError, match="not allowed"):
         import_object("os.system", allowed_prefixes="collections")
+
+
+def test_instantiate_object_class_receives_an_argument_named_obj() -> None:
+    assert instantiate_object(dict, obj=1) == {"obj": 1}
+
+
+def test_instantiate_object_class_receives_an_argument_named_cls() -> None:
+    assert instantiate_object(dict, cls=1) == {"cls": 1}
+
+
+def test_instantiate_object_function_receives_an_argument_named_obj() -> None:
+    assert instantiate_object(functools.partial(dict, obj=1), cls=2) == {"obj": 1, "cls": 2}
