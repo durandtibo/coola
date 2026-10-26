@@ -397,10 +397,14 @@ the order they are visited, for both orders. Alternative: keep two packages and 
 cheaper for the release, but every future feature (a third order, a depth limit, the paths) is
 written twice.
 
+Decision: yes
+
 **D2. Two functions or one with an `order` argument?** _Recommended: two functions._
 `dfs_iterate(data)` and `bfs_iterate(data)` read well, are in the guide and in `recursive`'s
 property ("the order of `dfs_iterate`"), and an `order="dfs"` string would add an option that needs
 validation. Both call one function of `engine.py` each.
+
+Decision: two functions
 
 **D3. Which containers are entered by default?** _Recommended: the list of `recursive`_ (`list`,
 `tuple`, `deque`, `Sequence`, `set`, `frozenset`, `dict`, `Mapping`, `MappingProxyType`, the
@@ -411,10 +415,14 @@ is a leaf until it registers a finder; the migration page says so. Alternative: 
 `Collection`; rejected, because `recursive` must rebuild the type and cannot for an arbitrary
 `Collection`.
 
+Decision: follow the recommendation
+
 **D4. Name of the plugin group.** _Recommended: `coola.iterator.child_finders`_, the same form as
 `coola.recursive.transformers`, `coola.equality.testers`, `coola.hashing.hashers`. The two old groups
 are not read any more; the migration page lists the change. Alternative: keep reading the old
 groups; rejected, because it keeps the two-registry design alive.
+
+Decision: `coola.iterator.child_finders`
 
 **D5. Keep `filter_by_type`?** _Recommended: keep, fix the type._ It is three lines, documented,
 tested and used in the guide with `dfs_iterate`; removing it saves nothing and moves users to a
@@ -422,10 +430,14 @@ generator expression that the type checker types less well. Alternative: delete 
 `(x for x in dfs_iterate(data) if isinstance(x, int))` in the guide; also defensible, and the only
 cost is the migration note.
 
+Decision: keep, fix the type
+
 **D6. Public name `ChildFinder` or `Expander`.** _Recommended: `ChildFinder`/`BaseChildFinder`_ (the
 names of the BFS package, which are the better ones: the method is `find_children`, the registry
 method is `find_child_finder`). `recursive` uses `expand` because it returns the children and the
 rebuild function; the two names differ because the two contracts differ.
+
+Decision: `ChildFinder`/`BaseChildFinder`
 
 **D7. Share the registry with `recursive`?** _Recommended: not now._ A `Transformer.expand` returns
 the children and a rebuild function; the iterator needs only the children. One registry for both
@@ -434,10 +446,14 @@ extension points (a custom type that can be traversed but not rebuilt is a norma
 a third traversal package (`summary`, `hashing`) wants the same children; the contract
 `find_children` is a subset of `expand`, so the merge stays possible.
 
+Decision: no
+
 **D8. Memoize the shared containers?** _Recommended: no._ A container reachable by several paths
 gives its leaves once per path (`[s, s]` gives them twice). This is the property "Leaves only,
 once per occurrence", and `recursive_apply` calls `func` the same number of times. Cost: a DAG with
 millions of paths is slow; that is documented, not hidden.
+
+Decision: no
 
 **D9. Yield the path of each leaf?** _Recommended: not now._ A `dfs_items(data)` that yields
 `(path, leaf)` would answer "where is the NaN" and is the natural next feature, but it needs a label
@@ -445,10 +461,14 @@ for each child (`find_children` would return `(label, child)` pairs, a tuple per
 path). The contract can be extended without changing the structure of the engines; revisit if users
 ask. Same decision as D4 of `recursive.md`.
 
+Decision: it is a good idea, and I think it should be added. I like `dfs_items(data)`. We do not need to do it now, but the implementation should be easy to adapt/extend to add this use case in the future.
+
 **D10. `registry.iterate` kept as a method?** _Recommended: removed._ `recursive` keeps
 `TransformerRegistry.transform` as the registry-level entry point; here the registry is a dispatcher
 and the functions `dfs_iterate` and `bfs_iterate` are the only entry points, so there is one way to
 traverse and no method that has to choose an order.
+
+Decision: removed
 
 ## 10. Not covered
 
