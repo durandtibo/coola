@@ -399,6 +399,22 @@ ValueError: Cycle detected: an object of type <class 'list'> contains itself
 A child finder for a leaf type returns `None` (like `DefaultChildFinder`), so both functions yield
 the value instead of expanding it.
 
+## Containers and Leaves
+
+The default registry gives the same containers as `recursive_apply`, so the same data gives the
+same leaves in both packages:
+
+| Type                                                                              | Children                                 |
+| --------------------------------------------------------------------------------- | ---------------------------------------- |
+| `list`, `tuple` (and named tuples), `deque`, `Sequence`, `set`, `frozenset`       | the elements, in iteration order         |
+| `dict`, `Mapping`, `MappingProxyType`                                             | the values (the keys are never yielded)  |
+| dataclass instances                                                               | the values of the fields, in field order |
+| `str`, `bytes`, `UserString`, numbers, `None`, iterators, generators, arrays, ... | none: the value is a leaf                |
+
+`range`, and a user class that only inherits `Collection` or `collections.abc.Set`, are leaves
+until a child finder is registered for them (see [Writing a Child Finder](#writing-a-child-finder)).
+An empty container has no leaf and yields nothing.
+
 ## Properties
 
 | Property                     | Statement                                                                                                                               |
@@ -411,12 +427,23 @@ the value instead of expanding it.
 | Same leaves, different order | DFS and BFS visit the same leaves. Only the order differs.                                                                              |
 | Extensible                   | Support for a new type is added with one child finder (`find_children`) registered for the type. It serves both orders.                 |
 
+Not guaranteed:
+
+- **Shared references.** A container reachable by several paths (a DAG) gives its leaves once per
+  path, so the cost is proportional to the number of paths, not to the number of objects.
+- **The order inside a set**, and the order of a `ChainMap` (its values follow the lookup order of
+  the maps, last map first).
+- **Mutation during the traversal.** Changing a container while it is walked is the caller's
+  problem, as for any Python iteration.
+- **A registry modified during a traversal.** The traversal keeps the child finders it already
+  resolved.
+
 ## Design Principles
 
 The `coola.iterator` package design provides:
 
 1. **Multiple traversal strategies**: Choose between DFS and BFS based on your needs
-2. **Generator-based**: Memory-efficient iteration without loading entire structures
+2. **Generator-based**: The leaves are produced on demand (a BFS keeps one level in memory)
 3. **Type-aware**: Built-in support for common Python types with extensibility
 4. **Clean API**: Simple functions that compose well with other Python tools
 
