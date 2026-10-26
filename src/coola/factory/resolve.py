@@ -77,16 +77,7 @@ def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
 
         ```
     """
-    try:
-        target = import_object(_target_, allowed_prefixes=kwargs.pop("_allowed_prefixes_", None))
-    except ImportError as e:
-        # Only a missing module or attribute of the target is reported as "does not exist".
-        # A prefix violation, or an ``ImportError`` raised while the target module imports
-        # one of its own dependencies, keeps its message.
-        if e.name is not None and (_target_ == e.name or _target_.startswith(e.name + ".")):
-            msg = f"The target object does not exist: {_target_}"
-            raise ImportError(msg) from e
-        raise
+    target = import_object(_target_, allowed_prefixes=kwargs.pop("_allowed_prefixes_", None))
     init = kwargs.pop(OBJECT_INIT, "__init__")
     return instantiate_object(target, *args, _init_=init, **kwargs)
 

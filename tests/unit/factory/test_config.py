@@ -204,7 +204,7 @@ def test_is_object_config_with_target_in_a_module_that_is_not_imported() -> None
 
 
 def test_is_object_config_with_missing_attribute_in_an_imported_module() -> None:
-    with pytest.raises(ImportError, match="has no attribute"):
+    with pytest.raises(ImportError, match="The target object does not exist"):
         is_object_config({OBJECT_TARGET: "collections.NonExistentClass"}, object)
 
 

@@ -35,8 +35,18 @@ def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None
     Raises:
         TypeError: if ``object_path`` is not a string.
         ImportError: if ``object_path`` is empty or has an empty module
-            name (``""``, ``".Counter"``), cannot be imported, or is not
-            allowed by ``allowed_prefixes``.
+            name (``""``, ``".Counter"``), is not allowed by
+            ``allowed_prefixes``, or if its module or attribute does not
+            exist (``"The target object does not exist: ..."``). A
+            dependency of the target module that is not installed keeps
+            its own ``ModuleNotFoundError``.
+
+    Note:
+        ``coola.utils.imports.import_object`` is a different function:
+        it takes a path with a colon (``"package.module:name"``) and is
+        used by the lazy registries. This function takes a dotted path
+        (``"package.module.name"``), checks ``allowed_prefixes`` and
+        reports a missing target with one ``ImportError``.
 
     Security:
         By default, this function imports arbitrary module code with
@@ -84,16 +94,22 @@ def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None
         msg = f"Invalid object path {object_path!r}: empty module name"
         raise ImportError(msg)
 
-    # If there's no dot, treat it as a module/package import.
-    if "." not in object_path:
-        return importlib.import_module(object_path)
-
     module_name, _, attr = object_path.rpartition(".")
-    module = importlib.import_module(module_name)
+    try:
+        module = importlib.import_module(module_name or attr)
+    except ModuleNotFoundError as err:
+        # Only the module of the target (or one of its parents) is "missing". A dependency of the
+        # target module that is not installed keeps its own error.
+        if err.name and (object_path == err.name or object_path.startswith(err.name + ".")):
+            msg = f"The target object does not exist: {object_path}"
+            raise ImportError(msg, name=err.name) from err
+        raise
+    if not module_name:  # No dot: the path is a module/package.
+        return module
     try:
         return getattr(module, attr)
     except AttributeError as err:
-        msg = f"Module {module_name!r} has no attribute {attr!r}"
+        msg = f"The target object does not exist: {object_path}"
         raise ImportError(msg, name=object_path) from err
 
 

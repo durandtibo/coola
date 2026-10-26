@@ -4,10 +4,14 @@ import functools
 import math
 from abc import ABC, abstractmethod
 from collections import Counter
+from typing import TYPE_CHECKING
 
 import pytest
 
 from coola.factory import import_object, instantiate_object
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class Fake:
@@ -70,23 +74,52 @@ def test_import_object_package() -> None:
 
 
 def test_import_object_incorrect_invalid_qualified_name() -> None:
-    with pytest.raises(ImportError, match=r"Module 'collections' has no attribute ''"):
+    with pytest.raises(ImportError, match=r"The target object does not exist: collections\."):
         import_object("collections.")
 
 
 def test_import_object_incorrect_object_does_not_exist() -> None:
-    with pytest.raises(ImportError, match=r"Module 'collections' has no attribute 'NotACounter'"):
+    with pytest.raises(
+        ImportError, match=r"The target object does not exist: collections.NotACounter"
+    ):
         import_object("collections.NotACounter")
 
 
 def test_import_object_incorrect_package_does_not_exist() -> None:
-    with pytest.raises(ImportError, match=r"No module named 'missing_package_bjbskfs'"):
+    with pytest.raises(
+        ImportError, match=r"The target object does not exist: missing_package_bjbskfs.my_object"
+    ):
         import_object("missing_package_bjbskfs.my_object")
 
 
 def test_import_object_incorrect_invalid_package() -> None:
-    with pytest.raises(ImportError, match=r"No module named 'missing_package_bjbskfs'"):
+    with pytest.raises(
+        ImportError, match=r"The target object does not exist: missing_package_bjbskfs"
+    ):
         import_object("missing_package_bjbskfs")
+
+
+def test_import_object_incorrect_package_does_not_exist_name() -> None:
+    with pytest.raises(ImportError) as info:
+        import_object("missing_package_bjbskfs.my_object")
+    assert info.value.name == "missing_package_bjbskfs"
+
+
+def test_import_object_incorrect_object_does_not_exist_name() -> None:
+    with pytest.raises(ImportError) as info:
+        import_object("collections.NotACounter")
+    assert info.value.name == "collections.NotACounter"
+
+
+def test_import_object_missing_dependency_keeps_its_own_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "module_with_missing_dependency.py").write_text(
+        "import missing_dependency_bjbskfs\n\nTarget = 1\n"
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+    with pytest.raises(ModuleNotFoundError, match=r"No module named 'missing_dependency_bjbskfs'"):
+        import_object("module_with_missing_dependency.Target")
 
 
 def test_import_object_incorrect_type() -> None:

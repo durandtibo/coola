@@ -93,6 +93,11 @@ def lazy_import(name: str) -> LazyModule:
 def import_object(path: str) -> Any:
     r"""Import an object from a module.
 
+    This function takes a path with a colon, and is used by the lazy
+    registries. ``coola.factory.import_object`` takes a dotted path
+    (``"package.module.name"``), checks an allow-list and reports a
+    missing target with an ``ImportError``.
+
     Args:
         path: The path of the object, with the form
             ``"package.module:name"``.
