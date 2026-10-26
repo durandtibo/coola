@@ -31,11 +31,11 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
     not saved nor restored. Seed them explicitly, e.g.
     ``numpy.random.default_rng(seed)``.
 
-    The legacy generator only accepts seeds between ``0`` and
-    ``2**32 - 1``, so the seed is folded into this range with
-    ``seed % 2**32``. Consequently, the seeds ``1`` and ``2**32 + 1``
-    produce the same random numbers, and a negative seed ``-n`` is the
-    same as ``2**32 - n``.
+    The legacy generator only accepts a scalar seed between ``0`` and
+    ``2**32 - 1``. A seed below ``2**32`` is given as is. A larger seed
+    is split in two 32-bit words and given as an array, so two
+    different seeds in ``[0, 2**63)`` never give the same random
+    numbers.
 
     Example:
         ```pycon
@@ -59,7 +59,10 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
         return np.random.get_state()
 
     def manual_seed(self, seed: int) -> None:
-        np.random.seed(seed % 2**32)
+        if seed < 2**32:
+            np.random.seed(seed)
+        else:  # the legacy generator accepts an array of 32-bit words: no folding
+            np.random.seed([seed & 0xFFFFFFFF, seed >> 32])
 
     def set_rng_state(self, state: tuple[Any, ...]) -> None:
         np.random.set_state(state)
