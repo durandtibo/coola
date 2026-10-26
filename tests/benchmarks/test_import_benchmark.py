@@ -103,14 +103,14 @@ def benchmark_import(
     )
 
 
-def test_python_startup_benchmark(benchmark, import_results) -> None:  # noqa: ANN001
+def test_python_startup_benchmark(benchmark: BenchmarkFixture, import_results) -> None:  # noqa: ANN001
     benchmark_import(benchmark, "pass", import_results)
 
 
-def test_import_coola_benchmark(benchmark, import_results) -> None:  # noqa: ANN001
+def test_import_coola_benchmark(benchmark: BenchmarkFixture, import_results) -> None:  # noqa: ANN001
     benchmark_import(benchmark, "import coola", import_results)
 
 
 @pytest.mark.parametrize("subpackage", SUBPACKAGES)
-def test_from_coola_import_subpackage_benchmark(benchmark, import_results, subpackage: str) -> None:  # noqa: ANN001
+def test_from_coola_import_subpackage_benchmark(benchmark: BenchmarkFixture, import_results, subpackage: str) -> None:  # noqa: ANN001
     benchmark_import(benchmark, f"from coola import {subpackage}", import_results)
