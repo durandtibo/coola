@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.factory import OBJECT_INIT, OBJECT_TARGET, factory, resolve_object
+from coola.factory import OBJECT_INIT, OBJECT_PREFIXES, OBJECT_TARGET, factory, resolve_object
 
 
 class BaseFakeClass(ABC):
@@ -575,10 +575,15 @@ def test_resolve_object_allowed_prefixes_does_not_modify_the_config() -> None:
     assert config == {OBJECT_TARGET: "collections.Counter", "a": 1}
 
 
-def test_resolve_object_prefixes_of_the_config_are_used_without_allowed_prefixes() -> None:
-    config = {OBJECT_TARGET: "os.getcwd", "_allowed_prefixes_": ["collections"]}
+def test_resolve_object_prefixes_of_the_config_are_ignored_without_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "collections.Counter", OBJECT_PREFIXES: ["os"]}
+    assert resolve_object(config) == Counter()
+
+
+def test_resolve_object_prefixes_of_the_config_cannot_widen_allowed_prefixes() -> None:
+    config = {OBJECT_TARGET: "os.getcwd", OBJECT_PREFIXES: ["os"]}
     with pytest.raises(ImportError, match="is not allowed"):
-        resolve_object(config)
+        resolve_object(config, allowed_prefixes=["collections"])
 
 
 def test_resolve_object_allowed_prefixes_ignored_for_an_instance() -> None:
@@ -742,11 +747,61 @@ def test_resolve_object_nested_target_is_not_resolved() -> None:
     assert resolve_object(config) == OrderedDict(a={OBJECT_TARGET: "builtins.int"})
 
 
-def test_resolve_object_nested_target_is_not_checked_by_allowed_prefixes() -> None:
+def test_resolve_object_nested_configuration_is_refused_with_allowed_prefixes() -> None:
     config = {OBJECT_TARGET: "collections.OrderedDict", "a": {OBJECT_TARGET: "os.getcwd"}}
-    assert resolve_object(config, allowed_prefixes=["collections"]) == OrderedDict(
-        a={OBJECT_TARGET: "os.getcwd"}
-    )
+    with pytest.raises(ValueError, match="An argument is a configuration"):
+        resolve_object(config, allowed_prefixes=["collections"])
+
+
+def test_resolve_object_nested_configuration_is_refused_before_the_target_is_called() -> None:
+    CALLS.clear()
+    config = {OBJECT_TARGET: f"{__name__}.Tracked", "a": {OBJECT_TARGET: "os.getcwd"}}
+    with pytest.raises(ValueError, match="An argument is a configuration"):
+        resolve_object(config, allowed_prefixes=[__name__])
+    assert CALLS == []
+
+
+def test_factory_nested_configuration_is_refused_with_allowed_prefixes() -> None:
+    with pytest.raises(ValueError, match="An argument is a configuration"):
+        factory(
+            "collections.OrderedDict",
+            a={OBJECT_TARGET: "os.getcwd"},
+            _allowed_prefixes_=["collections"],
+        )
+
+
+def test_factory_nested_configuration_in_args_is_refused_with_allowed_prefixes() -> None:
+    with pytest.raises(ValueError, match="An argument is a configuration"):
+        factory("builtins.list", {OBJECT_TARGET: "os.getcwd"}, _allowed_prefixes_=["builtins"])
+
+
+def test_factory_nested_configuration_deeper_than_the_top_level_is_not_scanned() -> None:
+    assert factory(
+        "builtins.list", [{OBJECT_TARGET: "os.getcwd"}], _allowed_prefixes_=["builtins"]
+    ) == [{OBJECT_TARGET: "os.getcwd"}]
+
+
+def test_factory_nested_configuration_is_not_refused_with_empty_dict_values() -> None:
+    assert factory(
+        "collections.OrderedDict", a={}, _allowed_prefixes_=["collections"]
+    ) == OrderedDict(a={})
+
+
+def test_factory_target_receives_an_argument_named_obj() -> None:
+    assert factory("collections.OrderedDict", obj=1) == OrderedDict(obj=1)
+
+
+def test_factory_target_receives_an_argument_named_cls() -> None:
+    assert factory("collections.OrderedDict", cls=1) == OrderedDict(cls=1)
+
+
+def test_factory_class_method_receives_an_argument_named_cls() -> None:
+    assert factory(f"{__name__}.KwargsClass", cls=1, obj=2).kwargs == {"cls": 1, "obj": 2}
+
+
+def test_resolve_object_target_receives_an_argument_named_cls() -> None:
+    config = {OBJECT_TARGET: "collections.OrderedDict", "cls": 1, "obj": 2}
+    assert resolve_object(config) == OrderedDict(cls=1, obj=2)
 
 
 def test_factory_nested_target_is_not_resolved() -> None:
@@ -759,3 +814,17 @@ def test_factory_nested_target_is_not_resolved() -> None:
 def test_resolve_object_non_existing_target_with_cls(target: str) -> None:
     with pytest.raises(ImportError, match=r"The target object does not exist: "):
         resolve_object({OBJECT_TARGET: target}, cls=int)
+
+
+class KwargsClass:
+    def __init__(self, **kwargs: int) -> None:
+        self.kwargs = kwargs
+
+
+def test_factory_nested_configuration_of_resolve_loader_is_refused() -> None:
+    with pytest.raises(ValueError, match="An argument is a configuration"):
+        factory(
+            "coola.io.resolve_loader",
+            loader={OBJECT_TARGET: "os.getcwd"},
+            _allowed_prefixes_=["coola.io"],
+        )

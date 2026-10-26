@@ -114,7 +114,7 @@ def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None
 
 
 def instantiate_object(
-    obj: Callable[..., Any] | type, *args: Any, _init_: str = "__init__", **kwargs: Any
+    obj: Callable[..., Any] | type, /, *args: Any, _init_: str = "__init__", **kwargs: Any
 ) -> Any:
     r"""Instantiate dynamically an object from its configuration.
 
@@ -136,7 +136,8 @@ def instantiate_object(
             created by calling the constructor. Can also be
             ``"__new__"`` or the name of a class method.
         **kwargs: Keyword arguments to pass to the class constructor
-            or callable.
+            or callable. Any name is accepted, including ``obj`` and
+            ``cls``: ``obj`` is positional-only.
 
     Returns:
         The instantiated object if ``obj`` is a class, otherwise the
@@ -183,7 +184,7 @@ def instantiate_object(
 
 
 def _instantiate_class_object(
-    cls: type, *args: Any, _init_: str = "__init__", **kwargs: Any
+    cls: type, /, *args: Any, _init_: str = "__init__", **kwargs: Any
 ) -> Any:
     r"""Instantiate an object from its class and some arguments.
 

@@ -8,7 +8,7 @@ import inspect
 import logging
 from typing import TYPE_CHECKING, Any, TypeVar, cast, get_type_hints, overload
 
-from coola.factory.constants import OBJECT_INIT, OBJECT_TARGET
+from coola.factory.constants import OBJECT_INIT, OBJECT_PREFIXES, OBJECT_TARGET
 from coola.factory.instantiation import import_object, instantiate_object
 
 if TYPE_CHECKING:
@@ -19,7 +19,13 @@ logger: logging.Logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
+def factory(
+    _target_: str,
+    *args: Any,
+    _init_: str = "__init__",
+    _allowed_prefixes_: Sequence[str] | None = None,
+    **kwargs: Any,
+) -> Any:
     r"""Instantiate dynamically an object given its configuration.
 
     This function provides a universal factory that can instantiate
@@ -33,15 +39,19 @@ def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
             "math.isclose".
         *args: Positional arguments to pass to the class constructor
             or function.
+        _init_: The function or method used to create the object.
+            If ``"__init__"`` (default), the object is created by
+            calling the constructor. Can also be ``"__new__"`` or the
+            name of a class method.
+        _allowed_prefixes_: An optional allow-list of module prefixes
+            that ``_target_`` must match (see ``import_object``). It is
+            keyword-only, and it is the choice of the code that calls
+            this function: whoever unpacks untrusted data into
+            ``factory`` owns it. When it is set, an argument that is
+            a configuration is refused.
         **kwargs: Keyword arguments to pass to the class constructor
-            or function. The special ``OBJECT_INIT`` (``"_init_"``)
-            key controls the function or method used to create the
-            object. If ``"__init__"`` (default), the object is
-            created by calling the constructor. Can also be
-            ``"__new__"`` or the name of a class method. The special
-            ``"_allowed_prefixes_"`` key is an optional allow-list
-            of module prefixes that ``_target_`` must match (see
-            ``import_object``).
+            or function. Any name is accepted, including ``obj`` and
+            ``cls``.
 
     Returns:
         The instantiated object with the given parameters.
@@ -51,6 +61,10 @@ def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
             ``_allowed_prefixes_``, or if importing its module fails
             (the original error is then raised unchanged).
         TypeError: if ``_target_`` is not a string.
+        ValueError: if ``_allowed_prefixes_`` is set and an argument
+            is a ``dict`` with a ``_target_`` key (a nested
+            configuration): the target could resolve it without the
+            allow-list. Resolve it first, with the same list.
 
     Note:
         ``_target_`` is resolved at the top level only: a nested
@@ -77,9 +91,28 @@ def factory(_target_: str, *args: Any, **kwargs: Any) -> Any:
 
         ```
     """
-    target = import_object(_target_, allowed_prefixes=kwargs.pop("_allowed_prefixes_", None))
-    init = kwargs.pop(OBJECT_INIT, "__init__")
-    return instantiate_object(target, *args, _init_=init, **kwargs)
+    if _allowed_prefixes_ is not None:
+        _refuse_nested_configurations(args, kwargs)
+    target = import_object(_target_, allowed_prefixes=_allowed_prefixes_)
+    return instantiate_object(target, *args, _init_=_init_, **kwargs)
+
+
+def _refuse_nested_configurations(args: Sequence[Any], kwargs: dict[str, Any]) -> None:
+    r"""Refuse an argument that is a configuration (a ``dict`` with a
+    ``_target_`` key).
+
+    Only the top level of the arguments is scanned. With an allow-list,
+    the target could resolve such an argument without the allow-list.
+    """
+    for value in (*args, *kwargs.values()):
+        if isinstance(value, dict) and OBJECT_TARGET in value:
+            msg = (
+                f"An argument is a configuration (a dict with the `{OBJECT_TARGET}` key), which "
+                "is refused when `allowed_prefixes` is set: the target could resolve it without "
+                "the allow-list. Resolve it first, with the same allow-list, and pass the result "
+                f"(received: {value})"
+            )
+            raise ValueError(msg)
 
 
 def _check_target(
@@ -102,7 +135,7 @@ def _check_target(
     """
     if cls is object or OBJECT_INIT in config:
         return
-    target = import_object(config[OBJECT_TARGET], allowed_prefixes=config.get("_allowed_prefixes_"))
+    target = import_object(config[OBJECT_TARGET], allowed_prefixes=config.get(OBJECT_PREFIXES))
     if inspect.isfunction(target):
         try:
             target = get_type_hints(target).get("return")
@@ -166,7 +199,8 @@ def resolve_object(
     Note:
         ``"_target_"`` is resolved at the top level only: a nested
         dictionary with a ``"_target_"`` key is passed to the target
-        unchanged, it is not instantiated. Resolve the nested
+        unchanged, it is not instantiated. With ``allowed_prefixes``
+        it is refused with a ``ValueError``. Resolve the nested
         configurations with ``resolve_object`` (with the same
         ``allowed_prefixes``) and pass the results.
 
@@ -197,9 +231,10 @@ def resolve_object(
             (see ``import_object``): ``"mypackage"`` allows
             ``"mypackage"`` and ``"mypackage.sub.Class"`` but not
             ``"mypackage2.Class"``. If ``None`` (default), any
-            ``"_target_"`` is allowed. When it is set, it replaces the
-            ``"_allowed_prefixes_"`` key of the configuration, so
-            a configuration cannot widen it.
+            ``"_target_"`` is allowed. The ``"_allowed_prefixes_"`` key
+            of a configuration is ignored: the data cannot set, widen
+            or narrow the list. When it is set, an argument that is
+            a configuration is refused.
         strict: If ``True``, a ``"_target_"`` that is not a class and
             has no usable return type hint (a function without
             annotation, a built-in function) is refused before it is
@@ -218,6 +253,9 @@ def resolve_object(
             the resolved object is not an instance of ``cls``.
         ImportError: If the ``"_target_"`` does not match
             ``allowed_prefixes``, or if it cannot be found.
+        ValueError: If ``allowed_prefixes`` is set and an argument of
+            the configuration is itself a configuration (a ``dict``
+            with a ``"_target_"`` key).
 
     Security:
         When ``obj`` is a ``dict``, its ``"_target_"`` value is
@@ -257,9 +295,11 @@ def resolve_object(
             raise TypeError(msg)
         logger.info("Initializing a %s instance from its configuration...", cls_name)
         config: dict[str, Any] = dict(cast("dict[str, Any]", obj))
+        # The policy comes from the caller: the key of the configuration is ignored.
+        config.pop(OBJECT_PREFIXES, None)
         if allowed_prefixes is not None:
-            # The caller's allow-list wins over the one of the configuration.
-            config["_allowed_prefixes_"] = allowed_prefixes
+            _refuse_nested_configurations((), config)
+            config[OBJECT_PREFIXES] = allowed_prefixes
         _check_target(config, cls, classes, cls_name, strict=strict)
         obj = factory(**config)
     if not isinstance(obj, cls):

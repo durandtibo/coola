@@ -156,7 +156,9 @@ OrderedDict({'when': {'_target_': 'datetime.date', 'year': 2020, 'month': 1, 'da
 ```
 
 This is deliberate: `allowed_prefixes` (and `_allowed_prefixes_`) applies to the one `_target_` of
-the call, so a configuration cannot make `coola` import more modules by nesting targets. To build the
+the call, so a configuration cannot make `coola` import more modules by nesting targets. With an
+allow-list, a nested configuration (a top-level argument that is a `dict` with `_target_`) is
+refused with a `ValueError`, because the target could resolve it without the list. To build the
 nested object, resolve it yourself, with the same restrictions, and pass the result:
 
 ```pycon
@@ -195,8 +197,9 @@ ImportError: Object path 'os.getcwd' is not allowed. Allowed prefixes: ['collect
 
 ```
 
-`allowed_prefixes` is checked before the module is imported. The caller's list replaces the
-`_allowed_prefixes_` key of the configuration, so a configuration cannot widen it. It is also
+`allowed_prefixes` is checked before the module is imported. `resolve_object` ignores the
+`_allowed_prefixes_` key of a configuration: the list always comes from the code of the caller, so
+the data cannot set, widen or narrow it. It is also
 available in `resolve_loader`, `resolve_saver`, `is_object_config`, `is_loader_config` and
 `is_saver_config`. For `factory`, use the `_allowed_prefixes_` key.
 

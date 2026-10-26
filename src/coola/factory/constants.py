@@ -17,7 +17,8 @@ Counter({'a': 4, 'b': 2})
 
 from __future__ import annotations
 
-__all__ = ["OBJECT_INIT", "OBJECT_TARGET"]
+__all__ = ["OBJECT_INIT", "OBJECT_PREFIXES", "OBJECT_TARGET"]
 
 OBJECT_INIT = "_init_"
+OBJECT_PREFIXES = "_allowed_prefixes_"
 OBJECT_TARGET = "_target_"
