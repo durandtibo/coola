@@ -39,11 +39,11 @@ tensor([1.3000, 5.7000])
 
 ## Modes
 
-| Mode      | Behavior                                                                      |
-| --------- | ----------------------------------------------------------------------------- |
-| `"round"` | Nearest value. The halfway cases go to the even value, like Python `round`.   |
-| `"floor"` | Towards negative infinity.                                                    |
-| `"ceil"`  | Towards positive infinity.                                                    |
+| Mode      | Behavior                                                                    |
+| --------- | --------------------------------------------------------------------------- |
+| `"round"` | Nearest value. The halfway cases go to the even value, like Python `round`. |
+| `"floor"` | Towards negative infinity.                                                  |
+| `"ceil"`  | Towards positive infinity.                                                  |
 
 `decimals` is the number of decimals to keep. It is `0` by default and must not be negative.
 `mode` and `decimals` are keyword-only.

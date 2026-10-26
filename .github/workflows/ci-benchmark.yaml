@@ -46,6 +46,14 @@ jobs:
             --ignore=tests/benchmarks/test_import_benchmark.py \
             --benchmark-storage=.benchmarks --benchmark-save=nightly "${compare[@]}"
 
+      - name: Show the trend over the past 3 months
+        # The artifact keeps the results of all the previous runs: show their trend and delete
+        # the results older than 90 days so the artifact does not grow forever.
+        if: always()
+        run: |
+          python dev/benchmark_trend.py .benchmarks --days 90 --prune | tee trend.md
+          cat trend.md >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload the results
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # ratchet:actions/upload-artifact@v7.0.2
