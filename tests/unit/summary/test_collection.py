@@ -53,7 +53,13 @@ def test_base_collection_summarizer_is_abstract() -> None:
 
 def test_base_collection_summarizer_child_without_get_preview_cannot_be_instantiated() -> None:
     class MissingPreview(BaseCollectionSummarizer[Sequence[Any]]):
-        def _format_items(self, data, registry, depth, max_depth) -> str:  # noqa: ANN001, ARG002
+        def _format_items(
+            self,
+            data: Sequence[Any],  # noqa: ARG002
+            registry: SummarizerRegistry,  # noqa: ARG002
+            depth: int,  # noqa: ARG002
+            max_depth: int,  # noqa: ARG002
+        ) -> str:
             return ""
 
     with pytest.raises(TypeError, match="_get_preview"):
@@ -62,7 +68,7 @@ def test_base_collection_summarizer_child_without_get_preview_cannot_be_instanti
 
 def test_base_collection_summarizer_child_without_format_items_cannot_be_instantiated() -> None:
     class MissingItems(BaseCollectionSummarizer[Sequence[Any]]):
-        def _get_preview(self, data, limit) -> list:  # noqa: ANN001, ARG002
+        def _get_preview(self, data: Sequence[Any], limit: int) -> list:  # noqa: ARG002
             return []
 
     with pytest.raises(TypeError, match="_format_items"):

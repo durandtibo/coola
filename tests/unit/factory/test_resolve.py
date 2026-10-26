@@ -625,9 +625,12 @@ def make_tracked() -> Tracked:
     return Tracked()
 
 
-def make_tracked_unannotated():  # noqa: ANN201
+def make_tracked_unannotated() -> Tracked:
     CALLS.append("make_tracked_unannotated")
     return Tracked()
+
+
+del make_tracked_unannotated.__annotations__["return"]
 
 
 def make_unresolvable() -> UndefinedName:  # noqa: F821

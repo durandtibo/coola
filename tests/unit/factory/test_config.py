@@ -25,9 +25,12 @@ def create_list_union() -> Union[list, tuple]:  # noqa: UP007
     return [1, 2, 3, 4]
 
 
-def create_list_without_type_hint():  # noqa: ANN201
+def create_list_without_type_hint() -> list:
     """Helper function without type hint."""
     return [1, 2, 3, 4]
+
+
+del create_list_without_type_hint.__annotations__["return"]
 
 
 def create_list_union2() -> list | tuple:
@@ -346,7 +349,7 @@ def test_is_object_config_allowed_prefixes_without_target() -> None:
     assert not is_object_config({}, object, allowed_prefixes=["collections"])
 
 
-def create_list_invalid_annotation():  # noqa: ANN201
+def create_list_invalid_annotation() -> list:
     """Helper function whose return annotation is not valid Python."""
     return [1, 2, 3, 4]
 
