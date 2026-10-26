@@ -7,8 +7,8 @@ __all__ = ["ObjectAttributesEqualityTester"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.object import get_object_attributes
-from coola.equality.handler.utils import AttributeName
+from coola.equality._helpers.object import get_object_attributes
+from coola.equality._helpers.utils import AttributeName
 from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:

@@ -6,7 +6,7 @@ __all__ = ["tensor_close", "tensor_equal"]
 
 from typing import TYPE_CHECKING
 
-from coola.equality.handler.elementwise import elementwise_close
+from coola.equality._helpers.elementwise import elementwise_close
 from coola.utils.imports import is_torch_available
 
 if TYPE_CHECKING or is_torch_available():
@@ -34,7 +34,7 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
         ```pycon
         >>> import torch
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.torch import tensor_equal
+        >>> from coola.equality._helpers.torch import tensor_equal
         >>> config = EqualityConfig()
         >>> tensor_equal(torch.ones(2, 3), torch.ones(2, 3), config)
         True
@@ -82,7 +82,7 @@ def tensor_close(
         ```pycon
         >>> import torch
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.torch import tensor_close
+        >>> from coola.equality._helpers.torch import tensor_close
         >>> tensor_close(torch.tensor([1.0, 2.0]), torch.tensor([1.0, 3.0]), EqualityConfig())
         tensor([ True, False])
 

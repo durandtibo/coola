@@ -19,7 +19,7 @@ from coola.equality import (
     objects_are_allclose,
     objects_are_equal,
 )
-from coola.equality.handler import AttributeName
+from coola.equality._helpers import AttributeName
 from coola.equality.tester import EqualityTesterRegistry
 from coola.equality.tester.interface import get_default_registry
 

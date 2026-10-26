@@ -14,8 +14,8 @@ import warnings
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.format import format_type_difference
-from coola.equality.handler.utils import MaxDepthExceededError
+from coola.equality._helpers.format import format_type_difference
+from coola.equality._helpers.utils import MaxDepthExceededError
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator

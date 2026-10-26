@@ -16,9 +16,9 @@ __all__ = [
 from itertools import count
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.numpy import array_close, array_equal, time_scalar_equal
-from coola.equality.handler.utils import AttributeName
+from coola.equality._helpers.format import format_value_difference
+from coola.equality._helpers.numpy import array_close, array_equal, time_scalar_equal
+from coola.equality._helpers.utils import AttributeName
 from coola.equality.tester._array import check_dtype_and_shape
 from coola.equality.tester.base import BaseEqualityTester
 from coola.equality.tester.scalar import ScalarEqualityTester

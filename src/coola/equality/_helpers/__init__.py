@@ -12,8 +12,8 @@ __all__ = [
     "is_exact_scalar_sequence",
 ]
 
-from coola.equality.handler.object import get_object_attributes
-from coola.equality.handler.utils import (
+from coola.equality._helpers.object import get_object_attributes
+from coola.equality._helpers.utils import (
     AttributeName,
     MaxDepthExceededError,
     comparison_key,

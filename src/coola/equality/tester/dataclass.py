@@ -7,7 +7,7 @@ __all__ = ["DataclassEqualityTester"]
 import dataclasses
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.utils import AttributeName
+from coola.equality._helpers.utils import AttributeName
 from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:

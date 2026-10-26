@@ -16,7 +16,7 @@ __all__ = [
 from operator import attrgetter
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.utils import AttributeName
+from coola.equality._helpers.utils import AttributeName
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_xarray, is_xarray_available
 

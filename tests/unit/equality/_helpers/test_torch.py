@@ -4,10 +4,10 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality.config import EqualityConfig
-from coola.equality.handler.torch import (
+from coola.equality._helpers.torch import (
     tensor_equal,
 )
+from coola.equality.config import EqualityConfig
 from coola.equality.tolerance import Tolerance
 from coola.testing.fixtures import torch_available
 from coola.utils.imports import is_torch_available

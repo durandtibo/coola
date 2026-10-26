@@ -74,7 +74,7 @@ All test files must follow the pytest convention:
 Examples:
 
 - Source: `src/coola/utils/format.py` → Test: `tests/unit/utils/test_format.py`
-- Source: `src/coola/equality/handler/scalar.py` → Test: `tests/unit/equality/handler/test_scalar.py`
+- Source: `src/coola/equality/_helpers/scalar.py` → Test: `tests/unit/equality/_helpers/test_scalar.py`
 
 ## Test Function Naming
 

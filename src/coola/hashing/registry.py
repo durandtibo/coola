@@ -212,7 +212,7 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
             ```
         """
         # Local import to avoid a cyclic import (see ``BaseRegistry.equal``).
-        from coola.equality.interface import objects_are_equal  # noqa: PLC0415
+        from coola.equality import objects_are_equal  # noqa: PLC0415
 
         if not super().equal(other, equal_nan):
             return False

@@ -6,7 +6,7 @@ __all__ = ["array_close", "array_equal"]
 
 from typing import TYPE_CHECKING
 
-from coola.equality.handler.elementwise import elementwise_close
+from coola.equality._helpers.elementwise import elementwise_close
 from coola.utils.imports import is_jax_available
 
 if TYPE_CHECKING or is_jax_available():
@@ -34,7 +34,7 @@ def array_equal(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
         ```pycon
         >>> import jax.numpy as jnp
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.jax import array_equal
+        >>> from coola.equality._helpers.jax import array_equal
         >>> config = EqualityConfig()
         >>> array_equal(jnp.ones((2, 3)), jnp.ones((2, 3)), config)
         True
@@ -71,7 +71,7 @@ def array_close(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
         ```pycon
         >>> import jax.numpy as jnp
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.jax import array_close
+        >>> from coola.equality._helpers.jax import array_close
         >>> array_close(jnp.array([1.0, 2.0]), jnp.array([1.0, 3.0]), EqualityConfig())
         Array([ True, False], dtype=bool)
 

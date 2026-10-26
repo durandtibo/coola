@@ -5,13 +5,13 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality.config import EqualityConfig
-from coola.equality.handler.numpy import (
+from coola.equality._helpers.numpy import (
     array_close,
     array_equal,
     is_numeric_array,
     time_scalar_equal,
 )
+from coola.equality.config import EqualityConfig
 from coola.equality.tolerance import Tolerance
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available

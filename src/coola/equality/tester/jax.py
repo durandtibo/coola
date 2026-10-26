@@ -10,8 +10,8 @@ __all__ = ["JaxArrayEqualityTester"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.jax import array_close, array_equal
+from coola.equality._helpers.format import format_value_difference
+from coola.equality._helpers.jax import array_close, array_equal
 from coola.equality.tester._array import check_dtype_and_shape
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_jax, is_jax_available

@@ -19,9 +19,9 @@ from collections import Counter
 from itertools import count
 from typing import TYPE_CHECKING, Any
 
+from coola.equality._helpers.format import format_mapping_difference
+from coola.equality._helpers.utils import comparison_key, is_exact_scalar_sequence
 from coola.equality.engine import Element
-from coola.equality.handler.format import format_mapping_difference
-from coola.equality.handler.utils import comparison_key, is_exact_scalar_sequence
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.safe import safe_repr
 

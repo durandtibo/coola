@@ -33,7 +33,7 @@ class AttributeName(str):
 
     Example:
         ```pycon
-        >>> from coola.equality.handler.utils import AttributeName
+        >>> from coola.equality._helpers.utils import AttributeName
         >>> AttributeName("x") == "x"
         True
 
@@ -67,7 +67,7 @@ def comparison_key(value: Any, config: EqualityConfig) -> Any:
     Example:
         ```pycon
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.utils import comparison_key
+        >>> from coola.equality._helpers.utils import comparison_key
         >>> comparison_key(float("nan"), EqualityConfig(equal_nan=True)) == comparison_key(
         ...     float("nan"), EqualityConfig(equal_nan=True)
         ... )
@@ -107,7 +107,7 @@ def is_exact_scalar_sequence(seq: Sequence[Any]) -> bool:
 
     Example:
         ```pycon
-        >>> from coola.equality.handler import is_exact_scalar_sequence
+        >>> from coola.equality._helpers import is_exact_scalar_sequence
         >>> is_exact_scalar_sequence([1, "abc", None])
         True
         >>> is_exact_scalar_sequence([1, 2.0])

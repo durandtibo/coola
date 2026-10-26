@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.equality import objects_are_allclose, objects_are_equal
-from coola.equality.handler import MaxDepthExceededError
+from coola.equality._helpers import MaxDepthExceededError
 from coola.equality.tester import (
     DefaultEqualityTester,
     EqualityTesterRegistry,
