@@ -2,7 +2,7 @@ r"""Implement a random manager for PyTorch."""
 
 from __future__ import annotations
 
-__all__ = ["TorchRandomManager", "torch_seed"]
+__all__ = ["TorchRandomManager", "get_random_seed", "get_torch_generator", "torch_seed"]
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, cast
@@ -55,7 +55,7 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
         # that is not initialized has no generator state to save.
         if torch.cuda.is_initialized():
             state["torch.cuda"] = torch.cuda.get_rng_state_all()
-        if _is_mps_available():
+        if torch.backends.mps.is_available():
             state["torch.mps"] = torch.mps.get_rng_state()
         return state
 
@@ -63,7 +63,7 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
         cast("Any", torch).manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
-        if _is_mps_available():
+        if torch.backends.mps.is_available():
             torch.mps.manual_seed(seed)
 
     def set_rng_state(self, state: dict[str, Any]) -> None:
@@ -80,15 +80,10 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
                 raise ValueError(msg)
             torch.cuda.set_rng_state_all(state["torch.cuda"])
         if "torch.mps" in state:
-            if not _is_mps_available():
+            if not torch.backends.mps.is_available():
                 msg = "The state has a MPS generator, but MPS is not available"
                 raise ValueError(msg)
             torch.mps.set_rng_state(state["torch.mps"])
-
-
-def _is_mps_available() -> bool:
-    r"""Indicate if the MPS backend is available."""
-    return torch.backends.mps.is_available()
 
 
 @contextmanager
@@ -120,3 +115,61 @@ def torch_seed(seed: int) -> Generator[None]:
     """
     with TorchRandomManager().seed(seed):
         yield
+
+
+def get_random_seed(seed: int) -> int:
+    r"""Get a random seed.
+
+    Args:
+        seed: A random seed to make the process
+            reproducible.
+
+    Returns:
+        int: A random seed. The value is between ``-2 ** 63`` and
+            ``2 ** 63 - 1``.
+
+    Example usage:
+
+    ```pycon
+
+    >>> from coola.random.torch import get_random_seed
+    >>> get_random_seed(44)
+    6176747449835261347
+
+    ```
+    """
+    return torch.randint(-(2**63), 2**63 - 1, size=(1,), generator=get_torch_generator(seed)).item()
+
+
+def get_torch_generator(
+    random_seed: int = 1, device: torch.device | str | None = "cpu"
+) -> torch.Generator:
+    r"""Create a ``torch.Generator`` initialized with a given seed.
+
+    Args:
+        random_seed: A random seed.
+        device: The desired device for the generator.
+
+    Returns:
+        A ``torch.Generator`` object.
+
+    Example usage:
+
+    ```pycon
+
+    >>> import torch
+    >>> from coola.random.torch import get_torch_generator
+    >>> generator = get_torch_generator(42)
+    >>> torch.rand(2, 4, generator=generator)
+    tensor([[0.8823, 0.9150, 0.3829, 0.9593],
+            [0.3904, 0.6009, 0.2566, 0.7936]])
+    >>> generator = get_torch_generator(42)
+    >>> torch.rand(2, 4, generator=generator)
+    tensor([[0.8823, 0.9150, 0.3829, 0.9593],
+            [0.3904, 0.6009, 0.2566, 0.7936]])
+
+    ```
+    """
+    generator = torch.Generator(device)
+    generator.manual_seed(random_seed)
+    return generator

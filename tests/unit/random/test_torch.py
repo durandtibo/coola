@@ -7,6 +7,7 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.random import TorchRandomManager, torch_seed
+from coola.random.torch import get_torch_generator, get_random_seed
 from coola.testing.fixtures import torch_available
 from coola.utils.imports import MissingPackageError, is_torch_available
 
@@ -325,3 +326,39 @@ def test_torch_random_manager_does_not_manage_generator_objects() -> None:
     with manager.seed(42):
         values = torch.rand(3, generator=generator)
     assert objects_are_equal(values, expected)
+
+
+
+
+#####################################
+#     Tests for get_random_seed     #
+#####################################
+
+@torch_available
+def test_get_random_seed() -> None:
+    assert isinstance(get_random_seed(42), int)
+
+@torch_available
+def test_get_random_seed_same_seed() -> None:
+    assert get_random_seed(42) == get_random_seed(42)
+
+@torch_available
+def test_get_random_seed_different_seeds() -> None:
+    assert get_random_seed(1) != get_random_seed(42)
+
+
+#########################################
+#     Tests for get_torch_generator     #
+#########################################
+
+@torch_available
+def test_get_torch_generator_same_seed() -> None:
+    assert torch.randn(4, 6, generator=get_torch_generator(1)).equal(
+        torch.randn(4, 6, generator=get_torch_generator(1))
+    )
+
+@torch_available
+def test_get_torch_generator_different_seeds() -> None:
+    assert not torch.randn(4, 6, generator=get_torch_generator(1)).equal(
+        torch.randn(4, 6, generator=get_torch_generator(2))
+    )
