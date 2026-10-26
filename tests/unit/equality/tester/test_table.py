@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
@@ -11,6 +11,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.engine import Engine
 from coola.equality.tester import EqualityTesterRegistry, TableEqualityTester, get_default_registry
 from coola.equality.tester.table import Column, column_close
+from coola.equality.tolerance import Tolerance
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 
@@ -58,7 +59,7 @@ def numeric(name: object, values: list[float]) -> Column:
 
 @pytest.fixture
 def engine() -> Engine:
-    return Engine(get_default_registry(), EqualityConfig())
+    return Engine(EqualityConfig())
 
 
 def grid_registry() -> EqualityTesterRegistry:
@@ -68,7 +69,9 @@ def grid_registry() -> EqualityTesterRegistry:
 
 
 def run(actual: Grid, expected: Grid, config: EqualityConfig | None = None) -> bool:
-    return Engine(grid_registry(), config or EqualityConfig()).run(actual, expected)
+    return Engine(replace(config or EqualityConfig(), registry=grid_registry())).run(
+        actual, expected
+    )
 
 
 def reason(actual: Grid, expected: Grid) -> str | None:
@@ -125,7 +128,7 @@ def test_table_equality_tester_objects_are_equal_true_tolerance() -> None:
     assert run(
         Grid([numeric("a", [1.0, 2.0])]),
         Grid([numeric("a", [1.0, 2.05])]),
-        EqualityConfig(atol=0.1),
+        EqualityConfig(tolerance=Tolerance(atol=0.1)),
     )
 
 
@@ -202,7 +205,7 @@ def test_column_close_numeric_false(engine: Engine) -> None:
 
 @numpy_available
 def test_column_close_numeric_tolerance() -> None:
-    engine = Engine(get_default_registry(), EqualityConfig(atol=0.5))
+    engine = Engine(EqualityConfig(tolerance=Tolerance(atol=0.5)))
     assert column_close(numeric("a", [1.0]), numeric("a", [1.4]), engine)
 
 
@@ -227,7 +230,7 @@ def test_column_close_different_nulls_false(engine: Engine) -> None:
 
 @numpy_available
 def test_column_close_duration_atol_is_in_seconds() -> None:
-    engine = Engine(get_default_registry(), EqualityConfig(atol=2.0))
+    engine = Engine(EqualityConfig(tolerance=Tolerance(atol=2.0)))
     assert column_close(
         Column("a", "duration", np.array([1], dtype="timedelta64[s]")),
         Column("a", "duration", np.array([2], dtype="timedelta64[s]")),
@@ -248,7 +251,7 @@ def test_column_close_exact_uses_equality_by_default(engine: Engine) -> None:
 
 
 def test_column_close_exact_ignores_the_tolerance() -> None:
-    engine = Engine(get_default_registry(), EqualityConfig(atol=10.0))
+    engine = Engine(EqualityConfig(tolerance=Tolerance(atol=10.0)))
     assert not column_close(Column("a", "exact", 1.0), Column("a", "exact", 2.0), engine)
 
 

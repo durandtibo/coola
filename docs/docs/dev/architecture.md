@@ -35,12 +35,8 @@ Abstract base class defining the tester interface:
 ```python
 class BaseEqualityTester(ABC, Generic[T]):
     @abstractmethod
-    def equal(self, other: object) -> bool:
-        """Indicate if ``other`` is a tester of the same type."""
-
-    @abstractmethod
-    def objects_are_equal(self, actual: T, expected: object, config: EqualityConfig) -> bool:
-        """Indicate if two objects are equal."""
+    def objects_are_equal(self, actual: T, expected: T, ctx: Engine) -> bool | Iterator[tuple]:
+        """A verdict, or the child pairs (actual, expected, path part) that must all be equal."""
 ```
 
 #### `BaseEqualityTester` and the engine
@@ -101,19 +97,19 @@ adds testers to it. A test that registers a tester should not leak it: use
 
 #### `EqualityConfig`
 
-A dataclass that carries the comparison settings through the comparison tree:
+A frozen dataclass that carries the comparison settings. It can be shared between comparisons and
+threads; the state of one comparison (the cache of testers, the first failure) lives in the `Engine`:
 
 ```python
-@dataclass
+@dataclass(frozen=True, slots=True)
 class EqualityConfig:
     registry: EqualityTesterRegistry  # defaults to the default registry
+    tolerance: Tolerance = Tolerance()  # rtol, atol
     equal_nan: bool = False
-    atol: float = 0.0
-    rtol: float = 0.0
     max_depth: int = 100
 ```
 
-This allows behavior to be customized without changing tester signatures.
+The tester reads the settings from the engine (`ctx.atol`, `ctx.rtol`, `ctx.equal_nan`).
 
 ### 5. Comparison Results
 
@@ -129,7 +125,7 @@ User calls objects_are_equal(obj1, obj2)
     ↓
 Creates EqualityConfig with settings (and the registry)
     ↓
-Runs Engine(registry, config).run(obj1, obj2)
+Runs Engine(config).run(obj1, obj2)
     ↓
 For each pair: identity, strict type, tester lookup (cached per call, MRO lookup)
     ↓

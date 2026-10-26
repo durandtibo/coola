@@ -40,7 +40,7 @@ class EqualEqualityTester(BaseEqualityTester[object]):
         ...             return False
         ...         return self._value == other._value
         ...
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> tester = EqualEqualityTester()
         >>> tester.objects_are_equal(MyFloat(42), MyFloat(42), engine)
         True
@@ -87,9 +87,9 @@ class EqualNanEqualityTester(BaseEqualityTester[object]):
         >>> registry = get_default_registry()
         >>> tester = EqualNanEqualityTester()
         >>> nan1, nan2 = MyFloat(float("nan")), MyFloat(float("nan"))
-        >>> tester.objects_are_equal(nan1, nan2, Engine(registry, EqualityConfig()))
+        >>> tester.objects_are_equal(nan1, nan2, Engine(EqualityConfig()))
         False
-        >>> tester.objects_are_equal(nan1, nan2, Engine(registry, EqualityConfig(equal_nan=True)))
+        >>> tester.objects_are_equal(nan1, nan2, Engine(EqualityConfig(equal_nan=True)))
         True
 
         ```

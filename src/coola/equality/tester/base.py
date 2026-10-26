@@ -53,9 +53,9 @@ class BaseEqualityTester(InlineDisplayMixin, ABC, Generic[T]):
         ...
         >>> registry = get_default_registry().copy()
         >>> registry.register(tuple, PointTester(), exist_ok=True)
-        >>> Engine(registry, EqualityConfig(registry=registry)).run((1, 2), (1, 2))
+        >>> Engine(EqualityConfig(registry=registry)).run((1, 2), (1, 2))
         True
-        >>> Engine(registry, EqualityConfig(registry=registry)).run((1, 2), (1, 3))
+        >>> Engine(EqualityConfig(registry=registry)).run((1, 2), (1, 3))
         False
         >>> PointTester() == PointTester()
         True
@@ -88,7 +88,7 @@ class BaseEqualityTester(InlineDisplayMixin, ABC, Generic[T]):
             >>> from coola.equality.config import EqualityConfig
             >>> from coola.equality.engine import Engine
             >>> from coola.equality.tester import NumpyArrayEqualityTester, get_default_registry
-            >>> engine = Engine(get_default_registry(), EqualityConfig())
+            >>> engine = Engine(EqualityConfig())
             >>> tester = NumpyArrayEqualityTester()
             >>> tester.objects_are_equal(np.ones(2), np.ones(2), engine)
             True

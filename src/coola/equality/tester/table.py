@@ -101,7 +101,7 @@ class TableEqualityTester(BaseEqualityTester[Any]):
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import TableEqualityTester, get_default_registry
         >>> from coola.equality.tester.pandas import pandas_frame
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> tester = TableEqualityTester(pandas_frame)
         >>> tester.objects_are_equal(
         ...     pd.DataFrame({"a": [1, 2]}), pd.DataFrame({"a": [1, 2]}), engine
@@ -148,12 +148,13 @@ def column_close(column: Column, other: Column, ctx: Engine) -> bool:
 
     Example:
         ```pycon
+        >>> from coola.equality import Tolerance
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import get_default_registry
         >>> from coola.equality.tester.table import Column, column_close
-        >>> engine = Engine(get_default_registry(), EqualityConfig(atol=0.1))
+        >>> engine = Engine(EqualityConfig(tolerance=Tolerance(atol=0.1)))
         >>> column_close(
         ...     Column("a", "numeric", np.array([1.0, 2.0])),
         ...     Column("a", "numeric", np.array([1.0, 2.05])),

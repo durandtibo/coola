@@ -32,6 +32,7 @@ class TolerantEqualEqualityTester(BaseEqualityTester[object]):
 
     Example:
         ```pycon
+        >>> from coola.equality import Tolerance
         >>> import math
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
@@ -60,12 +61,12 @@ class TolerantEqualEqualityTester(BaseEqualityTester[object]):
         ...
         >>> registry = get_default_registry()
         >>> tester = TolerantEqualEqualityTester()
-        >>> tester.objects_are_equal(MyFloat(42), MyFloat(42), Engine(registry, EqualityConfig()))
+        >>> tester.objects_are_equal(MyFloat(42), MyFloat(42), Engine(EqualityConfig()))
         True
-        >>> tester.objects_are_equal(MyFloat(1.0), MyFloat(1.4), Engine(registry, EqualityConfig()))
+        >>> tester.objects_are_equal(MyFloat(1.0), MyFloat(1.4), Engine(EqualityConfig()))
         False
         >>> tester.objects_are_equal(
-        ...     MyFloat(1.0), MyFloat(1.4), Engine(registry, EqualityConfig(atol=0.5))
+        ...     MyFloat(1.0), MyFloat(1.4), Engine(EqualityConfig(tolerance=Tolerance(atol=0.5)))
         ... )
         True
 

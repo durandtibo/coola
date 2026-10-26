@@ -7,17 +7,13 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.equality import objects_are_allclose, objects_are_equal
-from coola.equality.config import EqualityConfig
 from coola.equality.handler import MaxDepthExceededError
-from coola.equality.interface import run_comparison
 from coola.equality.tester import (
     DefaultEqualityTester,
     EqualityTesterRegistry,
-    get_default_registry,
 )
 from coola.testing.fixtures import numpy_available, torch_available
 from tests.helpers import nest
-from tests.unit.equality.utils import legacy_registry
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -525,13 +521,6 @@ def test_objects_are_equal_max_depth_error_is_not_rewritten() -> None:
         objects_are_equal(data1, data2, max_depth=10)
 
 
-def test_objects_are_equal_python_recursion_error_is_not_a_max_depth_error() -> None:
-    data1, data2 = nest([], 2000), nest([], 2000)
-    with pytest.raises(RecursionError) as exc_info:
-        objects_are_equal(data1, data2, max_depth=10**6, registry=legacy_registry())
-    assert not isinstance(exc_info.value, MaxDepthExceededError)
-
-
 def _cycle(value: object) -> list:
     data: list = [value]
     data.append(data)
@@ -646,26 +635,11 @@ def test_objects_are_equal_set_and_frozenset_are_different() -> None:
     assert not objects_are_equal({1}, frozenset({1}))
 
 
-#####################################
-#     Tests for run_comparison      #
-#####################################
+#########################################
+#     Tests for the max_depth error     #
+#########################################
 
 
-def test_run_comparison_equal() -> None:
-    assert run_comparison(get_default_registry(), [1, 2], [1, 2], EqualityConfig())
-
-
-def test_run_comparison_different() -> None:
-    assert not run_comparison(get_default_registry(), [1, 2], [1, 3], EqualityConfig())
-
-
-def test_run_comparison_records_the_paths_in_the_reports() -> None:
-    config = EqualityConfig(reports=[])
-    run_comparison(get_default_registry(), [1, 2], [1, 3], config)
-    assert [path for _, path in config.reports] == [(1,)]
-
-
-def test_run_comparison_max_depth_error_is_not_rewritten() -> None:
-    config = EqualityConfig(max_depth=10)
+def test_max_depth_error_message() -> None:
     with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(10\) exceeded"):
-        run_comparison(get_default_registry(), nest([], 50), nest([], 50), config)
+        objects_are_equal(nest([], 50), nest([], 50), max_depth=10)

@@ -7,9 +7,6 @@ import logging
 from typing import TYPE_CHECKING
 
 from coola.equality import compare, objects_are_equal
-from coola.equality.config import EqualityConfig
-from coola.equality.interface import run_comparison
-from coola.equality.tester import get_default_registry
 
 if TYPE_CHECKING:
     import pytest
@@ -18,22 +15,14 @@ ACTUAL = {"a": [1, 2, 3]}
 EXPECTED = {"a": [1, 2, 4]}
 
 
-def _reports() -> list[tuple[str, tuple[object, ...]]]:
-    config = EqualityConfig(reports=[])
-    run_comparison(get_default_registry(), ACTUAL, EXPECTED, config)
-    return config.reports or []
-
-
-def test_reports_one_difference_with_the_whole_path() -> None:
-    assert [path for _, path in _reports()] == [("a", 2)]
+def test_compare_reports_one_difference_with_the_whole_path() -> None:
+    assert compare(ACTUAL, EXPECTED).path == ("a", 2)
 
 
 def test_compare_reports_the_reason_of_the_innermost_difference() -> None:
-    assert compare(ACTUAL, EXPECTED).reason == _reports()[0][0]
-
-
-def test_compare_path_assembles_the_reports() -> None:
-    assert compare(ACTUAL, EXPECTED).path == ("a", 2)
+    assert (
+        compare(ACTUAL, EXPECTED).reason == "numbers are different:\n  actual   : 3\n  expected : 4"
+    )
 
 
 def test_objects_are_equal_does_not_log(caplog: pytest.LogCaptureFixture) -> None:
@@ -46,9 +35,3 @@ def test_compare_does_not_log(caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level(logging.DEBUG):
         compare(ACTUAL, EXPECTED)
     assert not caplog.records
-
-
-def test_objects_are_equal_records_no_report() -> None:
-    config = EqualityConfig()
-    run_comparison(get_default_registry(), ACTUAL, EXPECTED, config)
-    assert config.reports is None

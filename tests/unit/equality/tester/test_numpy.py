@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from unittest.mock import Mock, patch
 
 import pytest
@@ -11,9 +12,10 @@ from coola.equality.tester import (
     NumpyMaskedArrayEqualityTester,
     NumpyTimeScalarEqualityTester,
 )
+from coola.equality.tolerance import Tolerance
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import MissingPackageError, is_numpy_available
-from tests.unit.equality.utils import ExamplePair, messages, run_tester
+from tests.unit.equality.utils import ExamplePair, explaining, messages, run_tester
 
 if is_numpy_available():
     import numpy as np
@@ -305,7 +307,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = NumpyArrayEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -316,7 +318,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true_explaining_does_not_
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = NumpyArrayEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -349,7 +351,7 @@ def test_numpy_array_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = NumpyArrayEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -360,7 +362,7 @@ def test_numpy_array_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = NumpyArrayEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
@@ -371,7 +373,7 @@ def test_numpy_array_equality_tester_objects_are_equal_false_explaining_reports(
 def test_numpy_array_equality_tester_objects_are_equal_nan_true(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
-    config.equal_nan = equal_nan
+    config = replace(config, equal_nan=equal_nan)
     assert (
         run_tester(
             NumpyArrayEqualityTester(),
@@ -388,8 +390,7 @@ def test_numpy_array_equality_tester_objects_are_equal_nan_true(
 def test_numpy_array_equality_tester_objects_are_equal_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
-    config.atol = example.atol
-    config.rtol = example.rtol
+    config = replace(config, tolerance=Tolerance(atol=example.atol, rtol=example.rtol))
     assert run_tester(NumpyArrayEqualityTester(), example.actual, example.expected, config)
 
 
@@ -468,7 +469,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = NumpyMaskedArrayEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -479,7 +480,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_true_explaining_do
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = NumpyMaskedArrayEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -512,7 +513,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = NumpyMaskedArrayEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -523,7 +524,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_false_explaining_r
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = NumpyMaskedArrayEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
@@ -534,7 +535,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_false_explaining_r
 def test_numpy_masked_array_equality_tester_objects_are_equal_nan(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
-    config.equal_nan = equal_nan
+    config = replace(config, equal_nan=equal_nan)
     assert (
         run_tester(
             NumpyMaskedArrayEqualityTester(),

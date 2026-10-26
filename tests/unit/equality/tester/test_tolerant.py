@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 from unittest.mock import Mock
 
 import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import TolerantEqualEqualityTester
-from tests.unit.equality.utils import ExamplePair, messages, run_tester
+from coola.equality.tolerance import Tolerance
+from tests.unit.equality.utils import ExamplePair, explaining, messages, run_tester
 
 
 class MyFloat:
@@ -161,7 +163,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TolerantEqualEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -171,7 +173,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_explaining_does_n
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TolerantEqualEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -201,7 +203,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TolerantEqualEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -211,7 +213,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_explaining_repor
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = TolerantEqualEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
@@ -220,7 +222,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_explaining_repor
 def test_tolerant_equal_equality_tester_objects_are_equal_true_nan(
     config: EqualityConfig,
 ) -> None:
-    config.equal_nan = True
+    config = replace(config, equal_nan=True)
     assert run_tester(
         TolerantEqualEqualityTester(), MyFloat(float("nan")), MyFloat(float("nan")), config
     )
@@ -239,7 +241,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_with_tolerance(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.atol = 0.5
+    config = replace(config, tolerance=Tolerance(atol=0.5))
     tester = TolerantEqualEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -249,7 +251,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_true_with_tolerance_do
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.atol = 0.5
+    config = replace(config, tolerance=Tolerance(atol=0.5))
     tester = TolerantEqualEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -260,7 +262,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_with_tolerance(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.atol = 0.5
+    config = replace(config, tolerance=Tolerance(atol=0.5))
     tester = TolerantEqualEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -270,7 +272,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_with_tolerance_d
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.atol = 0.5
+    config = replace(config, tolerance=Tolerance(atol=0.5))
     tester = TolerantEqualEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -281,8 +283,8 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_explaining_with_
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.atol = 0.5
-    config.reports = []
+    config = replace(config, tolerance=Tolerance(atol=0.5))
+    config = explaining(config)
     tester = TolerantEqualEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -292,8 +294,8 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_explaining_with_
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.atol = 0.5
-    config.reports = []
+    config = replace(config, tolerance=Tolerance(atol=0.5))
+    config = explaining(config)
     tester = TolerantEqualEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)

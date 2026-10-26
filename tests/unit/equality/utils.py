@@ -2,17 +2,20 @@ r"""Define some utility functions/classes."""
 
 from __future__ import annotations
 
-__all__ = ["ExamplePair", "RecursiveListTester", "legacy_registry", "messages", "run_tester"]
+__all__ = [
+    "ExamplePair",
+    "ExplainingConfig",
+    "explaining",
+    "messages",
+    "run_tester",
+]
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from dataclasses import dataclass, field, replace
+from typing import Any
 
+from coola.equality.config import EqualityConfig
 from coola.equality.engine import Engine
 from coola.equality.tester import BaseEqualityTester, get_default_registry
-
-if TYPE_CHECKING:
-    from coola.equality.config import EqualityConfig
-    from coola.equality.tester.registry import EqualityTesterRegistry
 
 
 @dataclass
@@ -39,10 +42,29 @@ class BadStr:
         raise ZeroDivisionError(msg)
 
 
+@dataclass(frozen=True, slots=True)
+class ExplainingConfig(EqualityConfig):
+    r"""A config for the tests: ``run_tester`` explains the difference and
+    records the ``(reason, path)`` in ``reports``."""
+
+    reports: list[tuple[str, tuple[object, ...]]] = field(default_factory=list, compare=False)
+
+
+def explaining(config: EqualityConfig) -> ExplainingConfig:
+    r"""Return a config like ``config`` that records the explanation of the
+    differences."""
+    return ExplainingConfig(
+        registry=config.registry,
+        tolerance=config.tolerance,
+        equal_nan=config.equal_nan,
+        max_depth=config.max_depth,
+    )
+
+
 def messages(config: EqualityConfig) -> list[str]:
-    r"""Return the messages of the differences reported while ``config``
-    was used, innermost first."""
-    return [message for message, _ in config.reports or [] if message]
+    r"""Return the reasons of the differences recorded while ``config``
+    was used."""
+    return [message for message, _ in getattr(config, "reports", []) if message]
 
 
 def run_tester(
@@ -55,31 +77,14 @@ def run_tester(
     tester, and compares the child pairs of a container.
     """
     # Local imports: ``tests.unit.equality.utils`` is imported by the test modules at the top.
-    from coola.equality.tester import get_default_registry
 
     registry = get_default_registry().copy()
     registry.register(type(actual), tester, exist_ok=True)
-    return Engine(registry, config).run(actual, expected)
-
-
-class RecursiveListTester(BaseEqualityTester[list]):
-    r"""A tester that recurses through the registry, like the chain
-    testers: it does not use the engine, so a deep nesting reaches the
-    interpreter recursion limit."""
-
-    def equal(self, other: object) -> bool:
-        return type(other) is type(self)
-
-    def objects_are_equal(self, actual: list, expected: list, config: EqualityConfig, /) -> bool:
-        return all(
-            config.registry.objects_are_equal(a, e, config)
-            for a, e in zip(actual, expected, strict=False)
-        )
-
-
-def legacy_registry() -> EqualityTesterRegistry:
-    r"""Return a registry where the lists are compared with a tester
-    that recurses."""
-    registry = get_default_registry().copy()
-    registry.register(list, RecursiveListTester(), exist_ok=True)
-    return registry
+    engine = Engine(
+        replace(config, registry=registry), explaining=isinstance(config, ExplainingConfig)
+    )
+    equal = engine.run(actual, expected)
+    if isinstance(config, ExplainingConfig) and engine.failure is not None:
+        path, reason = engine.failure
+        config.reports.append((reason or "", path))
+    return equal

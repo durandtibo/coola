@@ -6,6 +6,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler.jax import array_close, array_equal
+from coola.equality.tolerance import Tolerance
 from coola.testing.fixtures import jax_available
 from coola.utils.imports import is_jax_available
 
@@ -27,71 +28,81 @@ def config() -> EqualityConfig:
 
 @jax_available
 def test_array_equal_rtol_scales_with_the_second_array() -> None:
-    config = EqualityConfig(rtol=0.01, atol=0.0)
+    config = EqualityConfig(tolerance=Tolerance(rtol=0.01, atol=0.0))
     assert array_equal(jnp.array([100.0]), jnp.array([101.005]), config)
 
 
 @jax_available
 def test_array_equal_rtol_scales_with_the_first_array() -> None:
-    config = EqualityConfig(rtol=0.01, atol=0.0)
+    config = EqualityConfig(tolerance=Tolerance(rtol=0.01, atol=0.0))
     assert array_equal(jnp.array([101.005]), jnp.array([100.0]), config)
 
 
 @jax_available
 def test_array_equal_rtol_outside_the_tolerance() -> None:
-    config = EqualityConfig(rtol=0.01, atol=0.0)
+    config = EqualityConfig(tolerance=Tolerance(rtol=0.01, atol=0.0))
     assert not array_equal(jnp.array([101.5]), jnp.array([100.0]), config)
 
 
 @jax_available
 def test_array_equal_rtol_outside_the_tolerance_reversed() -> None:
-    config = EqualityConfig(rtol=0.01, atol=0.0)
+    config = EqualityConfig(tolerance=Tolerance(rtol=0.01, atol=0.0))
     assert not array_equal(jnp.array([100.0]), jnp.array([101.5]), config)
 
 
 @jax_available
 def test_array_equal_rtol_each_element_in_its_own_direction() -> None:
-    config = EqualityConfig(rtol=0.01, atol=0.0)
+    config = EqualityConfig(tolerance=Tolerance(rtol=0.01, atol=0.0))
     assert array_equal(jnp.array([100.0, 101.005]), jnp.array([101.005, 100.0]), config)
 
 
 @jax_available
 def test_array_equal_rtol_each_element_in_its_own_direction_reversed() -> None:
-    config = EqualityConfig(rtol=0.01, atol=0.0)
+    config = EqualityConfig(tolerance=Tolerance(rtol=0.01, atol=0.0))
     assert array_equal(jnp.array([101.005, 100.0]), jnp.array([100.0, 101.005]), config)
 
 
 @jax_available
 def test_array_equal_rtol_one_element_outside_the_tolerance() -> None:
-    config = EqualityConfig(rtol=0.01, atol=0.0)
+    config = EqualityConfig(tolerance=Tolerance(rtol=0.01, atol=0.0))
     assert not array_equal(jnp.array([100.0, 101.005]), jnp.array([101.005, 105.0]), config)
 
 
 @jax_available
 def test_array_equal_different_shape_with_tolerance() -> None:
-    assert not array_equal(jnp.ones(2), jnp.ones(3), EqualityConfig(atol=1.0))
+    assert not array_equal(jnp.ones(2), jnp.ones(3), EqualityConfig(tolerance=Tolerance(atol=1.0)))
 
 
 @jax_available
 def test_array_equal_different_dtype_with_tolerance() -> None:
     assert not array_equal(
-        jnp.ones(2, dtype=jnp.float32), jnp.ones(2, dtype=jnp.int32), EqualityConfig(atol=1.0)
+        jnp.ones(2, dtype=jnp.float32),
+        jnp.ones(2, dtype=jnp.int32),
+        EqualityConfig(tolerance=Tolerance(atol=1.0)),
     )
 
 
 @jax_available
 def test_array_equal_integers_with_tolerance() -> None:
-    assert array_equal(jnp.array([100, 101]), jnp.array([101, 100]), EqualityConfig(rtol=0.02))
+    assert array_equal(
+        jnp.array([100, 101]), jnp.array([101, 100]), EqualityConfig(tolerance=Tolerance(rtol=0.02))
+    )
 
 
 @jax_available
 def test_array_equal_bool_has_no_atol() -> None:
-    assert not array_equal(jnp.array([True]), jnp.array([False]), EqualityConfig(atol=1.0))
+    assert not array_equal(
+        jnp.array([True]), jnp.array([False]), EqualityConfig(tolerance=Tolerance(atol=1.0))
+    )
 
 
 @jax_available
 def test_array_equal_bool_equal_with_tolerance() -> None:
-    assert array_equal(jnp.array([True, False]), jnp.array([True, False]), EqualityConfig(atol=1.0))
+    assert array_equal(
+        jnp.array([True, False]),
+        jnp.array([True, False]),
+        EqualityConfig(tolerance=Tolerance(atol=1.0)),
+    )
 
 
 @jax_available
@@ -117,12 +128,14 @@ def test_array_close_nan_without_equal_nan() -> None:
 @jax_available
 def test_array_close_with_tolerance() -> None:
     assert array_close(
-        jnp.array([1.0, 2.0]), jnp.array([1.05, 3.0]), EqualityConfig(atol=0.1)
+        jnp.array([1.0, 2.0]), jnp.array([1.05, 3.0]), EqualityConfig(tolerance=Tolerance(atol=0.1))
     ).tolist() == [True, False]
 
 
 @jax_available
 def test_array_close_booleans_have_no_tolerance() -> None:
     assert array_close(
-        jnp.array([True, False]), jnp.array([False, False]), EqualityConfig(atol=1.0)
+        jnp.array([True, False]),
+        jnp.array([False, False]),
+        EqualityConfig(tolerance=Tolerance(atol=1.0)),
     ).tolist() == [False, True]

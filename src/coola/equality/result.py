@@ -13,9 +13,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from coola.equality.config import EqualityConfig
-from coola.equality.engine import Element, failure_from_reports
+from coola.equality.engine import Element, Engine
 from coola.equality.handler.utils import AttributeName
-from coola.equality.interface import run_comparison
 from coola.equality.tester.interface import get_default_registry
 from coola.equality.tolerance import Tolerance
 
@@ -165,18 +164,16 @@ def compare(
     """
     if registry is None:
         registry = get_default_registry()
-    tolerance = Tolerance(rtol=rtol, atol=atol)
     config = EqualityConfig(
         registry=registry,
+        tolerance=Tolerance(rtol=rtol, atol=atol),
         equal_nan=equal_nan,
-        atol=tolerance.atol,
-        rtol=tolerance.rtol,
         max_depth=max_depth,
-        reports=[],
     )
-    if run_comparison(registry, actual, expected, config):
+    engine = Engine(config, explaining=True)
+    if engine.run(actual, expected):
         return ComparisonResult(True)
-    path, reason = failure_from_reports(config.reports or [])
+    path, reason = engine.failure or ((), None)
     return ComparisonResult(False, path, reason)
 
 

@@ -208,4 +208,4 @@ class EqualityTesterRegistry(BaseTypeDispatchRegistry[BaseEqualityTester[Any]]):
         """
         from coola.equality.engine import Engine  # noqa: PLC0415
 
-        return Engine(self, config).run(actual, expected)
+        return Engine(dataclasses.replace(config, registry=self)).run(actual, expected)

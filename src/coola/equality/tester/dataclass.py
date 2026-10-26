@@ -35,7 +35,7 @@ class DataclassEqualityTester(BaseEqualityTester[Any]):
         ... class Point:
         ...     x: float
         ...
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> engine.run(Point(1.0), Point(1.0))
         True
         >>> engine.run(Point(1.0), Point(2.0))

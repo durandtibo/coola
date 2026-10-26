@@ -40,7 +40,7 @@ class DefaultEqualityTester(BaseEqualityTester[object]):
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import DefaultEqualityTester, get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> tester = DefaultEqualityTester()
         >>> tester.objects_are_equal("meow", "meow", engine)
         True

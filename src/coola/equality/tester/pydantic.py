@@ -49,7 +49,7 @@ class PydanticModelEqualityTester(BaseEqualityTester[pydantic.BaseModel]):
         ...     x: float
         ...     y: float
         ...
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> engine.run(Point(x=1.0, y=2.0), Point(x=1.0, y=2.0))
         True
         >>> engine.run(Point(x=1.0, y=2.0), Point(x=1.0, y=3.0))

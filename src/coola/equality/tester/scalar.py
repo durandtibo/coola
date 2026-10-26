@@ -34,16 +34,17 @@ class ScalarEqualityTester(BaseEqualityTester[float]):
 
     Example:
         ```pycon
+        >>> from coola.equality import Tolerance
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import ScalarEqualityTester, get_default_registry
         >>> registry = get_default_registry()
         >>> tester = ScalarEqualityTester()
-        >>> tester.objects_are_equal(42.0, 42.0, Engine(registry, EqualityConfig()))
+        >>> tester.objects_are_equal(42.0, 42.0, Engine(EqualityConfig()))
         True
-        >>> tester.objects_are_equal(42.0, 1.0, Engine(registry, EqualityConfig()))
+        >>> tester.objects_are_equal(42.0, 1.0, Engine(EqualityConfig()))
         False
-        >>> tester.objects_are_equal(42.0, 42.0001, Engine(registry, EqualityConfig(atol=1e-3)))
+        >>> tester.objects_are_equal(42.0, 42.0001, Engine(EqualityConfig(tolerance=Tolerance(atol=1e-3))))
         True
 
         ```

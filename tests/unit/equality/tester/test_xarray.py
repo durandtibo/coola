@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from unittest.mock import Mock, patch
 
 import pytest
@@ -11,9 +12,10 @@ from coola.equality.tester import (
     XarrayDatasetEqualityTester,
     XarrayVariableEqualityTester,
 )
+from coola.equality.tolerance import Tolerance
 from coola.testing.fixtures import xarray_available
 from coola.utils.imports import MissingPackageError, is_numpy_available, is_xarray_available
-from tests.unit.equality.utils import ExamplePair, messages, run_tester
+from tests.unit.equality.utils import ExamplePair, explaining, messages, run_tester
 
 if is_numpy_available():
     import numpy as np
@@ -503,7 +505,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayDataArrayEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -514,7 +516,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_explaining_doe
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayDataArrayEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -547,7 +549,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayDataArrayEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -558,7 +560,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_false_explaining_re
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayDataArrayEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
@@ -569,7 +571,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_false_explaining_re
 def test_xarray_data_array_equality_tester_objects_are_equal_nan(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
-    config.equal_nan = equal_nan
+    config = replace(config, equal_nan=equal_nan)
     assert (
         run_tester(
             XarrayDataArrayEqualityTester(),
@@ -586,8 +588,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_nan(
 def test_xarray_data_array_equality_tester_objects_are_equal_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
-    config.atol = example.atol
-    config.rtol = example.rtol
+    config = replace(config, tolerance=Tolerance(atol=example.atol, rtol=example.rtol))
     assert run_tester(XarrayDataArrayEqualityTester(), example.actual, example.expected, config)
 
 
@@ -668,7 +669,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayDatasetEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -679,7 +680,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_explaining_does_n
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayDatasetEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -712,7 +713,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayDatasetEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -723,7 +724,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_false_explaining_repor
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayDatasetEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
@@ -734,7 +735,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_false_explaining_repor
 def test_xarray_dataset_equality_tester_objects_are_equal_nan(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
-    config.equal_nan = equal_nan
+    config = replace(config, equal_nan=equal_nan)
     assert (
         run_tester(
             XarrayDatasetEqualityTester(),
@@ -751,8 +752,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_nan(
 def test_xarray_dataset_equality_tester_objects_are_equal_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
-    config.atol = example.atol
-    config.rtol = example.rtol
+    config = replace(config, tolerance=Tolerance(atol=example.atol, rtol=example.rtol))
     assert run_tester(XarrayDatasetEqualityTester(), example.actual, example.expected, config)
 
 
@@ -833,7 +833,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayVariableEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -844,7 +844,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_explaining_does_
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayVariableEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -877,7 +877,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayVariableEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -888,7 +888,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_false_explaining_repo
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = XarrayVariableEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
@@ -899,7 +899,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_false_explaining_repo
 def test_xarray_variable_equality_tester_objects_are_equal_nan(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
-    config.equal_nan = equal_nan
+    config = replace(config, equal_nan=equal_nan)
     assert (
         run_tester(
             XarrayVariableEqualityTester(),
@@ -916,8 +916,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_nan(
 def test_xarray_variable_equality_tester_objects_are_equal_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
-    config.atol = example.atol
-    config.rtol = example.rtol
+    config = replace(config, tolerance=Tolerance(atol=example.atol, rtol=example.rtol))
     assert run_tester(XarrayVariableEqualityTester(), example.actual, example.expected, config)
 
 
@@ -981,7 +980,7 @@ def test_xarray_data_array_equality_tester_coordinate_tolerance() -> None:
     tester = XarrayDataArrayEqualityTester()
     actual = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.0]})
     expected = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.05]})
-    assert run_tester(tester, actual, expected, EqualityConfig(atol=0.1))
+    assert run_tester(tester, actual, expected, EqualityConfig(tolerance=Tolerance(atol=0.1)))
 
 
 @xarray_available

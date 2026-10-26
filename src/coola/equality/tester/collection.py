@@ -50,7 +50,7 @@ class MappingEqualityTester(BaseEqualityTester["Mapping[Any, Any]"]):
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import get_default_registry
         >>> registry = get_default_registry()
-        >>> engine = Engine(registry, EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> engine.run({"a": 1, "b": 2}, {"a": 1, "b": 2})
         True
         >>> engine.run({"a": 1, "b": 2}, {"a": 1, "b": 4})
@@ -101,7 +101,7 @@ class OrderedMappingEqualityTester(MappingEqualityTester):
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> engine.run(OrderedDict(a=1, b=2), OrderedDict(a=1, b=2))
         True
         >>> engine.run(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1))
@@ -139,7 +139,7 @@ class SequenceEqualityTester(BaseEqualityTester["Sequence[Any]"]):
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> engine.run([1, 2, 3], [1, 2, 3])
         True
         >>> engine.run([1, 2, 3], [1, 2, 4])
@@ -187,7 +187,7 @@ class SetEqualityTester(BaseEqualityTester["AbstractSet[Any]"]):
         >>> from coola.equality.config import EqualityConfig
         >>> from coola.equality.engine import Engine
         >>> from coola.equality.tester import get_default_registry
-        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine = Engine(EqualityConfig())
         >>> engine.run({1, 2, 3}, {1, 2, 3})
         True
         >>> engine.run({1, 2, 3}, {1, 2, 4})

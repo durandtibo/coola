@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict, deque
+from dataclasses import replace
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
@@ -14,11 +15,17 @@ from coola.equality.tester import (
     OrderedMappingEqualityTester,
     SequenceEqualityTester,
     SetEqualityTester,
-    get_default_registry,
 )
+from coola.equality.tolerance import Tolerance
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
-from tests.unit.equality.utils import ExamplePair, messages, run_tester
+from tests.unit.equality.utils import (
+    ExamplePair,
+    ExplainingConfig,
+    explaining,
+    messages,
+    run_tester,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, Set as AbstractSet
@@ -287,7 +294,7 @@ def test_mapping_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = MappingEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -297,7 +304,7 @@ def test_mapping_equality_tester_objects_are_equal_true_explaining_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = MappingEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -327,7 +334,7 @@ def test_mapping_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = MappingEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -337,7 +344,7 @@ def test_mapping_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = MappingEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
@@ -347,7 +354,7 @@ def test_mapping_equality_tester_objects_are_equal_false_explaining_reports(
 def test_mapping_equality_tester_objects_are_equal_nan(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
-    config.equal_nan = equal_nan
+    config = replace(config, equal_nan=equal_nan)
     assert (
         run_tester(
             MappingEqualityTester(),
@@ -363,8 +370,7 @@ def test_mapping_equality_tester_objects_are_equal_nan(
 def test_mapping_equality_tester_objects_are_equal_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
-    config.atol = example.atol
-    config.rtol = example.rtol
+    config = replace(config, tolerance=Tolerance(atol=example.atol, rtol=example.rtol))
     assert run_tester(MappingEqualityTester(), example.actual, example.expected, config)
 
 
@@ -449,7 +455,7 @@ def test_ordered_mapping_equality_tester_objects_are_equal_false_different_order
 def test_ordered_mapping_equality_tester_objects_are_equal_false_different_order_explaining(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     assert not run_tester(
         OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config
     )
@@ -458,7 +464,7 @@ def test_ordered_mapping_equality_tester_objects_are_equal_false_different_order
 def test_ordered_mapping_equality_tester_objects_are_equal_false_different_order_explaining_reports(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     run_tester(OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config)
     assert messages(config)[0].startswith("mappings have the same keys in a different order:")
 
@@ -474,7 +480,7 @@ def test_ordered_mapping_equality_tester_objects_are_equal_false_different_value
 def test_ordered_mapping_equality_tester_objects_are_equal_false_different_keys(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     assert not run_tester(
         OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), OrderedDict(a=1, c=2), config
     )
@@ -483,7 +489,7 @@ def test_ordered_mapping_equality_tester_objects_are_equal_false_different_keys(
 def test_ordered_mapping_equality_tester_objects_are_equal_false_different_keys_logs(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     run_tester(OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), OrderedDict(a=1, c=2), config)
     assert messages(config)[0].startswith("mappings have different keys:")
 
@@ -554,7 +560,7 @@ def test_sequence_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = SequenceEqualityTester()
     assert run_tester(tester, example.actual, example.expected, config)
 
@@ -564,7 +570,7 @@ def test_sequence_equality_tester_objects_are_equal_true_explaining_does_not_log
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = SequenceEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
@@ -594,7 +600,7 @@ def test_sequence_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = SequenceEqualityTester()
     assert not run_tester(tester, example.actual, example.expected, config)
 
@@ -604,7 +610,7 @@ def test_sequence_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     tester = SequenceEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[0].startswith(example.expected_message)
@@ -614,7 +620,7 @@ def test_sequence_equality_tester_objects_are_equal_false_explaining_reports(
 def test_sequence_equality_tester_objects_are_equal_nan(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
-    config.equal_nan = equal_nan
+    config = replace(config, equal_nan=equal_nan)
     assert (
         run_tester(
             SequenceEqualityTester(),
@@ -630,8 +636,7 @@ def test_sequence_equality_tester_objects_are_equal_nan(
 def test_sequence_equality_tester_objects_are_equal_true_tolerance(
     example: ExamplePair, config: EqualityConfig
 ) -> None:
-    config.atol = example.atol
-    config.rtol = example.rtol
+    config = replace(config, tolerance=Tolerance(atol=example.atol, rtol=example.rtol))
     assert run_tester(SequenceEqualityTester(), example.actual, example.expected, config)
 
 
@@ -722,13 +727,13 @@ def test_set_equality_tester_objects_are_equal_equal_nan() -> None:
 
 
 def test_set_equality_tester_objects_are_equal_true_does_not_log() -> None:
-    config = EqualityConfig(reports=[])
+    config = ExplainingConfig()
     run_tester(SetEqualityTester(), {1}, {1}, config)
     assert not messages(config)
 
 
 def test_set_equality_tester_objects_are_equal_false_different_type_logs() -> None:
-    config = EqualityConfig(reports=[])
+    config = ExplainingConfig()
     run_tester(SetEqualityTester(), {1}, frozenset({1}), config)
     assert "different types" in "\n".join(messages(config))
 
@@ -760,14 +765,14 @@ def test_sequence_equality_tester_exact_scalars_different(config: EqualityConfig
 def test_sequence_equality_tester_exact_scalars_different_with_tolerance(
     config: EqualityConfig,
 ) -> None:
-    config.atol = 1.0
+    config = replace(config, tolerance=Tolerance(atol=1.0))
     assert run_tester(SequenceEqualityTester(), [1, 2, 3], [1, 2, 4], config)
 
 
 def test_sequence_equality_tester_exact_scalars_different_explaining_path(
     config: EqualityConfig,
 ) -> None:
-    config.reports = []
+    config = explaining(config)
     run_tester(SequenceEqualityTester(), [1, 2, 3], [1, 2, 4], config)
     assert config.reports[-1][1] == (2,)
 
@@ -775,8 +780,7 @@ def test_sequence_equality_tester_exact_scalars_different_explaining_path(
 def test_sequence_equality_tester_exact_scalars_different_does_not_visit_the_items() -> None:
     config = EqualityConfig()
     tester = SequenceEqualityTester()
-    registry = get_default_registry().copy()
-    result = tester.objects_are_equal([1, 2, 3], [1, 2, 4], Engine(registry, config))
+    result = tester.objects_are_equal([1, 2, 3], [1, 2, 4], Engine(config))
     assert result is False
 
 
