@@ -408,7 +408,10 @@ def test_failure_path_parts_of_fail_are_added(registry: EqualityTesterRegistry) 
 def test_failure_types_differ_reason(registry: EqualityTesterRegistry) -> None:
     engine = _engine(registry, reports=[])
     engine.run({"a": 1}, {"a": 1.0})
-    assert engine.failure == (("a",), "types differ: int vs float")
+    assert engine.failure == (
+        ("a",),
+        "objects have different types:\n  actual   : <class 'int'>\n  expected : <class 'float'>",
+    )
 
 
 def test_failure_of_a_legacy_tester_has_no_reason() -> None:
@@ -548,3 +551,8 @@ def test_failure_from_reports_without_reason() -> None:
 
 def test_failure_from_reports_empty() -> None:
     assert failure_from_reports([]) == ((), None)
+
+
+def test_find_returns_the_cached_tester(registry: EqualityTesterRegistry) -> None:
+    engine = _engine(registry)
+    assert engine.find(int) is engine.find(int)

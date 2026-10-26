@@ -3,54 +3,15 @@ tolerance by using their difference."""
 
 from __future__ import annotations
 
-__all__ = ["DifferenceCloseHandler", "difference_close"]
+__all__ = ["difference_close"]
 
 from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.base import BaseEqualityHandler
-from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.mixin import HandlerEqualityMixin
-from coola.equality.handler.utils import report_difference
-
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-
-class DifferenceCloseHandler(HandlerEqualityMixin, BaseEqualityHandler):
-    r"""Check if two values are equal within a tolerance.
-
-    The values are compared with their difference, so this handler
-    supports ``decimal.Decimal``, ``fractions.Fraction`` and
-    ``datetime.timedelta``. See ``difference_close`` for the rule.
-    This handler is designed to be used at the end of the chain of
-    responsibility. It does not call the next handler.
-
-    Example:
-        ```pycon
-        >>> from decimal import Decimal
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler import DifferenceCloseHandler
-        >>> config = EqualityConfig(atol=1e-3)
-        >>> handler = DifferenceCloseHandler()
-        >>> handler.handle(Decimal("1.0"), Decimal("1.00001"), config)
-        True
-        >>> handler.handle(Decimal("1.0"), Decimal("1.1"), config)
-        False
-
-        ```
-    """
-
-    def handle(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
-        object_equal = difference_close(actual, expected, config)
-        if not object_equal and config.explaining:
-            report_difference(
-                config,
-                format_value_difference(actual=actual, expected=expected, name="values"),
-            )
-        return object_equal
 
 
 def difference_close(actual: Any, expected: Any, config: EqualityConfig) -> bool:

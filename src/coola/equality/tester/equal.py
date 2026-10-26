@@ -11,37 +11,30 @@ __all__ = ["EqualEqualityTester", "EqualNanEqualityTester"]
 
 from typing import TYPE_CHECKING
 
-from coola.equality.handler import (
-    EqualHandler,
-    EqualNanHandler,
-    SameObjectHandler,
-    SameTypeHandler,
-    create_chain,
-)
-from coola.equality.tester.chain import BaseChainEqualityTester
+from coola.equality.handler.format import format_value_difference
+from coola.equality.tester.base import BaseEngineEqualityTester
 
 if TYPE_CHECKING:
-    from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.engine import Engine
 
 
-class EqualEqualityTester(BaseChainEqualityTester[object]):
+class EqualEqualityTester(BaseEngineEqualityTester[object]):
     r"""Implement an equality tester for objects with equal method.
 
-    This tester is designed for objects that implement an ``equal(other)`` method
-    for equality comparison. It uses a handler chain that checks:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify same type
-    3. EqualHandler: Call the object's equal() method
+    This tester is designed for objects that implement an
+    ``equal(other)`` method for equality comparison. The two objects
+    have the same type (the engine checks it) and the tester calls the
+    ``equal`` method of the first one. An object without a callable
+    ``equal`` is different.
 
-    This tester is used for comparing BaseEqualityTester instances themselves
-    in the default registry.
+    This tester is used for comparing ``BaseEqualityTester`` instances
+    themselves in the default registry.
 
     Example:
-        Custom class with equal method:
-
         ```pycon
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import EqualEqualityTester
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import EqualEqualityTester, get_default_registry
         >>> class MyFloat:
         ...     def __init__(self, value: float) -> None:
         ...         self._value = float(value)
@@ -50,38 +43,40 @@ class EqualEqualityTester(BaseChainEqualityTester[object]):
         ...             return False
         ...         return self._value == other._value
         ...
-        >>> config = EqualityConfig()
+        >>> engine = Engine(get_default_registry(), EqualityConfig())
         >>> tester = EqualEqualityTester()
-        >>> tester.objects_are_equal(MyFloat(42), MyFloat(42), config=config)
+        >>> tester.objects_are_equal(MyFloat(42), MyFloat(42), engine)
         True
-        >>> tester.objects_are_equal(MyFloat(42), MyFloat(1), config=config)
+        >>> tester.objects_are_equal(MyFloat(42), MyFloat(1), engine)
         False
 
         ```
     """
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(SameObjectHandler(), SameTypeHandler(), EqualHandler())
+    def objects_are_equal(self, actual: object, expected: object, ctx: Engine) -> bool:
+        equal = getattr(actual, "equal", None)
+        if not callable(equal):
+            return False
+        return bool(equal(expected)) or ctx.fail(
+            lambda: format_value_difference(actual=actual, expected=expected)
+        )
 
 
-class EqualNanEqualityTester(BaseChainEqualityTester[object]):
-    r"""Implement an equality tester for objects with NaN-aware equal
-    method.
+class EqualNanEqualityTester(BaseEngineEqualityTester[object]):
+    r"""Implement an equality tester for objects with equal method that
+    supports NaN equality.
 
-    This tester is designed for objects that implement an ``equal(other, equal_nan)``
-    method that supports NaN equality. When config.equal_nan is True, NaN values
-    are considered equal to each other. The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify same type
-    3. EqualNanHandler: Call object's equal() with equal_nan parameter
+    This tester is designed for objects that implement an
+    ``equal(other, equal_nan)`` method. The tester calls the ``equal``
+    method of the first object with ``equal_nan`` of the comparison. An
+    object without a callable ``equal`` is different.
 
     Example:
-        Custom class with NaN-aware equal method:
-
         ```pycon
         >>> import math
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import EqualNanEqualityTester
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import EqualNanEqualityTester, get_default_registry
         >>> class MyFloat:
         ...     def __init__(self, value: float) -> None:
         ...         self._value = float(value)
@@ -92,18 +87,21 @@ class EqualNanEqualityTester(BaseChainEqualityTester[object]):
         ...             return True
         ...         return self._value == other._value
         ...
-        >>> config = EqualityConfig()
+        >>> registry = get_default_registry()
         >>> tester = EqualNanEqualityTester()
-        >>> tester.objects_are_equal(MyFloat(42), MyFloat(42), config=config)
-        True
-        >>> tester.objects_are_equal(MyFloat(float("nan")), MyFloat(float("nan")), config=config)
+        >>> nan1, nan2 = MyFloat(float("nan")), MyFloat(float("nan"))
+        >>> tester.objects_are_equal(nan1, nan2, Engine(registry, EqualityConfig()))
         False
-        >>> config.equal_nan = True
-        >>> tester.objects_are_equal(MyFloat(float("nan")), MyFloat(float("nan")), config=config)
+        >>> tester.objects_are_equal(nan1, nan2, Engine(registry, EqualityConfig(equal_nan=True)))
         True
 
         ```
     """
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(SameObjectHandler(), SameTypeHandler(), EqualNanHandler())
+    def objects_are_equal(self, actual: object, expected: object, ctx: Engine) -> bool:
+        equal = getattr(actual, "equal", None)
+        if not callable(equal):
+            return False
+        return bool(equal(expected, equal_nan=ctx.equal_nan)) or ctx.fail(
+            lambda: format_value_difference(actual=actual, expected=expected)
+        )

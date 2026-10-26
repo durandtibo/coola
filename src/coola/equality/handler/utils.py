@@ -9,6 +9,7 @@ __all__ = [
     "comparison_key",
     "create_chain",
     "handlers_are_equal",
+    "is_exact_scalar_sequence",
     "report_difference",
     "track_comparison",
 ]
@@ -18,13 +19,16 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Generator, Sequence
 
     from coola.equality.config import EqualityConfig
     from coola.equality.handler.base import BaseEqualityHandler
 
 # A NaN is replaced by this marker when ``equal_nan=True``.
 _NAN: Any = object()
+
+# The scalars for which ``==`` is exact: no NaN, no tolerance.
+_EXACT_SCALAR_TYPES: frozenset[type] = frozenset({int, str, bytes, bool, type(None)})
 
 
 class AttributeName(str):
@@ -283,3 +287,36 @@ def comparison_key(value: Any, config: EqualityConfig) -> Any:
     elif isinstance(value, frozenset):
         return (type(value), frozenset(Counter(comparison_key(v, config) for v in value).items()))
     return (type(value), value)
+
+
+def is_exact_scalar_sequence(seq: Sequence[Any]) -> bool:
+    r"""Indicate if ``seq`` is a list or tuple containing only exact
+    built-in scalars.
+
+    The exact scalars are the ``int``, ``str``, ``bytes``, ``bool`` and
+    ``None`` values: ``==`` is exact for them (no NaN, no tolerance), so
+    a sequence of exact scalars can be compared at once. The type of
+    ``seq`` and the types of its items are compared exactly (no
+    subclass), so a subclass of ``list`` is not accepted, and neither is
+    a ``float`` (it can be NaN or compared with a tolerance).
+
+    Args:
+        seq: The sequence to check.
+
+    Returns:
+        ``True`` if ``seq`` is a ``list`` or a ``tuple`` and all its
+            items have an exact scalar type, otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> from coola.equality.handler import is_exact_scalar_sequence
+        >>> is_exact_scalar_sequence([1, "abc", None])
+        True
+        >>> is_exact_scalar_sequence([1, 2.0])
+        False
+        >>> is_exact_scalar_sequence([1, [2]])
+        False
+
+        ```
+    """
+    return type(seq) in (list, tuple) and set(map(type, seq)) <= _EXACT_SCALAR_TYPES

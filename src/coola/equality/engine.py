@@ -20,6 +20,7 @@ import warnings
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from coola.equality.handler.format import format_type_difference
 from coola.equality.handler.utils import MaxDepthExceededError
 
 if TYPE_CHECKING:
@@ -185,7 +186,9 @@ class Engine:
         """
         # The depth of the comparisons that started this one, for a comparison nested in a
         # legacy tester (see the note of the module).
-        base = self.config.depth
+        config = self.config
+        base = config.depth
+        testers = self._testers
         stack: list[Iterator[tuple[object, object, object]]] = []
         keys: list[tuple[int, int]] = []
         parts: list[object] = []
@@ -193,30 +196,33 @@ class Engine:
         pair: tuple[object, object, object] = (actual, expected, None)
         while True:
             actual, expected, part = pair
-            result = self._test(actual, expected, base + len(stack))
-            ok = result
-            if result is not True and result is not False:
-                ok = True
-                if (key := (id(actual), id(expected))) not in visiting:
-                    # A pair that is already on the stack is equal (a cycle).
-                    if base + len(stack) >= self.max_depth:
-                        msg = (
-                            f"Maximum recursion depth ({self.max_depth}) exceeded. "
-                            "Consider increasing max_depth parameter or simplifying "
-                            "the data structure."
-                        )
-                        raise MaxDepthExceededError(msg)
+            # The loop is the hot path: the pair is tested inline.
+            if actual is expected:
+                result: bool | Iterator[tuple[object, object, object]] = True
+            else:
+                data_type = type(actual)
+                tester: Any = testers.get(data_type) or self.find(data_type)
+                if not tester.engine_protocol:
+                    # A chain tester does its own identity and type checks, and recurses.
+                    config.depth = base + len(stack)
+                    result = bool(tester.objects_are_equal(actual, expected, config))
+                elif data_type is not type(expected):
+                    result = self._fail_types(data_type, type(expected))
+                else:
+                    result = tester.objects_are_equal(actual, expected, self)
+            if result is False:
+                config.depth = base
+                return self._record_failure(parts, part)
+            if result is not True:
+                # Child pairs. A pair that is already on the stack is equal (a cycle).
+                key = (id(actual), id(expected))
+                if key not in visiting:
+                    self._check_depth(base + len(stack))
                     visiting.add(key)
                     stack.append(iter(result))
                     keys.append(key)
                     parts.append(part)
-            if not ok:
-                self.config.depth = base
-                return self._record_failure(parts, part)
-            while True:  # the next pair: the top iterator, popping the exhausted ones
-                if not stack:
-                    self.config.depth = base
-                    return True
+            while stack:  # the next pair: the top iterator, popping the exhausted ones
                 nxt = next(stack[-1], None)
                 if nxt is not None:
                     pair = nxt
@@ -224,27 +230,22 @@ class Engine:
                 stack.pop()
                 visiting.discard(keys.pop())
                 parts.pop()
+            else:
+                config.depth = base
+                return True
 
-    def _test(
-        self, actual: object, expected: object, depth: int
-    ) -> bool | Iterator[tuple[object, object, object]]:
-        r"""Test a pair: a verdict, or the child pairs of a
-        container."""
-        if actual is expected:
-            return True
-        data_type = type(actual)
-        tester: Any = self.find(data_type)
-        if not tester.engine_protocol:
-            # A chain tester does its own identity and type checks, and recurses.
-            self.config.depth = depth
-            return bool(
-                tester.objects_are_equal(actual=actual, expected=expected, config=self.config)
+    def _fail_types(self, actual_type: type, expected_type: type) -> bool:
+        r"""Record that the two objects have different types."""
+        return self.fail(lambda: format_type_difference(actual_type, expected_type))
+
+    def _check_depth(self, depth: int) -> None:
+        r"""Raise an error if the nesting of the objects is too deep."""
+        if depth >= self.max_depth:
+            msg = (
+                f"Maximum recursion depth ({self.max_depth}) exceeded. "
+                "Consider increasing max_depth parameter or simplifying the data structure."
             )
-        if data_type is not type(expected):
-            return self.fail(
-                lambda: f"types differ: {data_type.__qualname__} vs {type(expected).__qualname__}"
-            )
-        return tester.objects_are_equal(actual, expected, self)
+            raise MaxDepthExceededError(msg)
 
     def _record_failure(self, parts: list[object], part: object) -> bool:
         r"""Record the first difference in ``config.reports``.

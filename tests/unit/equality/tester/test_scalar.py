@@ -4,7 +4,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import ScalarEqualityTester
-from tests.unit.equality.utils import ExamplePair, messages
+from tests.unit.equality.utils import ExamplePair, messages, run_tester
 
 
 @pytest.fixture
@@ -94,7 +94,7 @@ def test_scalar_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     x = 4.2
-    assert ScalarEqualityTester().objects_are_equal(x, x, config)
+    assert run_tester(ScalarEqualityTester(), x, x, config)
 
 
 @pytest.mark.parametrize("example", FLOAT_EQUAL)
@@ -103,7 +103,7 @@ def test_scalar_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = ScalarEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", FLOAT_EQUAL)
@@ -112,7 +112,7 @@ def test_scalar_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = ScalarEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -123,7 +123,7 @@ def test_scalar_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = ScalarEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", FLOAT_EQUAL)
@@ -133,7 +133,7 @@ def test_scalar_equality_tester_objects_are_equal_true_explaining_does_not_log(
 ) -> None:
     config.reports = []
     tester = ScalarEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -143,9 +143,7 @@ def test_scalar_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = ScalarEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", FLOAT_NOT_EQUAL)
@@ -154,7 +152,7 @@ def test_scalar_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = ScalarEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -165,9 +163,7 @@ def test_scalar_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = ScalarEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", FLOAT_NOT_EQUAL)
@@ -177,7 +173,7 @@ def test_scalar_equality_tester_objects_are_equal_false_explaining_reports(
 ) -> None:
     config.reports = []
     tester = ScalarEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[-1].startswith(example.expected_message)
 
 
@@ -186,14 +182,7 @@ def test_scalar_equality_tester_objects_are_equal_nan(
     config: EqualityConfig, equal_nan: bool
 ) -> None:
     config.equal_nan = equal_nan
-    assert (
-        ScalarEqualityTester().objects_are_equal(
-            actual=float("nan"),
-            expected=float("nan"),
-            config=config,
-        )
-        == equal_nan
-    )
+    assert run_tester(ScalarEqualityTester(), float("nan"), float("nan"), config) == equal_nan
 
 
 @pytest.mark.parametrize("example", SCALAR_EQUAL_TOLERANCE)
@@ -202,9 +191,7 @@ def test_scalar_equality_tester_objects_are_equal_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    assert ScalarEqualityTester().objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert run_tester(ScalarEqualityTester(), example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", SCALAR_NOT_EQUAL_TOLERANCE)
@@ -213,13 +200,38 @@ def test_scalar_equality_tester_objects_are_equal_false_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    assert not ScalarEqualityTester().objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(ScalarEqualityTester(), example.actual, example.expected, config)
 
 
 def test_scalar_equality_tester_objects_are_equal_true_bool_tolerance(
     config: EqualityConfig,
 ) -> None:
     config.atol = 1.0
-    assert ScalarEqualityTester().objects_are_equal(True, True, config)
+    assert run_tester(ScalarEqualityTester(), True, True, config)
+
+
+def test_scalar_equality_tester_objects_are_equal_complex_nan_parts() -> None:
+    assert run_tester(
+        ScalarEqualityTester(),
+        complex(float("nan"), 1),
+        complex(float("nan"), 1),
+        EqualityConfig(equal_nan=True),
+    )
+
+
+def test_scalar_equality_tester_objects_are_equal_complex_nan_real_parts_different_imag() -> None:
+    assert not run_tester(
+        ScalarEqualityTester(),
+        complex(float("nan"), 1),
+        complex(float("nan"), 2),
+        EqualityConfig(equal_nan=True),
+    )
+
+
+def test_scalar_equality_tester_objects_are_equal_complex_nan_imag_parts_different_real() -> None:
+    assert not run_tester(
+        ScalarEqualityTester(),
+        complex(1, float("nan")),
+        complex(2, float("nan")),
+        EqualityConfig(equal_nan=True),
+    )

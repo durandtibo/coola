@@ -24,8 +24,8 @@ def _reports() -> list[tuple[str, tuple[object, ...]]]:
     return config.reports or []
 
 
-def test_reports_the_innermost_path_first() -> None:
-    assert [path for _, path in _reports()] == [(), (2,), ("a",), ()]
+def test_reports_one_difference_with_the_whole_path() -> None:
+    assert [path for _, path in _reports()] == [("a", 2)]
 
 
 def test_compare_reports_the_reason_of_the_innermost_difference() -> None:

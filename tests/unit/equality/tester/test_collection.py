@@ -1,21 +1,24 @@
 from __future__ import annotations
 
 from collections import OrderedDict, deque
+from types import MappingProxyType
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
 
 from coola.equality.config import EqualityConfig
+from coola.equality.engine import Engine
 from coola.equality.tester import (
     MappingEqualityTester,
     OrderedMappingEqualityTester,
     SequenceEqualityTester,
     SetEqualityTester,
+    get_default_registry,
 )
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
-from tests.unit.equality.utils import ExamplePair, messages
+from tests.unit.equality.utils import ExamplePair, messages, run_tester
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, Set as AbstractSet
@@ -57,7 +60,7 @@ MAPPING_NOT_EQUAL = [
         ExamplePair(
             actual={"a": 1, "b": 2},
             expected={"a": 1, "b": 3},
-            expected_message="mappings have different values for key",
+            expected_message="numbers are different:",
         ),
         id="different values",
     ),
@@ -65,7 +68,7 @@ MAPPING_NOT_EQUAL = [
         ExamplePair(
             actual={"a": 1, "b": {"k": 1}},
             expected={"a": 1, "b": {"k": 2}},
-            expected_message="mappings have different values for key",
+            expected_message="numbers are different:",
         ),
         id="different values - nested",
     ),
@@ -73,7 +76,7 @@ MAPPING_NOT_EQUAL = [
         ExamplePair(
             actual={"a": 1, "b": 2},
             expected={"a": 1, "b": float("nan")},
-            expected_message="mappings have different values for key",
+            expected_message="objects have different types:",
         ),
         id="different values - nan",
     ),
@@ -81,7 +84,7 @@ MAPPING_NOT_EQUAL = [
         ExamplePair(
             actual={"a": 1, "b": 2},
             expected={"a": 1, "b": 2, "c": 3},
-            expected_message="objects have different lengths:",
+            expected_message="mappings have different keys:",
         ),
         id="different number of items",
     ),
@@ -154,7 +157,7 @@ SEQUENCE_NOT_EQUAL = [
         ExamplePair(
             actual=[1, 2, 3],
             expected=[1, 2, 4],
-            expected_message="sequences have different values at index",
+            expected_message="numbers are different:",
         ),
         id="different values",
     ),
@@ -162,7 +165,7 @@ SEQUENCE_NOT_EQUAL = [
         ExamplePair(
             actual=[1, 2, [3, 4, 5]],
             expected=[1, 2, [3, 4, 6]],
-            expected_message="sequences have different values at index",
+            expected_message="numbers are different:",
         ),
         id="different values - nested",
     ),
@@ -170,7 +173,7 @@ SEQUENCE_NOT_EQUAL = [
         ExamplePair(
             actual=[1, 2, 3],
             expected=[1, 2, float("nan")],
-            expected_message="sequences have different values at index",
+            expected_message="objects have different types:",
         ),
         id="different values - nan",
     ),
@@ -178,7 +181,7 @@ SEQUENCE_NOT_EQUAL = [
         ExamplePair(
             actual=[1, 2, 3],
             expected=[1, 2],
-            expected_message="objects have different lengths:",
+            expected_message="sequences have different lengths:",
         ),
         id="different lengths",
     ),
@@ -257,7 +260,7 @@ def test_mapping_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     obj = {"a": 1, "b": 2}
-    assert MappingEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(MappingEqualityTester(), obj, obj, config)
 
 
 @pytest.mark.parametrize("example", MAPPING_EQUAL)
@@ -266,7 +269,7 @@ def test_mapping_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = MappingEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", MAPPING_EQUAL)
@@ -275,7 +278,7 @@ def test_mapping_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = MappingEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -286,7 +289,7 @@ def test_mapping_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = MappingEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", MAPPING_EQUAL)
@@ -296,7 +299,7 @@ def test_mapping_equality_tester_objects_are_equal_true_explaining_does_not_log(
 ) -> None:
     config.reports = []
     tester = MappingEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -306,9 +309,7 @@ def test_mapping_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = MappingEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", MAPPING_NOT_EQUAL)
@@ -317,7 +318,7 @@ def test_mapping_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = MappingEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -328,9 +329,7 @@ def test_mapping_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = MappingEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", MAPPING_NOT_EQUAL)
@@ -340,8 +339,8 @@ def test_mapping_equality_tester_objects_are_equal_false_explaining_reports(
 ) -> None:
     config.reports = []
     tester = MappingEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    run_tester(tester, example.actual, example.expected, config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @pytest.mark.parametrize("equal_nan", [False, True])
@@ -350,10 +349,11 @@ def test_mapping_equality_tester_objects_are_equal_nan(
 ) -> None:
     config.equal_nan = equal_nan
     assert (
-        MappingEqualityTester().objects_are_equal(
-            actual={"a": float("nan"), "b": float("nan")},
-            expected={"a": float("nan"), "b": float("nan")},
-            config=config,
+        run_tester(
+            MappingEqualityTester(),
+            {"a": float("nan"), "b": float("nan")},
+            {"a": float("nan"), "b": float("nan")},
+            config,
         )
         == equal_nan
     )
@@ -365,9 +365,7 @@ def test_mapping_equality_tester_objects_are_equal_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    assert MappingEqualityTester().objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert run_tester(MappingEqualityTester(), example.actual, example.expected, config)
 
 
 @numpy_available
@@ -384,7 +382,7 @@ def test_mapping_equality_tester_objects_are_equal_true_tolerance(
 def test_mapping_equality_tester_objects_are_equal_true_numpy(
     actual: Mapping, expected: Mapping, config: EqualityConfig
 ) -> None:
-    assert MappingEqualityTester().objects_are_equal(actual, expected, config)
+    assert run_tester(MappingEqualityTester(), actual, expected, config)
 
 
 @numpy_available
@@ -401,7 +399,7 @@ def test_mapping_equality_tester_objects_are_equal_true_numpy(
 def test_mapping_equality_tester_objects_are_equal_false_numpy(
     actual: Mapping, expected: Mapping, config: EqualityConfig
 ) -> None:
-    assert not MappingEqualityTester().objects_are_equal(actual, expected, config)
+    assert not run_tester(MappingEqualityTester(), actual, expected, config)
 
 
 ##################################################
@@ -428,8 +426,8 @@ def test_ordered_mapping_equality_tester_equal_false_different_type() -> None:
 def test_ordered_mapping_equality_tester_objects_are_equal_true_same_order(
     config: EqualityConfig,
 ) -> None:
-    assert OrderedMappingEqualityTester().objects_are_equal(
-        OrderedDict(a=1, b=2), OrderedDict(a=1, b=2), config
+    assert run_tester(
+        OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), OrderedDict(a=1, b=2), config
     )
 
 
@@ -437,14 +435,14 @@ def test_ordered_mapping_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     obj = OrderedDict(a=1, b=2)
-    assert OrderedMappingEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(OrderedMappingEqualityTester(), obj, obj, config)
 
 
 def test_ordered_mapping_equality_tester_objects_are_equal_false_different_order(
     config: EqualityConfig,
 ) -> None:
-    assert not OrderedMappingEqualityTester().objects_are_equal(
-        OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config
+    assert not run_tester(
+        OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config
     )
 
 
@@ -452,8 +450,8 @@ def test_ordered_mapping_equality_tester_objects_are_equal_false_different_order
     config: EqualityConfig,
 ) -> None:
     config.reports = []
-    assert not OrderedMappingEqualityTester().objects_are_equal(
-        OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config
+    assert not run_tester(
+        OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config
     )
 
 
@@ -461,17 +459,15 @@ def test_ordered_mapping_equality_tester_objects_are_equal_false_different_order
     config: EqualityConfig,
 ) -> None:
     config.reports = []
-    OrderedMappingEqualityTester().objects_are_equal(
-        OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config
-    )
+    run_tester(OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), config)
     assert messages(config)[0].startswith("mappings have the same keys in a different order:")
 
 
 def test_ordered_mapping_equality_tester_objects_are_equal_false_different_values(
     config: EqualityConfig,
 ) -> None:
-    assert not OrderedMappingEqualityTester().objects_are_equal(
-        OrderedDict(a=1, b=2), OrderedDict(a=1, b=3), config
+    assert not run_tester(
+        OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), OrderedDict(a=1, b=3), config
     )
 
 
@@ -479,8 +475,8 @@ def test_ordered_mapping_equality_tester_objects_are_equal_false_different_keys(
     config: EqualityConfig,
 ) -> None:
     config.reports = []
-    assert not OrderedMappingEqualityTester().objects_are_equal(
-        OrderedDict(a=1, b=2), OrderedDict(a=1, c=2), config
+    assert not run_tester(
+        OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), OrderedDict(a=1, c=2), config
     )
 
 
@@ -488,17 +484,15 @@ def test_ordered_mapping_equality_tester_objects_are_equal_false_different_keys_
     config: EqualityConfig,
 ) -> None:
     config.reports = []
-    OrderedMappingEqualityTester().objects_are_equal(
-        OrderedDict(a=1, b=2), OrderedDict(a=1, c=2), config
-    )
+    run_tester(OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), OrderedDict(a=1, c=2), config)
     assert messages(config)[0].startswith("mappings have different keys:")
 
 
 def test_ordered_mapping_equality_tester_objects_are_equal_false_different_type(
     config: EqualityConfig,
 ) -> None:
-    assert not OrderedMappingEqualityTester().objects_are_equal(
-        OrderedDict(a=1, b=2), {"a": 1, "b": 2}, config
+    assert not run_tester(
+        OrderedMappingEqualityTester(), OrderedDict(a=1, b=2), {"a": 1, "b": 2}, config
     )
 
 
@@ -533,7 +527,7 @@ def test_sequence_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     obj = [1, 2, 3]
-    assert SequenceEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(SequenceEqualityTester(), obj, obj, config)
 
 
 @pytest.mark.parametrize("example", SEQUENCE_EQUAL)
@@ -542,7 +536,7 @@ def test_sequence_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = SequenceEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", SEQUENCE_EQUAL)
@@ -551,7 +545,7 @@ def test_sequence_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = SequenceEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -562,7 +556,7 @@ def test_sequence_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = SequenceEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", SEQUENCE_EQUAL)
@@ -572,7 +566,7 @@ def test_sequence_equality_tester_objects_are_equal_true_explaining_does_not_log
 ) -> None:
     config.reports = []
     tester = SequenceEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -582,9 +576,7 @@ def test_sequence_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = SequenceEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", SEQUENCE_NOT_EQUAL)
@@ -593,7 +585,7 @@ def test_sequence_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = SequenceEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -604,9 +596,7 @@ def test_sequence_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = SequenceEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", SEQUENCE_NOT_EQUAL)
@@ -616,8 +606,8 @@ def test_sequence_equality_tester_objects_are_equal_false_explaining_reports(
 ) -> None:
     config.reports = []
     tester = SequenceEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    run_tester(tester, example.actual, example.expected, config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @pytest.mark.parametrize("equal_nan", [False, True])
@@ -626,10 +616,11 @@ def test_sequence_equality_tester_objects_are_equal_nan(
 ) -> None:
     config.equal_nan = equal_nan
     assert (
-        SequenceEqualityTester().objects_are_equal(
-            actual=[float("nan"), 2, float("nan")],
-            expected=[float("nan"), 2, float("nan")],
-            config=config,
+        run_tester(
+            SequenceEqualityTester(),
+            [float("nan"), 2, float("nan")],
+            [float("nan"), 2, float("nan")],
+            config,
         )
         == equal_nan
     )
@@ -641,9 +632,7 @@ def test_sequence_equality_tester_objects_are_equal_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    assert SequenceEqualityTester().objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert run_tester(SequenceEqualityTester(), example.actual, example.expected, config)
 
 
 @numpy_available
@@ -658,7 +647,7 @@ def test_sequence_equality_tester_objects_are_equal_true_tolerance(
 def test_sequence_equality_tester_objects_are_equal_true_numpy(
     actual: Sequence, expected: Sequence, config: EqualityConfig
 ) -> None:
-    assert SequenceEqualityTester().objects_are_equal(actual, expected, config)
+    assert run_tester(SequenceEqualityTester(), actual, expected, config)
 
 
 @numpy_available
@@ -672,7 +661,7 @@ def test_sequence_equality_tester_objects_are_equal_true_numpy(
 def test_sequence_equality_tester_objects_are_equal_false_numpy(
     actual: Sequence, expected: Sequence, config: EqualityConfig
 ) -> None:
-    assert not SequenceEqualityTester().objects_are_equal(actual, expected, config)
+    assert not run_tester(SequenceEqualityTester(), actual, expected, config)
 
 
 ######################################
@@ -694,7 +683,7 @@ def test_set_equality_tester_equal_false_different_type() -> None:
 
 def test_set_equality_tester_objects_are_equal_true_same_object(config: EqualityConfig) -> None:
     obj = {1, 2}
-    assert SetEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(SetEqualityTester(), obj, obj, config)
 
 
 @pytest.mark.parametrize(
@@ -709,7 +698,7 @@ def test_set_equality_tester_objects_are_equal_true_same_object(config: Equality
 def test_set_equality_tester_objects_are_equal_true(
     config: EqualityConfig, actual: AbstractSet, expected: AbstractSet
 ) -> None:
-    assert SetEqualityTester().objects_are_equal(actual, expected, config)
+    assert run_tester(SetEqualityTester(), actual, expected, config)
 
 
 @pytest.mark.parametrize(
@@ -724,21 +713,90 @@ def test_set_equality_tester_objects_are_equal_true(
 def test_set_equality_tester_objects_are_equal_false(
     config: EqualityConfig, actual: AbstractSet, expected: AbstractSet
 ) -> None:
-    assert not SetEqualityTester().objects_are_equal(actual, expected, config)
+    assert not run_tester(SetEqualityTester(), actual, expected, config)
 
 
 def test_set_equality_tester_objects_are_equal_equal_nan() -> None:
     config = EqualityConfig(equal_nan=True)
-    assert SetEqualityTester().objects_are_equal({float("nan")}, {float("nan")}, config)
+    assert run_tester(SetEqualityTester(), {float("nan")}, {float("nan")}, config)
 
 
 def test_set_equality_tester_objects_are_equal_true_does_not_log() -> None:
     config = EqualityConfig(reports=[])
-    SetEqualityTester().objects_are_equal({1}, {1}, config)
+    run_tester(SetEqualityTester(), {1}, {1}, config)
     assert not messages(config)
 
 
 def test_set_equality_tester_objects_are_equal_false_different_type_logs() -> None:
     config = EqualityConfig(reports=[])
-    SetEqualityTester().objects_are_equal({1}, frozenset({1}), config)
+    run_tester(SetEqualityTester(), {1}, frozenset({1}), config)
     assert "different types" in "\n".join(messages(config))
+
+
+###################################################
+#     Tests for the fast path of the sequences    #
+###################################################
+
+
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [([False], [0]), ((2, False), (2, 0)), ([1, 2], [True, 2]), ([1, "a"], [1.0, "a"])],
+)
+def test_sequence_equality_tester_exact_scalars_with_different_item_types(
+    config: EqualityConfig, actual: Sequence, expected: Sequence
+) -> None:
+    # ``False == 0`` and ``1 == 1.0``, but the types of the items must match.
+    assert not run_tester(SequenceEqualityTester(), actual, expected, config)
+
+
+def test_sequence_equality_tester_exact_scalars_equal(config: EqualityConfig) -> None:
+    assert run_tester(SequenceEqualityTester(), [1, "a", None, True], [1, "a", None, True], config)
+
+
+def test_sequence_equality_tester_exact_scalars_different(config: EqualityConfig) -> None:
+    assert not run_tester(SequenceEqualityTester(), [1, 2, 3], [1, 2, 4], config)
+
+
+def test_sequence_equality_tester_exact_scalars_different_with_tolerance(
+    config: EqualityConfig,
+) -> None:
+    config.atol = 1.0
+    assert run_tester(SequenceEqualityTester(), [1, 2, 3], [1, 2, 4], config)
+
+
+def test_sequence_equality_tester_exact_scalars_different_explaining_path(
+    config: EqualityConfig,
+) -> None:
+    config.reports = []
+    run_tester(SequenceEqualityTester(), [1, 2, 3], [1, 2, 4], config)
+    assert config.reports[-1][1] == (2,)
+
+
+def test_sequence_equality_tester_exact_scalars_different_does_not_visit_the_items() -> None:
+    config = EqualityConfig()
+    tester = SequenceEqualityTester()
+    registry = get_default_registry().copy()
+    result = tester.objects_are_equal([1, 2, 3], [1, 2, 4], Engine(registry, config))
+    assert result is False
+
+
+def test_mapping_equality_tester_string_keys_in_a_different_order(config: EqualityConfig) -> None:
+    assert run_tester(MappingEqualityTester(), {"a": 1, "b": 2}, {"b": 2, "a": 1}, config)
+
+
+def test_mapping_equality_tester_integer_keys(config: EqualityConfig) -> None:
+    assert run_tester(MappingEqualityTester(), {1: "a", 2: "b"}, {2: "b", 1: "a"}, config)
+
+
+def test_mapping_equality_tester_integer_key_against_boolean_key(config: EqualityConfig) -> None:
+    assert not run_tester(MappingEqualityTester(), {1: "a"}, {True: "a"}, config)
+
+
+def test_mapping_equality_tester_tuple_keys(config: EqualityConfig) -> None:
+    assert run_tester(MappingEqualityTester(), {(1, 2): "a"}, {(1, 2): "a"}, config)
+
+
+def test_mapping_equality_tester_mapping_proxy_keys(config: EqualityConfig) -> None:
+    assert run_tester(
+        MappingEqualityTester(), MappingProxyType({"a": 1}), MappingProxyType({"a": 1}), config
+    )

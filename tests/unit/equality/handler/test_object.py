@@ -7,9 +7,6 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
-    FalseHandler,
-    ObjectSameAttributesHandler,
-    TrueHandler,
     get_object_attributes,
 )
 from coola.equality.tester import (
@@ -18,7 +15,7 @@ from coola.equality.tester import (
     ObjectAttributesEqualityTester,
     ScalarEqualityTester,
 )
-from tests.unit.equality.utils import messages
+from tests.unit.equality.utils import messages, run_tester
 
 
 class Point:
@@ -128,134 +125,6 @@ def test_get_object_attributes_does_not_return_the_dict_of_the_object() -> None:
     assert not hasattr(obj, "z")
 
 
-###############################################
-#     Tests for ObjectSameAttributesHandler  #
-###############################################
-
-
-def test_object_same_attributes_handler_equal_true() -> None:
-    assert ObjectSameAttributesHandler().equal(ObjectSameAttributesHandler())
-
-
-def test_object_same_attributes_handler_equal_false_different_type() -> None:
-    assert not ObjectSameAttributesHandler().equal(TrueHandler())
-
-
-def test_object_same_attributes_handler_equal_false_different_next() -> None:
-    assert not ObjectSameAttributesHandler(TrueHandler()).equal(ObjectSameAttributesHandler())
-
-
-def test_object_same_attributes_handler_str() -> None:
-    assert str(ObjectSameAttributesHandler()) == "ObjectSameAttributesHandler()"
-
-
-@pytest.mark.parametrize(
-    ("actual", "expected"),
-    [
-        (Point(1, 2), Point(1, 2)),
-        (Point([1, 2]), Point([1, 2])),
-        (Slotted(1, 2), Slotted(1, 2)),
-        (SlottedChild(1, 2, 3), SlottedChild(1, 2, 3)),
-        (ValueError("a"), ValueError("a")),
-        (functools.partial(print, 1), functools.partial(print, 1)),
-        (object(), object()),
-    ],
-)
-def test_object_same_attributes_handler_handle_true(
-    config: EqualityConfig, actual: Any, expected: Any
-) -> None:
-    assert ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
-
-
-@pytest.mark.parametrize(
-    ("actual", "expected"),
-    [
-        (Point(1, 2), Point(1, 3)),
-        (Point([1, 2]), Point([1, 3])),
-        (Slotted(1, 2), Slotted(1, 3)),
-        (SlottedChild(1, 2, 3), SlottedChild(1, 2, 4)),
-        (ValueError("a"), ValueError("b")),
-        (functools.partial(print, 1), functools.partial(print, 2)),
-        (functools.partial(print, 1), functools.partial(len, 1)),
-    ],
-)
-def test_object_same_attributes_handler_handle_false(
-    config: EqualityConfig, actual: Any, expected: Any
-) -> None:
-    assert not ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(
-        actual, expected, config
-    )
-
-
-def test_object_same_attributes_handler_handle_different_attribute_names(
-    config: EqualityConfig,
-) -> None:
-    other = Point(1, 2)
-    other.z = 3  # ty: ignore[unresolved-attribute]
-    assert not ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(
-        Point(1, 2), other, config
-    )
-
-
-def test_object_same_attributes_handler_handle_calls_next(config: EqualityConfig) -> None:
-    assert not ObjectSameAttributesHandler(next_handler=FalseHandler()).handle(
-        Point(1), Point(1), config
-    )
-
-
-def test_object_same_attributes_handler_handle_nan_different_by_default(
-    config: EqualityConfig,
-) -> None:
-    assert not ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(
-        Point(float("nan")), Point(float("nan")), config
-    )
-
-
-def test_object_same_attributes_handler_handle_equal_nan() -> None:
-    config = EqualityConfig(equal_nan=True)
-    assert ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(
-        Point(float("nan")), Point(float("nan")), config
-    )
-
-
-def test_object_same_attributes_handler_handle_tolerance() -> None:
-    config = EqualityConfig(atol=1e-6)
-    assert ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(
-        Point(1.0), Point(1.0 + 1e-9), config
-    )
-
-
-def test_object_same_attributes_handler_handle_cycle() -> None:
-    actual, expected = Node(), Node()
-    actual.child = actual
-    expected.child = expected
-    registry = EqualityTesterRegistry(
-        {object: DefaultEqualityTester(), Node: ObjectAttributesEqualityTester()}
-    )
-    config = EqualityConfig(registry=registry)
-    assert ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
-
-
-def test_object_same_attributes_handler_handle_explaining_reports_the_attribute() -> None:
-    config = EqualityConfig(reports=[])
-    ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(Point(1, 2), Point(1, 3), config)
-    assert messages(config)[-1] == "objects have different y: 2 vs 3"
-
-
-def test_object_same_attributes_handler_handle_explaining_reports_the_attribute_path() -> None:
-    config = EqualityConfig(reports=[])
-    ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(Point(1, 2), Point(1, 3), config)
-    assert config.reports[-1] == ("objects have different y: 2 vs 3", ("y",))
-
-
-def test_object_same_attributes_handler_handle_explaining_different_names() -> None:
-    other = Point(1, 2)
-    other.z = 3  # ty: ignore[unresolved-attribute]
-    config = EqualityConfig(reports=[])
-    ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(Point(1, 2), other, config)
-    assert messages(config) == ["objects have different attributes: ['x', 'y'] vs ['x', 'y', 'z']"]
-
-
 #####################################################
 #     Tests for ObjectAttributesEqualityTester     #
 #####################################################
@@ -289,22 +158,40 @@ def test_object_attributes_equality_tester_equal_false_different_type() -> None:
 
 def test_object_attributes_equality_tester_same_object(config: EqualityConfig) -> None:
     obj = Point(1)
-    assert ObjectAttributesEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(ObjectAttributesEqualityTester(), obj, obj, config)
 
 
 def test_object_attributes_equality_tester_equal_attributes(config: EqualityConfig) -> None:
-    assert ObjectAttributesEqualityTester().objects_are_equal(Point(1), Point(1), config)
+    assert run_tester(ObjectAttributesEqualityTester(), Point(1), Point(1), config)
 
 
 def test_object_attributes_equality_tester_different_attributes(config: EqualityConfig) -> None:
-    assert not ObjectAttributesEqualityTester().objects_are_equal(Point(1), Point(2), config)
+    assert not run_tester(ObjectAttributesEqualityTester(), Point(1), Point(2), config)
 
 
 def test_object_attributes_equality_tester_different_types(config: EqualityConfig) -> None:
-    assert not ObjectAttributesEqualityTester().objects_are_equal(Point(1), Slotted(1), config)
+    assert not run_tester(ObjectAttributesEqualityTester(), Point(1), Slotted(1), config)
 
 
 def test_object_attributes_equality_tester_different_types_logs() -> None:
     config = EqualityConfig(reports=[])
-    ObjectAttributesEqualityTester().objects_are_equal(Point(1), Slotted(1), config)
+    run_tester(ObjectAttributesEqualityTester(), Point(1), Slotted(1), config)
     assert "different types" in "\n".join(messages(config))
+
+
+def test_object_attributes_equality_tester_different_attribute_names(
+    config: EqualityConfig,
+) -> None:
+    other = Point(1, 2)
+    other.z = 3  # ty: ignore[unresolved-attribute]
+    assert not run_tester(ObjectAttributesEqualityTester(), Point(1, 2), other, config)
+
+
+def test_object_attributes_equality_tester_different_attribute_names_reason(
+    config: EqualityConfig,
+) -> None:
+    other = Point(1, 2)
+    other.z = 3  # ty: ignore[unresolved-attribute]
+    config.reports = []
+    run_tester(ObjectAttributesEqualityTester(), Point(1, 2), other, config)
+    assert messages(config) == ["objects have different attributes: ['x', 'y'] vs ['x', 'y', 'z']"]

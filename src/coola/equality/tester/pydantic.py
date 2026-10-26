@@ -12,15 +12,8 @@ __all__ = ["PydanticModelEqualityTester"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler import (
-    PydanticModelSameFieldsHandler,
-    SameAttributeHandler,
-    SameObjectHandler,
-    SameTypeHandler,
-    TrueHandler,
-    create_chain,
-)
-from coola.equality.tester.chain import BaseChainEqualityTester
+from coola.equality.handler.utils import AttributeName
+from coola.equality.tester.base import BaseEngineEqualityTester
 from coola.utils.imports import check_pydantic, is_pydantic_available
 
 if TYPE_CHECKING or is_pydantic_available():
@@ -29,55 +22,55 @@ else:  # pragma: no cover
     from coola.utils.fallback.pydantic import pydantic
 
 if TYPE_CHECKING:
-    from coola.equality.handler import BaseEqualityHandler
+    from collections.abc import Iterator
+
+    from coola.equality.engine import Engine
     from coola.equality.tester.base import BaseEqualityTester
 
 
-class PydanticModelEqualityTester(BaseChainEqualityTester[pydantic.BaseModel]):
+class PydanticModelEqualityTester(BaseEngineEqualityTester[pydantic.BaseModel]):
     r"""Implement an equality tester for ``pydantic.BaseModel``.
 
     The two models must have the same type, the same field values and
     the same extra values. The values are compared with the registry,
     so they support the tolerance and ``equal_nan``. The private
     attributes are not compared, as the fields are what the model
-    validates and serializes. The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both have the same type
-    3. PydanticModelSameFieldsHandler: Compare the values of the declared
-       fields (the cached properties are ignored)
-    4. SameAttributeHandler("model_extra"): Compare the extra values
-    5. TrueHandler: Return True if all checks pass
+    validates and serializes. The other entries of the instance
+    ``__dict__`` (for example the value of a ``functools.cached_property``
+    that was read on one model only) are ignored too. The location of a
+    difference is the name of the field, or ``model_extra``.
 
     Example:
         ```pycon
         >>> from pydantic import BaseModel
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import PydanticModelEqualityTester
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import PydanticModelEqualityTester, get_default_registry
         >>> class Point(BaseModel):
         ...     x: float
         ...     y: float
         ...
-        >>> config = EqualityConfig()
-        >>> tester = PydanticModelEqualityTester()
-        >>> tester.objects_are_equal(Point(x=1.0, y=2.0), Point(x=1.0, y=2.0), config)
+        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> engine.run(Point(x=1.0, y=2.0), Point(x=1.0, y=2.0))
         True
-        >>> tester.objects_are_equal(Point(x=1.0, y=2.0), Point(x=1.0, y=3.0), config)
+        >>> engine.run(Point(x=1.0, y=2.0), Point(x=1.0, y=3.0))
         False
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
+    def __init__(self) -> None:
         check_pydantic()
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(
-            SameObjectHandler(),
-            SameTypeHandler(),
-            PydanticModelSameFieldsHandler(),
-            SameAttributeHandler(name="model_extra"),
-            TrueHandler(),
+    def objects_are_equal(
+        self, actual: pydantic.BaseModel, expected: pydantic.BaseModel, _ctx: Engine
+    ) -> bool | Iterator[tuple[object, object, object]]:
+        # ``type(actual).model_fields``: the access from an instance is deprecated.
+        yield from (
+            (getattr(actual, name), getattr(expected, name), AttributeName(name))
+            for name in type(actual).model_fields
         )
+        yield actual.model_extra, expected.model_extra, AttributeName("model_extra")
 
 
 def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:

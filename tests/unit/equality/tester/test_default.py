@@ -7,7 +7,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import DefaultEqualityTester
-from tests.unit.equality.utils import ExamplePair, messages
+from tests.unit.equality.utils import ExamplePair, messages, run_tester
 
 
 @pytest.fixture
@@ -110,7 +110,7 @@ def test_default_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     obj = Mock()
-    assert DefaultEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(DefaultEqualityTester(), obj, obj, config)
 
 
 @pytest.mark.parametrize("example", DEFAULT_EQUAL)
@@ -119,7 +119,7 @@ def test_default_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = DefaultEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", DEFAULT_EQUAL)
@@ -128,7 +128,7 @@ def test_default_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = DefaultEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -139,7 +139,7 @@ def test_default_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = DefaultEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", DEFAULT_EQUAL)
@@ -149,7 +149,7 @@ def test_default_equality_tester_objects_are_equal_true_explaining_does_not_log(
 ) -> None:
     config.reports = []
     tester = DefaultEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -171,7 +171,7 @@ def test_default_equality_tester_objects_are_equal_false_scalar(
     config: EqualityConfig,
 ) -> None:
     tester = DefaultEqualityTester()
-    assert not tester.objects_are_equal(actual, expected, config)
+    assert not run_tester(tester, actual, expected, config)
 
 
 @pytest.mark.parametrize(
@@ -192,7 +192,7 @@ def test_default_equality_tester_objects_are_equal_false_scalar_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = DefaultEqualityTester()
-    tester.objects_are_equal(actual, expected, config)
+    run_tester(tester, actual, expected, config)
     assert not messages(config)
 
 
@@ -201,7 +201,7 @@ def test_default_equality_tester_objects_are_equal_different_value_explaining(
 ) -> None:
     config.reports = []
     tester = DefaultEqualityTester()
-    assert not tester.objects_are_equal(actual=1, expected=2, config=config)
+    assert not run_tester(tester, 1, 2, config)
 
 
 def test_default_equality_tester_objects_are_equal_different_value_explaining_reports(
@@ -209,20 +209,20 @@ def test_default_equality_tester_objects_are_equal_different_value_explaining_re
 ) -> None:
     config.reports = []
     tester = DefaultEqualityTester()
-    tester.objects_are_equal(actual=1, expected=2, config=config)
+    run_tester(tester, 1, 2, config)
     assert messages(config)[0].startswith("objects are different:")
 
 
 def test_default_equality_tester_objects_are_equal_different_type(config: EqualityConfig) -> None:
     tester = DefaultEqualityTester()
-    assert not tester.objects_are_equal(actual=[], expected=(), config=config)
+    assert not run_tester(tester, [], (), config)
 
 
 def test_default_equality_tester_objects_are_equal_different_type_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = DefaultEqualityTester()
-    tester.objects_are_equal(actual=[], expected=(), config=config)
+    run_tester(tester, [], (), config)
     assert not messages(config)
 
 
@@ -231,7 +231,7 @@ def test_default_equality_tester_objects_are_equal_different_type_explaining(
 ) -> None:
     config.reports = []
     tester = DefaultEqualityTester()
-    assert not tester.objects_are_equal(actual=[], expected=(), config=config)
+    assert not run_tester(tester, [], (), config)
 
 
 def test_default_equality_tester_objects_are_equal_different_type_explaining_reports(
@@ -239,7 +239,7 @@ def test_default_equality_tester_objects_are_equal_different_type_explaining_rep
 ) -> None:
     config.reports = []
     tester = DefaultEqualityTester()
-    tester.objects_are_equal(actual=[], expected=(), config=config)
+    run_tester(tester, [], (), config)
     assert messages(config)[0].startswith("objects have different types:")
 
 
@@ -249,9 +249,7 @@ def test_default_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = DefaultEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL + DEFAULT_SPECIFIC_NOT_EQUAL)
@@ -260,7 +258,7 @@ def test_default_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = DefaultEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -271,9 +269,7 @@ def test_default_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = DefaultEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL + DEFAULT_SPECIFIC_NOT_EQUAL)
@@ -283,5 +279,5 @@ def test_default_equality_tester_objects_are_equal_false_explaining_reports(
 ) -> None:
     config.reports = []
     tester = DefaultEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert messages(config)[-1].startswith(example.expected_message)

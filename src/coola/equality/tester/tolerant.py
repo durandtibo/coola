@@ -9,39 +9,33 @@ from __future__ import annotations
 
 __all__ = ["TolerantEqualEqualityTester"]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler import (
-    SameObjectHandler,
-    SameTypeHandler,
-    TolerantEqualHandler,
-    create_chain,
-)
-from coola.equality.tester.chain import BaseChainEqualityTester
+from coola.equality.handler.format import format_value_difference
+from coola.equality.tester.base import BaseEngineEqualityTester
+from coola.utils.introspection import supports_methods
 
 if TYPE_CHECKING:
-    from coola.equality.handler import BaseEqualityHandler
+    from coola.equality.engine import Engine
 
 
-class TolerantEqualEqualityTester(BaseChainEqualityTester[object]):
+class TolerantEqualEqualityTester(BaseEngineEqualityTester[object]):
     r"""Implement an equality tester for objects that support both
     ``allclose`` and ``equal`` methods.
 
     This tester is designed for objects that implement both an
     ``allclose(other, rtol, atol, equal_nan)`` method for
     tolerance-based comparison and an ``equal(other, equal_nan)``
-    method for exact comparison. It uses a handler chain that checks:
-
-    1. ``SameObjectHandler``: Check for object identity.
-    2. ``SameTypeHandler``: Verify same type.
-    3. ``TolerantEqualHandler``: Dispatch to ``allclose`` when
-       tolerances are non-zero, otherwise to ``equal``.
+    method for exact comparison. The tester calls ``allclose`` when a
+    tolerance is not zero, otherwise ``equal``. An object that does not
+    have both methods is different.
 
     Example:
         ```pycon
         >>> import math
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import TolerantEqualEqualityTester
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import TolerantEqualEqualityTester, get_default_registry
         >>> class MyFloat:
         ...     def __init__(self, value: float) -> None:
         ...         self._value = float(value)
@@ -64,23 +58,29 @@ class TolerantEqualEqualityTester(BaseChainEqualityTester[object]):
         ...             return True
         ...         return self._value == other._value
         ...
-        >>> config = EqualityConfig()
+        >>> registry = get_default_registry()
         >>> tester = TolerantEqualEqualityTester()
-        >>> tester.objects_are_equal(MyFloat(42), MyFloat(42), config)
+        >>> tester.objects_are_equal(MyFloat(42), MyFloat(42), Engine(registry, EqualityConfig()))
         True
-        >>> tester.objects_are_equal(MyFloat(42), MyFloat(1), config)
+        >>> tester.objects_are_equal(MyFloat(1.0), MyFloat(1.4), Engine(registry, EqualityConfig()))
         False
-        >>> tester.objects_are_equal(MyFloat(float("nan")), MyFloat(float("nan")), config)
-        False
-        >>> config.equal_nan = True
-        >>> tester.objects_are_equal(MyFloat(float("nan")), MyFloat(float("nan")), config)
-        True
-        >>> config.atol = 0.5
-        >>> tester.objects_are_equal(MyFloat(1.0), MyFloat(1.4), config)
+        >>> tester.objects_are_equal(
+        ...     MyFloat(1.0), MyFloat(1.4), Engine(registry, EqualityConfig(atol=0.5))
+        ... )
         True
 
         ```
     """
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(SameObjectHandler(), SameTypeHandler(), TolerantEqualHandler())
+    def objects_are_equal(self, actual: Any, expected: object, ctx: Engine) -> bool:
+        if not supports_methods(actual, "allclose", "equal"):
+            return False
+        if ctx.atol != 0 or ctx.rtol != 0:
+            result = actual.allclose(
+                expected, rtol=ctx.rtol, atol=ctx.atol, equal_nan=ctx.equal_nan
+            )
+        else:
+            result = actual.equal(expected, equal_nan=ctx.equal_nan)
+        return bool(result) or ctx.fail(
+            lambda: format_value_difference(actual=actual, expected=expected)
+        )

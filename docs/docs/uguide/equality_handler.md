@@ -160,7 +160,9 @@ False
 
 ### Value Comparison Handlers
 
-These handlers compare the actual values of objects:
+These handlers compare the actual values of objects. The Python containers, the scalars, the
+dataclasses, the pydantic models and the objects with an `equal` method are compared by testers that
+use the engine and do not have a handler (see the [testers guide](equality_tester.md)):
 
 #### `ObjectEqualHandler`
 
@@ -178,150 +180,9 @@ False
 
 ```
 
-#### `EqualHandler`
-
-Recursively checks if objects are equal using the equality registry:
-
-```pycon
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import EqualHandler
->>> class MyList(list):
-...     def equal(self, other: object) -> bool:
-...         return self == other
->>> config = EqualityConfig()
->>> handler = EqualHandler()
->>> handler.handle(MyList([1, 2, 3]), MyList([1, 2, 3]), config)
-True
->>> handler.handle(MyList([1, 2, 3]), MyList([1, 2, 4]), config)
-False
-
-```
-
-This handler is used to compare nested values recursively.
-
-#### `ScalarEqualHandler`
-
-Compares scalar values (int, float, bool) with optional tolerance:
-
-```pycon
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import ScalarEqualHandler
->>> config = EqualityConfig(atol=0.1)
->>> handler = ScalarEqualHandler()
->>> handler.handle(1.0, 1.05, config)
-True
->>> config2 = EqualityConfig(atol=0.01)
->>> handler.handle(1.0, 1.05, config2)
-False
-
-```
-
-#### `NanEqualHandler`
-
-Special handler for comparing NaN values:
-
-```pycon
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import NanEqualHandler
->>> config = EqualityConfig(equal_nan=True)
->>> handler = NanEqualHandler(FalseHandler())
->>> handler.handle(float("nan"), float("nan"), config)
-True
->>> config2 = EqualityConfig(equal_nan=False)
->>> handler.handle(float("nan"), float("nan"), config2)
-False
-
-```
-
-### Collection Handlers
-
-These handlers work with collections like lists, tuples, and dictionaries:
-
-#### `SequenceSameValuesHandler`
-
-Compares sequence values element by element:
-
-```pycon
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import SequenceSameValuesHandler, create_chain
->>> config = EqualityConfig()
->>> handler = create_chain(SequenceSameValuesHandler(), TrueHandler())
->>> handler.handle([1, 2, 3], [1, 2, 3], config)
-True
->>> handler.handle([1, 2, 3], [1, 2, 4], config)
-False
-
-```
-
-#### `SetSameValuesHandler`
-
-Matches the elements of the two sets by hash and type (so `equal_nan` applies, but the tolerance
-does not):
-
-```pycon
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import SetSameValuesHandler, TrueHandler, create_chain
->>> config = EqualityConfig(equal_nan=True)
->>> handler = create_chain(SetSameValuesHandler(), TrueHandler())
->>> handler.handle({1.0, float("nan")}, {1.0, float("nan")}, config)
-True
->>> handler.handle({1.0, 2.0}, {1.0, 3.0}, config)
-False
-
-```
-
-#### `MappingSameKeysHandler`
-
-Checks if two mappings have the same keys:
-
-```pycon
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import MappingSameKeysHandler, TrueHandler, create_chain
->>> config = EqualityConfig()
->>> handler = create_chain(MappingSameKeysHandler(), TrueHandler())
->>> handler.handle({"a": 1, "b": 2}, {"a": 3, "b": 4}, config)
-True
->>> handler.handle({"a": 1, "b": 2}, {"a": 3, "c": 4}, config)
-False
-
-```
-
-#### `MappingSameKeyOrderHandler`
-
-Checks if two mappings iterate over their keys in the same order. It is used for mappings whose
-order is meaningful, like `OrderedDict`, and it should be placed after `MappingSameKeysHandler`:
-
-```pycon
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import MappingSameKeyOrderHandler, TrueHandler, create_chain
->>> config = EqualityConfig()
->>> handler = create_chain(MappingSameKeyOrderHandler(), TrueHandler())
->>> handler.handle({"a": 1, "b": 2}, {"a": 3, "b": 4}, config)
-True
->>> handler.handle({"a": 1, "b": 2}, {"b": 4, "a": 3}, config)
-False
-
-```
-
-#### `MappingSameValuesHandler`
-
-Compares mapping values for the same keys:
-
-```pycon
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import MappingSameValuesHandler, TrueHandler, create_chain
->>> config = EqualityConfig()
->>> handler = create_chain(MappingSameValuesHandler(), TrueHandler())
->>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 2}, config)
-True
->>> handler.handle({"a": 1, "b": 2}, {"a": 1, "b": 3}, config)
-False
-
-```
-
 ### Type-Specific Handlers
 
-The package includes specialized handlers for specific types:
+The package includes specialized handlers for the types of the optional libraries:
 
 - **`NumpyArrayEqualHandler`**: Compare NumPy arrays
 - **`TorchTensorEqualHandler`**: Compare PyTorch tensors
@@ -336,40 +197,13 @@ The package includes specialized handlers for specific types:
 - **`JaxArrayEqualHandler`**: Compare JAX arrays
 - **`PyarrowEqualHandler`**: Compare PyArrow arrays and tables
 
-#### `ObjectSameAttributesHandler`
-
-Compares the attributes of two objects of the same class (`vars`, slots, the `args` of an exception,
-the content of a `functools.partial`) through the registry. `get_object_attributes` returns the
-attributes of one object:
-
-```pycon
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import ObjectSameAttributesHandler, TrueHandler, create_chain
->>> class Point:
-...     def __init__(self, x):
-...         self.x = x
->>> config = EqualityConfig()
->>> handler = create_chain(ObjectSameAttributesHandler(), TrueHandler())
->>> handler.handle(Point(1), Point(1), config)
-True
->>> handler.handle(Point(1), Point(2), config)
-False
-
-```
-
 ### Handlers for Objects with Methods
 
 These handlers delegate the comparison to the methods of the objects:
 
 - **`SameDataHandler`**: Check that the `data` attributes of the two objects are equal
-- **`EqualNanHandler`**: Call the `equal(other, equal_nan)` method of the first object
 - **`AllCloseNanHandler`**: Call the `allclose` method of the first object, with the tolerances and
   `equal_nan` of the configuration
-- **`TolerantEqualHandler`**: Call `allclose` when `atol` or `rtol` is not zero, otherwise `equal`
-- **`DataclassSameFieldsHandler`**: Compare the fields of two instances of the same dataclass through
-  the registry (the fields with `compare=False` are ignored)
-- **`PydanticModelSameFieldsHandler`**: Compare the declared fields of two instances of the same
-  pydantic model through the registry (the cached properties and the private attributes are ignored)
 
 ### Terminal Handlers
 
@@ -547,7 +381,7 @@ Most equality testers use a similar structure:
 4. **Value comparison**: Type-specific handlers
 5. **Terminal handler**: `TrueHandler` (all checks passed)
 
-Example for sequences:
+Example for a custom type:
 
 ```pycon
 >>> from coola.equality.handler import (
@@ -555,15 +389,13 @@ Example for sequences:
 ...     SameObjectHandler,
 ...     SameTypeHandler,
 ...     SameLengthHandler,
-...     SequenceSameValuesHandler,
-...     TrueHandler,
+...     ObjectEqualHandler,
 ... )
 >>> handler = create_chain(
 ...     SameObjectHandler(),
 ...     SameTypeHandler(),
 ...     SameLengthHandler(),
-...     SequenceSameValuesHandler(),
-...     TrueHandler(),
+...     ObjectEqualHandler(),
 ... )
 
 ```

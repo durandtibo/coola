@@ -7,51 +7,12 @@ from fractions import Fraction
 import pytest
 
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import DifferenceCloseHandler
 from coola.equality.handler.difference import difference_close
-from tests.unit.equality.utils import messages
 
 
 @pytest.fixture
 def config() -> EqualityConfig:
     return EqualityConfig()
-
-
-###########################################
-#     Tests for DifferenceCloseHandler    #
-###########################################
-
-
-def test_difference_close_handler_repr() -> None:
-    assert repr(DifferenceCloseHandler()) == "DifferenceCloseHandler()"
-
-
-def test_difference_close_handler_handle_true(config: EqualityConfig) -> None:
-    assert DifferenceCloseHandler().handle(Decimal("1.0"), Decimal("1.0"), config)
-
-
-def test_difference_close_handler_handle_false(config: EqualityConfig) -> None:
-    assert not DifferenceCloseHandler().handle(Decimal("1.0"), Decimal("2.0"), config)
-
-
-def test_difference_close_handler_handle_atol() -> None:
-    assert DifferenceCloseHandler().handle(
-        Decimal("1.0"), Decimal("1.00001"), EqualityConfig(atol=1e-3)
-    )
-
-
-def test_difference_close_handler_handle_false_explaining(config: EqualityConfig) -> None:
-    config.reports = []
-    DifferenceCloseHandler().handle(Decimal("1.0"), Decimal("2.0"), config)
-    assert messages(config) == ["values are different:\n  actual   : 1.0\n  expected : 2.0"]
-
-
-def test_difference_close_handler_handle_true_explaining_does_not_log(
-    config: EqualityConfig,
-) -> None:
-    config.reports = []
-    DifferenceCloseHandler().handle(Decimal("1.0"), Decimal("1.0"), config)
-    assert not messages(config)
 
 
 ###################################

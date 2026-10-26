@@ -11,6 +11,7 @@ import pytest
 import coola.equality as eq
 from coola.equality import (
     ComparisonResult,
+    Element,
     MaxDepthExceededError,
     assert_objects_allclose,
     assert_objects_equal,
@@ -22,6 +23,7 @@ from coola.equality.handler import AttributeName
 from coola.equality.tester import EqualityTesterRegistry
 from coola.equality.tester.interface import get_default_registry
 from tests.helpers import nest
+from tests.unit.equality.utils import legacy_registry
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -157,7 +159,7 @@ def test_compare_equal(actual: object, expected: object) -> None:
             (),
             "mappings have different keys:\n  missing keys    : ['a']\n  additional keys : ['b']",
         ),
-        ({"a": [1]}, {"a": [1, 2]}, ("a",), "objects have different lengths: 1 vs 2"),
+        ({"a": [1]}, {"a": [1, 2]}, ("a",), "sequences have different lengths: 1 vs 2"),
         (
             [1],
             (1,),
@@ -532,7 +534,7 @@ def test_compare_self_referencing_list() -> None:
 def test_compare_python_recursion_limit_message() -> None:
     data1, data2 = nest([], 2000), nest([], 2000)
     with pytest.raises(RecursionError, match="Python recursion limit"):
-        compare(data1, data2, max_depth=10**6)
+        compare(data1, data2, max_depth=10**6, registry=legacy_registry())
 
 
 class NoRepr:
@@ -579,3 +581,15 @@ def test_compare_dataclass_field_path_in_container() -> None:
 
 def test_attribute_name_format_path_without_root() -> None:
     assert ComparisonResult(False, (AttributeName("x"), 0)).format_path() == ".x[0]"
+
+
+def test_format_path_of_a_set_element() -> None:
+    assert ComparisonResult(False, (Element(2),)).format_path("actual") == "actual{2}"
+
+
+def test_compare_sets_path_is_the_element() -> None:
+    assert compare({1, 2}, {1, 3}).path == (Element(2),)
+
+
+def test_compare_sets_path_format() -> None:
+    assert compare({1, 2}, {1, 3}).format_path("actual") == "actual{2}"

@@ -10,7 +10,7 @@ from coola.equality.tester import PydanticModelEqualityTester
 from coola.equality.tester.pydantic import get_default_testers
 from coola.testing.fixtures import numpy_available, pydantic_available
 from coola.utils.imports import MissingPackageError, is_numpy_available, is_pydantic_available
-from tests.unit.equality.utils import messages
+from tests.unit.equality.utils import messages, run_tester
 
 if is_numpy_available():
     import numpy as np
@@ -81,44 +81,44 @@ def test_pydantic_model_equality_tester_str() -> None:
 @pydantic_available
 def test_pydantic_model_equality_tester_equal(config: EqualityConfig) -> None:
     tester = PydanticModelEqualityTester()
-    assert tester.objects_are_equal(Point(x=1.0, y=2.0), Point(x=1.0, y=2.0), config)
+    assert run_tester(tester, Point(x=1.0, y=2.0), Point(x=1.0, y=2.0), config)
 
 
 @pydantic_available
 def test_pydantic_model_equality_tester_equal_same_object(config: EqualityConfig) -> None:
     tester = PydanticModelEqualityTester()
     point = Point(x=1.0, y=2.0)
-    assert tester.objects_are_equal(point, point, config)
+    assert run_tester(tester, point, point, config)
 
 
 @pydantic_available
 def test_pydantic_model_equality_tester_different_value(config: EqualityConfig) -> None:
     tester = PydanticModelEqualityTester()
-    assert not tester.objects_are_equal(Point(x=1.0, y=2.0), Point(x=1.0, y=3.0), config)
+    assert not run_tester(tester, Point(x=1.0, y=2.0), Point(x=1.0, y=3.0), config)
 
 
 @pydantic_available
 def test_pydantic_model_equality_tester_different_type(config: EqualityConfig) -> None:
     tester = PydanticModelEqualityTester()
-    assert not tester.objects_are_equal(Point(x=1.0, y=2.0), OtherPoint(x=1.0, y=2.0), config)
+    assert not run_tester(tester, Point(x=1.0, y=2.0), OtherPoint(x=1.0, y=2.0), config)
 
 
 @pydantic_available
 def test_pydantic_model_equality_tester_different_extra(config: EqualityConfig) -> None:
     tester = PydanticModelEqualityTester()
-    assert not tester.objects_are_equal(Open(x=1.0, e=1), Open(x=1.0, e=2), config)
+    assert not run_tester(tester, Open(x=1.0, e=1), Open(x=1.0, e=2), config)
 
 
 @pydantic_available
 def test_pydantic_model_equality_tester_equal_extra(config: EqualityConfig) -> None:
     tester = PydanticModelEqualityTester()
-    assert tester.objects_are_equal(Open(x=1.0, e=1), Open(x=1.0, e=1), config)
+    assert run_tester(tester, Open(x=1.0, e=1), Open(x=1.0, e=1), config)
 
 
 @pydantic_available
 def test_pydantic_model_equality_tester_missing_extra(config: EqualityConfig) -> None:
     tester = PydanticModelEqualityTester()
-    assert not tester.objects_are_equal(Open(x=1.0, e=1), Open(x=1.0), config)
+    assert not run_tester(tester, Open(x=1.0, e=1), Open(x=1.0), config)
 
 
 @pydantic_available
@@ -127,7 +127,7 @@ def test_pydantic_model_equality_tester_ignores_private_attributes(
 ) -> None:
     first, second = Secret(x=1.0), Secret(x=1.0)
     second._cache = 5
-    assert PydanticModelEqualityTester().objects_are_equal(first, second, config)
+    assert run_tester(PydanticModelEqualityTester(), first, second, config)
 
 
 @pydantic_available
@@ -135,7 +135,7 @@ def test_pydantic_model_equality_tester_nested(config: EqualityConfig) -> None:
     tester = PydanticModelEqualityTester()
     actual = Nested(point=Point(x=1.0, y=2.0), values=[1.0, 2.0])
     expected = Nested(point=Point(x=1.0, y=2.0), values=[1.0, 2.0])
-    assert tester.objects_are_equal(actual, expected, config)
+    assert run_tester(tester, actual, expected, config)
 
 
 @pydantic_available
@@ -143,37 +143,35 @@ def test_pydantic_model_equality_tester_nested_different(config: EqualityConfig)
     tester = PydanticModelEqualityTester()
     actual = Nested(point=Point(x=1.0, y=2.0), values=[1.0, 2.0])
     expected = Nested(point=Point(x=1.0, y=5.0), values=[1.0, 2.0])
-    assert not tester.objects_are_equal(actual, expected, config)
+    assert not run_tester(tester, actual, expected, config)
 
 
 @pydantic_available
 def test_pydantic_model_equality_tester_atol() -> None:
     tester = PydanticModelEqualityTester()
-    assert tester.objects_are_equal(
-        Point(x=1.0, y=2.0), Point(x=1.0, y=2.05), EqualityConfig(atol=0.1)
-    )
+    assert run_tester(tester, Point(x=1.0, y=2.0), Point(x=1.0, y=2.05), EqualityConfig(atol=0.1))
 
 
 @pydantic_available
 def test_pydantic_model_equality_tester_without_tolerance() -> None:
     tester = PydanticModelEqualityTester()
-    assert not tester.objects_are_equal(Point(x=1.0, y=2.0), Point(x=1.0, y=2.05), EqualityConfig())
+    assert not run_tester(tester, Point(x=1.0, y=2.0), Point(x=1.0, y=2.05), EqualityConfig())
 
 
 @pydantic_available
 def test_pydantic_model_equality_tester_equal_nan() -> None:
     tester = PydanticModelEqualityTester()
     nan = float("nan")
-    assert tester.objects_are_equal(
-        Point(x=nan, y=2.0), Point(x=nan, y=2.0), EqualityConfig(equal_nan=True)
+    assert run_tester(
+        tester, Point(x=nan, y=2.0), Point(x=nan, y=2.0), EqualityConfig(equal_nan=True)
     )
 
 
 @pydantic_available
 def test_pydantic_model_equality_tester_nan_without_equal_nan(config: EqualityConfig) -> None:
     tester = PydanticModelEqualityTester()
-    assert not tester.objects_are_equal(
-        Point(x=float("nan"), y=2.0), Point(x=float("nan"), y=2.0), config
+    assert not run_tester(
+        tester, Point(x=float("nan"), y=2.0), Point(x=float("nan"), y=2.0), config
     )
 
 
@@ -181,21 +179,21 @@ def test_pydantic_model_equality_tester_nan_without_equal_nan(config: EqualityCo
 @numpy_available
 def test_pydantic_model_equality_tester_array_field(config: EqualityConfig) -> None:
     tester = PydanticModelEqualityTester()
-    assert tester.objects_are_equal(WithArray(x=np.ones(2)), WithArray(x=np.ones(2)), config)
+    assert run_tester(tester, WithArray(x=np.ones(2)), WithArray(x=np.ones(2)), config)
 
 
 @pydantic_available
 @numpy_available
 def test_pydantic_model_equality_tester_array_field_different(config: EqualityConfig) -> None:
     tester = PydanticModelEqualityTester()
-    assert not tester.objects_are_equal(WithArray(x=np.ones(2)), WithArray(x=np.zeros(2)), config)
+    assert not run_tester(tester, WithArray(x=np.ones(2)), WithArray(x=np.zeros(2)), config)
 
 
 @pydantic_available
 def test_pydantic_model_equality_tester_explaining(config: EqualityConfig) -> None:
     config.reports = []
     tester = PydanticModelEqualityTester()
-    tester.objects_are_equal(Point(x=1.0, y=2.0), Point(x=1.0, y=3.0), config)
+    run_tester(tester, Point(x=1.0, y=2.0), Point(x=1.0, y=3.0), config)
     assert "different" in "\n".join(messages(config))
 
 
@@ -207,7 +205,7 @@ def test_pydantic_model_equality_tester_cached_property_read_on_one_model(
     models different."""
     actual, expected = Cached(x=1), Cached(x=1)
     assert actual.double == 2
-    assert PydanticModelEqualityTester().objects_are_equal(actual, expected, config)
+    assert run_tester(PydanticModelEqualityTester(), actual, expected, config)
 
 
 def test_pydantic_model_equality_tester_missing_package() -> None:

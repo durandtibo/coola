@@ -43,13 +43,36 @@ class BaseEqualityTester(ABC, Generic[T]):
         """Indicate if two objects are equal."""
 ```
 
+#### `BaseEngineEqualityTester` and the engine
+
+The Python testers use the engine (`coola.equality.engine.Engine`). The engine owns the invariants of
+a comparison: identity, strict type, depth, cycles and the location of the first difference. A tester
+that derives from `BaseEngineEqualityTester` never recurses: its `objects_are_equal(actual, expected,
+ctx)` receives two objects of the same type and the engine, and returns a verdict (`True`, or
+`ctx.fail(reason, *path)`, which returns `False`) or the child pairs `(actual, expected, path part)`
+that must all be equal, produced lazily. The engine keeps the child iterators on an explicit stack, so
+there is no `RecursionError` whatever the nesting, and a comparison stops at the first difference.
+
+```python
+class PointTester(BaseEngineEqualityTester[Point]):
+    def objects_are_equal(self, actual, expected, ctx):
+        return ((actual.coords, expected.coords, AttributeName("coords")),)
+```
+
+The testers of the optional libraries are still chain testers (see below) that receive the
+`EqualityConfig`. They are called by the engine as leaves until they are ported.
+
 #### Built-in Testers
 
-- **`DefaultEqualityTester`**: Fallback for any type (identity, type check, then `==`)
+- **`DefaultEqualityTester`**: Fallback for any type (`==` on two objects of the same type)
 - **`MappingEqualityTester`**, **`OrderedMappingEqualityTester`** (also checks the key order, used
-  for `OrderedDict`) and **`SequenceEqualityTester`**: Recurse into mappings and sequences
-- **`ScalarEqualityTester`**, **`EqualEqualityTester`**, **`EqualNanEqualityTester`**,
-  **`TolerantEqualEqualityTester`**: Scalars and objects with an `equal` method
+  for `OrderedDict`), **`SequenceEqualityTester`** and **`SetEqualityTester`**: Return the children of
+  mappings, sequences and sets
+- **`DataclassEqualityTester`**, **`ObjectAttributesEqualityTester`** and
+  **`PydanticModelEqualityTester`**: Return the fields or the attributes as children
+- **`ScalarEqualityTester`**, **`DifferenceCloseEqualityTester`**, **`EqualEqualityTester`**,
+  **`EqualNanEqualityTester`**, **`TolerantEqualEqualityTester`**: Numbers and objects with an
+  `equal` method
 - Array and dataframe testers for NumPy, PyTorch, pandas, polars, xarray, JAX and PyArrow (for
   example `NumpyArrayEqualityTester`, `TorchTensorEqualityTester`,
   `PandasDataFrameEqualityTester`)
@@ -65,7 +88,7 @@ The registry maps types to testers. It is built on `BaseTypeDispatchRegistry`
 - `find_equality_tester(data_type)` returns the tester for the most specific registered type,
   walking the Method Resolution Order (MRO); `object` is registered with `DefaultEqualityTester`,
   so a tester is always found
-- `objects_are_equal(actual, expected, config)` finds the tester for `type(actual)` and delegates
+- `objects_are_equal(actual, expected, config)` finds the tester for `type(actual)` and delegates (a tester that uses the engine runs a nested `Engine`)
   to it
 - Lookup results are cached per type, and the cache is cleared whenever the registry changes
 
@@ -108,10 +131,7 @@ next handler in the chain. Examples:
 - **`SameObjectHandler`**, **`SameTypeHandler`**, **`SameLengthHandler`**: Generic checks
 - **`SameDTypeHandler`**, **`SameShapeHandler`**: Metadata checks
 - **`TorchTensorSameDeviceHandler`**: Compares PyTorch device placement
-- **`ObjectEqualHandler`**, **`NanEqualHandler`**, **`TolerantEqualHandler`**: Value checks
-- **`MappingSameKeysHandler`**, **`MappingSameKeyOrderHandler`**, **`MappingSameValuesHandler`**,
-  **`SequenceSameValuesHandler`**:
-  Recursive checks for containers
+- **`ObjectEqualHandler`**, **`AllCloseNanHandler`**: Value checks
 - Library-specific handlers such as `NumpyArrayEqualHandler` or `PandasDataFrameEqualHandler`
 
 `create_chain(*handlers)` links handlers and returns the first one. A `HandlerEqualityTester`
@@ -131,15 +151,15 @@ User calls objects_are_equal(obj1, obj2)
     ↓
 Creates EqualityConfig with settings (and the registry)
     ↓
-Calls registry.objects_are_equal(obj1, obj2, config)
+Runs Engine(registry, config).run(obj1, obj2)
     ↓
-Registry looks up the tester based on type(obj1) (MRO lookup)
+For each pair: identity, strict type, tester lookup (cached per call, MRO lookup)
     ↓
-Calls tester.objects_are_equal(obj1, obj2, config)
+Calls tester.objects_are_equal(obj1, obj2, engine): a verdict, or the child pairs
+(pushed on the explicit stack, depth first)
     ↓
-Tester runs its handler chain (type check, metadata, values)
-    ↓
-May recursively call registry.objects_are_equal() for nested objects
+A chain tester (optional libraries) receives the config, runs its handler chain and
+may call registry.objects_are_equal() for nested objects
     ↓
 Returns boolean result
 ```

@@ -212,4 +212,4 @@ class EqualityTesterRegistry(BaseTypeDispatchRegistry[BaseEqualityTester[Any]]):
             from coola.equality.engine import Engine  # noqa: PLC0415
 
             return Engine(self, config).run(actual, expected)
-        return tester.objects_are_equal(actual=actual, expected=expected, config=config)
+        return bool(tester.objects_are_equal(actual, expected, config))
