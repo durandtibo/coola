@@ -1,5 +1,5 @@
-r"""Contain functions to rebuild a container with its original type
-after its items were transformed.
+r"""Contain functions to rebuild a container with its original type after
+its items were transformed.
 
 The transformers rebuild a container with ``type(data)(items)`` so the
 subclasses keep their type. This works for the builtin containers and

@@ -17,17 +17,17 @@ structures (lists, dicts, tuples, sets, etc.) while preserving the original stru
 
 ## Properties
 
-| Property                 | Statement                                                                                                                                                                           |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Leaves only              | `func` is called on the leaves, once per occurrence, never on a container.                                                                                                          |
-| Structure-preserving     | A container is rebuilt from the transformed children with its original type. Keys are never transformed. Dataclasses are entered, like in `equality`, `hashing` and `summary`.        |
-| Type dispatch            | The transformer is chosen from the type of the data, along the Method Resolution Order, so the most specific type wins.                                                             |
-| Registry-extensible      | A new type is supported by registering a transformer, without changing the existing ones.                                                                                           |
-| Deterministic order      | The leaves are visited depth first, left to right. The elements of a set are visited in the iteration order of the set, which is not specified.                                     |
-| Pure                     | The input is never modified. The output shares no container with the input (leaves can be shared).                                                                                  |
-| Any depth                | No `RecursionError`, whatever the nesting: the traversal uses an explicit stack. The depth is bounded by memory only.                                                               |
-| Cycle-safe               | A container that contains itself raises a `ValueError`.                                                                                                                             |
-| Errors propagate         | An exception raised by `func` propagates unchanged. A container that cannot be rebuilt raises a `TypeError`.                                                                        |
+| Property             | Statement                                                                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Leaves only          | `func` is called on the leaves, once per occurrence, never on a container.                                                                                                     |
+| Structure-preserving | A container is rebuilt from the transformed children with its original type. Keys are never transformed. Dataclasses are entered, like in `equality`, `hashing` and `summary`. |
+| Type dispatch        | The transformer is chosen from the type of the data, along the Method Resolution Order, so the most specific type wins.                                                        |
+| Registry-extensible  | A new type is supported by registering a transformer, without changing the existing ones.                                                                                      |
+| Deterministic order  | The leaves are visited depth first, left to right. The elements of a set are visited in the iteration order of the set, which is not specified.                                |
+| Pure                 | The input is never modified. The output shares no container with the input (leaves can be shared).                                                                             |
+| Any depth            | No `RecursionError`, whatever the nesting: the traversal uses an explicit stack. The depth is bounded by memory only.                                                          |
+| Cycle-safe           | A container that contains itself raises a `ValueError`.                                                                                                                        |
+| Errors propagate     | An exception raised by `func` propagates unchanged. A container that cannot be rebuilt raises a `TypeError`.                                                                   |
 
 Not guaranteed:
 
