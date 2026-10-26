@@ -42,6 +42,7 @@ nav:
       - uguide/io.md
       - uguide/iterator.md
       - uguide/nested.md
+      - uguide/nested_data.md
       - uguide/random.md
       - uguide/recursive.md
       - uguide/reducer.md
