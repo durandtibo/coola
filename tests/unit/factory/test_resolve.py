@@ -753,3 +753,9 @@ def test_factory_nested_target_is_not_resolved() -> None:
     assert factory("collections.OrderedDict", a={OBJECT_TARGET: "builtins.int"}) == OrderedDict(
         a={OBJECT_TARGET: "builtins.int"}
     )
+
+
+@pytest.mark.parametrize("target", ["non_existing_module.SomeClass", "collections.NotACounter"])
+def test_resolve_object_non_existing_target_with_cls(target: str) -> None:
+    with pytest.raises(ImportError, match=r"The target object does not exist: "):
+        resolve_object({OBJECT_TARGET: target}, cls=int)
