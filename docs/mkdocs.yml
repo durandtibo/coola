@@ -46,6 +46,7 @@ nav:
       - uguide/recursive.md
       - uguide/reducer.md
       - uguide/registry.md
+      - uguide/rounding.md
       - uguide/summary.md
       - uguide/testing.md
       - uguide/utils.md
@@ -69,6 +70,7 @@ nav:
       - refs/recursive.md
       - refs/reducer.md
       - refs/registry.md
+      - refs/rounding.md
       - refs/summary.md
       - refs/testing.md
       - refs/utils.md
