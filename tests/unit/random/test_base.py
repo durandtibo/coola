@@ -115,3 +115,30 @@ def test_base_random_manager_seed_nested_restores_the_initial_state() -> None:
     with manager.seed(1), manager.seed(2):
         pass
     assert manager.value == 0
+
+
+@pytest.mark.parametrize("seed", [-1, 2**63])
+def test_base_random_manager_seed_invalid_value_raises(seed: int) -> None:
+    with (
+        pytest.raises(ValueError, match=r"seed must be in the range"),
+        CounterRandomManager().seed(seed),
+    ):
+        pass
+
+
+@pytest.mark.parametrize("seed", ["a", 1.5, True])
+def test_base_random_manager_seed_invalid_type_raises(seed: object) -> None:
+    with (
+        pytest.raises(TypeError, match=r"seed must be an int"),
+        CounterRandomManager().seed(
+            seed  # type: ignore[arg-type]
+        ),
+    ):
+        pass
+
+
+def test_base_random_manager_seed_invalid_seed_does_not_touch_the_manager() -> None:
+    manager = CounterRandomManager()
+    with contextlib.suppress(ValueError), manager.seed(-1):
+        pass
+    assert manager.calls == []

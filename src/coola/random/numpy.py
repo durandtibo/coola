@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
+from coola.random.seed import validate_seed
 from coola.utils.imports import check_numpy, is_numpy_available
 from coola.utils.introspection import is_same_type
 
@@ -34,8 +35,8 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
     The legacy generator only accepts seeds between ``0`` and
     ``2**32 - 1``, so the seed is folded into this range with
     ``seed % 2**32``. Consequently, the seeds ``1`` and ``2**32 + 1``
-    produce the same random numbers, and a negative seed ``-n`` is the
-    same as ``2**32 - n``.
+    produce the same random numbers. The seed is validated first: a
+    negative seed raises a ``ValueError``.
 
     Example:
         ```pycon
@@ -59,6 +60,7 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
         return np.random.get_state()
 
     def manual_seed(self, seed: int) -> None:
+        validate_seed(seed)
         np.random.seed(seed % 2**32)
 
     def set_rng_state(self, state: tuple[Any, ...]) -> None:

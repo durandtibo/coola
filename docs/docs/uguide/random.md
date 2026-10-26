@@ -29,7 +29,7 @@ different libraries in a single call.
 
     NumPy's legacy generator only accepts seeds between `0` and `2**32 - 1`. `NumpyRandomManager`
     folds the seed into this range with `seed % 2**32`, so the seeds `1` and `2**32 + 1` give the same
-    random numbers, and a negative seed `-n` is the same as `2**32 - n`.
+    random numbers. A negative seed raises a `ValueError`.
 
 ## Basic Usage
 

@@ -432,3 +432,17 @@ def test_get_torch_generator_does_not_change_the_default_generator() -> None:
 def test_get_torch_generator_seed_overflow_raises() -> None:
     with pytest.raises(ValueError, match="Overflow"):
         get_torch_generator(2**64)
+
+
+@torch_available
+@pytest.mark.parametrize("seed", [-1, 2**63])
+def test_torch_random_manager_manual_seed_invalid_value_raises(seed: int) -> None:
+    with pytest.raises(ValueError, match=r"seed must be in the range"):
+        TorchRandomManager().manual_seed(seed)
+
+
+@torch_available
+@pytest.mark.parametrize("seed", ["a", 1.5, True])
+def test_torch_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
+    with pytest.raises(TypeError, match=r"seed must be an int"):
+        TorchRandomManager().manual_seed(seed)  # type: ignore[arg-type]

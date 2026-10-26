@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import random
 
+import pytest
+
 from coola.random import RandomRandomManager
 
 ############################################
@@ -111,3 +113,15 @@ def test_random_random_manager_does_not_manage_random_instances() -> None:
     with manager.seed(42):
         value = generator.random()
     assert value == expected
+
+
+@pytest.mark.parametrize("seed", [-1, 2**63])
+def test_random_random_manager_manual_seed_invalid_value_raises(seed: int) -> None:
+    with pytest.raises(ValueError, match=r"seed must be in the range"):
+        RandomRandomManager().manual_seed(seed)
+
+
+@pytest.mark.parametrize("seed", ["a", 1.5, True])
+def test_random_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
+    with pytest.raises(TypeError, match=r"seed must be an int"):
+        RandomRandomManager().manual_seed(seed)  # type: ignore[arg-type]
