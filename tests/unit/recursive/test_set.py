@@ -13,7 +13,10 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def registry() -> TransformerRegistry:
-    return TransformerRegistry({object: DefaultTransformer()})
+    transformer = SetTransformer()
+    return TransformerRegistry(
+        {object: DefaultTransformer(), set: transformer, frozenset: transformer}
+    )
 
 
 def test_set_transformer_repr() -> None:
@@ -43,15 +46,13 @@ def test_set_transformer_str() -> None:
 def test_set_transformer_transform_parametrized(
     data: Any, func: Callable, expected: Any, registry: TransformerRegistry
 ) -> None:
-    assert objects_are_equal(
-        SetTransformer().transform(data, func=func, registry=registry), expected
-    )
+    assert objects_are_equal(registry.transform(data, func), expected)
 
 
 def test_set_transformer_transform_nested_dict(registry: TransformerRegistry) -> None:
     assert objects_are_equal(
-        SetTransformer().transform({1, frozenset({2, 3})}, func=str, registry=registry),
-        {"1", "frozenset({2, 3})"},
+        registry.transform({1, frozenset({2, 3})}, str),
+        {"1", frozenset({"2", "3"})},
     )
 
 
@@ -60,14 +61,14 @@ def test_set_transformer_transform_with_custom_function(registry: TransformerReg
         return f"processed: {x}"
 
     assert objects_are_equal(
-        SetTransformer().transform({1, 2}, func=custom_func, registry=registry),
+        registry.transform({1, 2}, custom_func),
         {"processed: 1", "processed: 2"},
     )
 
 
 def test_set_transformer_transform_with_identity_function(registry: TransformerRegistry) -> None:
     data = {1, 2}
-    result = SetTransformer().transform(data, func=lambda x: x, registry=registry)
+    result = registry.transform(data, lambda x: x)
     assert result is not data
 
 
@@ -78,9 +79,8 @@ def test_set_transformer_transform_with_exception_in_function(
         msg = f"Test error {x}"
         raise ValueError(msg)
 
-    transformer = SetTransformer()
     with pytest.raises(ValueError, match=r"Test error"):
-        transformer.transform({1, 2}, func=failing_func, registry=registry)
+        registry.transform({1, 2}, failing_func)
 
 
 def test_set_transformer_transform_preserves_function_behavior(
@@ -90,7 +90,7 @@ def test_set_transformer_transform_preserves_function_behavior(
         return (x, x + 1, x + 2)
 
     assert objects_are_equal(
-        SetTransformer().transform({1, 2}, func=create_tuple, registry=registry),
+        registry.transform({1, 2}, create_tuple),
         {(1, 2, 3), (2, 3, 4)},
     )
 
@@ -106,17 +106,15 @@ def _make_stateful_func() -> Callable[[Any], Any]:
 
 
 def test_set_transformer_transform_with_stateful_function(registry: TransformerRegistry) -> None:
-    transformer = SetTransformer()
-    assert transformer.transform({1, 2}, func=_make_stateful_func(), registry=registry) == {1, 4}
+    assert registry.transform({1, 2}, _make_stateful_func()) == {1, 4}
 
 
 def test_set_transformer_transform_with_stateful_function_second_call(
     registry: TransformerRegistry,
 ) -> None:
-    transformer = SetTransformer()
     stateful_func = _make_stateful_func()
-    transformer.transform({1, 2}, func=stateful_func, registry=registry)
-    assert transformer.transform({1, 2}, func=stateful_func, registry=registry) == {3, 8}
+    registry.transform({1, 2}, stateful_func)
+    assert registry.transform({1, 2}, stateful_func) == {3, 8}
 
 
 def test_set_transformer_transform_with_closure(registry: TransformerRegistry) -> None:
@@ -125,7 +123,44 @@ def test_set_transformer_transform_with_closure(registry: TransformerRegistry) -
     def multiply_by(x: Any) -> Any:
         return x * multiplier
 
-    assert SetTransformer().transform({1, 2}, func=multiply_by, registry=registry) == {
+    assert registry.transform({1, 2}, multiply_by) == {
         3,
         6,
     }
+
+
+def test_set_transformer_expand_children() -> None:
+    children, _ = SetTransformer().expand({1})
+    assert children == [1]
+
+
+def test_set_transformer_expand_rebuild_set() -> None:
+    _, rebuild = SetTransformer().expand({1, 2})
+    assert rebuild(["a", "b"]) == {"a", "b"}
+
+
+def test_set_transformer_expand_rebuild_frozenset() -> None:
+    _, rebuild = SetTransformer().expand(frozenset({1, 2}))
+    assert rebuild(["a", "b"]) == frozenset({"a", "b"})
+
+
+def test_set_transformer_expand_rebuild_deduplicates() -> None:
+    _, rebuild = SetTransformer().expand({1, 2, 3})
+    assert rebuild([0, 0, 0]) == {0}
+
+
+def test_set_transformer_expand_empty() -> None:
+    children, rebuild = SetTransformer().expand(set())
+    assert (children, rebuild([])) == ([], set())
+
+
+def test_set_transformer_expand_rebuild_unhashable_raises() -> None:
+    _, rebuild = SetTransformer().expand({1})
+    with pytest.raises(TypeError, match="unhashable type"):
+        rebuild([[1]])
+
+
+def test_set_transformer_expand_does_not_modify_the_input() -> None:
+    data = {1, 2, 3}
+    SetTransformer().expand(data)
+    assert data == {1, 2, 3}

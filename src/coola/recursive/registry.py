@@ -9,19 +9,14 @@ from __future__ import annotations
 
 __all__ = ["TransformerRegistry"]
 
-import threading
 from typing import TYPE_CHECKING, Any
 
 from coola.recursive.base import Transformer
+from coola.recursive.engine import transform
 from coola.registry import BaseTypeDispatchRegistry
-from coola.utils.recursion import raise_recursion_limit_error
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-# The ids of the containers that are being transformed by the current thread (the path to the
-# object being transformed), to detect a container that contains itself.
-_state = threading.local()
 
 
 class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
@@ -149,10 +144,14 @@ class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
 
         This is the main entry point for transformation. It automatically:
 
-        1. Determines the data's type.
-        2. Finds the appropriate transformer via ``find_transformer``.
-        3. Delegates to that transformer's ``transform`` method, which
-           recursively processes any nested structures.
+        1. Determines the type of each node.
+        2. Finds the appropriate transformer via ``find_transformer``
+           (once per type for this call).
+        3. Asks that transformer for the children of the node and how to
+           rebuild it, and applies ``func`` to the leaves.
+
+        The traversal uses an explicit stack, so the depth is bounded by
+        the memory only.
 
         The original structure of the data is preserved - only the leaf
         values are transformed by the provided function.
@@ -169,13 +168,7 @@ class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
 
         Raises:
             ValueError: If a container contains itself, directly or
-                through other containers (a cycle), and its
-                transformer transforms the children with
-                ``registry.transform`` (as the built-in transformers
-                do).
-            RecursionError: If the structure is nested so deeply that
-                the Python recursion limit is exceeded (each nesting
-                level uses a few interpreter frames).
+                through other containers (a cycle).
 
         Example:
             Converting all numbers to strings in a nested structure:
@@ -200,20 +193,4 @@ class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
 
             ```
         """
-        transformer = self.find_transformer(type(data))
-        active: set[int] | None = getattr(_state, "active", None)
-        if active is None:
-            active = _state.active = set()
-        key = id(data)
-        if key in active:
-            msg = f"Cycle detected: an object of type {type(data)} contains itself"
-            raise ValueError(msg)
-        active.add(key)
-        try:
-            return transformer.transform(data, func, self)
-        except RecursionError as exc:
-            if len(active) > 1:  # only the outermost call reports the error
-                raise
-            raise_recursion_limit_error("transforming", exc)
-        finally:
-            active.discard(key)
+        return transform(data, func, self)

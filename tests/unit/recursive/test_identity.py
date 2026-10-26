@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.equality import objects_are_equal
-from coola.recursive import DefaultTransformer, IdentityTransformer, TransformerRegistry
+from coola.recursive import IdentityTransformer, TransformerRegistry
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def registry() -> TransformerRegistry:
-    return TransformerRegistry({object: DefaultTransformer()})
+    return TransformerRegistry({object: IdentityTransformer()})
 
 
 @pytest.mark.parametrize(
@@ -30,19 +30,25 @@ def registry() -> TransformerRegistry:
 def test_identity_transformer_transform_ignores_func(
     data: Any, func: Callable, registry: TransformerRegistry
 ) -> None:
-    assert objects_are_equal(
-        IdentityTransformer().transform(data, func=func, registry=registry), data
-    )
+    assert objects_are_equal(registry.transform(data, func), data)
 
 
 def test_identity_transformer_transform_returns_same_object(registry: TransformerRegistry) -> None:
     data = {"key": "value"}
-    result = IdentityTransformer().transform(data, func=str, registry=registry)
+    result = registry.transform(data, str)
     assert result is data
 
 
 def test_identity_transformer_transform_ignores_predicate(registry: TransformerRegistry) -> None:
-    assert (
-        IdentityTransformer().transform("abc", func=lambda key: key == "abc", registry=registry)
-        == "abc"
-    )
+    assert registry.transform("abc", lambda key: key == "abc") == "abc"
+
+
+def test_identity_transformer_expand_has_no_children() -> None:
+    children, _ = IdentityTransformer().expand([1, 2])
+    assert children == ()
+
+
+def test_identity_transformer_expand_rebuild_returns_the_data() -> None:
+    data = [1, 2]
+    _, rebuild = IdentityTransformer().expand(data)
+    assert rebuild([]) is data

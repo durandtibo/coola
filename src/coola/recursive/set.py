@@ -5,16 +5,11 @@ from __future__ import annotations
 __all__ = ["SetTransformer"]
 
 from collections.abc import Set as AbstractSet
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from coola.display import InlineDisplayMixin
-from coola.recursive.base import BaseTransformer
+from coola.recursive.base import BaseTransformer, Expansion
 from coola.recursive.rebuild import rebuild_set
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from coola.recursive.registry import TransformerRegistry
 
 
 class SetTransformer(InlineDisplayMixin, BaseTransformer[AbstractSet[Any]]):
@@ -32,7 +27,7 @@ class SetTransformer(InlineDisplayMixin, BaseTransformer[AbstractSet[Any]]):
         raise a TypeError.
 
     Notes:
-        - All elements are transformed recursively through the registry
+        - All elements are transformed recursively by the engine
         - The original set type is preserved (set remains set, frozenset remains frozenset)
         - Element order is not guaranteed (sets are unordered)
         - Duplicate transformed values will be automatically deduplicated
@@ -42,32 +37,20 @@ class SetTransformer(InlineDisplayMixin, BaseTransformer[AbstractSet[Any]]):
     Example:
         ```pycon
         >>> from coola.recursive import SetTransformer, TransformerRegistry, DefaultTransformer
-        >>> registry = TransformerRegistry({object: DefaultTransformer()})
         >>> transformer = SetTransformer()
         >>> transformer
         SetTransformer()
+        >>> registry = TransformerRegistry({object: DefaultTransformer(), set: transformer})
         >>> # Transform set elements (order may vary in output)
-        >>> transformer.transform({1}, func=str, registry=registry)
+        >>> registry.transform({1}, str)
         {'1'}
-        >>> # Frozenset type is preserved
-        >>> transformer.transform(frozenset([1, 2, 3]), func=lambda x: x * 2, registry=registry)
-        frozenset({2, 4, 6})
         >>> # Duplicate values after transformation are automatically deduplicated
-        >>> transformer.transform({1, 2, 3}, func=lambda x: x // 4, registry=registry)
+        >>> registry.transform({1, 2, 3}, lambda x: x // 4)
         {0}
 
         ```
     """
 
-    def transform(
-        self,
-        data: AbstractSet[Any],
-        func: Callable[[Any], Any],
-        registry: TransformerRegistry,
-    ) -> AbstractSet[Any]:
-        # Transform all elements recursively using the registry
-        transformed = [registry.transform(item, func) for item in data]
-
-        # Rebuild with original type to preserve set characteristics
-        # Note: This will raise TypeError if transformed values are not hashable
-        return rebuild_set(data, transformed)
+    def expand(self, data: AbstractSet[Any]) -> Expansion | None:
+        # Note: the rebuild raises TypeError if the transformed values are not hashable
+        return list(data), lambda items: rebuild_set(data, items)

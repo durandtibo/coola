@@ -4,52 +4,51 @@ from __future__ import annotations
 
 __all__ = ["IdentityTransformer"]
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from coola.recursive.base import BaseTransformer
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from coola.recursive.registry import TransformerRegistry
+from coola.recursive.base import BaseTransformer, Expansion
 
 
 class IdentityTransformer(BaseTransformer[Any]):
-    r"""Transformer for leaf nodes that passes the value through
-    unchanged, ignoring ``func``.
+    r"""Transformer for values that are kept as they are: the function
+    is never applied.
 
-    This transformer never applies the transformation function. It is
-    useful to register for types that must be preserved as-is while
-    traversing a nested data structure (e.g. to skip certain leaf
-    types instead of transforming them).
+    This transformer returns no children and rebuilds the value as is,
+    so the engine does not call the function. It is useful to register
+    for types that must be preserved as-is while traversing a nested
+    data structure (e.g. to skip certain leaf types or a whole subtree
+    instead of transforming them).
 
     Example:
         ```pycon
         >>> from coola.recursive import IdentityTransformer, TransformerRegistry
-        >>> registry = TransformerRegistry()
         >>> transformer = IdentityTransformer()
-        >>> transformer.transform(42, func=str, registry=registry)
-        42
+        >>> registry = TransformerRegistry({object: transformer})
+        >>> registry.transform([1, 2], str)
+        [1, 2]
 
         ```
     """
 
-    def transform(
-        self,
-        data: Any,
-        func: Callable[[Any], bool],  # noqa: ARG002
-        registry: TransformerRegistry,  # noqa: ARG002
-    ) -> Any:
-        r"""Return the data unchanged, ignoring ``func``.
+    def expand(self, data: Any) -> Expansion | None:
+        r"""Describe ``data`` as a value without children that is
+        rebuilt as is.
 
         Args:
-            data: The data to return unchanged.
-            func: Unused. Accepted only to satisfy the
-                ``BaseTransformer`` interface.
-            registry: Unused. Accepted only to satisfy the
-                ``BaseTransformer`` interface.
+            data: The data to keep unchanged.
 
         Returns:
-            The input ``data``, unchanged.
+            No children, and a function that returns ``data``.
+
+        Example:
+            ```pycon
+            >>> from coola.recursive import IdentityTransformer
+            >>> children, rebuild = IdentityTransformer().expand(42)
+            >>> children
+            ()
+            >>> rebuild([])
+            42
+
+            ```
         """
-        return data
+        return (), lambda _: data

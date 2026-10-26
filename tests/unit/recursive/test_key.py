@@ -135,7 +135,7 @@ def test_key_filter_transformer_predicate_called_once_per_key() -> None:
         {object: DefaultTransformer(), dict: KeyFilterTransformer(predicate)}
     )
     registry.transform({"a": {"b": 1}, "c": 2}, str)
-    assert keys == ["a", "b", "c"]
+    assert keys == ["a", "c", "b"]
 
 
 def test_key_filter_transformer_exception_in_predicate() -> None:
@@ -154,11 +154,10 @@ def test_key_filter_transformer_is_a_base_transformer() -> None:
     assert isinstance(KeyFilterTransformer(is_a), BaseTransformer)
 
 
-def test_key_filter_transformer_follows_the_transformer_protocol(
-    registry: TransformerRegistry,
-) -> None:
+def test_key_filter_transformer_follows_the_transformer_protocol() -> None:
     transformer: Transformer[Any] = KeyFilterTransformer(is_a)
-    assert transformer.transform({"a": 1, "b": 2}, str, registry) == {"b": 2}
+    children, rebuild = transformer.expand({"a": 1, "b": 2})
+    assert rebuild(children) == {"b": 2}
 
 
 def test_key_filter_transformer_key_predicate_is_required() -> None:
@@ -272,3 +271,24 @@ def test_key_filter_transformer_key_predicate_is_not_applied_as_func(
     # ``func`` is the function of the values, so a predicate given as ``func`` is applied to them.
     result = predicate_registry.transform({"keep": 1, "secret": 2}, lambda key: key == "keep")
     assert objects_are_equal(result, {"keep": False})
+
+
+def test_key_filter_transformer_expand_children() -> None:
+    children, _ = KeyFilterTransformer(is_a).expand({"a": 1, "b": 2, "c": 3})
+    assert children == [2, 3]
+
+
+def test_key_filter_transformer_expand_rebuild() -> None:
+    _, rebuild = KeyFilterTransformer(is_a).expand({"a": 1, "b": 2, "c": 3})
+    assert rebuild(["x", "y"]) == {"b": "x", "c": "y"}
+
+
+def test_key_filter_transformer_expand_empty() -> None:
+    children, rebuild = KeyFilterTransformer(is_a).expand({})
+    assert (children, rebuild([])) == ([], {})
+
+
+def test_key_filter_transformer_expand_does_not_modify_the_input() -> None:
+    data = {"a": 1, "b": 2}
+    KeyFilterTransformer(is_a).expand(data)
+    assert data == {"a": 1, "b": 2}

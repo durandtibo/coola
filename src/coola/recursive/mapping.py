@@ -5,16 +5,11 @@ from __future__ import annotations
 __all__ = ["MappingTransformer"]
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from coola.display import InlineDisplayMixin
-from coola.recursive.base import BaseTransformer
+from coola.recursive.base import BaseTransformer, Expansion
 from coola.recursive.rebuild import rebuild_mapping
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from coola.recursive.registry import TransformerRegistry
 
 
 class MappingTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]]):
@@ -35,34 +30,29 @@ class MappingTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]])
     Example:
         ```pycon
         >>> from coola.recursive import MappingTransformer, TransformerRegistry, DefaultTransformer
-        >>> registry = TransformerRegistry({object: DefaultTransformer()})
         >>> transformer = MappingTransformer()
         >>> transformer
         MappingTransformer()
+        >>> children, rebuild = transformer.expand({"a": 1, "b": 2})
+        >>> children
+        [1, 2]
+        >>> rebuild([10, 20])
+        {'a': 10, 'b': 20}
+        >>> registry = TransformerRegistry({object: DefaultTransformer(), dict: transformer})
         >>> # Transform simple dict values
-        >>> transformer.transform({"a": 1, "b": 2}, func=str, registry=registry)
+        >>> registry.transform({"a": 1, "b": 2}, str)
         {'a': '1', 'b': '2'}
         >>> # Keys remain unchanged
-        >>> transformer.transform({1: "x", 2: "y"}, func=str.upper, registry=registry)
+        >>> registry.transform({1: "x", 2: "y"}, str.upper)
         {1: 'X', 2: 'Y'}
-        >>> # Nested structures in values are handled recursively
-        >>> transformer.transform({"nums": [1, 2, 3], "text": "hello"}, func=str, registry=registry)
-        {'nums': '[1, 2, 3]', 'text': 'hello'}
         >>> # Empty mappings are preserved
-        >>> transformer.transform({}, func=str, registry=registry)
+        >>> registry.transform({}, str)
         {}
 
         ```
     """
 
-    def transform(
-        self,
-        data: Mapping[Any, Any],
-        func: Callable[[Any], Any],
-        registry: TransformerRegistry,
-    ) -> Mapping[Any, Any]:
-        # Transform all values recursively using the registry
-        transformed = {key: registry.transform(value, func) for key, value in data.items()}
-
-        # Rebuild with original type to preserve mapping characteristics
-        return rebuild_mapping(data, transformed)
+    def expand(self, data: Mapping[Any, Any]) -> Expansion | None:
+        return list(data.values()), lambda items: rebuild_mapping(
+            data, dict(zip(data, items, strict=True))
+        )

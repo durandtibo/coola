@@ -14,7 +14,10 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def registry() -> TransformerRegistry:
-    return TransformerRegistry({object: DefaultTransformer()})
+    sequence = SequenceTransformer()
+    return TransformerRegistry(
+        {object: DefaultTransformer(), list: sequence, tuple: sequence, deque: sequence}
+    )
 
 
 def test_sequence_transformer_repr() -> None:
@@ -42,9 +45,7 @@ def test_sequence_transformer_str() -> None:
 def test_sequence_transformer_transform_parametrized(
     data: Any, func: Callable, expected: Any, registry: TransformerRegistry
 ) -> None:
-    assert objects_are_equal(
-        SequenceTransformer().transform(data, func=func, registry=registry), expected
-    )
+    assert objects_are_equal(registry.transform(data, func), expected)
 
 
 def test_sequence_transformer_transform_namedtuple(registry: TransformerRegistry) -> None:
@@ -54,9 +55,7 @@ def test_sequence_transformer_transform_namedtuple(registry: TransformerRegistry
         z: int
 
     assert objects_are_equal(
-        SequenceTransformer().transform(
-            Point(x=1, y=2, z=3), func=lambda x: x * 2, registry=registry
-        ),
+        registry.transform(Point(x=1, y=2, z=3), lambda x: x * 2),
         Point(x=2, y=4, z=6),
     )
 
@@ -66,7 +65,7 @@ def test_sequence_transformer_transform_with_custom_function(registry: Transform
         return f"processed: {x}"
 
     assert objects_are_equal(
-        SequenceTransformer().transform([1, 2, 3], func=custom_func, registry=registry),
+        registry.transform([1, 2, 3], custom_func),
         ["processed: 1", "processed: 2", "processed: 3"],
     )
 
@@ -75,7 +74,7 @@ def test_sequence_transformer_transform_with_identity_function(
     registry: TransformerRegistry,
 ) -> None:
     data = [1, 2, 3]
-    result = SequenceTransformer().transform(data, func=lambda x: x, registry=registry)
+    result = registry.transform(data, lambda x: x)
     assert result is not data
 
 
@@ -86,9 +85,8 @@ def test_sequence_transformer_transform_with_exception_in_function(
         msg = f"Test error {x}"
         raise ValueError(msg)
 
-    transformer = SequenceTransformer()
     with pytest.raises(ValueError, match=r"Test error"):
-        transformer.transform([1, 2, 3], func=failing_func, registry=registry)
+        registry.transform([1, 2, 3], failing_func)
 
 
 def test_sequence_transformer_transform_preserves_function_behavior(
@@ -98,7 +96,7 @@ def test_sequence_transformer_transform_preserves_function_behavior(
         return [x, x + 1, x + 2]
 
     assert objects_are_equal(
-        SequenceTransformer().transform([1, 2, 3], func=create_list, registry=registry),
+        registry.transform([1, 2, 3], create_list),
         [[1, 2, 3], [2, 3, 4], [3, 4, 5]],
     )
 
@@ -116,8 +114,7 @@ def _make_stateful_func() -> Callable[[Any], Any]:
 def test_sequence_transformer_transform_with_stateful_function(
     registry: TransformerRegistry,
 ) -> None:
-    transformer = SequenceTransformer()
-    assert transformer.transform([1, 2, 3], func=_make_stateful_func(), registry=registry) == [
+    assert registry.transform([1, 2, 3], _make_stateful_func()) == [
         1,
         4,
         9,
@@ -127,10 +124,9 @@ def test_sequence_transformer_transform_with_stateful_function(
 def test_sequence_transformer_transform_with_stateful_function_second_call(
     registry: TransformerRegistry,
 ) -> None:
-    transformer = SequenceTransformer()
     stateful_func = _make_stateful_func()
-    transformer.transform([1, 2, 3], func=stateful_func, registry=registry)
-    assert transformer.transform([1, 2, 3], func=stateful_func, registry=registry) == [4, 10, 18]
+    registry.transform([1, 2, 3], stateful_func)
+    assert registry.transform([1, 2, 3], stateful_func) == [4, 10, 18]
 
 
 def test_sequence_transformer_transform_with_closure(registry: TransformerRegistry) -> None:
@@ -139,7 +135,7 @@ def test_sequence_transformer_transform_with_closure(registry: TransformerRegist
     def multiply_by(x: Any) -> Any:
         return x * multiplier
 
-    assert SequenceTransformer().transform([1, 2, 3], func=multiply_by, registry=registry) == [
+    assert registry.transform([1, 2, 3], multiply_by) == [
         3,
         6,
         9,
@@ -147,21 +143,62 @@ def test_sequence_transformer_transform_with_closure(registry: TransformerRegist
 
 
 def test_sequence_transformer_transform_deque_type(registry: TransformerRegistry) -> None:
-    result = SequenceTransformer().transform(
-        deque([1, 2], maxlen=4), func=lambda x: x + 1, registry=registry
-    )
+    result = registry.transform(deque([1, 2], maxlen=4), lambda x: x + 1)
     assert type(result) is deque
 
 
 def test_sequence_transformer_transform_deque_values(registry: TransformerRegistry) -> None:
-    result = SequenceTransformer().transform(
-        deque([1, 2], maxlen=4), func=lambda x: x + 1, registry=registry
-    )
+    result = registry.transform(deque([1, 2], maxlen=4), lambda x: x + 1)
     assert result == deque([2, 3])
 
 
 def test_sequence_transformer_transform_deque_maxlen(registry: TransformerRegistry) -> None:
-    result = SequenceTransformer().transform(
-        deque([1, 2], maxlen=4), func=lambda x: x + 1, registry=registry
-    )
+    result = registry.transform(deque([1, 2], maxlen=4), lambda x: x + 1)
     assert result.maxlen == 4
+
+
+def test_sequence_transformer_expand_children() -> None:
+    children, _ = SequenceTransformer().expand((1, 2, 3))
+    assert children == [1, 2, 3]
+
+
+def test_sequence_transformer_expand_rebuild_list() -> None:
+    _, rebuild = SequenceTransformer().expand([1, 2, 3])
+    assert rebuild(["a", "b", "c"]) == ["a", "b", "c"]
+
+
+def test_sequence_transformer_expand_rebuild_tuple() -> None:
+    _, rebuild = SequenceTransformer().expand((1, 2))
+    assert rebuild(["a", "b"]) == ("a", "b")
+
+
+def test_sequence_transformer_expand_rebuild_deque_keeps_maxlen() -> None:
+    _, rebuild = SequenceTransformer().expand(deque([1, 2], maxlen=3))
+    assert rebuild([3, 4]) == deque([3, 4], maxlen=3)
+
+
+def test_sequence_transformer_expand_empty() -> None:
+    children, rebuild = SequenceTransformer().expand([])
+    assert (children, rebuild([])) == ([], [])
+
+
+def test_sequence_transformer_expand_single_element() -> None:
+    children, rebuild = SequenceTransformer().expand([1])
+    assert (children, rebuild(["a"])) == ([1], ["a"])
+
+
+def test_sequence_transformer_expand_duplicates() -> None:
+    children, _ = SequenceTransformer().expand([1, 1, 1])
+    assert children == [1, 1, 1]
+
+
+def test_sequence_transformer_expand_does_not_modify_the_input() -> None:
+    data = [1, 2, 3]
+    SequenceTransformer().expand(data)
+    assert data == [1, 2, 3]
+
+
+def test_sequence_transformer_expand_rebuild_returns_a_new_container() -> None:
+    data = [1, 2, 3]
+    _, rebuild = SequenceTransformer().expand(data)
+    assert rebuild([1, 2, 3]) is not data

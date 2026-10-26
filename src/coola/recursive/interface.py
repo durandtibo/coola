@@ -99,8 +99,8 @@ def register_transformers(
         ...         self.value = value
         ...
         >>> class MyTransformer(BaseTransformer):
-        ...     def transform(self, data, func, registry):
-        ...         return MyType(func(data.value))
+        ...     def expand(self, data):
+        ...         return [data.value], lambda items: MyType(items[0])
         ...
         >>> register_transformers({MyType: MyTransformer()})
 
