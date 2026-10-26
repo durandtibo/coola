@@ -18,6 +18,25 @@ dicts, tuples, sets, etc.) using two different traversal strategies:
 The package also provides filtering utilities to extract only specific types from heterogeneous
 collections.
 
+## Properties
+
+| Property                     | Statement                                                                                                                                                                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Leaves only                  | A traversal yields the leaves, once per occurrence, never a container. An empty container has no leaf and yields nothing.                                                                                                                  |
+| Type dispatch                | The iterator (or child finder) is chosen from the type of the data along the Method Resolution Order, so the most specific registered type wins.                                                                                           |
+| Deterministic order          | DFS is pre-order and BFS is level order, both left to right. A mapping gives its values in insertion order (the keys are never yielded) and a dataclass its fields in the order of their definition. The order inside a set is not specified. |
+| Same leaves, different order | DFS and BFS visit the same leaves. Only the order differs.                                                                                                                                                                                 |
+| Lazy                         | Both `dfs_iterate` and `bfs_iterate` are generators: leaves are produced one at a time, and nothing is walked before the first `next`.                                                                                                    |
+| Read-only                    | The input is never modified.                                                                                                                                                                                                               |
+| Every leaf is returned       | A container that appears several times, without containing itself, gives its leaves each time.                                                                                                                                             |
+| Cycle-safe                   | A container that contains itself raises `ValueError` instead of looping forever or hitting the recursion limit.                                                                                                                            |
+| Iterators are leaves         | The default registries never consume an iterator or a generator, so an infinite iterator cannot hang the traversal.                                                                                                                        |
+| Depth                        | Both functions use an explicit stack or queue: there is no `RecursionError`, whatever the nesting. The depth is bounded by memory only. |
+| Extensible                   | Support for a new container type is added with one child finder (`find_children`) registered for the type. It serves both orders. |
+
+Not guaranteed: the order of a `ChainMap` (its values follow the lookup order of the maps), a
+container that is changed during the traversal, and a registry that is modified during a traversal.
+
 ## Depth-First Search (DFS) Iteration
 
 ### Basic Usage
@@ -94,7 +113,7 @@ Depth-first search goes deep into each branch before moving to the next branch:
 ...     "branch2": [4, [5, 6]],
 ... }
 >>> # DFS will fully explore branch1 before moving to branch2
->>> list(dfs_iterate(data))  # Note: dict order may vary in Python < 3.7
+>>> list(dfs_iterate(data))
 [1, 2, 3, 4, 5, 6]
 
 ```
@@ -204,7 +223,7 @@ The `filter_by_type` function filters an iterator to yield only values of specif
 
 ### Filtering Multiple Types
 
-You can filter for multiple types using a tuple:
+You can filter for multiple types using a tuple (the type checker infers the union of the types):
 
 ```pycon
 >>> from coola.iterator import filter_by_type
@@ -224,26 +243,6 @@ You can combine type filtering with nested iteration:
 >>> # Get all numeric values (int and float) from nested structure
 >>> list(filter_by_type(dfs_iterate(data), (int, float)))
 [1, 2, 3.14]
-
-```
-
-**Extract only strings:**
-
-```pycon
->>> from coola.iterator import dfs_iterate, filter_by_type
->>> data = [1, "a", [2, "b", [3, "c"]]]
->>> list(filter_by_type(dfs_iterate(data), str))
-['a', 'b', 'c']
-
-```
-
-**Extract only integers:**
-
-```pycon
->>> from coola.iterator import bfs_iterate, filter_by_type
->>> data = {"nums": [1, 2.5, 3], "text": "hello", "value": 2}
->>> list(filter_by_type(bfs_iterate(data), int))
-[2, 1, 3]
 
 ```
 
