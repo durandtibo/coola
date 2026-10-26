@@ -251,8 +251,8 @@ class Engine:
 
         The reports are the single record of the explanation, innermost
         first. A reason given to ``fail`` is added with the path of the
-        stack; for a chain tester, which reported its own differences,
-        a path-only report carries the path of the stack.
+        stack; for a chain tester, which reported its own differences, a
+        path-only report carries the path of the stack.
         """
         reports = self.config.reports
         if reports is None:
