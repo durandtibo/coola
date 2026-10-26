@@ -7,7 +7,7 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.random import TorchRandomManager, torch_seed
-from coola.random.torch import get_torch_generator, get_random_seed
+from coola.random.torch import get_random_seed, get_torch_generator
 from coola.testing.fixtures import torch_available
 from coola.utils.imports import MissingPackageError, is_torch_available
 
@@ -328,28 +328,52 @@ def test_torch_random_manager_does_not_manage_generator_objects() -> None:
     assert objects_are_equal(values, expected)
 
 
-
-
 #####################################
 #     Tests for get_random_seed     #
 #####################################
 
+
 @torch_available
-def test_get_random_seed() -> None:
+def test_get_random_seed_returns_int() -> None:
     assert isinstance(get_random_seed(42), int)
+
 
 @torch_available
 def test_get_random_seed_same_seed() -> None:
     assert get_random_seed(42) == get_random_seed(42)
+
 
 @torch_available
 def test_get_random_seed_different_seeds() -> None:
     assert get_random_seed(1) != get_random_seed(42)
 
 
+@torch_available
+def test_get_random_seed_value() -> None:
+    assert get_random_seed(44) == 6176747449835261347
+
+
+@torch_available
+def test_get_random_seed_does_not_change_the_default_generator() -> None:
+    state = torch.get_rng_state()
+    get_random_seed(42)
+    assert objects_are_equal(state, torch.get_rng_state())
+
+
+@torch_available
+def test_get_random_seed_in_range() -> None:
+    assert -(2**63) <= get_random_seed(42) < 2**63
+
+
 #########################################
 #     Tests for get_torch_generator     #
 #########################################
+
+
+@torch_available
+def test_get_torch_generator_returns_generator() -> None:
+    assert isinstance(get_torch_generator(42), torch.Generator)
+
 
 @torch_available
 def test_get_torch_generator_same_seed() -> None:
@@ -357,8 +381,54 @@ def test_get_torch_generator_same_seed() -> None:
         torch.randn(4, 6, generator=get_torch_generator(1))
     )
 
+
 @torch_available
 def test_get_torch_generator_different_seeds() -> None:
     assert not torch.randn(4, 6, generator=get_torch_generator(1)).equal(
         torch.randn(4, 6, generator=get_torch_generator(2))
     )
+
+
+@torch_available
+def test_get_torch_generator_default_seed_is_one() -> None:
+    assert torch.rand(3, generator=get_torch_generator()).equal(
+        torch.rand(3, generator=get_torch_generator(1))
+    )
+
+
+@torch_available
+def test_get_torch_generator_initial_seed() -> None:
+    assert get_torch_generator(42).initial_seed() == 42
+
+
+@torch_available
+def test_get_torch_generator_default_device_is_cpu() -> None:
+    assert get_torch_generator(42).device == torch.device("cpu")
+
+
+@torch_available
+@pytest.mark.parametrize("device", ["cpu", torch.device("cpu")])
+def test_get_torch_generator_device(device: torch.device | str) -> None:
+    assert get_torch_generator(42, device=device).device == torch.device("cpu")
+
+
+@torch_available
+def test_get_torch_generator_values() -> None:
+    assert torch.allclose(
+        torch.rand(2, 4, generator=get_torch_generator(42)),
+        torch.tensor([[0.8823, 0.9150, 0.3829, 0.9593], [0.3904, 0.6009, 0.2566, 0.7936]]),
+        atol=1e-4,
+    )
+
+
+@torch_available
+def test_get_torch_generator_does_not_change_the_default_generator() -> None:
+    state = torch.get_rng_state()
+    get_torch_generator(42)
+    assert objects_are_equal(state, torch.get_rng_state())
+
+
+@torch_available
+def test_get_torch_generator_seed_overflow_raises() -> None:
+    with pytest.raises(ValueError, match="Overflow"):
+        get_torch_generator(2**64)
