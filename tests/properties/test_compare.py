@@ -11,7 +11,6 @@ import pytest
 from hypothesis import assume, given, strategies as st
 
 from coola.equality import (
-    Tolerance,
     assert_objects_allclose,
     assert_objects_equal,
     compare,
@@ -51,7 +50,7 @@ def test_equal_agrees_with_objects_are_equal(data: Any, other: Any) -> None:
 
 @given(data=small_values, other=small_values, atol=tolerances, rtol=tolerances)
 def test_agrees_with_objects_are_allclose(data: Any, other: Any, atol: float, rtol: float) -> None:
-    result = compare(data, other, tolerance=Tolerance(rtol=rtol, atol=atol))
+    result = compare(data, other, rtol=rtol, atol=atol)
     assert bool(result) == objects_are_allclose(data, other, atol=atol, rtol=rtol)
 
 
@@ -82,26 +81,6 @@ def test_different_data_has_a_non_empty_reason(data: Any, other: Any) -> None:
     result = compare(data, other)
     assume(not result.equal)
     assert result.reason
-
-
-@given(data=small_values)
-def test_the_representations_of_equal_data_are_empty(data: Any) -> None:
-    result = compare(data, rebuild(data))
-    assert (result.actual, result.expected) == ("", "")
-
-
-@given(data=small_values, other=small_values)
-def test_the_actual_representation_is_the_one_of_the_first_input(data: Any, other: Any) -> None:
-    result = compare(data, other)
-    assume(not result.equal)
-    assert result.actual == repr(data)
-
-
-@given(data=small_values, other=small_values)
-def test_the_expected_representation_is_the_one_of_the_second_input(data: Any, other: Any) -> None:
-    result = compare(data, other)
-    assume(not result.equal)
-    assert result.expected == repr(other)
 
 
 ######################

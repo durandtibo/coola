@@ -15,7 +15,7 @@ from typing import Any
 import pytest
 from hypothesis import assume, given, strategies as st
 
-from coola.equality import objects_are_allclose, objects_are_equal
+from coola.equality import compare, objects_are_allclose, objects_are_equal
 from coola.hashing import hash_object
 from tests.properties.strategies import (
     nan_values,
@@ -578,8 +578,8 @@ def test_failure_mode_cycles_of_different_lengths_are_equal(depth: int) -> None:
 
 
 @given(data=values, other=values)
-def test_show_difference_does_not_change_the_result(data: Any, other: Any) -> None:
-    assert objects_are_equal(data, other, show_difference=True) == objects_are_equal(data, other)
+def test_compare_agrees_with_objects_are_equal(data: Any, other: Any) -> None:
+    assert bool(compare(data, other)) == objects_are_equal(data, other)
 
 
 #################################

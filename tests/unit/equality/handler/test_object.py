@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-import logging
 from typing import Any
 
 import pytest
@@ -19,6 +18,7 @@ from coola.equality.tester import (
     ObjectAttributesEqualityTester,
     ScalarEqualityTester,
 )
+from tests.unit.equality.utils import messages
 
 
 class Point:
@@ -236,35 +236,24 @@ def test_object_same_attributes_handler_handle_cycle() -> None:
     assert ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(actual, expected, config)
 
 
-def test_object_same_attributes_handler_handle_show_difference_logs_the_attribute(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    config = EqualityConfig(show_difference=True)
-    with caplog.at_level(logging.INFO):
-        ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(
-            Point(1, 2), Point(1, 3), config
-        )
-    assert caplog.messages[-1] == "objects have different y: 2 vs 3"
-
-
-def test_object_same_attributes_handler_handle_show_difference_reports_the_attribute_path() -> None:
-    reports: list[tuple[str, tuple]] = []
-    config = EqualityConfig(
-        show_difference=True, reporter=lambda msg, path: reports.append((msg, path))
-    )
+def test_object_same_attributes_handler_handle_explaining_reports_the_attribute() -> None:
+    config = EqualityConfig(reports=[])
     ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(Point(1, 2), Point(1, 3), config)
-    assert reports[-1] == ("objects have different y: 2 vs 3", ("y",))
+    assert messages(config)[-1] == "objects have different y: 2 vs 3"
 
 
-def test_object_same_attributes_handler_handle_show_difference_different_names(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
+def test_object_same_attributes_handler_handle_explaining_reports_the_attribute_path() -> None:
+    config = EqualityConfig(reports=[])
+    ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(Point(1, 2), Point(1, 3), config)
+    assert config.reports[-1] == ("objects have different y: 2 vs 3", ("y",))
+
+
+def test_object_same_attributes_handler_handle_explaining_different_names() -> None:
     other = Point(1, 2)
     other.z = 3  # ty: ignore[unresolved-attribute]
-    config = EqualityConfig(show_difference=True)
-    with caplog.at_level(logging.INFO):
-        ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(Point(1, 2), other, config)
-    assert caplog.messages == ["objects have different attributes: ['x', 'y'] vs ['x', 'y', 'z']"]
+    config = EqualityConfig(reports=[])
+    ObjectSameAttributesHandler(next_handler=TrueHandler()).handle(Point(1, 2), other, config)
+    assert messages(config) == ["objects have different attributes: ['x', 'y'] vs ['x', 'y', 'z']"]
 
 
 #####################################################
@@ -315,10 +304,7 @@ def test_object_attributes_equality_tester_different_types(config: EqualityConfi
     assert not ObjectAttributesEqualityTester().objects_are_equal(Point(1), Slotted(1), config)
 
 
-def test_object_attributes_equality_tester_different_types_logs(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    config = EqualityConfig(show_difference=True)
-    with caplog.at_level(logging.INFO):
-        ObjectAttributesEqualityTester().objects_are_equal(Point(1), Slotted(1), config)
-    assert "different types" in caplog.text
+def test_object_attributes_equality_tester_different_types_logs() -> None:
+    config = EqualityConfig(reports=[])
+    ObjectAttributesEqualityTester().objects_are_equal(Point(1), Slotted(1), config)
+    assert "different types" in "\n".join(messages(config))

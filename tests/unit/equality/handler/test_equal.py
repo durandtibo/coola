@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import math
 from typing import TYPE_CHECKING, Any
 
@@ -9,6 +8,7 @@ import pytest
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import EqualNanHandler, FalseHandler, TrueHandler
 from coola.equality.handler.equal import EqualHandler
+from tests.unit.equality.utils import messages
 
 if TYPE_CHECKING:
     from coola.equality.handler.equal import SupportsEqual, SupportsEqualNan
@@ -146,46 +146,37 @@ def test_equal_handler_handle_false(actual: Any, expected: Any, config: Equality
     assert not EqualHandler().handle(actual, expected, config)
 
 
-def test_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_equal_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert not EqualHandler().handle(actual=MyFloat(42), expected=1, config=config)
 
 
-def test_equal_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        EqualHandler().handle(actual=MyFloat(42), expected=1, config=config)
-    assert caplog.messages[-1].startswith("objects are different:")
+def test_equal_handler_handle_false_explaining_reports(config: EqualityConfig) -> None:
+    config.reports = []
+    EqualHandler().handle(actual=MyFloat(42), expected=1, config=config)
+    assert messages(config)[-1].startswith("objects are different:")
 
 
-def test_equal_handler_handle_true_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_equal_handler_handle_true_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert EqualHandler().handle(actual=MyFloat(42), expected=MyFloat(42), config=config)
 
 
-def test_equal_handler_handle_no_log_when_equal(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        EqualHandler().handle(actual=MyFloat(42), expected=MyFloat(42), config=config)
-    assert not caplog.messages
+def test_equal_handler_handle_no_log_when_equal(config: EqualityConfig) -> None:
+    config.reports = []
+    EqualHandler().handle(actual=MyFloat(42), expected=MyFloat(42), config=config)
+    assert not messages(config)
 
 
-def test_equal_handler_handle_false_when_show_difference_false(config: EqualityConfig) -> None:
-    config.show_difference = False
+def test_equal_handler_handle_false_when_explaining_false(config: EqualityConfig) -> None:
+    config.reports = None
     assert not EqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
 
 
-def test_equal_handler_handle_no_log_when_show_difference_false(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = False
-    with caplog.at_level(logging.INFO):
-        EqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
-    assert not caplog.messages
+def test_equal_handler_handle_no_log_when_explaining_false(config: EqualityConfig) -> None:
+    config.reports = None
+    EqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
+    assert not messages(config)
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])
@@ -309,48 +300,39 @@ def test_equal_nan_handler_handle_false(actual: Any, expected: Any, config: Equa
     assert not EqualNanHandler().handle(actual, expected, config)
 
 
-def test_equal_nan_handler_handle_false_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_equal_nan_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert not EqualNanHandler().handle(actual=MyFloatNan(42), expected=1, config=config)
 
 
-def test_equal_nan_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        EqualNanHandler().handle(actual=MyFloatNan(42), expected=1, config=config)
-    assert caplog.messages[-1].startswith("objects are different:")
+def test_equal_nan_handler_handle_false_explaining_reports(config: EqualityConfig) -> None:
+    config.reports = []
+    EqualNanHandler().handle(actual=MyFloatNan(42), expected=1, config=config)
+    assert messages(config)[-1].startswith("objects are different:")
 
 
-def test_equal_nan_handler_handle_true_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_equal_nan_handler_handle_true_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert EqualNanHandler().handle(actual=MyFloatNan(42), expected=MyFloatNan(42), config=config)
 
 
-def test_equal_nan_handler_handle_no_log_when_equal(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        EqualNanHandler().handle(actual=MyFloatNan(42), expected=MyFloatNan(42), config=config)
-    assert not caplog.messages
+def test_equal_nan_handler_handle_no_log_when_equal(config: EqualityConfig) -> None:
+    config.reports = []
+    EqualNanHandler().handle(actual=MyFloatNan(42), expected=MyFloatNan(42), config=config)
+    assert not messages(config)
 
 
-def test_equal_nan_handler_handle_false_when_show_difference_false(config: EqualityConfig) -> None:
-    config.show_difference = False
+def test_equal_nan_handler_handle_false_when_explaining_false(config: EqualityConfig) -> None:
+    config.reports = None
     assert not EqualNanHandler().handle(
         actual=MyFloatNan(42), expected=MyFloatNan(1), config=config
     )
 
 
-def test_equal_nan_handler_handle_no_log_when_show_difference_false(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = False
-    with caplog.at_level(logging.INFO):
-        EqualNanHandler().handle(actual=MyFloatNan(42), expected=MyFloatNan(1), config=config)
-    assert not caplog.messages
+def test_equal_nan_handler_handle_no_log_when_explaining_false(config: EqualityConfig) -> None:
+    config.reports = None
+    EqualNanHandler().handle(actual=MyFloatNan(42), expected=MyFloatNan(1), config=config)
+    assert not messages(config)
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])

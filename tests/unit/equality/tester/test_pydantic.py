@@ -10,6 +10,7 @@ from coola.equality.tester import PydanticModelEqualityTester
 from coola.equality.tester.pydantic import get_default_testers
 from coola.testing.fixtures import numpy_available, pydantic_available
 from coola.utils.imports import MissingPackageError, is_numpy_available, is_pydantic_available
+from tests.unit.equality.utils import messages
 
 if is_numpy_available():
     import numpy as np
@@ -191,14 +192,11 @@ def test_pydantic_model_equality_tester_array_field_different(config: EqualityCo
 
 
 @pydantic_available
-def test_pydantic_model_equality_tester_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
+def test_pydantic_model_equality_tester_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     tester = PydanticModelEqualityTester()
-    with caplog.at_level("INFO"):
-        tester.objects_are_equal(Point(x=1.0, y=2.0), Point(x=1.0, y=3.0), config)
-    assert "different" in caplog.text
+    tester.objects_are_equal(Point(x=1.0, y=2.0), Point(x=1.0, y=3.0), config)
+    assert "different" in "\n".join(messages(config))
 
 
 @pydantic_available

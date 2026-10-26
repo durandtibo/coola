@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import contextlib
-import logging
 from typing import TYPE_CHECKING
 
 import pytest
@@ -9,17 +7,15 @@ import pytest
 from coola.equality.config import EqualityConfig
 from coola.equality.handler import (
     FalseHandler,
-    MaxDepthExceededError,
     ObjectEqualHandler,
     SameObjectHandler,
     SameTypeHandler,
     check_recursion_depth,
-    comparison_key,
     create_chain,
     handlers_are_equal,
     report_difference,
-    track_comparison,
 )
+from tests.unit.equality.utils import messages
 
 if TYPE_CHECKING:
     from coola.equality.handler.base import BaseEqualityHandler
@@ -152,185 +148,32 @@ def test_check_recursion_depth_greater_than_max_depth() -> None:
 #######################################
 
 
-def test_report_difference_logs_without_reporter(caplog: pytest.LogCaptureFixture) -> None:
-    with caplog.at_level(logging.INFO, logger="coola.equality"):
-        report_difference(EqualityConfig(), "different %s", "values")
-    assert caplog.messages == ["different values"]
+def test_report_difference_records_the_formatted_message() -> None:
+    config = EqualityConfig(reports=[])
+    report_difference(config, "different %s", "values")
+    assert messages(config) == ["different values"]
 
 
-def test_report_difference_logs_the_path_in_the_record(caplog: pytest.LogCaptureFixture) -> None:
-    with caplog.at_level(logging.INFO, logger="coola.equality"):
-        report_difference(EqualityConfig(), "different", path=("a", 0))
-    assert caplog.records[-1].coola_path == ("a", 0)
+def test_report_difference_records_the_path() -> None:
+    config = EqualityConfig(reports=[])
+    report_difference(config, "different", path=("a", 0))
+    assert config.reports == [("different", ("a", 0))]
 
 
-def test_report_difference_logs_an_empty_path_by_default(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    with caplog.at_level(logging.INFO, logger="coola.equality"):
-        report_difference(EqualityConfig(), "different")
-    assert caplog.records[-1].coola_path == ()
+def test_report_difference_records_an_empty_path_by_default() -> None:
+    config = EqualityConfig(reports=[])
+    report_difference(config, "different")
+    assert config.reports == [("different", ())]
 
 
-def test_report_difference_sends_formatted_message_and_path_to_reporter() -> None:
-    reports: list[tuple[str, tuple[object, ...]]] = []
-    config = EqualityConfig(reporter=lambda message, path: reports.append((message, path)))
-    report_difference(config, "%s vs %s", 1, 2, path=("a", 0))
-    assert reports == [("1 vs 2", ("a", 0))]
+def test_report_difference_records_the_innermost_difference_first() -> None:
+    config = EqualityConfig(reports=[])
+    report_difference(config, "inner")
+    report_difference(config, "outer")
+    assert messages(config) == ["inner", "outer"]
 
 
-def test_report_difference_does_not_log_when_there_is_a_reporter(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    config = EqualityConfig(reporter=lambda _message, _path: None)
-    with caplog.at_level(logging.INFO, logger="coola.equality"):
-        report_difference(config, "%s vs %s", 1, 2, path=("a", 0))
-    assert not caplog.messages  # nothing is logged when there is a reporter
-
-
-def test_report_difference_reporter_without_args_or_path() -> None:
-    reports: list[tuple[str, tuple[object, ...]]] = []
-    config = EqualityConfig(reporter=lambda message, path: reports.append((message, path)))
-    report_difference(config, "100% different")
-    assert reports == [("100% different", ())]
-
-
-def test_max_depth_exceeded_error_is_recursion_error() -> None:
-    assert issubclass(MaxDepthExceededError, RecursionError)
-
-
-def test_check_recursion_depth_raises_max_depth_exceeded_error() -> None:
-    config = EqualityConfig(max_depth=1)
-    with (
-        check_recursion_depth(config),
-        pytest.raises(MaxDepthExceededError),
-        check_recursion_depth(config),
-    ):
-        pass
-
-
-#####################################
-#     Tests for track_comparison    #
-#####################################
-
-
-def test_track_comparison_first_time() -> None:
+def test_report_difference_records_nothing_when_not_explaining() -> None:
     config = EqualityConfig()
-    with track_comparison(config, [], []) as in_progress:
-        assert not in_progress
-
-
-def test_track_comparison_outer_pair_is_not_in_progress() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with track_comparison(config, a, b) as outer:
-        assert not outer
-
-
-def test_track_comparison_same_pair_is_in_progress() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with track_comparison(config, a, b), track_comparison(config, a, b) as inner:
-        assert inner
-
-
-def test_track_comparison_swapped_pair_is_not_in_progress() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with track_comparison(config, a, b), track_comparison(config, b, a) as swapped:
-        assert not swapped
-
-
-def test_track_comparison_other_pair_is_not_in_progress() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with track_comparison(config, a, b), track_comparison(config, a, []) as other:
-        assert not other
-
-
-def test_track_comparison_pair_is_removed_on_exit() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with track_comparison(config, a, b):
-        pass
-    assert not config._in_progress
-
-
-def test_track_comparison_pair_is_not_in_progress_after_exit() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with track_comparison(config, a, b):
-        pass
-    with track_comparison(config, a, b) as in_progress:
-        assert not in_progress
-
-
-def _fail() -> None:
-    msg = "boom"
-    raise RuntimeError(msg)
-
-
-def test_track_comparison_pair_is_removed_on_error() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with contextlib.suppress(RuntimeError), track_comparison(config, a, b):
-        _fail()
-    assert not config._in_progress
-
-
-def test_track_comparison_error_is_raised() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with pytest.raises(RuntimeError, match="boom"), track_comparison(config, a, b):
-        _fail()
-
-
-def test_track_comparison_inner_exit_keeps_outer_pair() -> None:
-    config = EqualityConfig()
-    a, b = [], []
-    with track_comparison(config, a, b):
-        with track_comparison(config, a, b):
-            pass
-        with track_comparison(config, a, b) as in_progress:
-            assert in_progress
-
-
-#####################################
-#     Tests for comparison_key      #
-#####################################
-
-
-@pytest.mark.parametrize("equal_nan", [True, False])
-def test_comparison_key_keeps_the_type(equal_nan: bool) -> None:
-    config = EqualityConfig(equal_nan=equal_nan)
-    assert comparison_key(1, config) != comparison_key(True, config)
-
-
-def test_comparison_key_equal_values() -> None:
-    assert comparison_key("a", EqualityConfig()) == comparison_key("a", EqualityConfig())
-
-
-def test_comparison_key_nan_equal_nan() -> None:
-    config = EqualityConfig(equal_nan=True)
-    assert comparison_key(float("nan"), config) == comparison_key(float("nan"), config)
-
-
-def test_comparison_key_nan_not_equal_nan() -> None:
-    config = EqualityConfig()
-    assert comparison_key(float("nan"), config) != comparison_key(float("nan"), config)
-
-
-def test_comparison_key_nan_in_tuple_equal_nan() -> None:
-    config = EqualityConfig(equal_nan=True)
-    assert comparison_key((float("nan"), 1), config) == comparison_key((float("nan"), 1), config)
-
-
-def test_comparison_key_nan_in_frozenset_equal_nan() -> None:
-    config = EqualityConfig(equal_nan=True)
-    assert comparison_key(frozenset({float("nan")}), config) == comparison_key(
-        frozenset({float("nan")}), config
-    )
-
-
-def test_comparison_key_is_hashable() -> None:
-    assert isinstance(hash(comparison_key((float("nan"), frozenset({1})), EqualityConfig())), int)
+    report_difference(config, "different")
+    assert config.reports is None

@@ -131,7 +131,7 @@ class ObjectEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
                 "tester for this type."
             )
             raise TypeError(msg) from exc
-        if config.show_difference and not object_equal:
+        if config.explaining and not object_equal:
             report_difference(config, format_value_difference(actual=actual, expected=expected))
         return object_equal
 
@@ -195,7 +195,7 @@ class SameAttributeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         value1 = attrgetter(self._name)(actual)
         value2 = attrgetter(self._name)(expected)
         if not config.registry.objects_are_equal(value1, value2, config):
-            if config.show_difference:
+            if config.explaining:
                 report_difference(
                     config,
                     "objects have different %s: %s vs %s",
@@ -233,7 +233,7 @@ class SameLengthHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         if len(actual) != len(expected):
-            if config.show_difference:
+            if config.explaining:
                 report_difference(
                     config,
                     "objects have different lengths: %s vs %s",
@@ -303,7 +303,7 @@ class SameTypeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         config: EqualityConfig,
     ) -> bool:
         if type(actual) is not type(expected):
-            if config.show_difference:
+            if config.explaining:
                 message = format_type_difference(type(actual), type(expected))
                 report_difference(config, message)
             return False

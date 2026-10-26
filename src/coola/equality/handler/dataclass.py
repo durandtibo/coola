@@ -64,7 +64,7 @@ class DataclassSameFieldsHandler(HandlerEqualityMixin, BaseEqualityHandler):
                 value1 = getattr(actual, field.name)
                 value2 = getattr(expected, field.name)
                 if not config.registry.objects_are_equal(value1, value2, config):
-                    if config.show_difference:
+                    if config.explaining:
                         report_difference(
                             config,
                             "objects have different %s: %s vs %s",

@@ -46,7 +46,7 @@ described [below](#type-specific-behavior).
 | NaN                     | `NaN` is not equal to `NaN`, unless `equal_nan=True` or both are the same object. See [Behavior by Type](#behavior-by-type-nan-and-tolerance).                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | Signed zero             | `-0.0` is equal to `0.0`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Time zones              | Aware datetimes compare by the instant they represent: 12:00 UTC equals 13:00 UTC+1. A naive datetime (no time zone) never equals an aware one.                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Tolerance               | Only the `*_allclose` functions and `compare(..., tolerance=...)` use `rtol` and `atol`. `objects_are_equal` and `assert_objects_equal` are exact (no tolerance), `objects_are_allclose` and `assert_objects_allclose` default to `rtol=1e-5, atol=1e-8` (the NumPy defaults, `Tolerance.numpy_default()`), and `compare` is exact unless `tolerance` is given. The tolerance applies only for numbers, arrays, tensors and data frames. Every other value is compared exactly, and the types must still match: `objects_are_allclose(1, 1.0, atol=1)` is `False`. |
+| Tolerance               | Only the `*_allclose` functions and `compare(..., rtol=..., atol=...)` use `rtol` and `atol`. `objects_are_equal` and `assert_objects_equal` are exact (no tolerance), `objects_are_allclose` and `assert_objects_allclose` default to `rtol=1e-5, atol=1e-8` (the NumPy defaults), and `compare` is exact unless `rtol` or `atol` is given. The tolerance applies only for numbers, arrays, tensors and data frames. Every other value is compared exactly, and the types must still match: `objects_are_allclose(1, 1.0, atol=1)` is `False`. |
 | Unregistered types      | A type without a dedicated tester is compared with `==` after the type check, so your own classes work if they define `__eq__`. Otherwise two objects are equal only if they are the same object (a plain class, an exception, a `functools.partial`): register an `ObjectAttributesEqualityTester` to compare them by their attributes (see [Equality Testers](equality_tester.md)).                                                                                                                                                                              |
 | Reflexive               | `objects_are_equal(x, x)` is `True` for every `x`, and also for a copy of `x`. A distinct `NaN` is the exception unless `equal_nan=True` (see the NaN row); a null (`None`, `pd.NA`) is not an exception.                                                                                                                                                                                                                                                                                                                                                          |
 | Symmetric               | `objects_are_equal(a, b)` and `objects_are_equal(b, a)` give the same answer, and so do `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)`. A user class with an asymmetric `__eq__` is the exception.                                                                                                                                                                                                                                                                                                                                                  |
@@ -122,7 +122,7 @@ True
 
 The rule applies at any depth, so an `OrderedDict` nested in a list or in a `dict` is also checked.
 The tolerance only applies to the values: `objects_are_allclose` still requires the same key order.
-`compare` and `show_difference=True` explain the difference:
+`compare` explains the difference:
 
 ```pycon
 >>> from collections import OrderedDict
@@ -168,85 +168,60 @@ dictionaries containing PyTorch `Tensor`s and NumPy `ndarray`s are equal or not.
 ### Finding a Difference
 
 When the objects are complex or nested, it is not obvious to know which elements are different.
-This function has an argument `show_difference` which shows the first difference found between the
-two objects. For example if you add `show_difference=True` when you compare the `data1`
-and `data2`, you will see at least one element that is different:
+`compare` returns a `ComparisonResult` that explains the first difference found between the two
+objects: its location (`path`) and the reason. For example, you can see which element of `data1` and
+`data2` is different:
 
 ```pycon
 >>> import numpy
 >>> import torch
->>> from coola.equality import objects_are_equal
+>>> from coola.equality import compare
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.zeros(2, 3), "numpy": numpy.ones((2, 3))}
->>> objects_are_equal(data1, data2, show_difference=True)
+>>> result = compare(data1, data2)
+>>> result.equal
 False
-
-```
-
-_Output_:
-
-```textmate
-actual=
-tensor([[1., 1., 1.],
+>>> result.path
+('torch',)
+>>> print(result.format_message())
+objects are not equal at actual['torch']
+torch.Tensors are different:
+  actual   : tensor([[1., 1., 1.],
         [1., 1., 1.]])
-expected=
-tensor([[0., 0., 0.],
+  expected : tensor([[0., 0., 0.],
         [0., 0., 0.]])
-mappings have different values for key 'torch'
+
 ```
 
-To see the difference output, you need to configure logging to show INFO level messages
-(e.g., `logging.basicConfig(level=logging.INFO)`). The output shows a clear, structured view of the difference
-between `data1` and `data2`: the PyTorch `Tensor`s in key `'torch'` of the input dictionaries.
-The output shows the element that fails the check first, and then shows the parent element, so
-it is easy to know where the identified difference is located.
+The result gives the location of the difference and the two values that differ. Note that it only
+shows the first difference, not all the differences. Two objects are different if any of these
+elements are different. In the previous example, only the difference for key `'torch'` is explained.
+`objects_are_equal` and `objects_are_allclose` do not build any explanation: they stop at the first
+difference and only return a `bool`. `assert_objects_equal` and `assert_objects_allclose` raise an
+`AssertionError` with the message of `compare`, which is convenient in tests.
 
-Note that it only shows the first difference, not all the differences. Two objects are different if
-any of these elements are different. In the previous example, only the difference for key `'torch'`
-is shown in the output.
-No output is shown if the two objects are equal and `show_difference=True`.
-
-**Key improvements in difference reporting:**
-
-- **Concise parent messages**: Parent containers show only location info (key/index) without full object dumps
-- **Structured formatting**: Clear indentation and organization
-- **Specific information**: Shows exactly which index, key, or attribute differs
-- **User-friendly**: Easy to read and understand at a glance
-
-For example, with sequences, the output shows the specific index where values differ:
+For example, with sequences, the result shows the specific index where values differ:
 
 ```pycon
-
->>> from coola.equality import objects_are_equal
->>> objects_are_equal([1, 2, 3, 4], [1, 2, 5, 4], show_difference=True)
-False
-
-```
-
-_Output_:
-
-```textmate
+>>> from coola.equality import compare
+>>> print(compare([1, 2, 3, 4], [1, 2, 5, 4]).format_message())
+objects are not equal at actual[2]
 numbers are different:
   actual   : 3
   expected : 5
-sequences have different values at index 2
+
 ```
 
 For mappings with different keys:
 
 ```pycon
->>> from coola.equality import objects_are_equal
->>> objects_are_equal({"a": 1, "b": 2}, {"a": 1, "c": 3}, show_difference=True)
-False
-
-```
-
-_Output_:
-
-```textmate
+>>> from coola.equality import compare
+>>> print(compare({"a": 1, "b": 2}, {"a": 1, "c": 3}).format_message())
+objects are not equal at actual
 mappings have different keys:
   missing keys    : ['b']
   additional keys : ['c']
+
 ```
 
 ### More Examples
@@ -437,19 +412,17 @@ The tolerance parameters are:
 - `atol`: Absolute tolerance (default: 1e-8)
 - `rtol`: Relative tolerance (default: 1e-5)
 
-`compare` takes the tolerance as a `Tolerance` object and is exact when it is not given, whereas
-`objects_are_allclose` and `assert_objects_allclose` default to `rtol=1e-5, atol=1e-8`.
-`Tolerance.numpy_default()` is the tolerance of `objects_are_allclose`, so
-`compare(a, b, tolerance=Tolerance.numpy_default())` gives the same answer as
-`objects_are_allclose(a, b)`:
+`compare` takes the same `rtol` and `atol` keywords, but it is exact when they are not given,
+whereas `objects_are_allclose` and `assert_objects_allclose` default to `rtol=1e-5, atol=1e-8`.
+`compare(a, b, rtol=1e-5, atol=1e-8)` gives the same answer as `objects_are_allclose(a, b)`:
 
 ```pycon
->>> from coola.equality import Tolerance, compare
+>>> from coola.equality import compare
 >>> bool(compare(1.0, 1.0 + 1e-9))
 False
->>> bool(compare(1.0, 1.0 + 1e-9, tolerance=Tolerance.numpy_default()))
+>>> bool(compare(1.0, 1.0 + 1e-9, rtol=1e-5, atol=1e-8))
 True
->>> bool(compare(1.0, 1.05, tolerance=Tolerance(atol=0.1)))
+>>> bool(compare(1.0, 1.05, atol=0.1))
 True
 
 ```
@@ -471,38 +444,23 @@ while `a` is not close to `c`.
 
 ### Finding a Difference
 
-Like `objects_are_equal`, the `objects_are_allclose` function has an argument `show_difference`
-which shows the first difference found between the two objects.
+Like `objects_are_equal`, `objects_are_allclose` only returns a `bool`. To find the first difference
+between the two objects within a tolerance, use `compare` with the same `rtol` and `atol`
+(`compare` is exact by default, `objects_are_allclose` uses `rtol=1e-5` and `atol=1e-8`):
 
 ```pycon
 >>> import numpy
 >>> import torch
->>> from coola.equality import objects_are_allclose
+>>> from coola.equality import compare
 >>> data1 = {"torch": torch.ones(2, 3), "numpy": numpy.zeros((2, 3))}
 >>> data2 = {"torch": torch.ones(2, 3) + 1e-4, "numpy": numpy.zeros((2, 3)) - 1e-4}
->>> objects_are_allclose(data1, data2, show_difference=True)
+>>> result = compare(data1, data2, rtol=1e-5, atol=1e-8)
+>>> result.equal
 False
+>>> result.path
+('torch',)
 
 ```
-
-_Output_:
-
-```textmate
-torch.Tensors are different:
-  actual   : tensor([[1., 1., 1.],
-        [1., 1., 1.]])
-  expected : tensor([[1.0001, 1.0001, 1.0001],
-        [1.0001, 1.0001, 1.0001]])
-mappings have different values:
-  different value for key 'torch':
-    actual   : tensor([[1., 1., 1.],
-        [1., 1., 1.]])
-    expected : tensor([[1.0001, 1.0001, 1.0001],
-        [1.0001, 1.0001, 1.0001]])
-```
-
-The difference output uses the same improved formatting as `objects_are_equal`, with
-clear indentation and specific information about what differs and where.
 
 ### More Examples
 
@@ -1669,10 +1627,7 @@ Details:
 
 ## Explaining a Difference
 
-`objects_are_equal(..., show_difference=True)` logs the first difference found with the standard
-`logging` module (INFO level, `coola.equality` logger; the path of the difference is in the `coola_path` attribute of the log record), which is convenient to debug in a
-console. To get the difference in your code, use `compare`, which returns a `ComparisonResult` with
-the path to the difference and the reason:
+`compare` returns a `ComparisonResult` with the path to the difference and the reason:
 
 ```pycon
 >>> from coola.equality import compare
@@ -1695,9 +1650,13 @@ message, for the tests.
 - `compare` and the assert functions do not log and do not change the logging configuration, so they
   can be called from several threads at the same time.
 - A custom handler is only explained by `compare` if it reports its difference with
-  `coola.equality.handler.report_difference(config, message, path=...)` (not directly with a
-  logger). `report_difference` is the only reporting mechanism: it sends the message and the path to
-  the `reporter` of the config if there is one, otherwise it logs them.
+  `coola.equality.handler.report_difference(config, message, path=...)` when `config.explaining`
+  is `True`. `report_difference` is the only reporting mechanism: it adds the message and the path to
+  `config.reports`, which is `None` (nothing is formatted) unless `compare` or an `assert_*`
+  function explains the comparison.
+- Only the first difference is explained, and only on demand: `objects_are_equal` and
+  `objects_are_allclose` build no message and no path. The values in a reason are bounded, so
+  explaining a difference in a large object does not format the object.
 - `EqualityConfig` is **not** thread-safe: it contains the depth counter of the comparison. The
   functions create one for each call; do not share an instance between threads.
 
@@ -1714,7 +1673,7 @@ The `coola.equality` package is designed around several key principles:
 3. **Extensible**: The registry system allows adding support for new types without modifying the
    core library
 
-4. **Configurable**: Parameters like `atol`, `rtol`, `equal_nan`, and `show_difference` give you
+4. **Configurable**: Parameters like `atol`, `rtol` and `equal_nan` give you
    fine-grained control
 
 5. **Consistent**: The same comparison logic is used whether objects are at the top level or nested

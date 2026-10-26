@@ -54,7 +54,7 @@ class MappingSameKeysHandler(HandlerEqualityMixin, BaseEqualityHandler):
         keys1 = {comparison_key(key, config): key for key in actual}
         keys2 = {comparison_key(key, config): key for key in expected}
         if keys1.keys() != keys2.keys():
-            if config.show_difference:
+            if config.explaining:
                 report_difference(
                     config,
                     format_mapping_difference(
@@ -104,7 +104,7 @@ class MappingSameKeyOrderHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if [comparison_key(key, config) for key in actual_keys] != [
             comparison_key(key, config) for key in expected_keys
         ]:
-            if config.show_difference:
+            if config.explaining:
                 report_difference(
                     config,
                     format_mapping_difference(different_key_order=(actual_keys, expected_keys)),
@@ -168,7 +168,7 @@ class MappingSameValuesHandler(HandlerEqualityMixin, BaseEqualityHandler):
             for key in actual:
                 value1, value2 = actual[key], _get_value(expected, key, config)
                 if not config.registry.objects_are_equal(value1, value2, config):
-                    if config.show_difference:
+                    if config.explaining:
                         report_difference(
                             config,
                             format_mapping_difference(different_value_key=key),

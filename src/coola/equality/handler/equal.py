@@ -91,7 +91,7 @@ class EqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if not hasattr(actual, "equal") or not callable(actual.equal):
             return False
         if not actual.equal(expected):
-            if config.show_difference:
+            if config.explaining:
                 report_difference(config, format_value_difference(actual=actual, expected=expected))
             return False
         return True
@@ -140,7 +140,7 @@ class EqualNanHandler(HandlerEqualityMixin, BaseEqualityHandler):
         if not hasattr(actual, "equal") or not callable(actual.equal):
             return False
         if not actual.equal(expected, equal_nan=config.equal_nan):
-            if config.show_difference:
+            if config.explaining:
                 report_difference(config, format_value_difference(actual=actual, expected=expected))
             return False
         return True

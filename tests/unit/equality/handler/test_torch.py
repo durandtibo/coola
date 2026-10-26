@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
@@ -16,6 +15,7 @@ from coola.equality.handler.torch import (
 from coola.testing.fixtures import torch_available, torch_cuda_available
 from coola.utils.imports import is_torch_available
 from tests.unit.equality.tester.test_torch import TORCH_TENSOR_EQUAL_TOLERANCE
+from tests.unit.equality.utils import messages
 
 if is_torch_available():
     import torch
@@ -157,21 +157,20 @@ def test_torch_tensor_equal_handler_handle_equal_nan_true(config: EqualityConfig
 
 
 @torch_available
-def test_torch_tensor_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_torch_tensor_equal_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     handler = TorchTensorEqualHandler()
     assert not handler.handle(actual=torch.ones(2, 3), expected=torch.ones(3, 2), config=config)
 
 
 @torch_available
-def test_torch_tensor_equal_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+def test_torch_tensor_equal_handler_handle_false_explaining_reports(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     handler = TorchTensorEqualHandler()
-    with caplog.at_level(logging.INFO):
-        handler.handle(actual=torch.ones(2, 3), expected=torch.ones(3, 2), config=config)
-    assert caplog.messages[0].startswith("torch.Tensors are different:")
+    handler.handle(actual=torch.ones(2, 3), expected=torch.ones(3, 2), config=config)
+    assert messages(config)[0].startswith("torch.Tensors are different:")
 
 
 @torch_available
@@ -295,10 +294,10 @@ def test_torch_tensor_same_device_handler_handle_false_mock(config: EqualityConf
 
 
 @torch_available
-def test_torch_tensor_same_device_handler_handle_false_show_difference(
+def test_torch_tensor_same_device_handler_handle_false_explaining(
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     assert not TorchTensorSameDeviceHandler().handle(
         actual=Mock(spec=torch.Tensor, device=torch.device("cpu")),
         expected=Mock(spec=torch.Tensor, device=torch.device("cuda:0")),
@@ -307,17 +306,16 @@ def test_torch_tensor_same_device_handler_handle_false_show_difference(
 
 
 @torch_available
-def test_torch_tensor_same_device_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+def test_torch_tensor_same_device_handler_handle_false_explaining_reports(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        TorchTensorSameDeviceHandler().handle(
-            actual=Mock(spec=torch.Tensor, device=torch.device("cpu")),
-            expected=Mock(spec=torch.Tensor, device=torch.device("cuda:0")),
-            config=config,
-        )
-    assert caplog.messages[0].startswith("torch.Tensors have different devices:")
+    config.reports = []
+    TorchTensorSameDeviceHandler().handle(
+        actual=Mock(spec=torch.Tensor, device=torch.device("cpu")),
+        expected=Mock(spec=torch.Tensor, device=torch.device("cuda:0")),
+        config=config,
+    )
+    assert messages(config)[0].startswith("torch.Tensors have different devices:")
 
 
 @torch_available

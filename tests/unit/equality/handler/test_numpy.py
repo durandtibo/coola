@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
@@ -17,6 +16,7 @@ from coola.equality.handler.numpy import array_equal, is_numeric_array, time_sca
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 from tests.unit.equality.tester.test_numpy import NUMPY_ARRAY_EQUAL_TOLERANCE
+from tests.unit.equality.utils import messages
 
 if is_numpy_available():
     import numpy as np
@@ -152,23 +152,22 @@ def test_numpy_array_equal_handler_handle_equal_nan_true(config: EqualityConfig)
 
 
 @numpy_available
-def test_numpy_array_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_numpy_array_equal_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert not NumpyArrayEqualHandler().handle(
         actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
     )
 
 
 @numpy_available
-def test_numpy_array_equal_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+def test_numpy_array_equal_handler_handle_false_explaining_reports(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        NumpyArrayEqualHandler().handle(
-            actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
-        )
-    assert caplog.messages[0].startswith("numpy.ndarrays are different:")
+    config.reports = []
+    NumpyArrayEqualHandler().handle(
+        actual=np.ones(shape=(2, 3)), expected=np.ones(shape=(3, 2)), config=config
+    )
+    assert messages(config)[0].startswith("numpy.ndarrays are different:")
 
 
 @numpy_available
@@ -490,26 +489,22 @@ def test_numpy_time_scalar_equal_handler_equal_false(config: EqualityConfig) -> 
 
 
 @numpy_available
-def test_numpy_time_scalar_equal_handler_equal_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+def test_numpy_time_scalar_equal_handler_equal_false_explaining(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        assert not NumpyTimeScalarEqualHandler().handle(
-            np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
-        )
-    assert caplog.messages[0].startswith("numpy time scalars are different")
+    config.reports = []
+    assert not NumpyTimeScalarEqualHandler().handle(
+        np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
+    )
+    assert messages(config)[0].startswith("numpy time scalars are different")
 
 
 @numpy_available
-def test_numpy_time_scalar_equal_handler_equal_false_no_report(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    with caplog.at_level(logging.INFO):
-        assert not NumpyTimeScalarEqualHandler().handle(
-            np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
-        )
-    assert not caplog.messages
+def test_numpy_time_scalar_equal_handler_equal_false_no_report(config: EqualityConfig) -> None:
+    assert not NumpyTimeScalarEqualHandler().handle(
+        np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
+    )
+    assert not messages(config)
 
 
 @numpy_available

@@ -45,7 +45,7 @@ class DifferenceCloseHandler(HandlerEqualityMixin, BaseEqualityHandler):
 
     def handle(self, actual: Any, expected: Any, config: EqualityConfig) -> bool:
         object_equal = difference_close(actual, expected, config)
-        if not object_equal and config.show_difference:
+        if not object_equal and config.explaining:
             report_difference(
                 config,
                 format_value_difference(actual=actual, expected=expected, name="values"),

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import warnings
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
@@ -19,6 +18,7 @@ from tests.unit.equality.tester.test_pyarrow import (
     PYARROW_NOT_EQUAL,
     PYARROW_NOT_EQUAL_TOLERANCE,
 )
+from tests.unit.equality.utils import messages
 
 if TYPE_CHECKING:
     from tests.unit.equality.utils import ExamplePair
@@ -142,8 +142,8 @@ def test_pyarrow_equal_handler_handle_equal_nan_true(config: EqualityConfig) -> 
 
 
 @pyarrow_available
-def test_pyarrow_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_pyarrow_equal_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     handler = PyarrowEqualHandler()
     assert not handler.handle(
         actual=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
@@ -153,18 +153,15 @@ def test_pyarrow_equal_handler_handle_false_show_difference(config: EqualityConf
 
 
 @pyarrow_available
-def test_pyarrow_equal_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
+def test_pyarrow_equal_handler_handle_false_explaining_reports(config: EqualityConfig) -> None:
+    config.reports = []
     handler = PyarrowEqualHandler()
-    with caplog.at_level(logging.INFO):
-        handler.handle(
-            actual=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
-            expected=pa.array([1.0, 2.0, 4.0], type=pa.float64()),
-            config=config,
-        )
-        assert caplog.messages[0].startswith("objects are different")
+    handler.handle(
+        actual=pa.array([1.0, 2.0, 3.0], type=pa.float64()),
+        expected=pa.array([1.0, 2.0, 4.0], type=pa.float64()),
+        config=config,
+    )
+    assert messages(config)[0].startswith("objects are different")
 
 
 @pyarrow_available

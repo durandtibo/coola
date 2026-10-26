@@ -88,13 +88,13 @@ class EqualityConfig:
     equal_nan: bool = False
     atol: float = 0.0
     rtol: float = 0.0
-    show_difference: bool = False
     max_depth: int = 100
-    reporter: Callable[[str, tuple[object, ...]], None] | None = None
+    reports: list[tuple[str, tuple[object, ...]]] | None = None
 ```
 
-This allows behavior to be customized without changing tester signatures. `reporter` receives the
-description and the location of each difference instead of the logger, when `show_difference` is `True` (it is how `compare` builds its
+This allows behavior to be customized without changing tester signatures. `reports` is `None`
+unless the comparison explains the difference (`compare` and `assert_*`): then it receives the
+description and the location of each difference, innermost first (it is how `compare` builds its
 result). A config tracks the current recursion depth and the pairs of objects being compared (to
 detect the structures that contain themselves), so it is not thread-safe: create one config per
 comparison.
@@ -291,7 +291,7 @@ When a specific tester is not available, `coola` falls back to:
 
 ### Informative Messages
 
-When `show_difference=True`, testers log:
+When the comparison explains the difference (`compare`, `assert_*`), testers report:
 
 - What objects differ
 - Where in the structure the difference is

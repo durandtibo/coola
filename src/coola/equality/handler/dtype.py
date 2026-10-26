@@ -59,7 +59,7 @@ class SameDTypeHandler(HandlerEqualityMixin, BaseEqualityHandler):
         self, actual: SupportsDType, expected: SupportsDType, config: EqualityConfig
     ) -> bool:
         if actual.dtype != expected.dtype:
-            if config.show_difference:
+            if config.explaining:
                 report_difference(
                     config,
                     "objects have different data types: %s vs %s",

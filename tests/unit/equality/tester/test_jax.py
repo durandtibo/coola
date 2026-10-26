@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from unittest.mock import Mock, patch
 
 import pytest
@@ -9,7 +8,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.tester import JaxArrayEqualityTester
 from coola.testing.fixtures import jax_available
 from coola.utils.imports import MissingPackageError, is_jax_available
-from tests.unit.equality.utils import ExamplePair
+from tests.unit.equality.utils import ExamplePair, messages
 
 if is_jax_available():
     import jax.numpy as jnp
@@ -159,37 +158,33 @@ def test_jax_array_equality_tester_objects_are_equal_true(
 def test_jax_array_equality_tester_objects_are_equal_true_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = JaxArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @jax_available
 @pytest.mark.parametrize("example", JAX_ARRAY_EQUAL)
-def test_jax_array_equality_tester_objects_are_equal_true_show_difference(
+def test_jax_array_equality_tester_objects_are_equal_true_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = JaxArrayEqualityTester()
     assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
 
 
 @jax_available
 @pytest.mark.parametrize("example", JAX_ARRAY_EQUAL)
-def test_jax_array_equality_tester_objects_are_equal_true_show_difference_does_not_log(
+def test_jax_array_equality_tester_objects_are_equal_true_explaining_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = JaxArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @jax_available
@@ -209,21 +204,19 @@ def test_jax_array_equality_tester_objects_are_equal_false(
 def test_jax_array_equality_tester_objects_are_equal_false_does_not_log(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     tester = JaxArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert not caplog.messages
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert not messages(config)
 
 
 @jax_available
 @pytest.mark.parametrize("example", JAX_ARRAY_NOT_EQUAL)
-def test_jax_array_equality_tester_objects_are_equal_false_show_difference(
+def test_jax_array_equality_tester_objects_are_equal_false_explaining(
     example: ExamplePair,
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = JaxArrayEqualityTester()
     assert not tester.objects_are_equal(
         actual=example.actual, expected=example.expected, config=config
@@ -232,16 +225,14 @@ def test_jax_array_equality_tester_objects_are_equal_false_show_difference(
 
 @jax_available
 @pytest.mark.parametrize("example", JAX_ARRAY_NOT_EQUAL)
-def test_jax_array_equality_tester_objects_are_equal_false_show_difference_logs(
+def test_jax_array_equality_tester_objects_are_equal_false_explaining_reports(
     example: ExamplePair,
     config: EqualityConfig,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    config.show_difference = True
+    config.reports = []
     tester = JaxArrayEqualityTester()
-    with caplog.at_level(logging.INFO):
-        tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-        assert caplog.messages[-1].startswith(example.expected_message)
+    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert messages(config)[-1].startswith(example.expected_message)
 
 
 @jax_available

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import math
 from typing import TYPE_CHECKING, Any
 
@@ -12,6 +11,7 @@ from coola.equality.handler import (
     FalseHandler,
     TrueHandler,
 )
+from tests.unit.equality.utils import messages
 
 if TYPE_CHECKING:
     from coola.equality.handler.allclose import SupportsAllCloseNan
@@ -171,63 +171,53 @@ def test_allclose_nan_handler_handle_false(
     assert not AllCloseNanHandler().handle(actual, expected, config)
 
 
-def test_allclose_nan_handler_handle_false_show_difference(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
+def test_allclose_nan_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     handler = AllCloseNanHandler()
-    with caplog.at_level(logging.INFO):
-        assert not handler.handle(
-            actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(1), config=config
-        )
+    assert not handler.handle(
+        actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(1), config=config
+    )
 
 
-def test_allclose_nan_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
+def test_allclose_nan_handler_handle_false_explaining_reports(config: EqualityConfig) -> None:
+    config.reports = []
     handler = AllCloseNanHandler()
-    with caplog.at_level(logging.INFO):
-        handler.handle(actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(1), config=config)
-    assert caplog.messages[-1].startswith("objects are different:")
+    handler.handle(actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(1), config=config)
+    assert messages(config)[-1].startswith("objects are different:")
 
 
-def test_allclose_nan_handler_handle_true_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_allclose_nan_handler_handle_true_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert AllCloseNanHandler().handle(
         actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(42), config=config
     )
 
 
-def test_allclose_nan_handler_handle_no_log_when_equal(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        AllCloseNanHandler().handle(
-            actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(42), config=config
-        )
-    assert not caplog.messages
+def test_allclose_nan_handler_handle_no_log_when_equal(config: EqualityConfig) -> None:
+    config.reports = []
+    AllCloseNanHandler().handle(
+        actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(42), config=config
+    )
+    assert not messages(config)
 
 
-def test_allclose_nan_handler_handle_false_when_show_difference_false(
+def test_allclose_nan_handler_handle_false_when_explaining_false(
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = False
+    config.reports = None
     assert not AllCloseNanHandler().handle(
         actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(1), config=config
     )
 
 
-def test_allclose_nan_handler_handle_no_log_when_show_difference_false(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+def test_allclose_nan_handler_handle_no_log_when_explaining_false(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = False
-    with caplog.at_level(logging.INFO):
-        AllCloseNanHandler().handle(
-            actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(1), config=config
-        )
-    assert not caplog.messages
+    config.reports = None
+    AllCloseNanHandler().handle(
+        actual=MyFloatAllCloseNan(42), expected=MyFloatAllCloseNan(1), config=config
+    )
+    assert not messages(config)
 
 
 @pytest.mark.parametrize("equal_nan", [True, False])

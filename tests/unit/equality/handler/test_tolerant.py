@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import math
 from typing import Any
 
@@ -13,6 +12,7 @@ from coola.equality.handler.tolerant import (
     SupportsTolerantEqual,
     TolerantEqualHandler,
 )
+from tests.unit.equality.utils import messages
 
 
 @pytest.fixture
@@ -324,48 +324,41 @@ def test_tolerant_equal_handler_handle_dispatches_to_equal_when_tolerances_zero(
 # --- handle: logging ---
 
 
-def test_tolerant_equal_handler_handle_false_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_tolerant_equal_handler_handle_false_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert not TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
 
 
-def test_tolerant_equal_handler_handle_false_show_difference_logs(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
-    assert caplog.messages[-1].startswith("objects are different:")
+def test_tolerant_equal_handler_handle_false_explaining_reports(config: EqualityConfig) -> None:
+    config.reports = []
+    TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
+    assert messages(config)[-1].startswith("objects are different:")
 
 
-def test_tolerant_equal_handler_handle_true_show_difference(config: EqualityConfig) -> None:
-    config.show_difference = True
+def test_tolerant_equal_handler_handle_true_explaining(config: EqualityConfig) -> None:
+    config.reports = []
     assert TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(42), config=config)
 
 
-def test_tolerant_equal_handler_handle_no_log_when_equal(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
-) -> None:
-    config.show_difference = True
-    with caplog.at_level(logging.INFO):
-        TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(42), config=config)
-    assert not caplog.messages
+def test_tolerant_equal_handler_handle_no_log_when_equal(config: EqualityConfig) -> None:
+    config.reports = []
+    TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(42), config=config)
+    assert not messages(config)
 
 
-def test_tolerant_equal_handler_handle_false_when_show_difference_false(
+def test_tolerant_equal_handler_handle_false_when_explaining_false(
     config: EqualityConfig,
 ) -> None:
-    config.show_difference = False
+    config.reports = None
     assert not TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
 
 
-def test_tolerant_equal_handler_handle_no_log_when_show_difference_false(
-    config: EqualityConfig, caplog: pytest.LogCaptureFixture
+def test_tolerant_equal_handler_handle_no_log_when_explaining_false(
+    config: EqualityConfig,
 ) -> None:
-    config.show_difference = False
-    with caplog.at_level(logging.INFO):
-        TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
-    assert not caplog.messages
+    config.reports = None
+    TolerantEqualHandler().handle(actual=MyFloat(42), expected=MyFloat(1), config=config)
+    assert not messages(config)
 
 
 # --- set_next_handler ---
