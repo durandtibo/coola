@@ -625,6 +625,7 @@ def make_tracked() -> Tracked:
     return Tracked()
 
 
+# The missing return annotation is the point of this helper, so ANN201 is ignored on purpose.
 def make_tracked_unannotated():  # noqa: ANN201
     CALLS.append("make_tracked_unannotated")
     return Tracked()
