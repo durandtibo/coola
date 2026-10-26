@@ -597,3 +597,11 @@ Checked against `git log 0287a61a..HEAD` and by re-running the repros.
    the traversal helpers), 24.3 (plugins).
 5. **API:** 28.1 (flat namespace), 28.2, 28.3 (breaking), 28.4 (README), 27.1.
 6. **Cleanup:** 22.8, 23.2, 23.3, 25.2, 25.3, 26.2, 27.2, 29.2, 17.4 (carried).
+
+## 33. Status of the items fixed in round 5
+
+| ID   | Status     | Notes                                                                                                                                                  |
+| ---- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 25.1 | Partly     | `recursive_apply`: cycles and any depth with an explicit stack (#2375). `dfs_iterate` still has the depth limit.                                       |
+| 25.3 | Partly     | `recursive_apply` and `round_values` enter dataclasses by default (#2377). `dfs_iterate` / `bfs_iterate` keep `enter_dataclasses`.                       |
+| 28.2 | Partly     | `recursive_apply`: `registry` is keyword-only, the deprecated paths are removed (#2373). `summarize`, `dfs_iterate` and `bfs_iterate` still warn.       |

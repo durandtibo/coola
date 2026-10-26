@@ -256,6 +256,15 @@ Comparisons short-circuit on first difference when possible.
 
 The registry caches tester lookups by type for performance.
 
+### Recursive Transformation
+
+`recursive_apply` uses one engine (`coola.recursive.engine`) and one extension point. A transformer
+only describes the shape of a type: `expand(data)` returns `None` for a leaf, or the children and
+the function that rebuilds the container from the transformed children. The engine owns the
+invariants: the transformer lookup (by MRO, cached for the call), the call of `func` on the leaves,
+the cycle check and the depth (an explicit stack, so there is no `RecursionError`). This is the same
+split as the equality engine, where a tester returns the child pairs.
+
 ### Recursive Depth
 
 For deeply nested structures, comparison is recursive. `EqualityConfig.max_depth` (default 100)
