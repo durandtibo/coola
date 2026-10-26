@@ -230,10 +230,9 @@ def test_factory_with_static_method_init_arg2() -> None:
     assert obj.arg2 == "static"
 
 
-def test_factory_with_new_init() -> None:
-    """Test factory with __new__ as initializer."""
-    obj = factory("tests.unit.factory.test_resolve.FakeClass", 50, "new_test", _init_="__new__")
-    assert isinstance(obj, FakeClass)
+def test_factory_with_new_init_is_refused() -> None:
+    with pytest.raises(TypeError, match=r"`_init_` must be '__init__' or the name of a public"):
+        factory("tests.unit.factory.test_resolve.FakeClass", 50, "new_test", _init_="__new__")
 
 
 def test_factory_function_target_type() -> None:
@@ -358,7 +357,7 @@ def test_factory_object_init_constant_matches_literal_key_arg2() -> None:
 
 def test_factory_invalid_init_method() -> None:
     """Test that factory raises error for invalid _init_ method."""
-    with pytest.raises(TypeError, match=r"does not have `invalid_method` attribute"):
+    with pytest.raises(TypeError, match=r"does not have a callable `invalid_method` attribute"):
         factory("tests.unit.factory.test_resolve.FakeClass", _init_="invalid_method")
 
 
@@ -828,3 +827,9 @@ def test_factory_nested_configuration_of_resolve_loader_is_refused() -> None:
             loader={OBJECT_TARGET: "os.getcwd"},
             _allowed_prefixes_=["coola.io"],
         )
+
+
+def test_resolve_object_init_new_is_refused() -> None:
+    config = {OBJECT_TARGET: "tests.unit.factory.test_resolve.FakeClass", OBJECT_INIT: "__new__"}
+    with pytest.raises(TypeError, match=r"`_init_` must be '__init__' or the name of a public"):
+        resolve_object(config)

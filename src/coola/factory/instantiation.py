@@ -120,7 +120,7 @@ def instantiate_object(
 
     This function creates an instance of a class or calls a callable
     with the provided arguments. For classes, it supports different
-    instantiation methods (constructor, __new__, or class methods).
+    instantiation methods (constructor or public class methods).
     For any other callable (function, builtin, ``functools.partial``,
     or an object implementing ``__call__``), it simply calls it with
     the given arguments.
@@ -133,8 +133,10 @@ def instantiate_object(
         _init_: The function or method to use to create the object.
             This parameter is ignored if ``obj`` is not a class. For
             classes, if ``"__init__"`` (default), the object is
-            created by calling the constructor. Can also be
-            ``"__new__"`` or the name of a class method.
+            created by calling the constructor (``__new__`` and
+            ``__init__``). Can also be the name of a public class
+            method or static method that returns an instance of the
+            class. A name that starts with ``_`` is refused.
         **kwargs: Keyword arguments to pass to the class constructor
             or callable. Any name is accepted, including ``obj`` and
             ``cls``: ``obj`` is positional-only.
@@ -144,16 +146,11 @@ def instantiate_object(
             returned value of the callable.
 
     Raises:
-        TypeError: if ``obj`` is not a class or a callable.
-
-    Warning:
-        ``"__new__"`` bypasses ``cls.__init__`` entirely: it
-        calls ``cls.__new__(cls, *args, **kwargs)`` and
-        returns the result as-is, so the object's ``__init__``
-        is never invoked. Unlike ``cls(*args, **kwargs)``,
-        which always runs ``__new__`` then ``__init__``, this
-        can silently produce a partially-initialized object
-        if the caller expected the usual two-step semantics.
+        TypeError: if ``obj`` is not a class or a callable, if it is an
+            abstract class, if ``_init_`` is not a public method name
+            (it is not a string or it starts with ``_``), if the class
+            does not have a callable ``_init_`` attribute, or if
+            ``_init_`` does not return an instance of ``obj``.
 
     Security:
         ``obj`` is instantiated or called with the given arguments with
@@ -175,58 +172,31 @@ def instantiate_object(
 
         ```
     """
-    if isinstance(obj, type):
-        return _instantiate_class_object(obj, *args, _init_=_init_, **kwargs)
-    if callable(obj):
+    if not callable(obj):
+        msg = f"Incorrect type: {obj}. The valid types are class and callable"
+        raise TypeError(msg)
+    if not isinstance(obj, type):
         return obj(*args, **kwargs)
-    msg = f"Incorrect type: {obj}. The valid types are class and callable"
-    raise TypeError(msg)
-
-
-def _instantiate_class_object(
-    cls: type, /, *args: Any, _init_: str = "__init__", **kwargs: Any
-) -> Any:
-    r"""Instantiate an object from its class and some arguments.
-
-    The object can be instantiated by calling the constructor
-    ``__init__`` (default) or ``__new__`` or a class method.
-
-    Args:
-        cls: The class of the object to instantiate.
-        *args: Variable length argument list.
-        _init_: The function to use to create the object.
-            If ``"__init__"``, the object is created by calling the
-            constructor. If ``"__new__"``, ``cls.__init__`` is never
-            called (see ``instantiate_object`` for details).
-        **kwargs: Arbitrary keyword arguments.
-
-    Returns:
-        The instantiated object.
-
-    Raises:
-        TypeError: if it is an abstract class, if it is not possible
-            to instantiate the object, or if the object returned by
-            ``_init_`` is not an instance of ``cls``.
-    """
-    if inspect.isabstract(cls):
-        msg = f"Cannot instantiate the class {cls} because it is an abstract class."
+    if inspect.isabstract(obj):
+        msg = f"Cannot instantiate the class {obj} because it is an abstract class."
         raise TypeError(msg)
-
     if _init_ == "__init__":
-        return cls(*args, **kwargs)
-
-    if not hasattr(cls, _init_):
-        msg = f"{cls} does not have `{_init_}` attribute"
-        raise TypeError(msg)
-    init_fn = getattr(cls, _init_)
-    if not callable(init_fn):
-        msg = f"`{_init_}` attribute of {cls} is not callable"
-        raise TypeError(msg)
-    obj = init_fn(cls, *args, **kwargs) if _init_ == "__new__" else init_fn(*args, **kwargs)
-    if not isinstance(obj, cls):
+        return obj(*args, **kwargs)
+    if not isinstance(_init_, str) or _init_.startswith("_"):
         msg = (
-            f"`{_init_}` of {cls} did not return an instance of {cls} "
-            f"(received: {obj!r} of type {type(obj)})"
+            "`_init_` must be '__init__' or the name of a public class method "
+            f"(received: {_init_!r})"
         )
         raise TypeError(msg)
-    return obj
+    method = getattr(obj, _init_, None)
+    if not callable(method):
+        msg = f"{obj} does not have a callable `{_init_}` attribute"
+        raise TypeError(msg)
+    result = method(*args, **kwargs)
+    if not isinstance(result, obj):
+        msg = (
+            f"`{_init_}` of {obj} did not return an instance of {obj} "
+            f"(received: {result!r} of type {type(result)})"
+        )
+        raise TypeError(msg)
+    return result

@@ -243,34 +243,6 @@ def test_instantiate_object_class_init_classmethod_with_kwarg_arg2() -> None:
     assert obj.arg2 == "meow"
 
 
-def test_instantiate_object_class_init_new() -> None:
-    assert isinstance(instantiate_object(Fake, _init_="__new__"), Fake)
-
-
-def test_instantiate_object_class_init_new_bypasses_init_arg1() -> None:
-    # `__new__` must not run `Fake.__init__`, unlike the default `__init__` path.
-    obj = instantiate_object(Fake, _init_="__new__")
-    assert "arg1" not in obj.__dict__
-
-
-def test_instantiate_object_class_init_new_bypasses_init_arg2() -> None:
-    # `__new__` must not run `Fake.__init__`, unlike the default `__init__` path.
-    obj = instantiate_object(Fake, _init_="__new__")
-    assert "arg2" not in obj.__dict__
-
-
-def test_instantiate_object_class_default_init_sets_the_attributes() -> None:
-    # Sanity check contrasting the two paths: the default path always
-    # runs `__init__` and sets the attributes, `__new__` never does.
-    default_obj = instantiate_object(Fake, 1, "abc")
-    assert default_obj.__dict__ == {"arg1": 1, "arg2": "abc"}
-
-
-def test_instantiate_object_class_init_new_does_not_set_the_attributes() -> None:
-    new_obj = instantiate_object(Fake, _init_="__new__")
-    assert new_obj.__dict__ == {}
-
-
 def test_instantiate_object_class_init_static_method_type() -> None:
     obj = instantiate_object(Fake, _init_="static_method")
     assert isinstance(obj, Fake)
@@ -287,7 +259,9 @@ def test_instantiate_object_class_init_static_method_arg2() -> None:
 
 
 def test_instantiate_object_init_not_exist() -> None:
-    with pytest.raises(TypeError, match=r".* does not have `incorrect_init_method` attribute"):
+    with pytest.raises(
+        TypeError, match=r".* does not have a callable `incorrect_init_method` attribute"
+    ):
         # Should fail because the init function does not exist.
         instantiate_object(Fake, _init_="incorrect_init_method")
 
@@ -309,7 +283,7 @@ def test_instantiate_object_init_wrong_return_type() -> None:
 
 def test_instantiate_object_init_not_method() -> None:
     Fake.not_a_method = None
-    with pytest.raises(TypeError, match=r"`not_a_method` attribute of .* is not callable"):
+    with pytest.raises(TypeError, match=r".* does not have a callable `not_a_method` attribute"):
         # Should fail because the attribute not_a_method is not a method.
         instantiate_object(Fake, _init_="not_a_method")
 
@@ -523,3 +497,27 @@ def test_instantiate_object_class_receives_an_argument_named_cls() -> None:
 
 def test_instantiate_object_function_receives_an_argument_named_obj() -> None:
     assert instantiate_object(functools.partial(dict, obj=1), cls=2) == {"obj": 1, "cls": 2}
+
+
+@pytest.mark.parametrize("init", ["__new__", "__class__", "__subclasses__", "_private", "_"])
+def test_instantiate_object_init_starting_with_underscore_is_refused(init: str) -> None:
+    with pytest.raises(TypeError, match=r"`_init_` must be '__init__' or the name of a public"):
+        instantiate_object(Fake, _init_=init)
+
+
+def test_instantiate_object_init_not_a_string_is_refused() -> None:
+    with pytest.raises(TypeError, match=r"`_init_` must be '__init__' or the name of a public"):
+        instantiate_object(Fake, _init_=5)
+
+
+def test_instantiate_object_init_underscore_is_refused_before_the_attribute_is_read() -> None:
+    with pytest.raises(TypeError, match=r"received: '__new__'"):
+        instantiate_object(Counter, _init_="__new__")
+
+
+def test_instantiate_object_init_is_ignored_for_a_function() -> None:
+    assert instantiate_object(math.isclose, 1.0, 1.0, _init_="__new__") is True
+
+
+def test_instantiate_object_init_is_ignored_for_a_callable_instance() -> None:
+    assert instantiate_object(functools.partial(int, "1"), _init_="_private") == 1

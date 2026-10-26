@@ -41,8 +41,10 @@ def factory(
             or function.
         _init_: The function or method used to create the object.
             If ``"__init__"`` (default), the object is created by
-            calling the constructor. Can also be ``"__new__"`` or the
-            name of a class method.
+            calling the constructor. Can also be the name of a public
+            class method or static method that returns an instance of
+            the class (a name that starts with ``_``, such as
+            ``"__new__"``, is refused).
         _allowed_prefixes_: An optional allow-list of module prefixes
             that ``_target_`` must match (see ``import_object``). It is
             keyword-only, and it is the choice of the code that calls
