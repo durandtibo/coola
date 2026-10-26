@@ -4,8 +4,7 @@ from __future__ import annotations
 
 __all__ = ["KeyFilterTransformer"]
 
-import warnings
-from collections.abc import Mapping, Sequence, Set as AbstractSet
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
@@ -22,41 +21,15 @@ class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]
     r"""Transformer for mappings that drops entries whose key matches a
     predicate and recurses into the remaining values.
 
-    A ``TransformerRegistry`` threads a single function through the
-    recursion, so a transformer that needs two functions (a predicate
-    for the keys and a function for the values) must keep one of them.
-    This transformer supports two modes:
-
-    - **With** ``key_predicate`` (recommended): the predicate is stored in
-      the transformer and used for the keys of every mapping it
-      transforms, however deep they are nested. The ``func`` given to
-      ``transform`` is the function for the values: it is forwarded
-      unchanged to the registry and applied by the transformers of the
-      leaf types.
-    - **Without** ``key_predicate`` (legacy, **deprecated**: a
-      ``DeprecationWarning`` is emitted and the mode will be removed in
-      the next breaking release): ``func`` is the key predicate,
-      and it is forwarded to the nested containers so they are
-      filtered with the same predicate. The values that are not
-      containers are transformed with ``transform_func`` (the
-      identity by default), because ``func`` is a predicate and
-      applying it to the values would replace them with booleans.
-      ``transform_func`` only applies to the entries of the mapping
-      itself, not to the mappings nested in it, since a single function
-      is threaded through the recursion: use ``key_predicate`` if the
-      leaf transformers of the registry apply the function.
+    The predicate is stored in the transformer and used for the keys of
+    every mapping it transforms, however deep they are nested. The
+    ``func`` given to ``transform`` is the function for the values: it
+    is forwarded unchanged to the registry and applied by the
+    transformers of the leaf types.
 
     Args:
         key_predicate: A function applied to each key: the entries whose
-            key satisfies it are dropped. If ``None`` (default), the
-            deprecated legacy mode is used.
-        transform_func: Only for the legacy mode. The function applied
-            (via the registry) to the values of the kept entries that
-            are not containers. If ``None`` (default), the values are
-            left unchanged.
-
-    Raises:
-        ValueError: If ``key_predicate`` and ``transform_func`` are both given.
+            key satisfies it are dropped.
 
     Notes:
         - Entries whose key satisfies the predicate (i.e. the predicate
@@ -82,30 +55,11 @@ class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]
         ```
     """
 
-    def __init__(
-        self,
-        key_predicate: Callable[[Any], bool] | None = None,
-        transform_func: Callable[[Any], Any] | None = None,
-    ) -> None:
-        if key_predicate is not None and transform_func is not None:
-            msg = (
-                "`transform_func` is only used without `key_predicate`: with a "
-                "`key_predicate`, the function of `transform` is applied to the values"
-            )
-            raise ValueError(msg)
-        if key_predicate is None:
-            warnings.warn(
-                "The legacy mode of `KeyFilterTransformer` (without `key_predicate`) is "
-                "deprecated and will be removed in the next breaking release: pass "
-                "`key_predicate`",
-                DeprecationWarning,
-                stacklevel=2,
-            )
+    def __init__(self, key_predicate: Callable[[Any], bool]) -> None:
         self._key_predicate = key_predicate
-        self._transform_func = transform_func
 
     def _display_fields(self) -> dict[str, Any]:
-        return {"key_predicate": self._key_predicate, "transform_func": self._transform_func}
+        return {"key_predicate": self._key_predicate}
 
     def transform(
         self,
@@ -118,12 +72,8 @@ class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]
 
         Args:
             data: The mapping to filter and transform.
-            func: With a ``key_predicate``, the function applied to the
-                values by the transformers of the leaf types. Without
-                a ``key_predicate``, the key predicate: entries whose
-                key satisfies it are dropped, and it is forwarded
-                recursively (via ``registry``) so the nested containers
-                are filtered with the same predicate.
+            func: The function applied to the values by the
+                transformers of the leaf types.
             registry: The transformer registry used to recursively
                 transform the values of the kept entries.
 
@@ -132,41 +82,10 @@ class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]
             only the entries whose key did not match the predicate, with
             their values transformed recursively.
         """
-        if self._key_predicate is not None:
-            predicate = self._key_predicate
-            filtered = {
-                key: registry.transform(value, func)
-                for key, value in data.items()
-                if not predicate(key)
-            }
-            return rebuild_mapping(data, filtered)
-        transform_func = _identity if self._transform_func is None else self._transform_func
+        predicate = self._key_predicate
         filtered = {
-            key: registry.transform(value, self._value_func(value, func, transform_func))
+            key: registry.transform(value, func)
             for key, value in data.items()
-            if not func(key)
+            if not predicate(key)
         }
         return rebuild_mapping(data, filtered)
-
-    @staticmethod
-    def _value_func(
-        value: Any, func: Callable[[Any], bool], transform_func: Callable[[Any], Any]
-    ) -> Callable[[Any], Any]:
-        r"""Select the function to propagate to ``value`` (legacy mode).
-
-        ``func`` (the key predicate) is forwarded for containers
-        (mapping, sequence, set, excluding ``str``) so nested mappings
-        keep being filtered with the same predicate however deep they
-        are nested. ``transform_func`` is forwarded for every other
-        value, so it is the one applied when the value is eventually
-        handled by a leaf transformer.
-        """
-        if isinstance(value, str):
-            return transform_func
-        if isinstance(value, (Mapping, Sequence, AbstractSet)):
-            return func
-        return transform_func
-
-
-def _identity(value: Any) -> Any:
-    return value

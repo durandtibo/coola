@@ -293,23 +293,13 @@ def test_recursive_apply_with_user_string() -> None:
     assert recursive_apply([UserString("abc")], lambda x: x) == ["abc"]
 
 
-def test_recursive_apply_positional_registry_is_deprecated() -> None:
-    with pytest.warns(DeprecationWarning, match="`registry` to `recursive_apply`"):
-        recursive_apply([1], str, get_default_registry())
-
-
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
-def test_recursive_apply_positional_registry_is_deprecated_result() -> None:
-    assert recursive_apply([1], str, get_default_registry()) == ["1"]
-
-
-def test_recursive_apply_keyword_registry_does_not_warn() -> None:
+def test_recursive_apply_keyword_registry() -> None:
     assert recursive_apply([1], str, registry=get_default_registry()) == ["1"]
 
 
-def test_recursive_apply_too_many_positional_arguments_raises() -> None:
-    with pytest.raises(TypeError, match="takes at most 3 positional arguments"):
-        recursive_apply([1], str, None, None)
+def test_recursive_apply_positional_registry_raises() -> None:
+    with pytest.raises(TypeError, match="takes 2 positional arguments but 3 were given"):
+        recursive_apply([1], str, get_default_registry())  # type: ignore[misc]
 
 
 @dataclass
@@ -364,3 +354,8 @@ def test_enter_dataclasses_keeps_the_transformer_registered_for_a_type(
     local_registry.register(Config, transformer)
     enter_dataclasses(registry=local_registry)
     assert local_registry.find_transformer(Config) is transformer
+
+
+def test_register_transformers_exist_ok_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="takes 1 positional argument but 2 were given"):
+        register_transformers({CustomList: SequenceTransformer()}, True)  # type: ignore[misc]
