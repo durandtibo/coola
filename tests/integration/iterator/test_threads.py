@@ -13,8 +13,8 @@ NUM_THREADS = 8
 
 @pytest.mark.parametrize("iterate", [dfs_iterate, bfs_iterate])
 def test_iterate_in_threads_with_the_default_registry(iterate: Any) -> None:
-    """Test that threads can traverse data with the default registry
-    at the same time."""
+    """Test that threads can traverse data with the default registry at
+    the same time."""
     results: list[list[int]] = []
     lock = threading.Lock()
 

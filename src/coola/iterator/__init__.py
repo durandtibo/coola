@@ -1,11 +1,13 @@
 r"""Utilities to traverse and filter nested data structures.
 
-``dfs_iterate`` and ``bfs_iterate`` are lazy generators that yield the leaves of a nested
-structure, once per occurrence and never a container, in depth-first (pre-order) or breadth-first
-(level order) order. The child finder of an object is chosen from its type along the Method
-Resolution Order, and one child finder serves both orders. Keys are never yielded, the input is
-never modified, iterators and generators are leaves (never consumed), and a container that
-contains itself raises a ``ValueError``. Both orders yield the same leaves; only the order
+``dfs_iterate`` and ``bfs_iterate`` are lazy generators that yield the
+leaves of a nested structure, once per occurrence and never a container,
+in depth-first (pre-order) or breadth-first (level order) order. The
+child finder of an object is chosen from its type along the Method
+Resolution Order, and one child finder serves both orders. Keys are
+never yielded, the input is never modified, iterators and generators are
+leaves (never consumed), and a container that contains itself raises a
+``ValueError``. Both orders yield the same leaves; only the order
 differs, and neither is limited by the depth of the data.
 """
 

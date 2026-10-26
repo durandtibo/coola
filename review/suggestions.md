@@ -600,8 +600,8 @@ Checked against `git log 0287a61a..HEAD` and by re-running the repros.
 
 ## 33. Status of the items fixed in round 5
 
-| ID   | Status | Notes                                                                                                                                             |
-| ---- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 25.1 | Fixed  | `recursive_apply`: cycles and any depth with an explicit stack (#2375). `dfs_iterate` and `bfs_iterate` too (#2395).                      |
-| 25.3 | Fixed  | `recursive_apply`, `round_values` (#2377), `dfs_iterate` and `bfs_iterate` enter dataclasses by default; `enter_dataclasses` is removed (#2381).  |
+| ID   | Status | Notes                                                                                                                                                         |
+| ---- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 25.1 | Fixed  | `recursive_apply`: cycles and any depth with an explicit stack (#2375). `dfs_iterate` and `bfs_iterate` too (#2395).                                          |
+| 25.3 | Fixed  | `recursive_apply`, `round_values` (#2377), `dfs_iterate` and `bfs_iterate` enter dataclasses by default; `enter_dataclasses` is removed (#2381).              |
 | 28.2 | Partly | `recursive_apply`: `registry` is keyword-only, the deprecated paths are removed (#2373), as `dfs_iterate` and `bfs_iterate` (#2395). `summarize` still warns. |
