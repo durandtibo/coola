@@ -11,8 +11,8 @@ __all__ = ["DifferenceCloseEqualityTester"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.difference import difference_close
-from coola.equality.handler.format import format_value_difference
+from coola.equality._helpers.difference import difference_close
+from coola.equality._helpers.format import format_value_difference
 from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:

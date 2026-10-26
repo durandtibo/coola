@@ -40,7 +40,7 @@ def difference_close(actual: Any, expected: Any, config: EqualityConfig) -> bool
         >>> from coola.equality import Tolerance
         >>> from fractions import Fraction
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.difference import difference_close
+        >>> from coola.equality._helpers.difference import difference_close
         >>> config = EqualityConfig(tolerance=Tolerance(atol=1e-3))
         >>> difference_close(Fraction(1, 3), Fraction(333333, 1000000), config)
         True

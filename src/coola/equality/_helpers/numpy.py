@@ -6,8 +6,8 @@ __all__ = ["array_close", "array_equal", "is_numeric_array", "time_scalar_equal"
 
 from typing import TYPE_CHECKING
 
-from coola.equality.handler.elementwise import elementwise_close
-from coola.equality.handler.scalar import int_isclose
+from coola.equality._helpers.elementwise import elementwise_close
+from coola.equality._helpers.scalar import int_isclose
 from coola.utils.imports import is_numpy_available
 
 if TYPE_CHECKING or is_numpy_available():
@@ -39,7 +39,7 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         ```pycon
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.numpy import array_equal
+        >>> from coola.equality._helpers.numpy import array_equal
         >>> config = EqualityConfig()
         >>> array_equal(np.ones((2, 3)), np.ones((2, 3)), config)
         True
@@ -76,7 +76,7 @@ def array_close(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
         ```pycon
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.numpy import array_close
+        >>> from coola.equality._helpers.numpy import array_close
         >>> array_close(np.array([1.0, 2.0]), np.array([1.0, 3.0]), EqualityConfig())
         array([ True, False])
 
@@ -157,7 +157,7 @@ def is_numeric_array(array: np.ndarray) -> bool:
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.handler.numpy import is_numeric_array
+        >>> from coola.equality._helpers.numpy import is_numeric_array
         >>> is_numeric_array(np.ones((2, 3)))
         True
         >>> is_numeric_array(np.array(["polar", "bear", "meow"]))
@@ -196,7 +196,7 @@ def time_scalar_equal(
         >>> from coola.equality import Tolerance
         >>> import numpy as np
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.numpy import time_scalar_equal
+        >>> from coola.equality._helpers.numpy import time_scalar_equal
         >>> config = EqualityConfig(tolerance=Tolerance(atol=1.0))
         >>> time_scalar_equal(np.timedelta64(1, "s"), np.timedelta64(2000, "ms"), config)
         True

@@ -166,7 +166,7 @@ def column_close(column: Column, other: Column, ctx: Engine) -> bool:
     """
     if column.kind == "exact":
         return column.equals(column.values, other.values)
-    from coola.equality.handler.numpy import array_equal  # noqa: PLC0415
+    from coola.equality._helpers.numpy import array_equal  # noqa: PLC0415
 
     if column.nulls is not None and not bool((column.nulls == other.nulls).all()):
         return False

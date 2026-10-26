@@ -12,9 +12,9 @@ __all__ = [
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from coola.equality._helpers.utils import AttributeName
 from coola.equality.config import EqualityConfig
 from coola.equality.engine import Element, Engine
-from coola.equality.handler.utils import AttributeName
 from coola.equality.tester.interface import get_default_registry
 from coola.equality.tolerance import Tolerance
 

@@ -27,7 +27,7 @@ def get_object_attributes(obj: object) -> dict[str, Any]:
 
     Example:
         ```pycon
-        >>> from coola.equality.handler import get_object_attributes
+        >>> from coola.equality._helpers import get_object_attributes
         >>> class Point:
         ...     def __init__(self, x, y):
         ...         self.x = x

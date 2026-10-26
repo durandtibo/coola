@@ -11,7 +11,7 @@ __all__ = ["TolerantEqualEqualityTester"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.format import format_value_difference
+from coola.equality._helpers.format import format_value_difference
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.introspection import supports_methods
 

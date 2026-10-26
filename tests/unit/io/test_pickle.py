@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola.equality.interface import objects_are_equal
+from coola.equality import objects_are_equal
 from coola.io import PickleLoader, PickleSaver, load_pickle, save_pickle, save_text
 
 if TYPE_CHECKING:

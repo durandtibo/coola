@@ -52,7 +52,7 @@ def elementwise_close(
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.equality.handler.elementwise import elementwise_close
+        >>> from coola.equality._helpers.elementwise import elementwise_close
         >>> x, y = np.array([100.0, 101.005]), np.array([101.005, 100.0])
         >>> elementwise_close(x, y, atol=0.0, rtol=0.01, equal_nan=False, xp=np)
         array([ True,  True])

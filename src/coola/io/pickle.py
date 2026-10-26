@@ -8,7 +8,7 @@ import pickle
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.display import InlineDisplayMixin
-from coola.equality.interface import objects_are_equal
+from coola.equality import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.introspection import is_same_type
 from coola.utils.path import sanitize_path

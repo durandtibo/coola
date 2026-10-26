@@ -11,8 +11,8 @@ __all__ = ["ScalarEqualityTester"]
 import cmath
 from typing import TYPE_CHECKING
 
-from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.scalar import complex_are_equal, number_equal
+from coola.equality._helpers.format import format_value_difference
+from coola.equality._helpers.scalar import complex_are_equal, number_equal
 from coola.equality.tester.base import BaseEqualityTester
 
 if TYPE_CHECKING:

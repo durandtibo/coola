@@ -50,7 +50,7 @@ def check_imports() -> None:
     logger.info("Checking imports...")
     objects_to_import = [
         "coola.equality.config.EqualityConfig",
-        "coola.equality.handler.BaseEqualityHandler",
+        "coola.equality.Engine",
         "coola.equality.objects_are_allclose",
         "coola.equality.objects_are_equal",
         "coola.equality.tester.BaseEqualityTester",

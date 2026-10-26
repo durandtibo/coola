@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from coola.equality._helpers import comparison_key, is_exact_scalar_sequence
 from coola.equality.config import EqualityConfig
-from coola.equality.handler import comparison_key, is_exact_scalar_sequence
 
 ###############################################
 #     Tests for is_exact_scalar_sequence      #

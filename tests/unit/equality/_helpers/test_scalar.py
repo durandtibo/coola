@@ -6,8 +6,8 @@ import numbers
 
 import pytest
 
+from coola.equality._helpers.scalar import complex_are_equal, int_isclose, number_equal
 from coola.equality.config import EqualityConfig
-from coola.equality.handler.scalar import complex_are_equal, int_isclose, number_equal
 from coola.equality.tolerance import Tolerance
 
 

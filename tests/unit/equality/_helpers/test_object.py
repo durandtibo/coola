@@ -5,10 +5,10 @@ from typing import Any
 
 import pytest
 
-from coola.equality.config import EqualityConfig
-from coola.equality.handler import (
+from coola.equality._helpers import (
     get_object_attributes,
 )
+from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     DefaultEqualityTester,
     EqualityTesterRegistry,

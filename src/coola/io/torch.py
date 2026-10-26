@@ -7,7 +7,7 @@ __all__ = ["TorchLoader", "TorchSaver", "load_torch", "save_torch"]
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from coola.display import InlineDisplayMixin
-from coola.equality.interface import objects_are_equal
+from coola.equality import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.imports import check_torch, is_torch_available
 from coola.utils.introspection import is_same_type

@@ -6,8 +6,8 @@ from fractions import Fraction
 
 import pytest
 
+from coola.equality._helpers.difference import difference_close
 from coola.equality.config import EqualityConfig
-from coola.equality.handler.difference import difference_close
 from coola.equality.tolerance import Tolerance
 
 

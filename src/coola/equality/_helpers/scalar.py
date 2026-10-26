@@ -34,7 +34,7 @@ def complex_are_equal(actual: complex, expected: complex, config: EqualityConfig
     Example:
         ```pycon
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.scalar import complex_are_equal
+        >>> from coola.equality._helpers.scalar import complex_are_equal
         >>> config = EqualityConfig()
         >>> complex_are_equal(complex(float("nan"), 1), complex(float("nan"), 1), config)
         True
@@ -67,7 +67,7 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
     Example:
         ```pycon
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler.scalar import number_equal
+        >>> from coola.equality._helpers.scalar import number_equal
         >>> config = EqualityConfig()
         >>> number_equal(42.0, 42.0, config)
         True
@@ -143,7 +143,7 @@ def int_isclose(number1: float, number2: float, rtol: float = 0.0, atol: float =
 
     Example:
         ```pycon
-        >>> from coola.equality.handler.scalar import int_isclose
+        >>> from coola.equality._helpers.scalar import int_isclose
         >>> int_isclose(10**400, 10**400 + 1, rtol=1e-5)
         True
         >>> int_isclose(10**400, 2 * 10**400, rtol=1e-5)

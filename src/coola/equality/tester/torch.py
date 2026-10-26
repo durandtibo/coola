@@ -11,9 +11,9 @@ __all__ = ["TorchPackedSequenceEqualityTester", "TorchTensorEqualityTester"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.torch import tensor_close, tensor_equal
-from coola.equality.handler.utils import AttributeName
+from coola.equality._helpers.format import format_value_difference
+from coola.equality._helpers.torch import tensor_close, tensor_equal
+from coola.equality._helpers.utils import AttributeName
 from coola.equality.tester._array import check_dtype_and_shape
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_torch, is_torch_available
