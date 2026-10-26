@@ -77,9 +77,9 @@ ported.
 - **`ScalarEqualityTester`**, **`DifferenceCloseEqualityTester`**, **`EqualEqualityTester`**,
   **`EqualNanEqualityTester`**, **`TolerantEqualEqualityTester`**: Numbers and objects with an
   `equal` method
-- Array and dataframe testers for NumPy, PyTorch, pandas, polars, xarray, JAX and PyArrow (for
-  example `NumpyArrayEqualityTester`, `TorchTensorEqualityTester`,
-  `PandasDataFrameEqualityTester`)
+- Array testers for NumPy, PyTorch, xarray and JAX (for example `NumpyArrayEqualityTester`,
+  `TorchTensorEqualityTester`)
+- **`TableEqualityTester`**: pandas, polars and PyArrow tables, with one adapter per library
 - **`HandlerEqualityTester`**: Wraps a chain of handlers (see below)
 
 ### 3. Registry
@@ -134,7 +134,6 @@ next handler in the chain. Examples:
 
 - **`SameObjectHandler`**, **`SameTypeHandler`**, **`SameLengthHandler`**: Generic checks
 - **`ObjectEqualHandler`**, **`AllCloseNanHandler`**: Value checks
-- Library-specific handlers such as `PandasDataFrameEqualHandler`
 
 `create_chain(*handlers)` links handlers and returns the first one. A `HandlerEqualityTester`
 turns a chain into a tester. Handlers promote code reuse and consistency across testers.

@@ -98,10 +98,6 @@ class EqualityConfig:
     # Internal state of one comparison: a config must not be shared by
     # concurrent comparisons (each ``objects_are_*`` call creates its own).
     _current_depth: int = field(default=0, init=False, repr=False, compare=False)
-    # The names of the ignored settings (``equal_nan``, ``atol``, ``rtol``) that were
-    # already reported in a warning, so a comparison warns once per setting and not for
-    # each object (see ``_warn_ignored`` in ``coola.equality.handler.pyarrow``).
-    _warned: set[str] = field(default_factory=set, init=False, repr=False, compare=False)
     # ``(id(actual), id(expected))`` of the pairs being compared, used to detect
     # the cycles (see ``track_comparison``). The ids are safe to use as keys
     # because the pairs are alive during the whole comparison.
@@ -158,37 +154,6 @@ class EqualityConfig:
         It is the inverse of ``increment_depth``.
         """
         self._current_depth -= 1
-
-    def mark_warned(self, name: str) -> bool:
-        """Record that a warning was emitted for a setting.
-
-        The handlers use it to warn once per setting and per
-        comparison, and not for each object of a nested structure.
-
-        Args:
-            name: The name of the setting the warning is about.
-
-        Returns:
-            ``True`` if this is the first call with this name, so the
-                handler should warn, otherwise ``False``.
-
-        Example:
-            ```pycon
-            >>> from coola.equality.config import EqualityConfig
-            >>> config = EqualityConfig()
-            >>> config.mark_warned("atol")
-            True
-            >>> config.mark_warned("atol")
-            False
-            >>> config.mark_warned("rtol")
-            True
-
-            ```
-        """
-        if name in self._warned:
-            return False
-        self._warned.add(name)
-        return True
 
     @contextmanager
     def visiting(self, actual: object, expected: object) -> Generator[bool]:

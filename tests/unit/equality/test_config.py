@@ -164,32 +164,6 @@ def test_equality_config_eq_false_different_max_depth() -> None:
     assert EqualityConfig() != EqualityConfig(max_depth=50)
 
 
-#################################
-#     Tests for mark_warned     #
-#################################
-
-
-def test_equality_config_mark_warned_first_time() -> None:
-    assert EqualityConfig().mark_warned("atol") is True
-
-
-def test_equality_config_mark_warned_second_time() -> None:
-    config = EqualityConfig()
-    config.mark_warned("atol")
-    assert config.mark_warned("atol") is False
-
-
-def test_equality_config_mark_warned_other_name() -> None:
-    config = EqualityConfig()
-    config.mark_warned("atol")
-    assert config.mark_warned("rtol") is True
-
-
-def test_equality_config_mark_warned_is_per_config() -> None:
-    EqualityConfig().mark_warned("atol")
-    assert EqualityConfig().mark_warned("atol") is True
-
-
 ##############################
 #     Tests for visiting     #
 ##############################
