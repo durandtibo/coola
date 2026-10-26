@@ -131,3 +131,4 @@ dmypy.json
 .ruff_cache/
 
 mutants/
+.benchmarks/
