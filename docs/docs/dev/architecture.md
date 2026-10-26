@@ -209,12 +209,12 @@ See the [extending guide](../uguide/extending.md) for more details.
 ### Checklist: writing a tester
 
 - Return a verdict (`ctx.fail(reason)` for a difference) or the child pairs `(actual, expected,
-  path part)`; never recurse: the engine checks the identity, the type, the depth and the cycles
+path part)`; never recurse: the engine checks the identity, the type, the depth and the cycles
 - Use `AttributeName` for an attribute and `ctx.fail(reason, *path)` for the location inside a leaf
   (the index in an array)
 - Build the reason lazily (a callable), so `objects_are_equal` formats nothing
 - Honour `ctx.equal_nan` and the tolerance (`ctx.rtol`, `ctx.atol`: `|a - e| <= atol + rtol *
-  max(|a|, |e|)`), or document that your tester ignores them
+max(|a|, |e|)`), or document that your tester ignores them
 
 ## Type System
 

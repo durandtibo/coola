@@ -513,7 +513,9 @@ receives two objects of the same type and the `Engine` (`ctx`). For a leaf, retu
 >>> class VersionEqualityTester(BaseEqualityTester[Version]):
 ...     def objects_are_equal(self, actual: Version, expected: Version, ctx) -> bool:
 ...         return (actual.major, actual.minor) == (expected.major, expected.minor) or ctx.fail(
-...             lambda: f"versions differ: {actual.major}.{actual.minor} vs {expected.major}.{expected.minor}"
+...             lambda: (
+...                 f"versions differ: {actual.major}.{actual.minor} vs {expected.major}.{expected.minor}"
+...             )
 ...         )
 
 ```

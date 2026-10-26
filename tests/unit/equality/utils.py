@@ -44,15 +44,15 @@ class BadStr:
 
 @dataclass(frozen=True, slots=True)
 class ExplainingConfig(EqualityConfig):
-    r"""A config for the tests: ``run_tester`` explains the difference and
-    records the ``(reason, path)`` in ``reports``."""
+    r"""A config for the tests: ``run_tester`` explains the difference
+    and records the ``(reason, path)`` in ``reports``."""
 
     reports: list[tuple[str, tuple[object, ...]]] = field(default_factory=list, compare=False)
 
 
 def explaining(config: EqualityConfig) -> ExplainingConfig:
-    r"""Return a config like ``config`` that records the explanation of the
-    differences."""
+    r"""Return a config like ``config`` that records the explanation of
+    the differences."""
     return ExplainingConfig(
         registry=config.registry,
         tolerance=config.tolerance,
