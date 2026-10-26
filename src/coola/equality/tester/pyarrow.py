@@ -101,12 +101,14 @@ class PyarrowArrayTable:
 
 
 def pyarrow_table(table: Any) -> PyarrowTableTable:
-    r"""Adapt a ``pyarrow.Table`` or a ``pyarrow.RecordBatch`` to a table."""
+    r"""Adapt a ``pyarrow.Table`` or a ``pyarrow.RecordBatch`` to a
+    table."""
     return PyarrowTableTable(table)
 
 
 def pyarrow_array(array: Any) -> PyarrowArrayTable:
-    r"""Adapt a ``pyarrow.Array`` or a ``pyarrow.ChunkedArray`` to a table."""
+    r"""Adapt a ``pyarrow.Array`` or a ``pyarrow.ChunkedArray`` to a
+    table."""
     return PyarrowArrayTable(array)
 
 

@@ -70,7 +70,8 @@ class Table(Protocol):
         data types, index, ...).
 
         The engine gives the settings of the comparison (``equal_nan``)
-        and receives the warnings."""
+        and receives the warnings.
+        """
 
     def columns(self) -> Iterator[Column]:
         r"""Iterate over the columns, converted lazily: a column is
