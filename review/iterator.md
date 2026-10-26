@@ -539,3 +539,49 @@ Decision: removed
 
 The line counts are estimates from the prototype and from the code to delete; the gate is the
 behaviour (sections 1 and 8), not the size.
+
+## Appendix: benchmark of the current implementation
+
+Baseline of `tests/benchmarks/test_iterator_benchmark.py` on the implementation before the change
+(`main` at `a08889cf`, the `bfs/` and `dfs/` packages with one iterator class per type). The
+benchmarks only use `bfs_iterate(data)` and `dfs_iterate(data)` with the default registry and
+exhaust the iterator, so they run unchanged on the new design. Compare with `inv test.benchmark` (or
+`pytest tests/benchmarks/test_iterator_benchmark.py --benchmark-only --benchmark-save=<name>`, then
+`--benchmark-compare=<name>`).
+
+Machine: Apple M1, macOS (Darwin), Python 3.14, `pytest-benchmark`. One run, nothing else heavy
+running. The absolute numbers depend on the machine; compare the new engines with this baseline on
+the same machine.
+
+The raw results are saved in `.benchmarks/Darwin-CPython-3.14-64bit/`:
+`0004_iterator_old_a08889cf.json`.
+
+| Benchmark (`test_iterate_<name>_benchmark`) | Input                                                                       | BFS median | DFS median | BFS min  | DFS min  |
+| ------------------------------------------- | --------------------------------------------------------------------------- | ---------- | ---------- | -------- | -------- |
+| `scalar`                                    | `1`                                                                         | 1.0 µs     | 2.5 µs     | 0.9 µs   | 2.4 µs   |
+| `empty_list`                                | `[]`                                                                        | 1.4 µs     | 2.5 µs     | 1.2 µs   | 2.3 µs   |
+| `small_dict`                                | `{"a": 1, "b": [2, 3], "c": {"d": 4}}`                                      | 4.9 µs     | 6.3 µs     | 4.6 µs   | 6.1 µs   |
+| `deep_list[10]`                             | list nested 10 times                                                        | 8.6 µs     | 8.6 µs     | 8.3 µs   | 8.3 µs   |
+| `deep_list[100]`                            | list nested 100 times                                                       | 78.7 µs    | 64.6 µs    | 77.2 µs  | 63.4 µs  |
+| `deep_list[300]`                            | list nested 300 times                                                       | 232.8 µs   | 189.1 µs   | 229.0 µs | 186.7 µs |
+| `tree[4-10]`                                | depth 4, width 10 (10^4 leaves)                                             | 5.63 ms    | 6.67 ms    | 5.40 ms  | 6.59 ms  |
+| `tree[14-2]`                                | depth 14, width 2 (2^14 leaves)                                             | 22.30 ms   | 23.12 ms   | 21.72 ms | 22.98 ms |
+| `tree[10-3]`                                | depth 10, width 3 (59,049 leaves)                                           | 55.96 ms   | 58.81 ms   | 55.08 ms | 58.42 ms |
+| `flat_list`                                 | list of 100,000 ints                                                        | 45.87 ms   | 56.49 ms   | 45.02 ms | 55.91 ms |
+| `flat_tuple`                                | tuple of 100,000 ints                                                       | 45.97 ms   | 56.58 ms   | 45.45 ms | 56.14 ms |
+| `flat_set`                                  | set of 100,000 ints                                                         | 45.88 ms   | 57.12 ms   | 45.68 ms | 56.62 ms |
+| `flat_dict`                                 | dict of 100,000 ints                                                        | 46.77 ms   | 61.11 ms   | 45.62 ms | 58.62 ms |
+| `flat_list_of_strings`                      | list of 100,000 `str`                                                       | 47.00 ms   | 57.96 ms   | 46.64 ms | 57.50 ms |
+| `list_of_small_dicts`                       | 10,000 dicts of an int, a list and a tuple                                  | 50.78 ms   | 48.29 ms   | 50.07 ms | 48.11 ms |
+| `mixed_containers`                          | list, tuple, `deque`, set, `frozenset`, named tuples and `str`, 10,000 each | 45.44 ms   | 52.66 ms   | 44.92 ms | 52.52 ms |
+
+Reading the numbers:
+
+- **Flat containers cost about 0.46 µs (BFS) and 0.56-0.61 µs (DFS) per leaf**: 100,000 leaves take
+  46-47 ms with BFS and 56-61 ms with DFS. This is the figure the new engines have to beat.
+- **DFS is slower than BFS on flat containers (1.2x to 1.3x)** and on small inputs (a scalar costs
+  2.5 µs instead of 1.0 µs: the nested generators of DFS have a higher fixed cost), but faster on
+  deep lists (189 µs instead of 233 µs for 300 levels) and on `list_of_small_dicts`.
+- **Depth is linear** (0.6 to 0.8 µs per level). The benchmark stops at 300 levels because
+  `dfs_iterate` raises `RecursionError` at about a thousand levels (`suggestions.md` item 25.1); add
+  deeper cases once the explicit stack has landed, they cannot run on the old design.
