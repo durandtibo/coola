@@ -256,12 +256,11 @@ Comparisons short-circuit on first difference when possible.
 
 The registry caches tester lookups by type for performance.
 
-### Recursive Depth
+### Depth
 
-For deeply nested structures, comparison is recursive. `EqualityConfig.max_depth` (default 100)
-bounds the nesting depth. Each level uses several interpreter frames, so Python's own recursion
-limit (`sys.setrecursionlimit`) may be reached first, in which case a `RecursionError` with an
-actionable message is raised.
+The engine does not recurse (see [Design of `coola.equality`](#design-of-coolaequality)), so a deep
+structure cannot overflow the interpreter stack. `EqualityConfig.max_depth` (default 100) bounds the
+work on a pathological structure and raises `MaxDepthExceededError`, a plain `Exception`.
 
 ## Error Handling
 
@@ -329,6 +328,143 @@ coola/
 ├── io/, factory/, identifier/, display/, validation/, testing/
 └── utils/                # Utility functions
 ```
+
+## Design of `coola.equality`
+
+The package is small on purpose: one engine, one extension point, one numeric rule and one table
+algorithm.
+
+### Constraints
+
+1. **Performance is a requirement.** Both the passing and the failing path are measured by the
+   benchmarks; a simpler design that is slower is rejected.
+2. **Early exit.** Two objects are different as soon as one difference is found: nothing after it is
+   visited, converted or formatted.
+3. **First difference only, on demand.** `objects_are_equal` and `objects_are_allclose` build no
+   message and no path; only `compare` and `assert_*` explain, and only the first difference.
+4. **Equality drives hashing, not the reverse.** `hash_object` is aligned with equality, never the
+   other way round.
+
+### Architecture
+
+```
+objects_are_equal / objects_are_allclose / compare / assert_objects_equal / assert_objects_allclose
+        |   one EqualityConfig (frozen) and one Engine per call
+        v
+Engine.run(actual, expected)    explicit stack of child iterators; one loop
+        |   identity -> type -> tester lookup (cached per call) -> verdict or children
+        v
+Tester.objects_are_equal(actual, expected, ctx) -> bool | Iterator[(actual, expected, path part)]
+        |   leaves: numbers, arrays, scalars       containers: sequence, mapping, set, object, table
+        v
+numeric kernel (NumPy, torch, JAX)      adapters: pandas, polars, pyarrow -> table
+```
+
+Four rules follow from it:
+
+1. **One extension point: the tester.** A tester is a class with one method.
+2. **The engine owns the invariants**: identity, strict type, depth, cycles, path and first failure.
+   A tester cannot forget them because it never recurses.
+3. **A container decomposes, it does not recurse**: it returns the child pairs that must all be equal,
+   lazily and in the order the first difference is wanted.
+4. **coola owns the semantics, the libraries own the structure**: every number goes through the
+   kernel; a library says whether two frames have the same columns, never whether `1` is close to `2`.
+
+### The engine
+
+The engine is one loop over a stack of child iterators (depth first, so the first difference in
+iteration order is the one reported). For each pair:
+
+1. `actual is expected`: equal.
+2. `type(actual) is not type(expected)`: different.
+3. The tester is looked up in a per-call `dict[type, tester]` filled from the registry the first time
+   a type is met, so the registry lookup is paid once per type. A registration made during a
+   comparison is seen by the next call.
+4. The tester is called. A `bool` is the verdict. An iterator is a container: if its pair is already
+   on the stack the pair is equal (cycle); if the stack is `max_depth` deep, `MaxDepthExceededError`
+   is raised; otherwise it is pushed and the loop continues with its first child.
+5. On `False`, the path is built once from the path parts of the stack, the part of the failing pair
+   and the parts given to `ctx.fail`.
+
+Consequences: the stack use is constant, `RecursionError` cannot happen, and explaining costs nothing
+in the loop. `ctx.fail(reason, *path)` returns `False`; `reason` can be a callable that is called only
+when the difference is explained.
+
+### Reporting
+
+There is one record, the first failure `(path, reason)`: no list of reports and no message per parent
+level. Values in a reason go through one bounded formatter, so a failure in a million-element array
+formats a few values, not the array. A path part is a key or a position (`['a']`, `[3]`),
+`AttributeName("x")` (`.x`) or `Element(2)` (`{2}`). An array reports its index. A table is a leaf
+and names only the first differing column; the user finds the row with the library (for example
+`DataFrame.compare`).
+
+### The numeric kernel
+
+NumPy, torch and JAX share one formula:
+
+```
+close = (a == b) | (finite & (|a - b| <= atol + rtol * max(|a|, |b|))) | (isnan(a) & isnan(b) if equal_nan)
+```
+
+| Dtype                                | Preparation                           | Rule                             |
+| ------------------------------------ | ------------------------------------- | -------------------------------- |
+| `bool`                               | none                                  | exact                            |
+| signed and unsigned integers         | exact difference in integers          | kernel, tolerance in `float64`   |
+| `float16`, `bfloat16`, `float32`     | cast to `float64`                     | kernel                           |
+| `float64`, `complex128`              | none (`complex64` is cast up)         | kernel                           |
+| `timedelta64`                        | integer nanoseconds; `NaT` mask apart | kernel; `NaT` by `equal_nan`     |
+| `datetime64`, `str`, `bytes`, `void` | none                                  | exact; `NaT` by `equal_nan`      |
+| `object`                             | none                                  | cells are children of the engine |
+
+Python scalars use the same formula; `Decimal`, `Fraction` and `timedelta` keep a difference-based
+rule.
+
+### Tables
+
+pandas, polars and PyArrow share one algorithm in `TableEqualityTester`, which takes an adapter per
+library: check the structure (shape, names, dtypes, index), then compare the columns lazily, one by
+one, each by its kind, and stop at the first column that differs. A `Series` or an `Array` is a
+one-column table.
+
+| Kind       | Dtypes                                                       | Comparison                                                      |
+| ---------- | ------------------------------------------------------------ | --------------------------------------------------------------- |
+| `numeric`  | integers, floats, nullable and Arrow numerics                | null masks equal, then the kernel                               |
+| `duration` | `timedelta64`, polars `Duration`, Arrow `duration`           | kernel on integer nanoseconds                                   |
+| `exact`    | booleans, strings, categories, instants, nested and `object` | the library's `equals`; never sees the tolerance or `equal_nan` |
+
+Nested and `object` columns are the one place where the library decides. `attrs`, `flags` and Arrow
+schema metadata are ignored. Adding a library means writing one adapter of about 40 lines.
+
+### Module layout
+
+```
+coola/equality/
+  interface.py   the five functions
+  config.py      Tolerance, EqualityConfig
+  engine.py      Engine, Element
+  result.py      ComparisonResult
+  tester/        base, registry, one module per family (default, scalar, collection, difference,
+                 dataclass, object, equal, tolerant), per library (numpy, torch, jax, xarray,
+                 pydantic), and table.py with the adapters pandas.py, polars.py, pyarrow.py
+  _helpers/      private helpers (formatting, numeric kernel, comparison keys)
+```
+
+### Decisions
+
+| Decision                                                               | Reason                                                |
+| ---------------------------------------------------------------------- | ----------------------------------------------------- |
+| Iterative engine, not recursion                                        | constant stack, one place for depth, cycles and path  |
+| One tester method returns a verdict or an iterator                     | one extension point                                   |
+| No `show_difference` and no logger; `compare` and `assert_*` explain   | no cost on the fast path, thread safe                 |
+| `bool` and every `Enum` are exact                                      | they are labels, not quantities                       |
+| Masked arrays compare the data under the mask, the mask and fill value | no hidden difference                                  |
+| Small floats are cast to `float64`                                     | no overflow of the tolerance at the edge of the range |
+| Integer difference is exact                                            | no rounding of large integers                         |
+| Tables are one leaf, reported by column                                | simple and fast; the library finds the row            |
+| Time resolution is part of the dtype                                   | as in NumPy                                           |
+| Library testers are public                                             | users can compose, subclass or register them          |
+| `max_depth=100` and `MaxDepthExceededError` are kept                   | bound the work on pathological structures             |
 
 ## Design Decisions
 
