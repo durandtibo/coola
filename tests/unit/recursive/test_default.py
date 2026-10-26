@@ -55,72 +55,66 @@ def test_default_transformer_str() -> None:
     ],
 )
 def test_default_transformer_transform_parametrized(
-    data: Any, func: Callable, expected: Any
+    data: Any, func: Callable, expected: Any, registry: TransformerRegistry
 ) -> None:
-    assert objects_are_equal(
-        DefaultTransformer().transform(data, func=func, registry=TransformerRegistry()), expected
-    )
+    assert objects_are_equal(registry.transform(data, func), expected)
 
 
-def test_default_transformer_transform_with_dict_data() -> None:
+def test_default_transformer_transform_with_dict_data(registry: TransformerRegistry) -> None:
     assert objects_are_equal(
-        DefaultTransformer().transform(
-            {"a": 1, "b": 2}, func=lambda x: list(x.keys()), registry=TransformerRegistry()
-        ),
+        registry.transform({"a": 1, "b": 2}, lambda x: list(x.keys())),
         ["a", "b"],
     )
 
 
-def test_default_transformer_transform_with_custom_function() -> None:
+def test_default_transformer_transform_with_custom_function(registry: TransformerRegistry) -> None:
     def custom_func(x: Any) -> str:
         return f"processed: {x}"
 
     assert objects_are_equal(
-        DefaultTransformer().transform("data", func=custom_func, registry=TransformerRegistry()),
+        registry.transform("data", custom_func),
         "processed: data",
     )
 
 
-def test_default_transformer_transform_with_none_data() -> None:
-    assert objects_are_equal(
-        DefaultTransformer().transform(None, func=lambda x: x, registry=TransformerRegistry()), None
-    )
+def test_default_transformer_transform_with_none_data(registry: TransformerRegistry) -> None:
+    assert objects_are_equal(registry.transform(None, lambda x: x), None)
 
 
-def test_default_transformer_transform_with_identity_function() -> None:
+def test_default_transformer_transform_with_identity_function(
+    registry: TransformerRegistry,
+) -> None:
     data = {"key": "value"}
-    result = DefaultTransformer().transform(data, func=lambda x: x, registry=TransformerRegistry())
+    result = registry.transform(data, lambda x: x)
     assert result is data
 
 
-def test_default_transformer_transform_with_exception_in_function() -> None:
+def test_default_transformer_transform_with_exception_in_function(
+    registry: TransformerRegistry,
+) -> None:
     def failing_func(x: Any) -> Never:
         msg = f"Test error {x}"
         raise ValueError(msg)
 
-    transformer = DefaultTransformer()
-    registry = TransformerRegistry()
     with pytest.raises(ValueError, match=r"Test error"):
-        transformer.transform(42, func=failing_func, registry=registry)
+        registry.transform(42, failing_func)
 
 
-def test_default_transformer_transform_with_complex_data() -> None:
+def test_default_transformer_transform_with_complex_data(registry: TransformerRegistry) -> None:
     assert objects_are_equal(
-        DefaultTransformer().transform(
-            {"a": [1, 2], "b": {"c": 3}}, func=str, registry=TransformerRegistry()
-        ),
+        registry.transform({"a": [1, 2], "b": {"c": 3}}, str),
         "{'a': [1, 2], 'b': {'c': 3}}",
     )
 
 
-def test_default_transformer_transform_preserves_function_behavior() -> None:
+def test_default_transformer_transform_preserves_function_behavior(
+    registry: TransformerRegistry,
+) -> None:
     def increment_list(x: list) -> list:
         return [i + 1 for i in x]
 
     assert objects_are_equal(
-        DefaultTransformer().transform(
-            [1, 2, 3], func=increment_list, registry=TransformerRegistry()
-        ),
+        registry.transform([1, 2, 3], increment_list),
         [2, 3, 4],
     )
 
@@ -135,37 +129,40 @@ def _make_stateful_func() -> Callable[[Any], Any]:
     return stateful_func
 
 
-def test_default_transformer_transform_with_stateful_function() -> None:
-    registry = TransformerRegistry()
-    transformer = DefaultTransformer()
-    assert transformer.transform(5, func=_make_stateful_func(), registry=registry) == 5
+def test_default_transformer_transform_with_stateful_function(
+    registry: TransformerRegistry,
+) -> None:
+    assert registry.transform(5, _make_stateful_func()) == 5
 
 
-def test_default_transformer_transform_with_stateful_function_second_call() -> None:
-    registry = TransformerRegistry()
-    transformer = DefaultTransformer()
+def test_default_transformer_transform_with_stateful_function_second_call(
+    registry: TransformerRegistry,
+) -> None:
     stateful_func = _make_stateful_func()
-    transformer.transform(5, func=stateful_func, registry=registry)
-    assert transformer.transform(5, func=stateful_func, registry=registry) == 10
+    registry.transform(5, stateful_func)
+    assert registry.transform(5, stateful_func) == 10
 
 
-def test_default_transformer_transform_with_closure() -> None:
+def test_default_transformer_transform_with_closure(registry: TransformerRegistry) -> None:
     multiplier = 3
 
     def multiply_by(x: Any) -> Any:
         return x * multiplier
 
-    transformer = DefaultTransformer()
-    registry = TransformerRegistry()
-    assert transformer.transform(7, func=multiply_by, registry=registry) == 21
+    assert registry.transform(7, multiply_by) == 21
 
 
-def test_default_transformer_transform_with_closure_other_value() -> None:
+def test_default_transformer_transform_with_closure_other_value(
+    registry: TransformerRegistry,
+) -> None:
     multiplier = 3
 
     def multiply_by(x: Any) -> Any:
         return x * multiplier
 
-    transformer = DefaultTransformer()
-    registry = TransformerRegistry()
-    assert transformer.transform(1, func=multiply_by, registry=registry) == 3
+    assert registry.transform(1, multiply_by) == 3
+
+
+@pytest.mark.parametrize("data", [1, "abc", [1, 2], {"a": 1}, None])
+def test_default_transformer_expand_is_a_leaf(data: Any) -> None:
+    assert DefaultTransformer().expand(data) is None

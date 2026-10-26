@@ -5,16 +5,11 @@ from __future__ import annotations
 __all__ = ["SequenceTransformer"]
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from coola.display import InlineDisplayMixin
-from coola.recursive.base import BaseTransformer
+from coola.recursive.base import BaseTransformer, Expansion
 from coola.recursive.rebuild import rebuild_sequence
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from coola.recursive.registry import TransformerRegistry
 
 
 class SequenceTransformer(InlineDisplayMixin, BaseTransformer[Sequence[Any]]):
@@ -28,7 +23,7 @@ class SequenceTransformer(InlineDisplayMixin, BaseTransformer[Sequence[Any]]):
     to preserve their field structure.
 
     Notes:
-        - All elements are transformed recursively through the registry
+        - All elements are transformed recursively by the engine
         - The original sequence type is preserved (list remains list, tuple remains tuple)
         - Named tuples receive special handling to preserve field names
         - Nested sequences and other containers are handled recursively
@@ -42,36 +37,31 @@ class SequenceTransformer(InlineDisplayMixin, BaseTransformer[Sequence[Any]]):
         >>> transformer = SequenceTransformer()
         >>> transformer
         SequenceTransformer()
+        >>> children, rebuild = transformer.expand((1, 2, 3))
+        >>> children
+        [1, 2, 3]
+        >>> rebuild(["1", "2", "3"])
+        ('1', '2', '3')
         >>> registry = TransformerRegistry({object: DefaultTransformer(), list: transformer})
         >>> # Transform list elements
-        >>> transformer.transform([1, 2, 3], func=str, registry=registry)
+        >>> registry.transform([1, 2, 3], str)
         ['1', '2', '3']
-        >>> # Tuple type is preserved
-        >>> transformer.transform((1, 2, 3), func=lambda x: x * 2, registry=registry)
-        (2, 4, 6)
         >>> # Nested sequences are handled recursively
-        >>> transformer.transform([[1, 2], [3, 4]], func=str, registry=registry)
+        >>> registry.transform([[1, 2], [3, 4]], str)
         [['1', '2'], ['3', '4']]
         >>> # Empty sequences are preserved
-        >>> transformer.transform([], func=str, registry=registry)
+        >>> registry.transform([], str)
         []
         >>> # Named tuples preserve their structure
         >>> from collections import namedtuple
         >>> Point = namedtuple("Point", ["x", "y"])
-        >>> transformer.transform(Point(1, 2), func=str, registry=registry)
+        >>> TransformerRegistry({object: DefaultTransformer(), Point: transformer}).transform(
+        ...     Point(1, 2), str
+        ... )
         Point(x='1', y='2')
 
         ```
     """
 
-    def transform(
-        self,
-        data: Sequence[Any],
-        func: Callable[[Any], Any],
-        registry: TransformerRegistry,
-    ) -> Sequence[Any]:
-        # Transform all elements recursively using the registry
-        transformed = [registry.transform(item, func) for item in data]
-
-        # Rebuild with original type
-        return rebuild_sequence(data, transformed)
+    def expand(self, data: Sequence[Any]) -> Expansion | None:
+        return list(data), lambda items: rebuild_sequence(data, items)

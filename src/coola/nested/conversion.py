@@ -11,11 +11,14 @@ __all__ = [
 
 from typing import TYPE_CHECKING, Any
 
-from coola.recursive import recursive_apply
+from coola.display import InlineDisplayMixin
+from coola.recursive import BaseTransformer, get_default_registry, recursive_apply
 from coola.utils.conversion import to_jsonable
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
+    from collections.abc import Iterable, Mapping, Sequence, Set as AbstractSet
+
+    from coola.recursive.base import Expansion
 
 
 def convert_to_dict_of_lists(
@@ -144,22 +147,23 @@ def convert_to_jsonable(data: Any) -> Any:
 
         ```
     """
-    return _sets_to_lists(recursive_apply(data, to_jsonable))
+    registry = get_default_registry().copy()
+    transformer = SetToListTransformer()
+    registry.register(set, transformer, exist_ok=True)
+    registry.register(frozenset, transformer, exist_ok=True)
+    return recursive_apply(data, to_jsonable, registry=registry)
 
 
-def _sets_to_lists(data: Any) -> Any:
-    r"""Convert the sets found in the converted data to lists.
+class SetToListTransformer(InlineDisplayMixin, BaseTransformer["AbstractSet[Any]"]):
+    r"""Transformer for sets that rebuilds a list.
 
-    ``recursive_apply`` treats a set as a container and rebuilds a set,
-    so the sets are converted after the elements.
+    The elements are the children, so they are converted like the other
+    values, and the converted elements are collected in a list sorted
+    with ``try_sorted_list``.
     """
-    if isinstance(data, (set, frozenset)):
-        return try_sorted_list(data)
-    if isinstance(data, dict):
-        return {key: _sets_to_lists(value) for key, value in data.items()}
-    if type(data) in {list, tuple}:  # not the subclasses, e.g. namedtuple
-        return type(data)(_sets_to_lists(value) for value in data)
-    return data
+
+    def expand(self, data: AbstractSet[Any]) -> Expansion | None:
+        return list(data), try_sorted_list
 
 
 def try_sorted_list(values: Iterable[Any]) -> list[Any]:

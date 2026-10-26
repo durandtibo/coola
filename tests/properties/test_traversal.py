@@ -94,3 +94,22 @@ def test_recursive_apply_applies_the_function_to_every_leaf(data: Any) -> None:
 
     recursive_apply(data, record)
     assert counts(seen) == counts(leaves_of(data))
+
+
+@given(data=values)
+def test_recursive_apply_visits_the_leaves_in_the_order_of_dfs_iterate(data: Any) -> None:
+    seen: list[Any] = []
+
+    def record(value: Any) -> Any:
+        seen.append(value)
+        return value
+
+    recursive_apply(data, record)
+    assert [repr(x) for x in seen] == [repr(x) for x in dfs_iterate(data)]
+
+
+@given(data=values)
+def test_recursive_apply_does_not_modify_the_data(data: Any) -> None:
+    before = repr(data)
+    recursive_apply(data, repr)
+    assert repr(data) == before

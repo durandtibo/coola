@@ -72,41 +72,41 @@ def test_dataclass_transformer_repr() -> None:
 
 
 def test_dataclass_transformer_transform(registry: TransformerRegistry) -> None:
-    assert DataclassTransformer().transform(Point(1.0, 2.0), str, registry) == Point("1.0", "2.0")
+    assert registry.transform(Point(1.0, 2.0), str) == Point("1.0", "2.0")
 
 
 def test_dataclass_transformer_transform_returns_the_same_class(
     registry: TransformerRegistry,
 ) -> None:
-    assert type(DataclassTransformer().transform(Point(1.0), str, registry)) is Point
+    assert type(registry.transform(Point(1.0), str)) is Point
 
 
 def test_dataclass_transformer_transform_returns_a_new_object(
     registry: TransformerRegistry,
 ) -> None:
     point = Point(1.0)
-    assert DataclassTransformer().transform(point, float, registry) is not point
+    assert registry.transform(point, float) is not point
 
 
 def test_dataclass_transformer_transform_does_not_change_the_input(
     registry: TransformerRegistry,
 ) -> None:
     point = Point(1.0, 2.0)
-    DataclassTransformer().transform(point, str, registry)
+    registry.transform(point, str)
     assert point == Point(1.0, 2.0)
 
 
 def test_dataclass_transformer_transform_frozen_dataclass(registry: TransformerRegistry) -> None:
-    assert DataclassTransformer().transform(Frozen(1), str, registry) == Frozen("1")
+    assert registry.transform(Frozen(1), str) == Frozen("1")
 
 
 def test_dataclass_transformer_transform_slots_dataclass(registry: TransformerRegistry) -> None:
-    assert DataclassTransformer().transform(Slotted(1), str, registry) == Slotted("1")
+    assert registry.transform(Slotted(1), str) == Slotted("1")
 
 
 def test_dataclass_transformer_transform_nested_structures(registry: TransformerRegistry) -> None:
     data = Container(items=[1, [2]], mapping={"a": 3}, point=Point(4, 5))
-    assert DataclassTransformer().transform(data, str, registry) == Container(
+    assert registry.transform(data, str) == Container(
         items=["1", ["2"]], mapping={"a": "3"}, point=Point("4", "5")
     )
 
@@ -115,13 +115,13 @@ def test_dataclass_transformer_transform_field_that_is_a_dataclass_uses_the_regi
     registry: TransformerRegistry,
 ) -> None:
     data = Frozen(Point(1, 2))
-    assert DataclassTransformer().transform(data, str, registry) == Frozen(Point("1", "2"))
+    assert registry.transform(data, str) == Frozen(Point("1", "2"))
 
 
 def test_dataclass_transformer_transform_field_without_init_is_recomputed(
     registry: TransformerRegistry,
 ) -> None:
-    result = DataclassTransformer().transform(WithDerived(2.0), lambda x: x + 1, registry)
+    result = registry.transform(WithDerived(2.0), lambda x: x + 1)
     assert result.double == 6.0
 
 
@@ -134,9 +134,19 @@ def test_dataclass_transformer_transform_applies_func_to_the_fields_not_to_the_o
         calls.append(value)
         return value
 
-    DataclassTransformer().transform(Point(1.0, 2.0), record, registry)
+    registry.transform(Point(1.0, 2.0), record)
     assert calls == [1.0, 2.0]
 
 
 def test_dataclass_transformer_transform_dataclass_in_a_list(registry: TransformerRegistry) -> None:
     assert registry.transform([Point(1.0)], str) == [Point("1.0", "0.0")]
+
+
+def test_dataclass_transformer_expand_children() -> None:
+    children, _ = DataclassTransformer().expand(Point(1.0, 2.0))
+    assert children == [1.0, 2.0]
+
+
+def test_dataclass_transformer_expand_rebuild() -> None:
+    _, rebuild = DataclassTransformer().expand(Point(1.0, 2.0))
+    assert rebuild(["a", "b"]) == Point("a", "b")

@@ -8,13 +8,11 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
-from coola.recursive.base import BaseTransformer
+from coola.recursive.base import BaseTransformer, Expansion
 from coola.recursive.rebuild import rebuild_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    from coola.recursive.registry import TransformerRegistry
 
 
 class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]]):
@@ -23,9 +21,8 @@ class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]
 
     The predicate is stored in the transformer and used for the keys of
     every mapping it transforms, however deep they are nested. The
-    ``func`` given to ``transform`` is the function for the values: it
-    is forwarded unchanged to the registry and applied by the
-    transformers of the leaf types.
+    function given to ``recursive_apply`` is the function for the
+    values: it is applied to the leaves.
 
     Args:
         key_predicate: A function applied to each key: the entries whose
@@ -61,31 +58,9 @@ class KeyFilterTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]
     def _display_fields(self) -> dict[str, Any]:
         return {"key_predicate": self._key_predicate}
 
-    def transform(
-        self,
-        data: Mapping[Any, Any],
-        func: Callable[[Any], Any],
-        registry: TransformerRegistry,
-    ) -> Mapping[Any, Any]:
-        r"""Drop the entries whose key matches the predicate and
-        transform the remaining values recursively.
-
-        Args:
-            data: The mapping to filter and transform.
-            func: The function applied to the values by the
-                transformers of the leaf types.
-            registry: The transformer registry used to recursively
-                transform the values of the kept entries.
-
-        Returns:
-            A new mapping of the same type as ``data``, containing
-            only the entries whose key did not match the predicate, with
-            their values transformed recursively.
-        """
+    def expand(self, data: Mapping[Any, Any]) -> Expansion | None:
         predicate = self._key_predicate
-        filtered = {
-            key: registry.transform(value, func)
-            for key, value in data.items()
-            if not predicate(key)
-        }
-        return rebuild_mapping(data, filtered)
+        keys = [key for key in data if not predicate(key)]
+        return [data[key] for key in keys], lambda items: rebuild_mapping(
+            data, dict(zip(keys, items, strict=True))
+        )

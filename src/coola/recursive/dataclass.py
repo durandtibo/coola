@@ -5,22 +5,17 @@ from __future__ import annotations
 __all__ = ["DataclassTransformer"]
 
 import dataclasses
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from coola.display import InlineDisplayMixin
-from coola.recursive.base import BaseTransformer
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from coola.recursive.registry import TransformerRegistry
+from coola.recursive.base import BaseTransformer, Expansion
 
 
 class DataclassTransformer(InlineDisplayMixin, BaseTransformer[Any]):
     r"""Transformer for dataclass instances that recursively transforms
     the fields.
 
-    The fields are transformed through the registry and the instance is
+    The fields are the children and the instance is
     rebuilt with ``dataclasses.replace``, so a frozen dataclass is
     supported and the input is not modified.
 
@@ -49,22 +44,17 @@ class DataclassTransformer(InlineDisplayMixin, BaseTransformer[Any]):
         ...     layers: list
         ...
         >>> transformer = DataclassTransformer()
-        >>> registry = TransformerRegistry({object: DefaultTransformer(), list: SequenceTransformer()})
-        >>> transformer.transform(Config(0.1, [1, 2]), func=str, registry=registry)
+        >>> registry = TransformerRegistry(
+        ...     {object: DefaultTransformer(), list: SequenceTransformer(), Config: transformer}
+        ... )
+        >>> registry.transform(Config(0.1, [1, 2]), str)
         Config(lr='0.1', layers=['1', '2'])
 
         ```
     """
 
-    def transform(
-        self,
-        data: Any,
-        func: Callable[[Any], Any],
-        registry: TransformerRegistry,
-    ) -> Any:
-        changes = {
-            field.name: registry.transform(getattr(data, field.name), func)
-            for field in dataclasses.fields(data)
-            if field.init
-        }
-        return dataclasses.replace(data, **changes)
+    def expand(self, data: Any) -> Expansion | None:
+        names = [field.name for field in dataclasses.fields(data) if field.init]
+        return [getattr(data, name) for name in names], lambda items: dataclasses.replace(
+            data, **dict(zip(names, items, strict=True))
+        )

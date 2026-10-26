@@ -2,98 +2,97 @@ r"""Define the transformer base class."""
 
 from __future__ import annotations
 
-__all__ = ["BaseTransformer", "Transformer"]
+__all__ = ["BaseTransformer", "Expansion", "Transformer"]
 
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from coola.recursive.registry import TransformerRegistry
+    from collections.abc import Callable, Sequence
 
 T = TypeVar("T")
 T_contra = TypeVar("T_contra", contravariant=True)
+
+Expansion = tuple["Sequence[Any]", "Callable[[list[Any]], Any]"]
+r"""The children of a container and the function that rebuilds the
+container from the transformed children."""
 
 
 class Transformer(Protocol[T_contra]):
     r"""Structural interface of a type-specific transformer.
 
-    Any object with a compatible ``transform`` method can be registered
+    Any object with a compatible ``expand`` method can be registered
     without subclassing ``BaseTransformer``, which remains available as
     a convenience base class.
     """
 
-    def transform(
-        self,
-        data: T_contra,
-        func: Callable[[Any], Any],
-        registry: TransformerRegistry,
-    ) -> Any: ...
+    def expand(self, data: T_contra) -> Expansion | None: ...
 
 
 class BaseTransformer(ABC, Generic[T]):
     r"""Base class for type-specific transformers.
 
-    This abstract base class defines the interface for transformers that
-    recursively apply functions to nested data structures. Each concrete
-    transformer implementation handles a specific data type and knows how
-    to reconstruct that type after transforming its nested elements.
+    A transformer only describes the shape of a type: its children and
+    how to rebuild it from the transformed children. The engine
+    (``coola.recursive.engine``) walks the children, applies the function
+    to the leaves and detects the cycles, so a transformer cannot forget
+    a protection and does not recurse.
+
+    The contract of ``expand``:
+
+    1. It is pure and cheap: it does not call the function, does not call
+        the registry, does not recurse and does not modify ``data``.
+    2. ``rebuild`` receives a new ``list`` with the transformed children,
+        in the order of ``children``, and returns a new container (it
+        returns ``data`` itself only if it has no children and must be
+        kept as it is, like ``IdentityTransformer``).
+    3. A container with no child (``[]``, ``{}``) returns empty
+        ``children``: ``rebuild([])`` builds an empty container of the
+        same type.
+    4. A leaf returns ``None``: the engine calls the function on it.
 
     Notes:
-        Subclasses must implement the `transform` method to define how
-        their specific type should be traversed and reconstructed.
+        Subclasses must implement the `expand` method.
 
     Example:
         ```pycon
-        >>> from coola.recursive import DefaultTransformer, TransformerRegistry
-        >>> registry = TransformerRegistry()
-        >>> transformer = DefaultTransformer()
+        >>> from coola.recursive import SequenceTransformer
+        >>> transformer = SequenceTransformer()
         >>> transformer
-        DefaultTransformer()
-        >>> transformer.transform([1, 2, 3], func=str, registry=registry)
-        '[1, 2, 3]'
+        SequenceTransformer()
+        >>> children, rebuild = transformer.expand([1, 2, 3])
+        >>> children
+        [1, 2, 3]
+        >>> rebuild(["1", "2", "3"])
+        ['1', '2', '3']
 
         ```
     """
 
     @abstractmethod
-    def transform(
-        self,
-        data: T,
-        func: Callable[[Any], Any],
-        registry: TransformerRegistry,
-    ) -> Any:
-        r"""Transform data by recursively applying a function.
-
-        This method traverses the data structure, applies the given function
-        to leaf values, and reconstructs the original structure with the
-        transformed values. The registry is used to resolve appropriate
-        transformers for nested data types encountered during traversal.
+    def expand(self, data: T) -> Expansion | None:
+        r"""Describe the children of ``data`` and how to rebuild it.
 
         Args:
-            data: The data structure to transform. Must be of type T that
-                this transformer handles.
-            func: A function to apply to leaf values (non-container elements).
-                Should accept a single argument and return the transformed value.
-            registry: The transformer registry used to look up transformers
-                for nested data structures of different types.
+            data: The data to expand. Must be of type T that this
+                transformer handles.
 
         Returns:
-            The transformed data structure, maintaining the original type
-            and structure but with leaf values transformed by func.
+            ``None`` if ``data`` is a leaf. Otherwise, a tuple
+            ``(children, rebuild)``: the children of ``data`` and the
+            function that rebuilds ``data`` from a list with the
+            transformed children.
 
         Example:
             ```pycon
-            >>> from coola.recursive import DefaultTransformer, SequenceTransformer, TransformerRegistry
-            >>> registry = TransformerRegistry()
-            >>> transformer = DefaultTransformer()
-            >>> # Convert numeric values to strings
-            >>> transformer.transform([1, 2, 3], func=str, registry=registry)
-            '[1, 2, 3]'
-            >>> # Apply a mathematical operation
-            >>> transformer.transform([1, 2, 3], func=lambda x: x * 2, registry=registry)
-            [1, 2, 3, 1, 2, 3]
+            >>> from coola.recursive import DefaultTransformer, MappingTransformer
+            >>> DefaultTransformer().expand(42) is None
+            True
+            >>> children, rebuild = MappingTransformer().expand({"a": 1, "b": 2})
+            >>> children
+            [1, 2]
+            >>> rebuild([10, 20])
+            {'a': 10, 'b': 20}
 
             ```
         """

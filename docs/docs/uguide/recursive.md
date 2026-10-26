@@ -81,10 +81,18 @@ You can use `recursive_apply` with different data structures:
 ### Custom Transformers
 
 For more control over how specific types are transformed, you can create custom transformers by
-extending `BaseTransformer`:
+extending `BaseTransformer`. A transformer only describes the shape of a type: `expand(data)`
+returns `None` for a leaf, or the children and the function that rebuilds the value from the
+transformed children. The engine applies the function to the leaves and detects the cycles:
 
 ```pycon
->>> from coola.recursive import BaseTransformer, TransformerRegistry
+>>> from coola.recursive import (
+...     BaseTransformer,
+...     DefaultTransformer,
+...     SequenceTransformer,
+...     TransformerRegistry,
+...     recursive_apply,
+... )
 >>> class MyType:
 ...     def __init__(self, value):
 ...         self.value = value
@@ -92,10 +100,13 @@ extending `BaseTransformer`:
 ...     def __repr__(self):
 ...         return f"MyType({self.value})"
 >>> class MyTransformer(BaseTransformer):
-...     def transform(self, data, func, registry):
-...         return MyType(func(data.value))
->>> registry = TransformerRegistry()
->>> registry.register(MyType, MyTransformer())
+...     def expand(self, data):
+...         return [data.value], lambda items: MyType(items[0])
+>>> registry = TransformerRegistry(
+...     {object: DefaultTransformer(), list: SequenceTransformer(), MyType: MyTransformer()}
+... )
+>>> recursive_apply([MyType(1), MyType(2)], lambda x: x * 10, registry=registry)
+[MyType(10), MyType(20)]
 
 ```
 
@@ -149,7 +160,7 @@ transformer registered for the type of the dataclass has priority.
 
 The `coola.recursive` package provides several built-in transformers:
 
-- **`DefaultTransformer`**: For scalar/leaf values (no recursion)
+- **`DefaultTransformer`**: For scalar/leaf values (no children)
 - **`SequenceTransformer`**: For sequences (list, tuple) - recursive transformation preserving order
 - **`MappingTransformer`**: For mappings (dict) - recursive transformation of keys and values
 - **`SetTransformer`**: For sets - recursive transformation without order
@@ -226,8 +237,8 @@ You can extend the default registry to support custom types:
 ...         self.x = x
 ...         self.y = y
 >>> class PointTransformer(BaseTransformer):
-...     def transform(self, data, func, registry):
-...         return Point(func(data.x), func(data.y))
+...     def expand(self, data):
+...         return [data.x, data.y], lambda items: Point(*items)
 >>> register_transformers({Point: PointTransformer()})  # doctest: +SKIP
 
 ```

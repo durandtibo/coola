@@ -300,29 +300,8 @@ def test_transformer_registry_transform_works_after_a_cycle(registry: Transforme
     assert registry.transform([1, [2]], str) == ["1", ["2"]]
 
 
-def test_transformer_registry_transform_deep_structure_raises_a_recursion_error(
-    registry: TransformerRegistry,
-) -> None:
-    with pytest.raises(
-        RecursionError, match="Python recursion limit was exceeded while transforming"
-    ):
-        registry.transform(nest(1, 5000), str)
-
-
-def test_transformer_registry_transform_deep_structure_error_is_raised_once(
-    registry: TransformerRegistry,
-) -> None:
-    with pytest.raises(RecursionError) as exc_info:
-        registry.transform(nest(1, 5000), str)
-    assert type(exc_info.value.__cause__) is RecursionError
-
-
-def test_transformer_registry_transform_works_after_a_deep_structure(
-    registry: TransformerRegistry,
-) -> None:
-    with pytest.raises(RecursionError):
-        registry.transform(nest(1, 5000), str)
-    assert registry.transform([1, [2]], str) == ["1", ["2"]]
+def test_transformer_registry_transform_deep_structure(registry: TransformerRegistry) -> None:
+    assert registry.transform(nest(1, 5000), str) == nest("1", 5000)
 
 
 def test_transformer_registry_find_transformer_dataclass_uses_the_marker() -> None:

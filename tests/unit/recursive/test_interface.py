@@ -4,6 +4,7 @@ from collections import UserString, defaultdict, deque
 from collections.abc import Generator, Mapping, Sequence
 from dataclasses import dataclass
 from types import MappingProxyType
+from typing import Any
 
 import pytest
 
@@ -359,3 +360,39 @@ def test_enter_dataclasses_keeps_the_transformer_registered_for_a_type(
 def test_register_transformers_exist_ok_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="takes 1 positional argument but 2 were given"):
         register_transformers({CustomList: SequenceTransformer()}, True)  # type: ignore[misc]
+
+
+##########################################
+#     Tests for the default registry     #
+##########################################
+
+LEAF_SAMPLES = [
+    pytest.param(object(), id="object"),
+    pytest.param("abc", id="str"),
+    pytest.param(UserString("abc"), id="user_string"),
+    pytest.param(1, id="int"),
+    pytest.param(1.5, id="float"),
+    pytest.param(1j, id="complex"),
+    pytest.param(True, id="bool"),
+]
+
+CONTAINER_SAMPLES = [
+    pytest.param([1, 2], id="list"),
+    pytest.param((1, 2), id="tuple"),
+    pytest.param(deque([1, 2], maxlen=3), id="deque"),
+    pytest.param({1, 2}, id="set"),
+    pytest.param(frozenset({1, 2}), id="frozenset"),
+    pytest.param({"a": 1, "b": 2}, id="dict"),
+    pytest.param(MappingProxyType({"a": 1}), id="mapping_proxy"),
+]
+
+
+@pytest.mark.parametrize("data", LEAF_SAMPLES)
+def test_default_registry_leaf_has_no_expansion(data: Any) -> None:
+    assert get_default_registry().find_transformer(type(data)).expand(data) is None
+
+
+@pytest.mark.parametrize("data", CONTAINER_SAMPLES)
+def test_default_registry_rebuild_of_the_unchanged_children_is_equal(data: Any) -> None:
+    children, rebuild = get_default_registry().find_transformer(type(data)).expand(data)
+    assert rebuild(list(children)) == data

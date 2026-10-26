@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict, defaultdict
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Never
 
 import pytest
@@ -14,7 +15,15 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def registry() -> TransformerRegistry:
-    return TransformerRegistry({object: DefaultTransformer()})
+    transformer = MappingTransformer()
+    return TransformerRegistry(
+        {
+            object: DefaultTransformer(),
+            dict: transformer,
+            OrderedDict: transformer,
+            defaultdict: transformer,
+        }
+    )
 
 
 def test_mapping_transformer_repr() -> None:
@@ -44,17 +53,13 @@ def test_mapping_transformer_str() -> None:
 def test_mapping_transformer_transform_parametrized(
     data: Any, func: Callable, expected: Any, registry: TransformerRegistry
 ) -> None:
-    assert objects_are_equal(
-        MappingTransformer().transform(data, func=func, registry=registry), expected
-    )
+    assert objects_are_equal(registry.transform(data, func), expected)
 
 
 def test_mapping_transformer_transform_nested_dict(registry: TransformerRegistry) -> None:
     assert objects_are_equal(
-        MappingTransformer().transform(
-            {"a": 1, "b": {"x": 3, "y": 4}}, func=str, registry=registry
-        ),
-        {"a": "1", "b": "{'x': 3, 'y': 4}"},
+        registry.transform({"a": 1, "b": {"x": 3, "y": 4}}, str),
+        {"a": "1", "b": {"x": "3", "y": "4"}},
     )
 
 
@@ -63,7 +68,7 @@ def test_mapping_transformer_transform_with_custom_function(registry: Transforme
         return f"processed: {x}"
 
     assert objects_are_equal(
-        MappingTransformer().transform({"a": 1, "b": 2}, func=custom_func, registry=registry),
+        registry.transform({"a": 1, "b": 2}, custom_func),
         {"a": "processed: 1", "b": "processed: 2"},
     )
 
@@ -72,7 +77,7 @@ def test_mapping_transformer_transform_with_identity_function(
     registry: TransformerRegistry,
 ) -> None:
     data = {"a": 1, "b": 2}
-    result = MappingTransformer().transform(data, func=lambda x: x, registry=registry)
+    result = registry.transform(data, lambda x: x)
     assert result is not data
 
 
@@ -83,9 +88,8 @@ def test_mapping_transformer_transform_with_exception_in_function(
         msg = f"Test error {x}"
         raise ValueError(msg)
 
-    transformer = MappingTransformer()
     with pytest.raises(ValueError, match=r"Test error"):
-        transformer.transform({"a": 1, "b": 2}, func=failing_func, registry=registry)
+        registry.transform({"a": 1, "b": 2}, failing_func)
 
 
 def test_mapping_transformer_transform_preserves_function_behavior(
@@ -95,7 +99,7 @@ def test_mapping_transformer_transform_preserves_function_behavior(
         return [x, x + 1, x + 2]
 
     assert objects_are_equal(
-        MappingTransformer().transform({"a": 1, "b": 2}, func=create_list, registry=registry),
+        registry.transform({"a": 1, "b": 2}, create_list),
         {"a": [1, 2, 3], "b": [2, 3, 4]},
     )
 
@@ -113,19 +117,15 @@ def _make_stateful_func() -> Callable[[Any], Any]:
 def test_mapping_transformer_transform_with_stateful_function(
     registry: TransformerRegistry,
 ) -> None:
-    transformer = MappingTransformer()
-    assert transformer.transform(
-        {"a": 1, "b": 2}, func=_make_stateful_func(), registry=registry
-    ) == {"a": 1, "b": 4}
+    assert registry.transform({"a": 1, "b": 2}, _make_stateful_func()) == {"a": 1, "b": 4}
 
 
 def test_mapping_transformer_transform_with_stateful_function_second_call(
     registry: TransformerRegistry,
 ) -> None:
-    transformer = MappingTransformer()
     stateful_func = _make_stateful_func()
-    transformer.transform({"a": 1, "b": 2}, func=stateful_func, registry=registry)
-    assert transformer.transform({"a": 1, "b": 2}, func=stateful_func, registry=registry) == {
+    registry.transform({"a": 1, "b": 2}, stateful_func)
+    assert registry.transform({"a": 1, "b": 2}, stateful_func) == {
         "a": 3,
         "b": 8,
     }
@@ -137,29 +137,62 @@ def test_mapping_transformer_transform_with_closure(registry: TransformerRegistr
     def multiply_by(x: Any) -> Any:
         return x * multiplier
 
-    assert MappingTransformer().transform(
-        {"a": 1, "b": 2}, func=multiply_by, registry=registry
-    ) == {"a": 3, "b": 6}
+    assert registry.transform({"a": 1, "b": 2}, multiply_by) == {"a": 3, "b": 6}
 
 
 def test_mapping_transformer_transform_defaultdict_type(registry: TransformerRegistry) -> None:
-    result = MappingTransformer().transform(
-        defaultdict(list, {"a": 1}), func=lambda x: x + 1, registry=registry
-    )
+    result = registry.transform(defaultdict(list, {"a": 1}), lambda x: x + 1)
     assert type(result) is defaultdict
 
 
 def test_mapping_transformer_transform_defaultdict_default_factory(
     registry: TransformerRegistry,
 ) -> None:
-    result = MappingTransformer().transform(
-        defaultdict(list, {"a": 1}), func=lambda x: x + 1, registry=registry
-    )
+    result = registry.transform(defaultdict(list, {"a": 1}), lambda x: x + 1)
     assert result.default_factory is list
 
 
 def test_mapping_transformer_transform_defaultdict_values(registry: TransformerRegistry) -> None:
-    result = MappingTransformer().transform(
-        defaultdict(list, {"a": 1}), func=lambda x: x + 1, registry=registry
-    )
+    result = registry.transform(defaultdict(list, {"a": 1}), lambda x: x + 1)
     assert result == {"a": 2}
+
+
+def test_mapping_transformer_expand_children() -> None:
+    children, _ = MappingTransformer().expand({"a": 1, "b": 2})
+    assert children == [1, 2]
+
+
+def test_mapping_transformer_expand_rebuild() -> None:
+    _, rebuild = MappingTransformer().expand({"a": 1, "b": 2})
+    assert rebuild(["x", "y"]) == {"a": "x", "b": "y"}
+
+
+def test_mapping_transformer_expand_rebuild_keeps_the_order_of_the_keys() -> None:
+    _, rebuild = MappingTransformer().expand({"b": 1, "a": 2})
+    assert list(rebuild([3, 4])) == ["b", "a"]
+
+
+def test_mapping_transformer_expand_rebuild_ordered_dict() -> None:
+    _, rebuild = MappingTransformer().expand(OrderedDict(a=1))
+    assert type(rebuild([2])) is OrderedDict
+
+
+def test_mapping_transformer_expand_rebuild_defaultdict_keeps_the_factory() -> None:
+    _, rebuild = MappingTransformer().expand(defaultdict(int, {"a": 1}))
+    assert rebuild([2]).default_factory is int
+
+
+def test_mapping_transformer_expand_rebuild_mapping_proxy() -> None:
+    _, rebuild = MappingTransformer().expand(MappingProxyType({"a": 1}))
+    assert rebuild([2]) == MappingProxyType({"a": 2})
+
+
+def test_mapping_transformer_expand_empty() -> None:
+    children, rebuild = MappingTransformer().expand({})
+    assert (children, rebuild([])) == ([], {})
+
+
+def test_mapping_transformer_expand_does_not_modify_the_input() -> None:
+    data = {"a": 1, "b": 2}
+    MappingTransformer().expand(data)
+    assert data == {"a": 1, "b": 2}

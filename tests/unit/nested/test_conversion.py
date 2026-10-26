@@ -11,6 +11,8 @@ from coola.nested import (
     convert_to_list_of_dicts,
     try_sorted_list,
 )
+from coola.nested.conversion import SetToListTransformer
+from coola.recursive import recursive_apply
 from coola.testing.fixtures import numpy_available, pydantic_available, torch_available
 from coola.utils.imports import (
     is_numpy_available,
@@ -244,9 +246,11 @@ def test_convert_to_list_of_dicts_string_value_raises(value: object) -> None:
         convert_to_list_of_dicts({"a": value, "b": [1, 2]})
 
 
-def test_convert_to_jsonable_deep_structure_raises_a_recursion_error() -> None:
-    with pytest.raises(RecursionError, match="Python recursion limit was exceeded"):
-        convert_to_jsonable(nest(1, 5000))
+def test_convert_to_jsonable_deep_structure() -> None:
+    result = convert_to_jsonable(nest(1, 5000))
+    for _ in range(5000):
+        result = result[0]
+    assert result == 1
 
 
 def test_convert_to_jsonable_list_that_contains_itself() -> None:
@@ -254,3 +258,26 @@ def test_convert_to_jsonable_list_that_contains_itself() -> None:
     data.append(data)
     with pytest.raises(ValueError, match="Cycle detected"):
         convert_to_jsonable(data)
+
+
+def test_set_to_list_transformer_expand_children() -> None:
+    children, _ = SetToListTransformer().expand({1})
+    assert children == [1]
+
+
+def test_set_to_list_transformer_expand_rebuild_sorts_the_items() -> None:
+    _, rebuild = SetToListTransformer().expand({3, 1, 2})
+    assert rebuild([3, 1, 2]) == [1, 2, 3]
+
+
+def test_set_to_list_transformer_repr() -> None:
+    assert repr(SetToListTransformer()) == "SetToListTransformer()"
+
+
+def test_convert_to_jsonable_set_in_a_set_of_frozensets() -> None:
+    assert convert_to_jsonable({frozenset({2, 1})}) == [[1, 2]]
+
+
+def test_convert_to_jsonable_does_not_modify_the_default_registry() -> None:
+    convert_to_jsonable({1})
+    assert recursive_apply({1}, str) == {"1"}
