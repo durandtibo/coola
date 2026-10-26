@@ -296,5 +296,5 @@ forbidden_modules = [
 ]
 ignore_imports = [
   # Deferred (function-level) import.
-  "coola.registry.base -> coola.equality.interface",
+  "coola.registry.base -> coola.equality",
 ]
