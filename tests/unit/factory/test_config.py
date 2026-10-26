@@ -25,12 +25,10 @@ def create_list_union() -> Union[list, tuple]:  # noqa: UP007
     return [1, 2, 3, 4]
 
 
-def create_list_without_type_hint() -> list:
+# The missing return annotation is the point of this helper, so ANN201 is ignored on purpose.
+def create_list_without_type_hint():  # noqa: ANN201
     """Helper function without type hint."""
     return [1, 2, 3, 4]
-
-
-del create_list_without_type_hint.__annotations__["return"]
 
 
 def create_list_union2() -> list | tuple:
