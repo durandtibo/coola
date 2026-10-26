@@ -9,8 +9,7 @@ from coola.utils.singleton import LazySingleton
 REGISTRIES = [
     ("coola.equality.tester.interface", "EqualityTesterRegistry"),
     ("coola.hashing.interface", "HasherRegistry"),
-    ("coola.iterator.bfs.interface", "ChildFinderRegistry"),
-    ("coola.iterator.dfs.interface", "IteratorRegistry"),
+    ("coola.iterator.interface", "ChildFinderRegistry"),
     ("coola.random.interface", "RandomManagerRegistry"),
     ("coola.recursive.interface", "TransformerRegistry"),
     ("coola.summary.interface", "SummarizerRegistry"),

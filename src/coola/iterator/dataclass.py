@@ -1,4 +1,4 @@
-r"""Define the BFS child finder class for dataclass instances."""
+r"""Define the child finder class for dataclass instances."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import dataclasses
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
-from coola.iterator.bfs.base import BaseChildFinder
+from coola.iterator.base import BaseChildFinder
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -26,7 +26,7 @@ class DataclassChildFinder(InlineDisplayMixin, BaseChildFinder[Any]):
     Example:
         ```pycon
         >>> from dataclasses import dataclass
-        >>> from coola.iterator.bfs import DataclassChildFinder
+        >>> from coola.iterator import DataclassChildFinder
         >>> @dataclass
         ... class Config:
         ...     lr: float
@@ -39,5 +39,4 @@ class DataclassChildFinder(InlineDisplayMixin, BaseChildFinder[Any]):
     """
 
     def find_children(self, data: Any) -> Iterator[Any]:
-        for field in dataclasses.fields(data):
-            yield getattr(data, field.name)
+        return (getattr(data, field.name) for field in dataclasses.fields(data))
