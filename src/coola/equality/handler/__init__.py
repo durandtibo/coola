@@ -13,10 +13,7 @@ __all__ = [
     "FalseHandler",
     "HandlerCycleError",
     "HandlerEqualityMixin",
-    "JaxArrayEqualHandler",
     "MaxDepthExceededError",
-    "NumpyArrayEqualHandler",
-    "NumpyTimeScalarEqualHandler",
     "ObjectEqualHandler",
     "PandasDataFrameEqualHandler",
     "PandasExtensionArrayEqualHandler",
@@ -27,14 +24,9 @@ __all__ = [
     "PolarsSeriesEqualHandler",
     "PyarrowEqualHandler",
     "SameAttributeHandler",
-    "SameDTypeHandler",
-    "SameDataHandler",
     "SameLengthHandler",
     "SameObjectHandler",
-    "SameShapeHandler",
     "SameTypeHandler",
-    "TorchTensorEqualHandler",
-    "TorchTensorSameDeviceHandler",
     "TrueHandler",
     "check_recursion_depth",
     "comparison_key",
@@ -50,8 +42,6 @@ from typing import TYPE_CHECKING
 
 from coola.equality.handler.allclose import AllCloseNanHandler
 from coola.equality.handler.base import BaseEqualityHandler, HandlerCycleError
-from coola.equality.handler.data import SameDataHandler
-from coola.equality.handler.dtype import SameDTypeHandler
 from coola.equality.handler.mixin import HandlerEqualityMixin
 from coola.equality.handler.native import (
     FalseHandler,
@@ -63,7 +53,6 @@ from coola.equality.handler.native import (
     TrueHandler,
 )
 from coola.equality.handler.object import get_object_attributes
-from coola.equality.handler.shape import SameShapeHandler
 from coola.equality.handler.utils import (
     AttributeName,
     MaxDepthExceededError,
@@ -78,8 +67,6 @@ from coola.equality.handler.utils import (
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
-    from coola.equality.handler.jax import JaxArrayEqualHandler
-    from coola.equality.handler.numpy import NumpyArrayEqualHandler, NumpyTimeScalarEqualHandler
     from coola.equality.handler.pandas import (
         PandasDataFrameEqualHandler,
         PandasExtensionArrayEqualHandler,
@@ -92,18 +79,11 @@ if TYPE_CHECKING:
         PolarsSeriesEqualHandler,
     )
     from coola.equality.handler.pyarrow import PyarrowEqualHandler
-    from coola.equality.handler.torch import (
-        TorchTensorEqualHandler,
-        TorchTensorSameDeviceHandler,
-    )
 
 
 # The names defined in the modules that import an optional library are imported the first time they
 # are used, so the library is not imported with the package.
 _LAZY_EXPORTS = {
-    "JaxArrayEqualHandler": "coola.equality.handler.jax",
-    "NumpyArrayEqualHandler": "coola.equality.handler.numpy",
-    "NumpyTimeScalarEqualHandler": "coola.equality.handler.numpy",
     "PandasDataFrameEqualHandler": "coola.equality.handler.pandas",
     "PandasExtensionArrayEqualHandler": "coola.equality.handler.pandas",
     "PandasIndexEqualHandler": "coola.equality.handler.pandas",
@@ -112,7 +92,5 @@ _LAZY_EXPORTS = {
     "PolarsLazyFrameEqualHandler": "coola.equality.handler.polars",
     "PolarsSeriesEqualHandler": "coola.equality.handler.polars",
     "PyarrowEqualHandler": "coola.equality.handler.pyarrow",
-    "TorchTensorEqualHandler": "coola.equality.handler.torch",
-    "TorchTensorSameDeviceHandler": "coola.equality.handler.torch",
 }
 __getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())

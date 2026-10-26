@@ -37,8 +37,8 @@ def test_importing_a_package_does_not_import_the_optional_libraries(package: str
 def test_importing_a_lazy_name_imports_its_module() -> None:
     """Test that a name that needs an optional library is imported when
     it is used."""
-    statement = "from coola.equality.handler import NumpyArrayEqualHandler"
-    assert "numpy" in loaded_libraries(statement)
+    statement = "from coola.equality.handler import PandasSeriesEqualHandler"
+    assert "pandas" in loaded_libraries(statement)
 
 
 def test_a_lazy_name_is_in_the_dir_of_the_package() -> None:

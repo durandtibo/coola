@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from coola.equality import compare
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     NumpyArrayEqualityTester,
@@ -12,7 +13,7 @@ from coola.equality.tester import (
 )
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import MissingPackageError, is_numpy_available
-from tests.unit.equality.utils import ExamplePair, messages
+from tests.unit.equality.utils import ExamplePair, messages, run_tester
 
 if is_numpy_available():
     import numpy as np
@@ -77,7 +78,7 @@ NUMPY_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=np.ones(shape=(2, 3)),
             expected=np.zeros(shape=(2, 3)),
-            expected_message="numpy.ndarrays are different:",
+            expected_message="values are different:",
         ),
         id="different values",
     ),
@@ -201,7 +202,7 @@ NUMPY_MASKED_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
             expected=np.ma.array(data=[0.0, 1.0, 2.0], mask=[0, 1, 0]),
-            expected_message="objects have different data:",
+            expected_message="values are different:",
         ),
         id="different values",
     ),
@@ -209,7 +210,7 @@ NUMPY_MASKED_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0]),
             expected=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 0, 1]),
-            expected_message="objects have different mask:",
+            expected_message="values are different:",
         ),
         id="different mask",
     ),
@@ -217,7 +218,7 @@ NUMPY_MASKED_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], fill_value=-1),
             expected=np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0], fill_value=42),
-            expected_message="objects have different fill_value:",
+            expected_message="numbers are different:",
         ),
         id="different fill_value",
     ),
@@ -274,7 +275,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     array = np.ones((2, 3))
-    assert NumpyArrayEqualityTester().objects_are_equal(array, array, config)
+    assert run_tester(NumpyArrayEqualityTester(), array, array, config)
 
 
 @numpy_available
@@ -284,7 +285,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = NumpyArrayEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @numpy_available
@@ -294,7 +295,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = NumpyArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -306,7 +307,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = NumpyArrayEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @numpy_available
@@ -317,7 +318,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true_explaining_does_not_
 ) -> None:
     config.reports = []
     tester = NumpyArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -328,9 +329,7 @@ def test_numpy_array_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = NumpyArrayEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @numpy_available
@@ -340,7 +339,7 @@ def test_numpy_array_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = NumpyArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -352,9 +351,7 @@ def test_numpy_array_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = NumpyArrayEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @numpy_available
@@ -365,8 +362,8 @@ def test_numpy_array_equality_tester_objects_are_equal_false_explaining_reports(
 ) -> None:
     config.reports = []
     tester = NumpyArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    run_tester(tester, example.actual, example.expected, config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @numpy_available
@@ -376,10 +373,11 @@ def test_numpy_array_equality_tester_objects_are_equal_nan_true(
 ) -> None:
     config.equal_nan = equal_nan
     assert (
-        NumpyArrayEqualityTester().objects_are_equal(
-            actual=np.array([0.0, np.nan, np.nan, 1.2]),
-            expected=np.array([0.0, np.nan, np.nan, 1.2]),
-            config=config,
+        run_tester(
+            NumpyArrayEqualityTester(),
+            np.array([0.0, np.nan, np.nan, 1.2]),
+            np.array([0.0, np.nan, np.nan, 1.2]),
+            config,
         )
         == equal_nan
     )
@@ -392,9 +390,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    assert NumpyArrayEqualityTester().objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert run_tester(NumpyArrayEqualityTester(), example.actual, example.expected, config)
 
 
 def test_numpy_array_equality_tester_no_numpy() -> None:
@@ -442,7 +438,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     array = np.ma.array(data=[0.0, 1.0, 1.2], mask=[0, 1, 0])
-    assert NumpyMaskedArrayEqualityTester().objects_are_equal(array, array, config)
+    assert run_tester(NumpyMaskedArrayEqualityTester(), array, array, config)
 
 
 @numpy_available
@@ -452,7 +448,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = NumpyMaskedArrayEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @numpy_available
@@ -462,7 +458,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = NumpyMaskedArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -474,7 +470,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = NumpyMaskedArrayEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @numpy_available
@@ -485,7 +481,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_true_explaining_do
 ) -> None:
     config.reports = []
     tester = NumpyMaskedArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -496,9 +492,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = NumpyMaskedArrayEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @numpy_available
@@ -508,7 +502,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_false_does_not_log
     config: EqualityConfig,
 ) -> None:
     tester = NumpyMaskedArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -520,9 +514,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = NumpyMaskedArrayEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @numpy_available
@@ -533,8 +525,8 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_false_explaining_r
 ) -> None:
     config.reports = []
     tester = NumpyMaskedArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    run_tester(tester, example.actual, example.expected, config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @numpy_available
@@ -544,10 +536,11 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_nan(
 ) -> None:
     config.equal_nan = equal_nan
     assert (
-        NumpyMaskedArrayEqualityTester().objects_are_equal(
-            actual=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
-            expected=np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
-            config=config,
+        run_tester(
+            NumpyMaskedArrayEqualityTester(),
+            np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
+            np.ma.array(data=[0.0, np.nan, np.nan, 1.2], mask=[0, 1, 0, 1]),
+            config,
         )
         == equal_nan
     )
@@ -568,22 +561,22 @@ def test_numpy_masked_array_equality_tester_no_numpy() -> None:
 
 @numpy_available
 def test_numpy_time_scalar_equality_tester_equal(config: EqualityConfig) -> None:
-    assert NumpyTimeScalarEqualityTester().objects_are_equal(
-        np.timedelta64(1, "s"), np.timedelta64(1, "s"), config
+    assert run_tester(
+        NumpyTimeScalarEqualityTester(), np.timedelta64(1, "s"), np.timedelta64(1, "s"), config
     )
 
 
 @numpy_available
 def test_numpy_time_scalar_equality_tester_different(config: EqualityConfig) -> None:
-    assert not NumpyTimeScalarEqualityTester().objects_are_equal(
-        np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
+    assert not run_tester(
+        NumpyTimeScalarEqualityTester(), np.timedelta64(1, "s"), np.timedelta64(2, "s"), config
     )
 
 
 @numpy_available
 def test_numpy_time_scalar_equality_tester_different_type(config: EqualityConfig) -> None:
-    assert not NumpyTimeScalarEqualityTester().objects_are_equal(
-        np.timedelta64(1, "s"), np.datetime64(1, "s"), config
+    assert not run_tester(
+        NumpyTimeScalarEqualityTester(), np.timedelta64(1, "s"), np.datetime64(1, "s"), config
     )
 
 
@@ -593,3 +586,173 @@ def test_numpy_time_scalar_equality_tester_no_numpy() -> None:
         pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyTimeScalarEqualityTester()
+
+
+#############################################
+#     Tests for the location of a difference #
+#############################################
+
+
+def _object_array(first: object, second: object) -> np.ndarray:
+    array = np.empty(2, dtype=object)
+    array[0], array[1] = first, second
+    return array
+
+
+@numpy_available
+def test_numpy_array_compare_path_is_the_index() -> None:
+    expected = np.zeros((2, 3))
+    expected[1, 2] = 5.0
+    assert compare(np.zeros((2, 3)), expected).path == (1, 2)
+
+
+@numpy_available
+def test_numpy_array_compare_path_of_the_first_difference() -> None:
+    expected = np.zeros((2, 3))
+    expected[0, 1] = 5.0
+    expected[1, 2] = 5.0
+    assert compare(np.zeros((2, 3)), expected).path == (0, 1)
+
+
+@numpy_available
+def test_numpy_array_compare_path_is_a_tuple_of_ints() -> None:
+    expected = np.zeros(2)
+    expected[1] = 5.0
+    assert type(compare(np.zeros(2), expected).path[0]) is int
+
+
+@numpy_available
+def test_numpy_array_compare_path_of_a_0d_array() -> None:
+    assert compare(np.array(1.0), np.array(2.0)).path == ()
+
+
+@numpy_available
+def test_numpy_array_compare_reason_has_the_two_values() -> None:
+    assert (
+        compare(np.array([1.0, 2.0]), np.array([1.0, 3.0])).reason
+        == "values are different:\n  actual   : 2.0\n  expected : 3.0"
+    )
+
+
+@numpy_available
+def test_numpy_array_compare_reason_is_bounded() -> None:
+    expected = np.zeros(1_000_000)
+    expected[0] = 1.0
+    assert len(compare(np.zeros(1_000_000), expected).reason) < 100
+
+
+@numpy_available
+def test_numpy_array_compare_path_of_a_string_array() -> None:
+    assert compare(np.array(["a", "b"]), np.array(["a", "c"])).path == (1,)
+
+
+@numpy_available
+def test_numpy_array_compare_path_with_a_tolerance() -> None:
+    assert compare(np.array([1.0, 2.0]), np.array([1.0, 2.5]), atol=0.1).path == (1,)
+
+
+@numpy_available
+def test_numpy_array_compare_path_nan_without_equal_nan() -> None:
+    array = np.array([1.0, float("nan")])
+    assert compare(array, array.copy()).path == (1,)
+
+
+@numpy_available
+def test_numpy_array_compare_nan_with_equal_nan() -> None:
+    array = np.array([1.0, float("nan")])
+    assert compare(array, array.copy(), equal_nan=True).equal
+
+
+@numpy_available
+def test_numpy_array_compare_path_of_a_duration_array() -> None:
+    assert compare(
+        np.array([1, 2], dtype="m8[s]"), np.array([1, 9], dtype="m8[s]"), atol=1.0
+    ).path == (1,)
+
+
+@numpy_available
+def test_numpy_array_compare_path_of_a_date_array() -> None:
+    assert compare(
+        np.array(["2020-01-01", "2020-01-02"], dtype="M8[D]"),
+        np.array(["2020-01-01", "2020-01-03"], dtype="M8[D]"),
+        atol=1e9,
+    ).path == (1,)
+
+
+@numpy_available
+def test_numpy_array_compare_path_of_an_integer_array_with_a_tolerance() -> None:
+    assert compare(np.array([1, 2]), np.array([1, 5]), atol=1.0).path == (1,)
+
+
+@numpy_available
+def test_numpy_array_compare_object_arrays_equal() -> None:
+    assert compare(_object_array(1.0, np.ones(2)), _object_array(1.0, np.ones(2))).equal
+
+
+@numpy_available
+def test_numpy_array_compare_object_arrays_path_is_the_flat_index_then_the_index() -> None:
+    assert compare(_object_array(1.0, np.ones(2)), _object_array(1.0, np.zeros(2))).path == (1, 0)
+
+
+@numpy_available
+def test_numpy_array_compare_object_arrays_equal_nan() -> None:
+    assert compare(
+        _object_array(float("nan"), 1.0), _object_array(float("nan"), 1.0), equal_nan=True
+    ).equal
+
+
+@numpy_available
+def test_numpy_array_compare_object_arrays_nan_without_equal_nan() -> None:
+    assert not compare(_object_array(float("nan"), 1.0), _object_array(float("nan"), 1.0)).equal
+
+
+@numpy_available
+def test_numpy_array_compare_object_arrays_tolerance() -> None:
+    assert compare(_object_array(1.0, 2.0), _object_array(1.0, 2.05), atol=0.1).equal
+
+
+@numpy_available
+def test_numpy_array_compare_object_arrays_different_shape() -> None:
+    assert not compare(np.array([1, 2], dtype=object), np.array([[1, 2]], dtype=object)).equal
+
+
+@numpy_available
+def test_numpy_array_compare_does_not_look_up_the_index_when_not_explaining(
+    config: EqualityConfig,
+) -> None:
+    assert not run_tester(NumpyArrayEqualityTester(), np.zeros(3), np.ones(3), config)
+
+
+@numpy_available
+def test_numpy_masked_array_compare_path_of_the_data() -> None:
+    assert compare(np.ma.array([1, 2], mask=[0, 1]), np.ma.array([1, 9], mask=[0, 1])).path == (
+        "data",
+        1,
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_compare_path_of_the_mask() -> None:
+    assert compare(np.ma.array([1, 2], mask=[0, 1]), np.ma.array([1, 2], mask=[0, 0])).path == (
+        "mask",
+        1,
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_compare_path_of_the_fill_value() -> None:
+    assert compare(np.ma.array([1, 2], fill_value=1), np.ma.array([1, 2], fill_value=2)).path == (
+        "fill_value",
+    )
+
+
+@numpy_available
+def test_numpy_masked_array_compare_path_is_an_attribute_name() -> None:
+    result = compare(np.ma.array([1, 2], mask=[0, 1]), np.ma.array([1, 9], mask=[0, 1]))
+    assert result.format_path("actual") == "actual.data[1]"
+
+
+@numpy_available
+def test_numpy_time_scalar_compare_reason() -> None:
+    result = compare(np.datetime64("2020-01-01"), np.datetime64("2020-01-02"))
+    assert result.reason.startswith("numpy time scalars are different:")

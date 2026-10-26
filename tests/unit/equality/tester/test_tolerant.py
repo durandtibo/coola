@@ -214,7 +214,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_explaining_repor
     config.reports = []
     tester = TolerantEqualEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 def test_tolerant_equal_equality_tester_objects_are_equal_true_nan(
@@ -296,7 +296,7 @@ def test_tolerant_equal_equality_tester_objects_are_equal_false_explaining_with_
     config.reports = []
     tester = TolerantEqualEqualityTester()
     run_tester(tester, example.actual, example.expected, config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 class NoMethods:

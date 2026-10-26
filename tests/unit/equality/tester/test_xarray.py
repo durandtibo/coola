@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from coola.equality import compare
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     XarrayDataArrayEqualityTester,
@@ -12,7 +13,7 @@ from coola.equality.tester import (
 )
 from coola.testing.fixtures import xarray_available
 from coola.utils.imports import MissingPackageError, is_numpy_available, is_xarray_available
-from tests.unit.equality.utils import ExamplePair, messages
+from tests.unit.equality.utils import ExamplePair, messages, run_tester
 
 if is_numpy_available():
     import numpy as np
@@ -86,7 +87,7 @@ XARRAY_DATA_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=xr.DataArray(np.ones(6)),
             expected=xr.DataArray(np.zeros(6)),
-            expected_message="objects have different variable:",
+            expected_message="values are different:",
         ),
         id="different value",
     ),
@@ -94,7 +95,7 @@ XARRAY_DATA_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=xr.DataArray(np.arange(6), dims=["z1"]),
             expected=xr.DataArray(np.arange(6), dims=["z2"]),
-            expected_message="objects have different variable:",
+            expected_message="objects are different:",
         ),
         id="different dims",
     ),
@@ -102,7 +103,7 @@ XARRAY_DATA_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=xr.DataArray(np.arange(6), name="meow"),
             expected=xr.DataArray(np.arange(6), name="bear"),
-            expected_message="objects have different name:",
+            expected_message="objects are different:",
         ),
         id="different name",
     ),
@@ -110,7 +111,7 @@ XARRAY_DATA_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=xr.DataArray(np.arange(6), attrs={"global": "meow"}),
             expected=xr.DataArray(np.arange(6), attrs={"global": "meoowww"}),
-            expected_message="objects have different variable:",
+            expected_message="objects are different:",
         ),
         id="different attrs",
     ),
@@ -118,7 +119,7 @@ XARRAY_DATA_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=xr.DataArray(np.arange(6), coords={"z": [1, 2, 3, 4, 5, 6]}),
             expected=xr.DataArray(np.arange(6), coords={"z": [10, 20, 30, 40, 50, 60]}),
-            expected_message="objects have different coords.variables:",
+            expected_message="values are different:",
         ),
         id="different coords",
     ),
@@ -227,7 +228,7 @@ XARRAY_DATASET_NOT_EQUAL = [
         ExamplePair(
             actual=xr.Dataset(data_vars={"x": xr.DataArray(np.zeros(6))}),
             expected=xr.Dataset(data_vars={"x": xr.DataArray(np.ones(6))}),
-            expected_message="objects have different data_vars:",
+            expected_message="values are different:",
         ),
         id="different data_vars",
     ),
@@ -235,7 +236,7 @@ XARRAY_DATASET_NOT_EQUAL = [
         ExamplePair(
             actual=xr.Dataset(coords={"z": [1, 2, 3]}),
             expected=xr.Dataset(coords={"z": [0, 1, 2]}),
-            expected_message="objects have different coords:",
+            expected_message="values are different:",
         ),
         id="different coords",
     ),
@@ -243,7 +244,7 @@ XARRAY_DATASET_NOT_EQUAL = [
         ExamplePair(
             actual=xr.Dataset(attrs={"global": "meow"}),
             expected=xr.Dataset(attrs={"global": "meowwww"}),
-            expected_message="objects have different attrs:",
+            expected_message="objects are different:",
         ),
         id="different attrs",
     ),
@@ -342,7 +343,7 @@ XARRAY_VARIABLE_NOT_EQUAL = [
         ExamplePair(
             actual=xr.Variable(dims=["z"], data=np.ones(6)),
             expected=xr.Variable(dims=["z"], data=np.zeros(6)),
-            expected_message="objects have different data:",
+            expected_message="values are different:",
         ),
         id="different data",
     ),
@@ -350,7 +351,7 @@ XARRAY_VARIABLE_NOT_EQUAL = [
         ExamplePair(
             actual=xr.Variable(dims=["x"], data=np.arange(6)),
             expected=xr.Variable(dims=["y"], data=np.arange(6)),
-            expected_message="objects have different dims:",
+            expected_message="objects are different:",
         ),
         id="different dims",
     ),
@@ -358,7 +359,7 @@ XARRAY_VARIABLE_NOT_EQUAL = [
         ExamplePair(
             actual=xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meow"}),
             expected=xr.Variable(dims=["z"], data=np.arange(6), attrs={"global": "meoowww"}),
-            expected_message="objects have different attrs:",
+            expected_message="objects are different:",
         ),
         id="different attrs",
     ),
@@ -472,7 +473,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     obj = xr.DataArray(np.arange(6))
-    assert XarrayDataArrayEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(XarrayDataArrayEqualityTester(), obj, obj, config)
 
 
 @xarray_available
@@ -482,7 +483,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayDataArrayEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -492,7 +493,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayDataArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -504,7 +505,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = XarrayDataArrayEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -515,7 +516,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_explaining_doe
 ) -> None:
     config.reports = []
     tester = XarrayDataArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -526,9 +527,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayDataArrayEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -538,7 +537,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayDataArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -550,9 +549,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = XarrayDataArrayEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -563,8 +560,8 @@ def test_xarray_data_array_equality_tester_objects_are_equal_false_explaining_re
 ) -> None:
     config.reports = []
     tester = XarrayDataArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    run_tester(tester, example.actual, example.expected, config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @xarray_available
@@ -574,7 +571,8 @@ def test_xarray_data_array_equality_tester_objects_are_equal_nan(
 ) -> None:
     config.equal_nan = equal_nan
     assert (
-        XarrayDataArrayEqualityTester().objects_are_equal(
+        run_tester(
+            XarrayDataArrayEqualityTester(),
             xr.DataArray(np.array([0.0, float("nan"), 2.0])),
             xr.DataArray(np.array([0.0, float("nan"), 2.0])),
             config,
@@ -590,9 +588,7 @@ def test_xarray_data_array_equality_tester_objects_are_equal_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    assert XarrayDataArrayEqualityTester().objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert run_tester(XarrayDataArrayEqualityTester(), example.actual, example.expected, config)
 
 
 def test_xarray_data_array_equality_tester_no_xarray() -> None:
@@ -642,7 +638,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     obj = xr.Dataset(data_vars={"x": xr.DataArray(np.arange(6), dims=["z"])})
-    assert XarrayDatasetEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(XarrayDatasetEqualityTester(), obj, obj, config)
 
 
 @xarray_available
@@ -652,7 +648,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayDatasetEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -662,7 +658,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayDatasetEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -674,7 +670,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = XarrayDatasetEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -685,7 +681,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_explaining_does_n
 ) -> None:
     config.reports = []
     tester = XarrayDatasetEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -696,9 +692,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayDatasetEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -708,7 +702,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayDatasetEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -720,9 +714,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = XarrayDatasetEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -733,8 +725,8 @@ def test_xarray_dataset_equality_tester_objects_are_equal_false_explaining_repor
 ) -> None:
     config.reports = []
     tester = XarrayDatasetEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    run_tester(tester, example.actual, example.expected, config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @xarray_available
@@ -744,7 +736,8 @@ def test_xarray_dataset_equality_tester_objects_are_equal_nan(
 ) -> None:
     config.equal_nan = equal_nan
     assert (
-        XarrayDatasetEqualityTester().objects_are_equal(
+        run_tester(
+            XarrayDatasetEqualityTester(),
             xr.Dataset(data_vars={"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
             xr.Dataset(data_vars={"x": xr.DataArray(np.array([0.0, float("nan"), 2.0]))}),
             config,
@@ -760,9 +753,7 @@ def test_xarray_dataset_equality_tester_objects_are_equal_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    assert XarrayDatasetEqualityTester().objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert run_tester(XarrayDatasetEqualityTester(), example.actual, example.expected, config)
 
 
 def test_xarray_dataset_equality_tester_no_xarray() -> None:
@@ -812,7 +803,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     obj = xr.Variable(dims=["z"], data=np.arange(6))
-    assert XarrayVariableEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(XarrayVariableEqualityTester(), obj, obj, config)
 
 
 @xarray_available
@@ -822,7 +813,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayVariableEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -832,7 +823,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayVariableEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -844,7 +835,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = XarrayVariableEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -855,7 +846,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_explaining_does_
 ) -> None:
     config.reports = []
     tester = XarrayVariableEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -866,9 +857,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayVariableEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -878,7 +867,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayVariableEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -890,9 +879,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = XarrayVariableEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @xarray_available
@@ -903,8 +890,8 @@ def test_xarray_variable_equality_tester_objects_are_equal_false_explaining_repo
 ) -> None:
     config.reports = []
     tester = XarrayVariableEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    run_tester(tester, example.actual, example.expected, config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @xarray_available
@@ -914,7 +901,8 @@ def test_xarray_variable_equality_tester_objects_are_equal_nan(
 ) -> None:
     config.equal_nan = equal_nan
     assert (
-        XarrayVariableEqualityTester().objects_are_equal(
+        run_tester(
+            XarrayVariableEqualityTester(),
             xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
             xr.Variable(dims=["z"], data=np.array([0.0, float("nan"), 2.0])),
             config,
@@ -930,9 +918,7 @@ def test_xarray_variable_equality_tester_objects_are_equal_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    assert XarrayVariableEqualityTester().objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert run_tester(XarrayVariableEqualityTester(), example.actual, example.expected, config)
 
 
 def test_xarray_variable_equality_tester_no_xarray() -> None:
@@ -950,7 +936,7 @@ def test_xarray_data_array_equality_tester_non_index_coordinate(config: Equality
     tester = XarrayDataArrayEqualityTester()
     kwargs = {"dims": ["z"], "coords": {"label": ("z", ["a", "b", "c"])}}
     actual = xr.DataArray(np.arange(3), **kwargs)
-    assert tester.objects_are_equal(actual, xr.DataArray(np.arange(3), **kwargs), config)
+    assert run_tester(tester, actual, xr.DataArray(np.arange(3), **kwargs), config)
 
 
 @xarray_available
@@ -961,7 +947,7 @@ def test_xarray_data_array_equality_tester_non_index_coordinate_different(
     kwargs = {"dims": ["z"], "coords": {"label": ("z", ["a", "b", "c"])}}
     actual = xr.DataArray(np.arange(3), **kwargs)
     other = xr.DataArray(np.arange(3), dims=["z"], coords={"label": ("z", ["a", "b", "d"])})
-    assert not tester.objects_are_equal(actual, other, config)
+    assert not run_tester(tester, actual, other, config)
 
 
 @xarray_available
@@ -969,7 +955,7 @@ def test_xarray_data_array_equality_tester_missing_coordinate(config: EqualityCo
     tester = XarrayDataArrayEqualityTester()
     with_coord = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1, 2, 3]})
     without_coord = xr.DataArray(np.arange(3), dims=["z"])
-    assert not tester.objects_are_equal(with_coord, without_coord, config)
+    assert not run_tester(tester, with_coord, without_coord, config)
 
 
 @xarray_available
@@ -979,7 +965,7 @@ def test_xarray_data_array_equality_tester_missing_expected_coordinate(
     tester = XarrayDataArrayEqualityTester()
     with_coord = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1, 2, 3]})
     without_coord = xr.DataArray(np.arange(3), dims=["z"])
-    assert not tester.objects_are_equal(without_coord, with_coord, config)
+    assert not run_tester(tester, without_coord, with_coord, config)
 
 
 @xarray_available
@@ -987,7 +973,7 @@ def test_xarray_data_array_equality_tester_coordinate_without_tolerance() -> Non
     tester = XarrayDataArrayEqualityTester()
     actual = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.0]})
     expected = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.05]})
-    assert not tester.objects_are_equal(actual, expected, EqualityConfig())
+    assert not run_tester(tester, actual, expected, EqualityConfig())
 
 
 @xarray_available
@@ -995,7 +981,7 @@ def test_xarray_data_array_equality_tester_coordinate_tolerance() -> None:
     tester = XarrayDataArrayEqualityTester()
     actual = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.0]})
     expected = xr.DataArray(np.arange(3), dims=["z"], coords={"z": [1.0, 2.0, 3.05]})
-    assert tester.objects_are_equal(actual, expected, EqualityConfig(atol=0.1))
+    assert run_tester(tester, actual, expected, EqualityConfig(atol=0.1))
 
 
 @xarray_available
@@ -1006,4 +992,67 @@ def test_xarray_data_array_equality_tester_coordinates_do_not_recurse(
     # (including itself): comparing it would recurse forever. The tester compares
     # ``coords.variables``, which only contains Variables.
     data = xr.DataArray(np.arange(2), dims=["z"], coords={"z": [0, 1], "w": ("z", [3, 4])})
-    assert XarrayDataArrayEqualityTester().objects_are_equal(data, data.copy(), config)
+    assert run_tester(XarrayDataArrayEqualityTester(), data, data.copy(), config)
+
+
+#############################################
+#     Tests for the location of a difference #
+#############################################
+
+
+@xarray_available
+def test_xarray_data_array_compare_path_of_the_data() -> None:
+    assert compare(
+        xr.DataArray(np.arange(3), dims=["z"]), xr.DataArray(np.array([0, 1, 5]), dims=["z"])
+    ).path == ("variable", "data", 2)
+
+
+@xarray_available
+def test_xarray_data_array_compare_path_format() -> None:
+    result = compare(
+        xr.DataArray(np.arange(3), dims=["z"]), xr.DataArray(np.array([0, 1, 5]), dims=["z"])
+    )
+    assert result.format_path("actual") == "actual.variable.data[2]"
+
+
+@xarray_available
+def test_xarray_data_array_compare_path_of_the_name() -> None:
+    assert compare(
+        xr.DataArray(np.arange(3), dims=["z"], name="a"),
+        xr.DataArray(np.arange(3), dims=["z"], name="b"),
+    ).path == ("name",)
+
+
+@xarray_available
+def test_xarray_data_array_compare_path_of_the_coordinates() -> None:
+    assert compare(
+        xr.DataArray(np.arange(3), dims=["z"], coords={"z": [0, 1, 2]}),
+        xr.DataArray(np.arange(3), dims=["z"], coords={"z": [0, 1, 3]}),
+    ).path == ("coords.variables", "z", "data", 2)
+
+
+@xarray_available
+def test_xarray_dataset_compare_path_of_a_data_variable() -> None:
+    assert compare(
+        xr.Dataset({"x": ("z", np.arange(3))}), xr.Dataset({"x": ("z", np.array([0, 1, 5]))})
+    ).path == ("data_vars", "x", "variable", "data", 2)
+
+
+@xarray_available
+def test_xarray_dataset_compare_path_of_the_attributes() -> None:
+    assert compare(xr.Dataset(attrs={"a": 1}), xr.Dataset(attrs={"a": 2})).path == ("attrs", "a")
+
+
+@xarray_available
+def test_xarray_variable_compare_path_of_the_dimensions() -> None:
+    assert compare(
+        xr.Variable(dims=["z"], data=np.arange(3)), xr.Variable(dims=["y"], data=np.arange(3))
+    ).path == ("dims", 0)
+
+
+@xarray_available
+def test_xarray_variable_compare_path_of_the_data() -> None:
+    assert compare(
+        xr.Variable(dims=["z"], data=np.arange(3)),
+        xr.Variable(dims=["z"], data=np.array([0, 1, 5])),
+    ).path == ("data", 2)

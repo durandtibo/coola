@@ -4,11 +4,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from coola.equality import compare
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import JaxArrayEqualityTester
 from coola.testing.fixtures import jax_available
 from coola.utils.imports import MissingPackageError, is_jax_available
-from tests.unit.equality.utils import ExamplePair, messages
+from tests.unit.equality.utils import ExamplePair, messages, run_tester
 
 if is_jax_available():
     import jax.numpy as jnp
@@ -60,7 +61,7 @@ JAX_ARRAY_NOT_EQUAL = [
         ExamplePair(
             actual=jnp.ones(shape=(2, 3)),
             expected=jnp.zeros(shape=(2, 3)),
-            expected_message="jax.numpy.ndarrays are different:",
+            expected_message="values are different:",
         ),
         id="different values",
     ),
@@ -140,7 +141,7 @@ def test_jax_array_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     array = jnp.ones((2, 3))
-    assert JaxArrayEqualityTester().objects_are_equal(array, array, config)
+    assert run_tester(JaxArrayEqualityTester(), array, array, config)
 
 
 @jax_available
@@ -150,7 +151,7 @@ def test_jax_array_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = JaxArrayEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @jax_available
@@ -160,7 +161,7 @@ def test_jax_array_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = JaxArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -172,7 +173,7 @@ def test_jax_array_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = JaxArrayEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @jax_available
@@ -183,7 +184,7 @@ def test_jax_array_equality_tester_objects_are_equal_true_explaining_does_not_lo
 ) -> None:
     config.reports = []
     tester = JaxArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -194,9 +195,7 @@ def test_jax_array_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = JaxArrayEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @jax_available
@@ -206,7 +205,7 @@ def test_jax_array_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = JaxArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -218,9 +217,7 @@ def test_jax_array_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = JaxArrayEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @jax_available
@@ -231,8 +228,8 @@ def test_jax_array_equality_tester_objects_are_equal_false_explaining_reports(
 ) -> None:
     config.reports = []
     tester = JaxArrayEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    run_tester(tester, example.actual, example.expected, config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @jax_available
@@ -242,10 +239,11 @@ def test_jax_array_equality_tester_objects_are_equal_nan(
 ) -> None:
     config.equal_nan = equal_nan
     assert (
-        JaxArrayEqualityTester().objects_are_equal(
-            actual=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
-            expected=jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
-            config=config,
+        run_tester(
+            JaxArrayEqualityTester(),
+            jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
+            jnp.array([0.0, jnp.nan, jnp.nan, 1.2]),
+            config,
         )
         == equal_nan
     )
@@ -258,9 +256,7 @@ def test_jax_array_equality_tester_objects_are_equal_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    assert JaxArrayEqualityTester().objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert run_tester(JaxArrayEqualityTester(), example.actual, example.expected, config)
 
 
 def test_jax_array_equality_tester_no_jax() -> None:
@@ -269,3 +265,56 @@ def test_jax_array_equality_tester_no_jax() -> None:
         pytest.raises(MissingPackageError, match=r"'jax' package is required but not installed."),
     ):
         JaxArrayEqualityTester()
+
+
+#############################################
+#     Tests for the location of a difference #
+#############################################
+
+
+@jax_available
+def test_jax_array_compare_path_is_the_index() -> None:
+    expected = jnp.zeros((2, 3)).at[1, 2].set(5.0)
+    assert compare(jnp.zeros((2, 3)), expected).path == (1, 2)
+
+
+@jax_available
+def test_jax_array_compare_path_is_a_tuple_of_ints() -> None:
+    expected = jnp.zeros(2).at[1].set(5.0)
+    assert type(compare(jnp.zeros(2), expected).path[0]) is int
+
+
+@jax_available
+def test_jax_array_compare_path_of_a_boolean_array() -> None:
+    assert compare(jnp.array([True, False]), jnp.array([True, True])).path == (1,)
+
+
+@jax_available
+def test_jax_array_compare_path_with_a_tolerance() -> None:
+    assert compare(jnp.array([1.0, 2.0]), jnp.array([1.0, 2.5]), atol=0.1).path == (1,)
+
+
+@jax_available
+def test_jax_array_compare_nan_with_equal_nan() -> None:
+    array = jnp.array([1.0, float("nan")])
+    assert compare(array, array, equal_nan=True).equal
+
+
+@jax_available
+def test_jax_array_compare_path_nan_without_equal_nan() -> None:
+    assert compare(jnp.array([1.0, float("nan")]), jnp.array([1.0, float("nan")])).path == (1,)
+
+
+@jax_available
+def test_jax_array_compare_reason_has_the_two_values() -> None:
+    assert (
+        compare(jnp.array([1.0, 2.0]), jnp.array([1.0, 3.0])).reason
+        == "values are different:\n  actual   : 2.0\n  expected : 3.0"
+    )
+
+
+@jax_available
+def test_jax_array_compare_does_not_look_up_the_index_when_not_explaining(
+    config: EqualityConfig,
+) -> None:
+    assert not run_tester(JaxArrayEqualityTester(), jnp.zeros(3), jnp.ones(3), config)

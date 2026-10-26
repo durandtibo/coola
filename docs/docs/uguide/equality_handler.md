@@ -124,40 +124,6 @@ False
 
 ```
 
-#### `SameShapeHandler`
-
-Checks if both objects have the same shape (for arrays/tensors):
-
-```pycon
->>> import numpy as np
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import SameShapeHandler, TrueHandler
->>> config = EqualityConfig()
->>> handler = SameShapeHandler(TrueHandler())
->>> handler.handle(np.ones((2, 3)), np.zeros((2, 3)), config)
-True
->>> handler.handle(np.ones((2, 3)), np.zeros((3, 2)), config)
-False
-
-```
-
-#### `SameDTypeHandler`
-
-Checks if both objects have the same data type (for arrays/tensors):
-
-```pycon
->>> import numpy as np
->>> from coola.equality.config import EqualityConfig
->>> from coola.equality.handler import SameDTypeHandler, TrueHandler
->>> config = EqualityConfig()
->>> handler = SameDTypeHandler(TrueHandler())
->>> handler.handle(np.array([1, 2, 3], dtype=int), np.array([1, 2, 3], dtype=int), config)
-True
->>> handler.handle(np.array([1, 2, 3], dtype=int), np.array([1, 2, 3], dtype=float), config)
-False
-
-```
-
 ### Value Comparison Handlers
 
 These handlers compare the actual values of objects. The Python containers, the scalars, the
@@ -182,11 +148,9 @@ False
 
 ### Type-Specific Handlers
 
-The package includes specialized handlers for the types of the optional libraries:
+The package includes specialized handlers for the data frames and the tables (the arrays, the
+tensors and the xarray objects are compared by testers that use the engine):
 
-- **`NumpyArrayEqualHandler`**: Compare NumPy arrays
-- **`TorchTensorEqualHandler`**: Compare PyTorch tensors
-- **`TorchTensorSameDeviceHandler`**: Check if tensors are on the same device
 - **`PandasDataFrameEqualHandler`**: Compare pandas DataFrames
 - **`PandasSeriesEqualHandler`**: Compare pandas Series
 - **`PandasIndexEqualHandler`**: Compare pandas Index and MultiIndex
@@ -194,14 +158,12 @@ The package includes specialized handlers for the types of the optional librarie
 - **`PolarsDataFrameEqualHandler`**: Compare polars DataFrames
 - **`PolarsSeriesEqualHandler`**: Compare polars Series
 - **`PolarsLazyFrameEqualHandler`**: Compare polars LazyFrames
-- **`JaxArrayEqualHandler`**: Compare JAX arrays
 - **`PyarrowEqualHandler`**: Compare PyArrow arrays and tables
 
 ### Handlers for Objects with Methods
 
 These handlers delegate the comparison to the methods of the objects:
 
-- **`SameDataHandler`**: Check that the `data` attributes of the two objects are equal
 - **`AllCloseNanHandler`**: Call the `allclose` method of the first object, with the tolerances and
   `equal_nan` of the configuration
 
@@ -377,7 +339,7 @@ Most equality testers use a similar structure:
 
 1. **Identity check**: `SameObjectHandler` (optimization)
 2. **Type check**: `SameTypeHandler` (ensure compatible types)
-3. **Structural checks**: `SameLengthHandler`, `SameShapeHandler`, etc.
+3. **Structural checks**: `SameLengthHandler`, etc.
 4. **Value comparison**: Type-specific handlers
 5. **Terminal handler**: `TrueHandler` (all checks passed)
 

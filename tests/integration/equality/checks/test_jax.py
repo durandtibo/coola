@@ -8,9 +8,9 @@ import pytest
 from coola.equality import objects_are_allclose
 from coola.testing.fixtures import jax_available
 from tests.integration.equality.checks.utils import EQUALITY_TESTER_FUNCTIONS, reported_messages
-from tests.unit.equality.handler.test_jax import JAX_ARRAY_EQUAL_TOLERANCE
 from tests.unit.equality.tester.test_jax import (
     JAX_ARRAY_EQUAL,
+    JAX_ARRAY_EQUAL_TOLERANCE,
     JAX_ARRAY_NOT_EQUAL,
 )
 
@@ -64,7 +64,7 @@ def test_objects_are_equal_false_does_not_log(
 @jax_available
 @pytest.mark.parametrize("example", JAX_ARRAY_NOT_EQUAL)
 def test_objects_are_equal_false_reports_the_difference(example: ExamplePair) -> None:
-    assert reported_messages(example.actual, example.expected)[-1].startswith(
+    assert reported_messages(example.actual, example.expected)[0].startswith(
         example.expected_message
     )
 

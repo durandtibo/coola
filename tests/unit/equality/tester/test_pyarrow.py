@@ -510,7 +510,7 @@ def test_pyarrow_equality_tester_objects_are_equal_false_explaining_reports(
     config.reports = []
     tester = PyarrowEqualityTester()
     tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @pyarrow_available

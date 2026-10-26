@@ -56,6 +56,6 @@ def test_objects_are_equal_false_does_not_log(
 
 @pytest.mark.parametrize("example", DEFAULT_NOT_EQUAL)
 def test_objects_are_equal_false_reports_the_difference(example: ExamplePair) -> None:
-    assert reported_messages(example.actual, example.expected)[-1].startswith(
+    assert reported_messages(example.actual, example.expected)[0].startswith(
         example.expected_message
     )

@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from coola.equality import compare
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import (
     TorchPackedSequenceEqualityTester,
@@ -15,7 +16,7 @@ from coola.testing.fixtures import (
     torch_mps_available,
 )
 from coola.utils.imports import MissingPackageError, is_torch_available
-from tests.unit.equality.utils import ExamplePair, messages
+from tests.unit.equality.utils import ExamplePair, messages, run_tester
 
 if is_torch_available():
     import torch
@@ -73,7 +74,7 @@ TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
                 lengths=torch.tensor([5, 3], dtype=torch.long),
                 batch_first=True,
             ),
-            expected_message="objects have different data:",
+            expected_message="values are different:",
         ),
         id="different data",
     ),
@@ -91,7 +92,7 @@ TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
                 sorted_indices=None,
                 unsorted_indices=None,
             ),
-            expected_message="objects have different batch_sizes:",
+            expected_message="values are different:",
         ),
         id="different batch_sizes",
     ),
@@ -109,7 +110,7 @@ TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
                 sorted_indices=None,
                 unsorted_indices=None,
             ),
-            expected_message="objects have different sorted_indices:",
+            expected_message="objects have different types:",
         ),
         id="different sorted_indices",
     ),
@@ -127,7 +128,7 @@ TORCH_PACKED_SEQUENCE_NOT_EQUAL = [
                 sorted_indices=None,
                 unsorted_indices=None,
             ),
-            expected_message="objects have different unsorted_indices:",
+            expected_message="objects have different types:",
         ),
         id="different unsorted_indices",
     ),
@@ -282,7 +283,7 @@ TORCH_TENSOR_NOT_EQUAL = [
         ExamplePair(
             actual=torch.ones(2, 3),
             expected=torch.zeros(2, 3),
-            expected_message="torch.Tensors are different:",
+            expected_message="values are different:",
         ),
         id="different values",
     ),
@@ -370,7 +371,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_true_same_obj(
         lengths=torch.tensor([5, 3], dtype=torch.long),
         batch_first=True,
     )
-    assert TorchPackedSequenceEqualityTester().objects_are_equal(obj, obj, config)
+    assert run_tester(TorchPackedSequenceEqualityTester(), obj, obj, config)
 
 
 @torch_available
@@ -380,7 +381,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = TorchPackedSequenceEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @torch_available
@@ -390,7 +391,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_true_does_not_l
     config: EqualityConfig,
 ) -> None:
     tester = TorchPackedSequenceEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -402,7 +403,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_true_explaining
 ) -> None:
     config.reports = []
     tester = TorchPackedSequenceEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @torch_available
@@ -413,7 +414,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_true_explaining
 ) -> None:
     config.reports = []
     tester = TorchPackedSequenceEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -424,9 +425,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = TorchPackedSequenceEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @torch_available
@@ -436,7 +435,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_false_does_not_
     config: EqualityConfig,
 ) -> None:
     tester = TorchPackedSequenceEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -448,9 +447,7 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_false_explainin
 ) -> None:
     config.reports = []
     tester = TorchPackedSequenceEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @torch_available
@@ -461,8 +458,8 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_false_explainin
 ) -> None:
     config.reports = []
     tester = TorchPackedSequenceEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    run_tester(tester, example.actual, example.expected, config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @torch_available
@@ -472,7 +469,8 @@ def test_torch_packed_sequence_equality_tester_objects_are_equal_nan_false(
 ) -> None:
     config.equal_nan = equal_nan
     assert (
-        TorchPackedSequenceEqualityTester().objects_are_equal(
+        run_tester(
+            TorchPackedSequenceEqualityTester(),
             torch.nn.utils.rnn.pack_padded_sequence(
                 input=torch.tensor(
                     [[0.0, 1.0, 2.0, float("nan"), 4.0], [float("nan"), 6.0, 7.0, 8.0, 9.0]],
@@ -540,7 +538,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_true_same_object(
     config: EqualityConfig,
 ) -> None:
     tensor = torch.ones(2, 3)
-    assert TorchTensorEqualityTester().objects_are_equal(tensor, tensor, config)
+    assert run_tester(TorchTensorEqualityTester(), tensor, tensor, config)
 
 
 @torch_available
@@ -550,7 +548,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_true(
     config: EqualityConfig,
 ) -> None:
     tester = TorchTensorEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @torch_available
@@ -560,7 +558,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_true_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = TorchTensorEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -572,7 +570,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_true_explaining(
 ) -> None:
     config.reports = []
     tester = TorchTensorEqualityTester()
-    assert tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    assert run_tester(tester, example.actual, example.expected, config)
 
 
 @torch_available
@@ -583,7 +581,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_true_explaining_does_not
 ) -> None:
     config.reports = []
     tester = TorchTensorEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -594,9 +592,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false(
     config: EqualityConfig,
 ) -> None:
     tester = TorchTensorEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @torch_available
@@ -606,7 +602,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_does_not_log(
     config: EqualityConfig,
 ) -> None:
     tester = TorchTensorEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
+    run_tester(tester, example.actual, example.expected, config)
     assert not messages(config)
 
 
@@ -618,9 +614,7 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_explaining(
 ) -> None:
     config.reports = []
     tester = TorchTensorEqualityTester()
-    assert not tester.objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert not run_tester(tester, example.actual, example.expected, config)
 
 
 @torch_available
@@ -631,8 +625,8 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_explaining_reports
 ) -> None:
     config.reports = []
     tester = TorchTensorEqualityTester()
-    tester.objects_are_equal(actual=example.actual, expected=example.expected, config=config)
-    assert messages(config)[-1].startswith(example.expected_message)
+    run_tester(tester, example.actual, example.expected, config)
+    assert messages(config)[0].startswith(example.expected_message)
 
 
 @torch_available
@@ -642,7 +636,8 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_m
     # The meta device exists without a GPU, so the check of the devices always runs.
     config.reports = []
     tester = TorchTensorEqualityTester()
-    assert not tester.objects_are_equal(
+    assert not run_tester(
+        tester,
         torch.ones(2, 3, device=torch.device("cpu")),
         torch.zeros(2, 3, device=torch.device("meta")),
         config,
@@ -656,7 +651,8 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_m
     # The meta device exists without a GPU, so the check of the devices always runs.
     config.reports = []
     tester = TorchTensorEqualityTester()
-    tester.objects_are_equal(
+    run_tester(
+        tester,
         torch.ones(2, 3, device=torch.device("cpu")),
         torch.zeros(2, 3, device=torch.device("meta")),
         config,
@@ -671,7 +667,8 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_c
 ) -> None:
     config.reports = []
     tester = TorchTensorEqualityTester()
-    assert not tester.objects_are_equal(
+    assert not run_tester(
+        tester,
         torch.ones(2, 3, device=torch.device("cpu")),
         torch.zeros(2, 3, device=torch.device("cuda:0")),
         config,
@@ -685,7 +682,8 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_c
 ) -> None:
     config.reports = []
     tester = TorchTensorEqualityTester()
-    tester.objects_are_equal(
+    run_tester(
+        tester,
         torch.ones(2, 3, device=torch.device("cpu")),
         torch.zeros(2, 3, device=torch.device("cuda:0")),
         config,
@@ -700,7 +698,8 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_m
 ) -> None:
     config.reports = []
     tester = TorchTensorEqualityTester()
-    assert not tester.objects_are_equal(
+    assert not run_tester(
+        tester,
         torch.ones(2, 3, device=torch.device("cpu")),
         torch.zeros(2, 3, device=torch.device("mps:0")),
         config,
@@ -714,7 +713,8 @@ def test_torch_tensor_equality_tester_objects_are_equal_false_different_device_m
 ) -> None:
     config.reports = []
     tester = TorchTensorEqualityTester()
-    tester.objects_are_equal(
+    run_tester(
+        tester,
         torch.ones(2, 3, device=torch.device("cpu")),
         torch.zeros(2, 3, device=torch.device("mps:0")),
         config,
@@ -729,10 +729,11 @@ def test_torch_tensor_equality_tester_objects_are_equal_nan_true(
 ) -> None:
     config.equal_nan = equal_nan
     assert (
-        TorchTensorEqualityTester().objects_are_equal(
-            actual=torch.tensor([0.0, float("nan"), float("nan"), 1.2]),
-            expected=torch.tensor([0.0, float("nan"), float("nan"), 1.2]),
-            config=config,
+        run_tester(
+            TorchTensorEqualityTester(),
+            torch.tensor([0.0, float("nan"), float("nan"), 1.2]),
+            torch.tensor([0.0, float("nan"), float("nan"), 1.2]),
+            config,
         )
         == equal_nan
     )
@@ -745,9 +746,7 @@ def test_torch_tensor_equality_tester_true_tolerance(
 ) -> None:
     config.atol = example.atol
     config.rtol = example.rtol
-    assert TorchTensorEqualityTester().objects_are_equal(
-        actual=example.actual, expected=example.expected, config=config
-    )
+    assert run_tester(TorchTensorEqualityTester(), example.actual, example.expected, config)
 
 
 def test_torch_tensor_equality_tester_no_torch() -> None:
@@ -756,3 +755,116 @@ def test_torch_tensor_equality_tester_no_torch() -> None:
         pytest.raises(MissingPackageError, match=r"'torch' package is required but not installed."),
     ):
         TorchTensorEqualityTester()
+
+
+#############################################
+#     Tests for the location of a difference #
+#############################################
+
+
+@torch_available
+def test_torch_tensor_compare_path_is_the_index() -> None:
+    expected = torch.zeros(2, 3)
+    expected[1, 2] = 5.0
+    assert compare(torch.zeros(2, 3), expected).path == (1, 2)
+
+
+@torch_available
+def test_torch_tensor_compare_path_is_a_tuple_of_ints() -> None:
+    expected = torch.zeros(2)
+    expected[1] = 5.0
+    assert type(compare(torch.zeros(2), expected).path[0]) is int
+
+
+@torch_available
+def test_torch_tensor_compare_path_of_a_0d_tensor() -> None:
+    assert compare(torch.tensor(1.0), torch.tensor(2.0)).path == ()
+
+
+@torch_available
+def test_torch_tensor_compare_path_of_a_boolean_tensor() -> None:
+    assert compare(torch.tensor([True, False]), torch.tensor([True, True])).path == (1,)
+
+
+@torch_available
+def test_torch_tensor_compare_path_with_a_tolerance() -> None:
+    assert compare(torch.tensor([1.0, 2.0]), torch.tensor([1.0, 2.5]), atol=0.1).path == (1,)
+
+
+@torch_available
+def test_torch_tensor_compare_path_of_an_integer_tensor_with_a_tolerance() -> None:
+    assert compare(torch.tensor([1, 2]), torch.tensor([1, 5]), atol=1.0).path == (1,)
+
+
+@torch_available
+def test_torch_tensor_compare_path_of_a_uint64_tensor_with_a_tolerance() -> None:
+    assert compare(
+        torch.tensor([1, 2], dtype=torch.uint64), torch.tensor([1, 5], dtype=torch.uint64), atol=1.0
+    ).path == (1,)
+
+
+@torch_available
+def test_torch_tensor_compare_path_of_a_sparse_tensor() -> None:
+    assert compare(torch.zeros(2).to_sparse(), torch.tensor([0.0, 1.0]).to_sparse()).path == (1,)
+
+
+@torch_available
+def test_torch_tensor_compare_different_layouts() -> None:
+    result = compare(torch.zeros(2), torch.zeros(2).to_sparse())
+    assert (
+        result.reason == "torch.Tensors have different layouts: torch.strided vs torch.sparse_coo"
+    )
+
+
+@torch_available
+def test_torch_tensor_compare_nan_with_equal_nan() -> None:
+    tensor = torch.tensor([1.0, float("nan")])
+    assert compare(tensor, tensor.clone(), equal_nan=True).equal
+
+
+@torch_available
+def test_torch_tensor_compare_nan_without_equal_nan() -> None:
+    tensor = torch.tensor([1.0, float("nan")])
+    assert compare(tensor, tensor.clone()).path == (1,)
+
+
+@torch_available
+def test_torch_tensor_compare_meta_tensors_equal() -> None:
+    assert compare(torch.zeros(2, device="meta"), torch.zeros(2, device="meta")).equal
+
+
+@torch_available
+def test_torch_tensor_compare_meta_tensors_different_shape() -> None:
+    assert not compare(torch.zeros(2, device="meta"), torch.zeros(3, device="meta")).equal
+
+
+@torch_available
+def test_torch_tensor_compare_reason_is_bounded() -> None:
+    expected = torch.zeros(1_000_000)
+    expected[0] = 1.0
+    assert len(compare(torch.zeros(1_000_000), expected).reason) < 100
+
+
+@torch_available
+def test_torch_tensor_compare_does_not_look_up_the_index_when_not_explaining(
+    config: EqualityConfig,
+) -> None:
+    assert not run_tester(TorchTensorEqualityTester(), torch.zeros(3), torch.ones(3), config)
+
+
+@torch_available
+def test_torch_tensor_compare_different_devices() -> None:
+    assert not compare(torch.zeros(2), torch.zeros(2, device="meta")).equal
+
+
+@torch_available
+def test_torch_packed_sequence_compare_path_of_the_data() -> None:
+    def make(value: float) -> object:
+        return torch.nn.utils.rnn.pack_padded_sequence(
+            torch.tensor([[1.0, value], [3.0, 4.0]]),
+            lengths=torch.tensor([2, 1]),
+            batch_first=True,
+            enforce_sorted=False,
+        )
+
+    assert compare(make(2.0), make(5.0)).path == ("data", 2)

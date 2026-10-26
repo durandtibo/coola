@@ -11,21 +11,11 @@ __all__ = ["TorchPackedSequenceEqualityTester", "TorchTensorEqualityTester"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.equality.handler import (
-    SameAttributeHandler,
-    SameDataHandler,
-    SameDTypeHandler,
-    SameObjectHandler,
-    SameShapeHandler,
-    SameTypeHandler,
-    TrueHandler,
-    create_chain,
-)
-from coola.equality.handler.torch import (
-    TorchTensorEqualHandler,
-    TorchTensorSameDeviceHandler,
-)
-from coola.equality.tester.chain import BaseChainEqualityTester
+from coola.equality.handler.format import format_value_difference
+from coola.equality.handler.torch import tensor_close, tensor_equal
+from coola.equality.handler.utils import AttributeName
+from coola.equality.tester._array import check_dtype_and_shape
+from coola.equality.tester.base import BaseEngineEqualityTester
 from coola.utils.imports import check_torch, is_torch_available
 
 if TYPE_CHECKING or is_torch_available():
@@ -34,145 +24,121 @@ else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
 
 if TYPE_CHECKING:
-    from coola.equality.handler import BaseEqualityHandler
+    from collections.abc import Iterator
+
+    from coola.equality.engine import Engine
     from coola.equality.tester.base import BaseEqualityTester
 
 
-class TorchPackedSequenceEqualityTester(BaseChainEqualityTester[torch.nn.utils.rnn.PackedSequence]):
+class TorchPackedSequenceEqualityTester(
+    BaseEngineEqualityTester[torch.nn.utils.rnn.PackedSequence]
+):
     r"""Implement an equality tester for
     ``torch.nn.utils.rnn.PackedSequence``.
 
-    This tester compares PyTorch packed sequences by checking data tensor and
-    metadata attributes. The handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are PackedSequence
-    3. SameDataHandler: Compare the data tensors
-    4. SameAttributeHandler("batch_sizes"): Compare batch_sizes tensors
-    5. SameAttributeHandler("sorted_indices"): Compare sorted_indices (if present)
-    6. SameAttributeHandler("unsorted_indices"): Compare unsorted_indices (if present)
-    7. TrueHandler: Return True if all checks pass
+    This tester compares the data tensor and the metadata of two packed
+    sequences: ``batch_sizes``, ``sorted_indices`` and
+    ``unsorted_indices``. The location of a difference is the name of
+    the attribute.
 
     Example:
-        Basic packed sequence comparison:
-
         ```pycon
         >>> import torch
+        >>> from torch.nn.utils.rnn import pack_padded_sequence
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import TorchPackedSequenceEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = TorchPackedSequenceEqualityTester()
-        >>> seq1 = torch.nn.utils.rnn.pack_padded_sequence(
-        ...     torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
-        ...     lengths=torch.tensor([2, 1]),
-        ...     batch_first=True,
-        ...     enforce_sorted=False,
-        ... )
-        >>> seq2 = torch.nn.utils.rnn.pack_padded_sequence(
-        ...     torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
-        ...     lengths=torch.tensor([2, 1]),
-        ...     batch_first=True,
-        ...     enforce_sorted=False,
-        ... )
-        >>> tester.objects_are_equal(seq1, seq2, config)
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import get_default_registry
+        >>> engine = Engine(get_default_registry(), EqualityConfig())
+        >>> def make(value):
+        ...     return pack_padded_sequence(
+        ...         torch.tensor([[1.0, value], [3.0, 4.0]]),
+        ...         lengths=torch.tensor([2, 1]),
+        ...         batch_first=True,
+        ...         enforce_sorted=False,
+        ...     )
+        ...
+        >>> engine.run(make(2.0), make(2.0))
         True
+        >>> engine.run(make(2.0), make(5.0))
+        False
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
+    def __init__(self) -> None:
         check_torch()
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(
-            SameObjectHandler(),
-            SameTypeHandler(),
-            SameDataHandler(),
-            SameAttributeHandler(name="batch_sizes"),
-            SameAttributeHandler(name="sorted_indices"),
-            SameAttributeHandler(name="unsorted_indices"),
-            TrueHandler(),
+    def objects_are_equal(
+        self,
+        actual: torch.nn.utils.rnn.PackedSequence,
+        expected: torch.nn.utils.rnn.PackedSequence,
+        _ctx: Engine,
+    ) -> Iterator[tuple[object, object, object]]:
+        return iter(
+            (getattr(actual, name), getattr(expected, name), AttributeName(name))
+            for name in ("data", "batch_sizes", "sorted_indices", "unsorted_indices")
         )
 
 
-class TorchTensorEqualityTester(BaseChainEqualityTester[torch.Tensor]):
+class TorchTensorEqualityTester(BaseEngineEqualityTester[torch.Tensor]):
     r"""Implement an equality tester for ``torch.Tensor``.
 
-    This tester compares PyTorch tensors element-wise with support for device,
-    dtype, shape checking, NaN equality, and tolerance-based comparisons. The
-    handler chain:
-    1. SameObjectHandler: Check for object identity
-    2. SameTypeHandler: Verify both are torch tensors
-    3. SameDTypeHandler: Check tensors have the same dtype
-    4. SameShapeHandler: Verify tensors have the same shape
-    5. TorchTensorSameDeviceHandler: Ensure tensors are on the same device
-    6. TorchTensorEqualHandler: Element-wise comparison with tolerance support
-
-    The tester respects config.equal_nan for NaN comparisons and config.atol/rtol
-    for floating-point tolerance.
+    Two tensors are equal if they have the same data type, shape,
+    device, layout and equal elements. The numbers are compared with
+    the tolerance and ``equal_nan`` of the comparison, and a boolean
+    tensor is exact. The tensors on the ``meta`` device have no data:
+    only the metadata is compared. The location of a difference is the
+    index of the first element that differs.
 
     Example:
-        Basic tensor comparison:
-
         ```pycon
         >>> import torch
+        >>> from coola.equality import compare
         >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import TorchTensorEqualityTester
-        >>> config = EqualityConfig()
+        >>> from coola.equality.engine import Engine
+        >>> from coola.equality.tester import TorchTensorEqualityTester, get_default_registry
+        >>> engine = Engine(get_default_registry(), EqualityConfig())
         >>> tester = TorchTensorEqualityTester()
-        >>> tester.objects_are_equal(torch.ones(2, 3), torch.ones(2, 3), config)
+        >>> tester.objects_are_equal(torch.ones(2, 3), torch.ones(2, 3), engine)
         True
-        >>> tester.objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3), config)
+        >>> tester.objects_are_equal(torch.ones(2, 3), torch.zeros(2, 3), engine)
         False
-
-        ```
-
-        NaN comparison with equal_nan:
-
-        ```pycon
-        >>> import torch
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import TorchTensorEqualityTester
-        >>> config = EqualityConfig(equal_nan=True)
-        >>> tester = TorchTensorEqualityTester()
-        >>> tester.objects_are_equal(
-        ...     torch.tensor([1.0, float("nan")]),
-        ...     torch.tensor([1.0, float("nan")]),
-        ...     config,
-        ... )
-        True
-
-        ```
-
-        Tensors on different devices are not equal:
-
-        ```pycon
-        >>> import torch
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.tester import TorchTensorEqualityTester
-        >>> config = EqualityConfig()
-        >>> tester = TorchTensorEqualityTester()
-        >>> # This example assumes CUDA is available
-        >>> tester.objects_are_equal(
-        ...     torch.ones(2, 3),
-        ...     torch.ones(2, 3).cuda() if torch.cuda.is_available() else torch.ones(2, 3),
-        ...     config,
-        ... )  # doctest: +SKIP
-        False
+        >>> compare(torch.ones(2, 3), torch.zeros(2, 3)).path
+        (0, 0)
 
         ```
     """
 
-    def _check_dependencies(self) -> None:
+    def __init__(self) -> None:
         check_torch()
 
-    def _create_handler(self) -> BaseEqualityHandler:
-        return create_chain(
-            SameObjectHandler(),
-            SameTypeHandler(),
-            SameDTypeHandler(),
-            SameShapeHandler(),
-            TorchTensorSameDeviceHandler(),
-            TorchTensorEqualHandler(),
+    def objects_are_equal(self, actual: torch.Tensor, expected: torch.Tensor, ctx: Engine) -> bool:
+        failure = check_dtype_and_shape(actual, expected, ctx)
+        if failure is not None:
+            return failure
+        if actual.device != expected.device:
+            return ctx.fail(
+                lambda: (
+                    f"torch.Tensors have different devices: {actual.device} vs {expected.device}"
+                )
+            )
+        if actual.layout != expected.layout:
+            return ctx.fail(
+                lambda: (
+                    f"torch.Tensors have different layouts: {actual.layout} vs {expected.layout}"
+                )
+            )
+        if tensor_equal(actual, expected, ctx.config):
+            return True
+        if not ctx.explaining:
+            return False
+        # The index is looked up only when the difference is explained.
+        close = tensor_close(actual, expected, ctx.config)
+        index = tuple((~close).nonzero()[0].tolist())
+        dense1 = actual if actual.layout == torch.strided else actual.to_dense()
+        dense2 = expected if expected.layout == torch.strided else expected.to_dense()
+        return ctx.fail(
+            lambda: format_value_difference(dense1[index], dense2[index], name="values"), *index
         )
 
 

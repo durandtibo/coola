@@ -2,15 +2,11 @@ r"""Implement handlers for ``torch.Tensor``s."""
 
 from __future__ import annotations
 
-__all__ = ["TorchTensorEqualHandler", "TorchTensorSameDeviceHandler"]
+__all__ = ["tensor_close", "tensor_equal"]
 
 from typing import TYPE_CHECKING
 
-from coola.equality.handler.base import BaseEqualityHandler
 from coola.equality.handler.elementwise import elementwise_close
-from coola.equality.handler.format import format_value_difference
-from coola.equality.handler.mixin import HandlerEqualityMixin
-from coola.equality.handler.utils import report_difference
 from coola.utils.imports import is_torch_available
 
 if TYPE_CHECKING or is_torch_available():
@@ -20,81 +16,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
-
-
-class TorchTensorEqualHandler(HandlerEqualityMixin, BaseEqualityHandler):
-    r"""Check if the two tensors are equal.
-
-    This handler returns ``True`` if the two tensors are equal,
-    otherwise ``False``. This handler is designed to be used at
-    the end of the chain of responsibility. This handler does
-    not call the next handler.
-
-    Example:
-        ```pycon
-        >>> import torch
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler import TorchTensorEqualHandler
-        >>> config = EqualityConfig()
-        >>> handler = TorchTensorEqualHandler()
-        >>> handler.handle(torch.ones(2, 3), torch.ones(2, 3), config)
-        True
-        >>> handler.handle(torch.ones(2, 3), torch.zeros(2, 3), config)
-        False
-
-        ```
-    """
-
-    def handle(
-        self,
-        actual: torch.Tensor,
-        expected: torch.Tensor,
-        config: EqualityConfig,
-    ) -> bool:
-        object_equal = tensor_equal(actual, expected, config)
-        if config.explaining and not object_equal:
-            report_difference(
-                config,
-                format_value_difference(actual=actual, expected=expected, name="torch.Tensors"),
-            )
-        return object_equal
-
-
-class TorchTensorSameDeviceHandler(HandlerEqualityMixin, BaseEqualityHandler):
-    r"""Check if the two tensors have the same device.
-
-    This handler returns ``False`` if the two objects have different
-    devices, otherwise it passes the inputs to the next handler.
-
-    Example:
-        ```pycon
-        >>> import torch
-        >>> from coola.equality.config import EqualityConfig
-        >>> from coola.equality.handler import TrueHandler, TorchTensorSameDeviceHandler
-        >>> config = EqualityConfig()
-        >>> handler = TorchTensorSameDeviceHandler(next_handler=TrueHandler())
-        >>> handler.handle(torch.ones(2, 3), torch.ones(3, 2), config)
-        True
-
-        ```
-    """
-
-    def handle(
-        self,
-        actual: torch.Tensor,
-        expected: torch.Tensor,
-        config: EqualityConfig,
-    ) -> bool:
-        if actual.device != expected.device:
-            if config.explaining:
-                report_difference(
-                    config,
-                    "torch.Tensors have different devices: %s vs %s",
-                    actual.device,
-                    expected.device,
-                )
-            return False
-        return self._handle_next(actual, expected, config=config)
 
 
 def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig) -> bool:
@@ -136,6 +57,53 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
     if config.equal_nan or config.atol > 0 or config.rtol > 0:
         return _tensors_close(tensor1, tensor2, config)
     return tensor1.equal(tensor2)
+
+
+def tensor_close(
+    tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig
+) -> torch.Tensor:
+    r"""Indicate for each element if two tensors are equal within a
+    tolerance.
+
+    It is the rule of ``tensor_equal`` for each pair of elements, so it
+    gives the location of the first difference. The two tensors must
+    have the same shape, dtype and layout, and must not be on the
+    ``meta`` device.
+
+    Args:
+        tensor1: The first tensor to compare.
+        tensor2: The second tensor to compare.
+        config: The equality configuration.
+
+    Returns:
+        A boolean tensor with the shape of the inputs.
+
+    Example:
+        ```pycon
+        >>> import torch
+        >>> from coola.equality.config import EqualityConfig
+        >>> from coola.equality.handler.torch import tensor_close
+        >>> tensor_close(torch.tensor([1.0, 2.0]), torch.tensor([1.0, 3.0]), EqualityConfig())
+        tensor([ True, False])
+
+        ```
+    """
+    if tensor1.layout != torch.strided:
+        tensor1, tensor2 = tensor1.to_dense(), tensor2.to_dense()
+    if torch.bool not in (tensor1.dtype, tensor2.dtype) and (
+        config.equal_nan or config.atol > 0 or config.rtol > 0
+    ):
+        if tensor1.dtype == torch.uint64:
+            tensor1, tensor2 = tensor1.to(torch.float64), tensor2.to(torch.float64)
+        return elementwise_close(
+            tensor1,
+            tensor2,
+            atol=config.atol,
+            rtol=config.rtol,
+            equal_nan=config.equal_nan,
+            xp=torch,
+        )
+    return tensor1 == tensor2
 
 
 def _tensors_close(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig) -> bool:
