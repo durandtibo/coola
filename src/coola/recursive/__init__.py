@@ -12,13 +12,13 @@ Properties:
     transformer.
 - Deterministic order: the leaves are visited depth first, left to right.
 - Pure: the input is never modified.
+- Any depth: no ``RecursionError``, the traversal uses an explicit stack.
 - Cycle-safe: a container that contains itself raises a ``ValueError``.
 - Errors propagate: an exception raised by ``func`` propagates unchanged.
 
 Not guaranteed: laziness (the output is built whole), the cost of a
 container shared by several paths (it is transformed once per path),
-the order of the calls inside a set, and the depth (the recursion limit
-of Python applies).
+and the order of the calls inside a set.
 
 Example:
     ```pycon

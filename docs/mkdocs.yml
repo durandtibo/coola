@@ -57,6 +57,7 @@ nav:
       - dev/add_backend.md
   - Migration:
       - migration/v0.11_to_v1.0.md
+      - migration/v1.1_to_v2.0.md
   - Reference:
       - refs/display.md
       - refs/equality.md
