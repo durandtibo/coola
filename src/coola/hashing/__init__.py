@@ -68,11 +68,7 @@ __all__ = [
 from typing import TYPE_CHECKING
 
 from coola.hashing.base import BaseHasher, Hasher, Node, digest, tagged
-from coola.hashing.bytes import BytesHasher
-from coola.hashing.dataclass import DataclassHasher
 from coola.hashing.datetime import DatetimeHasher
-from coola.hashing.enum import EnumHasher
-from coola.hashing.hashable import ContentHasher, SupportsCoolaHash
 from coola.hashing.interface import (
     get_default_hasher_registry,
     get_default_registry,
@@ -81,13 +77,12 @@ from coola.hashing.interface import (
     register_hashers,
 )
 from coola.hashing.mapping import MappingHasher
+from coola.hashing.object import ContentHasher, DataclassHasher, SupportsCoolaHash
 from coola.hashing.path import PathHasher, ResolvedPathHasher
 from coola.hashing.registry import HasherRegistry
-from coola.hashing.repr import ReprHasher
+from coola.hashing.scalar import BytesHasher, EnumHasher, ReprHasher, StrHasher, StringHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.set import SetHasher
-from coola.hashing.str import StrHasher
-from coola.hashing.string import StringHasher
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:

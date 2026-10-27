@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher, Encoding, Node, digest, tagged
-from coola.hashing.repr import ReprHasher
+from coola.hashing.scalar import ReprHasher
 from coola.utils.imports import is_numpy_available
 
 if TYPE_CHECKING or is_numpy_available():

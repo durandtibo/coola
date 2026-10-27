@@ -18,21 +18,16 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from coola.hashing.bytes import BytesHasher
 from coola.hashing.canonical import DecimalHasher, FractionHasher, RangeHasher
-from coola.hashing.dataclass import DataclassHasher
 from coola.hashing.datetime import DatetimeHasher
 from coola.hashing.engine import hash_hex
-from coola.hashing.enum import EnumHasher
-from coola.hashing.hashable import ContentHasher
 from coola.hashing.mapping import MappingHasher
+from coola.hashing.object import ContentHasher, DataclassHasher
 from coola.hashing.path import PathHasher
 from coola.hashing.registry import HasherRegistry
-from coola.hashing.repr import ReprHasher
+from coola.hashing.scalar import BytesHasher, EnumHasher, ReprHasher, StrHasher, StringHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.set import SetHasher
-from coola.hashing.str import StrHasher
-from coola.hashing.string import StringHasher
 from coola.utils.imports import (
     package_available,
 )
