@@ -14,12 +14,15 @@ from typing import TYPE_CHECKING, Any
 from coola.recursive.base import Transformer
 from coola.recursive.engine import transform
 from coola.registry import BaseTypeDispatchRegistry
+from coola.registry.dispatch import FallbackMixin
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
+class TransformerRegistry(
+    FallbackMixin[Transformer[Any]], BaseTypeDispatchRegistry[Transformer[Any]]
+):
     r"""Registry that manages and dispatches transformers based on data
     type.
 
@@ -136,7 +139,7 @@ class TransformerRegistry(BaseTypeDispatchRegistry[Transformer[Any]]):
 
             ```
         """
-        return self._find_with_dataclass_marker(data_type)
+        return self.find(data_type)
 
     def transform(self, data: object, func: Callable[[Any], Any]) -> Any:
         """Transform data by applying a function recursively through the

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, is_dataclass
 from typing import Any
 
 import pytest
@@ -16,7 +16,7 @@ from coola.recursive import (
     TransformerRegistry,
     get_default_registry,
 )
-from coola.registry import AlreadyRegisteredError, DataclassMarker
+from coola.registry import AlreadyRegisteredError
 from tests.helpers import nest
 
 
@@ -304,17 +304,18 @@ def test_transformer_registry_transform_deep_structure(registry: TransformerRegi
     assert registry.transform(nest(1, 5000), str) == nest("1", 5000)
 
 
-def test_transformer_registry_find_transformer_dataclass_uses_the_marker() -> None:
+def test_transformer_registry_find_transformer_dataclass_uses_the_fallback() -> None:
     @dataclass
     class Item:
         value: int
 
     transformer = DataclassTransformer()
-    registry = TransformerRegistry({object: DefaultTransformer(), DataclassMarker: transformer})
+    registry = TransformerRegistry({object: DefaultTransformer()})
+    registry.register_fallback(is_dataclass, transformer)
     assert registry.find_transformer(Item) is transformer
 
 
-def test_transformer_registry_find_transformer_dataclass_without_marker_uses_object() -> None:
+def test_transformer_registry_find_transformer_dataclass_without_fallback_uses_object() -> None:
     @dataclass
     class Item:
         value: int
@@ -329,13 +330,30 @@ def test_transformer_registry_find_transformer_registered_dataclass_has_priority
         value: int
 
     transformer = SequenceTransformer()
-    registry = TransformerRegistry(
-        {object: DefaultTransformer(), DataclassMarker: DataclassTransformer(), Item: transformer}
-    )
+    registry = TransformerRegistry({object: DefaultTransformer(), Item: transformer})
+    registry.register_fallback(is_dataclass, DataclassTransformer())
     assert registry.find_transformer(Item) is transformer
 
 
 def test_transformer_registry_find_transformer_class_that_is_not_a_dataclass_uses_object() -> None:
     transformer = DefaultTransformer()
-    registry = TransformerRegistry({object: transformer, DataclassMarker: DataclassTransformer()})
+    registry = TransformerRegistry({object: transformer})
+    registry.register_fallback(is_dataclass, DataclassTransformer())
     assert registry.find_transformer(int) is transformer
+
+
+def test_transformer_registry_find_transformer_dataclass_with_registered_base() -> None:
+    """Regression test: a transformer shared by ``object`` and a base class
+    is used for a dataclass that inherits from the base class."""
+
+    class Base:
+        pass
+
+    @dataclass
+    class Derived(Base):
+        x: int = 1
+
+    shared = DefaultTransformer()
+    registry = TransformerRegistry({object: shared, Base: shared})
+    registry.register_fallback(is_dataclass, DataclassTransformer())
+    assert registry.find_transformer(Derived) is shared

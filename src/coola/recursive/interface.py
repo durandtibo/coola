@@ -10,6 +10,7 @@ __all__ = [
     "register_transformers",
 ]
 
+import dataclasses
 from collections import UserString, deque
 from collections.abc import Mapping, Sequence
 from types import MappingProxyType
@@ -23,7 +24,6 @@ from coola.recursive.mapping import MappingTransformer
 from coola.recursive.registry import TransformerRegistry
 from coola.recursive.sequence import SequenceTransformer
 from coola.recursive.set import SetTransformer
-from coola.registry import DataclassMarker
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -196,14 +196,14 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
             # Sets - recursive transformation without order
             set: set_transformer,
             frozenset: set_transformer,
-            # Dataclasses - the fields are transformed
-            DataclassMarker: DataclassTransformer(),
             # Mappings - recursive transformation of the values
             dict: mapping_transformer,
             Mapping: mapping_transformer,
             MappingProxyType: mapping_transformer,
         }
     )
+    # Dataclasses without their own transformer - the fields are transformed
+    registry.register_fallback(dataclasses.is_dataclass, DataclassTransformer())
 
 
 _default_registry: LazySingleton[TransformerRegistry] = make_default_registry_singleton(
