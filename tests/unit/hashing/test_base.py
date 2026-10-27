@@ -82,7 +82,7 @@ def test_digest_is_deterministic() -> None:
 
 
 def test_digest_different_inputs() -> None:
-    assert digest(b"abc") != digest(b"abd")
+    assert digest(b"abc") != digest(b"abd")  # codespell:ignore abd
 
 
 def test_digest_empty() -> None:

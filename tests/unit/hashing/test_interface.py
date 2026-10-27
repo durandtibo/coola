@@ -668,7 +668,7 @@ def test_hash_object_equal_user_strings_have_the_same_hash() -> None:
 
 
 def test_hash_object_different_user_strings_have_different_hashes() -> None:
-    assert hash_object(UserString("abc")) != hash_object(UserString("abd"))
+    assert hash_object(UserString("abc")) != hash_object(UserString("abd"))  # codespell:ignore abd
 
 
 def test_hash_object_user_string_differs_from_str() -> None:
