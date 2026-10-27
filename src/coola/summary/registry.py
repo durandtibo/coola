@@ -7,17 +7,18 @@ nested data structures while preserving their original structure.
 
 from __future__ import annotations
 
-__all__ = ["DataclassMarker", "SummarizerRegistry"]
+__all__ = ["SummarizerRegistry"]
 
 from typing import Any
 
-from coola.registry import BaseTypeDispatchRegistry, DataclassMarker
+from coola.registry import BaseTypeDispatchRegistry
+from coola.registry.dispatch import FallbackMixin
 from coola.summary.base import Summarizer
 from coola.summary.config import SummaryConfig
 from coola.summary.engine import render
 
 
-class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
+class SummarizerRegistry(FallbackMixin[Summarizer[Any]], BaseTypeDispatchRegistry[Summarizer[Any]]):
     r"""Registry that manages and dispatches summarizers based on data
     type.
 
@@ -135,7 +136,7 @@ class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
 
             ```
         """
-        return self._find_with_dataclass_marker(data_type)
+        return self.find(data_type)
 
     def summarize(self, data: object, config: SummaryConfig | None = None) -> str:
         r"""Generate a formatted string summary of the provided data.
