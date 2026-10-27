@@ -6,29 +6,28 @@ __all__ = ["auto_reducer"]
 
 from typing import TYPE_CHECKING
 
-from coola.reducer import BaseReducer, NativeReducer
-from coola.utils.imports import import_object, is_numpy_available, is_torch_available
+from coola.reducer.native import NativeReducer
+from coola.utils.imports import import_object, is_numpy_available
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-    from coola.reducer import BaseReducer
+    from coola.reducer.base import BaseReducer
 
 
-def auto_reducer() -> BaseReducer[Sequence[float]]:
+def auto_reducer() -> BaseReducer:
     r"""Find the "best" reducer to used based on the installed packages.
 
-    The "best" reducer is found by using the following rules:
-        - If ``torch`` is available, use ``TorchReducer``
+    The "best" reducer is the fastest one that is installed for plain
+    Python sequences. It is found by using the following rules:
         - If ``numpy`` is available, use ``NumpyReducer``
         - Otherwise, use ``NativeReducer``
 
-    The rules do not look at the values, so ``TorchReducer`` is also
-    chosen for a plain list. It converts the values to a tensor: it is
-    slower than ``NativeReducer`` for a short list, and it fails for an
-    integer that does not fit in 64 bits. ``NumpyReducer`` has the same
-    limit (and converts it to a float). Use ``NativeReducer`` for
-    arbitrary precision integers.
+    ``TorchReducer`` is never chosen implicitly: for a list, it is
+    slower than ``NumpyReducer`` (the values are converted to a tensor
+    first) and importing ``torch`` is slow. Create a ``TorchReducer``
+    explicitly to reduce tensors that live on a device. The rules do not
+    look at the values. ``NumpyReducer`` fails for an integer that does
+    not fit in 64 bits: use ``NativeReducer`` for arbitrary precision
+    integers.
 
     Returns:
         The "best" reducer.
@@ -40,8 +39,6 @@ def auto_reducer() -> BaseReducer[Sequence[float]]:
 
         ```
     """
-    if is_torch_available():
-        return import_object("coola.reducer.torch:TorchReducer")()
     if is_numpy_available():
         return import_object("coola.reducer.numpy:NumpyReducer")()
     return NativeReducer()

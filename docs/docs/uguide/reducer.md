@@ -206,9 +206,11 @@ packages:
 
 The selection follows this priority order:
 
-1. **TorchReducer** if PyTorch is available
-2. **NumpyReducer** if NumPy is available
-3. **NativeReducer** as fallback (always available)
+1. **NumpyReducer** if NumPy is available
+2. **NativeReducer** as fallback (always available)
+
+`TorchReducer` is never chosen implicitly: on a plain list it is the slowest backend and importing
+PyTorch is slow. Create a `TorchReducer` explicitly to reduce tensors that live on a device.
 
 This is useful when writing library code that should work with whatever the user has installed:
 
