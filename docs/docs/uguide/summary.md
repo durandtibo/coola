@@ -143,8 +143,9 @@ Dictionaries show their type, length, and key-value pairs, in the order of the d
 ### Dataclasses and Pydantic Models
 
 Dataclasses and pydantic models list their fields. The values are summarized like the items of a
-dictionary, so `max_depth` and the summarizers of the field types apply. The fields of a pydantic
-model that are annotated as a secret (`SecretStr`, `SecretBytes`) are not shown:
+dictionary, so `max_depth` and the summarizers of the field types apply. The fields that are
+meant to be hidden are not shown: the fields of a dataclass declared with `field(repr=False)`, and
+the fields of a pydantic model that are annotated as a secret (`SecretStr`, `SecretBytes`):
 
 ```pycon
 >>> from dataclasses import dataclass

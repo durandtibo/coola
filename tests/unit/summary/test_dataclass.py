@@ -26,8 +26,25 @@ class Slotted:
 
 
 @dataclass
+class Hidden:
+    x: int
+    cache: int = field(default=0, compare=False)
+
+
+@dataclass
 class Empty:
     pass
+
+
+@dataclass
+class User:
+    name: str
+    token: str = field(default="secret", repr=False)
+
+
+@dataclass
+class AllHidden:
+    token: str = field(default="secret", repr=False)
 
 
 @dataclass
@@ -114,3 +131,22 @@ def test_dataclass_summarizer_summarize_does_not_modify_the_data() -> None:
     data = Point(1.0, 2.0)
     list(DataclassSummarizer().summarize(data, CONFIG, compact=False).children)
     assert data == Point(1.0, 2.0)
+
+
+def test_dataclass_summarizer_summarize_hides_the_field_without_repr() -> None:
+    node = DataclassSummarizer().summarize(User("a"), CONFIG, compact=False)
+    assert (node.header, list(node.children), node.total) == (
+        f"{User} (fields=1)",
+        [("name", "a")],
+        1,
+    )
+
+
+def test_dataclass_summarizer_summarize_hides_every_field_without_repr() -> None:
+    node = DataclassSummarizer().summarize(AllHidden(), CONFIG, compact=False)
+    assert (list(node.children), node.total) == ([], 0)
+
+
+def test_dataclass_summarizer_summarize_field_without_compare_is_shown() -> None:
+    node = DataclassSummarizer().summarize(Hidden(1), CONFIG, compact=False)
+    assert list(node.children) == [("x", 1), ("cache", 0)]
