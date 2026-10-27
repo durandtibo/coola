@@ -71,7 +71,7 @@ def test_child_finder_registry_find_child_finder_dataclass(registry: ChildFinder
     assert type(registry.find_child_finder(Point)) is DataclassChildFinder
 
 
-def test_child_finder_registry_find_child_finder_registered_type_has_priority_over_marker(
+def test_child_finder_registry_find_child_finder_registered_type_has_priority_over_the_fallback(
     registry: ChildFinderRegistry,
 ) -> None:
     registry.register(Point, DefaultChildFinder())

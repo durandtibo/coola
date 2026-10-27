@@ -490,40 +490,6 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             raise TypeNotRegisteredError(self._not_registered_msg(dtype))
         return value
 
-    def resolve_or(self, dtype: type, default: T | None = None) -> T | None:
-        r"""Resolve a type like ``resolve``, but return a default if no
-        value matches.
-
-        Unlike ``resolve``, it does not build the error message of
-        ``TypeNotRegisteredError``, so it is cheap to call for the types
-        that are often not registered.
-
-        Args:
-            dtype: The type to resolve.
-            default: The value to return if no matching type is found
-                in the registry, including parent types in the MRO.
-
-        Returns:
-            The value associated with the type or its nearest registered
-            parent type in the MRO, or ``default``.
-
-        Raises:
-            TypeError: If ``dtype`` is not a type.
-
-        Example:
-            ```pycon
-            >>> from coola.registry import TypeRegistry
-            >>> registry = TypeRegistry[str]({int: "integer"})
-            >>> registry.resolve_or(bool)
-            'integer'
-            >>> registry.resolve_or(str, "missing")
-            'missing'
-
-            ```
-        """
-        value = self._resolve(dtype)
-        return default if value is _MISSING else value
-
     def _resolve(self, dtype: type) -> T:
         # Lock-free fast path: a hit is a single dict lookup.
         try:
