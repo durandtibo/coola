@@ -783,30 +783,50 @@ saved in `.benchmarks/Darwin-CPython-3.14-64bit/0009_hashing_old_314682c6.json`.
 new engine next to it and compare with `pytest --benchmark-compare=0009 --benchmark-only`. The
 absolute numbers depend on the machine; read the speed-ups (old time / new time: above 1 is faster).
 
-| Benchmark (`test_hash_object_<name>_benchmark`) | Input                                                                                      | Old median | Old min   | Gate (new median, at most) | Expected (section 6) |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------- | --------- | -------------------------- | -------------------- |
-| `scalar`                                        | `1`                                                                                        | 1.6 µs     | 1.5 µs    | 1.6 µs                     | about the same       |
-| `empty_list`                                    | `[]`                                                                                       | 1.2 µs     | 1.0 µs    | 1.2 µs                     | about the same       |
-| `small_dict`                                    | `{"a": 1, "b": [2, 3], "c": {"d": 4}}`                                                     | 13.8 µs    | 13.4 µs   | 13.8 µs                    | 1.3x                 |
-| `dataclass`                                     | a dataclass of a `str`, a `float` and a list of two `str`                                  | 12.3 µs    | 11.7 µs   | 12.3 µs                    | 1.3x                 |
-| `deep_list[10]`                                 | list nested 10 times                                                                       | 11.7 µs    | 11.4 µs   | 11.7 µs                    | 1.2x                 |
-| `deep_list[100]`                                | list nested 100 times                                                                      | 110.0 µs   | 108.0 µs  | 110.0 µs                   | 1.2x                 |
-| `deep_list[300]`                                | list nested 300 times                                                                      | 327.6 µs   | 321.2 µs  | 327.6 µs                   | 1.2x                 |
-| `list_of_numpy_arrays`                          | 1,000 arrays of 10 `float64`                                                               | 3.85 ms    | 3.74 ms   | 3.85 ms                    | about the same       |
-| `numpy_array`                                   | 1,000,000 `float64`                                                                        | 8.66 ms    | 8.59 ms   | 8.66 ms                    | about the same       |
-| `bytes`                                         | 10 MB of `bytes`                                                                           | 9.76 ms    | 9.68 ms   | 9.76 ms                    | about the same       |
-| `tree[4-10]`                                    | depth 4, width 10 (10^4 leaves)                                                            | 17.25 ms   | 17.01 ms  | 17.25 ms                   | 1.6x                 |
-| `tree[14-2]`                                    | depth 14, width 2 (2^14 leaves)                                                            | 59.34 ms   | 56.15 ms  | 59.34 ms                   | 1.6x                 |
-| `tree[10-3]`                                    | depth 10, width 3 (59,049 leaves)                                                          | 145.75 ms  | 144.40 ms | 145.75 ms                  | 1.6x                 |
-| `flat_list_of_strings`                          | list of 100,000 `str`                                                                      | 105.39 ms  | 104.25 ms | 105.39 ms                  | 1.5x                 |
-| `list_of_small_dicts`                           | 10,000 dicts of an int, a list and a tuple                                                 | 115.52 ms  | 113.85 ms | 115.52 ms                  | 1.4x                 |
-| `list_of_dataclasses`                           | 10,000 dataclasses (`str`, `float`, list of two `str`)                                     | 123.72 ms  | 121.85 ms | 123.72 ms                  | 1.4x                 |
-| `flat_tuple`                                    | tuple of 100,000 ints                                                                      | 145.76 ms  | 145.13 ms | 145.76 ms                  | 2.0x                 |
-| `flat_list`                                     | list of 100,000 ints                                                                       | 146.44 ms  | 145.64 ms | 146.44 ms                  | 2.0x                 |
-| `mixed_containers`                              | list, tuple, `deque`, set, `frozenset`, `OrderedDict`, named tuples and `str`, 10,000 each | 160.52 ms  | 158.84 ms | 160.52 ms                  | 1.5x                 |
-| `flat_list_of_floats`                           | list of 100,000 `float`                                                                    | 163.57 ms  | 159.73 ms | 163.57 ms                  | 2.0x                 |
-| `flat_set`                                      | set of 100,000 ints                                                                        | 172.21 ms  | 170.83 ms | 172.21 ms                  | 1.8x                 |
-| `flat_dict`                                     | dict of 100,000 ints                                                                       | 324.46 ms  | 322.43 ms | 324.46 ms                  | 1.7x                 |
+| Benchmark (`test_hash_object_<name>_benchmark`) | Input                                                                                      | Old median | Old min   | Gate (new median, at most) | Expected (section 6) | New median | Old / new | Gate |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `scalar`                                        | `1`                                                                                        | 1.6 µs     | 1.5 µs    | 1.6 µs                     | about the same | 2.27 µs | 0.70x | **not met** |
+| `empty_list`                                    | `[]`                                                                                       | 1.2 µs     | 1.0 µs    | 1.2 µs                     | about the same | 2.50 µs | 0.47x | **not met** |
+| `small_dict`                                    | `{"a": 1, "b": [2, 3], "c": {"d": 4}}`                                                     | 13.8 µs    | 13.4 µs   | 13.8 µs                    | 1.3x | 16.00 µs | 0.86x | **not met** |
+| `dataclass`                                     | a dataclass of a `str`, a `float` and a list of two `str`                                  | 12.3 µs    | 11.7 µs   | 12.3 µs                    | 1.3x | 12.85 µs | 0.95x | **not met** |
+| `deep_list[10]`                                 | list nested 10 times                                                                       | 11.7 µs    | 11.4 µs   | 11.7 µs                    | 1.2x | 15.48 µs | 0.75x | **not met** |
+| `deep_list[100]`                                | list nested 100 times                                                                      | 110.0 µs   | 108.0 µs  | 110.0 µs                   | 1.2x | 129.21 µs | 0.85x | **not met** |
+| `deep_list[300]`                                | list nested 300 times                                                                      | 327.6 µs   | 321.2 µs  | 327.6 µs                   | 1.2x | 377.63 µs | 0.87x | **not met** |
+| `list_of_numpy_arrays`                          | 1,000 arrays of 10 `float64`                                                               | 3.85 ms    | 3.74 ms   | 3.85 ms                    | about the same | 3.34 ms | 1.15x | met |
+| `numpy_array`                                   | 1,000,000 `float64`                                                                        | 8.66 ms    | 8.59 ms   | 8.66 ms                    | about the same | 8.64 ms | 1.00x | met |
+| `bytes`                                         | 10 MB of `bytes`                                                                           | 9.76 ms    | 9.68 ms   | 9.76 ms                    | about the same | 9.53 ms | 1.02x | met |
+| `tree[4-10]`                                    | depth 4, width 10 (10^4 leaves)                                                            | 17.25 ms   | 17.01 ms  | 17.25 ms                   | 1.6x | 14.11 ms | 1.22x | met |
+| `tree[14-2]`                                    | depth 14, width 2 (2^14 leaves)                                                            | 59.34 ms   | 56.15 ms  | 59.34 ms                   | 1.6x | 57.83 ms | 1.03x | met |
+| `tree[10-3]`                                    | depth 10, width 3 (59,049 leaves)                                                          | 145.75 ms  | 144.40 ms | 145.75 ms                  | 1.6x | 140.45 ms | 1.04x | met |
+| `flat_list_of_strings`                          | list of 100,000 `str`                                                                      | 105.39 ms  | 104.25 ms | 105.39 ms                  | 1.5x | 79.56 ms | 1.32x | met |
+| `list_of_small_dicts`                           | 10,000 dicts of an int, a list and a tuple                                                 | 115.52 ms  | 113.85 ms | 115.52 ms                  | 1.4x | 115.55 ms | 1.00x | met |
+| `list_of_dataclasses`                           | 10,000 dataclasses (`str`, `float`, list of two `str`)                                     | 123.72 ms  | 121.85 ms | 123.72 ms                  | 1.4x | 110.98 ms | 1.11x | met |
+| `flat_tuple`                                    | tuple of 100,000 ints                                                                      | 145.76 ms  | 145.13 ms | 145.76 ms                  | 2.0x | 114.15 ms | 1.28x | met |
+| `flat_list`                                     | list of 100,000 ints                                                                       | 146.44 ms  | 145.64 ms | 146.44 ms                  | 2.0x | 116.19 ms | 1.26x | met |
+| `mixed_containers`                              | list, tuple, `deque`, set, `frozenset`, `OrderedDict`, named tuples and `str`, 10,000 each | 160.52 ms  | 158.84 ms | 160.52 ms                  | 1.5x | 130.90 ms | 1.23x | met |
+| `flat_list_of_floats`                           | list of 100,000 `float`                                                                    | 163.57 ms  | 159.73 ms | 163.57 ms                  | 2.0x | 131.72 ms | 1.24x | met |
+| `flat_set`                                      | set of 100,000 ints                                                                        | 172.21 ms  | 170.83 ms | 172.21 ms                  | 1.8x | 135.46 ms | 1.27x | met |
+| `flat_dict`                                     | dict of 100,000 ints                                                                       | 324.46 ms  | 322.43 ms | 324.46 ms                  | 1.7x | 268.64 ms | 1.21x | met |
+
+**Result of the new implementation** (steps 4 to 9, `main` at `6704dda8`). Same machine and Python,
+two runs saved as `.benchmarks/Darwin-CPython-3.14-64bit/0011_hashing_engine_f2e8.json` and
+`0012_hashing_engine_6704_run2.json`. "New median" is the mean of the two medians (they differ by
+at most 3%). "Gate" is "met" if the new median is at most 2% above the old one.
+
+- **Met, and faster, on the containers that dominate real inputs:** flat list, tuple, set and
+  dict 1.2 to 1.3x, list of strings 1.33x, mixed containers 1.23x, `tree[4-10]` 1.25x, list of
+  dataclasses 1.12x, list of arrays 1.15x. This is below the 1.5 to 2x of the prototype.
+- **Unchanged:** arrays and `bytes` (the cost is BLAKE2b and the canonicalisation), `tree[10-3]`
+  and `tree[14-2]` (1.03 to 1.04x), `list_of_small_dicts` (1.00x).
+- **Not met:** the fixed cost of a call and of a container. `scalar` 1.6 -> 2.3 us,
+  `empty_list` 1.2 -> 2.5 us (+1 us: engine state, one frame, one memo entry), `small_dict`
+  13.8 -> 16.0 us (0.88x), `deep_list` 0.76 to 0.87x (about 1.3 us per level instead of 1.1 us),
+  `dataclass` 0.96x. These are the inputs of a few objects, where the absolute difference is
+  1 to 4 us; the gate "no slower than `main` on every input" is therefore **not satisfied**.
+  The inlined leaves (step 10, decision D7) would help the flat containers more than these
+  cases; a cheaper call setup (no `_Walker` object) would help these cases.
+- **New capabilities** that the old design could not run: nesting of 100,000 levels (0.2 s), and a
+  DAG of 60 levels (`x = [x, x]`, 2^60 paths, 0.2 ms), see `tests/integration/hashing`.
 
 Reading the numbers:
 
@@ -820,6 +840,6 @@ Reading the numbers:
   real `encode` is a method call and a `Node` per container, so the real engine will be somewhat
   slower than the prototype. The gate is the "at most the old median" column.
 - A list nested 500 levels deep raises `ValueError` on this implementation (F2), so the benchmark
-  stops at 300. Add deeper cases (for example 10,000 and 100,000 levels), and a DAG (`x = [x, x]`
-  nested 20 times, 4.2 s on this implementation), once the explicit stack and the memo have landed:
-  they cannot run on the old design.
+  stops at 300. Deeper cases (for example 10,000 and 100,000 levels) and a DAG (`x = [x, x]`
+  nested 20 times, 4.2 s on this implementation) can run now that the explicit stack and the memo
+  have landed, but they are not in the benchmark file yet.
