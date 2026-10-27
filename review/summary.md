@@ -314,6 +314,7 @@ Rules (the examples are the output of the prototype of section 7):
 <class 'list'> (length=2)
   (0): <class 'int'> 1
   (1): <cycle>
+
 ```
 
 - A node is `header`, then its children one level deeper, then `... (+N more)` if some are not shown.
