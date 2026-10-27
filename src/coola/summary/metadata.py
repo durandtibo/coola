@@ -19,9 +19,9 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 Field: TypeAlias = "str | tuple[str, Iterable[tuple[Any, Any]]]"
-r"""A field of the metadata: a text such as ``"shape=(2, 3)"``, or a name
-and the ``(name, type)`` pairs of the columns, which are formatted with
-``format_fields`` and limited to ``max_items``."""
+r"""A field of the metadata: a text such as ``"shape=(2, 3)"``, or a
+name and the ``(name, type)`` pairs of the columns, which are formatted
+with ``format_fields`` and limited to ``max_items``."""
 
 
 def format_fields(fields: Iterable[tuple[Any, Any]], max_fields: int | None) -> str:

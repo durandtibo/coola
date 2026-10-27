@@ -306,8 +306,8 @@ def _samples() -> dict[str, object]:
 @pytest.mark.parametrize("name", list(_samples()))
 @pytest.mark.parametrize("compact", [True, False])
 def test_default_summarizers_return_a_str_or_a_node(name: str, compact: bool) -> None:
-    """Test that the summarizer of every default type returns a str or
-    a Node, whose children are lazy."""
+    """Test that the summarizer of every default type returns a str or a
+    Node, whose children are lazy."""
     data = _samples()[name]
     result = (
         get_default_registry()
