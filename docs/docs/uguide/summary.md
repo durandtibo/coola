@@ -569,15 +569,18 @@ Use `register_many()` to register multiple types at once:
 
 ### Checking Registered Types
 
-Check if a type has a registered summarizer:
+Check if a summarizer is registered for a type. Only the exact type is checked, so `int` is not
+registered: `find_summarizer(int)` returns the summarizer of `object`:
 
 ```pycon
 >>> from coola.summary import get_default_registry
 >>> registry = get_default_registry()
 >>> registry.has_summarizer(list)
 True
->>> registry.has_summarizer(int)
+>>> registry.has_summarizer(object)
 True
+>>> registry.has_summarizer(int)
+False
 
 ```
 
