@@ -540,20 +540,28 @@ and the display mixin disappear, and the package matches `EqualityConfig`. Cost:
 option (`max_items=3` for lists and 10 for dicts); the user who needs it registers their own
 summarizer (a one-line subclass that returns a `Node` with a smaller `total`).
 
+Decision: follow recommendation
+
 **D2. One limit for items, fields and columns?** _Recommended: yes, `max_items` (default 5)._
 `MAX_FIELDS=10` and `max_items=5` count the same thing (entries shown). Consequence: a frame lists 5
 columns by default instead of 10; `summarize(df, max_items=20)` lists more. Alternative: keep
 `max_fields` as a second option, or default `max_items` to 10 (a list of 20 shows 10 lines).
+
+Decision: follow recommendation
 
 **D3. Keep the name `max_depth`?** _Recommended: yes._ It is a display depth here and a limit that
 raises in `objects_are_equal` (28.3 of `suggestions.md`); the docs say so in both places. Renaming to
 `expand_depth` removes the ambiguity, but `max_depth` is the name every user of `summarize` knows, and
 the cost of the ambiguity is a documentation sentence.
 
+Decision: follow recommendation
+
 **D4. What is the compact form?** _Recommended: a `reprlib`-based one line (4.4)._ It keeps the content
 of a small nested structure, which is the point of the default `max_depth=1`, and it is bounded.
 Alternatives: the header only (simplest, hides small configs); asking the summarizer for an inline form
 (`Node.inline`), which is exact for every type but doubles the contract.
+
+Decision: follow recommendation
 
 **D5. Total summarizing?** _Recommended: yes, catch `Exception` in the engine._ A summary is for logs
 and error messages; raising there hides the original problem. The cost is that a bug in a custom
@@ -561,26 +569,38 @@ summarizer shows as `<summary failed: ValueError>` instead of a traceback; the e
 the text and the tests of the plugin show it. Alternative: let the exceptions propagate and only keep
 `safe_str`.
 
+Decision: follow recommendation
+
 **D6. Hide the `field(repr=False)` fields of a dataclass?** _Recommended: yes._ It is how a dataclass
 author declares "do not print this" (tokens, large buffers), and the pydantic summarizer already hides
 secrets. The summary is not a comparison, so unlike `equality` and `hashing` it does not need every
 field. Alternative: show them (today), and document that a dataclass is printed in full.
 
+Decision: follow recommendation
+
 **D7. Fixed indentation?** _Recommended: yes, 2 spaces, no `num_spaces`._ The option exists to fix a
 layout that was irregular (F6); a regular layout does not need it. Adding it back is one field of the
 config.
+
+Decision: follow recommendation
 
 **D8. Keep the rule "type shown inside the expansion, values at the boundary"?** _Recommended: keep._
 It is the documented behaviour of `summarize(42)` and of every example, and it needs one flag
 (`compact`). Alternative: always show the type of a leaf (`(a): <class 'int'> 1` everywhere): a
 simpler rule, but twice as long on the default output.
 
+Decision: follow recommendation
+
 **D9. One protocol or two?** _Recommended: keep `Summarizer` (protocol) and `BaseSummarizer` (ABC)._
 Same as `Hasher`/`BaseHasher` and `Transformer`/`BaseTransformer`; the cost is a few lines and the
 benefit is that a summarizer from another library needs no import of `coola`.
 
+Decision: follow recommendation
+
 **D10. Named tuple labels?** _Recommended: yes._ One line in `SequenceSummarizer` (`data._fields`),
 consistent with dataclasses. Alternative: positions only (today).
+
+Decision: follow recommendation
 
 ## 11. Not covered
 
