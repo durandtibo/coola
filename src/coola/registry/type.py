@@ -532,10 +532,10 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         if value is not _MISSING:
             return value
         with self._lock:
+            self._validate_key(dtype)
             value = self._cache.get(dtype, _MISSING)  # Another thread may have filled it
             if value is not _MISSING:
                 return value
-            self._validate_key(dtype)
             self._load_lazy_for(dtype)  # Loading entries clears the cache
             value = self._resolve_uncached(dtype)
             if value is _MISSING:
