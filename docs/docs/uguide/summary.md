@@ -21,6 +21,45 @@ Python's built-in `repr()` or `str()`, this package offers:
 This is particularly useful for debugging, logging, and displaying complex data in a readable
 format without being overwhelmed by deeply nested or large structures.
 
+## Properties
+
+A summary is a short text that a person reads in a log, a notebook or an error message, to know what
+a (possibly huge, nested, partly unprintable) object contains. These are the rules of the package:
+
+| Property                   | Statement                                                                                                                                                                                                                                                                                                                                                                         |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bounded output             | A node shows at most `max_items` children (items, fields, columns), a text is cut at `max_characters`, and the expansion stops at `max_depth`. What is not shown is announced (`... (+N more)`), never silently dropped.                                                                                                                                                          |
+| Bounded work               | The cost depends on the size of the output, not on the size of the data: a collection is never iterated beyond `max_items`, a node below `max_depth` is never expanded, and a sub-structure that is not shown is not converted to a string. Listed exceptions: `len()`, sets (the smallest items are selected in one pass), and the `repr` of an object that has no bounded form. |
+| Display depth              | `max_depth` is the number of levels that are expanded. Deeper nodes are shown on **one line** (the compact form). It never raises, unlike the `max_depth` of `objects_are_equal` (a limit).                                                                                                                                                                                       |
+| Total                      | Summarizing never fails because of the data: a `__str__`, `__repr__`, `__len__` or attribute that raises is replaced by a placeholder that names the exception type. Invalid options raise `ValueError` before any work.                                                                                                                                                          |
+| Cycle-safe                 | A container that contains itself is shown as `<cycle>` where it comes back, whatever the summarizer registered for it.                                                                                                                                                                                                                                                            |
+| Any depth                  | No `RecursionError`, whatever `max_depth` or the caller's stack: the engine uses an explicit stack. The size of the output is bounded by `max_depth`, `max_items` and `max_characters`.                                                                                                                                                                                           |
+| Type dispatch              | The summarizer is chosen from `type(data)` along the Method Resolution Order, so the most specific registered type wins. A summarizer is always found: `object` is registered by the default registry.                                                                                                                                                                            |
+| Registry-extensible        | A new type is supported by registering one summarizer, without changing another one and without subclassing a base class (a protocol is enough).                                                                                                                                                                                                                                  |
+| Metadata first             | An array, a tensor, a data frame, a table shows its metadata (type, shape, dtype, columns), not its values. `show_data=True` shows a bounded `repr` instead. A lazy frame is never collected.                                                                                                                                                                                     |
+| Secrets stay hidden        | The fields that are marked as secret (`SecretStr`, `SecretBytes`) or excluded from the `repr` (`field(repr=False)`) are not shown.                                                                                                                                                                                                                                                |
+| Iterators are not consumed | A generator or an iterator is a leaf: its `str` is shown and no item is taken from it.                                                                                                                                                                                                                                                                                            |
+| Deterministic              | The same value gives the same text across calls and processes: the order of a list, a tuple or a dict is the order of the data, and a set shows its smallest items in order (it does not depend on `PYTHONHASHSEED`). Only the address in a placeholder or in an unknown `repr` can change.                                                                                       |
+| Pure                       | The data is never modified. Summarizers keep no state: a registry, a config and a summarizer can be shared by threads and calls.                                                                                                                                                                                                                                                  |
+| Consistent with siblings   | Dataclasses are entered (like `objects_are_equal`, `hash_object`, `recursive_apply`); iterators are leaves (like `dfs_iterate`); options are keyword-only.                                                                                                                                                                                                                        |
+| For humans                 | The output is meant to be read, not parsed: its exact format can change in a release.                                                                                                                                                                                                                                                       |
+
+Not yet true in the current implementation (they are the target of the redesign in
+`review/summary.md`): **Bounded work** (a container at the display depth is converted to a string
+before it is cut), **Total** (a `__len__` or an attribute that raises propagates), **Cycle-safe**
+(a self-referencing container is repeated up to `max_depth`), **Any depth** (a `RecursionError` is
+raised for a nesting of a few hundred levels) and **Secrets stay hidden** for the dataclass fields
+declared with `field(repr=False)`.
+
+Not guaranteed:
+
+- **Shared references.** A container reachable by several paths is shown once per path.
+- **Self-referencing containers.** They are not detected: the output repeats the cycle until
+  `max_depth`, and a large `max_depth` raises a `RecursionError`.
+- **The time of a foreign `str` or `repr`.** The package bounds what it iterates, not what a user
+  class does inside `__str__` or `__repr__`.
+- **A stable format** between releases (see "For humans").
+
 ## Basic Usage
 
 ### The `summarize()` Function
@@ -651,7 +690,8 @@ Summarize complex API responses:
 ### Comparing Data Structures
 
 Get a quick overview to compare different data structures. Note that with default `max_depth=1`,
-nested structures are shown as raw strings without truncation:
+nested structures are shown on one line, and the collections that have more than `max_items` items
+are cut:
 
 ```pycon
 >>> from coola.summary import summarize
@@ -717,25 +757,12 @@ base class of the summarizers that list the fields (columns) of an object, and `
 default maximum number of fields listed. `format_fields()` formats `(name, type)` pairs as `name: type`.
 `get_default_summarizer_registry()` returns the registry used by `summarize()`.
 
-## Properties
-
-| Property       | Statement                                                                                                                          |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Bounded output | Collections show at most 5 items by default, and nesting is expanded up to `max_depth` (default 1). The rest is elided with `...`. |
-| Metadata first | Arrays and tensors show their metadata (type, shape, dtype, ...), not their content.                                               |
-| Type dispatch  | The summarizer is chosen from the type of the data through the registry.                                                           |
-| Read-only      | Summarizing does not modify the data.                                                                                              |
-| Extensible     | A summarizer for a custom type is added by registering it.                                                                         |
-| For humans     | The output is meant to be read, not parsed: its exact format can change.                                                           |
-
-Not guaranteed: self-referencing containers are not detected.
-
 ## Design Principles
 
 The `coola.summary` package is designed with the following principles:
 
 1. **Type-based dispatch**: Automatically selects the appropriate summarizer based on data type
-2. **Recursive summarization**: Handles deeply nested structures through the registry pattern
+2. **Registry dispatch of nested data**: The children of a container are summarized with the summarizer of their own type
 3. **Configurable output**: Control depth, item limits, and formatting to suit your needs
 4. **Extensibility**: Easy to add support for custom types via the registry
 5. **Sensible defaults**: Works out-of-the-box for common Python types
