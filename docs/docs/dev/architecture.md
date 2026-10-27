@@ -77,8 +77,7 @@ difference is explained. #### Built-in Testers
 
 #### `EqualityTesterRegistry`
 
-The registry maps types to testers. It is built on `BaseTypeDispatchRegistry`
-(`coola.registry`):
+The registry maps types to testers. It is a `TypeRegistry` (`coola.registry`):
 
 - `find_equality_tester(data_type)` returns the tester for the most specific registered type,
   walking the Method Resolution Order (MRO); `object` is registered with `DefaultEqualityTester`,
@@ -538,8 +537,7 @@ Packages fall into two groups:
   `recursive` and `iterator` are built on `registry`; `identifier`, `reducer` and `random` are
   standalone helpers.
 
-The only exception is a deferred (function-level) import in `coola.registry.base`, which is listed in
-`ignore_imports`. `display` and `utils` currently import each other, so they are kept in the same
+There is no exception: `coola.registry` imports no feature package. `display` and `utils` currently import each other, so they are kept in the same
 group.
 
 The contract is enforced with [import-linter](https://import-linter.readthedocs.io/)

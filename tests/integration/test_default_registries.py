@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
@@ -10,10 +11,16 @@ from coola.equality.tester import (
     get_default_registry as get_equality_registry,
 )
 from coola.hashing import get_default_registry as get_hasher_registry
-from coola.registry import TypeNotRegisteredError
+from coola.iterator import get_default_registry as get_iterator_registry
+from coola.recursive import get_default_registry as get_transformer_registry
+from coola.registry import TypeNotRegisteredError, TypeRegistry
+from coola.summary import get_default_registry as get_summarizer_registry
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
 from coola.utils.singleton import reset_default_registries, temporary_default_registries
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 if is_numpy_available():
     import numpy as np
@@ -90,3 +97,51 @@ def test_isolated_default_registries_does_not_leak_the_registration_to_the_next_
     """Test that the type registered by the previous test is not
     registered anymore."""
     assert not get_equality_registry().has_equality_tester(Point)
+
+
+#####################################################
+#     Tests for the copy of the default registries  #
+#####################################################
+
+DEFAULT_REGISTRIES = [
+    pytest.param(get_equality_registry, id="equality"),
+    pytest.param(get_hasher_registry, id="hashing"),
+    pytest.param(get_iterator_registry, id="iterator"),
+    pytest.param(get_summarizer_registry, id="summary"),
+    pytest.param(get_transformer_registry, id="recursive"),
+]
+
+
+@pytest.mark.parametrize("get_registry", DEFAULT_REGISTRIES)
+def test_default_registry_equals_its_copy(get_registry: Callable[[], TypeRegistry]) -> None:
+    registry = get_registry()
+    assert registry.copy().equal(registry)
+
+
+@pytest.mark.parametrize("get_registry", DEFAULT_REGISTRIES)
+def test_default_registry_copy_has_the_same_keys(get_registry: Callable[[], TypeRegistry]) -> None:
+    registry = get_registry()
+    assert list(registry.copy().keys()) == list(registry.keys())
+
+
+@pytest.mark.parametrize("get_registry", DEFAULT_REGISTRIES)
+def test_default_registry_copy_has_the_same_fallbacks(
+    get_registry: Callable[[], TypeRegistry],
+) -> None:
+    registry = get_registry()
+    assert list(registry.copy().fallbacks()) == list(registry.fallbacks())
+
+
+@pytest.mark.parametrize("get_registry", DEFAULT_REGISTRIES)
+def test_default_registry_copy_is_independent(get_registry: Callable[[], TypeRegistry]) -> None:
+    registry = get_registry()
+    registry.copy().register(Point, next(iter(registry.values())))
+    assert not registry.has(Point)
+
+
+@pytest.mark.parametrize("get_registry", DEFAULT_REGISTRIES)
+def test_default_registry_repr_starts_with_the_class_name(
+    get_registry: Callable[[], TypeRegistry],
+) -> None:
+    registry = get_registry()
+    assert repr(registry).startswith(f"{type(registry).__name__}(")

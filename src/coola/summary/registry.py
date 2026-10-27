@@ -11,14 +11,13 @@ __all__ = ["SummarizerRegistry"]
 
 from typing import Any
 
-from coola.registry import BaseTypeDispatchRegistry
-from coola.registry.dispatch import FallbackMixin
+from coola.registry import TypeRegistry
 from coola.summary.base import Summarizer
 from coola.summary.config import SummaryConfig
 from coola.summary.engine import render
 
 
-class SummarizerRegistry(FallbackMixin[Summarizer[Any]], BaseTypeDispatchRegistry[Summarizer[Any]]):
+class SummarizerRegistry(TypeRegistry[Summarizer[Any]]):
     r"""Registry that manages and dispatches summarizers based on data
     type.
 
@@ -44,10 +43,8 @@ class SummarizerRegistry(FallbackMixin[Summarizer[Any]], BaseTypeDispatchRegistr
         >>> registry = SummarizerRegistry({object: DefaultSummarizer(), list: SequenceSummarizer()})
         >>> registry
         SummarizerRegistry(
-          (state): TypeRegistry(
-              (<class 'object'>): DefaultSummarizer()
-              (<class 'list'>): SequenceSummarizer()
-            )
+          (<class 'object'>): DefaultSummarizer()
+          (<class 'list'>): SequenceSummarizer()
         )
         >>> print(registry.summarize([1, 2, 3]))
         <class 'list'> (length=3)
@@ -88,7 +85,7 @@ class SummarizerRegistry(FallbackMixin[Summarizer[Any]], BaseTypeDispatchRegistr
         """Type-specific alias for ``has``: check if a summarizer
         is explicitly registered for the given type.
 
-        See ``BaseTypeDispatchRegistry.has`` for the full behavior
+        See ``Registry.has`` for the full behavior
         description.
 
         Args:
@@ -115,7 +112,7 @@ class SummarizerRegistry(FallbackMixin[Summarizer[Any]], BaseTypeDispatchRegistr
         """Type-specific alias for ``find``: find the appropriate
         summarizer for a given type.
 
-        See ``BaseTypeDispatchRegistry.find`` for the full behavior
+        See ``TypeRegistry.resolve`` for the full behavior
         description (MRO resolution, caching, and the ``KeyError`` on no
         match).
 
@@ -136,7 +133,7 @@ class SummarizerRegistry(FallbackMixin[Summarizer[Any]], BaseTypeDispatchRegistr
 
             ```
         """
-        return self.find(data_type)
+        return self.resolve(data_type)
 
     def summarize(self, data: object, config: SummaryConfig | None = None) -> str:
         r"""Generate a formatted string summary of the provided data.

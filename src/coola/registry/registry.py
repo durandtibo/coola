@@ -1,20 +1,18 @@
-r"""Define a thread-safe base registry shared by ``Registry`` and
-``TypeRegistry``."""
+r"""Define a thread-safe generic key-value registry."""
 
 from __future__ import annotations
 
-__all__ = ["BaseRegistry"]
+__all__ = ["Registry"]
 
 import copy
 import threading
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Generic, Self, TypeVar
+from typing import TYPE_CHECKING, Generic, Self, TypeVar, cast
 
 from coola.registry.exceptions import AlreadyRegisteredError, KeyNotRegisteredError
 from coola.utils.fork import track_fork
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 from coola.utils.imports import import_object
-from coola.utils.introspection import is_same_type
 
 if TYPE_CHECKING:
     from collections.abc import (
@@ -53,14 +51,20 @@ class _LazyEntry(Generic[K, V]):
         return factory()
 
 
-class BaseRegistry(Generic[K, V]):
+class Registry(Generic[K, V]):
     r"""A thread-safe generic key-value registry for storing and managing
     typed mappings.
 
-    This class implements the common storage, locking, and dictionary-like
-    behavior shared by ``Registry`` and ``TypeRegistry``. Subclasses may
-    override ``_on_change`` to react to mutations, e.g. to invalidate an
-    internal cache.
+    The Registry class provides a type-safe container for registering and
+    retrieving values by key. It supports all standard dictionary operations
+    through operator overloading and provides additional methods for safe
+    registration and querying.
+
+    The state is a dictionary that is replaced on every write and never
+    mutated, so the reads take no lock, ``items()``, ``keys()`` and
+    ``values()`` return snapshots, and a writer never shows a partial
+    state to a reader. The writers are serialized by one reentrant lock.
+    ``TypeRegistry`` extends this class.
 
     Args:
         initial_state: An optional dictionary to initialize the registry with.
@@ -68,22 +72,56 @@ class BaseRegistry(Generic[K, V]):
             Defaults to None, which creates an empty registry.
 
     Attributes:
-        _state: Internal dictionary storing the key-value pairs.
-        _lock: Threading lock for synchronizing access to the registry.
+        _state: Internal dictionary storing the key-value pairs. It is
+            replaced, never mutated.
+        _lock: Threading lock for synchronizing the writers.
+
+    Example:
+        Basic usage with registration and retrieval:
+
+        ```pycon
+        >>> from coola.registry import Registry
+        >>> registry = Registry[str, int]()
+        >>> registry.register("key1", 42)
+        >>> registry.get("key1")
+        42
+        >>> registry
+        Registry(
+          (key1): 42
+        )
+
+        ```
+
+        Using dictionary-style operations:
+
+        ```pycon
+        >>> from coola.registry import Registry
+        >>> registry = Registry[str, int]()
+        >>> registry["key2"] = 100
+        >>> "key2" in registry
+        True
+        >>> del registry["key2"]
+
+        ```
+
+        Initializing with existing data:
+
+        ```pycon
+        >>> from coola.registry import Registry
+        >>> registry = Registry[str, int](initial_state={"a": 1, "b": 2})
+        >>> len(registry)
+        2
+
+        ```
     """
 
     def __init__(self, initial_state: dict[K, V] | None = None) -> None:
         for key in initial_state or ():
             self._validate_key(key)
+        # Replaced on every write, never mutated: the readers need no lock.
         self._state: dict[K, V] = initial_state.copy() if initial_state else {}
         self._lock: threading.RLock = threading.RLock()  # RLock allows re-entrant locking
         track_fork(self)
-        # Cached snapshot of ``_state`` used by ``items``/``keys``/``values`` and by
-        # ``__iter__``/``__repr__``/``__str__``. It is
-        # invalidated (set to None) by ``_invalidate`` on every mutation, so repeated
-        # read-only calls between mutations reuse the same copy instead of paying for
-        # a fresh O(n) ``dict.copy()`` each time.
-        self._snapshot: dict[K, V] | None = None
         # Entries that are not loaded yet, by group name (see ``register_lazy``).
         self._lazy: dict[str, _LazyEntry[K, V]] = {}
 
@@ -104,28 +142,27 @@ class BaseRegistry(Generic[K, V]):
         self.unregister(key)
 
     def __iter__(self) -> Iterator[K]:
-        with self._lock:
-            return iter(self._get_snapshot())
+        self._load_lazy_all()
+        return iter(self._state)
 
     def __len__(self) -> int:
         self._load_lazy_all()
-        with self._lock:
-            return len(self._state)
+        return len(self._state)
 
     def __repr__(self) -> str:
         # Displaying a registry must not import the optional libraries: the entries that
         # are not loaded yet are listed by group name instead.
         with self._lock:
-            snapshot = self._get_snapshot(load=False)
+            state = self._state
             pending = self._pending_msg()
-        body = "\n  ".join(filter(None, [repr_indent(repr_mapping(snapshot)), pending]))
+        body = "\n  ".join(filter(None, [repr_indent(repr_mapping(state)), pending]))
         return f"{self.__class__.__qualname__}(\n  {body}\n)"
 
     def __str__(self) -> str:
         with self._lock:
-            snapshot = self._get_snapshot(load=False)
+            state = self._state
             pending = self._pending_msg()
-        body = "\n  ".join(filter(None, [str_indent(str_mapping(snapshot)), pending]))
+        body = "\n  ".join(filter(None, [str_indent(str_mapping(state)), pending]))
         return f"{self.__class__.__qualname__}(\n  {body}\n)"
 
     def _pending_msg(self) -> str:
@@ -138,13 +175,24 @@ class BaseRegistry(Generic[K, V]):
             return ""
         return f"<not loaded: {', '.join(sorted(self._lazy))}>"
 
-    def _on_change(self) -> None:
-        r"""React to a mutation of the registry state.
+    def _changed(self) -> None:
+        r"""React to a change of the state.
 
-        This is called while holding ``self._lock``. Subclasses can
-        override it to invalidate any derived state (e.g. a resolution
-        cache).
+        This is called while holding ``self._lock``, after the state is
+        replaced. Subclasses can override it to invalidate any derived
+        state (e.g. a resolution cache).
         """
+
+    def _publish(self, state: dict[K, V]) -> None:
+        r"""Replace the state.
+
+        This must be called while holding ``self._lock``.
+
+        Args:
+            state: The new state. It must not be mutated afterwards.
+        """
+        self._state = state
+        self._changed()
 
     def copy(self) -> Self:
         r"""Create a copy of the registry.
@@ -173,11 +221,12 @@ class BaseRegistry(Generic[K, V]):
         # The attributes that are not replaced below (the configuration of a subclass) are shared.
         new = copy.copy(self)
         with self._lock:
-            new._state = self._state.copy()
+            # The state is never mutated, so it is shared until the next write.
+            new._state = self._state
             # The entries are never changed after their creation, so they are shared.
             new._lazy = self._lazy.copy()
         new._lock = threading.RLock()
-        new._invalidate()
+        new._changed()
         track_fork(new)
         return new
 
@@ -190,17 +239,6 @@ class BaseRegistry(Generic[K, V]):
         memory of its parent.
         """
         self._lock = threading.RLock()
-
-    def _invalidate(self) -> None:
-        r"""Invalidate state derived from ``_state`` after a mutation.
-
-        This is called while holding ``self._lock`` by every method that
-        mutates ``_state``. It clears the ``items``/``keys``/``values``
-        snapshot cache and calls ``_on_change`` so subclasses can
-        invalidate their own derived state (e.g. a resolution cache).
-        """
-        self._snapshot = None
-        self._on_change()
 
     _not_registered_error: type[KeyNotRegisteredError] = KeyNotRegisteredError
     """The exception raised when a key is not registered."""
@@ -265,17 +303,21 @@ class BaseRegistry(Generic[K, V]):
             ```
         """
         with self._lock:
-            self._state.clear()
             self._lazy.clear()
-            self._invalidate()
+            self._publish({})
 
-    def equal(self, other: object, equal_nan: bool = False) -> bool:
+    def equal(self, other: object) -> bool:
         r"""Indicate if two objects are equal or not.
+
+        Two registries are equal if they have the same class and the
+        same entries. The values are compared with ``==``, so a value
+        without ``__eq__`` is equal to itself only. A registry is equal
+        to its copy. The pending lazy groups are loaded before the
+        comparison, except if the two registries have the same pending
+        groups.
 
         Args:
             other: The object to compare with.
-            equal_nan: If ``True``, then two ``NaN``s will be
-                considered equal.
 
         Returns:
             ``True`` if the two objects are equal, otherwise ``False``.
@@ -293,23 +335,15 @@ class BaseRegistry(Generic[K, V]):
 
             ```
         """
-        # Local import to avoid a cyclic import: coola.equality's import
-        # chain transitively depends on this module (e.g. via EqualityTesterRegistry).
-        from coola.equality import objects_are_equal  # noqa: PLC0415
-
-        if not is_same_type(other, self):
+        if type(other) is not type(self):
             return False
-        self._load_lazy_all()
-        other._load_lazy_all()
-
-        # Design choice: both locks are held during the whole comparison so that the result
-        # is consistent. If the locks were released after taking a snapshot, a registry
-        # could be updated before the comparison ends and the result would describe a state
-        # that no longer exists. The cost is that a slow comparison blocks registrations.
-        # Acquire locks in a consistent order based on object id to avoid deadlock
-        first, second = (self, other) if id(self) < id(other) else (other, self)
-        with first._lock, second._lock:
-            return objects_are_equal(self._state, other._state, equal_nan=equal_nan)
+        other = cast("Registry[K, V]", other)
+        # Two registries with the same pending groups (a registry and its copy) are compared
+        # without loading: each registry would build its own values, which are not equal.
+        if self._lazy != other._lazy:
+            self._load_lazy_all()
+            other._load_lazy_all()
+        return self._state == other._state
 
     def get(self, key: K, default: V | None = None) -> V | None:
         r"""Retrieve the value associated with a key.
@@ -336,8 +370,7 @@ class BaseRegistry(Generic[K, V]):
             ```
         """
         self._load_lazy_for(key)
-        with self._lock:
-            return self._state.get(key, default)
+        return self._state.get(key, default)
 
     def has(self, key: K) -> bool:
         r"""Check whether a key is registered in the registry.
@@ -363,10 +396,9 @@ class BaseRegistry(Generic[K, V]):
             ```
         """
         self._load_lazy_for(key)
-        with self._lock:
-            return key in self._state
+        return key in self._state
 
-    def register(self, key: K, value: V, exist_ok: bool = False) -> None:
+    def register(self, key: K, value: V, *, exist_ok: bool = False) -> None:
         r"""Register a new key-value pair in the registry.
 
         By default, this method raises an error if you try to register a key
@@ -401,8 +433,10 @@ class BaseRegistry(Generic[K, V]):
             Attempting to register a duplicate key:
 
             ```pycon
-            >>> registry.register("key1", 100)  # doctest: +SKIP
-            AlreadyRegisteredError: A value is already registered for 'key1'...
+            >>> registry.register("key1", 100)
+            Traceback (most recent call last):
+                ...
+            coola.registry.exceptions.AlreadyRegisteredError: A value is already registered for 'key1'. Use a different key or set exist_ok=True to override.
 
             ```
 
@@ -420,10 +454,9 @@ class BaseRegistry(Generic[K, V]):
             self._load_lazy_for(key)
             if key in self._state and not exist_ok:
                 raise AlreadyRegisteredError(self._already_registered_msg(key))
-            self._state[key] = value
-            self._invalidate()
+            self._publish({**self._state, key: value})
 
-    def register_many(self, mapping: Mapping[K, V], exist_ok: bool = False) -> None:
+    def register_many(self, mapping: Mapping[K, V], *, exist_ok: bool = False) -> None:
         r"""Register multiple key-value pairs in a single operation.
 
         This is a convenience method for bulk registration. It iterates through
@@ -486,8 +519,7 @@ class BaseRegistry(Generic[K, V]):
             # Check all keys first if exist_ok is False
             if not exist_ok and (duplicates := set(mapping) & set(self._state)):
                 raise AlreadyRegisteredError(self._many_already_registered_msg(duplicates))
-            self._state.update(mapping)
-            self._invalidate()
+            self._publish({**self._state, **mapping})
 
     def unregister(self, key: K) -> V:
         r"""Remove a key-value pair from the registry and return the
@@ -527,30 +559,10 @@ class BaseRegistry(Generic[K, V]):
             self._load_lazy_for(key)
             if key not in self._state:
                 raise self._not_registered_error(self._not_registered_msg(key))
-            value = self._state.pop(key)
-            self._invalidate()
+            state = dict(self._state)
+            value = state.pop(key)
+            self._publish(state)
             return value
-
-    def _get_snapshot(self, *, load: bool = True) -> dict[K, V]:
-        r"""Return a cached, read-only-by-convention copy of ``_state``.
-
-        This must be called while holding ``self._lock``. The copy is
-        made lazily and cached on ``self._snapshot`` until the next
-        mutation (see ``_invalidate``), so that repeated calls to
-        ``items``/``keys``/ ``values`` between mutations reuse the same
-        ``dict.copy()`` instead of paying for a fresh O(n) allocation
-        every time.
-
-        Args:
-            load: If ``True``, the entries that are not loaded yet are
-                loaded first. If ``False``, only the entries that are
-                already loaded are in the snapshot.
-        """
-        if load:
-            self._load_lazy_all()
-        if self._snapshot is None:
-            self._snapshot = self._state.copy()
-        return self._snapshot
 
     def register_lazy(
         self, names: str | Sequence[str], factory: str | Callable[[], Mapping[K, V]]
@@ -633,10 +645,11 @@ class BaseRegistry(Generic[K, V]):
                     for alias in entry.names:
                         self._lazy[alias] = entry
                     raise
+                state = dict(self._state)
                 for key, value in entries.items():
                     self._validate_key(key)
-                    self._state.setdefault(key, value)
-                self._invalidate()
+                    state.setdefault(key, value)
+                self._publish(state)
 
     def items(self) -> ItemsView[K, V]:
         r"""Return key-value pairs.
@@ -653,8 +666,8 @@ class BaseRegistry(Generic[K, V]):
 
             ```
         """
-        with self._lock:
-            return self._get_snapshot().items()
+        self._load_lazy_all()
+        return self._state.items()
 
     def keys(self) -> KeysView[K]:
         r"""Return registered keys.
@@ -671,8 +684,8 @@ class BaseRegistry(Generic[K, V]):
 
             ```
         """
-        with self._lock:
-            return self._get_snapshot().keys()
+        self._load_lazy_all()
+        return self._state.keys()
 
     def values(self) -> ValuesView[V]:
         r"""Return registered values.
@@ -689,5 +702,5 @@ class BaseRegistry(Generic[K, V]):
 
             ```
         """
-        with self._lock:
-            return self._get_snapshot().values()
+        self._load_lazy_all()
+        return self._state.values()

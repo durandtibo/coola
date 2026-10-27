@@ -22,8 +22,8 @@ def test_already_registered_error_is_value_error() -> None:
     assert issubclass(AlreadyRegisteredError, ValueError)
 
 
-def test_already_registered_error_is_runtime_error() -> None:
-    assert issubclass(AlreadyRegisteredError, RuntimeError)
+def test_already_registered_error_is_not_a_runtime_error() -> None:
+    assert not issubclass(AlreadyRegisteredError, RuntimeError)
 
 
 def test_already_registered_error_str_is_not_quoted() -> None:
@@ -48,12 +48,6 @@ def test_type_registry_register_duplicate_raises_already_registered_error() -> N
     registry = TypeRegistry[str]({int: "int"})
     with pytest.raises(AlreadyRegisteredError, match="already registered"):
         registry.register(int, "other")
-
-
-def test_already_registered_error_can_still_be_caught_as_runtime_error() -> None:
-    registry = Registry[str, int]({"key": 1})
-    with pytest.raises(RuntimeError, match="already registered"):
-        registry.register("key", 2)
 
 
 def test_already_registered_error_is_not_a_key_error() -> None:

@@ -670,9 +670,9 @@ def test_hasher_registry_equal_different_type() -> None:
     assert not HasherRegistry().equal(object())
 
 
-def test_hasher_registry_state_is_tracked_for_forks() -> None:
+def test_hasher_registry_is_tracked_for_forks() -> None:
     registry = HasherRegistry()
-    assert registry._state in fork._TRACKED
+    assert registry in fork._TRACKED
 
 
 def test_hasher_registry_copy_has_the_same_fallbacks() -> None:

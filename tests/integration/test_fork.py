@@ -8,7 +8,7 @@ import pytest
 
 from coola.hashing import HasherRegistry, StrHasher
 from coola.io import base as io_base
-from coola.registry.base import BaseRegistry
+from coola.registry import Registry
 from coola.utils.singleton import LazySingleton
 from tests.integration.helpers import run_in_children
 
@@ -64,7 +64,7 @@ def hold(registry: object, name: str) -> HeldLock:
 def test_registry_is_usable_in_a_child_forked_while_its_lock_is_held() -> None:
     """Test that a child forked while another thread holds the lock of a
     registry can use the registry."""
-    registry = BaseRegistry[str, int]()
+    registry = Registry[str, int]()
 
     def use_registry() -> str:
         registry.register("key", 1)
@@ -75,7 +75,7 @@ def test_registry_is_usable_in_a_child_forked_while_its_lock_is_held() -> None:
 
 
 def test_registry_keeps_its_content_in_a_child_forked_while_its_lock_is_held() -> None:
-    registry = BaseRegistry[str, int]({"key": 2})
+    registry = Registry[str, int]({"key": 2})
     with hold(registry, "_lock"):
         assert run_in_children(1, lambda: str(registry.get("key"))) == ["2"]
 
@@ -87,7 +87,7 @@ def test_hasher_registry_is_usable_in_a_child_forked_while_its_lock_is_held() ->
         registry.register(str, StrHasher())
         return "done"
 
-    with hold(registry._state, "_lock"):
+    with hold(registry, "_lock"):
         assert run_in_children(1, register_hasher) == ["done"]
 
 
@@ -98,7 +98,7 @@ def test_hasher_registry_can_register_a_fallback_in_a_child_forked_while_its_loc
         registry.register_fallback(lambda tp: tp is complex, StrHasher())
         return "done"
 
-    with hold(registry._state, "_lock"):
+    with hold(registry, "_lock"):
         assert run_in_children(1, register_fallback) == ["done"]
 
 
@@ -118,7 +118,7 @@ def test_save_locks_are_usable_in_a_child_forked_while_the_guard_is_held(tmp_pat
 
 
 def test_parent_registry_still_works_after_the_children_exit() -> None:
-    registry = BaseRegistry[str, int]()
+    registry = Registry[str, int]()
     with hold(registry, "_lock"):
         run_in_children(1, lambda: "done")
     registry.register("key", 1)

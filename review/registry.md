@@ -557,7 +557,7 @@ both caches).
 Run and compare with `inv test.benchmark` (or `pytest tests/benchmarks/test_registry_benchmark.py
 --benchmark-only --benchmark-save=<name>`, then `--benchmark-compare=<name>`).
 
-Step 2 (plain `dict` cache) is filled in for the rows it moves; the other rows are filled by the step that moves them. Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark`. One run, nothing else heavy
+The **New** columns are the run after step 4 (steps 2 and 3 are included). Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark`. One run, nothing else heavy
 running. The raw results of the baseline are in
 `.benchmarks/Darwin-CPython-3.14-64bit/0008_registry_old_5ce6dfcd.json` (the directory is ignored by
 git: the table below is the record). The speed-up is old time / new time: above 1 is faster. The
@@ -566,27 +566,27 @@ otherwise; `Point` is a dataclass of two ints.
 
 | Benchmark (`test_<name>_benchmark`)           | Input                                                      | Old median | Old min  | New median | New min | Speed-up | Expected                          |
 | --------------------------------------------- | ---------------------------------------------------------- | ---------- | -------- | ---------- | ------- | -------- | --------------------------------- |
-| `type_registry_resolve_cached`                | `bool`, MRO of 3, hit                                      | 0.225 µs   | 0.220 µs | 0.098 µs | 0.095 µs | 2.3x | 4-5x faster (plain `dict` cache)  |
-| `type_registry_resolve_deep_mro`              | `D`, MRO of 5, hit                                         | 0.224 µs   | 0.216 µs | 0.098 µs | 0.095 µs | 2.3x | 4-5x faster                       |
-| `type_registry_resolve_abc`                   | `dict` with `Mapping` registered (not matched), hit        | 0.229 µs   | 0.220 µs | 0.098 µs | 0.095 µs | 2.3x | 4-5x faster                       |
-| `type_registry_resolve_uncached`              | `bool`, cache reset at each call                           | 0.458 µs   | 0.333 µs | 0.400 µs | 0.383 µs | 1.1x | no slower                         |
-| `type_registry_resolve_cold_types`            | 5,000 distinct types resolved once, new registry           | 360.2 ms   | 357.5 ms | 2.47 ms | 2.40 ms | 146x | 100x or more (no cache copy)      |
-| `type_registry_has`                           | `object`                                                   | 0.150 µs   | 0.145 µs |            |         |          | faster (no lock)                  |
-| `registry_has`                                | `"key10"`                                                  | 0.155 µs   | 0.150 µs |            |         |          | faster (no lock)                  |
-| `registry_get`                                | `"key10"`                                                  | 0.165 µs   | 0.156 µs |            |         |          | faster (no lock)                  |
-| `registry_len`                                | 50 entries                                                 | 0.164 µs   | 0.155 µs |            |         |          | faster (no lock)                  |
-| `registry_items`                              | `list(registry.items())`, 50 entries                       | 0.958 µs   | 0.833 µs |            |         |          | about the same (no snapshot copy) |
-| `registry_register`                           | overwrite one key (`exist_ok=True`)                        | 0.281 µs   | 0.262 µs |            |         |          | slower by one `O(n)` dict copy    |
-| `registry_register_many`                      | overwrite 10 keys                                          | 0.950 µs   | 0.883 µs |            |         |          | about the same                    |
-| `type_registry_register`                      | overwrite one type                                         | 0.521 µs   | 0.496 µs |            |         |          | slower by one `O(n)` dict copy    |
-| `registry_copy`                               | 50 entries                                                 | 1.750 µs   | 1.625 µs |            |         |          | about the same                    |
-| `default_hasher_registry_copy`                | default hashing registry (53 entries)                      | 3.458 µs   | 3.291 µs |            |         |          | about the same                    |
-| `default_transformer_registry_find_list`      | `find_transformer(list)`                                   | 0.350 µs   | 0.335 µs |            |         |          | faster                            |
-| `default_transformer_registry_find_dataclass` | `find_transformer(Point)` (marker on `main`, fallback new) | 1.240 µs   | 1.146 µs |            |         |          | 20x or more (cached fallback)     |
-| `default_hasher_registry_find_dataclass`      | `find_hasher(Point)` (fallback on `main` and new)          | 1.033 µs   | 0.975 µs |            |         |          | 10x or more (fallback cached)     |
-| `default_tester_registry_find_dataclass`      | `find_equality_tester(Point)` (marker on `main`)           | 2.125 µs   | 2.000 µs |            |         |          | 20x or more                       |
-| `hash_object_flat_list`                       | list of 10,000 ints (one hasher lookup per node)           | 17.74 ms   | 17.42 ms |            |         |          | faster (cheaper lookup per node)  |
-| `hash_object_list_of_dataclasses`             | 1,000 `Point`                                              | 10.39 ms   | 10.16 ms |            |         |          | faster (dataclass lookup cached)  |
+| `type_registry_resolve_cached`                | `bool`, MRO of 3, hit                                      | 0.225 µs   | 0.220 µs | 0.103 µs | 0.097 µs | 2.1x | 4-5x faster (plain `dict` cache)  |
+| `type_registry_resolve_deep_mro`              | `D`, MRO of 5, hit                                         | 0.224 µs   | 0.216 µs | 0.103 µs | 0.096 µs | 2.1x | 4-5x faster                       |
+| `type_registry_resolve_abc`                   | `dict` with `Mapping` registered (not matched), hit        | 0.229 µs   | 0.220 µs | 0.103 µs | 0.095 µs | 2.1x | 4-5x faster                       |
+| `type_registry_resolve_uncached`              | `bool`, cache reset at each call                           | 0.458 µs   | 0.333 µs | 0.458 µs | 0.375 µs | 0.7x | no slower                         |
+| `type_registry_resolve_cold_types`            | 5,000 distinct types resolved once, new registry           | 360.2 ms   | 357.5 ms | 2.58 ms | 2.38 ms | 138.6x | 100x or more (no cache copy)      |
+| `type_registry_has`                           | `object`                                                   | 0.150 µs   | 0.145 µs | 0.088 µs | 0.081 µs | 1.6x | faster (no lock)                  |
+| `registry_has`                                | `"key10"`                                                  | 0.155 µs   | 0.150 µs | 0.091 µs | 0.085 µs | 1.6x | faster (no lock)                  |
+| `registry_get`                                | `"key10"`                                                  | 0.165 µs   | 0.156 µs | 0.1 µs | 0.094 µs | 1.6x | faster (no lock)                  |
+| `registry_len`                                | 50 entries                                                 | 0.164 µs   | 0.155 µs | 0.094 µs | 0.09 µs | 1.6x | faster (no lock)                  |
+| `registry_items`                              | `list(registry.items())`, 50 entries                       | 0.958 µs   | 0.833 µs | 0.792 µs | 0.667 µs | 1.1x | about the same (no snapshot copy) |
+| `registry_register`                           | overwrite one key (`exist_ok=True`)                        | 0.281 µs   | 0.262 µs | 0.463 µs | 0.448 µs | 0.6x | slower by one `O(n)` dict copy    |
+| `registry_register_many`                      | overwrite 10 keys                                          | 0.950 µs   | 0.883 µs | 1.05 µs | 1.008 µs | 0.8x | about the same                    |
+| `type_registry_register`                      | overwrite one type                                         | 0.521 µs   | 0.496 µs | 0.521 µs | 0.496 µs | 1.0x | slower by one `O(n)` dict copy    |
+| `registry_copy`                               | 50 entries                                                 | 1.750 µs   | 1.625 µs | 1.5 µs | 1.375 µs | 1.1x | about the same                    |
+| `default_hasher_registry_copy`                | default hashing registry (53 entries)                      | 3.458 µs   | 3.291 µs | 1.791 µs | 1.666 µs | 1.8x | about the same                    |
+| `default_transformer_registry_find_list`      | `find_transformer(list)`                                   | 0.350 µs   | 0.335 µs | 0.118 µs | 0.115 µs | 2.8x | faster                            |
+| `default_transformer_registry_find_dataclass` | `find_transformer(Point)` (marker on `main`, fallback new) | 1.240 µs   | 1.146 µs | 0.118 µs | 0.114 µs | 9.7x | 20x or more (cached fallback)     |
+| `default_hasher_registry_find_dataclass`      | `find_hasher(Point)` (fallback on `main` and new)          | 1.033 µs   | 0.975 µs | 0.117 µs | 0.114 µs | 8.3x | 10x or more (fallback cached)     |
+| `default_tester_registry_find_dataclass`      | `find_equality_tester(Point)` (marker on `main`)           | 2.125 µs   | 2.000 µs | 0.117 µs | 0.114 µs | 17.1x | 20x or more                       |
+| `hash_object_flat_list`                       | list of 10,000 ints (one hasher lookup per node)           | 17.74 ms   | 17.42 ms | 15.86 ms | 15.73 ms | 1.1x | faster (cheaper lookup per node)  |
+| `hash_object_list_of_dataclasses`             | 1,000 `Point`                                              | 10.39 ms   | 10.16 ms | 8.88 ms | 8.82 ms | 1.1x | faster (dataclass lookup cached)  |
 
 Reading the baseline:
 

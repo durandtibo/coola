@@ -16,13 +16,12 @@ from typing import Any
 
 from coola.hashing.base import Hasher
 from coola.hashing.string import hash_string
-from coola.registry import BaseTypeDispatchRegistry, TypeNotRegisteredError
-from coola.registry.dispatch import FallbackMixin
+from coola.registry import TypeNotRegisteredError, TypeRegistry
 
 _state = threading.local()
 
 
-class HasherRegistry(FallbackMixin[Hasher[Any]], BaseTypeDispatchRegistry[Hasher[Any]]):
+class HasherRegistry(TypeRegistry[Hasher[Any]]):
     r"""Registry that manages and dispatches hashers based on data type.
 
     This registry maintains a mapping from Python types to hasher instances
@@ -42,10 +41,8 @@ class HasherRegistry(FallbackMixin[Hasher[Any]], BaseTypeDispatchRegistry[Hasher
         >>> registry = HasherRegistry({object: StrHasher(), list: SequenceHasher()})
         >>> registry
         HasherRegistry(
-          (state): TypeRegistry(
-              (<class 'object'>): StrHasher()
-              (<class 'list'>): SequenceHasher(tag='sequence')
-            )
+          (<class 'object'>): StrHasher()
+          (<class 'list'>): SequenceHasher(tag='sequence')
         )
         >>> len(registry.hash([1, 2, 3]))
         64
@@ -79,7 +76,7 @@ class HasherRegistry(FallbackMixin[Hasher[Any]], BaseTypeDispatchRegistry[Hasher
         """Type-specific alias for ``has``: check if a hasher is
         explicitly registered for the given type.
 
-        See ``BaseTypeDispatchRegistry.has`` for the full behavior
+        See ``Registry.has`` for the full behavior
         description.
 
         Args:
@@ -107,7 +104,7 @@ class HasherRegistry(FallbackMixin[Hasher[Any]], BaseTypeDispatchRegistry[Hasher
         """Type-specific alias for ``find``: find the appropriate
         hasher for a given type.
 
-        See ``BaseTypeDispatchRegistry.find`` for the full behavior
+        See ``TypeRegistry.resolve`` for the full behavior
         description (MRO resolution, caching, and the ``KeyError`` on no
         match). If no hasher is registered for the type or its parent
         types, the fallbacks (see ``register_fallback``) are tried.
@@ -134,7 +131,7 @@ class HasherRegistry(FallbackMixin[Hasher[Any]], BaseTypeDispatchRegistry[Hasher
 
             ```
         """
-        return self.find(data_type)
+        return self.resolve(data_type)
 
     def _find_enum_hasher(self, data_type: type) -> Hasher[Any] | None:
         """Return the ``Enum`` hasher for an enum mixed with another
@@ -149,7 +146,7 @@ class HasherRegistry(FallbackMixin[Hasher[Any]], BaseTypeDispatchRegistry[Hasher
         # A hasher registered for the enum itself (or for ``Enum``) is the
         # most specific one.
         base = next((base for base in data_type.__mro__ if self.has(base)), Enum)
-        return None if issubclass(base, Enum) else self.find(Enum)
+        return None if issubclass(base, Enum) else self.resolve(Enum)
 
     def hash(self, data: object, length: int = 64, ignore_unhashable: bool = False) -> str:
         r"""Hash the given data by recursively traversing its structure.
