@@ -28,20 +28,52 @@ The default registry is designed around the following properties.
 | Property                 | Statement                                                                                                                                                                                                                     |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Equality-consistent      | Objects that are equal for [`objects_are_equal`](equality.md) have the same hash. The reverse can fail for a few types that share a hash on purpose, e.g. a `list` subclass and a `list`, or a NumPy `float64` and a `float`. |
-| Deterministic            | The same value gives the same hash across calls, processes, machines and operating systems. It does not depend on `PYTHONHASHSEED` or on object addresses.                                                                    |
-| Type-sensitive           | Values of different types hash differently, even when their text looks the same: `1`, `1.0`, `True`, `"1"`, `b"1"` and `[1]` are all distinct.                                                                                |
+| Deterministic            | The same value gives the same hash across calls, processes, machines and operating systems. It does not depend on `PYTHONHASHSEED`, on object addresses or on the iteration order of a set.                                  |
+| Type-sensitive           | Values of different types hash differently, even when their text looks the same: `1`, `1.0`, `True`, `"1"`, `b"1"`, `memoryview(b"1")` and `[1]` are all distinct.                                                            |
 | Structure-sensitive      | Nesting and item boundaries matter: `[[1], 2]`, `[1, [2]]` and `[1, 2]` are distinct, and so are `["ab", "c"]` and `["a", "bc"]`.                                                                                             |
-| Order rules              | Ordered containers are order-sensitive (`[1, 2]` differs from `[2, 1]`). Unordered containers are not (`{1, 2}` equals `{2, 1}`).                                                                                             |
-| Composable               | A container hash is built only from the hashes of its children, resolved through the registry, so each type can be extended independently.                                                                                    |
-| Fixed width              | The output is a lowercase hex string of `length` characters (an even number between 2 and 128, default 64).                                                                                                                   |
-| No silent false equality | An unsupported type fails loudly by default. The `ignore_unhashable` placeholder is an explicit, documented opt-out.                                                                                                          |
+| Order rules              | Ordered containers are order-sensitive (`[1, 2]` differs from `[2, 1]`). Unordered containers are not (`{1, 2}` equals `{2, 1}`). `OrderedDict` is ordered, like in `objects_are_equal`.                                      |
+| Composable               | A container hash is built only from the digests of its children, resolved through the registry, so each type can be extended independently.                                                                                    |
+| Fixed width, user-chosen | The output is a lowercase hex string of `length` characters (an even number between 2 and 128, default 64). It is the first `length` characters of the full 128-character hash.                                              |
+| No silent false equality | An unsupported type fails loudly by default. The `ignore_unhashable` placeholder is an explicit, documented opt-out that warns once per type.                                                                                 |
+| Cycle-safe               | A container that contains itself raises `ValueError`, whichever hasher is registered for it.                                                                                                                                  |
+| Any depth                | No `RecursionError`, whatever the nesting or the caller's stack: the engine uses an explicit stack. The depth is bounded by memory only.                                                                                      |
+| Linear cost              | The cost is linear in the number of **objects**, not of paths: a container reachable by several paths (a DAG) is hashed once per call.                                                                                        |
+| Pure, thread-safe        | Hashing has no side effect and keeps no global state (no thread-local, no lock), so a registry and a hasher can be shared by threads. Reading the filesystem is an explicit opt-in (`ResolvedPathHasher`).                    |
+| Errors propagate         | An exception of a hasher propagates unchanged. An invalid `length` raises `ValueError` before any traversal. A secret is never hashed unless asked for, wherever it is.                                                       |
 | Cross-library scalars    | Subclasses of `bool`, `int`, `float` and `complex` (such as `np.float64`) hash like the equivalent builtin, independently of the library version.                                                                             |
-| Pure                     | Hashing has no side effect and does not read the filesystem, environment or clock, except for the opt-in `ResolvedPathHasher`.                                                                                                |
+| Consistent with siblings | Dataclasses and pydantic models are entered, only their `compare=True` fields count (like `objects_are_equal`); options are keyword-only; one extension point (`encode`).                                                      |
 
-Internally, every hash is a BLAKE2b digest of `tag + "\0" + payload`, where the tag identifies the
-type family. Containers concatenate the **fixed-width** hashes of their children and hash the
-result, which makes the concatenation unambiguous without delimiters. The registry dispatches on
-`type(data)` along the Method Resolution Order, so the most specific registered type wins.
+Not guaranteed:
+
+- **Stability across versions of `coola`.** The format can change in a major release (the format
+  version is part of every digest, so two formats are never confused). `get_stable_registry()`
+  makes the stable identifiers independent of the installed plugins.
+- **Stability across versions of a library** when the library changes what an object means (the
+  dtype names of pandas, for example).
+- **Hashes of classes that are renamed or moved.** A dataclass, a model, an enum and a custom
+  object hash with their qualified class name.
+- **Cycles.** A cyclic structure raises `ValueError`, although `objects_are_equal` accepts it.
+- **Resistance to an adversary.** Do not use a hash as a security boundary.
+
+### The encoding
+
+Every hash is derived from one rule. A hasher describes a value as a leaf (`tag`, a NUL byte and a
+payload) or as a node (a tag and the children to hash). The engine computes
+
+```
+digest(x)  = BLAKE2b-512(preimage, person = b"coola-hash-1")          # 64 bytes
+leaf       : preimage = 0x00 + tag + 0x00 + payload
+node       : preimage = 0x01 + tag + 0x00 + d1 + d2 + ... + dn         # fixed-width children
+unordered  : the entries (a key and its value) are sorted by digest
+hash_object(x, length=n) = digest(x).hex()[:n]
+```
+
+The children digests have a fixed width, which makes the concatenation unambiguous without
+delimiters. The leading `0x00`/`0x01` byte makes a leaf and a node with the same tag different. The
+registry dispatches on `type(data)` along the Method Resolution Order, so the most specific
+registered type wins. A scalar and a standard-library container have a constant tag, so a subclass
+hashes like its base; a user-defined class (dataclass, model, enum, custom object) uses its
+qualified name.
 
 ### Choices that may surprise you
 
@@ -100,12 +132,18 @@ The options (`registry`, `length` and `ignore_unhashable`) are keyword-only, bec
 ### Controlling the Hash Length
 
 The `length` argument controls the length of the returned hex string (an even number between 2
-and 128, defaults to 64):
+and 128, defaults to 64). A `bool` or a `float` is rejected like an odd number. Hashes of different
+lengths are prefixes of one another: `hash_object(x, length=16)` is the first 16 characters of
+`hash_object(x, length=128)`. A short identifier can therefore be matched against a stored longer
+hash with `startswith`, and changing the length later does not change the start of the hashes you
+already have.
 
 ```pycon
 >>> from coola.hashing import hash_object
 >>> len(hash_object("hello", length=16))
 16
+>>> hash_object([1, 2], length=128).startswith(hash_object([1, 2], length=16))
+True
 
 ```
 
@@ -126,8 +164,8 @@ Error
 
 Pass `ignore_unhashable=True` to replace unhashable objects with a deterministic placeholder
 hash instead of raising an error. The placeholder only depends on the type, so it is **lossy**:
-any two unsupported objects of the same type hash the same. A `UserWarning` is emitted each time
-a placeholder is used, so a silent false equality does not hide in a cache key.
+any two unsupported objects of the same type hash the same. A `UserWarning` is emitted once per type
+in each call, so a silent false equality does not hide in a cache key.
 
 ```pycon
 >>> import warnings
@@ -139,7 +177,19 @@ a placeholder is used, so a silent false equality does not hide in a cache key.
 
 ```
 
-Self-referencing containers (e.g. a list that contains itself) raise a `ValueError`.
+Self-referencing containers (e.g. a list that contains itself) raise a `ValueError`. There is no
+limit on the nesting depth and no `RecursionError`, and a container that is reachable by several
+paths is hashed once, so a structure with `2**60` paths takes a linear time:
+
+```pycon
+>>> from coola.hashing import hash_object
+>>> data = []
+>>> for _ in range(60):
+...     data = [data, data]
+>>> len(hash_object(data))
+64
+
+```
 
 ## Supported Types
 
@@ -283,13 +333,15 @@ True
 | ------------------------------------- | -------------------------------------------------------------------------------- |
 | `length` is odd or outside 2 to 128   | `ValueError`                                                                     |
 | No hasher for the type                | `TypeNotRegisteredError` (a `KeyError`) naming the type, or a lossy placeholder with `ignore_unhashable=True` |
-| Self-referencing container            | `ValueError` instead of a stack overflow                                         |
+| Self-referencing container            | `ValueError("Cannot hash a self-referencing <type>.")`                           |
+| Deep nesting                          | Works: the only limit is the memory                                               |
+| An exception of a hasher              | Propagates unchanged                                                              |
 | Secret with the default registry     | `ValueError`, without leaking the value                                          |
 
 ## Type-Specific Hashers
 
-Each hasher implements the `BaseHasher` interface and knows how to hash one kind of object,
-delegating to a `HasherRegistry` to hash any nested values. The built-in hashers include:
+Each hasher implements the `BaseHasher` interface and describes one kind of object with `encode`;
+the engine hashes the children of a `Node` with the hasher of their own type. The built-in hashers include:
 
 - `StringHasher` - hashes `str` objects, namespaced by the `str` type tag
 - `BytesHasher` - hashes `bytes` and `bytearray` objects, namespaced by the type tag
