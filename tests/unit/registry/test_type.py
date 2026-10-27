@@ -4,6 +4,9 @@ import abc
 import contextlib
 import gc
 import weakref
+from collections import deque
+from collections.abc import Sequence
+from dataclasses import dataclass, is_dataclass
 from decimal import Decimal
 from fractions import Fraction
 from typing import TYPE_CHECKING, cast
@@ -11,7 +14,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError, TypeRegistry
+from coola.registry import (
+    AlreadyRegisteredError,
+    KeyNotRegisteredError,
+    TypeNotRegisteredError,
+    TypeRegistry,
+)
 
 if TYPE_CHECKING:
     import threading
@@ -1106,3 +1114,331 @@ def test_type_registry_register_lazy_unregister_non_type_raises() -> None:
 def test_type_registry_resolve_or_non_type_raises() -> None:
     with pytest.raises(TypeError, match="Expected a type as key"):
         TypeRegistry[str]().resolve_or("abc")
+
+
+#############################################
+#     Tests for the fallbacks of resolve    #
+#############################################
+
+
+@dataclass
+class Point:
+    x: int = 1
+
+
+class Base:
+    pass
+
+
+class Child(Base):
+    pass
+
+
+def is_child(dtype: type) -> bool:
+    return issubclass(dtype, Child)
+
+
+def is_base(dtype: type) -> bool:
+    return issubclass(dtype, Base)
+
+
+def is_sequence(dtype: type) -> bool:
+    return issubclass(dtype, Sequence)
+
+
+def raises(_dtype: type) -> bool:
+    msg = "predicate failed"
+    raise RuntimeError(msg)
+
+
+def test_type_registry_fallbacks_empty() -> None:
+    assert list(TypeRegistry[str]().fallbacks()) == []
+
+
+def test_type_registry_register_fallback_resolve_dataclass() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert registry.resolve(Point) == "dataclass"
+
+
+def test_type_registry_register_fallback_does_not_match_other_types() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert registry.resolve(int) == "object"
+
+
+def test_type_registry_register_fallback_matches_virtual_subclass() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.register_fallback(is_sequence, "sequence")
+    assert registry.resolve(deque) == "sequence"
+
+
+def test_type_registry_register_fallback_without_object_raises_if_no_match() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
+        registry.resolve(int)
+
+
+def test_type_registry_register_fallback_does_not_add_an_entry() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert len(registry) == 0
+
+
+def test_type_registry_register_fallback_is_seen_after_cached_lookup() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.resolve(Point)
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert registry.resolve(Point) == "dataclass"
+
+
+def test_type_registry_register_fallback_resolve_object_checks_the_fallbacks() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.register_fallback(lambda dtype: dtype is object, "fallback")
+    assert registry.resolve(object) == "fallback"
+
+
+@pytest.mark.parametrize(
+    ("has_type", "has_fallback", "has_object", "expected"),
+    [
+        (True, True, True, "type"),
+        (True, True, False, "type"),
+        (True, False, True, "type"),
+        (True, False, False, "type"),
+        (False, True, True, "fallback"),
+        (False, True, False, "fallback"),
+        (False, False, True, "object"),
+    ],
+)
+def test_type_registry_resolve_precedence(
+    has_type: bool, has_fallback: bool, has_object: bool, expected: str
+) -> None:
+    registry = TypeRegistry[str]()
+    if has_type:
+        registry.register(Base, "type")
+    if has_fallback:
+        registry.register_fallback(is_base, "fallback")
+    if has_object:
+        registry.register(object, "object")
+    assert registry.resolve(Child) == expected
+
+
+def test_type_registry_resolve_precedence_none_raises() -> None:
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
+        TypeRegistry[str]().resolve(Child)
+
+
+def test_type_registry_resolve_fallbacks_are_tried_in_registration_order() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_base, "first")
+    registry.register_fallback(is_child, "second")
+    assert registry.resolve(Child) == "first"
+
+
+def test_type_registry_resolve_fallback_exist_ok_keeps_the_position() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_base, "first")
+    registry.register_fallback(is_child, "second")
+    registry.register_fallback(is_base, "replaced", exist_ok=True)
+    assert [value for _, value in registry.fallbacks()] == ["replaced", "second"]
+
+
+def test_type_registry_resolve_handler_shared_by_object_and_base_class() -> None:
+    """Regression test: the handler of a base class is used for a dataclass
+    that inherits from it, even if the same handler is registered for
+    ``object``."""
+
+    @dataclass
+    class Derived(Base):
+        x: int = 1
+
+    shared = "shared"
+    registry = TypeRegistry[str]({object: shared, Base: shared})
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert registry.resolve(Derived) == "shared"
+
+
+def test_type_registry_resolve_fallback_is_cached() -> None:
+    calls = []
+
+    def predicate(dtype: type) -> bool:
+        calls.append(dtype)
+        return True
+
+    registry = TypeRegistry[str]()
+    registry.register_fallback(predicate, "fallback")
+    registry.resolve(Child)
+    registry.resolve(Child)
+    assert calls == [Child]
+
+
+def test_type_registry_resolve_fallback_that_raises_propagates() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.register_fallback(raises, "fallback")
+    with pytest.raises(RuntimeError, match="predicate failed"):
+        registry.resolve(int)
+
+
+def test_type_registry_resolve_fallback_that_raises_is_not_cached() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.register_fallback(raises, "fallback")
+    with contextlib.suppress(RuntimeError):
+        registry.resolve(int)
+    assert registry._cache == {}
+
+
+def test_type_registry_register_fallback_duplicate_raises() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    with pytest.raises(AlreadyRegisteredError, match="A fallback is already registered"):
+        registry.register_fallback(is_dataclass, "other")
+
+
+def test_type_registry_register_fallback_duplicate_does_not_change_the_value() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    with contextlib.suppress(AlreadyRegisteredError):
+        registry.register_fallback(is_dataclass, "other")
+    assert list(registry.fallbacks()) == [(is_dataclass, "dataclass")]
+
+
+def test_type_registry_register_fallback_exist_ok_replaces_the_value() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    registry.register_fallback(is_dataclass, "other", exist_ok=True)
+    assert list(registry.fallbacks()) == [(is_dataclass, "other")]
+
+
+def test_type_registry_register_fallback_exist_ok_is_keyword_only() -> None:
+    registry = TypeRegistry[str]()
+    with pytest.raises(TypeError, match="positional"):
+        registry.register_fallback(is_dataclass, "dataclass", True)  # ty: ignore[too-many-positional-arguments]
+
+
+def test_type_registry_unregister_fallback_returns_the_value() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert registry.unregister_fallback(is_dataclass) == "dataclass"
+
+
+def test_type_registry_unregister_fallback_is_seen_after_cached_lookup() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.register_fallback(is_dataclass, "dataclass")
+    registry.resolve(Point)
+    registry.unregister_fallback(is_dataclass)
+    assert registry.resolve(Point) == "object"
+
+
+def test_type_registry_unregister_fallback_unknown_raises() -> None:
+    registry = TypeRegistry[str]()
+    with pytest.raises(KeyNotRegisteredError, match="No fallback is registered"):
+        registry.unregister_fallback(is_dataclass)
+
+
+def test_type_registry_unregister_fallback_unknown_is_a_key_error() -> None:
+    registry = TypeRegistry[str]()
+    with pytest.raises(KeyError):
+        registry.unregister_fallback(is_dataclass)
+
+
+def test_type_registry_fallbacks_is_a_snapshot() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_base, "first")
+    view = registry.fallbacks()
+    registry.register_fallback(is_child, "second")
+    assert list(view) == [(is_base, "first")]
+
+
+def test_type_registry_fallbacks_follow_the_registration_order() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_child, "child")
+    registry.register_fallback(is_base, "base")
+    assert list(registry.fallbacks()) == [(is_child, "child"), (is_base, "base")]
+
+
+def test_type_registry_copy_has_the_fallbacks() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert list(registry.copy().fallbacks()) == [(is_dataclass, "dataclass")]
+
+
+def test_type_registry_copy_fallbacks_are_independent() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    other = registry.copy()
+    other.register_fallback(is_base, "base")
+    assert list(registry.fallbacks()) == [(is_dataclass, "dataclass")]
+
+
+def test_type_registry_copy_unregister_fallback_does_not_change_the_source() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    registry.copy().unregister_fallback(is_dataclass)
+    assert list(registry.fallbacks()) == [(is_dataclass, "dataclass")]
+
+
+def test_type_registry_copy_resolves_with_the_fallbacks() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert registry.copy().resolve(Point) == "dataclass"
+
+
+def test_type_registry_clear_removes_the_fallbacks() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    registry.clear()
+    assert list(registry.fallbacks()) == []
+
+
+def test_type_registry_clear_is_seen_after_cached_lookup() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    registry.resolve(Point)
+    registry.clear()
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
+        registry.resolve(Point)
+
+
+def test_type_registry_repr_with_fallbacks() -> None:
+    registry = TypeRegistry[str]({int: "int"})
+    registry.register_fallback(is_base, "base")
+    assert repr(registry) == (
+        f"TypeRegistry(\n  (<class 'int'>): int\n  (fallback) {is_base!r}: base\n)"
+    )
+
+
+def test_type_registry_str_with_fallbacks_and_pending_group() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_base, "base")
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert str(registry) == (
+        f"TypeRegistry(\n  (fallback) {is_base!r}: base\n  <not loaded: decimal>\n)"
+    )
+
+
+def test_type_registry_equal_same_fallbacks() -> None:
+    registry1 = TypeRegistry[str]()
+    registry2 = TypeRegistry[str]()
+    registry1.register_fallback(is_dataclass, "dataclass")
+    registry2.register_fallback(is_dataclass, "dataclass")
+    assert registry1.equal(registry2)
+
+
+def test_type_registry_equal_different_fallbacks() -> None:
+    registry1 = TypeRegistry[str]()
+    registry2 = TypeRegistry[str]()
+    registry1.register_fallback(is_dataclass, "dataclass")
+    assert not registry1.equal(registry2)
+
+
+def test_type_registry_equal_different_fallback_value() -> None:
+    registry1 = TypeRegistry[str]()
+    registry2 = TypeRegistry[str]()
+    registry1.register_fallback(is_dataclass, "dataclass")
+    registry2.register_fallback(is_dataclass, "other")
+    assert not registry1.equal(registry2)
+
+
+def test_type_registry_equal_other_type_is_false() -> None:
+    assert not TypeRegistry[str]().equal(42)
