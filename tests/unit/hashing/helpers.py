@@ -26,9 +26,9 @@ def hash_with(
 ) -> str:
     r"""Hash ``data`` with ``hasher`` for its type.
 
-    The hasher is registered for ``type(data)`` in a copy of ``registry``
-    (the default registry if ``None``), so the engine finds it for the
-    root and the registry finds the hashers of the children.
+    The hasher is registered for ``type(data)`` in a copy of
+    ``registry`` (the default registry if ``None``), so the engine finds
+    it for the root and the registry finds the hashers of the children.
     """
     registry = (get_default_registry() if registry is None else registry).copy()
     registry.register(type(data), hasher, exist_ok=True)

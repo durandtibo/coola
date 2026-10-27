@@ -1,5 +1,5 @@
-r"""Test the contract of ``encode`` for one sample per type of the default
-registry."""
+r"""Test the contract of ``encode`` for one sample per type of the
+default registry."""
 
 from __future__ import annotations
 

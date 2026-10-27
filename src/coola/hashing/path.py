@@ -85,8 +85,8 @@ class ResolvedPathHasher(InlineDisplayMixin, BaseHasher[Path]):
 def _posix(path: PurePath, *, resolve: bool = False) -> str:
     r"""Return the POSIX form of a path, resolved if requested.
 
-    If the resolution fails (permission error, OS-level issue), the
-    path is used as given.
+    If the resolution fails (permission error, OS-level issue), the path
+    is used as given.
     """
     if resolve and isinstance(path, Path):
         with suppress(OSError):

@@ -29,7 +29,8 @@ def blake2b(data: bytes) -> str:
 
 
 class Counting(BaseHasher[Any]):
-    """A hasher that counts the calls of ``encode`` and describes a list."""
+    """A hasher that counts the calls of ``encode`` and describes a
+    list."""
 
     def __init__(self) -> None:
         self.calls = 0

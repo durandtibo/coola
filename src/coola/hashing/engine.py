@@ -153,8 +153,8 @@ class _Walker:
         self._tags: dict[str, bytes] = {}
 
     def start(self, obj: object, hasher: Hasher[Any], node: Node) -> _Frame:
-        r"""Return the frame of the root container, whose hasher was found
-        and called by the caller."""
+        r"""Return the frame of the root container, whose hasher was
+        found and called by the caller."""
         self._cache[type(obj)] = hasher
         self._memo[id(obj)] = (obj, None)
         return _Frame(obj, node)

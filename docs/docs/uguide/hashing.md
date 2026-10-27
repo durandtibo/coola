@@ -28,12 +28,12 @@ The default registry is designed around the following properties.
 | Property                 | Statement                                                                                                                                                                                                                     |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Equality-consistent      | Objects that are equal for [`objects_are_equal`](equality.md) have the same hash. The reverse can fail for a few types that share a hash on purpose, e.g. a `list` subclass and a `list`, or a NumPy `float64` and a `float`. |
-| Deterministic            | The same value gives the same hash across calls, processes, machines and operating systems. It does not depend on `PYTHONHASHSEED`, on object addresses or on the iteration order of a set.                                  |
+| Deterministic            | The same value gives the same hash across calls, processes, machines and operating systems. It does not depend on `PYTHONHASHSEED`, on object addresses or on the iteration order of a set.                                   |
 | Type-sensitive           | Values of different types hash differently, even when their text looks the same: `1`, `1.0`, `True`, `"1"`, `b"1"`, `memoryview(b"1")` and `[1]` are all distinct.                                                            |
 | Structure-sensitive      | Nesting and item boundaries matter: `[[1], 2]`, `[1, [2]]` and `[1, 2]` are distinct, and so are `["ab", "c"]` and `["a", "bc"]`.                                                                                             |
 | Order rules              | Ordered containers are order-sensitive (`[1, 2]` differs from `[2, 1]`). Unordered containers are not (`{1, 2}` equals `{2, 1}`). `OrderedDict` is ordered, like in `objects_are_equal`.                                      |
-| Composable               | A container hash is built only from the digests of its children, resolved through the registry, so each type can be extended independently.                                                                                    |
-| Fixed width, user-chosen | The output is a lowercase hex string of `length` characters (an even number between 2 and 128, default 64). It is the first `length` characters of the full 128-character hash.                                              |
+| Composable               | A container hash is built only from the digests of its children, resolved through the registry, so each type can be extended independently.                                                                                   |
+| Fixed width, user-chosen | The output is a lowercase hex string of `length` characters (an even number between 2 and 128, default 64). It is the first `length` characters of the full 128-character hash.                                               |
 | No silent false equality | An unsupported type fails loudly by default. The `ignore_unhashable` placeholder is an explicit, documented opt-out that warns once per type.                                                                                 |
 | Cycle-safe               | A container that contains itself raises `ValueError`, whichever hasher is registered for it.                                                                                                                                  |
 | Any depth                | No `RecursionError`, whatever the nesting or the caller's stack: the engine uses an explicit stack. The depth is bounded by memory only.                                                                                      |
@@ -41,7 +41,7 @@ The default registry is designed around the following properties.
 | Pure, thread-safe        | Hashing has no side effect and keeps no global state (no thread-local, no lock), so a registry and a hasher can be shared by threads. Reading the filesystem is an explicit opt-in (`ResolvedPathHasher`).                    |
 | Errors propagate         | An exception of a hasher propagates unchanged. An invalid `length` raises `ValueError` before any traversal. A secret is never hashed unless asked for, wherever it is.                                                       |
 | Cross-library scalars    | Subclasses of `bool`, `int`, `float` and `complex` (such as `np.float64`) hash like the equivalent builtin, independently of the library version.                                                                             |
-| Consistent with siblings | Dataclasses and pydantic models are entered, only their `compare=True` fields count (like `objects_are_equal`); options are keyword-only; one extension point (`encode`).                                                      |
+| Consistent with siblings | Dataclasses and pydantic models are entered, only their `compare=True` fields count (like `objects_are_equal`); options are keyword-only; one extension point (`encode`).                                                     |
 
 Not guaranteed:
 
@@ -333,14 +333,14 @@ True
 
 ## Errors
 
-| Situation                             | Behavior                                                                         |
-| ------------------------------------- | -------------------------------------------------------------------------------- |
-| `length` is odd or outside 2 to 128   | `ValueError`                                                                     |
-| No hasher for the type                | `TypeNotRegisteredError` (a `KeyError`) naming the type, or a lossy placeholder with `ignore_unhashable=True` |
-| Self-referencing container            | `ValueError("Cannot hash a self-referencing <type>.")`                           |
-| Deep nesting                          | Works: the only limit is the memory                                               |
-| An exception of a hasher              | Propagates unchanged                                                              |
-| Secret with the default registry     | `ValueError`, without leaking the value                                          |
+| Situation                           | Behavior                                                                                                      |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `length` is odd or outside 2 to 128 | `ValueError`                                                                                                  |
+| No hasher for the type              | `TypeNotRegisteredError` (a `KeyError`) naming the type, or a lossy placeholder with `ignore_unhashable=True` |
+| Self-referencing container          | `ValueError("Cannot hash a self-referencing <type>.")`                                                        |
+| Deep nesting                        | Works: the only limit is the memory                                                                           |
+| An exception of a hasher            | Propagates unchanged                                                                                          |
+| Secret with the default registry    | `ValueError`, without leaking the value                                                                       |
 
 ## Type-Specific Hashers
 
@@ -480,6 +480,7 @@ differently and the object cannot bypass the protections of the engine (cycles, 
 >>> class Point:
 ...     def __init__(self, x, y):
 ...         self.x, self.y = x, y
+...
 ...     def __coola_hash__(self):
 ...         return (self.x, self.y)
 >>> hash_object(Point(1, 2)) == hash_object(Point(1, 2))
