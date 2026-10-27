@@ -355,29 +355,24 @@ The `coola.reducer` package follows these design principles:
 
 ### Creating a Custom Reducer
 
-You can create custom reducers by extending `BaseReducer` or `BaseBasicReducer`. `BaseBasicReducer`
-provides concrete implementations of `max`, `mean`, `median`, `min`, `quantile`, and `std` that
-first check for an empty sequence (via `_is_empty`) and then delegate to private `_max`, `_mean`,
-etc. methods. `sort` is not covered by this empty-sequence check — since sorting an empty
-sequence is well-defined, subclasses implement `sort` directly, like any other `BaseReducer`
-method:
+You can create a custom reducer by subclassing `BaseReducer`. The public methods (`max`, `mean`,
+`median`, `min`, `quantile`, `std` and `sort`) are implemented by the base class: they check the
+options and the empty case, then call the private computations. A subclass implements `_max`,
+`_mean`, `_median`, `_min`, `_quantile`, `_std` and `_sort`, and optionally `_prepare` to convert
+the input. The computations receive non-empty values (`_sort` can receive an empty input) and
+quantiles in `[0, 1]`:
 
 ```pycon
->>> from coola.reducer import BaseBasicReducer
+>>> from coola.reducer import BaseReducer
 >>> from collections.abc import Sequence
->>> from typing import TypeVar
->>> T = TypeVar("T", bound=Sequence[float])
->>> class CustomReducer(BaseBasicReducer[T]):
-...     def _is_empty(self, values: T) -> bool:
-...         return len(values) == 0
-...
-...     def _max(self, values: T) -> int | float:
+>>> class CustomReducer(BaseReducer[Sequence[float]]):
+...     def _max(self, values: Sequence[float]) -> int | float:
 ...         return max(values)
 ...
-...     def _mean(self, values: T) -> float:
+...     def _mean(self, values: Sequence[float]) -> float:
 ...         return sum(values) / len(values)
 ...
-...     def _median(self, values: T) -> int | float:
+...     def _median(self, values: Sequence[float]) -> int | float:
 ...         sorted_vals = sorted(values)
 ...         n = len(sorted_vals)
 ...         mid = n // 2
@@ -385,20 +380,20 @@ method:
 ...             return (sorted_vals[mid - 1] + sorted_vals[mid]) / 2
 ...         return sorted_vals[mid]
 ...
-...     def _min(self, values: T) -> int | float:
+...     def _min(self, values: Sequence[float]) -> int | float:
 ...         return min(values)
 ...
-...     def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
+...     def _quantile(self, values: Sequence[float], quantiles: Sequence[float]) -> list[float]:
 ...         # Custom quantile implementation
 ...         sorted_vals = sorted(values)
 ...         n = len(sorted_vals)
 ...         return [sorted_vals[int(q * (n - 1))] for q in quantiles]
 ...
-...     def _std(self, values: T) -> float:
+...     def _std(self, values: Sequence[float]) -> float:
 ...         m = self._mean(values)
 ...         return (sum((x - m) ** 2 for x in values) / len(values)) ** 0.5
 ...
-...     def sort(self, values: T, descending: bool = False) -> list[int | float]:
+...     def _sort(self, values: Sequence[float], *, descending: bool) -> list[int | float]:
 ...         return sorted(values, reverse=descending)
 >>> reducer = CustomReducer()
 >>> reducer.mean([1, 2, 3, 4, 5])

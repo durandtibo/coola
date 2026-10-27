@@ -451,3 +451,32 @@ def test_reducers_inf_is_not_nan(reducer: BaseReducer, method: str) -> None:
 @pytest.mark.filterwarnings("ignore:invalid value:RuntimeWarning")
 def test_reducers_std_infinite_value_is_nan(reducer: BaseReducer) -> None:
     assert math.isnan(reducer.std([1.0, 2.0, float("inf")]))
+
+
+def test_reducers_empty_sequence_error_is_a_value_error(reducer: BaseReducer) -> None:
+    with pytest.raises(ValueError, match=r"the sequence is empty"):
+        reducer.max([])
+
+
+@pytest.mark.parametrize("quantiles", [[-0.1], [1.1], [0.5, 2], [float("nan")]])
+def test_reducers_quantile_invalid_quantiles_raise(
+    reducer: BaseReducer, quantiles: list[float]
+) -> None:
+    with pytest.raises(ValueError, match=r"quantiles must be in \[0, 1\]"):
+        reducer.quantile([1, 2, 3], quantiles)
+
+
+def test_reducers_quantile_invalid_quantiles_are_checked_before_the_values(
+    reducer: BaseReducer,
+) -> None:
+    with pytest.raises(ValueError, match=r"quantiles must be in \[0, 1\], got 2"):
+        reducer.quantile([], [2])
+
+
+def test_reducers_quantile_empty_quantiles_returns_empty_list(reducer: BaseReducer) -> None:
+    assert reducer.quantile([1, 2, 3], []) == []
+
+
+def test_reducers_sort_descending_is_keyword_only(reducer: BaseReducer) -> None:
+    with pytest.raises(TypeError, match=r"positional argument"):
+        reducer.sort([1, 2, 3], True)

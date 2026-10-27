@@ -17,7 +17,6 @@ sums that exceed the range of a ``float``, and number types other than
 """
 
 __all__ = [
-    "BaseBasicReducer",
     "BaseReducer",
     "EmptySequenceError",
     "NativeReducer",
@@ -28,7 +27,7 @@ __all__ = [
 
 from typing import TYPE_CHECKING
 
-from coola.reducer.base import BaseBasicReducer, BaseReducer, EmptySequenceError
+from coola.reducer.base import BaseReducer, EmptySequenceError
 from coola.reducer.native import NativeReducer
 from coola.reducer.utils import auto_reducer
 from coola.utils.imports import lazy_exports

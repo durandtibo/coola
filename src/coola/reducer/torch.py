@@ -8,23 +8,23 @@ from __future__ import annotations
 __all__ = ["TorchReducer"]
 
 import math
-from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
-from coola.reducer.base import BaseBasicReducer
+from coola.reducer.base import BaseReducer
 from coola.utils.imports import check_torch, is_torch_available
 from coola.utils.tensor import to_tensor
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 if TYPE_CHECKING or is_torch_available():
     import torch
 else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
 
-T = TypeVar("T", Sequence[float], torch.Tensor)
 
-
-class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
+class TorchReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | torch.Tensor"]):
     r"""Implement a reducer based on torch functions.
 
     Raises:
@@ -47,18 +47,13 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     def __init__(self) -> None:
         check_torch()
 
-    def _is_empty(self, values: T) -> bool:
-        if isinstance(values, torch.Tensor):
-            return values.numel() == 0
-        return not values
-
-    def _max(self, values: T) -> int | float:
+    def _max(self, values: Sequence[float] | torch.Tensor) -> int | float:
         return _to_tensor(values).max().item()
 
-    def _mean(self, values: T) -> float:
+    def _mean(self, values: Sequence[float] | torch.Tensor) -> float:
         return _to_float_tensor(values).mean().item()
 
-    def _median(self, values: T) -> int | float:
+    def _median(self, values: Sequence[float] | torch.Tensor) -> int | float:
         tensor = _to_tensor(values).flatten()
         if tensor.isnan().any():
             return float("nan")
@@ -68,21 +63,25 @@ class TorchReducer(InlineDisplayMixin, BaseBasicReducer[T]):
             return _median_of(_to_float_tensor(tensor) / 2) * 2
         return result
 
-    def _min(self, values: T) -> int | float:
+    def _min(self, values: Sequence[float] | torch.Tensor) -> int | float:
         return _to_tensor(values).min().item()
 
-    def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
+    def _quantile(
+        self, values: Sequence[float] | torch.Tensor, quantiles: Sequence[float]
+    ) -> list[float]:
         tensor = _to_float_tensor(values)
         if tensor.dtype not in {torch.float32, torch.float64}:
             tensor = tensor.float()  # ``torch.quantile`` only supports float32/float64
         result: Any = torch.quantile(tensor, torch.as_tensor(quantiles, dtype=tensor.dtype))
         return result.tolist()
 
-    def sort(self, values: T, descending: bool = False) -> list[int | float]:
+    def _sort(
+        self, values: Sequence[float] | torch.Tensor, *, descending: bool
+    ) -> list[int | float]:
         result: Any = torch.sort(_to_tensor(values), descending=descending)[0]
         return result.tolist()
 
-    def _std(self, values: T) -> float:
+    def _std(self, values: Sequence[float] | torch.Tensor) -> float:
         tensor = _to_float_tensor(values)
         if tensor.numel() == 1:
             return float("nan")
