@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from collections import deque
+from collections import UserString, deque
 from collections.abc import Generator, Mapping, Sequence
+from types import MappingProxyType
 from unittest.mock import Mock, patch
 
 import pytest
@@ -190,11 +191,8 @@ def test_get_default_registry_returns_singleton() -> None:
     assert registry1 is registry2
 
 
-@pytest.mark.parametrize("dtype", [object, int, float, str, bool, complex])
-def test_get_default_registry_default_is_registered(dtype: type) -> None:
-    """Test that scalar types are registered with DefaultSummarizer."""
-    registry = get_default_registry()
-    assert registry.has_summarizer(dtype)
+def test_get_default_registry_object_is_registered() -> None:
+    assert get_default_registry().has_summarizer(object)
 
 
 @pytest.mark.parametrize("dtype", [object, int, float, str, bool, complex])
@@ -508,3 +506,30 @@ def test_summarize_keyword_options_do_not_warn() -> None:
 def test_summarize_too_many_positional_arguments_raises() -> None:
     with pytest.raises(TypeError, match="takes at most 3 positional arguments"):
         summarize([1], 1, None, 4)
+
+
+##############################################
+#     Tests for the dispatch of the types    #
+##############################################
+
+
+def test_get_default_registry_user_string_summarizer() -> None:
+    assert isinstance(get_default_registry().find_summarizer(UserString), DefaultSummarizer)
+
+
+def test_get_default_registry_mapping_proxy_summarizer() -> None:
+    assert isinstance(get_default_registry().find_summarizer(MappingProxyType), MappingSummarizer)
+
+
+def test_summarize_user_string() -> None:
+    assert summarize(UserString("abc")) == f"{UserString} abc"
+
+
+def test_summarize_mapping_proxy() -> None:
+    assert summarize(MappingProxyType({"a": 1, "b": 2})) == (
+        f"{MappingProxyType} (length=2)\n  (a): 1\n  (b): 2"
+    )
+
+
+def test_summarize_user_string_in_list() -> None:
+    assert summarize([UserString("abc")]) == f"{list} (length=1)\n  (0): abc"
