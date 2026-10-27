@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Any
 
 import pytest
@@ -9,6 +10,7 @@ from coola.utils.introspection import (
     check_not_lambda_function,
     get_all_child_classes,
     get_fully_qualified_name,
+    has_generated_dataclass_eq,
     is_lambda_function,
     is_same_type,
     supports_methods,
@@ -439,3 +441,50 @@ def test_is_same_type_narrows_for_attribute_access_different_value() -> None:
 
 def test_is_same_type_narrows_for_attribute_access_different_type() -> None:
     assert not Point(1).equal(1)
+
+
+##############################################
+#     Tests for has_generated_dataclass_eq     #
+##############################################
+
+
+@dataclass
+class GeneratedEq:
+    x: int = 1
+
+
+@dataclass(eq=False)
+class NoEq:
+    x: int = 1
+
+
+@dataclass
+class CustomEq:
+    x: int = 1
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, CustomEq)
+
+
+class NotDataclass:
+    pass
+
+
+def test_has_generated_dataclass_eq_generated() -> None:
+    assert has_generated_dataclass_eq(GeneratedEq)
+
+
+def test_has_generated_dataclass_eq_eq_false() -> None:
+    assert not has_generated_dataclass_eq(NoEq)
+
+
+def test_has_generated_dataclass_eq_custom_eq() -> None:
+    assert not has_generated_dataclass_eq(CustomEq)
+
+
+def test_has_generated_dataclass_eq_not_dataclass() -> None:
+    assert not has_generated_dataclass_eq(NotDataclass)
+
+
+def test_has_generated_dataclass_eq_builtin() -> None:
+    assert not has_generated_dataclass_eq(int)

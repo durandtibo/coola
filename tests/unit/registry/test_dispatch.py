@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, is_dataclass
 from decimal import Decimal
 
 import pytest
@@ -10,7 +10,7 @@ from coola.hashing.registry import HasherRegistry
 from coola.iterator.registry import ChildFinderRegistry
 from coola.recursive.registry import TransformerRegistry
 from coola.registry import AlreadyRegisteredError, DataclassMarker, KeyNotRegisteredError
-from coola.registry.dispatch import BaseTypeDispatchRegistry
+from coola.registry.dispatch import BaseTypeDispatchRegistry, FallbackMixin
 from coola.summary.registry import SummarizerRegistry
 
 ##############################################
@@ -344,3 +344,56 @@ def test_find_with_dataclass_marker_without_the_marker_handler() -> None:
 def test_find_with_dataclass_marker_a_subclass_can_refuse_the_marker_handler() -> None:
     registry = RejectingRegistry({object: "object", DataclassMarker: "marker"})
     assert registry._find_with_dataclass_marker(Point) == "object"
+
+
+###################################
+#     Tests for FallbackMixin     #
+###################################
+
+
+class _FallbackRegistry(FallbackMixin[str], BaseTypeDispatchRegistry[str]):
+    pass
+
+
+def test_fallback_mixin_register_fallback_find() -> None:
+    registry = _FallbackRegistry({object: "object"})
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert registry.find(Point) == "dataclass"
+
+
+def test_fallback_mixin_register_fallback_duplicate_raises() -> None:
+    registry = _FallbackRegistry()
+    registry.register_fallback(is_dataclass, "dataclass")
+    with pytest.raises(AlreadyRegisteredError, match="A fallback is already registered"):
+        registry.register_fallback(is_dataclass, "other")
+
+
+def test_fallback_mixin_register_fallback_exist_ok() -> None:
+    registry = _FallbackRegistry()
+    registry.register_fallback(is_dataclass, "dataclass")
+    registry.register_fallback(is_dataclass, "other", exist_ok=True)
+    assert list(registry.fallbacks()) == [(is_dataclass, "other")]
+
+
+def test_fallback_mixin_unregister_fallback_returns_the_handler() -> None:
+    registry = _FallbackRegistry()
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert registry.unregister_fallback(is_dataclass) == "dataclass"
+
+
+def test_fallback_mixin_unregister_fallback_unknown_raises() -> None:
+    with pytest.raises(KeyNotRegisteredError, match="No fallback is registered"):
+        _FallbackRegistry().unregister_fallback(is_dataclass)
+
+
+def test_fallback_mixin_copy_has_the_fallbacks() -> None:
+    registry = _FallbackRegistry()
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert list(registry.copy().fallbacks()) == [(is_dataclass, "dataclass")]
+
+
+def test_fallback_mixin_clear_removes_the_fallbacks() -> None:
+    registry = _FallbackRegistry()
+    registry.register_fallback(is_dataclass, "dataclass")
+    registry.clear()
+    assert list(registry.fallbacks()) == []

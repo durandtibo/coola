@@ -17,6 +17,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.engine import Engine
 from coola.equality.tester import (
     BaseEqualityTester,
+    DataclassEqualityTester,
     DefaultEqualityTester,
     EqualityTesterRegistry,
     JaxArrayEqualityTester,
@@ -39,7 +40,6 @@ from coola.equality.tester import (
 from coola.io import TextLoader, TextSaver
 from coola.io.base import BaseLoader, BaseSaver
 from coola.registry import AlreadyRegisteredError
-from coola.registry.dispatch import DataclassMarker
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import (
     import_object,
@@ -327,7 +327,6 @@ NATIVE_SAMPLES = {
     Decimal: Decimal("1.5"),
     Fraction: Fraction(1, 3),
     timedelta: timedelta(seconds=1),
-    DataclassMarker: Point(),
     deque: deque([1, 2]),
     array: array("d", [1.0, 2.0]),
     list: [1, {"a": 2}],
@@ -365,3 +364,17 @@ def test_default_registry_native_types_have_a_sample() -> None:
         if not data_type.__module__.startswith(optional)
     }
     assert native == set(NATIVE_SAMPLES)
+
+
+def test_default_registry_dataclass_is_reflexive() -> None:
+    assert Engine(EqualityConfig()).run(Point(), Point())
+
+
+def test_default_registry_dataclass_uses_the_dataclass_tester() -> None:
+    assert isinstance(get_default_registry().find(Point), DataclassEqualityTester)
+
+
+def test_default_registry_has_the_dataclass_fallback() -> None:
+    assert [handler for _, handler in get_default_registry().fallbacks()] == [
+        DataclassEqualityTester()
+    ]

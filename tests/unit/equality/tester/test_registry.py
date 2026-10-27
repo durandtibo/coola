@@ -15,9 +15,9 @@ from coola.equality.tester import (
     ScalarEqualityTester,
     SequenceEqualityTester,
 )
-from coola.equality.tester.registry import DataclassMarker
 from coola.equality.tolerance import Tolerance
 from coola.registry import AlreadyRegisteredError
+from coola.utils.introspection import has_generated_dataclass_eq
 
 
 class CustomList(list):
@@ -230,47 +230,52 @@ class _CustomEq:
         return isinstance(other, _CustomEq)
 
 
+def _make_registry() -> EqualityTesterRegistry:
+    registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
+    registry.register_fallback(has_generated_dataclass_eq, DataclassEqualityTester())
+    return registry
+
+
 def test_equality_tester_registry_find_equality_tester_dataclass_custom_eq() -> None:
-    registry = EqualityTesterRegistry(
-        {object: DefaultEqualityTester(), DataclassMarker: DataclassEqualityTester()}
-    )
-    assert isinstance(registry.find_equality_tester(_CustomEq), DefaultEqualityTester)
+    assert isinstance(_make_registry().find_equality_tester(_CustomEq), DefaultEqualityTester)
 
 
 def test_equality_tester_registry_find_equality_tester_dataclass() -> None:
-    dataclass_tester = DataclassEqualityTester()
-    registry = EqualityTesterRegistry(
-        {object: DefaultEqualityTester(), DataclassMarker: dataclass_tester}
-    )
-    assert registry.find_equality_tester(_Point) is dataclass_tester
+    assert isinstance(_make_registry().find_equality_tester(_Point), DataclassEqualityTester)
 
 
 def test_equality_tester_registry_find_equality_tester_dataclass_registered_type() -> None:
     tester = SequenceEqualityTester()
-    registry = EqualityTesterRegistry(
-        {
-            object: DefaultEqualityTester(),
-            DataclassMarker: DataclassEqualityTester(),
-            _Point: tester,
-        }
-    )
+    registry = _make_registry()
+    registry.register(_Point, tester)
     assert registry.find_equality_tester(_Point) is tester
 
 
 def test_equality_tester_registry_find_equality_tester_dataclass_eq_false() -> None:
-    registry = EqualityTesterRegistry(
-        {object: DefaultEqualityTester(), DataclassMarker: DataclassEqualityTester()}
-    )
-    assert isinstance(registry.find_equality_tester(_NoEq), DefaultEqualityTester)
+    assert isinstance(_make_registry().find_equality_tester(_NoEq), DefaultEqualityTester)
 
 
-def test_equality_tester_registry_find_equality_tester_dataclass_no_marker() -> None:
+def test_equality_tester_registry_find_equality_tester_dataclass_no_fallback() -> None:
     registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
     assert isinstance(registry.find_equality_tester(_Point), DefaultEqualityTester)
 
 
+def test_equality_tester_registry_find_equality_tester_dataclass_with_registered_base() -> None:
+    """Regression test: a tester shared by ``object`` and a base class is
+    used for a dataclass that inherits from the base class."""
+
+    class Base:
+        pass
+
+    @dataclass
+    class Derived(Base):
+        x: int = 1
+
+    shared = DefaultEqualityTester()
+    registry = EqualityTesterRegistry({object: shared, Base: shared})
+    registry.register_fallback(has_generated_dataclass_eq, DataclassEqualityTester())
+    assert registry.find_equality_tester(Derived) is shared
+
+
 def test_equality_tester_registry_find_equality_tester_not_dataclass() -> None:
-    registry = EqualityTesterRegistry(
-        {object: DefaultEqualityTester(), DataclassMarker: DataclassEqualityTester()}
-    )
-    assert isinstance(registry.find_equality_tester(int), DefaultEqualityTester)
+    assert isinstance(_make_registry().find_equality_tester(int), DefaultEqualityTester)
