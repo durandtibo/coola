@@ -499,6 +499,43 @@ refused, the `_init_` rule, the target's keywords never shadowed by a parameter 
 allow-list is a filter on a path and always comes from the caller's code, never from the data. See
 the [user guide](../uguide/factory.md#properties) for the properties of the package.
 
+## Design of `coola.hashing`
+
+The package has **one engine, one extension point and one encoding rule**. A hasher only describes
+the content of a type: `encode(data)` returns the bytes of a leaf (`tagged(tag, payload)`) or a
+`Node(tag, children, ordered, group)`. The engine (`coola.hashing.engine`) owns everything else: the
+dispatch by type (once per type and per call), the digests, the order rule, the cycles, the shared
+containers, the depth and the placeholder of `ignore_unhashable`. This is the same split as
+`equality` (the engine owns identity, type, depth and cycles; a tester returns the child pairs) and
+`recursive` (a transformer returns the children).
+
+```
+hash_object(data, *, registry=None, length=64, ignore_unhashable=False)
+        |   validates length; one registry; one call = one engine run
+        v
+digest_of(data, registry, ...)       explicit stack of frames; per-call type -> hasher cache and memo
+        |-- hasher   = registry.find_hasher(type(data))     MRO, fallbacks, Enum rule
+        |-- encoding = hasher.encode(data)                  pure: no registry, no recursion
+        |        bytes -> leaf:  digest = BLAKE2b(0x00 + encoding)
+        |        Node  -> push the children; when done:
+        |                 digest = BLAKE2b(0x01 + tag + 0x00 + digests of the children)
+        v
+the 64-byte digest of the root  ->  hex()[:length]
+```
+
+| Decision                                                              | Why                                                                        |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `encode` returns a description, the engine hashes                     | cycles, depth, sharing, `length` and the placeholder cannot be forgotten   |
+| One 64-byte digest, cut at the end by `length`                        | a hasher never sees `length`; a short hash is the start of a longer one    |
+| The format version is the BLAKE2b `person` parameter                  | two formats can never be confused; a change is one constant               |
+| A shared container is hashed once per call (a memo by `id`)           | a hash is pure, so the memo is invisible; a DAG is linear                  |
+| A cycle raises `ValueError`                                           | the digest of a container in a cycle would depend on where it is reached   |
+| Secrets are types with a hasher (`SecretHasher`)                      | the policy is the one of the registry, wherever the secret is              |
+| `__coola_hash__` returns the content of a custom object, not a hash   | the object cannot bypass the engine and does not forward any option        |
+| Only the `compare=True` fields of a dataclass                         | equal dataclasses have the same hash                                       |
+
+See the [user guide](../uguide/hashing.md#properties) for the properties of the package.
+
 ## Design Decisions
 
 ### Why Strict Type Checking?
