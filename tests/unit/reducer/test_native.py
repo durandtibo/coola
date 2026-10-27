@@ -345,3 +345,19 @@ def test_native_reducer_max_range() -> None:
 
 def test_native_reducer_big_int() -> None:
     assert NativeReducer().max([2**70, 1]) == 1180591620717411303424
+
+
+def test_native_reducer_mean_sum_exceeds_float_range() -> None:
+    assert NativeReducer().mean([1e308, 1e308]) == 1e308
+
+
+def test_native_reducer_mean_int_returns_float() -> None:
+    assert type(NativeReducer().mean([1, 2, 3])) is float
+
+
+def test_native_reducer_mean_big_int() -> None:
+    assert NativeReducer().mean([2**70, 2**70]) == 1.1805916207174113e21
+
+
+def test_native_reducer_mean_cancellation() -> None:
+    assert NativeReducer().mean([1e16, 1.0, -1e16, 3.0]) == 1.0

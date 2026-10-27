@@ -7,7 +7,7 @@ __all__ = ["NativeReducer"]
 
 import math
 from collections.abc import Sequence
-from statistics import mean, median, stdev
+from statistics import fmean, mean as exact_mean, median, stdev
 
 from coola.display import InlineDisplayMixin
 from coola.reducer.base import BaseReducer
@@ -55,7 +55,11 @@ class NativeReducer(InlineDisplayMixin, BaseReducer[Sequence[float]]):
         return max(values)
 
     def _mean(self, values: Sequence[float]) -> float:
-        return float(mean(values))
+        try:
+            return fmean(values)
+        except OverflowError:
+            # ``fmean`` overflows if the sum exceeds the range of a float; the exact mean does not.
+            return float(exact_mean(values))
 
     def _median(self, values: Sequence[float]) -> int | float:
         if _has_nan(values):
