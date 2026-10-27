@@ -8,15 +8,14 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 
 ## Overview
 
-The `coola.summary` package provides a type-based system for generating formatted string
-representations of Python objects, with special support for nested data structures. Unlike
-Python's built-in `repr()` or `str()`, this package offers:
+The `coola.summary` package generates the text summary of a Python object, with special support for
+nested data structures. Unlike Python's built-in `repr()` or `str()`, it offers:
 
-- **Configurable depth control**: Limit how deep nested structures are expanded
-- **Type-specific formatting**: Different types are formatted according to their structure
-- **Truncation support**: Limit the number of items shown in collections
-- **Extensibility**: Register custom summarizers for your own types
-- **Automatic type dispatch**: Automatically selects the right summarizer based on type
+- **Bounded output**: limit the depth, the number of items and the length of the texts
+- **Bounded work**: the cost depends on the size of the summary, not on the size of the data
+- **Type-specific formatting**: each type is described by a summarizer chosen from its type
+- **Extensibility**: register a summarizer for your own types
+- **Robustness**: a cycle, a very deep structure or an object whose `__str__` raises does not fail
 
 This is particularly useful for debugging, logging, and displaying complex data in a readable
 format without being overwhelmed by deeply nested or large structures.
@@ -44,18 +43,9 @@ a (possibly huge, nested, partly unprintable) object contains. These are the rul
 | Consistent with siblings   | Dataclasses are entered (like `objects_are_equal`, `hash_object`, `recursive_apply`); iterators are leaves (like `dfs_iterate`); options are keyword-only.                                                                                                                                                                                                                        |
 | For humans                 | The output is meant to be read, not parsed: its exact format can change in a release.                                                                                                                                                                                                                                                       |
 
-Not yet true in the current implementation (they are the target of the redesign in
-`review/summary.md`): **Bounded work** (a container at the display depth is converted to a string
-before it is cut), **Total** (a `__len__` or an attribute that raises propagates), **Cycle-safe**
-(a self-referencing container is repeated up to `max_depth`), **Any depth** (a `RecursionError` is
-raised for a nesting of a few hundred levels) and **Secrets stay hidden** for the dataclass fields
-declared with `field(repr=False)`.
-
 Not guaranteed:
 
 - **Shared references.** A container reachable by several paths is shown once per path.
-- **Self-referencing containers.** They are not detected: the output repeats the cycle until
-  `max_depth`, and a large `max_depth` raises a `RecursionError`.
 - **The time of a foreign `str` or `repr`.** The package bounds what it iterates, not what a user
   class does inside `__str__` or `__repr__`.
 - **A stable format** between releases (see "For humans").
@@ -75,18 +65,27 @@ The simplest way to create a summary is using the `summarize()` function:
 
 ```
 
-The function automatically detects the type of data and formats it appropriately.
+All the options are keyword arguments of `summarize()`:
+
+| Option           | Default | Meaning                                                                                 |
+| ---------------- | ------- | --------------------------------------------------------------------------------------- |
+| `max_depth`      | `1`     | The number of levels that are expanded. The deeper nodes are shown on one line.         |
+| `max_items`      | `5`     | The maximum number of items, fields or columns shown for a node. `None` shows them all. |
+| `max_characters` | `1000`  | The maximum number of characters of a text. `None` does not cut the texts.              |
+| `show_data`      | `False` | Show a bounded `repr` of the values of arrays, tensors and frames, not their metadata.  |
+| `registry`       | `None`  | The registry that gives the summarizer of each type (the default registry if `None`).   |
+
+The options are validated before any work: a negative number raises a `ValueError`, and a value of
+the wrong type (a `bool` for `max_depth`, ...) raises a `TypeError`.
 
 ### Simple Values
 
-For simple scalar values, the summary shows the type and value:
+For simple scalar values, the summary shows the type and the value:
 
 ```pycon
 >>> from coola.summary import summarize
 >>> print(summarize(42))
 <class 'int'> 42
->>> print(summarize(3.14159))
-<class 'float'> 3.14159
 >>> print(summarize("hello"))
 <class 'str'> hello
 >>> print(summarize(True))
@@ -94,68 +93,52 @@ For simple scalar values, the summary shows the type and value:
 
 ```
 
-### Lists and Tuples
+### Lists, Tuples and Sets
 
 Sequences are displayed with their type, length, and indexed items:
 
 ```pycon
 >>> from coola.summary import summarize
->>> print(summarize([1, 2, 3, 4, 5]))
-<class 'list'> (length=5)
+>>> print(summarize([1, 2, 3]))
+<class 'list'> (length=3)
   (0): 1
   (1): 2
   (2): 3
-  (3): 4
-  (4): 5
+>>> print(summarize((10, 20)))
+<class 'tuple'> (length=2)
+  (0): 10
+  (1): 20
 
 ```
 
-Tuples work the same way:
+The items of a named tuple are labeled with their field name, like the fields of a dataclass.
+
+A set shows its `max_items` smallest items, in order, so the summary is the same from one run to
+the next (a set of strings is not iterated in the same order with a different `PYTHONHASHSEED`).
+The items that cannot be compared (for example an `int` and a `str`) are shown in iteration order:
 
 ```pycon
 >>> from coola.summary import summarize
->>> print(summarize((10, 20, 30)))
-<class 'tuple'> (length=3)
-  (0): 10
-  (1): 20
-  (2): 30
+>>> print(summarize({3, 1, 2}))
+<class 'set'> (length=3)
+  (0): 1
+  (1): 2
+  (2): 3
 
 ```
 
 ### Dictionaries
 
-Dictionaries show their type, length, and key-value pairs:
+Dictionaries show their type, length, and key-value pairs, in the order of the dictionary:
 
 ```pycon
 >>> from coola.summary import summarize
->>> print(summarize({"name": "Alice", "age": 30, "city": "NYC"}))
-<class 'dict'> (length=3)
+>>> print(summarize({"name": "Alice", "age": 30}))
+<class 'dict'> (length=2)
   (name): Alice
   (age): 30
-  (city): NYC
 
 ```
-
-### Sets
-
-Sets display their type, length, and elements:
-
-```pycon
->>> from coola.summary import summarize
->>> print(summarize({1, 2, 3, 4, 5}))
-<class 'set'> (length=5)
-  (0): 1
-  (1): 2
-  (2): 3
-  (3): 4
-  (4): 5
-
-```
-
-The elements are sorted when they can be compared, so the summary is the same from one run to the
-next (a set of strings is not iterated in the same order with a different `PYTHONHASHSEED`). When
-the set has more than `max_items` elements, the smallest ones are shown. The elements that cannot be
-compared (for example an `int` and a `str`) are shown in iteration order.
 
 ### Dataclasses and Pydantic Models
 
@@ -177,34 +160,39 @@ Point (fields=2)
 
 ```
 
+### Iterators
+
+A generator or an iterator is a leaf: its `str` is shown and no item is taken from it, so the
+summary never consumes the data.
+
 ## Working with Nested Structures
 
 ### Depth Control
 
-The most important feature of `coola.summary` is controlling how deeply nested structures are
-expanded using the `max_depth` parameter. It is a **display depth**: the structures deeper than
-`max_depth` are shown in a compact form, nothing is raised. This is the opposite of the `max_depth`
-of `objects_are_equal`, which is a **limit that raises** an error for a deeper structure:
+The most important option of `coola.summary` is `max_depth`. It is a **display depth**: the number
+of levels that are expanded. The structures deeper than `max_depth` are shown on one line (the
+compact form), and nothing is raised. This is the opposite of the `max_depth` of
+`objects_are_equal`, which is a **limit that raises** an error for a deeper structure:
 
 ```pycon
->>> from coola.summary import get_default_registry
->>> nested_data = {"level1": {"level2": {"level3": [1, 2, 3]}}}
->>> registry = get_default_registry()
+>>> from coola.summary import summarize
+>>> data = {"level1": {"level2": {"level3": [1, 2, 3]}}}
 
 ```
 
-**max_depth=0**: Shows the raw string representation (no expansion):
+**max_depth=0**: Shows the data on one line (no expansion). The nesting of the line is cut after
+three levels:
 
 ```pycon
->>> print(registry.summarize(nested_data, max_depth=0))
-{'level1': {'level2': {'level3': [1, 2, 3]}}}
+>>> print(summarize(data, max_depth=0))
+{'level1': {'level2': {'level3': [...]}}}
 
 ```
 
-**max_depth=1**: Expands only the top level:
+**max_depth=1** (the default): Expands only the top level:
 
 ```pycon
->>> print(registry.summarize(nested_data, max_depth=1))
+>>> print(summarize(data, max_depth=1))
 <class 'dict'> (length=1)
   (level1): {'level2': {'level3': [1, 2, 3]}}
 
@@ -213,270 +201,153 @@ of `objects_are_equal`, which is a **limit that raises** an error for a deeper s
 **max_depth=2**: Expands two levels deep:
 
 ```pycon
->>> print(registry.summarize(nested_data, max_depth=2))
+>>> print(summarize(data, max_depth=2))
 <class 'dict'> (length=1)
   (level1): <class 'dict'> (length=1)
-      (level2): {'level3': [1, 2, 3]}
+    (level2): {'level3': [1, 2, 3]}
 
 ```
 
 **max_depth=3**: Expands three levels deep:
 
 ```pycon
->>> print(registry.summarize(nested_data, max_depth=3))
+>>> print(summarize(data, max_depth=3))
 <class 'dict'> (length=1)
   (level1): <class 'dict'> (length=1)
-      (level2): <class 'dict'> (length=1)
-          (level3): [1, 2, 3]
+    (level2): <class 'dict'> (length=1)
+      (level3): [1, 2, 3]
 
 ```
 
-### Complex Nested Examples
+Each level is indented by two spaces. A text with several lines is aligned under its first
+character. The summary of a structure that is nested 100,000 levels is built without a
+`RecursionError`: the size of the text is bounded by `max_depth`, `max_items` and `max_characters`.
 
-**Nested lists and dictionaries:**
+### The Compact Form
+
+A node at the display depth is shown on one line, with a bounded work: a `list`, a `tuple`, a
+`deque`, a `dict`, a `set` or a `frozenset` shows at most `max_items` items followed by `...`, the
+nested containers are cut after three levels, and a long string is shortened in the middle. The
+sub-structure is never converted to a string, so a huge list at the display depth costs as much as
+a small one:
 
 ```pycon
 >>> from coola.summary import summarize
->>> data = {
-...     "users": [
-...         {"name": "Alice", "scores": [95, 87, 92]},
-...         {"name": "Bob", "scores": [88, 91, 85]},
-...     ],
-...     "metadata": {"count": 2, "version": "1.0"},
-... }
->>> print(summarize(data))
+>>> print(summarize({"values": list(range(1_000_000)), "nested": [[[[1]]]]}))
 <class 'dict'> (length=2)
-  (users): [{'name': 'Alice', 'scores': [95, 87, 92]}, {'name': 'Bob', 'scores': [88, 91, 85]}]
-  (metadata): {'count': 2, 'version': '1.0'}
+  (values): [0, 1, 2, 3, 4, ...]
+  (nested): [[[[...]]]]
 
 ```
 
-**Mixed types:**
+Any other type (a subclass of `list`, a `Counter`, ...) is shown with its `repr`, cut at
+`max_characters`.
+
+### Cycles
+
+A container that contains itself is shown as `<cycle>` where it comes back. A container that is
+reachable by several paths (it is not a cycle) is shown once per path:
 
 ```pycon
 >>> from coola.summary import summarize
->>> mixed = {
-...     "int": 42,
-...     "float": 3.14,
-...     "string": "hello",
-...     "list": [1, 2, 3],
-...     "tuple": (4, 5, 6),
-...     "dict": {"nested": "value"},
-... }
->>> print(summarize(mixed))
-<class 'dict'> (length=6)
-  (int): 42
-  (float): 3.14
-  (string): hello
-  (list): [1, 2, 3]
-  (tuple): (4, 5, 6)
-  ...
+>>> data = [1]
+>>> data.append(data)
+>>> print(summarize(data, max_depth=3))
+<class 'list'> (length=2)
+  (0): <class 'int'> 1
+  (1): <cycle>
 
 ```
+
+### Errors in the Data
+
+Summarizing never fails because of the data. A `__len__`, a property or a `__iter__` that raises is
+replaced by a placeholder that names the exception type (never its message, which may carry data),
+and the rest of the summary is intact:
+
+```pycon
+>>> from coola.summary import summarize
+>>> class Broken(list):
+...     def __len__(self):
+...         raise RuntimeError("broken")
+>>> print(summarize([Broken(), 1]).replace(f"{Broken}", "Broken"))
+<class 'list'> (length=2)
+  (0): Broken <summary failed: RuntimeError>
+  (1): 1
+
+```
+
+A `__str__` or a `__repr__` that raises is replaced by `<ClassName object at 0x...>`.
 
 ## Controlling Output Size
 
-### Limiting Items in Collections
+### Limiting Items
 
-By default, collections show a maximum of 5 items. Longer collections are truncated with `...`:
+By default, a node shows at most 5 children. The other ones are announced, never silently dropped:
 
 ```pycon
 >>> from coola.summary import summarize
->>> long_list = list(range(20))
->>> print(summarize(long_list))
+>>> print(summarize(list(range(20))))
 <class 'list'> (length=20)
   (0): 0
   (1): 1
   (2): 2
   (3): 3
   (4): 4
-  ...
+  ... (+15 more)
 
 ```
 
-### Custom max_items
-
-You can customize the number of items shown using custom summarizers:
+Use `max_items` to change the limit. `max_items=None` shows all the items:
 
 ```pycon
->>> from coola.summary import SummarizerRegistry, SequenceSummarizer, DefaultSummarizer
->>> registry = SummarizerRegistry()
->>> registry.register(object, DefaultSummarizer())
->>> registry.register(list, SequenceSummarizer(max_items=3))
->>> long_list = list(range(10))
->>> print(registry.summarize(long_list))
+>>> print(summarize(list(range(10)), max_items=3))
 <class 'list'> (length=10)
   (0): 0
   (1): 1
   (2): 2
-  ...
+  ... (+7 more)
 
 ```
 
-To show all items, set `max_items=-1`:
+`max_items` applies to the items of the sequences, the mappings and the sets, to the fields of the
+dataclasses and the pydantic models, and to the columns of the data frames, the tables and the
+datasets.
+
+### Truncating Long Texts
+
+A text is cut at `max_characters` characters (1000 by default). The `str` of the object is computed
+before it is cut. Use `max_characters=None` to show everything:
 
 ```pycon
->>> from coola.summary import SummarizerRegistry, SequenceSummarizer, DefaultSummarizer
->>> registry = SummarizerRegistry()
->>> registry.register(object, DefaultSummarizer())
->>> registry.register(list, SequenceSummarizer(max_items=-1))
->>> print(registry.summarize(list(range(10))))
-<class 'list'> (length=10)
-  (0): 0
-  (1): 1
-  (2): 2
-  (3): 3
-  (4): 4
-  (5): 5
-  (6): 6
-  (7): 7
-  (8): 8
-  (9): 9
-
-```
-
-### Truncating Long Strings
-
-`DefaultSummarizer` shows at most 1000 characters by default (the `str` of the object is computed
-before it is truncated). Use `max_characters` to change the limit, or a negative value to show
-everything:
-
-```pycon
->>> from coola.summary import SummarizerRegistry, DefaultSummarizer
->>> long_string = "This is a very long string that should be truncated when max_characters is set"
->>> registry = SummarizerRegistry()
->>> registry.register(object, DefaultSummarizer(max_characters=30))
->>> print(registry.summarize(long_string))
-<class 'str'> This is a very long string tha...
-
-```
-
-### Limiting the Listed Columns
-
-The summary of a data frame, a table or a dataset lists the columns (the variables) and their types.
-Only the first 10 are listed, and the other ones are replaced by `... (+N more)`. Use `max_fields` to
-change the limit:
-
-```pycon
->>> import pandas as pd
->>> from coola.summary import PandasDataFrameSummarizer, SummarizerRegistry
->>> df = pd.DataFrame({"a": [1], "b": [2.0], "c": ["x"]})
->>> registry = SummarizerRegistry()
->>> print(PandasDataFrameSummarizer(max_fields=2).summarize(df, registry))
-<class 'pandas.DataFrame'> | shape=(1, 3) | columns=a: int64, b: float64, ... (+1 more)
-
-```
-
-## Customizing Indentation
-
-The `num_spaces` parameter controls indentation for nested structures:
-
-```pycon
->>> from coola.summary import (
-...     SummarizerRegistry,
-...     MappingSummarizer,
-...     SequenceSummarizer,
-...     DefaultSummarizer,
-... )
->>> data = {"a": [1, 2, 3], "b": {"nested": "value"}}
->>> # Default: 2 spaces
->>> registry = SummarizerRegistry()
->>> registry.register(object, DefaultSummarizer())
->>> registry.register(list, SequenceSummarizer(num_spaces=2))
->>> registry.register(dict, MappingSummarizer(num_spaces=2))
->>> print(registry.summarize(data, max_depth=3))
-<class 'dict'> (length=2)
-  (a): <class 'list'> (length=3)
-      (0): <class 'int'> 1
-      (1): <class 'int'> 2
-      (2): <class 'int'> 3
-  (b): <class 'dict'> (length=1)
-      (nested): <class 'str'> value
-
-```
-
-With 4 spaces for clearer nesting:
-
-```pycon
->>> from coola.summary import (
-...     SummarizerRegistry,
-...     MappingSummarizer,
-...     SequenceSummarizer,
-...     DefaultSummarizer,
-... )
->>> registry = SummarizerRegistry()
->>> registry.register(object, DefaultSummarizer())
->>> registry.register(list, SequenceSummarizer(num_spaces=4))
->>> registry.register(dict, MappingSummarizer(num_spaces=4))
->>> print(registry.summarize(data, max_depth=3))
-<class 'dict'> (length=2)
-    (a): <class 'list'> (length=3)
-            (0): <class 'int'> 1
-            (1): <class 'int'> 2
-            (2): <class 'int'> 3
-    (b): <class 'dict'> (length=1)
-            (nested): <class 'str'> value
+>>> from coola.summary import summarize
+>>> print(summarize("This is a very long string that is cut", max_characters=24))
+<class 'str'> This is a...
 
 ```
 
 ## Working with NumPy and PyTorch
 
-### NumPy Arrays
-
-The `NDArraySummarizer` creates compact summaries of NumPy arrays:
+The default registry summarizes the arrays and the tensors with their metadata, so a large array
+never floods the logs:
 
 ```pycon
 >>> import numpy as np
->>> from coola.summary import SummarizerRegistry, NDArraySummarizer, DefaultSummarizer
->>> registry = SummarizerRegistry()
->>> registry.register(object, DefaultSummarizer())
->>> registry.register(np.ndarray, NDArraySummarizer())
->>> arr = np.arange(100).reshape(10, 10)
->>> print(registry.summarize(arr))
+>>> from coola.summary import summarize
+>>> print(summarize(np.arange(100).reshape(10, 10)))
 <class 'numpy.ndarray'> | shape=(10, 10) | dtype=int64
-
-```
-
-By default, only metadata is shown. To see the actual data, use `show_data=True`:
-
-```pycon
->>> from coola.summary import SummarizerRegistry, NDArraySummarizer, DefaultSummarizer
->>> import numpy as np
->>> registry = SummarizerRegistry()
->>> registry.register(object, DefaultSummarizer())
->>> registry.register(np.ndarray, NDArraySummarizer(show_data=True))
->>> arr = np.arange(5)
->>> print(registry.summarize(arr))
-array([0, 1, 2, 3, 4])
-
-```
-
-### PyTorch Tensors
-
-The `TensorSummarizer` works similarly for PyTorch tensors:
-
-```pycon
 >>> import torch
->>> from coola.summary import SummarizerRegistry, TensorSummarizer, DefaultSummarizer
->>> registry = SummarizerRegistry()
->>> registry.register(object, DefaultSummarizer())
->>> registry.register(torch.Tensor, TensorSummarizer())
->>> tensor = torch.randn(3, 4, 5)
->>> print(registry.summarize(tensor))
+>>> print(summarize(torch.randn(3, 4, 5)))
 <class 'torch.Tensor'> | shape=torch.Size([3, 4, 5]) | dtype=torch.float32 | device=cpu | requires_grad=False
 
 ```
 
-With `show_data=True`:
+Use `show_data=True` to see a bounded `repr` of the values instead:
 
 ```pycon
->>> from coola.summary import SummarizerRegistry, TensorSummarizer, DefaultSummarizer
->>> import torch
->>> registry = SummarizerRegistry()
->>> registry.register(object, DefaultSummarizer())
->>> registry.register(torch.Tensor, TensorSummarizer(show_data=True))
->>> tensor = torch.arange(5)
->>> print(registry.summarize(tensor))
+>>> print(summarize(np.arange(5), show_data=True))
+array([0, 1, 2, 3, 4])
+>>> print(summarize(torch.arange(5), show_data=True))
 tensor([0, 1, 2, 3, 4])
 
 ```
@@ -484,8 +355,9 @@ tensor([0, 1, 2, 3, 4])
 ### DataFrames, Arrays and Other Array-Like Types
 
 The default registry also summarizes the other array-like types supported by `coola.equality`,
-when their package is installed. They show metadata only (type, shape, dtype and column names),
-so a large data frame never floods the logs. At most 10 columns or variables are listed.
+when their package is installed. They show metadata only (type, shape, dtype and column names).
+At most `max_items` columns or variables are listed, and the other ones are replaced by
+`... (+N more)`. A lazy frame is never collected.
 
 | Type                                    | Summarizer                  | Summary                                    |
 | --------------------------------------- | --------------------------- | ------------------------------------------ |
@@ -504,83 +376,114 @@ so a large data frame never floods the logs. At most 10 columns or variables are
 ```pycon
 >>> import pandas as pd
 >>> from coola.summary import summarize
->>> frame = pd.DataFrame({"a": [1, 2, 3], "b": [0.1, 0.2, 0.3]})
+>>> frame = pd.DataFrame({"a": [1], "b": [2.0], "c": [3]})
 >>> print(summarize(frame))
-<class 'pandas.DataFrame'> | shape=(3, 2) | columns=a: int64, b: float64
+<class 'pandas.DataFrame'> | shape=(1, 3) | columns=a: int64, b: float64, c: int64
+>>> print(summarize(frame, max_items=2))
+<class 'pandas.DataFrame'> | shape=(1, 3) | columns=a: int64, b: float64, ... (+1 more)
 
 ```
 
-Like `NDArraySummarizer` and `TensorSummarizer`, each of them accepts `show_data=True` to return
-`repr(data)` instead. To add a summarizer for another type that is described by its metadata,
-extend `BaseMetadataSummarizer` and implement `_describe`.
+To add a summarizer for another type that is described by its metadata, extend
+`BaseMetadataSummarizer` and implement `_describe`.
 
 ## Creating Custom Summarizers
 
-### Defining a Custom Summarizer
+### The Contract
 
-To create a custom summarizer for your own types, extend `BaseSummarizer`:
+A summarizer **describes one type**. It returns:
+
+- a `str` for a leaf, or
+- a `Node(header, children, total)` for a container: the first line, the lazy `(label, child)`
+  pairs in display order, and the number of children.
+
+The engine owns the recursion, the depth, the limits, the cycles and the errors, so a summarizer
+does not call the registry and cannot forget a protection. The rules are:
+
+1. `summarize(data, config, *, compact)` is pure and cheap: it does not recurse, does not modify the
+   data and does not iterate the whole data. It reads `len(data)` and returns the children lazily
+   (`enumerate(data)`, `data.items()`, a generator): the engine takes at most `max_items` of them.
+2. `compact` is `True` when the data is at the display depth. A leaf may use it. A container
+   ignores it: the engine shows it on one line.
+3. A leaf may return a text with several lines. The engine cuts it at `max_characters`.
+4. The labels of the children can be any object: the engine writes their `str`.
+5. An exception is handled by the engine, which writes a placeholder.
+
+`config` is a `SummaryConfig`, the frozen and validated object that holds `max_depth`, `max_items`,
+`max_characters` and `show_data`. A protocol (`Summarizer`) is enough: `BaseSummarizer` is a
+convenience base class.
+
+### A Leaf
 
 ```pycon
->>> from coola.summary import BaseSummarizer, SummarizerRegistry
-
+>>> from coola.summary import BaseSummarizer, register_summarizers, summarize
 >>> class Person:
 ...     def __init__(self, name, age):
 ...         self.name = name
 ...         self.age = age
->>> class PersonSummarizer(BaseSummarizer):
-...     def equal(self, other: object) -> bool:
-...         return type(self) is type(other)
-...
-...     def summarize(self, data, registry, depth=0, max_depth=1):
+>>> class PersonSummarizer(BaseSummarizer[Person]):
+...     def summarize(self, data, config, *, compact):
 ...         return f"Person(name={data.name!r}, age={data.age})"
-
-```
-
-### Registering Custom Summarizers
-
-Register your custom summarizer with the registry:
-
-```pycon
->>> from coola.summary import register_summarizers
 >>> register_summarizers({Person: PersonSummarizer()})
->>> person = Person("Alice", 30)
->>> from coola.summary import summarize
->>> print(summarize(person))
+>>> print(summarize(Person("Alice", 30)))
 Person(name='Alice', age=30)
 
 ```
+
+### A Container
+
+```pycon
+>>> from coola.summary import BaseSummarizer, Node, register_summarizers, summarize
+>>> class Tree:
+...     def __init__(self, *children):
+...         self.children = children
+>>> class TreeSummarizer(BaseSummarizer[Tree]):
+...     def summarize(self, data, config, *, compact):
+...         n = len(data.children)
+...         return Node(f"Tree (children={n})", enumerate(data.children), n)
+>>> register_summarizers({Tree: TreeSummarizer()})
+>>> print(summarize(Tree(1, Tree(2, 3)), max_depth=2))
+Tree (children=2)
+  (0): <class 'int'> 1
+  (1): Tree (children=2)
+    (0): 2
+    (1): 3
+
+```
+
+The summarizers can also be provided by a package, with the entry-point group
+`coola.summary.summarizers`.
 
 ## Working with the Registry
 
 ### Understanding the Registry
 
 The `SummarizerRegistry` manages the mapping from types to summarizers. `find_summarizer` returns the
-summarizer of a type, or of its nearest registered parent type. The full content of the global
-registry depends on the installed libraries and on the summarizers registered so far, so it is not
-shown here:
+summarizer of a type, or of its nearest registered parent type along the Method Resolution Order.
+The full content of the global registry depends on the installed libraries and on the summarizers
+registered so far, so it is not shown here:
 
 ```pycon
 >>> from coola.summary import get_default_registry
 >>> registry = get_default_registry()
 >>> registry.find_summarizer(list)
-SequenceSummarizer(max_items=5, num_spaces=2)
+SequenceSummarizer()
 >>> registry.find_summarizer(dict)
-MappingSummarizer(max_items=5, num_spaces=2)
+MappingSummarizer()
 >>> registry.find_summarizer(str)
-DefaultSummarizer(max_characters=1,000)
+DefaultSummarizer()
 
 ```
 
 ### Creating a Custom Registry
 
-For complete control, create your own registry:
+For complete control, create your own registry and pass it to `summarize()`. The registry must
+contain a summarizer for `object`, which is the catch-all:
 
 ```pycon
->>> from coola.summary import SummarizerRegistry, SequenceSummarizer, DefaultSummarizer
->>> registry = SummarizerRegistry()
->>> registry.register(object, DefaultSummarizer())
->>> registry.register(list, SequenceSummarizer())
->>> print(registry.summarize([1, 2, 3]))
+>>> from coola.summary import SummarizerRegistry, SequenceSummarizer, DefaultSummarizer, summarize
+>>> registry = SummarizerRegistry({object: DefaultSummarizer(), list: SequenceSummarizer()})
+>>> print(summarize([1, 2, 3], registry=registry))
 <class 'list'> (length=3)
   (0): 1
   (1): 2
@@ -608,15 +511,13 @@ Use `register_many()` to register multiple types at once:
 
 ### Checking Registered Types
 
-Check if a summarizer is registered for a type. Only the exact type is checked, so `int` is not
-registered: `find_summarizer(int)` returns the summarizer of `object`:
+`has_summarizer` checks if a summarizer is registered for exactly this type. `find_summarizer`
+resolves the type with its parents, so `int` is not registered but has the summarizer of `object`:
 
 ```pycon
 >>> from coola.summary import get_default_registry
 >>> registry = get_default_registry()
 >>> registry.has_summarizer(list)
-True
->>> registry.has_summarizer(object)
 True
 >>> registry.has_summarizer(int)
 False
@@ -632,16 +533,12 @@ Quickly inspect complex data structures during debugging:
 ```pycon
 >>> from coola.summary import summarize
 >>> config = {
-...     "database": {
-...         "host": "localhost",
-...         "port": 5432,
-...         "credentials": {"user": "admin", "password": "secret"},
-...     },
+...     "database": {"host": "localhost", "port": 5432},
 ...     "cache": {"enabled": True, "ttl": 3600, "backends": ["redis", "memcached"]},
 ... }
 >>> print(summarize(config))
 <class 'dict'> (length=2)
-  (database): {'host': 'localhost', 'port': 5432, 'credentials': {'user': 'admin', 'password': 'secret'}}
+  (database): {'host': 'localhost', 'port': 5432}
   (cache): {'enabled': True, 'ttl': 3600, 'backends': ['redis', 'memcached']}
 
 ```
@@ -653,120 +550,74 @@ Log tensor shapes without filling logs with data:
 ```pycon
 >>> import torch
 >>> from coola.summary import summarize
->>> model_weights = {
-...     "layer1": torch.randn(1000, 1000),
-...     "layer2": torch.randn(1000, 500),
-...     "bias": torch.randn(500),
-... }
->>> print(summarize(model_weights, max_depth=2))
-<class 'dict'> (length=3)
-  (layer1): <class 'torch.Tensor'> | shape=torch.Size([1000, 1000]) | dtype=torch.float32 | device=cpu | requires_grad=False
-  (layer2): <class 'torch.Tensor'> | shape=torch.Size([1000, 500]) | dtype=torch.float32 | device=cpu | requires_grad=False
-  (bias): <class 'torch.Tensor'> | shape=torch.Size([500]) | dtype=torch.float32 | device=cpu | requires_grad=False
-
-```
-
-### Inspecting API Responses
-
-Summarize complex API responses:
-
-```pycon
->>> from coola.summary import summarize
->>> api_response = {
-...     "status": "success",
-...     "data": {
-...         "items": [
-...             {"id": 1, "name": "Item 1", "tags": ["tag1", "tag2"]},
-...             {"id": 2, "name": "Item 2", "tags": ["tag3"]},
-...             # ... potentially many more items
-...         ],
-...         "pagination": {"page": 1, "total_pages": 10},
-...     },
-... }
->>> print(summarize(api_response))
+>>> model_weights = {"layer1": torch.randn(1000, 1000), "bias": torch.randn(500)}
+>>> print(summarize(model_weights))
 <class 'dict'> (length=2)
-  (status): success
-  (data): {'items': [{'id': 1, 'name': 'Item 1', 'tags': ['tag1', 'tag2']}, {'id': 2, 'name': 'Item 2', 'tags': ['tag3']}], 'pagination': {'page': 1, 'total_pages': 10}}
+  (layer1): <class 'torch.Tensor'> | shape=torch.Size([1000, 1000]) | dtype=torch.float32 | device=cpu | requires_grad=False
+  (bias): <class 'torch.Tensor'> | shape=torch.Size([500]) | dtype=torch.float32 | device=cpu | requires_grad=False
 
 ```
 
 ### Comparing Data Structures
 
-Get a quick overview to compare different data structures. Note that with default `max_depth=1`,
+Get a quick overview to compare different data structures. With the default `max_depth=1`, the
 nested structures are shown on one line, and the collections that have more than `max_items` items
 are cut:
 
 ```pycon
 >>> from coola.summary import summarize
->>> data1 = {"users": [1, 2, 3, 4, 5], "version": "1.0"}
->>> data2 = {"users": [1, 2, 3], "version": "2.0"}
->>> print(summarize(data1))
+>>> data = {"users": list(range(20)), "version": "1.0"}
+>>> print(summarize(data))
 <class 'dict'> (length=2)
-  (users): [1, 2, 3, 4, 5]
+  (users): [0, 1, 2, 3, 4, ...]
   (version): 1.0
->>> print(summarize(data2))
-<class 'dict'> (length=2)
-  (users): [1, 2, 3]
-  (version): 2.0
 
 ```
 
-For deeper inspection with truncation, increase `max_depth`:
+For a deeper inspection, increase `max_depth`:
 
 ```pycon
->>> from coola.summary import get_default_registry
->>> registry = get_default_registry()
->>> data = {"users": list(range(20)), "version": "1.0"}
->>> print(registry.summarize(data, max_depth=2))
+>>> print(summarize(data, max_depth=2, max_items=3))
 <class 'dict'> (length=2)
   (users): <class 'list'> (length=20)
-      (0): 0
-      (1): 1
-      (2): 2
-      (3): 3
-      (4): 4
-      ...
+    (0): 0
+    (1): 1
+    (2): 2
+    ... (+17 more)
   (version): <class 'str'> 1.0
 
 ```
 
 ## Available Summarizers
 
-The `coola.summary` package provides the following built-in summarizers:
+The `coola.summary` package provides the following built-in summarizers. None of them has an
+option: the options are the arguments of `summarize()`.
 
-- **`DefaultSummarizer`**: For generic objects and scalar types (int, float, str, bool, etc.)
-  - Configurable: `max_characters` (default: 1000, use a negative value for no limit)
-- **`SequenceSummarizer`**: For sequences (list, tuple, Sequence ABC)
-  - Configurable: `max_items` (default: 5), `num_spaces` (default: 2)
-- **`MappingSummarizer`**: For mappings (dict, Mapping ABC)
-  - Configurable: `max_items` (default: 5), `num_spaces` (default: 2)
-- **`SetSummarizer`**: For sets (set, frozenset)
-  - Configurable: `max_items` (default: 5), `num_spaces` (default: 2)
-- **`NDArraySummarizer`**: For NumPy arrays (requires NumPy)
-  - Configurable: `show_data` (default: False)
-- **`TensorSummarizer`**: For PyTorch tensors (requires PyTorch)
-  - Configurable: `show_data` (default: False)
-- **`PandasDataFrameSummarizer`**, **`PandasSeriesSummarizer`**, **`PolarsDataFrameSummarizer`**,
-  **`PolarsLazyFrameSummarizer`**, **`PolarsSeriesSummarizer`**, **`PyarrowArraySummarizer`**,
-  **`PyarrowTableSummarizer`**, **`XarrayDataArraySummarizer`**, **`XarrayDatasetSummarizer`**,
-  **`XarrayVariableSummarizer`**, **`JaxArraySummarizer`**: for the other array-like types (require
-  the corresponding package)
-  - Configurable: `show_data` (default: False)
+- **`DefaultSummarizer`**: For generic objects and scalar types (registered for `object` and
+  `UserString`)
+- **`SequenceSummarizer`**: For sequences (`list`, `tuple`, `deque`, the `Sequence` ABC)
+- **`MappingSummarizer`**: For mappings (`dict`, the `Mapping` ABC, `MappingProxyType`)
+- **`SetSummarizer`**: For sets (`set`, `frozenset`)
+- **`DataclassSummarizer`**: For dataclasses
+- **`PydanticModelSummarizer`**: For pydantic models (requires pydantic)
+- **`NDArraySummarizer`**, **`TensorSummarizer`**, **`PandasDataFrameSummarizer`**,
+  **`PandasSeriesSummarizer`**, **`PolarsDataFrameSummarizer`**, **`PolarsLazyFrameSummarizer`**,
+  **`PolarsSeriesSummarizer`**, **`PyarrowArraySummarizer`**, **`PyarrowTableSummarizer`**,
+  **`XarrayDataArraySummarizer`**, **`XarrayDatasetSummarizer`**, **`XarrayVariableSummarizer`**,
+  **`JaxArraySummarizer`**: For the array-like types (require the corresponding package). They
+  extend `BaseMetadataSummarizer`.
 
-The summarizers of the sequences, mappings and sets share the base class
-`BaseCollectionSummarizer`, which implements the truncation (`max_items`) and the depth limit. A
-subclass only implements how the items are previewed and formatted. `BaseFieldsSummarizer` is the
-base class of the summarizers that list the fields (columns) of an object, and `MAX_FIELDS` is the
-default maximum number of fields listed. `format_fields()` formats `(name, type)` pairs as `name: type`.
-`get_default_summarizer_registry()` returns the registry used by `summarize()`.
+`format_fields()` formats `(name, type)` pairs as `name: type`, limited to a maximum number of
+pairs. `get_default_summarizer_registry()` returns the registry used by `summarize()`.
 
 ## Design Principles
 
 The `coola.summary` package is designed with the following principles:
 
-1. **Type-based dispatch**: Automatically selects the appropriate summarizer based on data type
-2. **Registry dispatch of nested data**: The children of a container are summarized with the summarizer of their own type
-3. **Configurable output**: Control depth, item limits, and formatting to suit your needs
+1. **One engine, one extension point, one option object**: the engine owns the invariants, a
+   summarizer describes one type, and `SummaryConfig` holds the options
+2. **Type-based dispatch**: Automatically selects the appropriate summarizer based on data type
+3. **Configurable output**: Control depth, item limits, and text length to suit your needs
 4. **Extensibility**: Easy to add support for custom types via the registry
 5. **Sensible defaults**: Works out-of-the-box for common Python types
 6. **Metadata focus**: For large data structures (arrays, tensors), show metadata instead of data
