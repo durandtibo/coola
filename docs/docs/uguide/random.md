@@ -131,8 +131,8 @@ Set the seed only for Python's `random` module:
 
 ```pycon
 >>> import random
->>> from coola.random.random import RandomRandomManager
->>> manager = RandomRandomManager()
+>>> from coola.random.python import PythonRandomManager
+>>> manager = PythonRandomManager()
 >>> manager.manual_seed(42)
 >>> val = random.randint(1, 100)
 
@@ -140,12 +140,12 @@ Set the seed only for Python's `random` module:
 
 ### NumPy
 
-Set the seed only for NumPy's random module:
+Set the seed only for NumPy's random module, with the `seed` context manager of the manager:
 
 ```pycon
 >>> import numpy as np
->>> from coola.random import numpy_seed
->>> with numpy_seed(42):
+>>> from coola.random import NumpyRandomManager
+>>> with NumpyRandomManager().seed(42):
 ...     np.random.rand(3)
 array([...])
 
@@ -165,13 +165,25 @@ array([...])
 
 ### PyTorch
 
-Set the seed only for PyTorch's random module:
+Set the seed only for PyTorch's random module, with the `seed` context manager of the manager:
 
 ```pycon
 >>> import torch
->>> from coola.random import torch_seed
->>> with torch_seed(42):
+>>> from coola.random import TorchRandomManager
+>>> with TorchRandomManager().seed(42):
 ...     torch.rand(3)
+tensor([...])
+
+```
+
+To get reproducible numbers without touching the global generators (for example in a thread), use an
+independent generator:
+
+```pycon
+>>> import torch
+>>> from coola.random import get_torch_generator
+>>> generator = get_torch_generator(42)
+>>> torch.rand(3, generator=generator)
 tensor([...])
 
 ```
@@ -205,7 +217,7 @@ The default registry manages all available random managers:
 >>> registry = get_default_registry()
 >>> registry
 RandomManagerRegistry(
-  (random): RandomRandomManager()
+  (random): PythonRandomManager()
   (numpy): NumpyRandomManager()
   (torch): TorchRandomManager()
 )
@@ -217,9 +229,9 @@ RandomManagerRegistry(
 You can register custom random managers to support additional libraries:
 
 ```pycon
->>> from coola.random import register_managers, RandomRandomManager
+>>> from coola.random import register_managers, PythonRandomManager
 >>> # Register a custom manager
->>> register_managers({"custom": RandomRandomManager()})  # doctest: +SKIP
+>>> register_managers({"custom": PythonRandomManager()})  # doctest: +SKIP
 
 ```
 
@@ -247,9 +259,9 @@ To create a custom manager, extend `BaseRandomManager`:
 You can create and use a custom registry:
 
 ```pycon
->>> from coola.random import RandomManagerRegistry, RandomRandomManager
+>>> from coola.random import RandomManagerRegistry, PythonRandomManager
 >>> registry = RandomManagerRegistry()
->>> registry.register("random", RandomRandomManager())
+>>> registry.register("random", PythonRandomManager())
 >>> registry.manual_seed(42)
 
 ```
@@ -344,7 +356,7 @@ Temporarily change seed for a specific operation:
 
 The `coola.random` package provides the following random managers:
 
-- **`RandomRandomManager`**: For Python's built-in `random` module (always registered)
+- **`PythonRandomManager`**: For Python's built-in `random` module (always registered)
 - **`NumpyRandomManager`**: For NumPy's random module (registered if NumPy is available)
 - **`TorchRandomManager`**: For PyTorch's random module (registered if PyTorch is available)
 

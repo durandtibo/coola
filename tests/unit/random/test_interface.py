@@ -10,8 +10,8 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.random import (
+    PythonRandomManager,
     RandomManagerRegistry,
-    RandomRandomManager,
     get_default_registry,
     interface as random_interface,
     register_managers,
@@ -124,7 +124,7 @@ def test_random_seed_uses_custom_manager_enters_the_seed(
     """Test that random_seed delegates to the ``seed`` context manager
     of the provided manager."""
     entered, _, mock_manager = seed_calls
-    with random_seed(42, manager=mock_manager):
+    with random_seed(42, registry=mock_manager):
         assert entered == [42]
 
 
@@ -132,7 +132,7 @@ def test_random_seed_uses_custom_manager_does_not_exit_inside_the_context(
     seed_calls: tuple[list[int], list[int], Mock],
 ) -> None:
     _, exited, mock_manager = seed_calls
-    with random_seed(42, manager=mock_manager):
+    with random_seed(42, registry=mock_manager):
         assert exited == []
 
 
@@ -140,7 +140,7 @@ def test_random_seed_uses_custom_manager_exits_the_seed(
     seed_calls: tuple[list[int], list[int], Mock],
 ) -> None:
     _, exited, mock_manager = seed_calls
-    with random_seed(42, manager=mock_manager):
+    with random_seed(42, registry=mock_manager):
         pass
     assert exited == [42]
 
@@ -251,23 +251,23 @@ def test_set_rng_state_calls_default_registry() -> None:
 def test_register_managers_calls_registry() -> None:
     """Test that register_managers successfully registers managers in
     the default registry."""
-    register_managers({"custom": RandomRandomManager()})
+    register_managers({"custom": PythonRandomManager()})
     assert get_default_registry().has("custom")
 
 
 def test_register_managers_with_exist_ok_true() -> None:
     """Test that register_managers allows re-registration when
     exist_ok=True."""
-    register_managers({"custom": RandomRandomManager()})
-    register_managers({"custom": RandomRandomManager()}, exist_ok=True)
+    register_managers({"custom": PythonRandomManager()})
+    register_managers({"custom": PythonRandomManager()}, exist_ok=True)
 
 
 def test_register_managers_with_exist_ok_false() -> None:
     """Test that register_managers raises RuntimeError when attempting
     to re-register with exist_ok=False."""
-    register_managers({"custom": RandomRandomManager()})
+    register_managers({"custom": PythonRandomManager()})
     with pytest.raises(AlreadyRegisteredError, match=r"already registered"):
-        register_managers({"custom": RandomRandomManager()}, exist_ok=False)
+        register_managers({"custom": PythonRandomManager()}, exist_ok=False)
 
 
 ##########################################
@@ -336,25 +336,35 @@ def test_get_default_registry_singleton_does_not_have_the_custom_manager() -> No
 def test_get_default_registry_singleton_persists_modifications() -> None:
     """Test that modifications to the singleton registry persist."""
     registry1 = get_default_registry()
-    registry1.register("custom", RandomRandomManager())
+    registry1.register("custom", PythonRandomManager())
     assert registry1.has("custom")
 
 
 def test_get_default_registry_singleton_returns_the_same_registry() -> None:
     """Test that the registry is the same across calls."""
     registry1 = get_default_registry()
-    registry1.register("custom", RandomRandomManager())
+    registry1.register("custom", PythonRandomManager())
     assert registry1 is get_default_registry()
 
 
 def test_get_default_registry_singleton_persists_modifications_across_calls() -> None:
     """Test that modifications persist across multiple calls to
     get_default_registry."""
-    get_default_registry().register("custom", RandomRandomManager())
+    get_default_registry().register("custom", PythonRandomManager())
     assert get_default_registry().has("custom")
 
 
 def test_random_seed_uses_an_empty_registry() -> None:
     state = random.getstate()
-    with random_seed(42, manager=RandomManagerRegistry()):
+    with random_seed(42, registry=RandomManagerRegistry()):
         assert objects_are_equal(state, random.getstate())
+
+
+def test_random_seed_registry_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional"):
+        random_seed(42, RandomManagerRegistry())  # type: ignore[misc]
+
+
+def test_register_managers_exist_ok_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional"):
+        register_managers({}, True)  # type: ignore[misc]

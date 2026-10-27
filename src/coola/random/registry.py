@@ -37,11 +37,11 @@ class RandomManagerRegistry(Registry[str, BaseRandomManager], BaseRandomManager)
 
     Example:
         ```pycon
-        >>> from coola.random import RandomManagerRegistry, RandomRandomManager
-        >>> registry = RandomManagerRegistry({"random": RandomRandomManager()})
+        >>> from coola.random import RandomManagerRegistry, PythonRandomManager
+        >>> registry = RandomManagerRegistry({"random": PythonRandomManager()})
         >>> registry
         RandomManagerRegistry(
-          (random): RandomRandomManager()
+          (random): PythonRandomManager()
         )
         >>> registry.manual_seed(42)
 
@@ -77,8 +77,8 @@ class RandomManagerRegistry(Registry[str, BaseRandomManager], BaseRandomManager)
 
         Example:
             ```pycon
-            >>> from coola.random import RandomManagerRegistry, RandomRandomManager
-            >>> registry = RandomManagerRegistry({"random": RandomRandomManager()})
+            >>> from coola.random import RandomManagerRegistry, PythonRandomManager
+            >>> registry = RandomManagerRegistry({"random": PythonRandomManager()})
             >>> state = registry.get_rng_state()
             >>> registry.set_rng_state(state)
 

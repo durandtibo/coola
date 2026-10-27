@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import contextlib
 from unittest.mock import patch
 
 import pytest
 
 from coola.equality import objects_are_equal
-from coola.random import NumpyRandomManager, numpy_seed
+from coola.random import NumpyRandomManager
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import MissingPackageError, is_numpy_available
 
@@ -114,46 +113,6 @@ def test_numpy_random_manager_no_numpy() -> None:
         pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyRandomManager()
-
-
-################################
-#     Tests for numpy_seed     #
-################################
-
-
-@numpy_available
-def test_numpy_seed_restore_random_seed() -> None:
-    state = np.random.get_state()  # noqa: NPY002
-    with numpy_seed(42):
-        np.random.randn(4, 6)  # noqa: NPY002
-    assert objects_are_equal(state, np.random.get_state())  # noqa: NPY002
-
-
-@numpy_available
-def test_numpy_seed_with_exception_raises_the_error() -> None:
-    with pytest.raises(RuntimeError, match=r"Exception"), numpy_seed(42):  # noqa: PT012
-        np.random.randn(4, 6)  # noqa: NPY002
-        msg = "Exception"
-        raise RuntimeError(msg)
-
-
-@numpy_available
-def test_numpy_seed_restore_random_seed_with_exception() -> None:
-    state = np.random.get_state()  # noqa: NPY002
-    with contextlib.suppress(RuntimeError), numpy_seed(42):
-        np.random.randn(4, 6)  # noqa: NPY002
-        msg = "Exception"
-        raise RuntimeError(msg)
-    assert objects_are_equal(state, np.random.get_state())  # noqa: NPY002
-
-
-@numpy_available
-def test_numpy_seed_same_random_seed() -> None:
-    with numpy_seed(42):
-        x1 = np.random.randn(4, 6)  # noqa: NPY002
-    with numpy_seed(42):
-        x2 = np.random.randn(4, 6)  # noqa: NPY002
-    assert np.array_equal(x1, x2)
 
 
 @numpy_available

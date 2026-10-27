@@ -22,7 +22,7 @@ __all__ = [
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
-from coola.random.random import RandomRandomManager
+from coola.random.python import PythonRandomManager
 from coola.random.registry import RandomManagerRegistry
 from coola.utils.imports import import_object, is_numpy_available, is_torch_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 
 @contextmanager
-def random_seed(seed: int, manager: RandomManagerRegistry | None = None) -> Generator[None]:
+def random_seed(seed: int, *, registry: RandomManagerRegistry | None = None) -> Generator[None]:
     r"""Temporarily set a random seed and restore previous RNG state.
 
     Note:
@@ -46,7 +46,7 @@ def random_seed(seed: int, manager: RandomManagerRegistry | None = None) -> Gene
 
     Args:
         seed: Seed used while inside the context manager.
-        manager: Random manager registry to use. If ``None``, the default
+        registry: Random manager registry to use. If ``None``, the default
             registry is used.
 
     Example:
@@ -64,8 +64,8 @@ def random_seed(seed: int, manager: RandomManagerRegistry | None = None) -> Gene
 
         ```
     """
-    manager = get_default_registry() if manager is None else manager
-    with manager.seed(seed):
+    registry = get_default_registry() if registry is None else registry
+    with registry.seed(seed):
         yield
 
 
@@ -143,7 +143,7 @@ def set_rng_state(state: dict[str, Any]) -> None:
     get_default_registry().set_rng_state(state)
 
 
-def register_managers(mapping: Mapping[str, BaseRandomManager], exist_ok: bool = False) -> None:
+def register_managers(mapping: Mapping[str, BaseRandomManager], *, exist_ok: bool = False) -> None:
     """Register custom managers to the default global registry.
 
     This allows users to add support for custom random number generators
@@ -156,8 +156,8 @@ def register_managers(mapping: Mapping[str, BaseRandomManager], exist_ok: bool =
 
     Example:
         ```pycon
-        >>> from coola.random import register_managers, RandomRandomManager
-        >>> register_managers({"custom": RandomRandomManager()})  # doctest: +SKIP
+        >>> from coola.random import register_managers, PythonRandomManager
+        >>> register_managers({"custom": PythonRandomManager()})  # doctest: +SKIP
 
         ```
     """
@@ -193,7 +193,7 @@ def get_default_registry() -> RandomManagerRegistry:
         >>> # Registry is ready to use with available random managers
         >>> registry
         RandomManagerRegistry(
-          (random): RandomRandomManager()
+          (random): PythonRandomManager()
           (numpy): NumpyRandomManager()
           (torch): TorchRandomManager()
         )
@@ -215,7 +215,7 @@ def _register_default_managers(registry: RandomManagerRegistry) -> None:
     if those libraries are available.
 
     The registration strategy:
-        - "random": RandomRandomManager (always registered)
+        - "random": PythonRandomManager (always registered)
         - "numpy": NumpyRandomManager (registered if NumPy is available)
         - "torch": TorchRandomManager (registered if PyTorch is available)
 
@@ -226,7 +226,7 @@ def _register_default_managers(registry: RandomManagerRegistry) -> None:
         This function is called internally by get_default_registry() and should
         not typically be called directly by users.
     """
-    managers: dict[str, BaseRandomManager] = {"random": RandomRandomManager()}
+    managers: dict[str, BaseRandomManager] = {"random": PythonRandomManager()}
     # The managers of the optional libraries are imported here, not with ``coola.random``. They
     # must be in the registry before the first seed, because the RNG of a library has to be
     # seeded even if the library is imported later.
