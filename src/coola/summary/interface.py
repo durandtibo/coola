@@ -9,6 +9,7 @@ __all__ = [
     "summarize",
 ]
 
+import dataclasses
 from collections import UserString, deque
 from collections.abc import Mapping, Sequence
 from types import MappingProxyType
@@ -18,7 +19,7 @@ from coola.summary.config import SummaryConfig
 from coola.summary.dataclass import DataclassSummarizer
 from coola.summary.default import DefaultSummarizer
 from coola.summary.mapping import MappingSummarizer
-from coola.summary.registry import DataclassMarker, SummarizerRegistry
+from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
 from coola.utils.imports import package_available
@@ -221,6 +222,8 @@ def _register_default_summarizers(registry: SummarizerRegistry) -> None:
         not typically be called directly by users.
     """
     registry.register_many(_get_native_summarizers())
+    # Dataclasses without their own summarizer
+    registry.register_fallback(dataclasses.is_dataclass, DataclassSummarizer())
     # The summarizers of the optional libraries are loaded the first time the registry needs
     # a type of the library, so the libraries are not imported with ``coola.summary``.
     for names, module in _LAZY_SUMMARIZERS:
@@ -248,8 +251,6 @@ def _get_native_summarizers() -> dict[type, Summarizer[Any]]:
         # ``str`` and the numeric types are resolved to ``object`` with the MRO. ``UserString``
         # is a ``Sequence`` of ``UserString``: it must not be shown as a list of characters.
         UserString: default_summarizer,
-        # Dataclasses without their own summarizer
-        DataclassMarker: DataclassSummarizer(),
         # Sequences - summary transformation preserving order
         list: sequence_summarizer,
         tuple: sequence_summarizer,

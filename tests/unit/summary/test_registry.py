@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, is_dataclass
 from typing import Any
 
 import pytest
@@ -8,6 +9,7 @@ from coola.equality import objects_are_equal
 from coola.registry import AlreadyRegisteredError
 from coola.summary import (
     BaseSummarizer,
+    DataclassSummarizer,
     DefaultSummarizer,
     MappingSummarizer,
     SequenceSummarizer,
@@ -265,3 +267,30 @@ def test_summarizer_registry_summarize_deep_structure_does_not_raise() -> None:
 def test_summarizer_registry_summarize_without_object_summarizer_raises() -> None:
     with pytest.raises(KeyError, match="int"):
         SummarizerRegistry().summarize(1)
+
+
+def test_summarizer_registry_find_summarizer_dataclass_with_a_fallback() -> None:
+    @dataclass
+    class Point:
+        x: int = 1
+
+    registry = SummarizerRegistry({object: DefaultSummarizer()})
+    registry.register_fallback(is_dataclass, DataclassSummarizer())
+    assert isinstance(registry.find_summarizer(Point), DataclassSummarizer)
+
+
+def test_summarizer_registry_find_summarizer_dataclass_with_registered_base() -> None:
+    """Regression test: a summarizer shared by ``object`` and a base class
+    is used for a dataclass that inherits from the base class."""
+
+    class Base:
+        pass
+
+    @dataclass
+    class Derived(Base):
+        x: int = 1
+
+    shared = DefaultSummarizer()
+    registry = SummarizerRegistry({object: shared, Base: shared})
+    registry.register_fallback(is_dataclass, DataclassSummarizer())
+    assert registry.find_summarizer(Derived) is shared
