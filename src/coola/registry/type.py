@@ -6,6 +6,7 @@ __all__ = ["TypeRegistry"]
 
 from collections import Counter
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar, cast
 
 from coola.registry.exceptions import (
@@ -42,6 +43,37 @@ class _LazyGroup(Generic[T]):
         r"""Build the entries."""
         factory = import_object(self.factory) if isinstance(self.factory, str) else self.factory
         return factory()
+
+
+@dataclass(frozen=True)
+class _NamedType:
+    r"""The name of a built-in type that cannot be pickled by reference."""
+
+    name: str
+
+
+#: The built-in types that have no importable name (``pickle`` cannot find
+#: ``builtins.mappingproxy`` or ``builtins.dict_values``), by a name that
+#: ``_NamedType`` can carry.
+_UNPICKLABLE_TYPES: dict[str, type] = {
+    "mappingproxy": MappingProxyType,
+    "dict_keys": type({}.keys()),
+    "dict_values": type({}.values()),
+    "dict_items": type({}.items()),
+}
+
+
+def _encode_type(key: type) -> type | _NamedType:
+    r"""Replace a type that ``pickle`` cannot find by its name."""
+    for name, dtype in _UNPICKLABLE_TYPES.items():
+        if key is dtype:
+            return _NamedType(name)
+    return key
+
+
+def _decode_type(key: type | _NamedType) -> type:
+    r"""Reverse ``_encode_type``."""
+    return _UNPICKLABLE_TYPES[key.name] if isinstance(key, _NamedType) else key
 
 
 #: Maximum number of entries kept in the ``resolve()`` cache.
@@ -326,6 +358,18 @@ class TypeRegistry(Registry[type, T], Generic[T]):
             return False
         # The order of the fallbacks is their order of precedence.
         return list(self._fallbacks.items()) == list(other._fallbacks.items())
+
+    def __getstate__(self) -> dict[str, Any]:
+        # The cache is rebuilt by the lookups.
+        state = super().__getstate__()
+        del state["_cache"]
+        state["_state"] = {_encode_type(key): value for key, value in state["_state"].items()}
+        return state
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        state["_state"] = {_decode_type(key): value for key, value in state["_state"].items()}
+        super().__setstate__(state)
+        self._cache = {}
 
     def _load_lazy_for_equal(self, other: Registry[type, T]) -> None:
         # Two registries with the same pending groups (a registry and its copy) are compared

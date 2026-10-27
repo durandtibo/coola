@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import abc
 import contextlib
+import copy
+import pickle
 from collections import deque
 from collections.abc import Sequence
 from dataclasses import dataclass, is_dataclass
 from decimal import Decimal
 from fractions import Fraction
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import Mock
 
@@ -1604,3 +1607,89 @@ def test_type_registry_register_lazy_group_loaded_by_another_factory_is_not_load
     registry.register_lazy("fractions", second)
     len(registry)
     second.assert_called_once_with()
+
+
+########################################
+#     Tests for pickle and deepcopy    #
+########################################
+
+
+def round_trip(registry: TypeRegistry[str]) -> TypeRegistry[str]:
+    return pickle.loads(pickle.dumps(registry))  # noqa: S301
+
+
+def test_type_registry_pickle_keeps_the_entries() -> None:
+    registry = TypeRegistry[str]({object: "object", int: "int"})
+    assert round_trip(registry).equal(registry)
+
+
+def test_type_registry_pickle_keeps_the_fallbacks() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(is_dataclass, "dataclass")
+    assert list(round_trip(registry).fallbacks()) == [(is_dataclass, "dataclass")]
+
+
+def test_type_registry_pickle_keeps_the_pending_groups() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", "tests.unit.registry.test_type:lazy_decimal_entries")
+    assert round_trip(registry).resolve(Decimal) == "decimal"
+
+
+def test_type_registry_pickle_does_not_load_the_pending_groups() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", "tests.unit.registry.test_type:lazy_decimal_entries")
+    assert len(round_trip(registry)._state) == 0
+
+
+def test_type_registry_pickle_resolves_after_the_round_trip() -> None:
+    registry = TypeRegistry[str]({object: "object", int: "int"})
+    assert round_trip(registry).resolve(bool) == "int"
+
+
+def test_type_registry_pickle_drops_the_cache() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.resolve(int)
+    assert round_trip(registry)._cache == {}
+
+
+def test_type_registry_pickle_source_keeps_its_cache() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    registry.resolve(int)
+    pickle.dumps(registry)
+    assert registry._cache == {int: "object"}
+
+
+@pytest.mark.parametrize(
+    "dtype",
+    [
+        MappingProxyType,
+        type({}.keys()),
+        type({}.values()),
+        type({}.items()),
+    ],
+)
+def test_type_registry_pickle_keeps_the_types_without_an_importable_name(dtype: type) -> None:
+    registry = TypeRegistry[str]({dtype: "handler"})
+    assert round_trip(registry)[dtype] == "handler"
+
+
+def test_type_registry_pickle_keeps_the_order_of_the_entries() -> None:
+    registry = TypeRegistry[str]({MappingProxyType: "a", int: "b", type({}.values()): "c"})
+    assert list(round_trip(registry).keys()) == [MappingProxyType, int, type({}.values())]
+
+
+def test_type_registry_deepcopy_keeps_the_entries() -> None:
+    registry = TypeRegistry[str]({MappingProxyType: "a", int: "b"})
+    assert copy.deepcopy(registry).equal(registry)
+
+
+def test_type_registry_deepcopy_has_its_own_lock() -> None:
+    registry = TypeRegistry[str]()
+    assert copy.deepcopy(registry)._lock is not registry._lock
+
+
+def test_type_registry_pickle_unpicklable_predicate_raises() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_fallback(lambda dtype: dtype is int, "int")
+    with pytest.raises((pickle.PicklingError, AttributeError)):
+        pickle.dumps(registry)
