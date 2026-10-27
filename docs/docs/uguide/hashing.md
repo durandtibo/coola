@@ -94,9 +94,8 @@ True
 
 ```
 
-The options (`registry`, `length` and `ignore_unhashable`) are keyword arguments. Passing them by
-position is deprecated and emits a `DeprecationWarning`, because `hash_object(data, 32)` passes `32`
-as the registry. A positional `length` raises an error that says so.
+The options (`registry`, `length` and `ignore_unhashable`) are keyword-only, because
+`hash_object(data, 32)` would pass `32` as the registry.
 
 ### Controlling the Hash Length
 
@@ -292,15 +291,15 @@ True
 Each hasher implements the `BaseHasher` interface and knows how to hash one kind of object,
 delegating to a `HasherRegistry` to hash any nested values. The built-in hashers include:
 
-- `StringHasher` / `hash_string` - hashes `str` objects, namespaced by the `str` type tag
-- `BytesHasher` / `hash_bytes` - hashes `bytes` and `bytearray` objects, namespaced by the type tag
-- `EnumHasher` / `hash_enum` - hashes `Enum` members by class name and member name
+- `StringHasher` - hashes `str` objects, namespaced by the `str` type tag
+- `BytesHasher` - hashes `bytes` and `bytearray` objects, namespaced by the type tag
+- `EnumHasher` - hashes `Enum` members by class name and member name
 - `ReprHasher` - hashes an object's `repr()`; used for numeric types (`int`, `float`, `complex`,
   `bool`) because `repr()` preserves floating point precision
 - `StrHasher` - hashes an object's `str()`; more human-readable but does not guarantee
   round-trip accuracy for floats
 - `DatetimeHasher` - hashes `date`/`datetime`/`time` objects via their ISO 8601 representation
-- `PathHasher` / `hash_path` - hashes `pathlib.Path` objects via their POSIX form as written, so
+- `PathHasher` - hashes `pathlib.Path` objects via their POSIX form as written, so
   hashes do not depend on the filesystem or the working directory
 - `ResolvedPathHasher` - opt-in hasher that resolves the path first (symlinks, `..`, relative
   paths), so logically equivalent paths hash the same. The result depends on the filesystem and

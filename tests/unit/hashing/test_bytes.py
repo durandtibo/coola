@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.hashing import BytesHasher, HasherRegistry, hash_bytes
+from coola.hashing import BytesHasher, HasherRegistry, digest, tagged
 from tests.unit.hashing.helpers import hash_with
 
 
@@ -122,93 +122,13 @@ def test_bytes_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> No
     assert hash_with(hasher, b"hello", registry) == hash_with(hasher, b"hello", empty_registry)
 
 
-################################
-#     Tests for hash_bytes     #
-################################
-
-# --- Return type and format ---
-
-
-def test_hash_bytes_returns_str() -> None:
-    assert isinstance(hash_bytes(b"hello"), str)
-
-
-def test_hash_bytes_returns_lowercase_hex() -> None:
-    assert all(c in "0123456789abcdef" for c in hash_bytes(b"hello"))
-
-
-def test_hash_bytes_default_length_is_64() -> None:
-    assert len(hash_bytes(b"hello")) == 64
-
-
-@pytest.mark.parametrize(
-    "length",
-    [
-        pytest.param(2, id="min"),
-        pytest.param(16, id="16"),
-        pytest.param(32, id="32"),
-        pytest.param(64, id="64-default"),
-        pytest.param(128, id="max"),
-    ],
-)
-def test_hash_bytes_output_length_matches_requested(length: int) -> None:
-    assert len(hash_bytes(b"hello", length=length)) == length
-
-
 # --- Determinism ---
-
-
-def test_hash_bytes_is_deterministic() -> None:
-    assert hash_bytes(b"hello") == hash_bytes(b"hello")
-
-
-def test_hash_bytes_empty_bytes_is_valid() -> None:
-    result = hash_bytes(b"")
-    assert isinstance(result, str)
-
-
-def test_hash_bytes_empty_bytes_is_valid_length() -> None:
-    result = hash_bytes(b"")
-    assert len(result) == 64
 
 
 # --- Sensitivity ---
 
 
-def test_hash_bytes_different_inputs_produce_different_hashes() -> None:
-    assert hash_bytes(b"hello") != hash_bytes(b"world")
-
-
-def test_hash_bytes_same_prefix_different_inputs_produce_different_hashes() -> None:
-    assert hash_bytes(b"hello1") != hash_bytes(b"hello2")
-
-
-def test_hash_bytes_is_case_sensitive() -> None:
-    assert hash_bytes(b"hello") != hash_bytes(b"Hello")
-
-
-def test_hash_bytes_is_sensitive_to_whitespace() -> None:
-    assert hash_bytes(b"hello") != hash_bytes(b"hello ")
-
-
 # --- Invalid length ---
-
-
-@pytest.mark.parametrize(
-    "length",
-    [
-        pytest.param(0, id="zero"),
-        pytest.param(1, id="odd-below-min"),
-        pytest.param(3, id="odd-small"),
-        pytest.param(63, id="odd-near-max"),
-        pytest.param(130, id="above-max"),
-        pytest.param(-2, id="negative-even"),
-        pytest.param(-1, id="negative-odd"),
-    ],
-)
-def test_hash_bytes_raises_for_invalid_length(length: int) -> None:
-    with pytest.raises(ValueError, match=str(abs(length))):
-        hash_bytes(b"hello", length=length)
 
 
 def test_bytes_hasher_hash_bytearray_differs_from_bytes(registry: HasherRegistry) -> None:
@@ -244,3 +164,19 @@ def test_bytes_hasher_hash_memoryview_depends_on_content(registry: HasherRegistr
     assert hash_with(hasher, memoryview(b"abc"), registry) != hash_with(
         hasher, memoryview(b"xyz"), registry
     )
+
+
+def test_bytes_hasher_encode_is_tagged_with_the_digest_of_the_content() -> None:
+    assert BytesHasher().encode(b"abc") == tagged("bytes", digest(b"abc"))
+
+
+def test_bytes_hasher_encode_empty() -> None:
+    assert BytesHasher().encode(b"") == tagged("bytes", digest(b""))
+
+
+def test_bytes_hasher_encode_is_case_sensitive() -> None:
+    assert BytesHasher().encode(b"a") != BytesHasher().encode(b"A")
+
+
+def test_bytes_hasher_encode_is_sensitive_to_whitespace() -> None:
+    assert BytesHasher().encode(b"a") != BytesHasher().encode(b"a ")

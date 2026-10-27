@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from coola.hashing import HasherRegistry, ReprHasher, StrHasher, hash_tagged, tagged
+from coola.hashing import HasherRegistry, ReprHasher, StrHasher, tagged
 from tests.unit.hashing.helpers import hash_with, leaf_hash
 
 
@@ -167,24 +167,6 @@ def test_str_hasher_hash_uses_str_not_repr_equals_the_str_hash(registry: HasherR
     assert hash_with(hasher, obj, registry) == leaf_hash(tagged(tag, str(obj)))
 
 
-def test_str_hasher_hash_uses_str_not_repr_differs_from_the_repr_hash(
-    registry: HasherRegistry,
-) -> None:
-    # For objects where str() and repr() differ, StrHasher must use str().
-    # str("hello") == 'hello' while repr("hello") == "'hello'".
-    class MyObj:
-        def __str__(self) -> str:
-            return "str_val"
-
-        def __repr__(self) -> str:
-            return "repr_val"
-
-    obj = MyObj()
-    hasher = StrHasher()
-    tag = f"str:{MyObj.__qualname__}"
-    assert hash_with(hasher, obj, registry) != hash_tagged(tag, repr(obj))
-
-
 def test_str_hasher_hash_str_differs_from_repr_hasher_for_strings(
     registry: HasherRegistry,
 ) -> None:
@@ -253,3 +235,7 @@ def test_str_hasher_hash_user_classes_with_the_same_name_in_different_scopes_dif
         return Same()
 
     assert hash_with(StrHasher(), Same(), registry) != hash_with(StrHasher(), make(), registry)
+
+
+def test_str_hasher_encode_differs_from_the_repr_hasher() -> None:
+    assert StrHasher().encode("a") != ReprHasher().encode("a")
