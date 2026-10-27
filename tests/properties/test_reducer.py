@@ -468,3 +468,36 @@ def test_a_constant_sequence_has_a_zero_std(
     make_reducer: Callable[[], BaseReducer], value: float, size: int
 ) -> None:
     assert close(make_reducer().std([value] * size), 0.0)
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists)
+def test_the_mean_is_between_the_min_and_the_max(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    reducer = make_reducer()
+    assert reducer.min(values) - 1e-6 <= reducer.mean(values) <= reducer.max(values) + 1e-6
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=float_lists)
+def test_the_results_are_python_numbers(
+    make_reducer: Callable[[], BaseReducer], values: list[float]
+) -> None:
+    reducer = make_reducer()
+    results = [
+        reducer.max(values),
+        reducer.min(values),
+        reducer.median(values),
+        reducer.mean(values),
+    ]
+    assert all(type(result) is float for result in results)
+
+
+@pytest.mark.parametrize("make_reducer", REDUCERS)
+@given(values=st.lists(st.integers(-1000, 1000), min_size=1, max_size=30))
+def test_max_and_min_of_ints_are_ints(
+    make_reducer: Callable[[], BaseReducer], values: list[int]
+) -> None:
+    reducer = make_reducer()
+    assert [type(reducer.max(values)), type(reducer.min(values))] == [int, int]
