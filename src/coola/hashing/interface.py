@@ -1,5 +1,5 @@
-r"""Define the public interface to recursively apply a function to all
-items in nested data."""
+r"""Define the public interface to hash objects, including nested data
+structures, and to register hashers in the default registry."""
 
 from __future__ import annotations
 
@@ -125,16 +125,17 @@ def hash_object(
             placeholder hash instead of raising an error. The
             placeholder only depends on the type, so it is lossy, and a
             ``UserWarning`` is emitted each time one is used. Defaults
-            to ``False``, which raises a ``KeyError`` when an
-            unhashable object is encountered.
+            to ``False``, which raises a ``TypeNotRegisteredError`` (a
+            ``KeyError``) when an unhashable object is encountered.
 
     Returns:
         A string representing the hash of the input data.
 
     Raises:
-        KeyError: If ``data`` (or a nested object within it) has a
-            type for which no hasher is registered and
-            ``ignore_unhashable`` is ``False``.
+        TypeNotRegisteredError: If ``data`` (or a nested object within
+            it) has a type for which no hasher is registered and
+            ``ignore_unhashable`` is ``False``. It is a subclass of
+            ``KeyError``.
         ValueError: If ``length`` is not an even number between 2 and
             128, or if ``data`` contains itself (a self-referencing
             container).
@@ -327,7 +328,7 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             tuple: SequenceHasher("tuple"),
             deque: SequenceHasher("deque"),
             Sequence: SequenceHasher("sequence"),
-            # Mappings - recursive transformation of keys and values
+            # Mappings - unordered, keys and values are hashed through the registry
             dict: MappingHasher("dict"),
             OrderedDict: MappingHasher("OrderedDict", ordered=True),
             Mapping: MappingHasher("mapping"),
