@@ -11,6 +11,7 @@ __all__ = [
     "register_child_finders",
 ]
 
+import dataclasses
 from collections import UserString, deque
 from collections.abc import Mapping, Sequence
 from types import MappingProxyType
@@ -22,7 +23,6 @@ from coola.iterator.engine import breadth_first, depth_first
 from coola.iterator.iterable import IterableChildFinder
 from coola.iterator.mapping import MappingChildFinder
 from coola.iterator.registry import ChildFinderRegistry
-from coola.registry import DataclassMarker
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -193,9 +193,10 @@ def _register_default_child_finders(registry: ChildFinderRegistry) -> None:
             # ``MappingProxyType`` is a virtual member of ``Mapping`` (it does not inherit from
             # it), so it is registered explicitly.
             **dict.fromkeys((dict, Mapping, MappingProxyType), mapping),
-            DataclassMarker: DataclassChildFinder(),
         }
     )
+    # Dataclasses without their own child finder
+    registry.register_fallback(dataclasses.is_dataclass, DataclassChildFinder())
 
 
 _default_registry: LazySingleton[ChildFinderRegistry] = make_default_registry_singleton(
