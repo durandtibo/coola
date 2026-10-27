@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, is_dataclass
 from decimal import Decimal
 from fractions import Fraction
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import Mock
 
 import pytest
@@ -1384,3 +1384,223 @@ def test_type_registry_equal_different_order_of_fallbacks() -> None:
     registry2.register_fallback(is_child, "child")
     registry2.register_fallback(is_base, "base")
     assert not registry1.equal(registry2)
+
+
+#############################################
+#     Tests for the lazy groups (groups)    #
+#############################################
+
+
+def lazy_decimal_entries() -> dict[type, str]:
+    return {Decimal: "decimal"}
+
+
+def test_type_registry_register_lazy_does_not_call_the_factory() -> None:
+    factory = Mock(return_value={Decimal: "decimal"})
+    TypeRegistry[str]().register_lazy("decimal", factory)
+    factory.assert_not_called()
+
+
+def test_type_registry_register_lazy_calls_the_factory_once() -> None:
+    factory = Mock(return_value={Decimal: "decimal"})
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", factory)
+    len(registry)
+    len(registry)
+    factory.assert_called_once_with()
+
+
+def test_type_registry_register_lazy_packages_load_the_group_once() -> None:
+    factory = Mock(return_value={Decimal: "decimal", Fraction: "fraction"})
+    registry = TypeRegistry[str]()
+    registry.register_lazy(("decimal", "fractions"), factory)
+    registry.resolve(Decimal)
+    registry.resolve(Fraction)
+    factory.assert_called_once_with()
+
+
+def test_type_registry_register_lazy_imports_the_factory_when_it_is_a_path() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", "tests.unit.registry.test_type:lazy_decimal_entries")
+    assert registry.resolve(Decimal) == "decimal"
+
+
+@pytest.mark.parametrize(
+    "read",
+    [
+        pytest.param(len, id="len"),
+        pytest.param(list, id="iter"),
+        pytest.param(lambda r: list(r.items()), id="items"),
+        pytest.param(lambda r: list(r.keys()), id="keys"),
+        pytest.param(lambda r: list(r.values()), id="values"),
+    ],
+)
+def test_type_registry_register_lazy_whole_content_loads_every_group(read: Any) -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    registry.register_lazy("fractions", lambda: {Fraction: "fraction"})
+    read(registry)
+    assert registry._state == {Decimal: "decimal", Fraction: "fraction"}
+
+
+@pytest.mark.parametrize("show", [repr, str])
+def test_type_registry_register_lazy_display_does_not_load(show: Any) -> None:
+    factory = Mock(return_value={Decimal: "decimal"})
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", factory)
+    show(registry)
+    factory.assert_not_called()
+
+
+def test_type_registry_register_lazy_copy_does_not_load() -> None:
+    factory = Mock(return_value={Decimal: "decimal"})
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", factory)
+    registry.copy()
+    factory.assert_not_called()
+
+
+def test_type_registry_register_lazy_repr_lists_the_pending_packages() -> None:
+    registry = TypeRegistry[str]({int: "int"})
+    registry.register_lazy(["fractions", "decimal"], lambda: {Decimal: "decimal"})
+    assert repr(registry) == (
+        "TypeRegistry(\n  (<class 'int'>): int\n  <not loaded: decimal, fractions>\n)"
+    )
+
+
+def test_type_registry_register_lazy_repr_after_loading_has_no_pending_line() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    len(registry)
+    assert repr(registry) == "TypeRegistry(\n  (<class 'decimal.Decimal'>): decimal\n)"
+
+
+def test_type_registry_register_lazy_copy_has_the_pending_groups() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert registry.copy().resolve(Decimal) == "decimal"
+
+
+def test_type_registry_register_lazy_copy_loads_the_groups_separately() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    registry.copy().resolve(Decimal)
+    assert len(registry._state) == 0
+
+
+def test_type_registry_register_lazy_clear_removes_the_groups() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    registry.clear()
+    assert len(registry) == 0
+
+
+def test_type_registry_register_lazy_clear_keeps_the_groups_of_the_original_copy() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    registry.copy().clear()
+    assert len(registry) == 1
+
+
+def test_type_registry_register_lazy_failing_factory_keeps_the_group() -> None:
+    factory = Mock(side_effect=[ImportError("failed"), {Decimal: "decimal"}])
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", factory)
+    with pytest.raises(ImportError, match="failed"):
+        registry.resolve(Decimal)
+    assert registry.resolve(Decimal) == "decimal"
+
+
+def test_type_registry_register_lazy_failing_factory_raises_again() -> None:
+    factory = Mock(side_effect=ImportError("failed"))
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", factory)
+    with contextlib.suppress(ImportError), pytest.raises(ImportError, match="failed"):
+        len(registry)
+    with pytest.raises(ImportError, match="failed"):
+        len(registry)
+
+
+def test_type_registry_register_lazy_factory_can_register_in_the_registry() -> None:
+    registry = TypeRegistry[str]()
+
+    def factory() -> dict[type, str]:
+        registry.register(int, "int")
+        return {Decimal: "decimal"}
+
+    registry.register_lazy("decimal", factory)
+    assert registry.resolve(Decimal) == "decimal"
+
+
+def test_type_registry_register_lazy_factory_registration_is_kept() -> None:
+    registry = TypeRegistry[str]()
+
+    def factory() -> dict[type, str]:
+        registry.register(int, "int")
+        return {Decimal: "decimal"}
+
+    registry.register_lazy("decimal", factory)
+    registry.resolve(Decimal)
+    assert registry[int] == "int"
+
+
+def test_type_registry_register_lazy_two_groups_with_the_same_package_are_both_loaded() -> None:
+    """Regression test (F4): the second group used to replace the first."""
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    registry.register_lazy("decimal", lambda: {Fraction: "fraction"})
+    len(registry)
+    assert registry._state == {Decimal: "decimal", Fraction: "fraction"}
+
+
+def test_type_registry_register_lazy_group_of_two_packages_then_one_of_them() -> None:
+    """Regression test (F4): the alias that was reused used to leave a
+    dangling name and raise a ``KeyError`` at the next load."""
+    registry = TypeRegistry[str]()
+    registry.register_lazy(["builtins", "decimal"], lambda: {Decimal: "decimal"})
+    registry.register_lazy("builtins", lambda: {Fraction: "fraction"})
+    len(registry)
+    assert registry._state == {Decimal: "decimal", Fraction: "fraction"}
+
+
+def test_type_registry_register_lazy_register_over_a_lazy_default_needs_exist_ok() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    with pytest.raises(AlreadyRegisteredError, match="already registered"):
+        registry.register(Decimal, "mine")
+
+
+def test_type_registry_register_lazy_equal_copy_does_not_load() -> None:
+    factory = Mock(return_value={Decimal: "decimal"})
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", factory)
+    registry.copy().equal(registry)
+    factory.assert_not_called()
+
+
+def test_type_registry_register_lazy_equal_loads_the_different_groups() -> None:
+    registry1 = TypeRegistry[str]()
+    registry1.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    registry2 = TypeRegistry[str]({Decimal: "decimal"})
+    assert registry1.equal(registry2)
+
+
+def test_type_registry_register_lazy_invalid_key_from_the_factory_raises() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {"abc": "x"})  # ty: ignore[invalid-argument-type]
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        len(registry)
+
+
+def test_type_registry_register_lazy_group_loaded_by_another_factory_is_not_loaded_twice() -> None:
+    registry = TypeRegistry[str]()
+    second = Mock(return_value={Fraction: "fraction"})
+
+    def first() -> dict[type, str]:
+        registry.resolve(Fraction)  # loads the second group
+        return {Decimal: "decimal"}
+
+    registry.register_lazy("decimal", first)
+    registry.register_lazy("fractions", second)
+    len(registry)
+    second.assert_called_once_with()

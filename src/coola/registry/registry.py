@@ -6,49 +6,23 @@ __all__ = ["Registry"]
 
 import copy
 import threading
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Generic, Self, TypeVar, cast
 
 from coola.registry.exceptions import AlreadyRegisteredError, KeyNotRegisteredError
 from coola.utils.fork import track_fork
 from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
-from coola.utils.imports import import_object
 
 if TYPE_CHECKING:
     from collections.abc import (
-        Callable,
         ItemsView,
-        Iterable,
         Iterator,
         KeysView,
         Mapping,
-        Sequence,
         ValuesView,
     )
 
 K = TypeVar("K")  # Key type
 V = TypeVar("V")  # Value type
-
-
-@dataclass
-class _LazyEntry(Generic[K, V]):
-    r"""Entries of a registry that are loaded when they are needed.
-
-    Attributes:
-        names: The names of the group. The entries are loaded the first
-            time the registry needs one of these names.
-        factory: A callable that returns the entries, or the path
-            ``"package.module:name"`` of this callable. A path is not
-            imported until the entries are loaded.
-    """
-
-    names: tuple[str, ...]
-    factory: str | Callable[[], Mapping[K, V]]
-
-    def load(self) -> Mapping[K, V]:
-        r"""Build the entries."""
-        factory = import_object(self.factory) if isinstance(self.factory, str) else self.factory
-        return factory()
 
 
 class Registry(Generic[K, V]):
@@ -122,8 +96,6 @@ class Registry(Generic[K, V]):
         self._state: dict[K, V] = initial_state.copy() if initial_state else {}
         self._lock: threading.RLock = threading.RLock()  # RLock allows re-entrant locking
         track_fork(self)
-        # Entries that are not loaded yet, by group name (see ``register_lazy``).
-        self._lazy: dict[str, _LazyEntry[K, V]] = {}
 
     def __contains__(self, key: K) -> bool:
         return self.has(key)
@@ -166,14 +138,13 @@ class Registry(Generic[K, V]):
         return f"{self.__class__.__qualname__}(\n  {body}\n)"
 
     def _pending_msg(self) -> str:
-        r"""Return the line that lists the lazy groups that are not
-        loaded.
+        r"""Return the lines that complete the display of the entries
+        (for example the lazy groups that are not loaded).
 
-        This must be called while holding ``self._lock``.
+        This must be called while holding ``self._lock``. The default
+        implementation returns nothing.
         """
-        if not self._lazy:
-            return ""
-        return f"<not loaded: {', '.join(sorted(self._lazy))}>"
+        return ""
 
     def _changed(self) -> None:
         r"""React to a change of the state.
@@ -223,8 +194,6 @@ class Registry(Generic[K, V]):
         with self._lock:
             # The state is never mutated, so it is shared until the next write.
             new._state = self._state
-            # The entries are never changed after their creation, so they are shared.
-            new._lazy = self._lazy.copy()
         new._lock = threading.RLock()
         new._changed()
         track_fork(new)
@@ -303,7 +272,6 @@ class Registry(Generic[K, V]):
             ```
         """
         with self._lock:
-            self._lazy.clear()
             self._publish({})
 
     def equal(self, other: object) -> bool:
@@ -338,11 +306,7 @@ class Registry(Generic[K, V]):
         if type(other) is not type(self):
             return False
         other = cast("Registry[K, V]", other)
-        # Two registries with the same pending groups (a registry and its copy) are compared
-        # without loading: each registry would build its own values, which are not equal.
-        if self._lazy != other._lazy:
-            self._load_lazy_all()
-            other._load_lazy_all()
+        self._load_lazy_for_equal(other)
         return self._state == other._state
 
     def get(self, key: K, default: V | None = None) -> V | None:
@@ -564,92 +528,26 @@ class Registry(Generic[K, V]):
             self._publish(state)
             return value
 
-    def register_lazy(
-        self, names: str | Sequence[str], factory: str | Callable[[], Mapping[K, V]]
-    ) -> None:
-        r"""Register entries that are built the first time they are needed.
-
-        This is used to register the entries that depend on an optional
-        library without importing the library when the registry is
-        created. The entries are loaded the first time the registry is
-        asked for a key that is related to one of the ``names`` (see
-        ``_lazy_names``; by default, all the groups are related to every
-        key), or for the whole content of the registry (``len``,
-        iteration, ``items``, ``repr``, ``equal``...).
-
-        The entries that are loaded never replace the entries that are
-        already registered, so a key that was registered by hand keeps
-        its value. ``clear`` removes the entries that are not loaded.
-
-        Args:
-            names: The name or the names of the group of entries. The
-                group is loaded when any of these names is needed.
-            factory: A callable that returns the entries, or its path
-                ``"package.module:name"``. A path is imported when the
-                entries are loaded.
-
-        Example:
-            ```pycon
-            >>> from coola.registry import Registry
-            >>> registry = Registry[str, int]()
-            >>> registry.register_lazy("group", lambda: {"key": 42})
-            >>> len(registry)
-            1
-            >>> registry.get("key")
-            42
-
-            ```
-        """
-        entry = _LazyEntry((names,) if isinstance(names, str) else tuple(names), factory)
-        with self._lock:
-            for name in entry.names:
-                self._lazy[name] = entry
-
-    def _lazy_names(self, key: K) -> Iterable[str]:  # noqa: ARG002
-        r"""Return the names of the lazy groups related to a key.
-
-        By default, the keys do not tell which group they come from, so
-        all the groups that are not loaded are related to every key.
-        Subclasses can override it to load only the groups that matter
-        for the key.
-        """
-        return list(self._lazy)
-
     def _load_lazy_for(self, key: K) -> None:
-        r"""Load the lazy groups that are related to a key."""
-        if self._lazy:
-            self._load_lazy(self._lazy_names(key))
+        r"""Load the entries that are not loaded yet and are related to a
+        key.
+
+        This is a hook for the subclasses that have lazy entries. The
+        default implementation does nothing.
+        """
 
     def _load_lazy_all(self) -> None:
-        r"""Load all the lazy groups."""
-        if self._lazy:
-            self._load_lazy(list(self._lazy))
+        r"""Load all the entries that are not loaded yet.
 
-    def _load_lazy(self, names: Iterable[str]) -> None:
-        r"""Load the lazy groups with these names.
-
-        The entries that are already registered are not replaced.
+        This is a hook for the subclasses that have lazy entries. The
+        default implementation does nothing.
         """
-        with self._lock:
-            for name in names:
-                entry = self._lazy.get(name)
-                if entry is None:
-                    continue  # The group is loaded or has no entries for this name
-                for alias in entry.names:
-                    del self._lazy[alias]
-                try:
-                    entries = entry.load()
-                except BaseException:
-                    # Keep the group so the next call tries again and fails the same way,
-                    # instead of silently continuing without these entries.
-                    for alias in entry.names:
-                        self._lazy[alias] = entry
-                    raise
-                state = dict(self._state)
-                for key, value in entries.items():
-                    self._validate_key(key)
-                    state.setdefault(key, value)
-                self._publish(state)
+
+    def _load_lazy_for_equal(self, other: Registry[K, V]) -> None:
+        r"""Load the entries that must be loaded before comparing the
+        registry with ``other``."""
+        self._load_lazy_all()
+        other._load_lazy_all()
 
     def items(self) -> ItemsView[K, V]:
         r"""Return key-value pairs.

@@ -5,7 +5,8 @@ from __future__ import annotations
 __all__ = ["TypeRegistry"]
 
 from collections import Counter
-from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar, cast
 
 from coola.registry.exceptions import (
     AlreadyRegisteredError,
@@ -13,11 +14,35 @@ from coola.registry.exceptions import (
     TypeNotRegisteredError,
 )
 from coola.registry.registry import Registry
+from coola.utils.imports import import_object
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, ItemsView, Iterable
+    from collections.abc import Callable, ItemsView, Mapping, Sequence
 
 T = TypeVar("T")
+
+
+@dataclass(frozen=True)
+class _LazyGroup(Generic[T]):
+    r"""A group of entries that are loaded when they are needed.
+
+    Attributes:
+        packages: The top-level packages of the group. The group is
+            loaded the first time a type from one of these packages is
+            needed.
+        factory: A callable that returns the entries, or its path
+            ``"package.module:name"``. A path is not imported until the
+            entries are loaded.
+    """
+
+    packages: frozenset[str]
+    factory: str | Callable[[], Mapping[type, T]]
+
+    def load(self) -> Mapping[type, T]:
+        r"""Build the entries."""
+        factory = import_object(self.factory) if isinstance(self.factory, str) else self.factory
+        return factory()
+
 
 #: Maximum number of entries kept in the ``resolve()`` cache.
 _MAX_CACHE_SIZE = 1024
@@ -162,20 +187,14 @@ class TypeRegistry(Registry[type, T], Generic[T]):
         # so readers can look up a type without locking.
         self._cache: dict[type, T] = {}
         self._fallbacks: dict[Callable[[type], bool], T] = {}
+        # Replaced on write, never mutated (see ``register_lazy``).
+        self._lazy: tuple[_LazyGroup[T], ...] = ()
 
     _not_registered_error = TypeNotRegisteredError
 
     def _changed(self) -> None:
         # Clear cache when registry changes to ensure new registrations are used
         self._cache = {}
-
-    def _lazy_names(self, key: type) -> Iterable[str]:
-        # Only an object whose class (or a base class) comes from a library can need the
-        # entries of this library, so the library is the first part of the module name.
-        return {
-            getattr(base, "__module__", "").partition(".")[0]
-            for base in getattr(key, "__mro__", ())
-        }
 
     def _validate_key(self, key: type) -> None:
         if not isinstance(key, type):
@@ -219,9 +238,9 @@ class TypeRegistry(Registry[type, T], Generic[T]):
         lines = [
             f"(fallback) {predicate!r}: {handler}" for predicate, handler in self._fallbacks.items()
         ]
-        pending = super()._pending_msg()
-        if pending:
-            lines.append(pending)
+        if self._lazy:
+            packages = sorted({package for group in self._lazy for package in group.packages})
+            lines.append(f"<not loaded: {', '.join(packages)}>")
         return "\n  ".join(lines)
 
     def copy(self) -> Self:
@@ -249,9 +268,11 @@ class TypeRegistry(Registry[type, T], Generic[T]):
             ```
         """
         with self._lock:
-            fallbacks = self._fallbacks
+            fallbacks, lazy = self._fallbacks, self._lazy
             new = super().copy()
-        new._fallbacks = fallbacks  # Replaced on write, so it can be shared
+        # Replaced on write, never mutated, so they can be shared
+        new._fallbacks = fallbacks
+        new._lazy = lazy
         return new
 
     def clear(self) -> None:
@@ -272,6 +293,7 @@ class TypeRegistry(Registry[type, T], Generic[T]):
         """
         with self._lock:
             self._fallbacks = {}
+            self._lazy = ()
             super().clear()
 
     def equal(self, other: object) -> bool:
@@ -304,6 +326,94 @@ class TypeRegistry(Registry[type, T], Generic[T]):
             return False
         # The order of the fallbacks is their order of precedence.
         return list(self._fallbacks.items()) == list(other._fallbacks.items())
+
+    def _load_lazy_for_equal(self, other: Registry[type, T]) -> None:
+        # Two registries with the same pending groups (a registry and its copy) are compared
+        # without loading: each registry would build its own values, which are not equal.
+        if self._lazy != cast("TypeRegistry[T]", other)._lazy:
+            super()._load_lazy_for_equal(other)
+
+    def register_lazy(
+        self, packages: str | Sequence[str], factory: str | Callable[[], Mapping[type, T]]
+    ) -> None:
+        r"""Register entries that are built the first time they are needed.
+
+        This is used to register the handlers of an optional library
+        without importing the library when the registry is created. The
+        group is loaded the first time the registry is asked for a type
+        that comes from one of the ``packages`` (the top-level package of
+        the type or of one of its base classes), or for the whole content
+        of the registry (``len``, iteration, ``items``, ``keys``,
+        ``values``, ``equal``). ``repr``, ``copy`` and ``register_lazy``
+        load nothing.
+
+        The entries that are loaded never replace the entries that are
+        already registered, so a type that was registered by hand keeps
+        its value. A group whose factory raises stays pending, so the
+        next access raises again. Two groups with a package in common
+        both stay and are both loaded. ``clear`` removes the groups that
+        are not loaded.
+
+        Args:
+            packages: The name or the names of the top-level packages of
+                the group. The group is loaded when a type from any of
+                these packages is needed.
+            factory: A callable that returns the entries, or its path
+                ``"package.module:name"``. A path is imported when the
+                entries are loaded.
+
+        Example:
+            ```pycon
+            >>> from decimal import Decimal
+            >>> from coola.registry import TypeRegistry
+            >>> registry = TypeRegistry[str]()
+            >>> registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+            >>> registry.resolve(Decimal)
+            'decimal'
+
+            ```
+        """
+        group = _LazyGroup(
+            frozenset((packages,) if isinstance(packages, str) else packages), factory
+        )
+        with self._lock:
+            self._lazy = (*self._lazy, group)
+
+    def _load_lazy_for(self, key: type) -> None:
+        if not self._lazy:
+            return
+        # Only an object whose class (or a base class) comes from a library can need the
+        # entries of this library, so the library is the first part of the module name.
+        packages = {
+            getattr(base, "__module__", "").partition(".")[0]
+            for base in getattr(key, "__mro__", ())
+        }
+        self._load_groups([group for group in self._lazy if group.packages & packages])
+
+    def _load_lazy_all(self) -> None:
+        if self._lazy:
+            self._load_groups(list(self._lazy))
+
+    def _load_groups(self, groups: Sequence[_LazyGroup[T]]) -> None:
+        r"""Load some lazy groups. The entries that are already registered
+        are not replaced."""
+        with self._lock:
+            for group in groups:
+                if not any(g is group for g in self._lazy):
+                    continue  # Loaded by a factory that was called in the meantime
+                self._lazy = tuple(g for g in self._lazy if g is not group)
+                try:
+                    entries = group.load()
+                except BaseException:
+                    # Keep the group so the next call tries again and fails the same way,
+                    # instead of silently continuing without these entries.
+                    self._lazy = (group, *self._lazy)
+                    raise
+                state = dict(self._state)
+                for key, value in entries.items():
+                    self._validate_key(key)
+                    state.setdefault(key, value)
+                self._publish(state)
 
     def register_fallback(
         self, predicate: Callable[[type], bool], value: T, *, exist_ok: bool = False
