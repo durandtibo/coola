@@ -3,7 +3,7 @@ r"""Implement a random manager for the python standard library
 
 from __future__ import annotations
 
-__all__ = ["RandomRandomManager"]
+__all__ = ["PythonRandomManager"]
 
 import random
 from typing import Any
@@ -14,7 +14,7 @@ from coola.random.seed import validate_seed
 from coola.utils.introspection import is_same_type
 
 
-class RandomRandomManager(InlineDisplayMixin, BaseRandomManager):
+class PythonRandomManager(InlineDisplayMixin, BaseRandomManager):
     r"""Implement a random manager for the python standard library
     ``random``.
 
@@ -25,8 +25,8 @@ class RandomRandomManager(InlineDisplayMixin, BaseRandomManager):
 
     Example:
         ```pycon
-        >>> from coola.random import RandomRandomManager
-        >>> manager = RandomRandomManager()
+        >>> from coola.random import PythonRandomManager
+        >>> manager = PythonRandomManager()
         >>> manager.manual_seed(42)
 
         ```

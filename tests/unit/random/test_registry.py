@@ -8,8 +8,8 @@ import pytest
 
 from coola.random import (
     BaseRandomManager,
+    PythonRandomManager,
     RandomManagerRegistry,
-    RandomRandomManager,
 )
 from coola.registry import AlreadyRegisteredError, KeyNotRegisteredError
 
@@ -51,14 +51,14 @@ def test_random_manager_registry_init_empty() -> None:
 
 
 def test_random_manager_registry_init_with_managers() -> None:
-    registry = RandomManagerRegistry({"random": RandomRandomManager()})
-    assert registry["random"] == RandomRandomManager()
+    registry = RandomManagerRegistry({"random": PythonRandomManager()})
+    assert registry["random"] == PythonRandomManager()
 
 
 def test_random_manager_registry_init_copies_the_mapping() -> None:
-    initial_state: dict[str, BaseRandomManager] = {"random": RandomRandomManager()}
+    initial_state: dict[str, BaseRandomManager] = {"random": PythonRandomManager()}
     registry = RandomManagerRegistry(initial_state)
-    initial_state["other"] = RandomRandomManager()
+    initial_state["other"] = PythonRandomManager()
     assert "other" not in registry
 
 
@@ -67,8 +67,8 @@ def test_random_manager_registry_is_a_manager() -> None:
 
 
 def test_random_manager_registry_repr() -> None:
-    assert repr(RandomManagerRegistry({"random": RandomRandomManager()})) == (
-        "RandomManagerRegistry(\n  (random): RandomRandomManager()\n)"
+    assert repr(RandomManagerRegistry({"random": PythonRandomManager()})) == (
+        "RandomManagerRegistry(\n  (random): PythonRandomManager()\n)"
     )
 
 
@@ -77,9 +77,9 @@ def test_random_manager_registry_str() -> None:
 
 
 def test_random_manager_registry_register_existing_key_without_exist_ok() -> None:
-    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    registry = RandomManagerRegistry({"random": PythonRandomManager()})
     with pytest.raises(AlreadyRegisteredError, match="already registered"):
-        registry.register("random", RandomRandomManager())
+        registry.register("random", PythonRandomManager())
 
 
 def test_random_manager_registry_unregister_missing_raises() -> None:
@@ -98,17 +98,17 @@ def test_random_manager_registry_copy_returns_the_same_class() -> None:
 
 def test_random_manager_registry_copy_register_does_not_change_the_original() -> None:
     registry = RandomManagerRegistry()
-    registry.copy().register("random", RandomRandomManager())
+    registry.copy().register("random", PythonRandomManager())
     assert "random" not in registry
 
 
 def test_random_manager_registry_equal_copy() -> None:
-    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    registry = RandomManagerRegistry({"random": PythonRandomManager()})
     assert registry.equal(registry.copy())
 
 
 def test_random_manager_registry_equal_different_keys() -> None:
-    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    registry = RandomManagerRegistry({"random": PythonRandomManager()})
     assert not registry.equal(RandomManagerRegistry())
 
 
@@ -134,7 +134,7 @@ def test_random_manager_registry_manual_seed_seeds_every_manager() -> None:
 
 
 def test_random_manager_registry_manual_seed_same_seed_same_values() -> None:
-    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    registry = RandomManagerRegistry({"random": PythonRandomManager()})
     registry.manual_seed(42)
     x1 = random.uniform(0, 1)  # noqa: S311
     random.uniform(0, 1)  # noqa: S311
@@ -144,7 +144,7 @@ def test_random_manager_registry_manual_seed_same_seed_same_values() -> None:
 
 @pytest.mark.parametrize("seed", [-1, 2**63, 2**70])
 def test_random_manager_registry_manual_seed_out_of_range(seed: int) -> None:
-    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    registry = RandomManagerRegistry({"random": PythonRandomManager()})
     with pytest.raises(ValueError, match="seed must be in the range"):
         registry.manual_seed(seed)
 
@@ -153,7 +153,7 @@ def test_random_manager_registry_manual_seed_out_of_range(seed: int) -> None:
 def test_random_manager_registry_manual_seed_out_of_range_does_not_seed(seed: int) -> None:
     random.seed(1)
     state = random.getstate()
-    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    registry = RandomManagerRegistry({"random": PythonRandomManager()})
     with contextlib.suppress(ValueError):
         registry.manual_seed(seed)
     assert random.getstate() == state  # nothing was seeded
@@ -161,7 +161,7 @@ def test_random_manager_registry_manual_seed_out_of_range_does_not_seed(seed: in
 
 @pytest.mark.parametrize("seed", [1.5, "1", True, None])
 def test_random_manager_registry_manual_seed_not_int(seed: object) -> None:
-    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    registry = RandomManagerRegistry({"random": PythonRandomManager()})
     with pytest.raises(TypeError, match="seed must be an int"):
         registry.manual_seed(seed)  # type: ignore[arg-type]
 
@@ -184,7 +184,7 @@ def test_random_manager_registry_set_rng_state_restores_every_manager() -> None:
 
 
 def test_random_manager_registry_set_rng_state_restored_values() -> None:
-    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    registry = RandomManagerRegistry({"random": PythonRandomManager()})
     state = registry.get_rng_state()
     x1 = random.uniform(0, 1)  # noqa: S311
     registry.set_rng_state(state)
@@ -281,7 +281,7 @@ def test_random_manager_registry_seed_seeds_inside_the_context() -> None:
 
 
 def test_random_manager_registry_seed_is_reproducible() -> None:
-    registry = RandomManagerRegistry({"random": RandomRandomManager()})
+    registry = RandomManagerRegistry({"random": PythonRandomManager()})
     with registry.seed(42):
         first = random.uniform(0, 1)  # noqa: S311
     with registry.seed(42):

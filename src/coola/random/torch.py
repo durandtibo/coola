@@ -2,19 +2,15 @@ r"""Implement a random manager for PyTorch."""
 
 from __future__ import annotations
 
-__all__ = ["TorchRandomManager", "get_random_seed", "get_torch_generator", "torch_seed"]
+__all__ = ["TorchRandomManager", "get_random_seed", "get_torch_generator"]
 
-from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
 from coola.random.seed import validate_seed
 from coola.utils.imports import check_torch, is_torch_available
 from coola.utils.introspection import is_same_type
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
 
 if is_torch_available():
     import torch
@@ -86,37 +82,6 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
             torch.mps.set_rng_state(state["torch.mps"])
 
 
-@contextmanager
-def torch_seed(seed: int) -> Generator[None]:
-    r"""Implement a context manager to manage the PyTorch random seed and
-    random number generator (RNG) state.
-
-    The context manager sets the specified random seed and
-    restores the original RNG state afterward.
-
-    Args:
-        seed: The random number generator seed to use while using
-            this context manager.
-
-    Example:
-        ```pycon
-        >>> import torch
-        >>> from coola.random import torch_seed
-        >>> with torch_seed(42):
-        ...     print(torch.randn(2, 4))
-        ...
-        tensor([[...]])
-        >>> with torch_seed(42):
-        ...     print(torch.randn(2, 4))
-        ...
-        tensor([[...]])
-
-        ```
-    """
-    with TorchRandomManager().seed(seed):
-        yield
-
-
 def get_random_seed(seed: int) -> int:
     r"""Get a random seed derived from a given seed.
 
@@ -128,39 +93,46 @@ def get_random_seed(seed: int) -> int:
         seed: A random seed to make the process reproducible.
 
     Returns:
-        A random seed. The value is between ``-2 ** 63`` and
-            ``2 ** 63 - 1``.
+        A random seed in ``[0, 2**63 - 1)``. It is a valid seed for
+            ``manual_seed``.
+
+    Raises:
+        TypeError: If the seed is not an ``int``.
+        ValueError: If the seed is not in the range ``[0, 2**63)``.
 
     Example:
         ```pycon
-        >>> from coola.random.torch import get_random_seed
+        >>> from coola.random import get_random_seed
         >>> get_random_seed(44)
-        6176747449835261347
+        6176747449835261348
 
         ```
     """
-    return torch.randint(-(2**63), 2**63 - 1, size=(1,), generator=get_torch_generator(seed)).item()
+    return torch.randint(0, 2**63 - 1, size=(1,), generator=get_torch_generator(seed)).item()
 
 
-def get_torch_generator(
-    random_seed: int = 1, device: torch.device | str | None = "cpu"
-) -> torch.Generator:
+def get_torch_generator(seed: int, *, device: torch.device | str | None = "cpu") -> torch.Generator:
     r"""Create a ``torch.Generator`` initialized with a given seed.
 
+    The generator is independent from the default generators of
+    PyTorch: it is the way to get reproducible random numbers in a
+    thread, where ``random_seed`` must not be used.
+
     Args:
-        random_seed: A random seed.
+        seed: A random seed.
         device: The desired device for the generator.
 
     Returns:
         A ``torch.Generator`` object.
 
     Raises:
-        ValueError: If the seed does not fit in a 64-bit integer.
+        TypeError: If the seed is not an ``int``.
+        ValueError: If the seed is not in the range ``[0, 2**63)``.
 
     Example:
         ```pycon
         >>> import torch
-        >>> from coola.random.torch import get_torch_generator
+        >>> from coola.random import get_torch_generator
         >>> generator = get_torch_generator(42)
         >>> torch.rand(2, 4, generator=generator)
         tensor([[0.8823, 0.9150, 0.3829, 0.9593],
@@ -172,6 +144,7 @@ def get_torch_generator(
 
         ```
     """
+    validate_seed(seed)
     generator = torch.Generator(device)
-    generator.manual_seed(random_seed)
+    generator.manual_seed(seed)
     return generator

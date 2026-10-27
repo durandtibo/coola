@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import contextlib
 from unittest.mock import patch
 
 import pytest
 
 from coola.equality import objects_are_equal
-from coola.random import TorchRandomManager, torch_seed
-from coola.random.torch import get_random_seed, get_torch_generator
+from coola.random import TorchRandomManager, get_random_seed, get_torch_generator, validate_seed
 from coola.testing.fixtures import torch_available
 from coola.utils.imports import MissingPackageError, is_torch_available
 
@@ -231,55 +229,6 @@ def test_torch_random_manager_no_torch() -> None:
         TorchRandomManager()
 
 
-################################
-#     Tests for torch_seed     #
-################################
-
-
-@torch_available
-def test_torch_seed_restore_random_seed() -> None:
-    state = torch.get_rng_state()
-    with torch_seed(42):
-        torch.randn(4, 6)
-    assert objects_are_equal(state, torch.get_rng_state())
-
-
-@torch_available
-def test_torch_seed_with_exception_raises_the_error() -> None:
-    with pytest.raises(RuntimeError, match=r"Exception"), torch_seed(42):  # noqa: PT012
-        torch.randn(4, 6)
-        msg = "Exception"
-        raise RuntimeError(msg)
-
-
-@torch_available
-def test_torch_seed_restore_random_seed_with_exception() -> None:
-    state = torch.get_rng_state()
-    with contextlib.suppress(RuntimeError), torch_seed(42):
-        torch.randn(4, 6)
-        msg = "Exception"
-        raise RuntimeError(msg)
-    assert objects_are_equal(state, torch.get_rng_state())
-
-
-@torch_available
-def test_torch_seed_same_random_seed() -> None:
-    with torch_seed(42):
-        x1 = torch.randn(4, 6)
-    with torch_seed(42):
-        x2 = torch.randn(4, 6)
-    assert x1.equal(x2)
-
-
-@torch_available
-def test_torch_seed_different_random_seeds() -> None:
-    with torch_seed(42):
-        x1 = torch.randn(4, 6)
-    with torch_seed(142):
-        x2 = torch.randn(4, 6)
-    assert not x1.equal(x2)
-
-
 @torch_available
 def test_torch_random_manager_seed_restores_the_state() -> None:
     manager = TorchRandomManager()
@@ -331,7 +280,7 @@ def test_get_random_seed_different_seeds() -> None:
 
 @torch_available
 def test_get_random_seed_value() -> None:
-    assert get_random_seed(44) == 6176747449835261347
+    assert get_random_seed(44) == 6176747449835261348
 
 
 @torch_available
@@ -343,7 +292,7 @@ def test_get_random_seed_does_not_change_the_default_generator() -> None:
 
 @torch_available
 def test_get_random_seed_in_range() -> None:
-    assert -(2**63) <= get_random_seed(42) < 2**63
+    assert 0 <= get_random_seed(42) < 2**63 - 1
 
 
 #########################################
@@ -367,13 +316,6 @@ def test_get_torch_generator_same_seed() -> None:
 def test_get_torch_generator_different_seeds() -> None:
     assert not torch.randn(4, 6, generator=get_torch_generator(1)).equal(
         torch.randn(4, 6, generator=get_torch_generator(2))
-    )
-
-
-@torch_available
-def test_get_torch_generator_default_seed_is_one() -> None:
-    assert torch.rand(3, generator=get_torch_generator()).equal(
-        torch.rand(3, generator=get_torch_generator(1))
     )
 
 
@@ -410,12 +352,6 @@ def test_get_torch_generator_does_not_change_the_default_generator() -> None:
 
 
 @torch_available
-def test_get_torch_generator_seed_overflow_raises() -> None:
-    with pytest.raises(ValueError, match="Overflow"):
-        get_torch_generator(2**64)
-
-
-@torch_available
 @pytest.mark.parametrize("seed", [-1, 2**63])
 def test_torch_random_manager_manual_seed_invalid_value_raises(seed: int) -> None:
     with pytest.raises(ValueError, match=r"seed must be in the range"):
@@ -427,3 +363,39 @@ def test_torch_random_manager_manual_seed_invalid_value_raises(seed: int) -> Non
 def test_torch_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
     with pytest.raises(TypeError, match=r"seed must be an int"):
         TorchRandomManager().manual_seed(seed)  # type: ignore[arg-type]
+
+
+@torch_available
+def test_get_torch_generator_seed_is_required() -> None:
+    with pytest.raises(TypeError, match="seed"):
+        get_torch_generator()  # type: ignore[call-arg]
+
+
+@torch_available
+def test_get_torch_generator_device_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional"):
+        get_torch_generator(42, "cpu")  # type: ignore[misc]
+
+
+@torch_available
+@pytest.mark.parametrize("seed", [-1, 2**63, 2**64])
+def test_get_torch_generator_invalid_value_raises(seed: int) -> None:
+    with pytest.raises(ValueError, match="seed must be in the range"):
+        get_torch_generator(seed)
+
+
+@torch_available
+def test_get_torch_generator_invalid_type_raises() -> None:
+    with pytest.raises(TypeError, match="seed must be an int"):
+        get_torch_generator(1.5)  # type: ignore[arg-type]
+
+
+@torch_available
+def test_get_random_seed_is_a_valid_seed() -> None:
+    validate_seed(get_random_seed(42))
+
+
+@torch_available
+def test_get_random_seed_invalid_value_raises() -> None:
+    with pytest.raises(ValueError, match="seed must be in the range"):
+        get_random_seed(-1)

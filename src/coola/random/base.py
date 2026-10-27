@@ -105,8 +105,8 @@ class BaseRandomManager(ABC):
         Example:
             ```pycon
             >>> import random
-            >>> from coola.random import RandomRandomManager
-            >>> manager = RandomRandomManager()
+            >>> from coola.random import PythonRandomManager
+            >>> manager = PythonRandomManager()
             >>> with manager.seed(42):
             ...     first = random.random()
             ...
