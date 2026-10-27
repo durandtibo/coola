@@ -368,3 +368,40 @@ def test_random_seed_registry_is_keyword_only() -> None:
 def test_register_managers_exist_ok_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
         register_managers({}, True)  # type: ignore[misc]
+
+
+####################################################
+#     Tests for _register_default_managers     #
+####################################################
+
+
+def _default_registry_keys() -> list[str]:
+    registry = RandomManagerRegistry()
+    random_interface._register_default_managers(registry)
+    return list(registry.keys())
+
+
+def test_register_default_managers_neither_library() -> None:
+    with (
+        patch("coola.random.interface.is_numpy_available", lambda: False),
+        patch("coola.random.interface.is_torch_available", lambda: False),
+    ):
+        assert _default_registry_keys() == ["random"]
+
+
+@numpy_available
+def test_register_default_managers_numpy_only() -> None:
+    with patch("coola.random.interface.is_torch_available", lambda: False):
+        assert _default_registry_keys() == ["random", "numpy"]
+
+
+@torch_available
+def test_register_default_managers_torch_only() -> None:
+    with patch("coola.random.interface.is_numpy_available", lambda: False):
+        assert _default_registry_keys() == ["random", "torch"]
+
+
+@numpy_available
+@torch_available
+def test_register_default_managers_both_libraries() -> None:
+    assert _default_registry_keys() == ["random", "numpy", "torch"]
