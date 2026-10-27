@@ -375,7 +375,7 @@ The `coola.random` package design provides:
 | Restorable              | `get_rng_state` and `set_rng_state` save and restore the state of every managed library.                                                         |
 | Scoped seeding          | `random_seed` restores the original state when the block exits.                                                                                  |
 | Optional dependencies   | A library that is not installed is skipped, not an error.                                                                                        |
-| NumPy seed folding      | The NumPy seed is `seed % 2**32`, so `1` and `2**32 + 1` give the same numbers.                                                                  |
+| Seed injective          | Two different seeds give different NumPy numbers: a seed `>= 2**32` is split in two 32-bit words, not folded.                                    |
 | Extensible              | A manager for another generator can be registered.                                                                                               |
 
 ## Best Practices
