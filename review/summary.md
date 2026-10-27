@@ -276,6 +276,9 @@ class CompactRepr(reprlib.Repr):
 - Any other type (a subclass such as `Counter`, a dataclass, an array) is shown with its `repr`, cut
   at `max_characters`. It is computed in full, which is the documented exception of "Bounded work".
 - It is built only when a container is at the boundary (lazy), so a flat summary pays nothing.
+- Fast path (required by the benchmark of the appendix): a container with at most `max_items` scalar
+  entries is shown with `repr()` directly, because `reprlib` is slower than `repr` on small
+  containers.
 
 The alternative that was considered, "header only" (`<class 'list'> (length=100) ...`), is bounded
 and needs no `reprlib`, but it hides the content of a small nested configuration, which is the most
@@ -531,56 +534,83 @@ negative sentinels disappear with the code.
   step.
 - Coverage: 100 % of `src/coola/summary` (`--cov=coola`), no `# pragma: no cover`.
 
-## 10. Decisions for the maintainers
+## 10. Decisions
 
-**D1. Options in a config, not in the constructors?** _Recommended: yes._ A person who wants three
+All ten decisions were taken as recommended. The design above is final on these points; the text of
+each decision is kept for the reasoning and for the alternatives that were rejected.
+
+**D1. Options in a config, not in the constructors?** _Decided: yes (recommended)._ A person who wants three
 items writes `summarize(data, max_items=3)`; today they build a registry, register `object` and `list`,
 and lose the other types (F3). The summarizers become stateless, so `__init__`, `__repr__`, `equal`
 and the display mixin disappear, and the package matches `EqualityConfig`. Cost: no per-type
 option (`max_items=3` for lists and 10 for dicts); the user who needs it registers their own
 summarizer (a one-line subclass that returns a `Node` with a smaller `total`).
 
-**D2. One limit for items, fields and columns?** _Recommended: yes, `max_items` (default 5)._
+Decision: **accepted as recommended.**
+
+**D2. One limit for items, fields and columns?** _Decided (recommended): yes, `max_items` (default 5)._
 `MAX_FIELDS=10` and `max_items=5` count the same thing (entries shown). Consequence: a frame lists 5
 columns by default instead of 10; `summarize(df, max_items=20)` lists more. Alternative: keep
 `max_fields` as a second option, or default `max_items` to 10 (a list of 20 shows 10 lines).
 
-**D3. Keep the name `max_depth`?** _Recommended: yes._ It is a display depth here and a limit that
+Decision: **accepted as recommended.**
+
+**D3. Keep the name `max_depth`?** _Decided: yes (recommended)._ It is a display depth here and a limit that
 raises in `objects_are_equal` (28.3 of `suggestions.md`); the docs say so in both places. Renaming to
 `expand_depth` removes the ambiguity, but `max_depth` is the name every user of `summarize` knows, and
 the cost of the ambiguity is a documentation sentence.
 
-**D4. What is the compact form?** _Recommended: a `reprlib`-based one line (4.4)._ It keeps the content
-of a small nested structure, which is the point of the default `max_depth=1`, and it is bounded.
-Alternatives: the header only (simplest, hides small configs); asking the summarizer for an inline form
-(`Node.inline`), which is exact for every type but doubles the contract.
+Decision: **accepted as recommended.**
 
-**D5. Total summarizing?** _Recommended: yes, catch `Exception` in the engine._ A summary is for logs
+**D4. What is the compact form?** _Decided (recommended): a `reprlib`-based one line (4.4)._ It keeps the content
+of a small nested structure, which is the point of the default `max_depth=1`, and it is bounded.
+Alternatives (rejected): the header only (simplest, hides small configs); asking the summarizer for an
+inline form (`Node.inline`), which is exact for every type but doubles the contract.
+
+Decision: **accepted as recommended.** Consequence: the benchmark appendix shows that `reprlib` makes
+`tree[1]` 2.5x slower than `main`, so step 4 must meet the gate of section 9 with a fast path in
+`CompactRepr` (`repr()` directly when the container has at most `max_items` scalar entries) and
+re-measure. The gate stays "up to 2x and at most 10 µs more" for inputs under 50 µs; relaxing it is not
+part of the decision.
+
+**D5. Total summarizing?** _Decided (recommended): yes, catch `Exception` in the engine._ A summary is for logs
 and error messages; raising there hides the original problem. The cost is that a bug in a custom
 summarizer shows as `<summary failed: ValueError>` instead of a traceback; the exception type is in
 the text and the tests of the plugin show it. Alternative: let the exceptions propagate and only keep
 `safe_str`.
 
-**D6. Hide the `field(repr=False)` fields of a dataclass?** _Recommended: yes._ It is how a dataclass
+Decision: **accepted as recommended.**
+
+**D6. Hide the `field(repr=False)` fields of a dataclass?** _Decided: yes (recommended)._ It is how a dataclass
 author declares "do not print this" (tokens, large buffers), and the pydantic summarizer already hides
 secrets. The summary is not a comparison, so unlike `equality` and `hashing` it does not need every
 field. Alternative: show them (today), and document that a dataclass is printed in full.
 
-**D7. Fixed indentation?** _Recommended: yes, 2 spaces, no `num_spaces`._ The option exists to fix a
+Decision: **accepted as recommended.**
+
+**D7. Fixed indentation?** _Decided (recommended): yes, 2 spaces, no `num_spaces`._ The option exists to fix a
 layout that was irregular (F6); a regular layout does not need it. Adding it back is one field of the
 config.
 
-**D8. Keep the rule "type shown inside the expansion, values at the boundary"?** _Recommended: keep._
+Decision: **accepted as recommended.**
+
+**D8. Keep the rule "type shown inside the expansion, values at the boundary"?** _Decided (recommended): keep._
 It is the documented behaviour of `summarize(42)` and of every example, and it needs one flag
 (`compact`). Alternative: always show the type of a leaf (`(a): <class 'int'> 1` everywhere): a
 simpler rule, but twice as long on the default output.
 
-**D9. One protocol or two?** _Recommended: keep `Summarizer` (protocol) and `BaseSummarizer` (ABC)._
+Decision: **accepted as recommended.**
+
+**D9. One protocol or two?** _Decided (recommended): keep `Summarizer` (protocol) and `BaseSummarizer` (ABC)._
 Same as `Hasher`/`BaseHasher` and `Transformer`/`BaseTransformer`; the cost is a few lines and the
 benefit is that a summarizer from another library needs no import of `coola`.
 
-**D10. Named tuple labels?** _Recommended: yes._ One line in `SequenceSummarizer` (`data._fields`),
+Decision: **accepted as recommended.**
+
+**D10. Named tuple labels?** _Decided: yes (recommended)._ One line in `SequenceSummarizer` (`data._fields`),
 consistent with dataclasses. Alternative: positions only (today).
+
+Decision: **accepted as recommended.**
 
 ## 11. Not covered
 
@@ -677,8 +707,7 @@ Reading the numbers:
   ("up to 2x, at most 10 µs more, for an input under 50 µs") is **not met** by the prototype on this
   case (+16 µs). It is the cost of bounding the compact form (F2) and it only shows on a mid-size
   structure whose children are small. Options before step 4: `CompactRepr` calls `repr()` directly when
-  `len(x) <= max_items` and the children are scalars (the common small case), or the gate is relaxed
-  to 3x for the compact form (decision D4 lists the alternatives). The real engine must be measured
+  `len(x) <= max_items` and the children are scalars (the common small case). Decision D4 is settled, so the gate is not relaxed. The real engine must be measured
   again; the prototype is not tuned (it uses `reprlib` as is, one `Frame` list per node, no `__slots__`).
 - **These numbers do not include** the metadata summarizers (arrays, frames), the pydantic summarizer,
   the cache of the registry lookup or the validation of the config; none of them is on the hot path of
