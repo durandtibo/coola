@@ -6,9 +6,10 @@ from __future__ import annotations
 import random
 from typing import Any
 
-from hypothesis import given, strategies as st
+import numpy as np
+from hypothesis import assume, given, strategies as st
 
-from coola.random import random_seed
+from coola.random import NumpyRandomManager, random_seed
 from coola.summary import summarize
 from tests.properties.strategies import values
 
@@ -59,3 +60,17 @@ def test_random_seed_restores_the_state(seed: int) -> None:
     with random_seed(seed):
         random.random()  # noqa: S311
     assert random.getstate() == state
+
+
+@given(
+    seed=st.integers(0, 2**63 - 1),
+    other=st.integers(0, 2**63 - 1),
+)
+def test_numpy_manager_different_seeds_give_different_numbers(seed: int, other: int) -> None:
+    assume(seed != other)
+    manager = NumpyRandomManager()
+    with manager.seed(seed):
+        first = np.random.rand(4)  # noqa: NPY002
+    with manager.seed(other):
+        second = np.random.rand(4)  # noqa: NPY002
+    assert not np.array_equal(first, second)
