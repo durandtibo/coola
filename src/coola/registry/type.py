@@ -304,7 +304,8 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         """
         if not isinstance(other, TypeRegistry) or not super().equal(other, equal_nan=equal_nan):
             return False
-        return self._fallbacks == other._fallbacks
+        # The order of the fallbacks is their order of precedence.
+        return list(self._fallbacks.items()) == list(other._fallbacks.items())
 
     def register_fallback(
         self, predicate: Callable[[type], bool], value: T, *, exist_ok: bool = False

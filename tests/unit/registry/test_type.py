@@ -1440,3 +1440,13 @@ def test_type_registry_equal_different_fallback_value() -> None:
 
 def test_type_registry_equal_other_type_is_false() -> None:
     assert not TypeRegistry[str]().equal(42)
+
+
+def test_type_registry_equal_different_order_of_fallbacks() -> None:
+    registry1 = TypeRegistry[str]()
+    registry1.register_fallback(is_base, "base")
+    registry1.register_fallback(is_child, "child")
+    registry2 = TypeRegistry[str]()
+    registry2.register_fallback(is_child, "child")
+    registry2.register_fallback(is_base, "base")
+    assert not registry1.equal(registry2)
