@@ -1,4 +1,28 @@
-r"""Utilities to build readable summaries for nested data structures."""
+r"""Utilities to build readable summaries for nested data structures.
+
+A summary is a short text that a person reads in a log, a notebook or an error message, to know
+what a (possibly huge, nested, partly unprintable) object contains.
+
+Properties:
+
+- Bounded output: a node shows at most ``max_items`` children, a text is cut at
+    ``max_characters``, and the expansion stops at ``max_depth``. What is not shown is announced.
+- Display depth: ``max_depth`` is the number of levels that are expanded. Deeper nodes are shown
+    on one line. It never raises.
+- Type dispatch: the summarizer is chosen from the type of the data along the Method Resolution
+    Order, so the most specific registered type wins.
+- Registry-extensible: a new type is supported by registering one summarizer.
+- Metadata first: an array, a tensor, a data frame shows its metadata, not its values.
+- Iterators are not consumed: a generator or an iterator is a leaf.
+- Deterministic: the same value gives the same text across calls and processes (a set shows its
+    smallest items in order).
+- Pure: the data is never modified.
+- For humans: the output is meant to be read, not parsed, so its exact format can change.
+
+Not guaranteed: a container that is reachable by several paths is shown once per path, a
+self-referencing container is not detected, and the time of a user ``__str__`` or ``__repr__`` is
+not bounded.
+"""
 
 from __future__ import annotations
 
