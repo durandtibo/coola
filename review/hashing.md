@@ -47,22 +47,22 @@ cryptographic guarantee (no passwords, signatures or integrity against an attack
 rules of the user guide. Every design choice below exists to make one of them true **by
 construction** (in the engine, in the encoding) instead of by the discipline of each hasher.
 
-| Property                 | Statement                                                                                                                                                                                                                    | Enforced by                               |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| Equality-consistent      | Objects that are equal for `objects_are_equal` have the same hash. The reverse can fail for the types that share a hash on purpose (a `list` subclass and a `list`, a NumPy `float64` and a `float`).                        | each hasher; the property tests           |
-| Deterministic            | The same value gives the same hash across calls, processes, machines and operating systems. No dependence on `PYTHONHASHSEED`, `id()`, the iteration order of a set, the locale, the clock or the time zone.                 | the encoding; golden vectors              |
-| Type-sensitive           | Values of different types hash differently, even if their text is the same: `1`, `1.0`, `True`, `"1"`, `b"1"`, `memoryview(b"1")` and `[1]` are all distinct. Subclasses hash like their base (documented).                  | a constant tag per hasher                 |
-| Structure-sensitive      | Nesting and item boundaries matter: `[[1], 2]`, `[1, [2]]` and `[1, 2]` differ, and so do `["ab", "c"]` and `["a", "bc"]`.                                                                                                   | the node encoding (fixed-width digests)   |
-| Order rules              | Ordered containers are order-sensitive; unordered ones (`dict`, `set`, `frozenset`) are not. `OrderedDict` is ordered, like in `objects_are_equal`.                                                                          | `Node(ordered=...)`                       |
-| Composable               | The hash of a container is computed only from the digests of its children, resolved through the registry, so each type is extended on its own and `hash_object` of a child is reusable.                                      | the engine                                |
-| Fixed width              | The output is a lowercase hex string of `length` characters (an even `int` from 2 to 128, default 64), and `hash_object(x, length=n)` is the first `n` characters of `hash_object(x, length=128)`.                           | the engine (one digest, truncated at end) |
-| No silent false equality | An unsupported type raises `TypeNotRegisteredError` (a `KeyError`). `ignore_unhashable=True` is the explicit, lossy opt-out and warns once per type.                                                                         | the engine                                |
-| Cycle-safe               | A container that contains itself raises `ValueError`, whichever hasher is registered for it.                                                                                                                                 | the engine                                |
-| Any depth                | No `RecursionError`, whatever the nesting or the caller's stack: the engine uses an explicit stack. The depth is bounded by memory only.                                                                                     | the engine                                |
-| Linear cost              | The cost is linear in the number of **objects**, not of paths: a container reachable by several paths (a DAG) is hashed once per call. A hash is pure, so the memoization is invisible.                                      | the engine (per-call memo)                |
-| Pure, thread-safe        | Hashing has no side effect and keeps no global state (no thread-local, no lock): a registry and a hasher can be shared by threads and re-entrant calls. Reading the filesystem is an explicit opt-in (`ResolvedPathHasher`). | the engine, stateless hashers             |
-| Errors propagate         | An exception of a hasher propagates unchanged. Invalid `length` raises `ValueError` before any traversal. A secret is never hashed unless asked for, wherever it is (section 3.8).                                           | the engine, `SecretHasher`                |
-| Consistent with siblings | Dataclasses and pydantic models are entered, only their `compare=True` fields count (like `objects_are_equal`); options are keyword-only; one extension point.                                                               | the default registry                      |
+| Property                 | Statement                                                                                                                                                                                                                                      | Enforced by                             |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Equality-consistent      | Objects that are equal for `objects_are_equal` have the same hash. The reverse can fail for the types that share a hash on purpose (a `list` subclass and a `list`, a NumPy `float64` and a `float`).                                          | each hasher; the property tests         |
+| Deterministic            | The same value gives the same hash across calls, processes, machines and operating systems. No dependence on `PYTHONHASHSEED`, `id()`, the iteration order of a set, the locale, the clock or the time zone.                                   | the encoding; golden vectors            |
+| Type-sensitive           | Values of different types hash differently, even if their text is the same: `1`, `1.0`, `True`, `"1"`, `b"1"`, `memoryview(b"1")` and `[1]` are all distinct. Subclasses hash like their base (documented).                                    | a constant tag per hasher               |
+| Structure-sensitive      | Nesting and item boundaries matter: `[[1], 2]`, `[1, [2]]` and `[1, 2]` differ, and so do `["ab", "c"]` and `["a", "bc"]`.                                                                                                                     | the node encoding (fixed-width digests) |
+| Order rules              | Ordered containers are order-sensitive; unordered ones (`dict`, `set`, `frozenset`) are not. `OrderedDict` is ordered, like in `objects_are_equal`.                                                                                            | `Node(ordered=...)`                     |
+| Composable               | The hash of a container is computed only from the digests of its children, resolved through the registry, so each type is extended on its own and `hash_object` of a child is reusable.                                                        | the engine                              |
+| Fixed width, user-chosen | The output is a lowercase hex string of `length` characters, chosen by the caller (an even `int` from 2 to 128, default 64): `hash_object(x, length=16)` is 16 characters. It is the first `length` characters of the full 128-character hash. | the engine (one digest, cut at the end) |
+| No silent false equality | An unsupported type raises `TypeNotRegisteredError` (a `KeyError`). `ignore_unhashable=True` is the explicit, lossy opt-out and warns once per type.                                                                                           | the engine                              |
+| Cycle-safe               | A container that contains itself raises `ValueError`, whichever hasher is registered for it.                                                                                                                                                   | the engine                              |
+| Any depth                | No `RecursionError`, whatever the nesting or the caller's stack: the engine uses an explicit stack. The depth is bounded by memory only.                                                                                                       | the engine                              |
+| Linear cost              | The cost is linear in the number of **objects**, not of paths: a container reachable by several paths (a DAG) is hashed once per call. A hash is pure, so the memoization is invisible.                                                        | the engine (per-call memo)              |
+| Pure, thread-safe        | Hashing has no side effect and keeps no global state (no thread-local, no lock): a registry and a hasher can be shared by threads and re-entrant calls. Reading the filesystem is an explicit opt-in (`ResolvedPathHasher`).                   | the engine, stateless hashers           |
+| Errors propagate         | An exception of a hasher propagates unchanged. Invalid `length` raises `ValueError` before any traversal. A secret is never hashed unless asked for, wherever it is (section 3.8).                                                             | the engine, `SecretHasher`              |
+| Consistent with siblings | Dataclasses and pydantic models are entered, only their `compare=True` fields count (like `objects_are_equal`); options are keyword-only; one extension point.                                                                                 | the default registry                    |
 
 Not guaranteed, and documented as such:
 
@@ -86,7 +86,7 @@ Not guaranteed, and documented as such:
 | F2  | **Depth.** The recursion costs two frames per level: a list nested **497** levels deep raises `ValueError: Cannot hash data that is nested too deeply` (a dict: also 497; the interpreter limit is 1,000). A `ValueError` is also the type of the self-reference error, so the caller cannot tell the two apart. The explicit stack of the prototype hashes 100,000 levels in 0.18 s.                                                                                                                                                                               | **[verified]** |
 | F3  | **A DAG costs one visit per path.** `x = [x, x]` repeated 20 times has 20 objects and 2^20 paths: 4.2 s (0.26 s at 16 levels). Hashing is pure, so a container that was already hashed in the call can be reused (the prototype does 60 levels in 0.1 ms).                                                                                                                                                                                                                                                                                                          | **[verified]** |
 | F4  | **`UserString` cannot be hashed.** It is a `Sequence` whose items are `UserString` again, so `SequenceHasher` recurses until the limit and the user gets "nested too deeply". The same trap exists for any `Sequence` of itself.                                                                                                                                                                                                                                                                                                                                    | **[verified]** |
-| F5  | **The hasher contract is heavy.** `hash(data, registry, *, length, ignore_unhashable) -> str`: the 31 implementations repeat four parameters, 30 `# noqa: ARG002` silence the ones they do not use, and a hasher that recurses must remember to forward two of them. `length` is applied to **every node**, so `hash_object(x, length=16)` is not a prefix of `hash_object(x)` and a leaf function (`hash_string`, `hash_tagged`, `hash_bytes`, `hash_enum`, `hash_path`) each validates it again.                                                                  | **[reading]**  |
+| F5  | **The hasher contract is heavy.** `hash(data, registry, *, length, ignore_unhashable) -> str`: the 31 implementations repeat four parameters, 30 `# noqa: ARG002` silence the ones they do not use, and a hasher that recurses must remember to forward two of them. `length` is threaded through **every node** (a short `length` weakens the children as well as the root), and a leaf function (`hash_string`, `hash_tagged`, `hash_bytes`, `hash_enum`, `hash_path`) each validates it again.                                                                   | **[reading]**  |
 | F6  | **Speed.** 1.4 µs per item of a list and 3.1 µs per item of a dict (100,000 items: 141 ms and 312 ms; a set: 164 ms). A fresh `blake2b` per leaf and per container, a hex round trip for each digest, a registry lookup per node (no per-call cache). There was no hashing benchmark before this document.                                                                                                                                                                                                                                                          | **[verified]** |
 | F7  | **Equal objects with different hashes.** A dataclass with a `compare=False` field (equal for `objects_are_equal`, hash differs); a pandas `Series` named `None` and one named `NaN` (equal, hash differs). This is the open item 14.7 of `suggestions.md` (22.9); no test covers it today. `MappingProxyType` is equal to an equal proxy but cannot be hashed (14.4).                                                                                                                                                                                               | **[verified]** |
 | F8  | **Type-sensitivity gaps.** A `memoryview` hashes like a `bytes` with the same content (same tag, and `objects_are_equal` says they differ). The tags have no rule: `ReprHasher` uses the module-qualified class name, `StrHasher` the bare one (`str:UUID`, so a user class named `UUID` registered with `StrHasher` collides with `uuid.UUID`), `DatetimeHasher` the bare `__qualname__`, `SequenceHasher` a free string.                                                                                                                                          | **[verified]** |
@@ -261,7 +261,7 @@ Design points:
   is replaced by `tagged("unhashable", qualified_name)` and a `UserWarning` is emitted **once per
   type per call**, with `stacklevel` pointing at the caller of `hash_object` (F14). Without the
   option, the `TypeNotRegisteredError` carries the remedies (register a hasher, give the class a
-  `__hash_content__`, or pass the option).
+  `__coola_hash__`, or pass the option).
 - **Memory.** Besides the input, the engine holds the digests of the children of the containers
   being built (about 100 bytes per child of a node in progress) and the memo. A flat list of one
   million items needs about 100 MB for the digests, like today's hex strings. Streaming the digests
@@ -286,14 +286,14 @@ Design points:
 | `MappingHasher(tag, ordered=False)`                 | `Node(tag, chain(k1, v1, k2, v2, ...), ordered, group=2)`                                                                                                                     | `dict`, `OrderedDict` (`ordered=True`), `Mapping`, `MappingProxyType` (F7) |
 | `SetHasher(tag)`                                    | `Node(tag, data, ordered=False)`                                                                                                                                              | `set`, `frozenset`                                                         |
 | `DataclassHasher`                                   | `Node("dataclass:module.Class", chain(name, value, ...), ordered=False, group=2)` over the fields with `compare=True` (F7)                                                    | fallback: `dataclasses.is_dataclass`                                       |
-| `ContentHasher`                                     | `Node("custom:module.Class", [data.__hash_content__()])` (section 3.7)                                                                                                        | fallback: the type has a `__hash_content__` method                         |
+| `ContentHasher`                                     | `Node("custom:module.Class", [data.__coola_hash__()])` (section 3.7)                                                                                                          | fallback: the type has a `__coola_hash__` method                           |
 | NumPy, torch, JAX, pandas, polars, pyarrow, xarray  | a leaf `tagged(tag, header + digest(raw values))` for numeric buffers, otherwise a `Node` whose children are plain values (names, dtype strings, arrays, lists) (section 3.6) | lazy groups, unchanged                                                     |
 | `PydanticModelHasher`, `SecretHasher(on_secret)`    | `Node("pydantic:module.Class", chain(field, value, ...), ordered=False, group=2)`; a secret is a leaf or an error (section 3.8)                                               | lazy group, unchanged                                                      |
 
 Removed: the five public leaf functions of F12 (`hash_string`, `hash_bytes`, `hash_tagged`,
 `hash_enum`, `hash_path`: `hash_object("x")` is the supported way; `tagged` and `digest` are the
 building blocks of a hasher), `hash_pydantic_model` and `unwrap_secrets` (section 3.8),
-`SupportsHash` and `HashableHasher` (replaced by `__hash_content__` and `ContentHasher`), the
+`SupportsHash` and `HashableHasher` (replaced by `__coola_hash__` and `ContentHasher`), the
 `registry`, `length` and `ignore_unhashable` parameters of every hasher, the positional form of
 `hash_object` and of `register_hashers`. Kept as they are: `Hasher` and `BaseHasher` (the family
 convention: `Transformer`/`BaseTransformer`, `Summarizer`/`BaseSummarizer`), `HasherRegistry` with
@@ -310,14 +310,15 @@ digest(x)  = BLAKE2b-512(preimage, person = b"coola-hash-1")           # 64 byte
 leaf       : preimage = 0x00 + tag + 0x00 + payload                     # what `encode` returned
 node       : preimage = 0x01 + tag + 0x00 + d1 + d2 + ... + dn          # fixed-width children
 unordered  : the groups of `group` children are concatenated, then sorted, then joined
-hash_object(x, length=n) = digest(x).hex()[:n]
+hash_object(x, length=n) = digest(x).hex()[:n]                         # n characters
 ```
 
 - **Fixed-width children** make the concatenation unambiguous without delimiters. The leading
   `0x00`/`0x01` byte makes a leaf and a node with the same tag different by construction.
-- **One digest size.** Every node is a full 64-byte digest and `length` only truncates the root: the
-  hashes of different `length` are prefixes of one another, a hasher never sees `length`, and
-  `length` is validated once (decision D2). The default `length=64` is the first half of the digest.
+- **`length` is chosen by the caller and cuts the end.** The caller asks for 2 to 128 characters
+  (decision D2). Every digest is a full 64-byte BLAKE2b, so the hash of any length is the start of the
+  longest one, a hasher never sees `length`, and `length` is validated once, before the traversal.
+  The default `length=64` is the first half of the digest.
 - **The format version** is the `person` parameter of BLAKE2b (at most 16 bytes, free): the digests
   of two formats can never be mistaken for one another, and a change of the encoding is one
   constant, `coola-hash-2`, plus the regenerated golden vectors (decision D9).
@@ -372,11 +373,11 @@ no layout, `-0.0` and NaN canonical). Only the way the parts are combined change
 three modules share (`canonicalize_floats`, `hash_array_content`) keep their place in
 `coola.hashing.numpy`.
 
-### 3.7 Custom objects: `__hash_content__`
+### 3.7 Custom objects: `__coola_hash__`
 
 ```python
-class SupportsHashContent(Protocol):
-    def __hash_content__(self) -> object: ...
+class SupportsCoolaHash(Protocol):
+    def __coola_hash__(self) -> object: ...
 ```
 
 A class that cannot be a dataclass says **what its content is** and the engine hashes it (with the
@@ -384,15 +385,15 @@ tag `custom:module.Class`, so two classes with the same content differ):
 
 ```python
 class Point:
-    def __hash_content__(self):
+    def __coola_hash__(self):
         return (self.x, self.y)
 ```
 
 This replaces `SupportsHash.hash(registry, length, ignore_unhashable)`: the object no longer
 recurses, so it cannot bypass the cycle check, nobody forwards `length`, and the fallback predicate
-is `callable(getattr(t, "__hash_content__", None))` with no signature inspection (F10). The dunder
+is `callable(getattr(t, "__coola_hash__", None))` with no signature inspection (F10). The dunder
 name cannot collide with a method of a library (`polars.Series.hash`). A dataclass keeps the
-dataclass hasher even if it defines `__hash_content__` (type > fallback order, then registration
+dataclass hasher even if it defines `__coola_hash__` (type > fallback order, then registration
 order of the fallbacks), as it did for `hash()`.
 
 ### 3.8 Secrets and pydantic
@@ -452,7 +453,7 @@ from coola.hashing import (
     Node,
     tagged,
     digest,
-    SupportsHashContent,
+    SupportsCoolaHash,
     ContentHasher,
     DataclassHasher,
     SequenceHasher,
@@ -494,10 +495,10 @@ doctests use) and calls the same engine. The decimal, fraction and range hashers
 | Package                                       | Change                                                                                                                                                                                                                                    |
 | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `identifier.generate_stable_content_id`       | No change of code (`hash_object(data, registry=get_stable_registry(), length=...)`). **Every identifier changes** with the format (section 3.4): the release notes and the migration page say so. The tests of the module use no literal. |
-| `identifier.generate_stable_uuid5`            | Same: it hashes at `length=128`, which is now the whole digest. No code change.                                                                                                                                                           |
+| `identifier.generate_stable_uuid5`            | Same: it hashes at `length=128`, the whole digest. No code change.                                                                                                                                                                        |
 | `equality`                                    | None. The property "equal implies same hash" is tested from `tests/properties` for the rows of the support matrix (14.4): the `known gap` hash rows that this design closes (`MappingProxyType`, `compare=False`) are removed.            |
 | `utils.recursion.raise_recursion_limit_error` | Not used by `hashing` any more (the docstring example names "hashing"; change it to another action).                                                                                                                                      |
-| User code with a custom hasher                | Rewritten on `encode` (migration page, section 7 step 8). A hasher of `SupportsHash` becomes `__hash_content__`.                                                                                                                          |
+| User code with a custom hasher                | Rewritten on `encode` (migration page, section 7 step 8). A hasher of `SupportsHash` becomes `__coola_hash__`.                                                                                                                            |
 | Plugins of `coola.hashing.hashers`            | Their hashers must implement `encode`; the group keeps its name.                                                                                                                                                                          |
 
 ## 6. Evidence: a prototype of the engine
@@ -543,18 +544,37 @@ Reading the numbers:
 One branch and one pull request per step (`CLAUDE.md`). The order keeps every step releasable and
 puts the measurement and the fixes that do not depend on the new engine first.
 
-| Step | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Breaking                         |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| 1    | **Benchmark (F6). Done with this document.** `tests/benchmarks/test_hashing_benchmark.py` (22 benchmarks, only `hash_object(data)`), baseline of `main` saved in `.benchmarks/` (appendix). No source change.                                                                                                                                                                                                                                                                                        | no                               |
-| 2    | **Fix the documentation (F13).** The wrong docstrings and comments of `interface.py` and `registry.py`, the positional form in the guide; add the **Properties** table of section 1 at the top of the guide page and in the package docstring. Documentation only.                                                                                                                                                                                                                                   | no                               |
-| 3    | **Equality-consistency and type-sensitivity (F4, F7, F8).** `DataclassHasher` hashes only `compare=True` fields; a `NaN` pandas name is `None`; register `MappingProxyType`; register `UserString`; a `memoryview` gets its own tag; give `StrHasher` and `ReprHasher` the same tag rule. One regression test per defect, checked to fail without the fix (`git stash push src`).                                                                                                                    | yes (hash values)                |
-| 4    | **Engine and `encode` contract (F1 to F3, F5, F6, F9, F14, F15).** Add `engine.py`, `Node`, `tagged`, `digest`; change `Hasher`/`BaseHasher` to `encode`; port the built-in hashers and the library hashers; the registry delegates to the engine and gets the enum rule; delete the thread-local state, the recursion translation, the `ARG002` noqa and the leaf functions' `length` plumbing; validate `length` once. Rewrite the unit tests of each hasher on `encode`. Benchmark gate.          | yes (custom hashers, all hashes) |
-| 5    | **Custom objects (F10).** `SupportsHashContent`, `ContentHasher` and the fallback on `__hash_content__`; delete `SupportsHash`, `HashableHasher` and `_has_hash_method`.                                                                                                                                                                                                                                                                                                                             | yes                              |
-| 6    | **Secrets and pydantic (F11).** `SecretHasher`, `get_secret_hashers`, the lazy registration; delete `unwrap_secrets`, `hash_pydantic_model` and the second thread-local.                                                                                                                                                                                                                                                                                                                             | yes                              |
-| 7    | **Delete the dead and deprecated code (F12).** The positional form of `hash_object` and its overloads, the positional `exist_ok`, `hash_string`, `hash_bytes`, `hash_tagged`, `hash_enum`, `hash_path`; update `__all__`, the guide and the tests.                                                                                                                                                                                                                                                   | yes                              |
-| 8    | **Documentation.** Rewrite `uguide/hashing.md` (properties, the encoding, `__hash_content__`, secrets, the DAG and cycle notes), the `Hashing` entry of `uguide/extending.md` (the `encode` example), `dev/architecture.md`, the migration page (`migration/v1.1_to_v2.0.md`: the format change, `encode`, `__hash_content__`, the removed names, secrets), `uguide/identifier.md` (the IDs change), and the status table of `review/suggestions.md` (22.5 to 22.8, 14.4, 14.7 with the PR numbers). | no                               |
-| 9    | **Layout (optional, no behaviour change).** Merge the leaf modules that are now 15 lines each (`str.py`, `repr.py`, `enum.py`, `bytes.py`, `string.py`) into `scalar.py`, and `dataclass.py` with `hashable.py` into `object.py`. Keep `sequence.py`, `mapping.py`, `set.py` apart, like `summary`. The tests move with the modules.                                                                                                                                                                 | no                               |
-| 10   | **Inlined leaves (optional, decision D7).** Only if the benchmark of step 1 shows that the plain composition is too slow for a use case. Changes the format: bump `person` and regenerate the golden vectors.                                                                                                                                                                                                                                                                                        | yes (hash values)                |
+| Step | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Breaking                         |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
+| 1    | **Benchmark (F6). Done with this document.** `tests/benchmarks/test_hashing_benchmark.py` (22 benchmarks, only `hash_object(data)`), baseline of `main` saved in `.benchmarks/` (appendix). No source change.                                                                                                                                                                                                                                                                                    | no                               |
+| 2    | **Fix the documentation (F13).** The wrong docstrings and comments of `interface.py` and `registry.py`, the positional form in the guide; add the **Properties** table of section 1 at the top of the guide page and in the package docstring. Documentation only.                                                                                                                                                                                                                               | no                               |
+| 3    | **Equality-consistency and type-sensitivity (F4, F7, F8).** `DataclassHasher` hashes only `compare=True` fields; a `NaN` pandas name is `None`; register `MappingProxyType`; register `UserString`; a `memoryview` gets its own tag; give `StrHasher` and `ReprHasher` the same tag rule. One regression test per defect, checked to fail without the fix (`git stash push src`).                                                                                                                | yes (hash values)                |
+| 4    | **Engine and `encode` contract (F1 to F3, F5, F6, F9, F14, F15).** Add `engine.py`, `Node`, `tagged`, `digest`; change `Hasher`/`BaseHasher` to `encode`; port the built-in hashers and the library hashers; the registry delegates to the engine and gets the enum rule; delete the thread-local state, the recursion translation, the `ARG002` noqa and the leaf functions' `length` plumbing; validate `length` once. Rewrite the unit tests of each hasher on `encode`. Benchmark gate.      | yes (custom hashers, all hashes) |
+| 5    | **Custom objects (F10).** `SupportsCoolaHash`, `ContentHasher` and the fallback on `__coola_hash__`; delete `SupportsHash`, `HashableHasher` and `_has_hash_method`.                                                                                                                                                                                                                                                                                                                             | yes                              |
+| 6    | **Secrets and pydantic (F11).** `SecretHasher`, `get_secret_hashers`, the lazy registration; delete `unwrap_secrets`, `hash_pydantic_model` and the second thread-local.                                                                                                                                                                                                                                                                                                                         | yes                              |
+| 7    | **Delete the dead and deprecated code (F12).** The positional form of `hash_object` and its overloads, the positional `exist_ok`, `hash_string`, `hash_bytes`, `hash_tagged`, `hash_enum`, `hash_path`; update `__all__`, the guide and the tests.                                                                                                                                                                                                                                               | yes                              |
+| 8    | **Documentation.** Rewrite `uguide/hashing.md` (properties, the encoding, `__coola_hash__`, secrets, the DAG and cycle notes), the `Hashing` entry of `uguide/extending.md` (the `encode` example), `dev/architecture.md`, the migration page (`migration/v1.1_to_v2.0.md`: the format change, `encode`, `__coola_hash__`, the removed names, secrets), `uguide/identifier.md` (the IDs change), and the status table of `review/suggestions.md` (22.5 to 22.8, 14.4, 14.7 with the PR numbers). | no                               |
+| 9    | **Layout (optional, no behaviour change).** Merge the leaf modules that are now 15 lines each (`str.py`, `repr.py`, `enum.py`, `bytes.py`, `string.py`) into `scalar.py`, and `dataclass.py` with `hashable.py` into `object.py`. Keep `sequence.py`, `mapping.py`, `set.py` apart, like `summary`. The tests move with the modules.                                                                                                                                                             | no                               |
+| 10   | **Inlined leaves (optional, decision D7).** Only if the benchmark of step 1 shows that the plain composition is too slow for a use case. Changes the format: bump `person` and regenerate the golden vectors.                                                                                                                                                                                                                                                                                    | yes (hash values)                |
+
+The prefix property of `length` is **not true on `main`** (`hash_object([1, 2], length=16)` is not the
+start of `hash_object([1, 2], length=128)` **[verified]**: `length` is applied to every node), so it
+goes into the user guide in step 8 and not before, or the doctest would fail. The text to add to
+`uguide/hashing.md`, in the **Properties** table (row "Fixed width") and in "Controlling the Hash
+Length":
+
+> The output has exactly `length` characters, an even number from 2 to 128 (default 64). Hashes of
+> different lengths are prefixes of one another: `hash_object(x, length=16)` is the first 16
+> characters of `hash_object(x, length=128)`. A short identifier can therefore be matched against a
+> stored longer hash with `startswith`, and changing the length later does not change the start of
+> the hashes you already have.
+
+```pycon
+>>> from coola.hashing import hash_object
+>>> hash_object([1, 2], length=128).startswith(hash_object([1, 2], length=16))
+True
+
+```
 
 Step 3 changes hash values and is independent of the engine; if the engine lands soon after, steps 3
 and 4 can share the release and the golden vectors are regenerated once.
@@ -579,8 +599,9 @@ seeded data).
   - an exception of a hasher propagates unchanged and leaves no state: the next call works;
   - re-entrant call (a hasher that calls `hash_object`) and a custom registry are independent;
   - the per-call cache: a hasher registered during a call is not used by this call;
-  - `length`: a prefix property (`hash_object(x, length=16) == hash_object(x, length=128)[:16]`),
-    the boundaries 2 and 128, `0`, `130`, an odd number, a `bool` and a `float` raise `ValueError`;
+  - `length`: the output has exactly `length` characters for 2, 16, 64 and 128, it is the start of
+    the 128-character hash (`hash_object(x, length=16) == hash_object(x, length=128)[:16]`), and
+    `0`, `130`, an odd number, a `bool` and a `float` raise `ValueError`;
   - `ignore_unhashable`: the placeholder depends on the type only, one `UserWarning` per type per
     call (F14), a nested object and a key are replaced, `TypeNotRegisteredError` by default.
 - **Each hasher** (`test_<module>.py`): `encode` asserts the whole output against a literal (the
@@ -620,11 +641,21 @@ do. Alternative: keep `hash(data, registry, *, length, ignore_unhashable) -> str
 parameters into a context object (`hash(data, ctx)`). It removes the `noqa` but a hasher still
 recurses, so F1 to F3 stay and the engine cannot be an explicit loop.
 
-**D2. One digest size; `length` truncates the root.** _Recommended: yes._ A hasher no longer sees
-`length`, the hashes of different lengths are prefixes of one another, and 64 bytes is the speed of
-BLAKE2b anyway. The cost: the default `length=64` is half of a 128-character digest, and the
-hashes of a given `length` change (they all change anyway, section 3.4). Alternative: the root alone
-is computed with `digest_size=length // 2` (no prefix property, one more code path in the engine).
+Decision: yes
+
+**D2. Who chooses the length of the hash.** Decision: **the caller controls the hash length**:
+`hash_object(x, length=16)` returns 16 characters (an even `int` from 2 to 128). Internally one
+64-byte digest is computed and the first `length` characters are kept, which is the simplest way to
+meet the requirement (no `size` argument in the engine, no special case for the root). A side effect
+is that the hash of a shorter length is the start of the longer one, so a short id can be matched
+against a stored full hash with `startswith`. The alternative (the root alone computed with
+`digest_size = length // 2`) gives the same API and independent values at each length, at the cost of
+one more argument in the engine; it was not chosen.
+
+Decision: I want to be able to control the hash length.
+
+Applied: the **Fixed width, user-chosen** property, the encoding rule of section 3.4, the registry and
+the length tests of section 8.
 
 **D3. Memoize the shared containers.** _Recommended: yes._ Unlike `recursive_apply` (decision D3 of
 `review/recursive.md`: an impure `func` would be called a different number of times), a hash is pure,
@@ -633,6 +664,8 @@ dictionary entry per container and the objects kept alive until the call ends, w
 `id` reuse of temporary children impossible. Alternative: no memo and a plain set of ancestors for
 the cycles; simpler by three lines, 2^20 paths stay 4 s.
 
+Decision: yes
+
 **D4. Cycles.** _Recommended: keep `ValueError`._ `objects_are_equal` accepts a cyclic structure
 and says "equal", so strictly "equal implies the same hash" is violated by a cycle. A deterministic
 back-reference (the distance to the ancestor) would make a cycle hashable, but the digest of a
@@ -640,17 +673,26 @@ container in a cycle then depends on where it is reached from, which breaks the 
 "hash of a child is reusable" property. A cycle in a hashed configuration is a bug nine times out of
 ten; the loud error is the better default. Revisit if a user needs it.
 
-**D5. The protocol of a custom object.** _Recommended: `__hash_content__(self) -> object`._ The
+Decision: keep `ValueError`
+
+**D5. The protocol of a custom object.** _Recommended: a method that returns the content (`__hash_content__`); decided: `__coola_hash__(self) -> object`._ The
 object says what its content is and does not recurse (F10); no signature inspection, no collision
 with a library `hash` method. Alternative: keep `hash(registry, length, ignore_unhashable)`, which
 forces the engine to support a re-entrant, parameterised call and keeps F10. Naming alternatives:
-`__coola_hash__`, `hash_content`.
+`__hash_content__`, `hash_content`.
+
+Decision: `__coola_hash__(self) -> object`
+
+Applied: sections 3.7, 4, 5 and 7 and the tests use `__coola_hash__`, the protocol is
+`SupportsCoolaHash`, and `ContentHasher` keeps its name (it hashes the content the method returns).
 
 **D6. Secrets are types with a hasher, and `exclude` replaces instead of removing.** _Recommended:
 yes._ It deletes a second traversal (`unwrap_secrets`), a second thread-local and the asymmetry
 between a model and a dataclass (F11). The policy is the one of the registry, so a caller that wants
 `reveal` builds a registry once. Alternative: keep the `on_secret` argument of the model hasher and
 the `unwrap_secrets` traversal, and live with F11.
+
+Decision: yes
 
 **D7. Inline the short leaves in the preimage of their parent.** _Recommended: not now._ It is 4
 times faster than `main` on flat containers (section 6) instead of 1.5 to 2 times, but it needs two
@@ -659,26 +701,36 @@ only when a benchmark or a user shows that hashing a million-element list is on 
 Streaming the digests of an ordered node into a running `blake2b` object (memory) is the other
 optimisation held back for the same reason.
 
+Decision: not now
+
 **D8. Remove the public leaf functions** (`hash_string`, `hash_bytes`, `hash_tagged`, `hash_enum`,
 `hash_path`, `hash_pydantic_model`). _Recommended: remove._ They hash one value under a tag with a
 `length`, which is `hash_object` for a scalar, and they keep `length` in the leaf code (F5). A caller
 that wants a plain BLAKE2b of a string uses `hashlib`. `tagged` and `digest` stay because a custom
 hasher needs them.
 
+Decision: remove
+
 **D9. A format version in the digest.** _Recommended: yes, `person=b"coola-hash-1"`._ It costs
 nothing, it makes two formats impossible to confuse (a stored hash of an older format never equals a
 new one by accident) and it turns a deliberate format change into a one-line constant plus the
 golden vectors. Alternative: no version and rely on the golden vectors alone.
 
+Decision: yes
+
 **D10. Keep the stable registry and the plugin group.** _Recommended: keep._ The plugin group is how
 a library adds its types, and `get_stable_registry()` is what keeps the identifiers independent of
 the plugins (22.4). Nothing in this design changes them except the `encode` contract of the entries.
+
+Decision: keep
 
 **D11. Only `compare=True` fields of a dataclass.** _Recommended: yes._ It is the rule of
 `objects_are_equal`, so equal dataclasses have the same hash (F7). A cache or a lazily computed
 field should not make two equal objects different. A user who wants every field registers
 `DataclassHasher(all_fields=True)` for the type, or a hasher of their own (the option is the one
 extension of the class and is not needed otherwise: leave it out until someone asks).
+
+Decision: yes
 
 ## 10. Not covered
 
@@ -706,7 +758,7 @@ extension of the class and is not needed otherwise: leave it out until someone a
 | `base.py`                                               | 101         | about 110       | `Node`, `tagged`, `digest`, `encode` replace `hash` (docstrings are longer than the code) |
 | `string.py`, `bytes.py`, `str.py`, `repr.py`, `enum.py` | 564         | about 220       | no leaf functions, no `length`, no `ARG002`, one enum rule                                |
 | `sequence.py`, `mapping.py`, `set.py`                   | 290         | about 180       | `Node(...)` instead of a loop over `registry.hash`                                        |
-| `dataclass.py`, `hashable.py`                           | 199         | about 100       | `__hash_content__`, no signature inspection                                               |
+| `dataclass.py`, `hashable.py`                           | 199         | about 100       | `__coola_hash__`, no signature inspection                                                 |
 | `pydantic.py`                                           | 350         | about 110       | no `unwrap_secrets`, no thread-local, no `hash_pydantic_model`                            |
 | `datetime.py`, `path.py`, `canonical.py`                | 410         | about 330       | no `registry`/`length`/`ignore_unhashable`, no `hash_path`                                |
 | `numpy.py`, `torch.py`, `jax.py`                        | 358         | about 300       | leaf encodings, no parameters                                                             |
