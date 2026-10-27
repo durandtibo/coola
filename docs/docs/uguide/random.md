@@ -160,10 +160,8 @@ block exits.
 >>> from coola.random import PythonRandomManager
 >>> with PythonRandomManager().seed(42):
 ...     first = random.random()
-...
 >>> with PythonRandomManager().seed(42):
 ...     second = random.random()
-...
 >>> first == second
 True
 
@@ -176,7 +174,6 @@ True
 >>> from coola.random import NumpyRandomManager
 >>> with NumpyRandomManager().seed(42):
 ...     np.random.rand(3)
-...
 array([...])
 
 ```
@@ -192,7 +189,6 @@ so two different seeds in `[0, 2**63)` never give the same numbers.
 >>> from coola.random import TorchRandomManager
 >>> with TorchRandomManager().seed(42):
 ...     torch.rand(3)
-...
 tensor([...])
 
 ```
@@ -260,7 +256,6 @@ registry that shares the managers:
 >>> registry.register("random", PythonRandomManager())
 >>> with random_seed(42, registry=registry):
 ...     pass
-...
 >>> other = registry.copy()
 >>> other.register("other", PythonRandomManager())
 >>> "other" in registry
@@ -337,14 +332,11 @@ check. This manager handles a module-level generator:
 ...
 ...     def set_rng_state(self, state):
 ...         RNG.setstate(state)
-...
 >>> registry = RandomManagerRegistry({"global_rng": GlobalRngManager()})
 >>> with registry.seed(42):
 ...     first = RNG.random()
-...
 >>> with registry.seed(42):
 ...     second = RNG.random()
-...
 >>> first == second
 True
 
@@ -361,7 +353,6 @@ keyword-only). Use `temporary_default_registries` to scope the registration, for
 >>> with temporary_default_registries():
 ...     register_managers({"custom": PythonRandomManager()})
 ...     "custom" in get_default_registry()
-...
 True
 >>> "custom" in get_default_registry()
 False
@@ -503,7 +494,6 @@ state is restored when the block exits.
 >>> from coola.random import random_seed
 >>> with random_seed(42):
 ...     pass  # reproducible code
-...
 
 ```
 
