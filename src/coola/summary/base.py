@@ -1,24 +1,60 @@
 r"""Define the summarizer base class.
 
-This module provides an abstract base class for implementing summarizers
-that convert Python objects into human-readable string representations.
-Summarizers are particularly useful for inspecting nested data
-structures with configurable depth limits.
+This module provides the ``Node`` that a summarizer returns for a
+container, the ``Summarizer`` protocol and an abstract base class for
+implementing summarizers that describe one type. A summarizer only
+describes its type: the recursion, the depth, the limits, the cycles
+and the errors are handled by the engine (see ``coola.summary.engine``).
 """
 
 from __future__ import annotations
 
-__all__ = ["BaseSummarizer", "Summarizer"]
-
+__all__ = ["BaseSummarizer", "Node", "Summarizer"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Generic, Protocol, TypeVar
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
 
 if TYPE_CHECKING:
-    from coola.summary.registry import SummarizerRegistry
+    from collections.abc import Iterable
+
+    from coola.summary.config import SummaryConfig
 
 T = TypeVar("T")
 T_contra = TypeVar("T_contra", contravariant=True)
+
+
+@dataclass(slots=True)
+class Node:
+    r"""Describe a container for the engine.
+
+    Args:
+        header: The first line of the node, for example
+            ``"<class 'list'> (length=3)"``.
+        children: The ``(label, child)`` pairs, in display order. It
+            should be lazy (a generator, ``enumerate(data)``,
+            ``data.items()``): the engine takes at most ``max_items``
+            of them.
+        total: The number of children, used to announce
+            ``... (+N more)`` when some of them are not shown.
+
+    Example:
+        ```pycon
+        >>> from coola.summary import Node
+        >>> node = Node("<class 'list'> (length=2)", enumerate(["a", "b"]), 2)
+        >>> node.header
+        "<class 'list'> (length=2)"
+        >>> list(node.children)
+        [(0, 'a'), (1, 'b')]
+        >>> node.total
+        2
+
+        ```
+    """
+
+    header: str
+    children: Iterable[tuple[Any, Any]]
+    total: int
 
 
 class Summarizer(Protocol[T_contra]):
@@ -29,49 +65,56 @@ class Summarizer(Protocol[T_contra]):
     convenience base class.
     """
 
-    def summarize(
-        self,
-        data: T_contra,
-        registry: SummarizerRegistry,
-        depth: int = 0,
-        max_depth: int = 1,
-    ) -> str: ...
+    def summarize(self, data: T_contra, config: SummaryConfig, *, compact: bool) -> str | Node: ...
 
 
 class BaseSummarizer(ABC, Generic[T]):
     r"""Abstract base class for implementing data summarizers.
 
-    A summarizer converts Python objects into formatted string representations,
-    with support for nested structures and configurable depth limits. This is
-    useful for debugging, logging, and displaying complex data in a readable format.
-
-    The class is generic over type T, allowing concrete implementations to
-    specialize for specific data types while maintaining type safety.
+    A summarizer describes one type: it returns a ``str`` for a leaf, or
+    a ``Node`` (a header and lazy children) for a container. The engine
+    recurses into the children, so a summarizer does not call the
+    registry.
 
     Notes:
-        Concrete implementations must override the ``summarize`` method to define
-        how data should be formatted and displayed.
+        The rules of the contract:
 
-        The depth mechanism allows for progressive disclosure of nested structures,
-        preventing overwhelming output for deeply nested data.
+        1. ``summarize`` is pure and cheap: it does not call the
+            registry, does not recurse, does not modify ``data`` and does
+            not iterate the whole data. For a container, it reads
+            ``len(data)`` and returns the children lazily. A set is
+            the exception: it returns its smallest ``max_items`` items.
+        2. ``compact`` is ``True`` when the data is at the display
+            depth. A leaf may use it. A container ignores it: the
+            engine shows it on one line.
+        3. A leaf returns a ``str``, which may have several lines. The
+            engine cuts it at ``max_characters``.
+        4. The labels of the children can be any object: the engine
+            writes their ``str`` cut at ``max_characters``.
+        5. An exception (of ``summarize``, of the iteration of the
+            children, of the ``str`` of a label) is handled by the
+            engine, which writes a placeholder. The summarizer does not
+            guard itself.
 
     Example:
         ```pycon
-        >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import DefaultSummarizer, SummaryConfig
         >>> summarizer = DefaultSummarizer()
-        >>> print(summarizer.summarize(1, registry))
+        >>> print(summarizer.summarize(1, SummaryConfig(), compact=False))
         <class 'int'> 1
 
         ```
     """
 
-    @abstractmethod
-    def equal(self, other: object) -> bool:
-        """Check equality between this summarizer and another object.
+    def __repr__(self) -> str:
+        return f"{type(self).__qualname__}()"
 
-        Two summarizers are considered equal if they are of the exact same type
-        and have identical configuration parameters.
+    def equal(self, other: object) -> bool:
+        r"""Check equality between this summarizer and another object.
+
+        Two summarizers are equal if they have the exact same type: the
+        built-in summarizers are stateless. A summarizer with a state
+        should override this method.
 
         Args:
             other: The object to compare with this summarizer.
@@ -82,72 +125,34 @@ class BaseSummarizer(ABC, Generic[T]):
         Example:
             ```pycon
             >>> from coola.summary import DefaultSummarizer, MappingSummarizer
-            >>> summarizer1 = DefaultSummarizer()
-            >>> summarizer2 = DefaultSummarizer()
-            >>> summarizer3 = MappingSummarizer()
-            >>> summarizer1.equal(summarizer2)
+            >>> DefaultSummarizer().equal(DefaultSummarizer())
             True
-            >>> summarizer1.equal(summarizer3)
+            >>> DefaultSummarizer().equal(MappingSummarizer())
             False
 
             ```
         """
+        return type(other) is type(self)
 
     @abstractmethod
-    def summarize(
-        self,
-        data: T,
-        registry: SummarizerRegistry,
-        depth: int = 0,
-        max_depth: int = 1,
-    ) -> str:
-        r"""Generate a formatted string summary of the provided data.
-
-        This method creates a human-readable representation of the input data,
-        with support for nested structures up to a specified depth. When the
-        current depth exceeds max_depth, nested structures are typically shown
-        in a compact form without further expansion.
+    def summarize(self, data: T, config: SummaryConfig, *, compact: bool) -> str | Node:
+        r"""Describe the data.
 
         Args:
-            data: The data object to summarize. Can be any Python object,
-                though behavior depends on the concrete implementation.
-            registry: The summarizer registry used to look up summarizers
-                for nested data structures of different types.
-            depth: The current nesting level in the data structure. Used
-                internally during recursive summarization. Typically starts
-                at 0 for top-level calls. Must be non-negative.
-            max_depth: The maximum nesting level to expand when summarizing.
-                Structures deeper than this level are shown in compact form.
-                Must be non-negative. Default is 1, which expands only the
-                top level of nested structures.
+            data: The data to describe.
+            config: The options of the summary.
+            compact: ``True`` if the data is at the display depth, so
+                it is shown on one line.
 
         Returns:
-            A formatted string representation of the data. The exact format
-            depends on the concrete implementation, but typically includes
-            type information, size/length metadata, and indented content for
-            nested structures.
-
-        Raises:
-            ValueError: May be raised by implementations for invalid depth
-                parameters or other issues based on the data type being
-                summarized. The base class doesn't specify exceptions, but
-                implementations may raise this or other exceptions.
-
-        Notes:
-            - The depth parameter is primarily for internal use during recursion.
-              Most external callers should use the default value of 0.
-            - Setting max_depth=0 typically shows only top-level information
-              without expanding any nested structures.
-            - Higher max_depth values provide more detail but can produce
-              very long output for deeply nested data.
+            A ``str`` for a leaf, or a ``Node`` for a container.
 
         Example:
             ```pycon
-            >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
-            >>> registry = SummarizerRegistry()
-            >>> summarizer = DefaultSummarizer()
-            >>> print(summarizer.summarize(1, registry))
-            <class 'int'> 1
+            >>> from coola.summary import SequenceSummarizer, SummaryConfig
+            >>> node = SequenceSummarizer().summarize([1, 2], SummaryConfig(), compact=False)
+            >>> node.header
+            "<class 'list'> (length=2)"
 
             ```
         """

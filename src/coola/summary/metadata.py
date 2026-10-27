@@ -1,202 +1,120 @@
-r"""Implement a base class for summarizers that describe the metadata of
-an object (shape, dtype...) instead of its values."""
+r"""Implement the base class of the summarizers that describe the
+metadata of an object."""
 
 from __future__ import annotations
 
-__all__ = ["MAX_FIELDS", "BaseFieldsSummarizer", "BaseMetadataSummarizer", "format_fields"]
+__all__ = ["BaseMetadataSummarizer", "Field", "format_fields"]
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar
 
-from coola.display import InlineDisplayMixin
 from coola.summary.base import BaseSummarizer
-from coola.utils.introspection import is_same_type
 from coola.utils.safe import safe_repr
-from coola.validation import validate_non_negative
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from coola.summary.registry import SummarizerRegistry
+    from coola.summary.config import SummaryConfig
 
 T = TypeVar("T")
 
-#: Maximum number of characters of the ``repr`` shown with ``show_data=True``.
-_MAX_DATA_CHARACTERS = 1000
+Field: TypeAlias = "str | tuple[str, Iterable[tuple[Any, Any]]]"
+r"""A field of the metadata: a text such as ``"shape=(2, 3)"``, or a name
+and the ``(name, type)`` pairs of the columns, which are formatted with
+``format_fields`` and limited to ``max_items``."""
 
-MAX_FIELDS = 10
-r"""The maximum number of columns/variables listed in a summary."""
 
-
-def format_fields(fields: Iterable[tuple[Any, Any]], max_fields: int = MAX_FIELDS) -> str:
-    r"""Format the fields of a table-like object (e.g. the columns of a
-    data frame) as ``name: type`` pairs.
+def format_fields(fields: Iterable[tuple[Any, Any]], max_fields: int | None) -> str:
+    r"""Format ``(name, type)`` pairs as ``name: type``, with at most
+    ``max_fields`` of them.
 
     Args:
-        fields: The ``(name, type)`` pairs.
-        max_fields: The maximum number of pairs to show. The other
-            ones are replaced by ``... (+N more)``.
+        fields: The ``(name, type)`` pairs, for example the columns of a
+            data frame and their types.
+        max_fields: The maximum number of pairs to show. The other ones
+            are replaced by ``... (+N more)``. ``None`` shows all of
+            them.
 
     Returns:
-        The formatted fields.
+        The formatted pairs, separated by a comma.
 
     Example:
         ```pycon
-        >>> from coola.summary.metadata import format_fields
-        >>> format_fields([("a", "int64"), ("b", "float64")])
+        >>> from coola.summary import format_fields
+        >>> format_fields([("a", "int64"), ("b", "float64")], 5)
         'a: int64, b: float64'
-        >>> format_fields([("a", "int64"), ("b", "float64"), ("c", "str")], max_fields=2)
-        'a: int64, b: float64, ... (+1 more)'
+        >>> format_fields([("a", "int64"), ("b", "float64"), ("c", "object")], 1)
+        'a: int64, ... (+2 more)'
 
         ```
     """
     items = [f"{name}: {dtype}" for name, dtype in fields]
-    if len(items) <= max_fields:
+    if max_fields is None or len(items) <= max_fields:
         return ", ".join(items)
     hidden = len(items) - max_fields
     return ", ".join([*items[:max_fields], f"... (+{hidden} more)"])
 
 
-class BaseMetadataSummarizer(InlineDisplayMixin, BaseSummarizer[T]):
-    r"""Define the base class for the summarizers that describe the
-    metadata of an object, instead of its values.
+class BaseMetadataSummarizer(BaseSummarizer[T]):
+    r"""Define the base class of the summarizers of objects that are
+    described by their metadata (arrays, tensors, data frames, ...).
 
-    The summary is ``<class> | <field 1> | <field 2> | ...``, where the
-    fields are returned by ``_describe``. A child class needs to
-    implement ``_describe``, and can override ``_check_dependencies``
-    to raise an error if a required optional package is not installed.
+    A subclass implements ``_describe`` and, if the type needs an
+    optional library, ``_check_dependencies``. The summary is a leaf:
+    the type followed by the fields, separated by ``|``. If
+    ``config.show_data`` is ``True``, it is the ``repr`` of the data
+    (cut by the engine at ``max_characters``).
 
-    Args:
-        show_data: If ``True``, the summary is ``repr(data)`` (a
-            placeholder if the ``repr`` raises), truncated to 1000
-            characters, which shows the values. If ``False``
-            (default), only the metadata is shown.
+    Raises:
+        MissingPackageError: If the optional library of the type is not
+            installed (raised when the summarizer is created).
 
     Example:
         ```pycon
-        >>> from coola.summary import SummarizerRegistry
-        >>> from coola.summary.metadata import BaseMetadataSummarizer
-        >>> class ListSummarizer(BaseMetadataSummarizer[list]):
-        ...     def _describe(self, data):
-        ...         return [f"length={len(data)}"]
-        ...
-        >>> summarizer = ListSummarizer()
-        >>> print(summarizer.summarize([1, 2, 3], SummarizerRegistry()))
-        <class 'list'> | length=3
-        >>> summarizer = ListSummarizer(show_data=True)
-        >>> print(summarizer.summarize([1, 2, 3], SummarizerRegistry()))
-        [1, 2, 3]
+        >>> import numpy as np
+        >>> from coola.summary import NDArraySummarizer, SummaryConfig
+        >>> summarizer = NDArraySummarizer()
+        >>> print(summarizer.summarize(np.ones((2, 3)), SummaryConfig(), compact=False))
+        <class 'numpy.ndarray'> | shape=(2, 3) | dtype=float64
+        >>> print(summarizer.summarize(np.ones(2), SummaryConfig(show_data=True), compact=False))
+        array([1., 1.])
 
         ```
     """
 
-    def __init__(self, show_data: bool = False) -> None:
+    def __init__(self) -> None:
         self._check_dependencies()
-        self._show_data = bool(show_data)
-
-    def _display_fields(self) -> dict[str, Any]:
-        return {"show_data": self._show_data}
 
     def _check_dependencies(self) -> None:
-        r"""Check that the packages required by the summarizer are
-        installed.
-
-        By default, the summarizer has no requirement.
+        r"""Check that the optional library of the type is installed.
 
         Raises:
-            MissingPackageError: if a required package is not installed.
+            MissingPackageError: If the library is not installed. By
+                default, nothing is checked.
         """
 
     @abstractmethod
-    def _describe(self, data: T) -> list[str]:
-        r"""Describe the metadata of an object.
+    def _describe(self, data: T) -> list[Field]:
+        r"""Describe the metadata of the data.
 
         Args:
-            data: The object to describe.
+            data: The data to describe.
 
         Returns:
-            The fields of the summary, e.g. ``["shape=(2, 3)", "dtype=int64"]``.
+            The fields of the metadata, for example
+                ``["shape=(2, 3)", "dtype=float64"]``. A table returns
+                its columns as ``("columns", pairs)``, so the engine
+                limits them to ``max_items``.
         """
 
-    def equal(self, other: object) -> bool:
-        if not is_same_type(other, self):
-            return False
-        return self._show_data == other._show_data
-
-    def summarize(
-        self,
-        data: T,
-        registry: SummarizerRegistry,  # noqa: ARG002
-        depth: int = 0,  # noqa: ARG002
-        max_depth: int = 1,  # noqa: ARG002
-    ) -> str:
-        if self._show_data:
-            text = safe_repr(data)
-            if len(text) > _MAX_DATA_CHARACTERS:
-                text = text[:_MAX_DATA_CHARACTERS] + "..."
-            return text
-        return " | ".join([f"{type(data)}", *self._describe(data)])
-
-
-class BaseFieldsSummarizer(BaseMetadataSummarizer[T]):
-    r"""Define the base class for the metadata summarizers that list
-    the fields of an object (the columns of a data frame, the variables
-    of a dataset).
-
-    The listed fields are limited to ``max_fields``, to keep the
-    summary short for an object with hundreds of columns. A child class
-    uses ``self._format_fields`` to format its fields.
-
-    Args:
-        show_data: If ``True``, the summary is ``repr(data)`` (a
-            placeholder if the ``repr`` raises), truncated to 1000
-            characters, which shows the values. If ``False``
-            (default), only the metadata is shown.
-        max_fields: The maximum number of fields to list. The other
-            fields are replaced by ``... (+N more)``. Defaults to
-            ``MAX_FIELDS`` (10).
-
-    Example:
-        ```pycon
-        >>> from coola.summary import SummarizerRegistry
-        >>> from coola.summary.metadata import BaseFieldsSummarizer
-        >>> class ColumnsSummarizer(BaseFieldsSummarizer[dict]):
-        ...     def _describe(self, data):
-        ...         return [f"columns={self._format_fields(data.items())}"]
-        ...
-        >>> data = {"a": "int", "b": "float", "c": "str"}
-        >>> print(ColumnsSummarizer().summarize(data, SummarizerRegistry()))
-        <class 'dict'> | columns=a: int, b: float, c: str
-        >>> print(ColumnsSummarizer(max_fields=2).summarize(data, SummarizerRegistry()))
-        <class 'dict'> | columns=a: int, b: float, ... (+1 more)
-
-        ```
-    """
-
-    def __init__(self, show_data: bool = False, max_fields: int = MAX_FIELDS) -> None:
-        super().__init__(show_data=show_data)
-        validate_non_negative(max_fields, name="max_fields")
-        self._max_fields = max_fields
-
-    def _display_fields(self) -> dict[str, Any]:
-        kwargs = super()._display_fields()
-        # Shown only if it is not the default, so the usual summarizers have a short repr.
-        if self._max_fields != MAX_FIELDS:
-            kwargs["max_fields"] = self._max_fields
-        return kwargs
-
-    def equal(self, other: object) -> bool:
-        if not is_same_type(other, self):
-            return False
-        return self._show_data == other._show_data and self._max_fields == other._max_fields
-
-    def _format_fields(self, fields: Iterable[tuple[Any, Any]]) -> str:
-        r"""Format the fields, limited to ``max_fields``.
-
-        Args:
-            fields: The ``(name, type)`` pairs to format.
-
-        Returns:
-            The formatted fields.
-        """
-        return format_fields(fields, max_fields=self._max_fields)
+    def summarize(self, data: T, config: SummaryConfig, *, compact: bool) -> str:  # noqa: ARG002
+        if config.show_data:
+            return safe_repr(data)
+        parts = [f"{type(data)}"]
+        for field in self._describe(data):
+            if isinstance(field, str):
+                parts.append(field)
+            else:
+                name, pairs = field
+                parts.append(f"{name}={format_fields(pairs, config.max_items)}")
+        return " | ".join(parts)

@@ -1,4 +1,4 @@
-r"""Implement the default summarizer."""
+r"""Implement a default summarizer for scalar and unknown types."""
 
 from __future__ import annotations
 
@@ -7,58 +7,36 @@ __all__ = ["DefaultSummarizer"]
 from typing import TYPE_CHECKING
 
 from coola.summary.base import BaseSummarizer
-from coola.utils.introspection import is_same_type
 from coola.utils.safe import safe_str
 
 if TYPE_CHECKING:
-    from coola.summary.registry import SummarizerRegistry
+    from coola.summary.config import SummaryConfig
 
 
 class DefaultSummarizer(BaseSummarizer[object]):
-    r"""Implement the default summarizer.
+    r"""Implement a default summarizer that returns the ``str`` of the
+    data.
 
-    Args:
-        max_characters: The maximum number of characters to
-            show. If a negative value is provided, all the characters
-            are shown. Defaults to ``1000``, to keep the summary of an
-            object with a huge ``str`` short. Note that ``str(data)``
-            is computed before it is truncated.
+    The summarizer is a leaf: it shows the type and the ``str`` of the
+    data, and only the ``str`` when the data is at the display depth.
+    The text is cut by the engine at ``max_characters``. It is
+    registered for ``object``, so it is used for the types that have no
+    other summarizer (numbers, strings, iterators, ...).
 
     Example:
         ```pycon
-        >>> from coola.summary import SummarizerRegistry, DefaultSummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import DefaultSummarizer, SummaryConfig
         >>> summarizer = DefaultSummarizer()
-        >>> print(summarizer.summarize(1, registry))
+        >>> print(summarizer.summarize(1, SummaryConfig(), compact=False))
         <class 'int'> 1
+        >>> print(summarizer.summarize(1, SummaryConfig(), compact=True))
+        1
 
         ```
     """
 
-    def __init__(self, max_characters: int = 1000) -> None:
-        self._max_characters = max_characters
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(max_characters={self._max_characters:,})"
-
-    def equal(self, other: object) -> bool:
-        if not is_same_type(other, self):
-            return False
-        return self._max_characters == other._max_characters
-
-    def summarize(
-        self,
-        data: object,
-        registry: SummarizerRegistry,  # noqa: ARG002
-        depth: int = 0,
-        max_depth: int = 1,
-    ) -> str:
-        text = self._summarize(safe_str(data))
-        if depth >= max_depth:
+    def summarize(self, data: object, config: SummaryConfig, *, compact: bool) -> str:  # noqa: ARG002
+        text = safe_str(data)
+        if compact:
             return text
         return f"{type(data)} {text}"
-
-    def _summarize(self, value: str) -> str:
-        if self._max_characters >= 0 and len(value) > self._max_characters:
-            value = value[: self._max_characters] + "..."
-        return value

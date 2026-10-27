@@ -7,8 +7,13 @@ Properties:
 
 - Bounded output: a node shows at most ``max_items`` children, a text is cut at
     ``max_characters``, and the expansion stops at ``max_depth``. What is not shown is announced.
+- Bounded work: the cost depends on the size of the output, not on the size of the data.
 - Display depth: ``max_depth`` is the number of levels that are expanded. Deeper nodes are shown
     on one line. It never raises.
+- Total: summarizing never fails because of the data (a ``__len__`` or a property that raises is
+    replaced by a placeholder).
+- Cycle-safe: a container that contains itself is shown as ``<cycle>``.
+- Any depth: there is no ``RecursionError``, the engine uses an explicit stack.
 - Type dispatch: the summarizer is chosen from the type of the data along the Method Resolution
     Order, so the most specific registered type wins.
 - Registry-extensible: a new type is supported by registering one summarizer.
@@ -19,17 +24,13 @@ Properties:
 - Pure: the data is never modified.
 - For humans: the output is meant to be read, not parsed, so its exact format can change.
 
-Not guaranteed: a container that is reachable by several paths is shown once per path, a
-self-referencing container is not detected, and the time of a user ``__str__`` or ``__repr__`` is
-not bounded.
+Not guaranteed: a container that is reachable by several paths is shown once per path, and the
+time of a user ``__str__`` or ``__repr__`` is not bounded.
 """
 
 from __future__ import annotations
 
 __all__ = [
-    "MAX_FIELDS",
-    "BaseCollectionSummarizer",
-    "BaseFieldsSummarizer",
     "BaseMetadataSummarizer",
     "BaseSummarizer",
     "DataclassSummarizer",
@@ -37,6 +38,7 @@ __all__ = [
     "JaxArraySummarizer",
     "MappingSummarizer",
     "NDArraySummarizer",
+    "Node",
     "PandasDataFrameSummarizer",
     "PandasSeriesSummarizer",
     "PolarsDataFrameSummarizer",
@@ -49,6 +51,7 @@ __all__ = [
     "SetSummarizer",
     "Summarizer",
     "SummarizerRegistry",
+    "SummaryConfig",
     "TensorSummarizer",
     "XarrayDataArraySummarizer",
     "XarrayDatasetSummarizer",
@@ -62,8 +65,8 @@ __all__ = [
 
 from typing import TYPE_CHECKING
 
-from coola.summary.base import BaseSummarizer, Summarizer
-from coola.summary.collection import BaseCollectionSummarizer
+from coola.summary.base import BaseSummarizer, Node, Summarizer
+from coola.summary.config import SummaryConfig
 from coola.summary.dataclass import DataclassSummarizer
 from coola.summary.default import DefaultSummarizer
 from coola.summary.interface import (
@@ -73,12 +76,7 @@ from coola.summary.interface import (
     summarize,
 )
 from coola.summary.mapping import MappingSummarizer
-from coola.summary.metadata import (
-    MAX_FIELDS,
-    BaseFieldsSummarizer,
-    BaseMetadataSummarizer,
-    format_fields,
-)
+from coola.summary.metadata import BaseMetadataSummarizer, format_fields
 from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer

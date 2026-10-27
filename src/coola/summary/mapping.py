@@ -1,75 +1,41 @@
-r"""Implement summarizers for mapping data."""
+r"""Implement a summarizer for mappings."""
 
 from __future__ import annotations
 
 __all__ = ["MappingSummarizer"]
 
-from collections import Counter, OrderedDict
-from collections.abc import Mapping
-from itertools import islice
 from typing import TYPE_CHECKING, Any
 
-from coola.summary.collection import BaseCollectionSummarizer
-from coola.utils.format import str_mapping
+from coola.summary.base import BaseSummarizer, Node
 
 if TYPE_CHECKING:
-    from coola.summary.registry import SummarizerRegistry
+    from collections.abc import Mapping
+
+    from coola.summary.config import SummaryConfig
 
 
-class MappingSummarizer(BaseCollectionSummarizer[Mapping[Any, Any]]):
-    r"""Summarizer for mapping-based data structures like dictionaries.
+class MappingSummarizer(BaseSummarizer["Mapping[Any, Any]"]):
+    r"""Implement a summarizer for mappings (``dict``, ``Mapping``,
+    ``MappingProxyType``, ...).
 
-    This class formats mapping types (dict, OrderedDict, etc.) into readable
-    summaries that display the type, length, and key-value pairs with proper
-    indentation. It respects the max_items limit and handles nested structures
-    through the registry system. It handles depth limiting to prevent
-    excessively deep nested summaries and truncates the output when the
-    number of items exceeds max_items.
-
-    Args:
-        max_items: The maximum number of key-value pairs to display.
-            If negative, shows all pairs. Defaults to 5.
-        num_spaces: The number of spaces for indenting each level.
-            Defaults to 2.
+    The children are the ``(key, value)`` pairs, in the order of the
+    mapping. The pairs are taken lazily, so only ``max_items`` of them
+    are read.
 
     Example:
         ```pycon
-        >>> from coola.summary import SummarizerRegistry, MappingSummarizer, DefaultSummarizer
-        >>> registry = SummarizerRegistry({object: DefaultSummarizer()})
-        >>> summarizer = MappingSummarizer()
-        >>> output = summarizer.summarize({"key1": 1.2, "key2": "abc", "key3": 42}, registry)
-        >>> print(output)
-        <class 'dict'> (length=3)
-          (key1): 1.2
-          (key2): abc
-          (key3): 42
+        >>> from coola.summary import MappingSummarizer, SummaryConfig
+        >>> node = MappingSummarizer().summarize({"a": 1, "b": 2}, SummaryConfig(), compact=False)
+        >>> node.header
+        "<class 'dict'> (length=2)"
+        >>> list(node.children)
+        [('a', 1), ('b', 2)]
+        >>> node.total
+        2
 
         ```
     """
 
-    def _get_preview(self, data: Mapping[Any, Any], limit: int) -> Mapping[Any, Any]:
-        items = dict(islice(data.items(), limit))
-        # The type is kept for the common mappings, any other mapping is shown as a dict.
-        if type(data) is OrderedDict:
-            return OrderedDict(items)
-        if type(data) is Counter:
-            return Counter(items)
-        return items
-
-    def _format_items(
-        self,
-        data: Mapping[Any, Any],
-        registry: SummarizerRegistry,
-        depth: int,
-        max_depth: int,
-    ) -> str:
-        items = data.items()
-        if self._max_items > 0:
-            items = islice(items, self._max_items)
-        return str_mapping(
-            {
-                key: registry.summarize(val, depth=depth + 1, max_depth=max_depth)
-                for key, val in items
-            },
-            num_spaces=self._num_spaces,
-        )
+    def summarize(self, data: Mapping[Any, Any], config: SummaryConfig, *, compact: bool) -> Node:  # noqa: ARG002
+        length = len(data)
+        return Node(f"{type(data)} (length={length:,})", data.items(), length)

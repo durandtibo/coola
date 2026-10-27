@@ -11,7 +11,7 @@ __all__ = ["TensorSummarizer"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.summary.metadata import BaseMetadataSummarizer
+from coola.summary.metadata import BaseMetadataSummarizer, Field
 from coola.utils.imports import check_torch, is_torch_available
 
 if TYPE_CHECKING or is_torch_available():
@@ -33,36 +33,26 @@ class TensorSummarizer(BaseMetadataSummarizer[torch.Tensor]):
     and debugging large tensors. Optionally, it can show the full tensor
     representation.
 
-    Args:
-        show_data: If ``True``, returns the default tensor string
-            representation (same as ``repr(tensor)``), displaying
-            actual values. If ``False`` (default), returns only
-            metadata in a compact format:
-            ``<class> | shape=<shape> | dtype=<dtype> | device=<device> |
-            requires_grad=<requires_grad>``.
-            Default: ``False``
-
     Raises:
         MissingPackageError: If PyTorch is not installed or available.
 
     Example:
         ```pycon
         >>> import torch
-        >>> from coola.summary import SummarizerRegistry, TensorSummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import TensorSummarizer, SummaryConfig
 
         >>> # Default behavior: show metadata only
         >>> summarizer = TensorSummarizer()
-        >>> print(summarizer.summarize(torch.arange(11), registry))  # doctest: +ELLIPSIS
+        >>> print(summarizer.summarize(torch.arange(11), SummaryConfig(), compact=False))  # doctest: +ELLIPSIS
         <class 'torch.Tensor'> | shape=torch.Size([11]) | dtype=torch.int64 | device=cpu | requires_grad=False
 
         >>> # Works with tensors of any shape and dtype
-        >>> print(summarizer.summarize(torch.ones(2, 3, 4), registry))  # doctest: +ELLIPSIS
+        >>> print(summarizer.summarize(torch.ones(2, 3, 4), SummaryConfig(), compact=False))  # doctest: +ELLIPSIS
         <class 'torch.Tensor'> | shape=torch.Size([2, 3, 4]) | dtype=torch.float32 | device=cpu | requires_grad=False
 
         >>> # Show full tensor data
-        >>> summarizer = TensorSummarizer(show_data=True)
-        >>> print(summarizer.summarize(torch.arange(11), registry))  # doctest: +ELLIPSIS
+        >>> config = SummaryConfig(show_data=True)
+        >>> print(summarizer.summarize(torch.arange(11), config, compact=False))  # doctest: +ELLIPSIS
         tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10])
 
         ```
@@ -71,7 +61,7 @@ class TensorSummarizer(BaseMetadataSummarizer[torch.Tensor]):
     def _check_dependencies(self) -> None:
         check_torch()
 
-    def _describe(self, data: torch.Tensor) -> list[str]:
+    def _describe(self, data: torch.Tensor) -> list[Field]:
         return [
             f"shape={data.shape}",
             f"dtype={data.dtype}",

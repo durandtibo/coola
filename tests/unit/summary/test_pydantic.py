@@ -3,9 +3,7 @@ from __future__ import annotations
 from typing import Optional
 from unittest.mock import patch
 
-import pytest
-
-from coola.summary import SummarizerRegistry, get_default_registry, summarize
+from coola.summary import SummaryConfig, summarize
 from coola.summary.pydantic import PydanticModelSummarizer, get_default_summarizers
 from coola.testing.fixtures import pydantic_available
 from coola.utils.imports import is_pydantic_available
@@ -14,6 +12,8 @@ if is_pydantic_available():
     from pydantic import BaseModel, ConfigDict, SecretStr
 else:
     BaseModel, ConfigDict, SecretStr = object, dict, object
+
+CONFIG = SummaryConfig()
 
 
 class Point(BaseModel):
@@ -37,55 +37,73 @@ class Outer(BaseModel):
     point: Point
 
 
-@pytest.fixture
-def registry() -> SummarizerRegistry:
-    return get_default_registry()
+class Empty(BaseModel):
+    pass
+
+
+#############################################
+#     Tests for PydanticModelSummarizer     #
+#############################################
 
 
 @pydantic_available
-def test_pydantic_model_summarizer_repr() -> None:
-    assert repr(PydanticModelSummarizer()) == "PydanticModelSummarizer(max_items=5, num_spaces=2)"
-
-
-@pydantic_available
-def test_pydantic_model_summarizer_summarize(registry: SummarizerRegistry) -> None:
-    assert PydanticModelSummarizer().summarize(Point(x=1.0, y=2.0), registry) == (
-        f"{Point} (fields=2)\n  (x): 1.0\n  (y): 2.0"
+def test_pydantic_model_summarizer_summarize() -> None:
+    node = PydanticModelSummarizer().summarize(Point(x=1.0, y=2.0), CONFIG, compact=False)
+    assert (node.header, list(node.children), node.total) == (
+        f"{Point} (fields=2)",
+        [("x", 1.0), ("y", 2.0)],
+        2,
     )
 
 
 @pydantic_available
-def test_pydantic_model_summarizer_summarize_hides_the_secret_fields(
-    registry: SummarizerRegistry,
-) -> None:
+def test_pydantic_model_summarizer_summarize_empty() -> None:
+    node = PydanticModelSummarizer().summarize(Empty(), CONFIG, compact=False)
+    assert (node.header, list(node.children), node.total) == (f"{Empty} (fields=0)", [], 0)
+
+
+@pydantic_available
+def test_pydantic_model_summarizer_summarize_hides_the_secret_fields() -> None:
     user = User(name="a", password="secret", token="tok")  # noqa: S106
-    assert PydanticModelSummarizer().summarize(user, registry) == f"{User} (fields=1)\n  (name): a"
-
-
-@pydantic_available
-def test_pydantic_model_summarizer_summarize_extra_values(registry: SummarizerRegistry) -> None:
-    assert PydanticModelSummarizer().summarize(Open(x=1, e=2), registry) == (
-        f"{Open} (fields=2)\n  (x): 1\n  (e): 2"
+    node = PydanticModelSummarizer().summarize(user, CONFIG, compact=False)
+    assert (node.header, list(node.children), node.total) == (
+        f"{User} (fields=1)",
+        [("name", "a")],
+        1,
     )
 
 
 @pydantic_available
-def test_pydantic_model_summarizer_summarize_depth_limit(registry: SummarizerRegistry) -> None:
-    assert PydanticModelSummarizer().summarize(Point(x=1.0, y=2.0), registry, max_depth=0) == (
-        "x=1.0 y=2.0"
+def test_pydantic_model_summarizer_summarize_extra_values() -> None:
+    node = PydanticModelSummarizer().summarize(Open(x=1, e=2), CONFIG, compact=False)
+    assert (list(node.children), node.total) == ([("x", 1), ("e", 2)], 2)
+
+
+@pydantic_available
+def test_pydantic_model_summarizer_summarize_nested_model_is_not_expanded() -> None:
+    node = PydanticModelSummarizer().summarize(
+        Outer(point=Point(x=1.0, y=2.0)), CONFIG, compact=False
     )
+    assert list(node.children) == [("point", Point(x=1.0, y=2.0))]
 
 
 @pydantic_available
-def test_pydantic_model_summarizer_summarize_nested(registry: SummarizerRegistry) -> None:
-    assert PydanticModelSummarizer().summarize(
-        Outer(point=Point(x=1.0, y=2.0)), registry, max_depth=2
-    ) == (f"{Outer} (fields=1)\n  (point): {Point} (fields=2)\n      (x): 1.0\n      (y): 2.0")
-
-
-@pydantic_available
-def test_summarize_pydantic_model_uses_the_default_summarizer() -> None:
+def test_summarize_pydantic_model_uses_the_default_registry() -> None:
     assert summarize(Point(x=1.0, y=2.0)) == f"{Point} (fields=2)\n  (x): 1.0\n  (y): 2.0"
+
+
+@pydantic_available
+def test_summarize_nested_pydantic_model() -> None:
+    assert summarize(Outer(point=Point(x=1.0, y=2.0)), max_depth=2) == (
+        f"{Outer} (fields=1)\n  (point): {Point} (fields=2)\n    (x): 1.0\n    (y): 2.0"
+    )
+
+
+@pydantic_available
+def test_summarize_pydantic_model_at_the_display_depth() -> None:
+    assert summarize(Outer(point=Point(x=1.0, y=2.0))) == (
+        f"{Outer} (fields=1)\n  (point): Point(x=1.0, y=2.0)"
+    )
 
 
 @pydantic_available

@@ -129,7 +129,7 @@ def test_summarize_with_max_depth_2() -> None:
         summarize({"level1": {"level2": {"level3": [1, 2, 3]}}}, max_depth=2)
         == "<class 'dict'> (length=1)\n"
         "  (level1): <class 'dict'> (length=1)\n"
-        "      (level2): {'level3': [1, 2, 3]}"
+        "    (level2): {'level3': [1, 2, 3]}"
     )
 
 
@@ -138,8 +138,8 @@ def test_summarize_with_max_depth_3() -> None:
         summarize({"level1": {"level2": {"level3": [1, 2, 3]}}}, max_depth=3)
         == "<class 'dict'> (length=1)\n"
         "  (level1): <class 'dict'> (length=1)\n"
-        "      (level2): <class 'dict'> (length=1)\n"
-        "          (level3): [1, 2, 3]"
+        "    (level2): <class 'dict'> (length=1)\n"
+        "      (level3): [1, 2, 3]"
     )
 
 
@@ -431,9 +431,9 @@ def test_summarize_negative_max_depth_raises() -> None:
         summarize([1, 2], max_depth=-1)
 
 
-#############################################
+##########################################
 #     Tests for the lazy summarizers     #
-#############################################
+##########################################
 
 LAZY_MODULES = [
     pytest.param("coola.summary.jax", ("jax", "jaxlib"), id="jax"),
@@ -503,9 +503,9 @@ def test_register_summarizers_positional_exist_ok_raises() -> None:
         register_summarizers({}, True)  # ty: ignore[too-many-positional-arguments]
 
 
-##############################################
-#     Tests for the dispatch of the types    #
-##############################################
+###############################################
+#     Tests for the dispatch of the types     #
+###############################################
 
 
 def test_get_default_registry_user_string_summarizer() -> None:
@@ -528,3 +528,52 @@ def test_summarize_mapping_proxy() -> None:
 
 def test_summarize_user_string_in_list() -> None:
     assert summarize([UserString("abc")]) == f"{list} (length=1)\n  (0): abc"
+
+
+##############################################
+#     Tests for the options of summarize     #
+##############################################
+
+
+def test_summarize_max_items() -> None:
+    assert summarize(list(range(10)), max_items=2) == (
+        "<class 'list'> (length=10)\n  (0): 0\n  (1): 1\n  ... (+8 more)"
+    )
+
+
+def test_summarize_max_items_none_shows_all_items() -> None:
+    assert summarize(list(range(7)), max_items=None).count("\n") == 7
+
+
+def test_summarize_max_items_applies_to_every_container_type() -> None:
+    assert summarize({"a": 1, "b": 2, "c": 3}, max_items=1) == (
+        "<class 'dict'> (length=3)\n  (a): 1\n  ... (+2 more)"
+    )
+
+
+def test_summarize_max_characters() -> None:
+    assert summarize("abcdef", max_characters=4) == "<cla..."
+
+
+def test_summarize_max_characters_none_does_not_cut() -> None:
+    assert summarize("a" * 1500, max_characters=None) == "<class 'str'> " + "a" * 1500
+
+
+def test_summarize_show_data_with_a_container() -> None:
+    assert summarize([1], show_data=True) == "<class 'list'> (length=1)\n  (0): 1"
+
+
+def test_summarize_with_a_custom_registry() -> None:
+    registry = SummarizerRegistry({object: DefaultSummarizer()})
+    assert summarize([1], registry=registry) == "<class 'list'> [1]"
+
+
+@pytest.mark.parametrize("name", ["max_items", "max_characters"])
+def test_summarize_negative_limit_raises(name: str) -> None:
+    with pytest.raises(ValueError, match=f"{name} must be non-negative"):
+        summarize([1], **{name: -1})
+
+
+def test_summarize_show_data_not_bool_raises() -> None:
+    with pytest.raises(TypeError, match="show_data"):
+        summarize([1], show_data="yes")  # ty: ignore[invalid-argument-type]
