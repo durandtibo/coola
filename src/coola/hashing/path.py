@@ -2,14 +2,13 @@ r"""Provide deterministic hashing functions for paths."""
 
 from __future__ import annotations
 
-__all__ = ["PathHasher", "ResolvedPathHasher", "hash_path"]
+__all__ = ["PathHasher", "ResolvedPathHasher"]
 
 from contextlib import suppress
 from pathlib import Path, PurePath
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher, Encoding, tagged
-from coola.hashing.string import hash_tagged
 
 
 class PathHasher(InlineDisplayMixin, BaseHasher[PurePath]):
@@ -81,40 +80,6 @@ class ResolvedPathHasher(InlineDisplayMixin, BaseHasher[Path]):
             The leaf ``tagged("Path", posix_form) of the resolved path.
         """
         return tagged("Path", _posix(data, resolve=True))
-
-
-def hash_path(path: PurePath, length: int = 64, resolve: bool = False) -> str:
-    """Compute a stable hash string for a path, based on its POSIX
-    string representation.
-
-    By default the path is hashed as written, without any filesystem
-    access. With ``resolve=True`` the path is resolved first (following
-    symlinks, collapsing ``.``/``..`` segments, making it absolute), so
-    that two differently written but logically equivalent paths hash
-    the same. If resolution fails (e.g. permission error, OS-level
-    issue), falls back to hashing the unresolved path as given.
-
-    Uses ``as_posix()`` rather than ``str(path)`` so the hash is
-    consistent across platforms (POSIX vs Windows separators).
-
-    Args:
-        path: The path to hash.
-        length: The desired length of the returned hex string. Must be
-            an even number between 2 and 128 inclusive. Defaults to 64.
-        resolve: If ``True``, resolve the path before hashing. This
-            makes the hash depend on the filesystem and on the current
-            working directory. Only supported for ``pathlib.Path``.
-            Defaults to ``False``.
-
-    Returns:
-        A lowercase hexadecimal string of exactly ``length``
-        characters.
-
-    Raises:
-        ValueError: If ``length`` is not an even number between 2 and
-            128.
-    """
-    return hash_tagged("Path", _posix(path, resolve=resolve), length=length)
 
 
 def _posix(path: PurePath, *, resolve: bool = False) -> str:

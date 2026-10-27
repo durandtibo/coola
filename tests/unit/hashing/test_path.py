@@ -10,8 +10,6 @@ from coola.hashing import (
     PathHasher,
     ResolvedPathHasher,
     get_default_registry,
-    hash_path,
-    hash_tagged,
     tagged,
 )
 from tests.unit.hashing.helpers import hash_with, leaf_hash
@@ -104,140 +102,30 @@ def test_path_hasher_hash_is_the_hash_of_the_leaf(tmp_path: Path, registry: Hash
     assert hash_with(hasher, path, registry) == leaf_hash(tagged("Path", path.as_posix()))
 
 
-###############################
-#     Tests for hash_path     #
-###############################
-
-# --- Return type and format ---
+def test_path_hasher_encode_relative_segments_are_kept() -> None:
+    assert PathHasher().encode(Path("a/../b")) == b"Path\x00a/../b"
 
 
-def test_hash_path_returns_str(tmp_path: Path) -> None:
-    assert isinstance(hash_path(tmp_path / "file.txt"), str)
+def test_path_hasher_encode_relative_and_absolute_paths_differ() -> None:
+    assert PathHasher().encode(Path("a")) != PathHasher().encode(Path("a").resolve())
 
 
-def test_hash_path_returns_lowercase_hex(tmp_path: Path) -> None:
-    assert all(c in "0123456789abcdef" for c in hash_path(tmp_path / "file.txt"))
+def test_path_hasher_encode_pure_path() -> None:
+    assert PathHasher().encode(PurePosixPath("a/b")) == b"Path\x00a/b"
 
 
-def test_hash_path_default_length_is_64(tmp_path: Path) -> None:
-    assert len(hash_path(tmp_path / "file.txt")) == 64
+def test_path_hasher_encode_windows_path_uses_the_posix_form() -> None:
+    assert PathHasher().encode(PureWindowsPath("a\\b")) == b"Path\x00a/b"
 
 
-@pytest.mark.parametrize(
-    "length",
-    [
-        pytest.param(2, id="min"),
-        pytest.param(16, id="16"),
-        pytest.param(32, id="32"),
-        pytest.param(64, id="64-default"),
-        pytest.param(128, id="max"),
-    ],
-)
-def test_hash_path_output_length_matches_requested(length: int, tmp_path: Path) -> None:
-    assert len(hash_path(tmp_path / "file.txt", length=length)) == length
+def test_path_hasher_encode_is_case_sensitive() -> None:
+    assert PathHasher().encode(PurePosixPath("A")) != PathHasher().encode(PurePosixPath("a"))
 
 
-# --- Determinism ---
-
-
-def test_hash_path_is_deterministic(tmp_path: Path) -> None:
-    path = tmp_path / "file.txt"
-    assert hash_path(path) == hash_path(path)
-
-
-def test_hash_path_equal_paths_same_hash(tmp_path: Path) -> None:
-    assert hash_path(tmp_path / "file.txt") == hash_path(tmp_path / "file.txt")
-
-
-# --- Sensitivity ---
-
-
-def test_hash_path_different_paths_produce_different_hashes(tmp_path: Path) -> None:
-    assert hash_path(tmp_path / "a.txt") != hash_path(tmp_path / "b.txt")
-
-
-def test_hash_path_same_prefix_different_paths_produce_different_hashes(tmp_path: Path) -> None:
-    assert hash_path(tmp_path / "file1.txt") != hash_path(tmp_path / "file2.txt")
-
-
-def test_hash_path_is_case_sensitive(tmp_path: Path) -> None:
-    assert hash_path(tmp_path / "File.txt") != hash_path(tmp_path / "file.txt")
-
-
-# --- Resolution behavior ---
-
-
-def test_hash_path_resolves_relative_segments_resolved(tmp_path: Path) -> None:
-    direct = tmp_path / "file.txt"
-    indirect = tmp_path / "sub" / ".." / "file.txt"
-    assert hash_path(direct, resolve=True) == hash_path(indirect, resolve=True)
-
-
-def test_hash_path_resolves_relative_segments_not_resolved(tmp_path: Path) -> None:
-    direct = tmp_path / "file.txt"
-    indirect = tmp_path / "sub" / ".." / "file.txt"
-    assert hash_path(direct) != hash_path(indirect)
-
-
-def test_hash_path_resolves_relative_to_absolute_resolved() -> None:
-    relative = Path("file.txt")
-    absolute = Path.cwd() / "file.txt"
-    assert hash_path(relative, resolve=True) == hash_path(absolute, resolve=True)
-
-
-def test_hash_path_resolves_relative_to_absolute_not_resolved() -> None:
-    relative = Path("file.txt")
-    absolute = Path.cwd() / "file.txt"
-    assert hash_path(relative) != hash_path(absolute)
-
-
-def test_hash_path_resolve_failure_uses_posix_of_unresolved_path(tmp_path: Path) -> None:
-    path = tmp_path / "file.txt"
-    with patch.object(Path, "resolve", side_effect=OSError("boom")):
-        result = hash_path(path, resolve=True)
-    assert result == hash_tagged("Path", path.as_posix())
-
-
-# --- Invalid length ---
-
-
-@pytest.mark.parametrize(
-    "length",
-    [
-        pytest.param(0, id="zero"),
-        pytest.param(1, id="odd-below-min"),
-        pytest.param(3, id="odd-small"),
-        pytest.param(63, id="odd-near-max"),
-        pytest.param(130, id="above-max"),
-        pytest.param(-2, id="negative-even"),
-        pytest.param(-1, id="negative-odd"),
-    ],
-)
-def test_hash_path_raises_for_invalid_length(length: int, tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match=str(abs(length))):
-        hash_path(tmp_path / "file.txt", length=length)
-
-
-def test_hash_path_default_does_not_touch_the_filesystem() -> None:
-    with patch.object(Path, "resolve", side_effect=AssertionError("resolve called")):
-        assert hash_path(Path("a/../b")) == hash_tagged("Path", "a/../b")
-
-
-def test_hash_path_relative_and_absolute_differ_by_default() -> None:
-    assert hash_path(Path("file.txt")) != hash_path(Path.cwd() / "file.txt")
-
-
-def test_hash_path_pure_path() -> None:
-    assert hash_path(PurePosixPath("a/b")) == hash_tagged("Path", "a/b")
-
-
-def test_hash_path_pure_path_ignores_resolve() -> None:
-    path = PurePosixPath("a/../b")
-    assert hash_path(path, resolve=True) == hash_path(path)
-
-
-def test_hash_path_windows_path_uses_posix_form() -> None:
-    assert hash_path(PureWindowsPath("a\\b")) == hash_tagged("Path", "a/b")
+def test_path_hasher_encode_does_not_touch_the_filesystem() -> None:
+    with patch.object(Path, "resolve", side_effect=AssertionError) as resolve:
+        PathHasher().encode(Path("a"))
+    resolve.assert_not_called()
 
 
 def test_default_registry_hashes_paths_without_resolving_path() -> None:
@@ -271,3 +159,19 @@ def test_resolved_path_hasher_hash_matches_hash_path_resolve(tmp_path: Path) -> 
     path = tmp_path / "file.txt"
     result = hash_with(ResolvedPathHasher(), path, HasherRegistry())
     assert result == leaf_hash(tagged("Path", path.resolve().as_posix()))
+
+
+def test_resolved_path_hasher_encode_resolves_relative_segments(tmp_path: Path) -> None:
+    hasher = ResolvedPathHasher()
+    assert hasher.encode(tmp_path / "sub" / ".." / "file.txt") == hasher.encode(
+        tmp_path / "file.txt"
+    )
+
+
+def test_resolved_path_hasher_encode_resolves_relative_to_absolute() -> None:
+    assert ResolvedPathHasher().encode(Path("a")) == tagged("Path", Path("a").resolve().as_posix())
+
+
+def test_resolved_path_hasher_encode_resolve_failure_uses_the_unresolved_path() -> None:
+    with patch.object(Path, "resolve", side_effect=OSError):
+        assert ResolvedPathHasher().encode(Path("a/b")) == b"Path\x00a/b"

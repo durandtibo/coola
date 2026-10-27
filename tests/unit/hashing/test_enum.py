@@ -4,7 +4,7 @@ from enum import Enum, Flag, IntEnum, StrEnum
 
 import pytest
 
-from coola.hashing import EnumHasher, HasherRegistry, get_default_registry, hash_enum
+from coola.hashing import EnumHasher, HasherRegistry, get_default_registry
 from tests.unit.hashing.helpers import hash_with, leaf_hash
 
 
@@ -70,27 +70,6 @@ def test_enum_hasher_hash_invalid_length_raises(registry: HasherRegistry) -> Non
         hash_with(EnumHasher(), Color.RED, registry, length=3)
 
 
-###############################
-#     Tests for hash_enum     #
-###############################
-
-
-def test_hash_enum_different_members_differ() -> None:
-    assert hash_enum(Color.RED) != hash_enum(Color.BLUE)
-
-
-def test_hash_enum_same_member_name_in_different_classes_differ() -> None:
-    assert hash_enum(Color.RED) != hash_enum(Shade.RED)
-
-
-def test_hash_enum_is_deterministic() -> None:
-    assert hash_enum(Color.RED) == hash_enum(Color.RED)
-
-
-def test_hash_enum_composite_flag() -> None:
-    assert hash_enum(Perm.R | Perm.W) != hash_enum(Perm.R)
-
-
 ###################################################
 #     Tests for enums in the default registry     #
 ###################################################
@@ -138,3 +117,20 @@ def test_default_registry_hashes_enum_mixins_as_enum(member: Enum) -> None:
 def test_default_registry_hashes_enum_mixins_differently_from_the_value(member: Enum) -> None:
     registry = get_default_registry()
     assert registry.hash(member) != registry.hash(member.value)
+
+
+def test_enum_hasher_encode_different_members_differ() -> None:
+    assert EnumHasher().encode(Color.RED) != EnumHasher().encode(Color.BLUE)
+
+
+def test_enum_hasher_encode_same_member_name_in_different_classes_differ() -> None:
+    assert EnumHasher().encode(Color.RED) != EnumHasher().encode(Shade.RED)
+
+
+def test_enum_hasher_encode_composite_flag_differs_from_its_members() -> None:
+    hasher = EnumHasher()
+    assert hasher.encode(Perm.R | Perm.W) not in {hasher.encode(Perm.R), hasher.encode(Perm.W)}
+
+
+def test_enum_hasher_encode_is_the_qualified_member_name() -> None:
+    assert EnumHasher().encode(Color.RED) == f"Enum\x00{__name__}.Color.RED".encode()

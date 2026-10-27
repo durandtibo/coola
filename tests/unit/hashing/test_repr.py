@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.hashing import HasherRegistry, ReprHasher, hash_tagged, tagged
+from coola.hashing import HasherRegistry, ReprHasher, tagged
 from coola.hashing.repr import _numpy_scalar_to_builtin
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
@@ -165,23 +165,6 @@ def test_repr_hasher_hash_bool_and_int_different_hashes(registry: HasherRegistry
     assert hash_with(hasher, True, registry) != hash_with(hasher, 1, registry)
 
 
-def test_repr_hasher_hash_uses_repr_not_str_differs_from_the_str_hash(
-    registry: HasherRegistry,
-) -> None:
-    # For objects where repr() and str() differ, ReprHasher must use repr().
-    class MyObj:
-        def __str__(self) -> str:
-            return "str_val"
-
-        def __repr__(self) -> str:
-            return "repr_val"
-
-    obj = MyObj()
-    hasher = ReprHasher()
-    tag = f"{type(obj).__module__}.{type(obj).__qualname__}"
-    assert hash_with(hasher, obj, registry) != hash_tagged(tag, str(obj))
-
-
 def test_repr_hasher_hash_uses_repr_not_str_equals_the_repr_hash(registry: HasherRegistry) -> None:
     # For objects where repr() and str() differ, ReprHasher must use repr().
     class MyObj:
@@ -244,17 +227,6 @@ def test_repr_hasher_numpy_scalar_without_builtin_equivalent(registry: HasherReg
     )
 
 
-def test_repr_hasher_hash_user_class_does_not_share_the_tag_of_a_builtin_name(
-    registry: HasherRegistry,
-) -> None:
-    class Decimal:
-        def __repr__(self) -> str:
-            return "Decimal('1')"
-
-    hasher = ReprHasher()
-    assert hash_with(hasher, Decimal(), registry) != hash_tagged("Decimal", "Decimal('1')")
-
-
 def test_repr_hasher_hash_builtin_class_keeps_the_bare_name(registry: HasherRegistry) -> None:
     assert hash_with(ReprHasher(), None, registry) == leaf_hash(tagged("NoneType", "None"))
 
@@ -301,3 +273,11 @@ def test_repr_hasher_hash_explicit_tag(registry: HasherRegistry) -> None:
 
 def test_repr_hasher_hash_explicit_tag_keeps_the_builtin_scalars(registry: HasherRegistry) -> None:
     assert hash_with(ReprHasher("timedelta"), 1, registry) == hash_with(ReprHasher(), 1, registry)
+
+
+def test_repr_hasher_encode_user_class_does_not_share_the_tag_of_a_builtin_name() -> None:
+    class int:  # noqa: A001, N801
+        def __repr__(self) -> str:
+            return "1"
+
+    assert ReprHasher().encode(int()) != ReprHasher().encode(1)

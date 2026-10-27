@@ -5,8 +5,7 @@ from enum import Enum
 
 import pytest
 
-from coola.hashing import HasherRegistry, StringHasher, hash_string, tagged
-from coola.hashing.string import validate_hash_length
+from coola.hashing import HasherRegistry, StringHasher, tagged
 from tests.unit.hashing.helpers import hash_with, leaf_hash
 
 
@@ -132,142 +131,22 @@ def test_string_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> N
     assert hash_with(hasher, "hello", registry) == hash_with(hasher, "hello", empty_registry)
 
 
-#################################
-#     Tests for hash_string     #
-#################################
-
-# --- Return type and format ---
-
-
-def test_hash_string_returns_str() -> None:
-    assert isinstance(hash_string("hello"), str)
-
-
-def test_hash_string_returns_lowercase_hex() -> None:
-    assert all(c in "0123456789abcdef" for c in hash_string("hello"))
-
-
-def test_hash_string_default_length_is_64() -> None:
-    assert len(hash_string("hello")) == 64
-
-
-@pytest.mark.parametrize(
-    "length",
-    [
-        pytest.param(2, id="min"),
-        pytest.param(16, id="16"),
-        pytest.param(32, id="32"),
-        pytest.param(64, id="64-default"),
-        pytest.param(128, id="max"),
-    ],
-)
-def test_hash_string_output_length_matches_requested(length: int) -> None:
-    assert len(hash_string("hello", length=length)) == length
-
-
 # --- Determinism ---
-
-
-def test_hash_string_is_deterministic() -> None:
-    assert hash_string("hello") == hash_string("hello")
-
-
-def test_hash_string_empty_string_is_valid_returns_str() -> None:
-    result = hash_string("")
-    assert isinstance(result, str)
-
-
-def test_hash_string_empty_string_is_valid_default_length() -> None:
-    result = hash_string("")
-    assert len(result) == 64
 
 
 # --- Sensitivity ---
 
 
-def test_hash_string_different_inputs_produce_different_hashes() -> None:
-    assert hash_string("hello") != hash_string("world")
-
-
-def test_hash_string_same_prefix_different_inputs_produce_different_hashes() -> None:
-    assert hash_string("hello1") != hash_string("hello2")
-
-
-def test_hash_string_is_case_sensitive() -> None:
-    assert hash_string("hello") != hash_string("Hello")
-
-
-def test_hash_string_is_sensitive_to_whitespace() -> None:
-    assert hash_string("hello") != hash_string("hello ")
-
-
 # --- Invalid length ---
-
-
-@pytest.mark.parametrize(
-    "length",
-    [
-        pytest.param(0, id="zero"),
-        pytest.param(1, id="odd-below-min"),
-        pytest.param(3, id="odd-small"),
-        pytest.param(63, id="odd-near-max"),
-        pytest.param(130, id="above-max"),
-        pytest.param(-2, id="negative-even"),
-        pytest.param(-1, id="negative-odd"),
-    ],
-)
-def test_hash_string_raises_for_invalid_length(length: int) -> None:
-    with pytest.raises(ValueError, match=str(abs(length))):
-        hash_string("hello", length=length)
 
 
 def test_string_hasher_hash_is_tagged() -> None:
     assert hash_with(StringHasher(), "hello", HasherRegistry()) == leaf_hash(tagged("str", "hello"))
 
 
-def test_string_hasher_hash_differs_from_untagged_hash_string(registry: HasherRegistry) -> None:
-    assert hash_with(StringHasher(), "hello", registry) != hash_string("hello")
-
-
-def test_hash_string_lone_surrogate() -> None:
-    assert len(hash_string("a\udc80")) == 64
-
-
-def test_hash_string_lone_surrogate_differs_from_other_surrogate() -> None:
-    assert hash_string("\udc80") != hash_string("\udc81")
-
-
-def test_hash_string_lone_surrogate_differs_from_replacement_character() -> None:
-    assert hash_string("\udc80") != hash_string("\ufffd")
-
-
-def test_hash_string_unchanged_for_valid_utf8() -> None:
-    assert hash_string("é", length=16) == "cb1abf8beff3192f"
-
-
 ##########################################
 #     Tests for validate_hash_length     #
 ##########################################
-
-
-@pytest.mark.parametrize("length", [2, 4, 64, 126, 128])
-def test_validate_hash_length_valid(length: int) -> None:
-    validate_hash_length(length)
-
-
-@pytest.mark.parametrize("length", [0, 1, 3, 63, 127, 129, 130, -2, -1])
-def test_validate_hash_length_invalid_raises(length: int) -> None:
-    with pytest.raises(ValueError, match="length must be an even number between 2 and 128"):
-        validate_hash_length(length)
-
-
-def test_validate_hash_length_error_message_contains_length() -> None:
-    with pytest.raises(ValueError, match="got 3"):
-        validate_hash_length(3)
-
-
-def test_validate_hash_length_returns_none() -> None:
-    assert validate_hash_length(64) is None
 
 
 def test_string_hasher_hash_user_string_differs_from_str(registry: HasherRegistry) -> None:
@@ -279,3 +158,15 @@ def test_string_hasher_hash_user_string_equals_the_tagged_text(registry: HasherR
     assert hash_with(StringHasher(), UserString("abc"), registry) == leaf_hash(
         tagged("UserString", "abc")
     )
+
+
+def test_string_hasher_encode_valid_utf8() -> None:
+    assert StringHasher().encode("é") == b"str\x00\xc3\xa9"
+
+
+def test_string_hasher_encode_lone_surrogate_differs_from_the_replacement_character() -> None:
+    assert StringHasher().encode("\ud800") != StringHasher().encode("\ufffd")
+
+
+def test_string_hasher_encode_lone_surrogates_differ() -> None:
+    assert StringHasher().encode("\ud800") != StringHasher().encode("\ud801")

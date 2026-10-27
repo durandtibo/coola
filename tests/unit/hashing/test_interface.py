@@ -10,6 +10,7 @@ from decimal import Decimal
 from fractions import Fraction
 from pathlib import Path
 from types import MappingProxyType
+from typing import Any
 from unittest.mock import patch
 from uuid import UUID
 from zoneinfo import ZoneInfo
@@ -369,9 +370,9 @@ def test_register_default_hashers_registers_the_other_hashers_when_pydantic_is_u
     assert registry.has_hasher(list)
 
 
-######################################################
-#     Tests for the positional arguments (legacy)    #
-######################################################
+#####################################################
+#     Tests for the keyword-only arguments     #
+#####################################################
 
 
 def test_hash_object_keyword_arguments_do_not_warn() -> None:
@@ -381,73 +382,22 @@ def test_hash_object_keyword_arguments_do_not_warn() -> None:
         hash_object([1], length=16, ignore_unhashable=True)
 
 
-def test_hash_object_positional_registry_is_deprecated() -> None:
-    registry = get_default_registry()
-    with pytest.warns(DeprecationWarning, match="positional arguments is deprecated"):
-        hash_object([1], registry)
+def test_hash_object_positional_length_raises() -> None:
+    args: tuple[Any, ...] = ([1], 32)
+    with pytest.raises(TypeError, match="positional"):
+        hash_object(*args)
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
-def test_hash_object_positional_registry_is_deprecated_result() -> None:
-    registry = get_default_registry()
-    result = hash_object([1], registry)
-    assert result == hash_object([1], registry=registry)
+def test_hash_object_positional_registry_raises() -> None:
+    args: tuple[Any, ...] = ([1], None)
+    with pytest.raises(TypeError, match="positional"):
+        hash_object(*args)
 
 
-def test_hash_object_positional_registry_none_is_deprecated() -> None:
-    with pytest.warns(DeprecationWarning, match="positional arguments is deprecated"):
-        hash_object([1], None)
-
-
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
-def test_hash_object_positional_registry_none_is_deprecated_result() -> None:
-    result = hash_object([1], None)
-    assert result == hash_object([1])
-
-
-def test_hash_object_positional_length_and_ignore_unhashable_are_deprecated() -> None:
-    with pytest.warns(DeprecationWarning, match="positional arguments is deprecated"):
-        hash_object([1], None, 16, False)
-
-
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
-def test_hash_object_positional_length_and_ignore_unhashable_are_deprecated_result() -> None:
-    result = hash_object([1], None, 16, False)
-    assert result == hash_object([1], length=16)
-
-
-def test_hash_object_positional_warning_points_to_the_caller() -> None:
-    with pytest.warns(DeprecationWarning, match="is deprecated") as record:
-        hash_object([1], None)
-    assert record[0].filename == __file__
-
-
-def test_hash_object_positional_length_instead_of_registry_raises() -> None:
-    with pytest.raises(TypeError, match="`registry`, which must be a HasherRegistry or None"):
-        hash_object([1], 32)  # type: ignore[call-overload]
-
-
-def test_hash_object_too_many_positional_arguments_raises() -> None:
-    with pytest.raises(TypeError, match="takes at most 4 positional arguments but 5 were given"):
-        hash_object([1], None, 16, False, 1)  # type: ignore[call-overload]
-
-
-@pytest.mark.parametrize(
-    ("args", "kwargs", "name"),
-    [
-        ((None, 16), {"length": 32}, "length"),
-        ((None, 16, True), {"ignore_unhashable": True}, "ignore_unhashable"),
-        ((HasherRegistry(),), {"registry": HasherRegistry()}, "registry"),
-    ],
-)
-def test_hash_object_argument_given_by_position_and_keyword_raises(
-    args: tuple, kwargs: dict, name: str
-) -> None:
-    with (
-        pytest.warns(DeprecationWarning, match="is deprecated"),
-        pytest.raises(TypeError, match=f"multiple values for argument '{name}'"),
-    ):
-        hash_object([1], *args, **kwargs)
+def test_register_hashers_exist_ok_is_keyword_only() -> None:
+    args: tuple[Any, ...] = ({CustomList: SequenceHasher()}, True)
+    with pytest.raises(TypeError, match="positional"):
+        register_hashers(*args)
 
 
 ################################################
