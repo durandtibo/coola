@@ -167,7 +167,7 @@ class HasherRegistry(TypeRegistry[Hasher[Any]]):
             ignore_unhashable: If ``True``, objects for which no hasher is
                 registered (including their parent types via MRO) are
                 replaced by a deterministic placeholder hash instead of
-                raising a ``KeyError``. This also applies to nested
+                raising a ``TypeNotRegisteredError``. This also applies to nested
                 objects encountered while recursing into sequences or
                 mappings. The placeholder only depends on the type, so
                 any two unsupported objects of the same type hash the
@@ -179,12 +179,14 @@ class HasherRegistry(TypeRegistry[Hasher[Any]]):
             A string representing the hash of the input data.
 
         Raises:
-            KeyError: If no hasher is registered for ``data``'s type
-                (or any of its parent types) and ``ignore_unhashable``
-                is ``False``.
-            ValueError: If ``data`` contains itself (a self-referencing
-                container), or is nested too deeply for the recursion
-                limit of the interpreter.
+            TypeNotRegisteredError: If no hasher is registered for
+                ``data``'s type (or any of its parent types) and
+                ``ignore_unhashable`` is ``False``. It is a subclass of
+                ``KeyError``.
+            ValueError: If ``length`` is not valid, if ``data``
+                contains itself (a self-referencing container), or if
+                it is nested too deeply for the recursion limit of the
+                interpreter.
 
         Example:
             ```pycon

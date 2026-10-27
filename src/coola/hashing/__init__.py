@@ -15,8 +15,11 @@ follow these rules:
   a ``list`` and a ``tuple`` with the same items hash differently.
 - Container hashes are built only from the hashes of their children,
   resolved through a ``HasherRegistry``.
-- Unsupported types raise ``KeyError`` unless ``ignore_unhashable`` is
-  set.
+- Unsupported types raise ``TypeNotRegisteredError`` (a ``KeyError``)
+  unless ``ignore_unhashable`` is set.
+- A container that contains itself raises ``ValueError``.
+- The output is a lowercase hex string of ``length`` characters (an
+  even number from 2 to 128, default 64).
 """
 
 from __future__ import annotations
