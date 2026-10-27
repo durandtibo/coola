@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import contextlib
-from unittest.mock import Mock
 
 import pytest
 
@@ -424,127 +423,6 @@ def test_registry_with_complex_values_second_value() -> None:
 ###########################################
 
 
-def test_registry_register_lazy_does_not_call_the_factory() -> None:
-    factory = Mock(return_value={"a": 1})
-    registry = Registry[str, int]()
-    registry.register_lazy("group", factory)
-    factory.assert_not_called()
-
-
-def test_registry_register_lazy_len_loads_the_entries() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1, "b": 2})
-    assert len(registry) == 2
-
-
-def test_registry_register_lazy_get_loads_the_entries() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    assert registry.get("a") == 1
-
-
-def test_registry_register_lazy_has_loads_the_entries() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    assert registry.has("a")
-
-
-def test_registry_register_lazy_getitem_loads_the_entries() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    assert registry["a"] == 1
-
-
-def test_registry_register_lazy_iter_loads_the_entries() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1, "b": 2})
-    assert list(registry) == ["a", "b"]
-
-
-def test_registry_register_lazy_items_loads_the_entries() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    assert dict(registry.items()) == {"a": 1}
-
-
-def test_registry_register_lazy_repr_loads_the_entries() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    assert "a" in repr(registry)
-
-
-def test_registry_register_lazy_unregister_loads_the_entries() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    assert registry.unregister("a") == 1
-
-
-def test_registry_register_lazy_register_loads_the_entries() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    with pytest.raises(AlreadyRegisteredError, match="already registered"):
-        registry.register("a", 2)
-
-
-def test_registry_register_lazy_register_many_loads_the_entries() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    with pytest.raises(AlreadyRegisteredError, match="already registered"):
-        registry.register_many({"a": 2})
-
-
-def test_registry_register_lazy_equal_loads_the_entries_of_both_registries() -> None:
-    registry1 = Registry[str, int]()
-    registry1.register_lazy("group", lambda: {"a": 1})
-    registry2 = Registry[str, int]({"a": 1})
-    assert registry1.equal(registry2)
-
-
-def test_registry_register_lazy_calls_the_factory_once() -> None:
-    factory = Mock(return_value={"a": 1})
-    registry = Registry[str, int]()
-    registry.register_lazy("group", factory)
-    len(registry)
-    len(registry)
-    factory.assert_called_once_with()
-
-
-def test_registry_register_lazy_does_not_replace_a_registered_key() -> None:
-    registry = Registry[str, int]({"a": 1})
-    registry.register_lazy("group", lambda: {"a": 2, "b": 3})
-    assert dict(registry.items()) == {"a": 1, "b": 3}
-
-
-def test_registry_register_lazy_names_load_the_group_once() -> None:
-    factory = Mock(return_value={"a": 1})
-    registry = Registry[str, int]()
-    registry.register_lazy(("group1", "group2"), factory)
-    len(registry)
-    factory.assert_called_once_with()
-
-
-def test_registry_register_lazy_imports_the_factory_when_it_is_a_path() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", "tests.unit.registry.test_registry:lazy_entries")
-    assert registry.get("a") == 1
-
-
-def test_registry_register_lazy_clear_removes_the_entries_that_are_not_loaded() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    registry.clear()
-    assert len(registry) == 0
-
-
-def test_registry_register_lazy_keeps_the_group_if_the_factory_fails() -> None:
-    factory = Mock(side_effect=[ImportError("failed"), {"a": 1}])
-    registry = Registry[str, int]()
-    registry.register_lazy("group", factory)
-    with pytest.raises(ImportError, match="failed"):
-        len(registry)
-    assert registry.get("a") == 1
-
-
 def lazy_entries() -> dict[str, int]:
     return {"a": 1}
 
@@ -712,57 +590,6 @@ def test_registry_iter_yields_the_keys() -> None:
     """Test that ``__iter__`` yields the registered keys."""
     registry = Registry[str, int]({"key1": 1, "key2": 2})
     assert list(registry) == ["key1", "key2"]
-
-
-def test_registry_repr_does_not_load_the_lazy_groups() -> None:
-    """Test that ``__repr__`` does not call the factory of a lazy
-    group."""
-    factory = Mock(return_value={"key2": 2})
-    registry = Registry[str, int]({"key1": 1})
-    registry.register_lazy("group", factory)
-    repr(registry)
-    factory.assert_not_called()
-
-
-def test_registry_repr_lists_the_lazy_groups() -> None:
-    """Test that ``__repr__`` lists the groups that are not loaded."""
-    registry = Registry[str, int]({"key1": 1})
-    registry.register_lazy("group", lambda: {"key2": 2})
-    assert repr(registry) == "Registry(\n  (key1): 1\n  <not loaded: group>\n)"
-
-
-def test_registry_repr_only_lazy_groups() -> None:
-    """Test that ``__repr__`` has no empty line when no entry is
-    loaded."""
-    registry = Registry[str, int]()
-    registry.register_lazy(["b", "a"], lambda: {"key": 1})
-    assert repr(registry) == "Registry(\n  <not loaded: a, b>\n)"
-
-
-def test_registry_repr_after_loading_shows_the_entries() -> None:
-    """Test that ``__repr__`` shows the entries of a group once it is
-    loaded."""
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"key": 1})
-    len(registry)
-    assert repr(registry) == "Registry(\n  (key): 1\n)"
-
-
-def test_registry_str_does_not_load_the_lazy_groups() -> None:
-    """Test that ``__str__`` does not call the factory of a lazy
-    group."""
-    factory = Mock(return_value={"key2": 2})
-    registry = Registry[str, int]({"key1": 1})
-    registry.register_lazy("group", factory)
-    str(registry)
-    factory.assert_not_called()
-
-
-def test_registry_str_lists_the_lazy_groups() -> None:
-    """Test that ``__str__`` lists the groups that are not loaded."""
-    registry = Registry[str, int]({"key1": 1})
-    registry.register_lazy("group", lambda: {"key2": 2})
-    assert str(registry) == "Registry(\n  (key1): 1\n  <not loaded: group>\n)"
 
 
 def _iterate_and_register(registry: Registry[str, int]) -> list[str]:
@@ -947,26 +774,6 @@ def test_registry_copy_is_tracked_for_forks() -> None:
     assert Registry[str, int]().copy() in fork._TRACKED
 
 
-def test_registry_copy_has_the_lazy_groups() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    assert registry.copy().get("a") == 1
-
-
-def test_registry_copy_loads_the_lazy_groups_separately() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    registry.copy().get("a")
-    assert list(registry._lazy) == ["group"]
-
-
-def test_registry_copy_clear_keeps_the_lazy_groups_of_the_original() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"a": 1})
-    registry.copy().clear()
-    assert registry.get("a") == 1
-
-
 def test_registry_copy_of_a_type_registry_has_its_own_cache() -> None:
     registry = TypeRegistry[str]({int: "int"})
     registry.resolve(int)
@@ -1054,27 +861,6 @@ def test_registry_register_many_exist_ok_is_keyword_only() -> None:
 def test_registry_repr_literal() -> None:
     registry = Registry[str, int]({"a": 1})
     assert repr(registry) == "Registry(\n  (a): 1\n)"
-
-
-def test_registry_equal_copy_with_pending_group_does_not_load_it() -> None:
-    factory = Mock(return_value={"lazy": 1})
-    registry = Registry[str, int]()
-    registry.register_lazy("group", factory)
-    registry.copy().equal(registry)
-    factory.assert_not_called()
-
-
-def test_registry_equal_copy_with_pending_group() -> None:
-    registry = Registry[str, int]()
-    registry.register_lazy("group", lambda: {"lazy": 1})
-    assert registry.copy().equal(registry)
-
-
-def test_registry_equal_different_pending_groups_loads_them() -> None:
-    registry1 = Registry[str, int]()
-    registry1.register_lazy("group", lambda: {"lazy": 1})
-    registry2 = Registry[str, int]({"lazy": 1})
-    assert registry1.equal(registry2)
 
 
 def test_registry_equal_copy_is_equal() -> None:
