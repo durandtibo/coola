@@ -1,0 +1,46 @@
+r"""Contain functions to select items of a collection."""
+
+from __future__ import annotations
+
+__all__ = ["smallest_items"]
+
+import heapq
+from itertools import islice
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+
+def smallest_items(data: Iterable[Any], limit: int | None = None) -> list[Any]:
+    r"""Return the smallest items in order.
+
+    The items are selected in one pass without sorting all of them. If
+    the items cannot be compared (for example an ``int`` and a ``str``),
+    the first items in iteration order are returned instead.
+
+    Args:
+        data: The items, for example a set.
+        limit: The maximum number of items to return. ``None`` returns
+            all the items.
+
+    Returns:
+        The ``limit`` smallest items in order, or the first ``limit``
+            items in iteration order if they cannot be compared.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.selection import smallest_items
+        >>> smallest_items({3, 1, 2})
+        [1, 2, 3]
+        >>> smallest_items({3, 1, 2}, limit=2)
+        [1, 2]
+        >>> smallest_items([1, "a"], limit=1)
+        [1]
+
+        ```
+    """
+    try:
+        return sorted(data) if limit is None else heapq.nsmallest(limit, data)
+    except TypeError:
+        return list(islice(data, limit))

@@ -22,44 +22,34 @@ if TYPE_CHECKING:
 class PydanticModelSummarizer(BaseObjectFieldsSummarizer["pydantic.BaseModel"]):
     r"""Summarizer for ``pydantic.BaseModel`` instances.
 
-    The fields and the extra values are summarized with the registry
-    (see ``BaseObjectFieldsSummarizer``). The fields annotated as a
-    secret type (``SecretStr``, ``SecretBytes``) are not shown, as in
+    The children are the fields and the extra values of the model,
+    labeled by their name. The fields annotated as a secret type
+    (``SecretStr``, ``SecretBytes``) are not shown, as in
     ``str_pydantic_model``.
-
-    Args:
-        max_items: The maximum number of fields to display. If
-            negative, all the fields are shown. Defaults to 5.
-        num_spaces: The number of spaces for indenting each level.
-            Defaults to 2.
 
     Example:
         ```pycon
         >>> from pydantic import BaseModel, SecretStr
-        >>> from coola.summary import get_default_registry
+        >>> from coola.summary import SummaryConfig
         >>> from coola.summary.pydantic import PydanticModelSummarizer
         >>> class User(BaseModel):
         ...     name: str
         ...     password: SecretStr
         ...
-        >>> print(
-        ...     PydanticModelSummarizer().summarize(
-        ...         User(name="a", password="b"), get_default_registry()
-        ...     )
+        >>> node = PydanticModelSummarizer().summarize(
+        ...     User(name="a", password="b"), SummaryConfig(), compact=False
         ... )
-        <class 'coola.summary.pydantic.User'> (fields=1)
-          (name): a
+        >>> list(node.children)
+        [('name', 'a')]
 
         ```
     """
 
-    def _get_fields(self, data: pydantic.BaseModel) -> dict[str, Any]:
+    def _get_names(self, data: pydantic.BaseModel) -> list[str]:
         secrets = secret_field_names(data)
-        fields = {
-            name: getattr(data, name) for name in type(data).model_fields if name not in secrets
-        }
-        fields.update(data.model_extra or {})
-        return fields
+        names = [name for name in type(data).model_fields if name not in secrets]
+        names.extend(data.model_extra or {})
+        return names
 
 
 def get_default_summarizers() -> dict[type, Summarizer[Any]]:

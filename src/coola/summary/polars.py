@@ -10,7 +10,7 @@ __all__ = ["PolarsDataFrameSummarizer", "PolarsLazyFrameSummarizer", "PolarsSeri
 
 from typing import TYPE_CHECKING, Any
 
-from coola.summary.metadata import BaseFieldsSummarizer, BaseMetadataSummarizer
+from coola.summary.metadata import BaseMetadataSummarizer, Field
 from coola.utils.imports import check_polars, is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
@@ -23,16 +23,11 @@ if TYPE_CHECKING:
     from coola.summary.base import Summarizer
 
 
-class PolarsDataFrameSummarizer(BaseFieldsSummarizer[pl.DataFrame]):
+class PolarsDataFrameSummarizer(BaseMetadataSummarizer[pl.DataFrame]):
     r"""Implement a summarizer for ``polars.DataFrame`` objects.
 
     By default, it displays the metadata (type, shape, columns with their
-    dtype) rather than the values. At most 10 columns are listed.
-
-    Args:
-        show_data: If ``True``, returns ``repr(dataframe)``, displaying
-            the values. If ``False`` (default), returns only the
-            metadata: ``<class> | shape=<shape> | columns=<name: dtype, ...>``.
+    dtype) rather than the values. At most `max_items` columns are listed.
 
     Raises:
         MissingPackageError: If polars is not installed.
@@ -40,11 +35,10 @@ class PolarsDataFrameSummarizer(BaseFieldsSummarizer[pl.DataFrame]):
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.summary import SummarizerRegistry, PolarsDataFrameSummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import PolarsDataFrameSummarizer, SummaryConfig
         >>> summarizer = PolarsDataFrameSummarizer()
         >>> frame = pl.DataFrame({"a": [1, 2, 3], "b": [0.1, 0.2, 0.3]})
-        >>> print(summarizer.summarize(frame, registry))  # doctest: +ELLIPSIS
+        >>> print(summarizer.summarize(frame, SummaryConfig(), compact=False))  # doctest: +ELLIPSIS
         <class '...'> | shape=(3, 2) | columns=a: Int64, b: Float64
 
         ```
@@ -53,25 +47,18 @@ class PolarsDataFrameSummarizer(BaseFieldsSummarizer[pl.DataFrame]):
     def _check_dependencies(self) -> None:
         check_polars()
 
-    def _describe(self, data: pl.DataFrame) -> list[str]:
-        return [f"shape={data.shape}", f"columns={self._format_fields(data.schema.items())}"]
+    def _describe(self, data: pl.DataFrame) -> list[Field]:
+        return [
+            f"shape={data.shape}",
+            ("columns", data.schema.items()),
+        ]
 
 
-class PolarsLazyFrameSummarizer(BaseFieldsSummarizer[pl.LazyFrame]):
+class PolarsLazyFrameSummarizer(BaseMetadataSummarizer[pl.LazyFrame]):
     r"""Implement a summarizer for ``polars.LazyFrame`` objects.
 
     The lazy frame is **not** collected: only its schema is read, so the
-    number of rows is not shown. At most 10 columns are listed.
-
-    Args:
-        show_data: If ``True``, returns ``repr(lazyframe)``, which shows
-            the query plan. If ``False`` (default), returns only the
-            columns: ``<class> | columns=<name: dtype, ...>``.
-
-    ``collect_schema()`` resolves the whole query plan, which can read
-    file metadata (``scan_parquet``, ``scan_csv``, possibly remote). If
-    the plan is invalid, the columns are replaced by
-    ``<unresolved schema: ExceptionType>`` instead of raising.
+    number of rows is not shown. At most `max_items` columns are listed.
 
     Raises:
         MissingPackageError: If polars is not installed.
@@ -79,11 +66,10 @@ class PolarsLazyFrameSummarizer(BaseFieldsSummarizer[pl.LazyFrame]):
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.summary import SummarizerRegistry, PolarsLazyFrameSummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import PolarsLazyFrameSummarizer, SummaryConfig
         >>> summarizer = PolarsLazyFrameSummarizer()
         >>> frame = pl.LazyFrame({"a": [1, 2, 3], "b": [0.1, 0.2, 0.3]})
-        >>> print(summarizer.summarize(frame, registry))  # doctest: +ELLIPSIS
+        >>> print(summarizer.summarize(frame, SummaryConfig(), compact=False))  # doctest: +ELLIPSIS
         <class '...'> | columns=a: Int64, b: Float64
 
         ```
@@ -92,12 +78,12 @@ class PolarsLazyFrameSummarizer(BaseFieldsSummarizer[pl.LazyFrame]):
     def _check_dependencies(self) -> None:
         check_polars()
 
-    def _describe(self, data: pl.LazyFrame) -> list[str]:
+    def _describe(self, data: pl.LazyFrame) -> list[Field]:
         try:
             schema = data.collect_schema()
         except pl.exceptions.PolarsError as exc:
             return [f"columns=<unresolved schema: {type(exc).__name__}>"]
-        return [f"columns={self._format_fields(schema.items())}"]
+        return [("columns", schema.items())]
 
 
 class PolarsSeriesSummarizer(BaseMetadataSummarizer[pl.Series]):
@@ -106,21 +92,15 @@ class PolarsSeriesSummarizer(BaseMetadataSummarizer[pl.Series]):
     By default, it displays the metadata (type, shape, dtype, name)
     rather than the values.
 
-    Args:
-        show_data: If ``True``, returns ``repr(series)``, displaying
-            the values. If ``False`` (default), returns only the
-            metadata: ``<class> | shape=<shape> | dtype=<dtype> | name=<name>``.
-
     Raises:
         MissingPackageError: If polars is not installed.
 
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.summary import SummarizerRegistry, PolarsSeriesSummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import PolarsSeriesSummarizer, SummaryConfig
         >>> summarizer = PolarsSeriesSummarizer()
-        >>> print(summarizer.summarize(pl.Series("a", [1, 2, 3]), registry))  # doctest: +ELLIPSIS
+        >>> print(summarizer.summarize(pl.Series("a", [1, 2, 3]), SummaryConfig(), compact=False))  # doctest: +ELLIPSIS
         <class '...'> | shape=(3,) | dtype=Int64 | name='a'
 
         ```
@@ -129,7 +109,7 @@ class PolarsSeriesSummarizer(BaseMetadataSummarizer[pl.Series]):
     def _check_dependencies(self) -> None:
         check_polars()
 
-    def _describe(self, data: pl.Series) -> list[str]:
+    def _describe(self, data: pl.Series) -> list[Field]:
         return [f"shape={data.shape}", f"dtype={data.dtype}", f"name={data.name!r}"]
 
 

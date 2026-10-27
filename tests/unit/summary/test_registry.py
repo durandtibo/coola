@@ -13,6 +13,7 @@ from coola.summary import (
     SequenceSummarizer,
     SetSummarizer,
     SummarizerRegistry,
+    SummaryConfig,
 )
 from tests.helpers import nest
 
@@ -214,11 +215,16 @@ def test_summarizer_registry_summarize_with_nested_structure() -> None:
 
 
 def test_summarizer_registry_summarize_empty_list() -> None:
-    assert SummarizerRegistry({list: SequenceSummarizer()}).summarize([]) == "<class 'list'> []"
+    assert (
+        SummarizerRegistry({list: SequenceSummarizer()}).summarize([])
+        == "<class 'list'> (length=0)"
+    )
 
 
 def test_summarizer_registry_summarize_empty_dict() -> None:
-    assert SummarizerRegistry({dict: MappingSummarizer()}).summarize({}) == "<class 'dict'> {}"
+    assert (
+        SummarizerRegistry({dict: MappingSummarizer()}).summarize({}) == "<class 'dict'> (length=0)"
+    )
 
 
 def test_summarizer_registry_registry_isolation_first_registry() -> None:
@@ -239,23 +245,23 @@ def test_summarizer_registry_registry_isolation_second_registry() -> None:
     assert registry2._state[list] is summarizer2
 
 
-def test_summarizer_registry_summarize_deep_structure_raises_a_recursion_error() -> None:
+def test_summarizer_registry_summarize_with_config() -> None:
     registry = SummarizerRegistry({object: DefaultSummarizer(), list: SequenceSummarizer()})
-    with pytest.raises(
-        RecursionError, match="Python recursion limit was exceeded while summarizing"
-    ):
-        registry.summarize(nest(1, 5000), max_depth=10**6)
+    assert registry.summarize([1, 2, 3], SummaryConfig(max_items=1)) == (
+        "<class 'list'> (length=3)\n  (0): 1\n  ... (+2 more)"
+    )
 
 
-def test_summarizer_registry_summarize_deep_structure_error_comes_from_the_interpreter() -> None:
+def test_summarizer_registry_summarize_without_config_uses_the_default_options() -> None:
     registry = SummarizerRegistry({object: DefaultSummarizer(), list: SequenceSummarizer()})
-    with pytest.raises(RecursionError) as exc_info:
-        registry.summarize(nest(1, 5000), max_depth=10**6)
-    assert type(exc_info.value.__cause__) is RecursionError
+    assert registry.summarize([1]) == registry.summarize([1], SummaryConfig())
 
 
-def test_summarizer_registry_summarize_nested_call_does_not_wrap_the_error() -> None:
+def test_summarizer_registry_summarize_deep_structure_does_not_raise() -> None:
     registry = SummarizerRegistry({object: DefaultSummarizer(), list: SequenceSummarizer()})
-    with pytest.raises(RecursionError) as exc_info:
-        registry.summarize(nest(1, 5000), depth=1, max_depth=10**6)
-    assert "Python recursion limit" not in str(exc_info.value)
+    assert registry.summarize(nest(1, 5000), SummaryConfig(max_depth=10**6)).count("\n") == 5000
+
+
+def test_summarizer_registry_summarize_without_object_summarizer_raises() -> None:
+    with pytest.raises(KeyError, match="int"):
+        SummarizerRegistry().summarize(1)

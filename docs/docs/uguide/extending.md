@@ -44,17 +44,14 @@ False
 
 ## 2. Summary
 
-Subclass `BaseSummarizer`; the `registry` argument lets you summarize nested values.
+Subclass `BaseSummarizer` and describe one type: return a `str` for a leaf, or a `Node` (a header and
+the children) for a container. The summarizer does not recurse: the engine summarizes the children
+with the summarizer of their own type.
 
 ```pycon
->>> from coola.summary import BaseSummarizer, SummarizerRegistry, register_summarizers, summarize
+>>> from coola.summary import BaseSummarizer, SummaryConfig, register_summarizers, summarize
 >>> class PointSummarizer(BaseSummarizer[Point]):
-...     def equal(self, other: object) -> bool:
-...         return type(other) is type(self)
-...
-...     def summarize(
-...         self, data: Point, registry: SummarizerRegistry, depth: int = 0, max_depth: int = 1
-...     ) -> str:
+...     def summarize(self, data: Point, config: SummaryConfig, *, compact: bool) -> str:
 ...         return f"Point(x={data.x}, y={data.y})"
 >>> register_summarizers({Point: PointSummarizer()})
 >>> print(summarize(Point(1, 2)))

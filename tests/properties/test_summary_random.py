@@ -18,9 +18,40 @@ from tests.properties.strategies import values
 ##################
 
 
+nested_ints = st.recursive(
+    st.integers(), lambda children: st.lists(children, max_size=8), max_leaves=40
+)
+
+
+def max_lines(depth: int, max_items: int) -> int:
+    r"""Return the maximum number of lines of a summary: a node has a
+    header, at most ``max_items`` children and a line for the hidden
+    children."""
+    if depth == 0:
+        return 1
+    return 2 + max_items * max_lines(depth - 1, max_items)
+
+
 @given(data=values, max_depth=st.integers(0, 4))
+def test_summarize_returns_a_str(data: Any, max_depth: int) -> None:
+    assert isinstance(summarize(data, max_depth=max_depth), str)
+
+
+@given(data=values.filter(lambda value: value != ""), max_depth=st.integers(0, 4))
 def test_summarize_returns_a_non_empty_string(data: Any, max_depth: int) -> None:
     assert summarize(data, max_depth=max_depth)
+
+
+@given(data=nested_ints, max_depth=st.integers(0, 4), max_items=st.integers(0, 4))
+def test_summarize_output_is_bounded(data: Any, max_depth: int, max_items: int) -> None:
+    summary = summarize(data, max_depth=max_depth, max_items=max_items)
+    assert len(summary.splitlines()) <= max_lines(max_depth, max_items)
+
+
+@given(data=nested_ints, max_depth=st.integers(0, 4))
+def test_summarize_hides_nothing_without_limits(data: Any, max_depth: int) -> None:
+    summary = summarize(data, max_depth=max_depth, max_items=None, max_characters=None)
+    assert "more)" not in summary
 
 
 @given(data=values, max_depth=st.integers(0, 4))

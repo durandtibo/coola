@@ -10,7 +10,7 @@ __all__ = ["PyarrowArraySummarizer", "PyarrowTableSummarizer"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.summary.metadata import BaseFieldsSummarizer, BaseMetadataSummarizer
+from coola.summary.metadata import BaseMetadataSummarizer, Field
 from coola.utils.imports import check_pyarrow, is_pyarrow_available
 
 if TYPE_CHECKING or is_pyarrow_available():
@@ -30,21 +30,15 @@ class PyarrowArraySummarizer(BaseMetadataSummarizer["pa.Array | pa.ChunkedArray"
     By default, it displays the metadata (type, length, arrow type)
     rather than the values.
 
-    Args:
-        show_data: If ``True``, returns ``repr(array)``, displaying
-            the values. If ``False`` (default), returns only the
-            metadata: ``<class> | length=<length> | type=<arrow type>``.
-
     Raises:
         MissingPackageError: If pyarrow is not installed.
 
     Example:
         ```pycon
         >>> import pyarrow as pa
-        >>> from coola.summary import SummarizerRegistry, PyarrowArraySummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import PyarrowArraySummarizer, SummaryConfig
         >>> summarizer = PyarrowArraySummarizer()
-        >>> print(summarizer.summarize(pa.array([1, 2, 3]), registry))  # doctest: +ELLIPSIS
+        >>> print(summarizer.summarize(pa.array([1, 2, 3]), SummaryConfig(), compact=False))  # doctest: +ELLIPSIS
         <class '...'> | length=3 | type=int64
 
         ```
@@ -53,21 +47,16 @@ class PyarrowArraySummarizer(BaseMetadataSummarizer["pa.Array | pa.ChunkedArray"
     def _check_dependencies(self) -> None:
         check_pyarrow()
 
-    def _describe(self, data: pa.Array | pa.ChunkedArray) -> list[str]:
+    def _describe(self, data: pa.Array | pa.ChunkedArray) -> list[Field]:
         return [f"length={len(data)}", f"type={data.type}"]
 
 
-class PyarrowTableSummarizer(BaseFieldsSummarizer["pa.Table | pa.RecordBatch"]):
+class PyarrowTableSummarizer(BaseMetadataSummarizer["pa.Table | pa.RecordBatch"]):
     r"""Implement a summarizer for ``pyarrow.Table`` and
     ``pyarrow.RecordBatch`` objects.
 
     By default, it displays the metadata (type, shape, columns with their
-    arrow type) rather than the values. At most 10 columns are listed.
-
-    Args:
-        show_data: If ``True``, returns ``repr(table)``, displaying the
-            schema and the values. If ``False`` (default), returns only
-            the metadata: ``<class> | shape=<shape> | columns=<name: type, ...>``.
+    arrow type) rather than the values. At most `max_items` columns are listed.
 
     Raises:
         MissingPackageError: If pyarrow is not installed.
@@ -75,11 +64,10 @@ class PyarrowTableSummarizer(BaseFieldsSummarizer["pa.Table | pa.RecordBatch"]):
     Example:
         ```pycon
         >>> import pyarrow as pa
-        >>> from coola.summary import SummarizerRegistry, PyarrowTableSummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import PyarrowTableSummarizer, SummaryConfig
         >>> summarizer = PyarrowTableSummarizer()
         >>> table = pa.table({"a": [1, 2, 3], "b": [0.1, 0.2, 0.3]})
-        >>> print(summarizer.summarize(table, registry))  # doctest: +ELLIPSIS
+        >>> print(summarizer.summarize(table, SummaryConfig(), compact=False))  # doctest: +ELLIPSIS
         <class '...'> | shape=(3, 2) | columns=a: int64, b: double
 
         ```
@@ -88,9 +76,9 @@ class PyarrowTableSummarizer(BaseFieldsSummarizer["pa.Table | pa.RecordBatch"]):
     def _check_dependencies(self) -> None:
         check_pyarrow()
 
-    def _describe(self, data: pa.Table | pa.RecordBatch) -> list[str]:
+    def _describe(self, data: pa.Table | pa.RecordBatch) -> list[Field]:
         fields = [(field.name, field.type) for field in data.schema]
-        return [f"shape={data.shape}", f"columns={self._format_fields(fields)}"]
+        return [f"shape={data.shape}", ("columns", fields)]
 
 
 def get_default_summarizers() -> dict[type, Summarizer[Any]]:

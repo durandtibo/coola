@@ -3,9 +3,6 @@ r"""Utilities to build readable summaries for nested data structures."""
 from __future__ import annotations
 
 __all__ = [
-    "MAX_FIELDS",
-    "BaseCollectionSummarizer",
-    "BaseFieldsSummarizer",
     "BaseMetadataSummarizer",
     "BaseSummarizer",
     "DataclassSummarizer",
@@ -13,6 +10,7 @@ __all__ = [
     "JaxArraySummarizer",
     "MappingSummarizer",
     "NDArraySummarizer",
+    "Node",
     "PandasDataFrameSummarizer",
     "PandasSeriesSummarizer",
     "PolarsDataFrameSummarizer",
@@ -25,6 +23,7 @@ __all__ = [
     "SetSummarizer",
     "Summarizer",
     "SummarizerRegistry",
+    "SummaryConfig",
     "TensorSummarizer",
     "XarrayDataArraySummarizer",
     "XarrayDatasetSummarizer",
@@ -38,8 +37,8 @@ __all__ = [
 
 from typing import TYPE_CHECKING
 
-from coola.summary.base import BaseSummarizer, Summarizer
-from coola.summary.collection import BaseCollectionSummarizer
+from coola.summary.base import BaseSummarizer, Node, Summarizer
+from coola.summary.config import SummaryConfig
 from coola.summary.dataclass import DataclassSummarizer
 from coola.summary.default import DefaultSummarizer
 from coola.summary.interface import (
@@ -49,12 +48,7 @@ from coola.summary.interface import (
     summarize,
 )
 from coola.summary.mapping import MappingSummarizer
-from coola.summary.metadata import (
-    MAX_FIELDS,
-    BaseFieldsSummarizer,
-    BaseMetadataSummarizer,
-    format_fields,
-)
+from coola.summary.metadata import BaseMetadataSummarizer, format_fields
 from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer

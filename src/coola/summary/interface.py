@@ -14,6 +14,7 @@ from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
 
+from coola.summary.config import SummaryConfig
 from coola.summary.dataclass import DataclassSummarizer
 from coola.summary.default import DefaultSummarizer
 from coola.summary.mapping import MappingSummarizer
@@ -22,10 +23,16 @@ from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
 from coola.utils.imports import package_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
-from coola.validation import validate_int, validate_non_negative
 
 if TYPE_CHECKING:
     from coola.summary.base import Summarizer
+
+_DEFAULT_CONFIG = SummaryConfig()
+_DEFAULT_LIMITS = (
+    _DEFAULT_CONFIG.max_depth,
+    _DEFAULT_CONFIG.max_items,
+    _DEFAULT_CONFIG.max_characters,
+)
 
 # (names of the library in the module of the types, module with the summarizers)
 _LAZY_SUMMARIZERS = (
@@ -41,7 +48,13 @@ _LAZY_SUMMARIZERS = (
 
 
 def summarize(
-    data: object, *, max_depth: int = 1, registry: SummarizerRegistry | None = None
+    data: object,
+    *,
+    max_depth: int = 1,
+    max_items: int | None = 5,
+    max_characters: int | None = 1000,
+    show_data: bool = False,
+    registry: SummarizerRegistry | None = None,
 ) -> str:
     r"""Create a summary string representation of nested data.
 
@@ -49,13 +62,19 @@ def summarize(
 
     Args:
         data: Input data to summarize.
-        max_depth: A display depth, not a limit that raises: the maximum
-            nesting level to expand when summarizing. Structures deeper
-            than this level are shown in compact form (unlike the
-            ``max_depth`` of ``objects_are_equal``, which raises an
-            error for a deeper structure). Must be non-negative.
-            Default is 1, which expands only the top level of nested
-            structures.
+        max_depth: A display depth, not a limit that raises: the number
+            of levels that are expanded. The structures below this
+            depth are shown on one line (unlike the ``max_depth`` of
+            ``objects_are_equal``, which raises an error for a deeper
+            structure). Must be non-negative. Default is 1, which
+            expands only the top level of nested structures.
+        max_items: The maximum number of children (items, fields,
+            columns) shown for a node. The other ones are announced
+            with ``... (+N more)``. ``None`` shows all of them.
+        max_characters: The maximum number of characters of a text.
+            ``None`` does not cut the texts.
+        show_data: If ``True``, the arrays, tensors and frames show a
+            bounded ``repr`` of their values instead of their metadata.
         registry: Registry to resolve summarizers for nested data.
             If ``None``, the default registry is used.
 
@@ -63,10 +82,11 @@ def summarize(
         A formatted string summary of ``data``.
 
     Raises:
-        TypeError: If ``max_depth`` is not an ``int`` (a ``bool`` is rejected).
-        ValueError: If ``max_depth`` is negative.
-        RecursionError: If ``max_depth`` is so large that the Python recursion limit is
-            exceeded (each nesting level uses a few interpreter frames).
+        TypeError: If ``max_depth``, ``max_items`` or ``max_characters``
+            is not an ``int`` (a ``bool`` is rejected), or if
+            ``show_data`` is not a ``bool``.
+        ValueError: If ``max_depth``, ``max_items`` or
+            ``max_characters`` is negative.
 
     Example:
         ```pycon
@@ -75,14 +95,31 @@ def summarize(
         <class 'dict'> (length=2)
           (a): 1
           (b): abc
+        >>> print(summarize(list(range(10)), max_items=3))
+        <class 'list'> (length=10)
+          (0): 0
+          (1): 1
+          (2): 2
+          ... (+7 more)
 
         ```
     """
-    validate_int(max_depth, name="max_depth")
-    validate_non_negative(max_depth, name="max_depth")
+    if (
+        (max_depth, max_items, max_characters) == _DEFAULT_LIMITS
+        and (type(max_depth), type(max_items), type(max_characters)) == (int, int, int)
+        and show_data is False
+    ):
+        config = _DEFAULT_CONFIG  # the config of most calls is built once
+    else:
+        config = SummaryConfig(
+            max_depth=max_depth,
+            max_items=max_items,
+            max_characters=max_characters,
+            show_data=show_data,
+        )
     if registry is None:
         registry = get_default_registry()
-    return registry.summarize(data, max_depth=max_depth)
+    return registry.summarize(data, config)
 
 
 def register_summarizers(
@@ -102,21 +139,13 @@ def register_summarizers(
 
     Example:
         ```pycon
-        >>> from coola.summary import register_summarizers, BaseSummarizer, SummarizerRegistry
+        >>> from coola.summary import register_summarizers, BaseSummarizer, SummaryConfig
         >>> class MyType:
         ...     def __init__(self, value):
         ...         self.value = value
         ...
         >>> class MySummarizer(BaseSummarizer[MyType]):
-        ...     def equal(self, other: object) -> bool:
-        ...         return type(other) is type(self)
-        ...     def summarize(
-        ...         self,
-        ...         data: MyType,
-        ...         registry: SummarizerRegistry,
-        ...         depth: int = 0,
-        ...         max_depth: int = 1,
-        ...     ) -> str:
+        ...     def summarize(self, data: MyType, config: SummaryConfig, *, compact: bool) -> str:
         ...         return f"<MyType> value={data.value}"
         ...
         >>> register_summarizers({MyType: MySummarizer()})

@@ -7,7 +7,7 @@ import pytest
 from coola.summary import (
     PandasDataFrameSummarizer,
     PandasSeriesSummarizer,
-    SummarizerRegistry,
+    SummaryConfig,
 )
 from coola.testing.fixtures import pandas_available
 from coola.utils.imports import MissingPackageError, is_pandas_available
@@ -18,77 +18,13 @@ else:  # pragma: no cover
     pd = Mock()
 
 
-@pytest.fixture
-def registry() -> SummarizerRegistry:
-    return SummarizerRegistry()
-
-
 SUMMARIZERS = [
     PandasDataFrameSummarizer,
     PandasSeriesSummarizer,
 ]
 
-
-@pandas_available
-@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_init_default(summarizer_cls: type) -> None:
-    assert summarizer_cls()._show_data is False
-
-
-@pandas_available
-@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_init_show_data(summarizer_cls: type) -> None:
-    assert summarizer_cls(show_data=True)._show_data is True
-
-
-@pandas_available
-@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_repr_default(summarizer_cls: type) -> None:
-    assert repr(summarizer_cls()) == f"{summarizer_cls.__name__}(show_data=False)"
-
-
-@pandas_available
-@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_repr_show_data(summarizer_cls: type) -> None:
-    assert repr(summarizer_cls(show_data=True)) == f"{summarizer_cls.__name__}(show_data=True)"
-
-
-@pandas_available
-@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_str(summarizer_cls: type) -> None:
-    assert str(summarizer_cls()) == f"{summarizer_cls.__name__}(show_data=False)"
-
-
-@pandas_available
-@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_equal_true_default(summarizer_cls: type) -> None:
-    assert summarizer_cls().equal(summarizer_cls())
-
-
-@pandas_available
-@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_equal_true_show_data(summarizer_cls: type) -> None:
-    assert summarizer_cls(show_data=True).equal(summarizer_cls(show_data=True))
-
-
-@pandas_available
-@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_equal_false_different_show_data(summarizer_cls: type) -> None:
-    assert not summarizer_cls(show_data=False).equal(summarizer_cls(show_data=True))
-
-
-@pandas_available
-@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_equal_false_different_type(summarizer_cls: type) -> None:
-    assert not summarizer_cls().equal(42)
-
-
-@pandas_available
-@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_equal_false_child_class(summarizer_cls: type) -> None:
-    class Child(summarizer_cls): ...
-
-    assert not summarizer_cls().equal(Child())
+CONFIG = SummaryConfig()
+SHOW_DATA = SummaryConfig(show_data=True)
 
 
 @pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
@@ -101,117 +37,103 @@ def test_summarizer_missing_package_raises(summarizer_cls: type) -> None:
 
 
 @pandas_available
-def test_pandas_dataframe_summarizer_summarize(registry: SummarizerRegistry) -> None:
+def test_pandas_dataframe_summarizer_summarize() -> None:
     frame = pd.DataFrame({"a": [1, 2, 3], "b": [0.1, 0.2, 0.3], "c": ["x", "y", "z"]})
-    result = PandasDataFrameSummarizer().summarize(frame, registry)
+    result = PandasDataFrameSummarizer().summarize(frame, CONFIG, compact=False)
     assert result.startswith(f"{type(frame)} | shape=(3, 3) | columns=a: int64, b: float64, c: ")
 
 
 @pandas_available
-def test_pandas_dataframe_summarizer_summarize_empty(registry: SummarizerRegistry) -> None:
+def test_pandas_dataframe_summarizer_summarize_empty() -> None:
     frame = pd.DataFrame()
-    result = PandasDataFrameSummarizer().summarize(frame, registry)
+    result = PandasDataFrameSummarizer().summarize(frame, CONFIG, compact=False)
     assert result == f"{type(frame)} | shape=(0, 0) | columns="
 
 
 @pandas_available
-def test_pandas_dataframe_summarizer_summarize_class_name_class_prefix(
-    registry: SummarizerRegistry,
-) -> None:
-    result = PandasDataFrameSummarizer().summarize(pd.DataFrame({"a": [1]}), registry)
+def test_pandas_dataframe_summarizer_summarize_class_name_class_prefix() -> None:
+    result = PandasDataFrameSummarizer().summarize(pd.DataFrame({"a": [1]}), CONFIG, compact=False)
     assert "<class 'pandas." in result
 
 
 @pandas_available
-def test_pandas_dataframe_summarizer_summarize_class_name_class_name(
-    registry: SummarizerRegistry,
-) -> None:
-    result = PandasDataFrameSummarizer().summarize(pd.DataFrame({"a": [1]}), registry)
+def test_pandas_dataframe_summarizer_summarize_class_name_class_name() -> None:
+    result = PandasDataFrameSummarizer().summarize(pd.DataFrame({"a": [1]}), CONFIG, compact=False)
     assert ".DataFrame'>" in result
 
 
 @pandas_available
-def test_pandas_dataframe_summarizer_summarize_many_columns_shows_the_first_columns(
-    registry: SummarizerRegistry,
-) -> None:
+def test_pandas_dataframe_summarizer_summarize_many_columns_shows_the_first_columns() -> None:
     frame = pd.DataFrame({f"c{i}": [i] for i in range(13)})
-    result = PandasDataFrameSummarizer().summarize(frame, registry)
-    assert "c9: int64, ... (+3 more)" in result
+    result = PandasDataFrameSummarizer().summarize(frame, CONFIG, compact=False)
+    assert "c4: int64, ... (+8 more)" in result
 
 
 @pandas_available
-def test_pandas_dataframe_summarizer_summarize_many_columns_hides_the_other_columns(
-    registry: SummarizerRegistry,
-) -> None:
+def test_pandas_dataframe_summarizer_summarize_many_columns_hides_the_other_columns() -> None:
     frame = pd.DataFrame({f"c{i}": [i] for i in range(13)})
-    result = PandasDataFrameSummarizer().summarize(frame, registry)
-    assert "c10" not in result
+    result = PandasDataFrameSummarizer().summarize(frame, CONFIG, compact=False)
+    assert "c5" not in result
 
 
 @pandas_available
-def test_pandas_dataframe_summarizer_summarize_show_data(registry: SummarizerRegistry) -> None:
+def test_pandas_dataframe_summarizer_summarize_show_data() -> None:
     frame = pd.DataFrame({"a": [1, 2]})
-    assert PandasDataFrameSummarizer(show_data=True).summarize(frame, registry) == repr(frame)
+    assert PandasDataFrameSummarizer().summarize(frame, SHOW_DATA, compact=False) == repr(frame)
 
 
 @pandas_available
-def test_pandas_series_summarizer_summarize(registry: SummarizerRegistry) -> None:
+def test_pandas_series_summarizer_summarize() -> None:
     series = pd.Series([1, 2, 3], name="a")
-    result = PandasSeriesSummarizer().summarize(series, registry)
+    result = PandasSeriesSummarizer().summarize(series, CONFIG, compact=False)
     assert result == f"{type(series)} | shape=(3,) | dtype=int64 | name='a'"
 
 
 @pandas_available
-def test_pandas_series_summarizer_summarize_class_name_class_prefix(
-    registry: SummarizerRegistry,
-) -> None:
-    result = PandasSeriesSummarizer().summarize(pd.Series([1]), registry)
+def test_pandas_series_summarizer_summarize_class_name_class_prefix() -> None:
+    result = PandasSeriesSummarizer().summarize(pd.Series([1]), CONFIG, compact=False)
     assert "<class 'pandas." in result
 
 
 @pandas_available
-def test_pandas_series_summarizer_summarize_class_name_class_name(
-    registry: SummarizerRegistry,
-) -> None:
-    result = PandasSeriesSummarizer().summarize(pd.Series([1]), registry)
+def test_pandas_series_summarizer_summarize_class_name_class_name() -> None:
+    result = PandasSeriesSummarizer().summarize(pd.Series([1]), CONFIG, compact=False)
     assert ".Series'>" in result
 
 
 @pandas_available
-def test_pandas_series_summarizer_summarize_no_name(registry: SummarizerRegistry) -> None:
+def test_pandas_series_summarizer_summarize_no_name() -> None:
     series = pd.Series([1.0, 2.0])
-    result = PandasSeriesSummarizer().summarize(series, registry)
+    result = PandasSeriesSummarizer().summarize(series, CONFIG, compact=False)
     assert result == f"{type(series)} | shape=(2,) | dtype=float64 | name=None"
 
 
 @pandas_available
-def test_pandas_series_summarizer_summarize_show_data(registry: SummarizerRegistry) -> None:
+def test_pandas_series_summarizer_summarize_show_data() -> None:
     series = pd.Series([1, 2])
-    assert PandasSeriesSummarizer(show_data=True).summarize(series, registry) == repr(series)
+    assert PandasSeriesSummarizer().summarize(series, SHOW_DATA, compact=False) == repr(series)
 
 
 @pandas_available
-@pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
-def test_summarizer_depth_and_max_depth_ignored(
-    summarizer_cls: type, registry: SummarizerRegistry
-) -> None:
-    data = (
-        pd.DataFrame({"a": [1]}) if summarizer_cls is PandasDataFrameSummarizer else pd.Series([1])
+def test_pandas_dataframe_summarizer_summarize_max_items_none_shows_all_columns() -> None:
+    frame = pd.DataFrame({f"c{i}": [i] for i in range(7)})
+    result = PandasDataFrameSummarizer().summarize(
+        frame, SummaryConfig(max_items=None), compact=False
     )
-    summarizer = summarizer_cls()
-    expected = summarizer.summarize(data, registry)
-    assert summarizer.summarize(data, registry, depth=5, max_depth=10) == expected
+    assert result.endswith("c5: int64, c6: int64")
 
 
 @pandas_available
-def test_dataframe_summarizer_max_fields(registry: SummarizerRegistry) -> None:
-    df = pd.DataFrame({"a": [1], "b": [2.0], "c": ["x"]})
-    out = PandasDataFrameSummarizer(max_fields=2).summarize(df, registry)
-    assert out.endswith("columns=a: int64, b: float64, ... (+1 more)")
+def test_pandas_dataframe_summarizer_summarize_max_items_zero_hides_all_columns() -> None:
+    frame = pd.DataFrame({"a": [1], "b": [2]})
+    result = PandasDataFrameSummarizer().summarize(frame, SummaryConfig(max_items=0), compact=False)
+    assert result == "<class 'pandas.DataFrame'> | shape=(1, 2) | columns=... (+2 more)"
 
 
 @pandas_available
-def test_dataframe_summarizer_max_fields_repr() -> None:
-    assert repr(PandasDataFrameSummarizer(max_fields=2)) == (
-        "PandasDataFrameSummarizer(show_data=False, max_fields=2)"
+def test_pandas_dataframe_summarizer_summarize_compact_is_ignored() -> None:
+    frame = pd.DataFrame({"a": [1]})
+    summarizer = PandasDataFrameSummarizer()
+    assert summarizer.summarize(frame, CONFIG, compact=True) == summarizer.summarize(
+        frame, CONFIG, compact=False
     )

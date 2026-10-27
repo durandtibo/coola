@@ -10,7 +10,7 @@ __all__ = ["PandasDataFrameSummarizer", "PandasSeriesSummarizer"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.summary.metadata import BaseFieldsSummarizer, BaseMetadataSummarizer
+from coola.summary.metadata import BaseMetadataSummarizer, Field
 from coola.utils.imports import check_pandas, is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
@@ -23,17 +23,12 @@ if TYPE_CHECKING:
     from coola.summary.base import Summarizer
 
 
-class PandasDataFrameSummarizer(BaseFieldsSummarizer[pd.DataFrame]):
+class PandasDataFrameSummarizer(BaseMetadataSummarizer[pd.DataFrame]):
     r"""Implement a summarizer for ``pandas.DataFrame`` objects.
 
     By default, it displays the metadata (type, shape, columns with their
     dtype) rather than the values, which makes it suitable for logging
-    large data frames. At most 10 columns are listed.
-
-    Args:
-        show_data: If ``True``, returns ``repr(dataframe)``, displaying
-            the values. If ``False`` (default), returns only the
-            metadata: ``<class> | shape=<shape> | columns=<name: dtype, ...>``.
+    large data frames. At most `max_items` columns are listed.
 
     Raises:
         MissingPackageError: If pandas is not installed.
@@ -41,11 +36,10 @@ class PandasDataFrameSummarizer(BaseFieldsSummarizer[pd.DataFrame]):
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.summary import SummarizerRegistry, PandasDataFrameSummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import PandasDataFrameSummarizer, SummaryConfig
         >>> summarizer = PandasDataFrameSummarizer()
         >>> frame = pd.DataFrame({"a": [1, 2, 3], "b": [0.1, 0.2, 0.3]})
-        >>> print(summarizer.summarize(frame, registry))
+        >>> print(summarizer.summarize(frame, SummaryConfig(), compact=False))
         <class 'pandas.DataFrame'> | shape=(3, 2) | columns=a: int64, b: float64
 
         ```
@@ -54,10 +48,10 @@ class PandasDataFrameSummarizer(BaseFieldsSummarizer[pd.DataFrame]):
     def _check_dependencies(self) -> None:
         check_pandas()
 
-    def _describe(self, data: pd.DataFrame) -> list[str]:
+    def _describe(self, data: pd.DataFrame) -> list[Field]:
         return [
             f"shape={data.shape}",
-            f"columns={self._format_fields(data.dtypes.items())}",
+            ("columns", data.dtypes.items()),
         ]
 
 
@@ -67,21 +61,15 @@ class PandasSeriesSummarizer(BaseMetadataSummarizer[pd.Series]):
     By default, it displays the metadata (type, shape, dtype, name)
     rather than the values.
 
-    Args:
-        show_data: If ``True``, returns ``repr(series)``, displaying
-            the values. If ``False`` (default), returns only the
-            metadata: ``<class> | shape=<shape> | dtype=<dtype> | name=<name>``.
-
     Raises:
         MissingPackageError: If pandas is not installed.
 
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.summary import SummarizerRegistry, PandasSeriesSummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import PandasSeriesSummarizer, SummaryConfig
         >>> summarizer = PandasSeriesSummarizer()
-        >>> print(summarizer.summarize(pd.Series([1, 2, 3], name="a"), registry))
+        >>> print(summarizer.summarize(pd.Series([1, 2, 3], name="a"), SummaryConfig(), compact=False))
         <class 'pandas.Series'> | shape=(3,) | dtype=int64 | name='a'
 
         ```
@@ -90,7 +78,7 @@ class PandasSeriesSummarizer(BaseMetadataSummarizer[pd.Series]):
     def _check_dependencies(self) -> None:
         check_pandas()
 
-    def _describe(self, data: pd.Series) -> list[str]:
+    def _describe(self, data: pd.Series) -> list[Field]:
         return [f"shape={data.shape}", f"dtype={data.dtype}", f"name={data.name!r}"]
 
 

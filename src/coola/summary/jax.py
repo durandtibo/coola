@@ -10,7 +10,7 @@ __all__ = ["JaxArraySummarizer"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.summary.metadata import BaseMetadataSummarizer
+from coola.summary.metadata import BaseMetadataSummarizer, Field
 from coola.utils.imports import check_jax, is_jax_available
 
 if TYPE_CHECKING or is_jax_available():
@@ -29,21 +29,15 @@ class JaxArraySummarizer(BaseMetadataSummarizer[jnp.ndarray]):
     By default, it displays the metadata (type, shape, dtype) rather
     than the values.
 
-    Args:
-        show_data: If ``True``, returns ``repr(array)``, displaying
-            the values. If ``False`` (default), returns only the
-            metadata: ``<class> | shape=<shape> | dtype=<dtype>``.
-
     Raises:
         MissingPackageError: If JAX is not installed.
 
     Example:
         ```pycon
         >>> import jax.numpy as jnp
-        >>> from coola.summary import SummarizerRegistry, JaxArraySummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import JaxArraySummarizer, SummaryConfig
         >>> summarizer = JaxArraySummarizer()
-        >>> print(summarizer.summarize(jnp.ones((2, 3)), registry))  # doctest: +ELLIPSIS
+        >>> print(summarizer.summarize(jnp.ones((2, 3)), SummaryConfig(), compact=False))  # doctest: +ELLIPSIS
         <class '...'> | shape=(2, 3) | dtype=float32
 
         ```
@@ -52,7 +46,7 @@ class JaxArraySummarizer(BaseMetadataSummarizer[jnp.ndarray]):
     def _check_dependencies(self) -> None:
         check_jax()
 
-    def _describe(self, data: jnp.ndarray) -> list[str]:
+    def _describe(self, data: jnp.ndarray) -> list[Field]:
         return [f"shape={data.shape}", f"dtype={data.dtype}"]
 
 

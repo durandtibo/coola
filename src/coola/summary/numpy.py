@@ -11,7 +11,7 @@ __all__ = ["NDArraySummarizer"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.summary.metadata import BaseMetadataSummarizer
+from coola.summary.metadata import BaseMetadataSummarizer, Field
 from coola.utils.imports import check_numpy, is_numpy_available
 
 if TYPE_CHECKING or is_numpy_available():
@@ -32,37 +32,26 @@ class NDArraySummarizer(BaseMetadataSummarizer[np.ndarray]):
     rather than array values, making it suitable for logging and debugging
     large arrays. Optionally, it can show the full array representation.
 
-    Args:
-        show_data: If ``True``, returns the default array string
-            representation (same as ``repr(array)``), displaying
-            actual values. If ``False`` (default), returns only
-            metadata in a compact format:
-            ``<class> | shape=<shape> | dtype=<dtype>``. A masked
-            array (``numpy.ma.MaskedArray``) also shows the number of
-            masked values: ``... | num_masked=<count>``.
-            Default: ``False``
-
     Raises:
         MissingPackageError: If NumPy is not installed or available.
 
     Example:
         ```pycon
         >>> import numpy as np
-        >>> from coola.summary import SummarizerRegistry, NDArraySummarizer
-        >>> registry = SummarizerRegistry()
+        >>> from coola.summary import NDArraySummarizer, SummaryConfig
 
         >>> # Default behavior: show metadata only
         >>> summarizer = NDArraySummarizer()
-        >>> print(summarizer.summarize(np.arange(11), registry))
+        >>> print(summarizer.summarize(np.arange(11), SummaryConfig(), compact=False))
         <class 'numpy.ndarray'> | shape=(11,) | dtype=int64
 
         >>> # Works with arrays of any shape and dtype
-        >>> print(summarizer.summarize(np.ones((2, 3, 4)), registry))
+        >>> print(summarizer.summarize(np.ones((2, 3, 4)), SummaryConfig(), compact=False))
         <class 'numpy.ndarray'> | shape=(2, 3, 4) | dtype=float64
 
         >>> # Show full array data
-        >>> summarizer = NDArraySummarizer(show_data=True)
-        >>> print(summarizer.summarize(np.arange(11), registry))
+        >>> config = SummaryConfig(show_data=True)
+        >>> print(summarizer.summarize(np.arange(11), config, compact=False))
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10])
 
         ```
@@ -71,7 +60,7 @@ class NDArraySummarizer(BaseMetadataSummarizer[np.ndarray]):
     def _check_dependencies(self) -> None:
         check_numpy()
 
-    def _describe(self, data: np.ndarray) -> list[str]:
+    def _describe(self, data: np.ndarray) -> list[Field]:
         fields = [f"shape={data.shape}", f"dtype={data.dtype}"]
         if isinstance(data, np.ma.MaskedArray):
             # The mask is part of the value: two arrays with a different mask are different.
