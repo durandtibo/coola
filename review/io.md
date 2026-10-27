@@ -44,8 +44,8 @@ The headline findings:
    thread helper.
 4. **No slower than today.** `save_json` costs 773 µs on `main` with the lock, 521 µs without it
    **[verified]**. The benchmark gate of section 8 must hold.
-5. **Consistent with the siblings.** Keyword-only options, `==` for the value semantics of a
-   configured object (`equality` replaced its `equal` method by `==`), the engine owns the invariants,
+5. **Consistent with the siblings.** Keyword-only options, `equal(other, equal_nan=False)` for the comparison of
+   two configured objects (the method the package has today and the guide documents), the engine owns the invariants,
    errors name the cause, optional libraries (torch) stay lazy.
 6. **Security does not regress.** `TorchLoader` stays `weights_only=True` by default, `PickleLoader`
    keeps its warning, `resolve_loader` / `resolve_saver` keep `allowed_prefixes`.
@@ -57,25 +57,25 @@ write either happens completely or leaves the target as it was. These are the ru
 Every design choice below exists to make one of them true **by construction** (in the base classes)
 instead of by the discipline of each format. They replace the table of the user guide.
 
-| Property                 | Statement                                                                                                                                                                                                                                                                | Enforced by                                    |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
-| Atomic write             | A file saver writes to a hidden temporary file next to the target and commits it with one atomic operation. A reader sees the old file or the new file, never a partial one, and an interrupted `save` leaves the target as it was.                                      | `BaseFileSaver.save`                           |
-| No silent overwrite      | `save` raises `FileExistsError` if the target exists, unless `exist_ok=True`. This holds when the file is created concurrently, because the commit is a hard link.                                                                                                       | `BaseFileSaver.save`                           |
-| No torn file             | Concurrent saves of the same path, in one process or in several, never produce a mix: the file is the complete content of one of them. Which one is unspecified. With `exist_ok=False`, exactly one wins and the others raise `FileExistsError`.                         | the atomic commit (no lock)                    |
-| Clean failure            | If writing fails, the temporary file is removed and the original exception is raised, even if the cleanup itself fails. An existing target is left untouched.                                                                                                            | `BaseFileSaver.save`                           |
-| Opt-in durability        | By default the data only reaches the operating system cache. `fsync=True` flushes the file before the commit and the directory after it, so the file survives a power failure. It is slower.                                                                             | `BaseFileSaver.save`                           |
-| Directory safety         | A path that is a directory raises `IsADirectoryError`, a parent that is a file raises `NotADirectoryError`, missing parents are created. A symbolic link target is overwritten through the link, and the mode of an overwritten file is kept.                            | `BaseFileSaver.save`                           |
-| Path-like input          | Every method takes a `str` or any `os.PathLike`; `~` and `file://` URIs are expanded. A subclass receives a `Path` and cannot forget it.                                                                                                                                 | the template methods                           |
-| Format-agnostic API      | Every loader has `load(path)` and `aload(path)`; every saver has `save(data, path, exist_ok=...)` and `asave(...)`. Formats can be swapped without changing the calling code, and the sync and async versions have the same arguments, results and errors.               | the base classes                               |
-| Non-blocking async       | `aload` and `asave` never block the event loop: the blocking call runs in a worker thread (`asyncio.to_thread`). The result and the errors are those of the sync method.                                                                                                 | `BaseLoader.aload`, `BaseSaver.asave`          |
-| Cancel-safe async        | If `asave` is cancelled (`asyncio.timeout`, `wait_for`, `Task.cancel`) before the commit, the target is not modified and the temporary file is removed. After the commit started, the file is complete. The file never appears after `asave` raised.                     | the cancellation flag of `BaseFileSaver.asave` |
-| Strict input             | A saver rejects the data it cannot save with a `TypeError` or the error of the library, before it touches the target. `TextSaver` accepts a `str` only; it does not call `str()` on other objects.                                                                       | each `_save_file`                              |
-| Comparable               | Two loaders (or two savers) are equal (`==`) if they have the same type and the same configuration (encoding, keyword arguments). They hold no mutable state, so one instance can be shared by threads and tasks.                                                        | `__eq__` of the base classes                   |
-| Safe by default for load | `TorchLoader` uses `weights_only=True` unless told otherwise. `PickleLoader` cannot be made safe: only load pickle files that you trust.                                                                                                                                 | `TorchLoader`, the docs                        |
-| Extensible               | A format is added by subclassing `BaseLoader` (implement `_load`) or `BaseFileSaver` (implement `_save_file`). The atomic write, `exist_ok`, `fsync`, the paths, `==` and the async twins come with the base class. A backend that is not a file subclasses `BaseSaver`. | the base classes                               |
-| Errors propagate         | The `OSError` of the file system and the exceptions of the format library (`JSONDecodeError`, `UnpicklingError`, ...) are raised unchanged. Only the cases listed above (exists, directory, parent is a file) are translated.                                            | the template methods                           |
-| Lazy optional libraries  | `import coola.io` imports no optional library. `TorchLoader` and `TorchSaver` import torch the first time they are used.                                                                                                                                                 | `lazy_exports`                                 |
-| Configurable             | `resolve_loader` / `resolve_saver` build an object from a `_target_` configuration, with `allowed_prefixes` for configurations that are not trusted.                                                                                                                     | `coola.factory`                                |
+| Property                 | Statement                                                                                                                                                                                                                                                                     | Enforced by                                    |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Atomic write             | A file saver writes to a hidden temporary file next to the target and commits it with one atomic operation. A reader sees the old file or the new file, never a partial one, and an interrupted `save` leaves the target as it was.                                           | `BaseFileSaver.save`                           |
+| No silent overwrite      | `save` raises `FileExistsError` if the target exists, unless `exist_ok=True`. This holds when the file is created concurrently, because the commit is a hard link.                                                                                                            | `BaseFileSaver.save`                           |
+| No torn file             | Concurrent saves of the same path, in one process or in several, never produce a mix: the file is the complete content of one of them. Which one is unspecified. With `exist_ok=False`, exactly one wins and the others raise `FileExistsError`.                              | the atomic commit (no lock)                    |
+| Clean failure            | If writing fails, the temporary file is removed and the original exception is raised, even if the cleanup itself fails. An existing target is left untouched.                                                                                                                 | `BaseFileSaver.save`                           |
+| Opt-in durability        | By default the data only reaches the operating system cache. `fsync=True` flushes the file before the commit and the directory after it, so the file survives a power failure. It is slower.                                                                                  | `BaseFileSaver.save`                           |
+| Directory safety         | A path that is a directory raises `IsADirectoryError`, a parent that is a file raises `NotADirectoryError`, missing parents are created. A symbolic link target is overwritten through the link, and the mode of an overwritten file is kept.                                 | `BaseFileSaver.save`                           |
+| Path-like input          | Every method takes a `str` or any `os.PathLike`; `~` and `file://` URIs are expanded. A subclass receives a `Path` and cannot forget it.                                                                                                                                      | the template methods                           |
+| Format-agnostic API      | Every loader has `load(path)` and `aload(path)`; every saver has `save(data, path, exist_ok=...)` and `asave(...)`. Formats can be swapped without changing the calling code, and the sync and async versions have the same arguments, results and errors.                    | the base classes                               |
+| Non-blocking async       | `aload` and `asave` never block the event loop: the blocking call runs in a worker thread (`asyncio.to_thread`). The result and the errors are those of the sync method.                                                                                                      | `BaseLoader.aload`, `BaseSaver.asave`          |
+| Cancel-safe async        | If `asave` is cancelled (`asyncio.timeout`, `wait_for`, `Task.cancel`) before the commit, the target is not modified and the temporary file is removed. After the commit started, the file is complete. The file never appears after `asave` raised.                          | the cancellation flag of `BaseFileSaver.asave` |
+| Strict input             | A saver rejects the data it cannot save with a `TypeError` or the error of the library, before it touches the target. `TextSaver` accepts a `str` only; it does not call `str()` on other objects.                                                                            | each `_save_file`                              |
+| Comparable               | Two loaders (or two savers) are equal (`equal()`) if they have the same type and the same configuration (encoding, keyword arguments). They hold no mutable state, so one instance can be shared by threads and tasks.                                                        | `equal` of the base classes                    |
+| Safe by default for load | `TorchLoader` uses `weights_only=True` unless told otherwise. `PickleLoader` cannot be made safe: only load pickle files that you trust.                                                                                                                                      | `TorchLoader`, the docs                        |
+| Extensible               | A format is added by subclassing `BaseLoader` (implement `_load`) or `BaseFileSaver` (implement `_save_file`). The atomic write, `exist_ok`, `fsync`, the paths, `equal()` and the async twins come with the base class. A backend that is not a file subclasses `BaseSaver`. | the base classes                               |
+| Errors propagate         | The `OSError` of the file system and the exceptions of the format library (`JSONDecodeError`, `UnpicklingError`, ...) are raised unchanged. Only the cases listed above (exists, directory, parent is a file) are translated.                                                 | the template methods                           |
+| Lazy optional libraries  | `import coola.io` imports no optional library. `TorchLoader` and `TorchSaver` import torch the first time they are used.                                                                                                                                                      | `lazy_exports`                                 |
+| Configurable             | `resolve_loader` / `resolve_saver` build an object from a `_target_` configuration, with `allowed_prefixes` for configurations that are not trusted.                                                                                                                          | `coola.factory`                                |
 
 Not guaranteed, and documented as such:
 
@@ -104,7 +104,7 @@ Not guaranteed, and documented as such:
 | F5  | **The contract of `load` is easy to break.** `BaseLoader.load` takes `str \| PathLike`, and every subclass must call `sanitize_path`. The custom loader of the user guide (`path.read_text()`) raises `AttributeError: 'str' object has no attribute 'read_text'` for a `str` path. The same trap exists for any user loader.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | **[verified]** |
 | F6  | **No async, and the sync API stalls an event loop.** A save of 400 ms called in a coroutine froze a 5 ms ticker for **414 ms**; run with `asyncio.to_thread` the longest gap was 6 ms. `asyncio.wait_for(asyncio.to_thread(saver.save, ...), 0.1)` raises `TimeoutError` after 0.1 s, and the file **appears 0.4 s later**, after the caller was told that it failed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | **[verified]** |
 | F7  | **`TextSaver` converts anything with `str()`.** `save_text(None, path)` writes the text `None`; `save_text(123, path)` writes `123`. The class is typed `BaseFileSaver[str]` and the function takes `Any`. A caller that passes the wrong object gets a valid file with the wrong content and no error.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | **[verified]** |
-| F8  | **Eight copies of `equal`.** Every loader and saver implements `equal(other, equal_nan)`: same type, then compare the fields, 4 of them with `# noqa: ARG002` (`review/noqa-review.md`). `==` is the identity (`JsonLoader() == JsonLoader()` is `False`) while `objects_are_equal` is `True`, and `coola.equality` replaced its own `equal` method by `==`. `TorchLoader.equal` carries a special case so that the default is equal to `weights_only=True`.                                                                                                                                                                                                                                                                                                                                                                                          | **[verified]** |
+| F8  | **Eight copies of `equal`.** Every loader and saver implements `equal(other, equal_nan)`: same type, then compare the fields, 4 of them with `# noqa: ARG002` (`review/noqa-review.md`). The logic is the same eight times (`==` is the identity, `equal()` is the comparison). `TorchLoader.equal` carries a special case so that the default is equal to `weights_only=True`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | **[verified]** |
 | F9  | **The type parameter lies.** `JsonLoader[T]`, `PickleLoader[T]` and `TorchLoader[T]` return a `T` that nothing checks, and the four functional shortcuts instantiate `JsonLoader[Any](...)`. `TextSaver` is `BaseFileSaver[str]` and receives `Any` (F7).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | **[reading]**  |
 | F10 | **`add_uuid_suffix` is a path helper exported by `coola.io`.** It is only used to name the temporary file, it is documented in the guide as a feature ("Unique File Names"), and `CLAUDE.md` says shared helpers belong in `coola.utils`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | **[reading]**  |
 | F11 | **`fsync` opens the temporary file read-only** (`os.open(path, os.O_RDONLY)` in `_fsync_file`). CPython's `os.fsync` on Windows calls `_commit`, which needs a descriptor opened for writing; a read-only descriptor is expected to fail there. Not reproducible on macOS. `O_RDWR` is correct on every platform.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | **[reading]**  |
@@ -152,7 +152,8 @@ class BaseLoader(InlineDisplayMixin, ABC, Generic[T]):
     @abstractmethod
     def _load(self, path: Path) -> T: ...
 
-    def __eq__(self, other: object) -> bool:  # same type and same _display_fields()
+    def equal(self, other: Any, equal_nan: bool = False) -> bool:
+        # same type and same _display_fields(), compared with objects_are_equal
         ...
 
 
@@ -165,7 +166,7 @@ class BaseSaver(InlineDisplayMixin, ABC, Generic[T]):
     ) -> None:
         await asyncio.to_thread(self.save, to_save, path, exist_ok=exist_ok)
 
-    def __eq__(self, other: object) -> bool: ...
+    def equal(self, other: Any, equal_nan: bool = False) -> bool: ...
 
 
 class BaseFileSaver(BaseSaver[T]):
@@ -185,9 +186,10 @@ class BaseFileSaver(BaseSaver[T]):
 ```
 
 - `InlineDisplayMixin` moves into the base classes, so a format defines `_display_fields()` once and
-  gets `repr`, `str` and `==` (the fields shown are the fields compared, compared with
-  `objects_are_equal`). `equal()` and its `noqa: ARG002` are deleted (F8). The loader and the saver
-  are unhashable once `__eq__` is defined (decision D2).
+  gets `repr`, `str` and `equal()` (the fields shown are the fields compared, compared with
+  `objects_are_equal` and the `equal_nan` argument). `equal` is concrete in the base class, so the
+  eight overrides and their `noqa: ARG002` are deleted (F8). `==` and `hash` stay the identity
+  (decision D2).
 - A format that has no configuration defines nothing: `PickleLoader` is `_load` only.
 - `T` is an honest type: `JsonLoader(BaseLoader[Any])`, `JsonSaver(BaseFileSaver[Any])`,
   `PickleLoader(BaseLoader[Any])`, `TorchLoader(BaseLoader[Any])`, `TextLoader(BaseLoader[str])`,
@@ -277,8 +279,8 @@ because the sync core holds no lock, no thread and no global state:
 
 ```python
 from coola.io import (
-    BaseLoader,  # load, aload, __eq__ ; implement _load
-    BaseSaver,  # save, asave, __eq__ ; implement save
+    BaseLoader,  # load, aload, equal ; implement _load
+    BaseSaver,  # save, asave, equal ; implement save
     BaseFileSaver,  # save, asave (atomic) ; implement _save_file
     JsonLoader,
     JsonSaver,
@@ -310,8 +312,8 @@ from coola.io import (
 | `await BaseSaver.asave(to_save, path, *, exist_ok=False)` (and `fsync` for a file saver) | New.                                                                                                                   |
 | `await BaseLoader.aload(path)`                                                           | New.                                                                                                                   |
 | `BaseLoader._load(path: Path)`                                                           | New abstract method; `load` is concrete. A subclass that overrides `load` keeps working but loses the path conversion. |
-| `BaseLoader` / `BaseSaver` `==`                                                          | Replaces `equal(other, equal_nan)`.                                                                                    |
-| `TorchLoader(*, weights_only=True, **kwargs)`                                            | `weights_only` is a named argument, shown in the repr and compared by `==`.                                            |
+| `BaseLoader.equal` / `BaseSaver.equal`                                                   | Same signature, concrete in the base class: a format no longer overrides it.                                           |
+| `TorchLoader(*, weights_only=True, **kwargs)`                                            | `weights_only` is a named argument, shown in the repr and compared by `equal()`.                                       |
 | `add_uuid_suffix`                                                                        | Moves to `coola.utils.path`. `coola.io.utils` is deleted.                                                              |
 
 No `aload_json` / `asave_json` functions (decision D4): `await JsonSaver().asave(data, path)` is the
@@ -332,7 +334,7 @@ class NumpyLoader(BaseLoader["np.ndarray"]):
         return np.load(path)
 ```
 
-and gets the atomic write, `exist_ok`, `fsync`, `==`, `repr` and the async twins from the bases.
+and gets the atomic write, `exist_ok`, `fsync`, `equal()`, `repr` and the async twins from the bases.
 
 ## 5. Dependents
 
@@ -341,7 +343,7 @@ and gets the atomic write, `exist_ok`, `fsync`, `==`, `repr` and the async twins
 | `coola.factory`                                                                         | None. `resolve_object` / `is_object_config` are called as today (`review/factory.md` keeps the signature used by `resolve_loader` and `resolve_saver`).                                                                                               |
 | `coola.utils.fork`                                                                      | `io` stops being a user of `track_fork`; `tests/integration/test_fork.py` loses the io test. The identifier generators, `LazySingleton` and the registries still use it.                                                                              |
 | `coola.utils.path`                                                                      | Gains `add_uuid_suffix` (with its tests moved from `tests/unit/io/test_utils.py`).                                                                                                                                                                    |
-| `coola.equality`                                                                        | `__eq__` calls `objects_are_equal` on the fields, as `JsonSaver.equal` does today. No change in `equality`.                                                                                                                                           |
+| `coola.equality`                                                                        | `equal()` calls `objects_are_equal` on the fields, as `JsonSaver.equal` does today. No change in `equality`.                                                                                                                                          |
 | Docs                                                                                    | `uguide/io.md` (properties, async section, no lock, custom loader example), `refs/io.md` (`coola.io.utils` removed), `uguide/factory.md` (link only), `migration/v1.1_to_v2.0.md` (list of section 7), `dev/architecture.md` (one paragraph on `io`). |
 | `review/suggestions.md`                                                                 | Status table: the `io` items with the PR numbers (CLAUDE.md).                                                                                                                                                                                         |
 | Users of `lock=`, `equal()`, `_load`-less subclasses, `add_uuid_suffix` from `coola.io` | The breaking changes of section 7.                                                                                                                                                                                                                    |
@@ -393,16 +395,16 @@ One branch and one pull request per step (`CLAUDE.md`). The order keeps every st
 puts the changes of the sync API before the async layer, so the layer is added on a core that is
 already lock-free.
 
-| Step | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Breaking                         |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| 1    | **Fix the guide (F5, F12).** Fix the custom loader example (convert the path), move the **Properties** table to the top and replace it with the table of section 1 minus the async rows (added in step 6), describe the leftover temporary file, fix the order of the `Args` of the shortcuts. Documentation only.                                                                                                                                                                 | no                               |
-| 2    | **Honest types and strict text (F7, F9).** `BaseLoader[Any]` / `BaseFileSaver[Any]` for the JSON, pickle and torch classes, no `JsonLoader[Any](...)` in the shortcuts, `TextSaver` raises `TypeError("... expects a str, got NoneType; call str() ...")` for a non-`str` (before the temporary file is created). Regression test for `save_text(None)`.                                                                                                                           | yes (`save_text(123)` raises)    |
-| 3    | **Template methods and `==` (F5, F8).** `BaseLoader.load` is concrete and calls `_load(Path)`; `InlineDisplayMixin` and `__eq__` move into the bases; delete the eight `equal` and their `noqa`; `TorchLoader(weights_only=True, **kwargs)`; update the custom examples of the guide and the tests of `equal` into tests of `==` and `repr`.                                                                                                                                       | yes (`_load`, `equal` → `==`)    |
-| 4    | **Move `add_uuid_suffix` (F10).** To `coola.utils.path` with its tests; delete `coola.io.utils`, the export, the guide section "Unique File Names" (now in `utils`), and `docs/docs/refs/io.md`'s `coola.io.utils`.                                                                                                                                                                                                                                                                | yes (import path)                |
-| 5    | **Remove the lock (F1-F4, F11).** Delete `_save_lock`, the lock file, the heartbeat thread, `_SAVE_LOCKS`, `_SaveLocksResetter`, the `track_fork` call, the `lock=` option of the six `save` functions, `time`, `socket`, `weakref`; `_fsync_file` opens with `O_RDWR`. Delete the 63 lock tests and `test_lock_option.py`; add the integration tests of section 8 (processes: one winner, intact file; no `.lock` file). Rewrite "Requirements on the directory". Benchmark gate. | yes (`lock=` raises `TypeError`) |
-| 6    | **Async (F6).** Add `aload`, `asave` (base classes), the cancellation flag in `BaseFileSaver`, `BaseFileSaver._save` split from `save`. Unit tests with `asyncio.run`, integration tests of section 8. A section "Async" in the guide with the cancellation rule, the executor note, the `asyncio.to_thread(save_json, ...)` one-liner, and the two properties of section 1.                                                                                                       | no                               |
-| 7    | **Benchmarks, property tests and layout (F13).** `tests/benchmarks/test_io_benchmark.py`, `tests/properties/test_io.py`, fold `test_str_paths.py` into the module tests, split what remains of `test_base.py` along the sections of `base.py`.                                                                                                                                                                                                                                     | no                               |
-| 8    | **Documentation.** `dev/architecture.md` paragraph (the template split, the atomic commit, the async layer), the migration page (every breaking change above), and the status table of `review/suggestions.md` with the PR numbers.                                                                                                                                                                                                                                                | no                               |
+| Step | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Breaking                                |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| 1    | **Fix the guide (F5, F12).** Fix the custom loader example (convert the path), move the **Properties** table to the top and replace it with the table of section 1 minus the async rows (added in step 6), describe the leftover temporary file, fix the order of the `Args` of the shortcuts. Documentation only.                                                                                                                                                                 | no                                      |
+| 2    | **Honest types and strict text (F7, F9).** `BaseLoader[Any]` / `BaseFileSaver[Any]` for the JSON, pickle and torch classes, no `JsonLoader[Any](...)` in the shortcuts, `TextSaver` raises `TypeError("... expects a str, got NoneType; call str() ...")` for a non-`str` (before the temporary file is created). Regression test for `save_text(None)`.                                                                                                                           | yes (`save_text(123)` raises)           |
+| 3    | **Template methods and a shared `equal` (F5, F8).** `BaseLoader.load` is concrete and calls `_load(Path)`; `InlineDisplayMixin` and a concrete `equal` move into the bases; delete the eight `equal` and their `noqa`; `TorchLoader(weights_only=True, **kwargs)`; update the custom examples of the guide and the tests of `equal` into tests of the shared `equal` and `repr`.                                                                                                   | yes (`_load`, `equal` becomes concrete) |
+| 4    | **Move `add_uuid_suffix` (F10).** To `coola.utils.path` with its tests; delete `coola.io.utils`, the export, the guide section "Unique File Names" (now in `utils`), and `docs/docs/refs/io.md`'s `coola.io.utils`.                                                                                                                                                                                                                                                                | yes (import path)                       |
+| 5    | **Remove the lock (F1-F4, F11).** Delete `_save_lock`, the lock file, the heartbeat thread, `_SAVE_LOCKS`, `_SaveLocksResetter`, the `track_fork` call, the `lock=` option of the six `save` functions, `time`, `socket`, `weakref`; `_fsync_file` opens with `O_RDWR`. Delete the 63 lock tests and `test_lock_option.py`; add the integration tests of section 8 (processes: one winner, intact file; no `.lock` file). Rewrite "Requirements on the directory". Benchmark gate. | yes (`lock=` raises `TypeError`)        |
+| 6    | **Async (F6).** Add `aload`, `asave` (base classes), the cancellation flag in `BaseFileSaver`, `BaseFileSaver._save` split from `save`. Unit tests with `asyncio.run`, integration tests of section 8. A section "Async" in the guide with the cancellation rule, the executor note, the `asyncio.to_thread(save_json, ...)` one-liner, and the two properties of section 1.                                                                                                       | no                                      |
+| 7    | **Property tests and layout (F13).** `tests/properties/test_io.py`, fold `test_str_paths.py` into the module tests, split what remains of `test_base.py` along the sections of `base.py`.                                                                                                                                                                                                                                                                                          | no                                      |
+| 8    | **Documentation.** `dev/architecture.md` paragraph (the template split, the atomic commit, the async layer), the migration page (every breaking change above), and the status table of `review/suggestions.md` with the PR numbers.                                                                                                                                                                                                                                                | no                                      |
 
 Steps 2 to 5 are independent of each other once step 1 is merged; steps 6 to 8 need step 5. Step 5
 can ship before step 3 if the lock is the urgent item.
@@ -417,7 +419,7 @@ async unit test is a sync test that calls `asyncio.run(...)`.
 - **Base classes** (`test_base.py`):
   - `load` converts a `str`, a `Path` and a `file://` URI before `_load`, and `_load` receives a
     `Path` (regression for F5; fails on `main` with the `str` example);
-  - `==`: same type and fields are equal, a different field or type is not, the fields are compared with
+  - `equal()`: same type and fields are equal, a different field or type is not, the fields are compared with
     `objects_are_equal`, a subclass is not equal to its base;
   - the whole `repr` of a configured loader and saver against a literal;
   - `save`: `exist_ok` false raises `FileExistsError` and leaves the file untouched; `exist_ok` true
@@ -429,7 +431,7 @@ async unit test is a sync test that calls `asyncio.run(...)`.
   - the whole directory listing after a successful and after a failed save is the target alone, or
     empty (no `.lock`, no temporary file).
 - **Formats** (`test_json.py`, `test_pickle.py`, `test_text.py`, `test_torch.py`): round trip, keyword
-  arguments, encoding, `==` between configurations, the empty value, the error of a missing file and
+  arguments, encoding, `equal()` between configurations, the empty value, the error of a missing file and
   of a corrupt file, `TextSaver` rejects `None`, `int` and `bytes` with a `TypeError` and does not create a
   file, `TorchLoader()` equals `TorchLoader(weights_only=True)`.
 - **Async unit tests**: `aload` returns what `load` returns; `asave` writes what `save` writes;
@@ -460,12 +462,15 @@ async unit test is a sync test that calls `asyncio.run(...)`.
   round trip of JSON-able values without `NaN`; `save` of an object the format rejects leaves the
   directory empty; `aload` equals `load` and `asave` produces the file bytes of `save`.
 - **Doctests**: every docstring example runs; the async examples use `asyncio.run(...)`.
-- **Benchmark gate** (`tests/benchmarks/test_io_benchmark.py`, new): `save_json` of a small value,
-  `load_json` of the same file, `save_pickle` and `load_pickle` of 1 MB, `asave` of 100 files with
-  `gather` (including `asyncio.run`). The new `save_json` must be at most the `lock=False` figure of
-  `main` (521 µs here) + 10 %, `load_json` the same as `main`, `aload` at most `load` + 100 µs. A failing gate
-  rejects the step. The benchmark file only uses the public functions and classes so it runs on both
-  designs.
+- **Benchmark gate** (`tests/benchmarks/test_io_benchmark.py`, added with this document, 18 tests):
+  it only uses the public functions and classes, so it runs unchanged on both designs (the 3 async
+  benchmarks are skipped while there is no `asave`). The appendix has the numbers of `main`. The new
+  `save_json_small_new_file` and `save_json_small_overwrite` must be at most the numbers of `main`
+  (the lock is gone: expected about 0.6x), `load_*` the same as `main` (± noise), `save_*_1mib` and
+  `save_json_large` not slower, `save_json_same_path_4_threads` no slower than
+  `save_json_distinct_paths_4_threads` + 10 % (the lock no longer serializes), and `aload` / `asave`
+  at most the sync figure + 100 µs (an `asyncio.run` is included in the async benchmarks). A failing
+  gate rejects the step.
 - Coverage: 100 % of `src/coola/io` (`--cov=coola`), no `# pragma: no cover`. Baseline today: 359
   passed, 2 skipped (`tests/unit/io`, `tests/integration/io`).
 
@@ -482,11 +487,13 @@ cancellable acquire; (b) keep it for the fallback only (the link-less case): abo
 that affects FAT and some container volumes. If the maintainers want (b), keep `lock` out of the
 public signature and take the file lock only inside `_link`'s fallback.
 
-**D2. Replace `equal()` by `==`?** _Recommended: yes._ It is what `equality` did, it deletes eight
-methods, four `noqa` and the `equal_nan` argument that no loader uses. `objects_are_equal(a, b)` keeps
-working (it is `True` for equal configurations today and after). Cost: defining `__eq__` makes the
-objects unhashable (nobody uses a loader as a dict key; if needed, define `__hash__` on the
-configuration). Alternative: keep `equal()` and add `__eq__` that calls it; no gain.
+**D2. Keep `equal()`, make it concrete?** _Recommended: yes._ The method is the documented API and
+`objects_are_equal(a, b)` already works with it. Moving one implementation into the base class
+(same type, then `objects_are_equal` on `_display_fields()` with `equal_nan`) deletes the eight
+overrides and four `noqa` without a breaking change for callers. `==` and `hash` stay the identity, so
+loaders remain hashable. Alternative: `__eq__` as in `equality` (rejected: unhashable objects and a
+change of a documented method for no gain). Cost: a format whose comparison differs from its displayed
+fields overrides `equal`; `TorchLoader` does not need to once `weights_only` is a named argument.
 
 **D3. How is async implemented?** _Recommended: `asyncio.to_thread` of the sync method._ It is the
 same strategy as `aiofiles` and `anyio.Path`, without a dependency, and the async path is the sync path
@@ -549,15 +556,73 @@ overrides `asave`. Merging them would put `fsync` and the temporary file on ever
 
 ## Appendix: effect on the size of the package
 
-| Item                                     | Lines today | Expected after | Why                                                                                            |
-| ---------------------------------------- | ----------- | -------------- | ---------------------------------------------------------------------------------------------- |
-| `base.py` code and docstrings            | 880         | about 480      | no lock protocol (about 280 lines); the async methods and the `_save` split add about 60       |
-| `json.py`, `pickle.py`, `text.py`        | 602         | about 480      | no `equal`, no `noqa`, no `lock` option and its docstring in each shortcut                     |
-| `torch.py`                               | 201         | about 170      | same, and `weights_only` is a named argument instead of `_load_kwargs`                         |
-| `utils.py`                               | 52          | 0              | moved to `coola.utils.path`                                                                    |
-| `__init__.py`                            | 61          | about 55       | `add_uuid_suffix` removed                                                                      |
-| `tests/unit/io` + `tests/integration/io` | 3,051       | about 2,000    | 63 lock tests and `test_lock_option.py` removed; async, `==`, property and process tests added |
-| `tests/benchmarks/test_io_benchmark.py`  | 0           | about 80       | new                                                                                            |
+| Item                                     | Lines today | Expected after | Why                                                                                               |
+| ---------------------------------------- | ----------- | -------------- | ------------------------------------------------------------------------------------------------- |
+| `base.py` code and docstrings            | 880         | about 480      | no lock protocol (about 280 lines); the async methods and the `_save` split add about 60          |
+| `json.py`, `pickle.py`, `text.py`        | 602         | about 480      | no `equal`, no `noqa`, no `lock` option and its docstring in each shortcut                        |
+| `torch.py`                               | 201         | about 170      | same, and `weights_only` is a named argument instead of `_load_kwargs`                            |
+| `utils.py`                               | 52          | 0              | moved to `coola.utils.path`                                                                       |
+| `__init__.py`                            | 61          | about 55       | `add_uuid_suffix` removed                                                                         |
+| `tests/unit/io` + `tests/integration/io` | 3,051       | about 2,000    | 63 lock tests and `test_lock_option.py` removed; async, `equal`, property and process tests added |
+| `tests/benchmarks/test_io_benchmark.py`  | 0           | about 80       | new                                                                                               |
 
 The line counts are estimates from the code to delete and from the prototype; the gate is the
 behaviour (sections 1 and 8), not the size.
+
+## Appendix: benchmark of the old implementation
+
+Baseline of `tests/benchmarks/test_io_benchmark.py` on `main` (`b033254e`), to compare with the new
+implementation. Run it with `inv test.benchmark` (or
+`pytest tests/benchmarks/test_io_benchmark.py --benchmark-only --benchmark-save=<name>`, then
+`--benchmark-compare=<name>`). The file only calls the public API (`save_*`, `load_*`, `JsonSaver`,
+`JsonLoader`, `asave`, `aload`), so it runs unchanged on the new design.
+
+Machine: Apple M1, macOS (APFS, temporary directory of pytest), Python 3.14.8, `pytest-benchmark`.
+One run, nothing else heavy running; the disk and the threads make the multi-thread numbers noisier
+(about ±10 %) than the single-thread ones. The raw result is saved in
+`.benchmarks/Darwin-CPython-3.14-64bit/0017_io_old_b033254e.json` (not committed: the directory is
+ignored). The speed-up of the new implementation is old time / new time: above 1 is faster. The
+"New" columns are to be filled when the steps land.
+
+| Benchmark (`test_<name>_benchmark`)  | Input                                                   | Old median | Old min  | New median | Speed-up |
+| ------------------------------------ | ------------------------------------------------------- | ---------- | -------- | ---------- | -------- |
+| `load_json_small`                    | `{"key1": [1, 2, 3], "key2": "abc"}`                    | 27.8 µs    | 27.1 µs  |            |          |
+| `load_json_small_class`              | same, `JsonLoader().load`                               | 27.4 µs    | 25.9 µs  |            |          |
+| `load_pickle_1mib`                   | `bytes` of 1 MiB                                        | 68.0 µs    | 65.0 µs  |            |          |
+| `load_text_1mib`                     | `str` of 1 MiB                                          | 177.6 µs   | 155.5 µs |            |          |
+| `load_json_large`                    | list of 100,000 ints (590 KB)                           | 5.49 ms    | 5.30 ms  |            |          |
+| `save_text_small_overwrite`          | `"hello"`, `exist_ok=True`                              | 452.7 µs   | 402.9 µs |            |          |
+| `save_json_small_overwrite`          | the small dict, `exist_ok=True`                         | 477.3 µs   | 413.6 µs |            |          |
+| `save_json_small_fsync`              | the small dict, `exist_ok=True`, `fsync=True`           | 504.1 µs   | 456.5 µs |            |          |
+| `save_json_small_new_file`           | the small dict, a new path each call (`exist_ok=False`) | 819.5 µs   | 701.5 µs |            |          |
+| `save_text_1mib`                     | `str` of 1 MiB, `exist_ok=True`                         | 656.0 µs   | 542.9 µs |            |          |
+| `save_pickle_1mib`                   | `bytes` of 1 MiB, `exist_ok=True`                       | 709.4 µs   | 560.0 µs |            |          |
+| `save_json_large`                    | list of 100,000 ints, `exist_ok=True`                   | 19.11 ms   | 18.66 ms |            |          |
+| `save_json_100_files`                | 100 new files, one thread                               | 84.26 ms   | 79.73 ms |            |          |
+| `save_json_distinct_paths_4_threads` | 4 threads × 25 new files                                | 34.63 ms   | 31.42 ms |            |          |
+| `save_json_same_path_4_threads`      | 4 threads × 25 overwrites of one path                   | 51.69 ms   | 46.12 ms |            |          |
+| `asave_json_small`                   | `asyncio.run(JsonSaver().asave(...))`                   | n/a        | n/a      |            | new      |
+| `aload_json_small`                   | `asyncio.run(JsonLoader().aload(...))`                  | n/a        | n/a      |            | new      |
+| `asave_json_100_files_gather`        | `asyncio.gather` of 100 `asave`                         | n/a        | n/a      |            | new      |
+
+Reading the numbers:
+
+- **A load is cheap, a save is not.** A small load costs 27 µs; a small save costs 0.4 to 0.8 ms,
+  15 to 30 times more: the temporary file, the commit and the lock. The 1 MiB loads (68 µs for
+  pickle, 178 µs for text) are limited by the read; the 1 MiB saves are dominated by the fixed cost of
+  the save (0.56 to 0.71 ms), not by the size.
+- **The new-file save is the slowest small save** (820 µs against 477 µs for an overwrite): the
+  default `exist_ok=False` commit is `os.link` + `unlink`, which costs about 375 µs on APFS against
+  176 µs for `os.replace` (section 6). The design keeps the link (D1), so the expected gain of step 5
+  is the lock (about 250 µs), not the whole difference.
+- **The lock serializes the threads of one path.** 100 saves from 4 threads take 51.7 ms to one path
+  and 34.6 ms to 4 distinct paths (+49 %), although the per-path lock only protects the commit that is
+  already atomic (F1). With 100 sequential saves at 84 ms the 4 threads give 2.4x on distinct paths.
+- **`fsync=True` adds only 27 µs** (504 against 477 µs) because macOS `fsync` does not force the
+  data out of the drive cache (that needs `F_FULLFSYNC`). The number says nothing about Linux, where an
+  fsync costs milliseconds on a disk; rerun the file there before the step 5 decision on `O_RDWR`.
+- **`json.dump` dominates a large save** (19.1 ms for 590 KB against 5.5 ms to load): the I/O layer is
+  below 1 ms of it. The design cannot change this number; it is in the file to show that the gain
+  applies to small files and to threads.
+- Add deeper cases when the new design lands if a regression is suspected (a `TorchSaver` benchmark
+  needs torch and is left out to keep the file runnable with no optional library).
