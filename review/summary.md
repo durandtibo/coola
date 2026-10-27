@@ -619,3 +619,67 @@ consistent with dataclasses. Alternative: positions only (today).
 The line counts are estimates from the prototype and from the code to delete; the gate is the
 behaviour (sections 1 and 9), not the size. The unit tests are expected to go from 4,020 to about
 3,000 lines.
+
+## Appendix: benchmark of the old implementation and of the prototype
+
+Comparison of `tests/benchmarks/test_summary_benchmark.py` (new file, 15 cases) on `main` and on the
+prototype of section 7. **The new design is not implemented yet**, so the "new" column is the
+throw-away prototype (about 110 lines: the engine of 4.3, `CompactRepr` built lazily, the three
+container summarizers and the dataclass one; no metadata, pydantic or plugin support). It is a lower
+bound on the work of the real engine, not a measurement of it; the numbers must be redone with the
+real package at step 4 (the gate of section 9). The benchmarks only use `summarize(data,
+max_depth=...)` with the default registry, so the file runs unchanged on both.
+
+Machine: Apple M1, macOS (Darwin), Python 3.14, `pytest-benchmark`. Old: `main` at `2900b97a`; new:
+the prototype, injected by a pytest plugin that replaces `coola.summary.summarize` (kept outside the
+repository). One run each, back to back, nothing else heavy running. The speed-up is old time / new
+time: above 1 is faster, below 1 is slower. The absolute numbers depend on the machine.
+
+The raw results are saved in `.benchmarks/Darwin-CPython-3.14-64bit/` (ignored by git):
+`0006_summary_old.json` and `0007_summary_proto.json`. Compare them with
+`pytest --benchmark-compare=0006 --benchmark-only`.
+
+| Benchmark (`test_summarize_<name>_benchmark`) | Input                                                             | Old median | New median | Speed-up | Old min  | New min  | Speed-up (min) |
+| --------------------------------------------- | ----------------------------------------------------------------- | ---------- | ---------- | -------- | -------- | -------- | -------------- |
+| `scalar`                                      | `1`                                                               | 1.0 µs     | 1.1 µs     | 0.85x    | 0.9 µs   | 1.0 µs   | 0.87x          |
+| `empty_list`                                  | `[]`                                                              | 1.0 µs     | 1.7 µs     | 0.60x    | 0.9 µs   | 1.5 µs   | 0.57x          |
+| `small_dict`                                  | `{"a": 1, "b": [2, 3], "c": {"d": 4}}`                            | 5.0 µs     | 7.0 µs     | 0.71x    | 4.8 µs   | 6.8 µs   | 0.72x          |
+| `dataclass`                                   | dataclass of a `str`, a list and a dict, `max_depth=2`            | 12.3 µs    | 8.1 µs     | 1.52x    | 12.0 µs  | 7.8 µs   | 1.53x          |
+| `tree[1]`                                     | 20 dicts of lists, a dict of 100 ints, a set; `max_depth=1`       | 10.9 µs    | 27.0 µs    | 0.40x    | 10.6 µs  | 26.4 µs  | 0.40x          |
+| `tree[3]`                                     | the same, `max_depth=3`                                           | 44.5 µs    | 35.8 µs    | 1.24x    | 43.7 µs  | 35.0 µs  | 1.25x          |
+| `flat_list[1]`                                | list of 100,000 ints, `max_depth=1`                               | 5.6 µs     | 4.5 µs     | 1.25x    | 5.4 µs   | 4.3 µs   | 1.25x          |
+| `flat_list[2]`                                | list of 100,000 ints, `max_depth=2`                               | 6.6 µs     | 5.4 µs     | 1.22x    | 6.4 µs   | 5.2 µs   | 1.22x          |
+| `flat_dict`                                   | dict of 100,000 ints, `max_depth=2`                               | 6.8 µs     | 5.5 µs     | 1.24x    | 6.6 µs   | 5.2 µs   | 1.25x          |
+| `flat_set`                                    | set of 100,000 ints, `max_depth=2`                                | 1.08 ms    | 1.08 ms    | 1.01x    | 1.08 ms  | 1.07 ms  | 1.00x          |
+| `big_children_at_the_display_depth`           | 5 lists of 200,000 ints at the display depth, `max_depth=1`       | 22.47 ms   | 14.9 µs    | 1510x    | 22.23 ms | 14.5 µs  | 1537x          |
+| `deep_list[10]`                               | list nested 10 times, `max_depth=11`                              | 27.9 µs    | 14.7 µs    | 1.89x    | 27.3 µs  | 14.3 µs  | 1.91x          |
+| `deep_list[100]`                              | list nested 100 times, `max_depth=101`                            | 1.98 ms    | 139.5 µs   | 14.2x    | 1.95 ms  | 137.3 µs | 14.2x          |
+| `deep_list[300]`                              | list nested 300 times, `max_depth=301`                            | 31.40 ms   | 431.4 µs   | 72.8x    | 31.21 ms | 424.7 µs | 73.5x          |
+| `tree_expanded`                               | balanced tree of dicts and lists, depth 8, width 3, `max_depth=8` | 25.07 ms   | 7.98 ms    | 3.14x    | 24.59 ms | 7.91 ms  | 3.11x          |
+
+Reading the numbers:
+
+- **Where `main` is not bounded, the design is far faster.** Five big lists at the display depth cost
+  22 ms on `main` (it converts all of them to a string, F2) and 15 µs in the prototype, about
+  1,500 times less, and independent of the size of the lists. A deep chain is quadratic on `main` (the
+  levels re-indent the text of their children, F6): 100 levels 14x faster, 300 levels 73x faster. The
+  expanded tree is 3.1x faster for the same reason. A chain of 400 levels or more cannot be measured on
+  `main` (F1); the prototype handles it.
+- **Flat large inputs are the same or a little faster** (1.2x). Both only touch `max_items` entries.
+  The set is the exception by design: the smallest items are selected in one pass over the 100,000
+  elements (1.08 ms on both), the documented exception of "Bounded work".
+- **The smallest inputs are slower, by a fixed cost of 0.1 to 2 µs** (the scalar 0.85x, the empty list
+  0.60x, the small dict 0.71x): the engine builds a frame and a list of lines for a node that `main`
+  returns directly. The absolute difference is under 2 µs and does not grow with the input.
+- **`tree[1]` is the one regression that matters: 2.5x slower (10.9 µs to 27 µs).** At `max_depth=1`
+  the 3 children of the dict are containers shown in the compact form, and `reprlib` is slower than
+  `str()` of a small container (it formats item by item, with a level counter). The gate of section 9
+  ("up to 2x, at most 10 µs more, for an input under 50 µs") is **not met** by the prototype on this
+  case (+16 µs). It is the cost of bounding the compact form (F2) and it only shows on a mid-size
+  structure whose children are small. Options before step 4: `CompactRepr` calls `repr()` directly when
+  `len(x) <= max_items` and the children are scalars (the common small case), or the gate is relaxed
+  to 3x for the compact form (decision D4 lists the alternatives). The real engine must be measured
+  again; the prototype is not tuned (it uses `reprlib` as is, one `Frame` list per node, no `__slots__`).
+- **These numbers do not include** the metadata summarizers (arrays, frames), the pydantic summarizer,
+  the cache of the registry lookup or the validation of the config; none of them is on the hot path of
+  the cases above, but each adds a fixed cost per call that the real benchmark will show.
