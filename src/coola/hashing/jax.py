@@ -7,8 +7,7 @@ __all__ = ["JaxArrayHasher"]
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
-from coola.hashing.bytes import hash_bytes
+from coola.hashing.base import BaseHasher, Encoding, digest
 from coola.hashing.numpy import canonicalize_floats, hash_array_content
 from coola.utils.imports import is_jax_available, is_numpy_available
 
@@ -24,7 +23,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.hashing.base import Hasher
-    from coola.hashing.registry import HasherRegistry
 
 
 class JaxArrayHasher(InlineDisplayMixin, BaseHasher["jax.Array"]):
@@ -41,28 +39,28 @@ class JaxArrayHasher(InlineDisplayMixin, BaseHasher["jax.Array"]):
         >>> hasher = JaxArrayHasher()
         >>> hasher
         JaxArrayHasher()
-        >>> len(hasher.hash(jnp.arange(3), registry=HasherRegistry()))
-        64
+        >>> hasher.encode(jnp.arange(3)).startswith(b"jax.Array")
+        True
 
         ```
     """
 
-    def hash(
-        self,
-        data: jax.Array,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        array = np.asarray(data)
-        array = canonicalize_floats(array)
+    def encode(self, data: jax.Array) -> Encoding:
+        r"""Describe a JAX array.
+
+        Args:
+            data: The array to describe.
+
+        Returns:
+            The leaf that describes ``data``: the dtype, the shape and
+            the digest of the canonical values.
+        """
+        array = canonicalize_floats(np.asarray(data))
         return hash_array_content(
             "jax.Array",
             str(array.dtype),
             array.shape,
-            hash_bytes(np.ascontiguousarray(array).tobytes(), length=length),
-            length=length,
+            digest(np.ascontiguousarray(array).tobytes()),
         )
 
 

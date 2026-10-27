@@ -5,14 +5,9 @@ from __future__ import annotations
 __all__ = ["EnumHasher"]
 
 from enum import Enum
-from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_enum
-
-if TYPE_CHECKING:
-    from coola.hashing.registry import HasherRegistry
+from coola.hashing.base import BaseHasher, Encoding, tagged
 
 
 class EnumHasher(InlineDisplayMixin, BaseHasher[Enum]):
@@ -25,45 +20,33 @@ class EnumHasher(InlineDisplayMixin, BaseHasher[Enum]):
     Example:
         ```pycon
         >>> from enum import Enum
-        >>> from coola.hashing import EnumHasher, HasherRegistry
+        >>> from coola.hashing import EnumHasher
         >>> class Color(Enum):
         ...     RED = 1
         ...
-        >>> registry = HasherRegistry()
         >>> hasher = EnumHasher()
         >>> hasher
         EnumHasher()
-        >>> len(hasher.hash(Color.RED, registry=registry))
-        64
+        >>> hasher.encode(Color.RED).startswith(b"Enum")
+        True
 
         ```
     """
 
-    def hash(
-        self,
-        data: Enum,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        r"""Compute a deterministic hash of an enum member.
+    def encode(self, data: Enum) -> Encoding:
+        r"""Describe an enum member.
+
+        The encoding depends on the qualified name of the enum class and
+        on the member name, not on the member value, so it does not
+        collapse ``IntEnum``/``StrEnum`` members into ``int``/``str``.
+        A combined flag has no name: its value is used instead.
 
         Args:
-            data: The enum member to hash.
-            registry: The hasher registry. Unused; accepted only to
-                satisfy the common ``BaseHasher`` interface.
-            length: The desired length of the returned hex string. See
-                ``hash_string`` for constraints. Defaults to 64.
-            ignore_unhashable: Unused; accepted only to satisfy the
-                common ``BaseHasher`` interface.
+            data: The enum member to describe.
 
         Returns:
-            A lowercase hexadecimal string of exactly ``length``
-            characters.
-
-        Raises:
-            ValueError: If ``length`` is not an even number between 2
-                and 128.
+            The leaf ``tagged("Enum", "module.Class.NAME")``.
         """
-        return hash_enum(data, length=length)
+        cls = type(data)
+        name = data.name if data.name is not None else repr(data.value)
+        return tagged("Enum", f"{cls.__module__}.{cls.__qualname__}.{name}")

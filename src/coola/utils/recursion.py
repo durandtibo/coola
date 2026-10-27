@@ -30,11 +30,11 @@ def raise_recursion_limit_error(action: str, exc: RecursionError) -> NoReturn:
         ```pycon
         >>> from coola.utils.recursion import raise_recursion_limit_error
         >>> try:
-        ...     raise_recursion_limit_error("hashing", RecursionError())
+        ...     raise_recursion_limit_error("summarizing", RecursionError())
         ... except RecursionError as exc:
         ...     print(exc)
         ...
-        The Python recursion limit was exceeded while hashing deeply nested objects. Each nesting level uses several interpreter frames; reduce the nesting or increase the limit with sys.setrecursionlimit().
+        The Python recursion limit was exceeded while summarizing deeply nested objects. Each nesting level uses several interpreter frames; reduce the nesting or increase the limit with sys.setrecursionlimit().
 
         ```
     """

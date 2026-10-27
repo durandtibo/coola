@@ -28,7 +28,7 @@ def run_threads(threads: Sequence[threading.Thread]) -> None:
         thread.join()
 
 
-def run_python(code: str) -> list[str]:
+def run_python(code: str, env: dict[str, str] | None = None) -> list[str]:
     r"""Run Python code in a fresh interpreter and return the words it
     prints.
 
@@ -37,6 +37,8 @@ def run_python(code: str) -> list[str]:
 
     Args:
         code: The code to run, e.g. ``"import sys; print('torch' in sys.modules)"``.
+        env: Extra environment variables of the interpreter. Defaults to
+            ``None``.
 
     Returns:
         The words printed on the standard output.
@@ -50,7 +52,7 @@ def run_python(code: str) -> list[str]:
         capture_output=True,
         text=True,
         check=True,
-        env={**os.environ, "PYTHONPATH": src},
+        env={**os.environ, "PYTHONPATH": src, **(env or {})},
     )
     return result.stdout.split()
 

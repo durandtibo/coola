@@ -5,17 +5,14 @@ from __future__ import annotations
 
 __all__ = ["PydanticModelHasher", "hash_pydantic_model", "unwrap_secrets"]
 
-import threading
+from itertools import chain
 from typing import TYPE_CHECKING, Any, Literal, assert_never
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_tagged
+from coola.hashing.base import BaseHasher, Encoding, Node
 from coola.utils.imports import is_pydantic_available
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from coola.hashing.base import Hasher
     from coola.hashing.registry import HasherRegistry
 
@@ -51,17 +48,16 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
     Example:
         ```pycon
         >>> from pydantic import BaseModel
-        >>> from coola.hashing import PydanticModelHasher, get_default_registry
+        >>> from coola.hashing import PydanticModelHasher
         >>> class Point(BaseModel):
         ...     x: int
         ...     y: int
         ...
-        >>> registry = get_default_registry()
         >>> hasher = PydanticModelHasher()
         >>> hasher
         PydanticModelHasher(on_secret='error')
-        >>> len(hasher.hash(Point(x=1, y=2), registry=registry))
-        64
+        >>> hasher.encode(Point(x=1, y=2)).ordered
+        False
 
         ```
     """
@@ -75,45 +71,30 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
     def _display_fields(self) -> dict[str, Any]:
         return {"on_secret": self._on_secret}
 
-    def hash(
-        self,
-        data: pydantic.BaseModel,
-        registry: HasherRegistry,
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,
-    ) -> str:
-        r"""Compute a deterministic hash of a pydantic model.
+    def encode(self, data: pydantic.BaseModel) -> Encoding:
+        r"""Describe a pydantic model.
 
         Args:
-            data: The pydantic model instance to hash.
-            registry: The hasher registry used to hash the field
-                values.
-            length: The desired length of the returned hex string. See
-                ``hash_string`` for constraints. Defaults to 64.
-            ignore_unhashable: If ``True``, field values for which no
-                hasher is registered are replaced by a deterministic
-                placeholder hash instead of raising an error.
+            data: The pydantic model instance to describe.
 
         Returns:
-            A lowercase hexadecimal string of exactly ``length``
-            characters.
+            The unordered ``Node`` of the field names and values (extra
+            fields included), with the qualified class name in the tag.
+            The secrets are resolved according to ``on_secret``.
 
         Raises:
-            ValueError: If ``on_secret="error"`` (the default) and
-                ``data`` contains a ``SecretStr``/``SecretBytes``
-                field, or if ``length`` is not an even number between
-                2 and 128.
-            KeyError: If a field value has a type for which no hasher
-                is registered in ``registry`` and ``ignore_unhashable``
-                is ``False``.
+            ValueError: If ``on_secret="error"`` and the model contains
+                a ``SecretStr``/``SecretBytes`` field.
         """
-        return hash_pydantic_model(
-            data,
-            length=length,
-            on_secret=self._on_secret,
-            registry=registry,
-            ignore_unhashable=ignore_unhashable,
+        cls = type(data)
+        fields = {name: getattr(data, name) for name in cls.model_fields}
+        fields.update(data.model_extra or {})
+        resolved = unwrap_secrets(fields, on_secret=self._on_secret)
+        return Node(
+            f"pydantic:{cls.__module__}.{cls.__qualname__}",
+            chain.from_iterable(resolved.items()),
+            False,
+            2,
         )
 
 
@@ -121,7 +102,6 @@ def unwrap_secrets(
     value: Any,
     *,
     on_secret: Literal["reveal", "exclude", "error"],
-    on_model: Callable[[pydantic.BaseModel], Any] | None = None,
 ) -> Any:
     """Recursively resolve ``SecretStr``/``SecretBytes`` values before
     hashing.
@@ -152,10 +132,6 @@ def unwrap_secrets(
               encountered, forcing the caller to make an explicit
               choice rather than hashing (or silently ignoring) secret
               data by accident. The message never contains the secret.
-        on_model: If given, called with every nested pydantic model
-            found in the traversed containers, and its return value
-            replaces the model. ``hash_pydantic_model`` uses it to hash
-            nested models with the same ``on_secret`` policy.
 
     Returns:
         The value with secrets resolved (or removed) according to
@@ -200,30 +176,12 @@ def unwrap_secrets(
     def keep(item: Any) -> bool:
         return not (isinstance(item, _SECRET_TYPES) and on_secret == "exclude")  # noqa: S105
 
-    if on_model is not None and isinstance(value, pydantic.BaseModel):
-        return on_model(value)
-
     value_type = type(value)
     if value_type is dict:
-        return {
-            k: unwrap_secrets(v, on_secret=on_secret, on_model=on_model)
-            for k, v in value.items()
-            if keep(v)
-        }
+        return {k: unwrap_secrets(v, on_secret=on_secret) for k, v in value.items() if keep(v)}
     if value_type in {list, tuple, set, frozenset}:
-        return value_type(
-            unwrap_secrets(v, on_secret=on_secret, on_model=on_model) for v in value if keep(v)
-        )
+        return value_type(unwrap_secrets(v, on_secret=on_secret) for v in value if keep(v))
     return value
-
-
-# Ids of the models being hashed by the current thread, to detect a model that
-# contains itself. The state is thread-local, like the cycle guard of
-# ``HasherRegistry.hash``, so a model hashed by two threads at the same time
-# is not reported as a cycle. The nested models are reached through the
-# ``on_model`` callback of ``unwrap_secrets``, which has no argument to carry
-# the set of active models.
-_state = threading.local()
 
 
 def hash_pydantic_model(
@@ -244,10 +202,11 @@ def hash_pydantic_model(
     sensitivity, order-insensitive sets, ...), and the hash is stable
     regardless of field declaration order.
 
-    The nested models found in the dicts, lists, tuples and sets of the
-    fields are hashed with the same ``on_secret`` policy. A model nested
-    in another kind of object (a dataclass, for example) is hashed by the
-    registry with the default policy.
+    The nested models are hashed with the same ``on_secret`` policy: the
+    function hashes with a copy of the registry in which
+    ``PydanticModelHasher(on_secret)`` is registered for
+    ``pydantic.BaseModel``. A model whose class has a hasher of its own in
+    the registry keeps it.
 
     Args:
         model: The pydantic model instance to hash.
@@ -296,42 +255,10 @@ def hash_pydantic_model(
         from coola.hashing.interface import get_default_registry  # noqa: PLC0415
 
         registry = get_default_registry()
-    active: set[int] | None = getattr(_state, "active", None)
-    if active is None:
-        active = _state.active = set()
-    if id(model) in active:
-        msg = f"Cannot hash a self-referencing {type(model)!r}."
-        raise ValueError(msg)
-    active.add(id(model))
-    try:
-        return _hash_pydantic_model(model, length, on_secret, registry, ignore_unhashable)
-    finally:
-        active.discard(id(model))
-
-
-def _hash_pydantic_model(
-    model: pydantic.BaseModel,
-    length: int,
-    on_secret: Literal["reveal", "exclude", "error"],
-    registry: HasherRegistry,
-    ignore_unhashable: bool,
-) -> str:
-    cls = type(model)
-    fields = {name: getattr(model, name) for name in cls.model_fields}
-    fields.update(model.model_extra or {})
-
-    def hash_nested(nested: pydantic.BaseModel) -> str:
-        return hash_pydantic_model(
-            nested,
-            length=length,
-            on_secret=on_secret,
-            registry=registry,
-            ignore_unhashable=ignore_unhashable,
-        )
-
-    resolved = unwrap_secrets(fields, on_secret=on_secret, on_model=hash_nested)
-    digest = registry.hash(resolved, length=length, ignore_unhashable=ignore_unhashable)
-    return hash_tagged(f"pydantic:{cls.__module__}.{cls.__qualname__}", digest, length=length)
+    # The models nested in the fields are hashed with the same policy.
+    registry = registry.copy()
+    registry.register(pydantic.BaseModel, PydanticModelHasher(on_secret), exist_ok=True)
+    return registry.hash(model, length=length, ignore_unhashable=ignore_unhashable)
 
 
 def get_default_hashers() -> dict[type, Hasher[Any]]:

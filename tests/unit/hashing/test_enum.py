@@ -5,6 +5,7 @@ from enum import Enum, Flag, IntEnum, StrEnum
 import pytest
 
 from coola.hashing import EnumHasher, HasherRegistry, get_default_registry, hash_enum
+from tests.unit.hashing.helpers import hash_with, leaf_hash
 
 
 class Color(Enum):
@@ -55,18 +56,18 @@ def test_enum_hasher_str() -> None:
     assert str(EnumHasher()) == "EnumHasher()"
 
 
-def test_enum_hasher_hash_matches_hash_enum(registry: HasherRegistry) -> None:
-    assert EnumHasher().hash(Color.RED, registry=registry) == hash_enum(Color.RED)
+def test_enum_hasher_hash_is_the_hash_of_the_leaf(registry: HasherRegistry) -> None:
+    assert hash_with(EnumHasher(), Color.RED, registry) == leaf_hash(EnumHasher().encode(Color.RED))
 
 
 @pytest.mark.parametrize("length", [2, 16, 64, 128])
 def test_enum_hasher_hash_length(length: int, registry: HasherRegistry) -> None:
-    assert len(EnumHasher().hash(Color.RED, registry=registry, length=length)) == length
+    assert len(hash_with(EnumHasher(), Color.RED, registry, length=length)) == length
 
 
 def test_enum_hasher_hash_invalid_length_raises(registry: HasherRegistry) -> None:
     with pytest.raises(ValueError, match="length must be an even number"):
-        EnumHasher().hash(Color.RED, registry=registry, length=3)
+        hash_with(EnumHasher(), Color.RED, registry, length=3)
 
 
 ###############################
@@ -96,8 +97,8 @@ def test_hash_enum_composite_flag() -> None:
 
 
 @pytest.mark.parametrize("member", [Color.RED, Number.ONE, Label.A, MixedStr.A, MixedInt.ONE])
-def test_default_registry_hashes_enum_members_with_hash_enum(member: Enum) -> None:
-    assert get_default_registry().hash(member) == hash_enum(member)
+def test_default_registry_hashes_enum_members_as_enum(member: Enum) -> None:
+    assert get_default_registry().hash(member) == leaf_hash(EnumHasher().encode(member))
 
 
 def test_default_registry_enum_is_not_collapsed_into_value_int_enum() -> None:
@@ -130,7 +131,7 @@ class MixedTuple(tuple, Enum):
 
 @pytest.mark.parametrize("member", [MixedBytes.A, MixedTuple.A])
 def test_default_registry_hashes_enum_mixins_as_enum(member: Enum) -> None:
-    assert get_default_registry().hash(member) == hash_enum(member)
+    assert get_default_registry().hash(member) == leaf_hash(EnumHasher().encode(member))
 
 
 @pytest.mark.parametrize("member", [MixedBytes.A, MixedTuple.A])

@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 
 from coola.hashing import HasherRegistry, MappingHasher, StrHasher
-from tests.unit.hashing.helpers import Unhashable
+from tests.unit.hashing.helpers import Unhashable, hash_with
 
 
 @pytest.fixture
@@ -32,22 +32,22 @@ def test_mapping_hasher_str() -> None:
     [
         pytest.param(
             {"a": 1, "b": 2},
-            "0fde8be56160bfbace2c2f3ce1200a3a0b1355d40defca6fd85d8a423099a90a",
+            "9becb0349da9a2c6cc72e313f067a42e12ca84a39a8a5786d464b9bd649e2779",
             id="two_items",
         ),
         pytest.param(
             {"a": 1},
-            "08d6ce551687c99a97404de46b5b5dcc53d00d08b28301cdc149163a34d32355",
+            "1ce990262aec75f73505adc45b29d619b542d6b2ecbb1a81d16ea15c18029547",
             id="single_item",
         ),
         pytest.param(
             {},
-            "d0184328135d1a4b3a9492b8d5a214b49e15af380c2458d8a2671ecef2d2ee34",
+            "dd52ef70f313f7b3f7c35a3ceb444f07a25cae594bb95ee8681307c25a6896a3",
             id="empty_mapping",
         ),
         pytest.param(
             {"x": "hello", "y": [1, 2, 3]},
-            "e205a3845cc143f8b78e8e845ef51f928bc7900cb2425b865e4d2777118c3fd5",
+            "a1f03722d970903a2677114509b1658609377f893b16740f3cfd213aace070ca",
             id="mixed_value_types",
         ),
     ],
@@ -55,63 +55,63 @@ def test_mapping_hasher_str() -> None:
 def test_mapping_hasher_hash_parametrized(
     data: Any, expected: str, registry: HasherRegistry
 ) -> None:
-    assert MappingHasher().hash(data, registry=registry) == expected
+    assert hash_with(MappingHasher(), data, registry) == expected
 
 
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "83405ad8236ae11d", id="16"),
-        pytest.param(32, "d3d84762c7ee1934100661166b93a1f1", id="32"),
+        pytest.param(16, "9becb0349da9a2c6", id="16"),
+        pytest.param(32, "9becb0349da9a2c6cc72e313f067a42e", id="32"),
         pytest.param(
-            64, "0fde8be56160bfbace2c2f3ce1200a3a0b1355d40defca6fd85d8a423099a90a", id="64-default"
+            64, "9becb0349da9a2c6cc72e313f067a42e12ca84a39a8a5786d464b9bd649e2779", id="64-default"
         ),
     ],
 )
 def test_mapping_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
-    result = MappingHasher().hash({"a": 1, "b": 2}, registry=registry, length=length)
+    result = hash_with(MappingHasher(), {"a": 1, "b": 2}, registry, length=length)
     assert result == expected
 
 
 @pytest.mark.parametrize("length", [16, 32, 64])
 def test_mapping_hasher_hash_length_is_respected(length: int, registry: HasherRegistry) -> None:
-    result = MappingHasher().hash({"a": 1, "b": 2}, registry=registry, length=length)
+    result = hash_with(MappingHasher(), {"a": 1, "b": 2}, registry, length=length)
     assert len(result) == length
 
 
 def test_mapping_hasher_hash_returns_str(registry: HasherRegistry) -> None:
-    assert isinstance(MappingHasher().hash({"a": 1}, registry=registry), str)
+    assert isinstance(hash_with(MappingHasher(), {"a": 1}, registry), str)
 
 
 def test_mapping_hasher_hash_is_insertion_order_independent(registry: HasherRegistry) -> None:
     hasher = MappingHasher()
-    assert hasher.hash({"a": 1, "b": 2}, registry=registry) == hasher.hash(
-        {"b": 2, "a": 1}, registry=registry
+    assert hash_with(hasher, {"a": 1, "b": 2}, registry) == hash_with(
+        hasher, {"b": 2, "a": 1}, registry
     )
 
 
 def test_mapping_hasher_hash_is_deterministic(registry: HasherRegistry) -> None:
     hasher = MappingHasher()
-    assert hasher.hash({"a": 1, "b": 2}, registry=registry) == hasher.hash(
-        {"a": 1, "b": 2}, registry=registry
+    assert hash_with(hasher, {"a": 1, "b": 2}, registry) == hash_with(
+        hasher, {"a": 1, "b": 2}, registry
     )
 
 
 def test_mapping_hasher_hash_different_keys_different_hashes(registry: HasherRegistry) -> None:
     hasher = MappingHasher()
-    assert hasher.hash({"a": 1}, registry=registry) != hasher.hash({"b": 1}, registry=registry)
+    assert hash_with(hasher, {"a": 1}, registry) != hash_with(hasher, {"b": 1}, registry)
 
 
 def test_mapping_hasher_hash_different_values_different_hashes(registry: HasherRegistry) -> None:
     hasher = MappingHasher()
-    assert hasher.hash({"a": 1}, registry=registry) != hasher.hash({"a": 2}, registry=registry)
+    assert hash_with(hasher, {"a": 1}, registry) != hash_with(hasher, {"a": 2}, registry)
 
 
 def test_mapping_hasher_hash_key_value_not_commutative(registry: HasherRegistry) -> None:
     # {"a": "b"} and {"b": "a"} must produce different hashes since key and
     # value hashes are concatenated in a fixed key-then-value order.
     hasher = MappingHasher()
-    assert hasher.hash({"a": "b"}, registry=registry) != hasher.hash({"b": "a"}, registry=registry)
+    assert hash_with(hasher, {"a": "b"}, registry) != hash_with(hasher, {"b": "a"}, registry)
 
 
 def test_mapping_hasher_hash_heterogeneous_key_types_does_not_raise(
@@ -120,7 +120,7 @@ def test_mapping_hasher_hash_heterogeneous_key_types_does_not_raise(
     # Keys of mutually incomparable types must not be sorted directly,
     # otherwise `sorted` raises `TypeError: '<' not supported between
     # instances of 'str' and 'int'`.
-    result = MappingHasher().hash({1: "a", "b": 2}, registry=registry)
+    result = hash_with(MappingHasher(), {1: "a", "b": 2}, registry)
     assert isinstance(result, str)
 
 
@@ -128,8 +128,8 @@ def test_mapping_hasher_hash_heterogeneous_key_types_is_insertion_order_independ
     registry: HasherRegistry,
 ) -> None:
     hasher = MappingHasher()
-    assert hasher.hash({1: "a", "b": 2}, registry=registry) == hasher.hash(
-        {"b": 2, 1: "a"}, registry=registry
+    assert hash_with(hasher, {1: "a", "b": 2}, registry) == hash_with(
+        hasher, {"b": 2, 1: "a"}, registry
     )
 
 
@@ -137,8 +137,8 @@ def test_mapping_hasher_hash_heterogeneous_key_types_is_deterministic(
     registry: HasherRegistry,
 ) -> None:
     hasher = MappingHasher()
-    assert hasher.hash({1: "a", "b": 2}, registry=registry) == hasher.hash(
-        {1: "a", "b": 2}, registry=registry
+    assert hash_with(hasher, {1: "a", "b": 2}, registry) == hash_with(
+        hasher, {1: "a", "b": 2}, registry
     )
 
 
@@ -152,15 +152,15 @@ def test_mapping_hasher_hash_unhashable_value_raises_by_default(
     registry_without_fallback: HasherRegistry,
 ) -> None:
     with pytest.raises(KeyError, match=r"is not registered"):
-        MappingHasher().hash({"a": Unhashable()}, registry=registry_without_fallback)
+        hash_with(MappingHasher(), {"a": Unhashable()}, registry_without_fallback)
 
 
 def test_mapping_hasher_hash_unhashable_value_raises_when_explicitly_false(
     registry_without_fallback: HasherRegistry,
 ) -> None:
     with pytest.raises(KeyError, match=r"is not registered"):
-        MappingHasher().hash(
-            {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=False
+        hash_with(
+            MappingHasher(), {"a": Unhashable()}, registry_without_fallback, ignore_unhashable=False
         )
 
 
@@ -168,8 +168,8 @@ def test_mapping_hasher_hash_ignore_unhashable_value_returns_str_warns(
     registry_without_fallback: HasherRegistry,
 ) -> None:
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        MappingHasher().hash(
-            {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+        hash_with(
+            MappingHasher(), {"a": Unhashable()}, registry_without_fallback, ignore_unhashable=True
         )
 
 
@@ -177,8 +177,8 @@ def test_mapping_hasher_hash_ignore_unhashable_value_returns_str_warns(
 def test_mapping_hasher_hash_ignore_unhashable_value_returns_str(
     registry_without_fallback: HasherRegistry,
 ) -> None:
-    result = MappingHasher().hash(
-        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+    result = hash_with(
+        MappingHasher(), {"a": Unhashable()}, registry_without_fallback, ignore_unhashable=True
     )
     assert isinstance(result, str)
 
@@ -187,8 +187,8 @@ def test_mapping_hasher_hash_ignore_unhashable_key_returns_str_warns(
     registry_without_fallback: HasherRegistry,
 ) -> None:
     with pytest.warns(UserWarning, match=r"No hasher registered"):
-        MappingHasher().hash(
-            {Unhashable(): "a"}, registry=registry_without_fallback, ignore_unhashable=True
+        hash_with(
+            MappingHasher(), {Unhashable(): "a"}, registry_without_fallback, ignore_unhashable=True
         )
 
 
@@ -196,8 +196,8 @@ def test_mapping_hasher_hash_ignore_unhashable_key_returns_str_warns(
 def test_mapping_hasher_hash_ignore_unhashable_key_returns_str(
     registry_without_fallback: HasherRegistry,
 ) -> None:
-    result = MappingHasher().hash(
-        {Unhashable(): "a"}, registry=registry_without_fallback, ignore_unhashable=True
+    result = hash_with(
+        MappingHasher(), {Unhashable(): "a"}, registry_without_fallback, ignore_unhashable=True
     )
     assert isinstance(result, str)
 
@@ -207,11 +207,11 @@ def test_mapping_hasher_hash_ignore_unhashable_is_deterministic(
     registry_without_fallback: HasherRegistry,
 ) -> None:
     hasher = MappingHasher()
-    first = hasher.hash(
-        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+    first = hash_with(
+        hasher, {"a": Unhashable()}, registry_without_fallback, ignore_unhashable=True
     )
-    second = hasher.hash(
-        {"a": Unhashable()}, registry=registry_without_fallback, ignore_unhashable=True
+    second = hash_with(
+        hasher, {"a": Unhashable()}, registry_without_fallback, ignore_unhashable=True
     )
     assert first == second
 
@@ -224,22 +224,22 @@ def test_mapping_hasher_repr_ordered() -> None:
 
 def test_mapping_hasher_hash_ordered_depends_on_insertion_order(registry: HasherRegistry) -> None:
     hasher = MappingHasher(ordered=True)
-    assert hasher.hash({"a": 1, "b": 2}, registry=registry) != hasher.hash(
-        {"b": 2, "a": 1}, registry=registry
+    assert hash_with(hasher, {"a": 1, "b": 2}, registry) != hash_with(
+        hasher, {"b": 2, "a": 1}, registry
     )
 
 
 def test_mapping_hasher_hash_unordered_ignores_insertion_order(registry: HasherRegistry) -> None:
     hasher = MappingHasher()
-    assert hasher.hash({"a": 1, "b": 2}, registry=registry) == hasher.hash(
-        {"b": 2, "a": 1}, registry=registry
+    assert hash_with(hasher, {"a": 1, "b": 2}, registry) == hash_with(
+        hasher, {"b": 2, "a": 1}, registry
     )
 
 
 def test_mapping_hasher_tag_changes_hash(registry: HasherRegistry) -> None:
-    assert MappingHasher("dict").hash({"a": 1}, registry=registry) != MappingHasher(
-        "OrderedDict"
-    ).hash({"a": 1}, registry=registry)
+    assert hash_with(MappingHasher("dict"), {"a": 1}, registry) != hash_with(
+        MappingHasher("OrderedDict"), {"a": 1}, registry
+    )
 
 
 @pytest.mark.filterwarnings("ignore:No hasher registered:UserWarning")
@@ -249,6 +249,6 @@ def test_mapping_hasher_hash_keys_with_the_same_hash_do_not_depend_on_the_order(
     first = {Unhashable(): "a", Unhashable(): "b"}
     second = dict(reversed(list(first.items())))
     hasher = MappingHasher()
-    assert hasher.hash(first, registry, ignore_unhashable=True) == hasher.hash(
-        second, registry, ignore_unhashable=True
+    assert hash_with(hasher, first, registry, ignore_unhashable=True) == hash_with(
+        hasher, second, registry, ignore_unhashable=True
     )

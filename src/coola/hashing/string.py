@@ -6,94 +6,54 @@ __all__ = ["StringHasher", "hash_enum", "hash_string", "hash_tagged"]
 
 import hashlib
 from collections import UserString
-from enum import Enum
 from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
+from coola.hashing.base import BaseHasher, Encoding, tagged
+from coola.hashing.engine import validate_hash_length
 
 if TYPE_CHECKING:
-    from coola.hashing.registry import HasherRegistry
+    from enum import Enum
 
 
 class StringHasher(InlineDisplayMixin, BaseHasher[str | UserString]):
     r"""Hasher for string objects.
 
-    This hasher computes the hash of the string, namespaced by the
-    ``str`` type tag, without any intermediate conversion. ``str``
-    subclasses hash like plain strings, except enum members, which hash
-    through ``hash_enum``. A ``UserString`` is hashed by its text under
-    the ``UserString`` tag, so it differs from a ``str``.
+    This hasher describes the string under the ``str`` type tag, without
+    any intermediate conversion. ``str`` subclasses hash like plain
+    strings (the enum members are dispatched to ``EnumHasher`` by the
+    registry). A ``UserString`` is described by its text under the
+    ``UserString`` tag, so it differs from a ``str``.
 
     Example:
         ```pycon
-        >>> from coola.hashing import StringHasher, HasherRegistry
-        >>> registry = HasherRegistry()
+        >>> from coola.hashing import StringHasher
         >>> hasher = StringHasher()
         >>> hasher
         StringHasher()
-        >>> len(hasher.hash("Meowwwwww", registry=registry))
-        64
+        >>> hasher.encode("Meowwwwww")
+        b'str\x00Meowwwwww'
 
         ```
     """
 
-    def hash(
-        self,
-        data: str | UserString,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        r"""Compute a deterministic hash of a string.
+    def encode(self, data: str | UserString) -> Encoding:
+        r"""Describe a string.
+
+        A lone surrogate (for example in the result of ``os.fsdecode``
+        for a file name that is not valid UTF-8) is encoded with the
+        ``surrogatepass`` error handler.
 
         Args:
-            data: The input string to hash.
-            registry: The hasher registry. Unused by this hasher since
-                strings are hashed directly with no need to dispatch to
-                another hasher for nested/composite data; accepted
-                only to satisfy the common ``BaseHasher`` interface.
-            length: The desired length of the returned hex string. See
-                ``hash_string`` for constraints. Defaults to 64.
-            ignore_unhashable: Unused by this hasher; accepted only to
-                satisfy the common ``BaseHasher`` interface.
+            data: The string to describe.
 
         Returns:
-            A lowercase hexadecimal string of exactly ``length``
-            characters.
-
-        Raises:
-            ValueError: If ``length`` is not an even number between 2
-                and 128.
+            The leaf ``tagged("str", data)``, or
+            ``tagged("UserString", str(data))`` for a ``UserString``.
         """
-        if isinstance(data, Enum):
-            # ``(str, Enum)`` mixins reach this hasher through the MRO.
-            return hash_enum(data, length=length)
         if isinstance(data, UserString):
-            return hash_tagged("UserString", str(data), length=length)
-        return hash_tagged("str", data, length=length)
-
-
-def validate_hash_length(length: int) -> None:
-    """Check that ``length`` is a valid length for a hex digest.
-
-    Args:
-        length: The length of the hex digest to validate.
-
-    Raises:
-        ValueError: If ``length`` is not an even number between 2 and 128.
-
-    Example:
-        ```pycon
-        >>> from coola.hashing.string import validate_hash_length
-        >>> validate_hash_length(64)
-
-        ```
-    """
-    if length % 2 != 0 or not (2 <= length <= 128):
-        msg = f"length must be an even number between 2 and 128, got {length}."
-        raise ValueError(msg)
+            return tagged("UserString", str(data))
+        return tagged("str", data)
 
 
 def hash_string(value: str, length: int = 64) -> str:

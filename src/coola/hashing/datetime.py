@@ -6,14 +6,9 @@ __all__ = ["DatetimeHasher"]
 
 from contextlib import suppress
 from datetime import UTC, date, datetime, time, timedelta
-from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_tagged
-
-if TYPE_CHECKING:
-    from coola.hashing.registry import HasherRegistry
+from coola.hashing.base import BaseHasher, Encoding, tagged
 
 
 class DatetimeHasher(InlineDisplayMixin, BaseHasher[date | time]):
@@ -39,45 +34,26 @@ class DatetimeHasher(InlineDisplayMixin, BaseHasher[date | time]):
     Example:
         ```pycon
         >>> from datetime import date
-        >>> from coola.hashing import DatetimeHasher, HasherRegistry
-        >>> registry = HasherRegistry()
+        >>> from coola.hashing import DatetimeHasher
         >>> hasher = DatetimeHasher()
         >>> hasher
         DatetimeHasher()
-        >>> len(hasher.hash(date(2021, 1, 1), registry=registry))
-        64
+        >>> hasher.encode(date(2021, 1, 1))
+        b'date\x002021-01-01'
 
         ```
     """
 
-    def hash(
-        self,
-        data: date | time,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        r"""Compute a deterministic hash of a date/datetime.
+    def encode(self, data: date | time) -> Encoding:
+        r"""Describe a date, a datetime or a time.
 
         Args:
-            data: The date or datetime to hash.
-            registry: The hasher registry. Unused by this hasher since
-                the ISO string is hashed directly with no need to
-                dispatch to another hasher for nested data; accepted
-                only to satisfy the common ``BaseHasher`` interface.
-            length: The desired length of the returned hex string. See
-                ``hash_string`` for constraints. Defaults to 64.
-            ignore_unhashable: Unused by this hasher; accepted only to
-                satisfy the common ``BaseHasher`` interface.
+            data: The value to describe.
 
         Returns:
-            A lowercase hexadecimal string of exactly ``length``
-            characters.
-
-        Raises:
-            ValueError: If ``length`` is not an even number between 2
-                and 128.
+            The leaf ``tagged(tag, payload)``, with the tag ``date``,
+            ``datetime`` or ``time`` and the ISO form as payload (the
+            microseconds in UTC for an aware time).
         """
         if isinstance(data, datetime) and data.utcoffset() is not None:
             # Aware datetimes that represent the same instant are equal.
@@ -95,12 +71,8 @@ class DatetimeHasher(InlineDisplayMixin, BaseHasher[date | time]):
                     seconds=data.second,
                     microseconds=data.microsecond,
                 )
-                return hash_tagged(
-                    _tag(data),
-                    f"utc:{(elapsed - offset) // timedelta(microseconds=1)}",
-                    length=length,
-                )
-        return hash_tagged(_tag(data), data.isoformat(), length=length)
+                return tagged(_tag(data), f"utc:{(elapsed - offset) // timedelta(microseconds=1)}")
+        return tagged(_tag(data), data.isoformat())
 
 
 def _tag(data: date | time) -> str:

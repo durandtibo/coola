@@ -6,7 +6,6 @@ from __future__ import annotations
 __all__ = ["get_default_hasher_registry", "get_default_registry", "hash_object", "register_hashers"]
 
 import dataclasses
-import inspect
 import warnings
 from collections import OrderedDict, UserString, deque
 from collections.abc import Mapping, Sequence
@@ -24,8 +23,9 @@ from coola.hashing.bytes import BytesHasher
 from coola.hashing.canonical import DecimalHasher, FractionHasher, RangeHasher
 from coola.hashing.dataclass import DataclassHasher
 from coola.hashing.datetime import DatetimeHasher
+from coola.hashing.engine import hash_hex
 from coola.hashing.enum import EnumHasher
-from coola.hashing.hashable import HashableHasher
+from coola.hashing.hashable import ContentHasher
 from coola.hashing.mapping import MappingHasher
 from coola.hashing.path import PathHasher
 from coola.hashing.registry import HasherRegistry
@@ -33,7 +33,7 @@ from coola.hashing.repr import ReprHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.set import SetHasher
 from coola.hashing.str import StrHasher
-from coola.hashing.string import StringHasher, validate_hash_length
+from coola.hashing.string import StringHasher
 from coola.utils.imports import (
     package_available,
 )
@@ -97,7 +97,7 @@ def hash_object(
 
     Note:
         The hash of a dataclass, a pydantic model, an enum member or an
-        object with a ``hash`` method includes the module and the
+        object with a ``__coola_hash__`` method includes the module and the
         qualified name of its class. The hash changes when the class is
         renamed or moved to another module, and a class defined in a
         script run as ``__main__`` hashes differently from the same
@@ -155,10 +155,11 @@ def hash_object(
         registry, length, ignore_unhashable = _resolve_legacy_arguments(
             args, registry=registry, length=length, ignore_unhashable=ignore_unhashable
         )
-    validate_hash_length(length)  # before the (possibly expensive) traversal
     if registry is None:
         registry = get_default_registry()
-    return registry.hash(data, length=length, ignore_unhashable=ignore_unhashable)
+    return hash_hex(
+        data, registry, length=length, ignore_unhashable=ignore_unhashable, stacklevel=2
+    )
 
 
 def _resolve_legacy_arguments(
@@ -350,10 +351,10 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
     )
     registry.register_many(_get_value_hashers())
     # The types that cannot be registered one by one: any dataclass, and any class
-    # that defines a ``hash`` method. The type lookup comes first, so a hasher
+    # that defines a ``__coola_hash__`` method. The type lookup comes first, so a hasher
     # registered for a type wins.
     registry.register_fallback(dataclasses.is_dataclass, DataclassHasher())
-    registry.register_fallback(_has_hash_method, HashableHasher())
+    registry.register_fallback(_has_coola_hash_method, ContentHasher())
     # The hashers of the optional libraries are loaded the first time the registry needs a type
     # of the library, so the libraries are not imported with ``coola.hashing``.
     for names, module in _LAZY_HASHERS:
@@ -361,26 +362,10 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             registry.register_lazy(names, f"{module}:get_default_hashers")
 
 
-def _has_hash_method(data_type: type) -> bool:
-    r"""Indicate if the instances of a type have a ``hash`` method (see
-    ``SupportsHash``)."""
-    method = getattr(data_type, "hash", None)
-    if not callable(method):
-        return False
-    # A ``hash`` method with another signature (``polars.Series.hash(seed=...)``)
-    # is not the ``SupportsHash`` protocol.
-    try:
-        signature = inspect.signature(method)
-    except (TypeError, ValueError):
-        return False
-    kwargs = {"registry": None, "length": 64, "ignore_unhashable": False}
-    for args in ((None,), ()):  # with and without ``self``
-        try:
-            signature.bind(*args, **kwargs)
-        except TypeError:
-            continue
-        return True
-    return False
+def _has_coola_hash_method(data_type: type) -> bool:
+    r"""Indicate if the instances of a type have a ``__coola_hash__``
+    method (see ``SupportsCoolaHash``)."""
+    return callable(getattr(data_type, "__coola_hash__", None))
 
 
 def _get_value_hashers() -> dict[type, Hasher[Any]]:

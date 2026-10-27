@@ -7,6 +7,7 @@ import pytest
 
 from coola.hashing import HasherRegistry
 from coola.hashing.canonical import DecimalHasher, FractionHasher, RangeHasher
+from tests.unit.hashing.helpers import hash_with
 
 
 @pytest.fixture
@@ -42,7 +43,7 @@ def test_decimal_hasher_equal_values(
     first: Decimal, second: Decimal, registry: HasherRegistry
 ) -> None:
     hasher = DecimalHasher()
-    assert hasher.hash(first, registry) == hasher.hash(second, registry)
+    assert hash_with(hasher, first, registry) == hash_with(hasher, second, registry)
 
 
 @pytest.mark.parametrize(
@@ -58,21 +59,25 @@ def test_decimal_hasher_different_values(
     first: Decimal, second: Decimal, registry: HasherRegistry
 ) -> None:
     hasher = DecimalHasher()
-    assert hasher.hash(first, registry) != hasher.hash(second, registry)
+    assert hash_with(hasher, first, registry) != hash_with(hasher, second, registry)
 
 
 def test_decimal_hasher_signaling_nan_same_value(registry: HasherRegistry) -> None:
     hasher = DecimalHasher()
-    assert hasher.hash(Decimal("sNaN"), registry) == hasher.hash(Decimal("sNaN"), registry)
+    assert hash_with(hasher, Decimal("sNaN"), registry) == hash_with(
+        hasher, Decimal("sNaN"), registry
+    )
 
 
 def test_decimal_hasher_signaling_nan_differs_from_quiet_nan(registry: HasherRegistry) -> None:
     hasher = DecimalHasher()
-    assert hasher.hash(Decimal("sNaN"), registry) != hasher.hash(Decimal("NaN"), registry)
+    assert hash_with(hasher, Decimal("sNaN"), registry) != hash_with(
+        hasher, Decimal("NaN"), registry
+    )
 
 
 def test_decimal_hasher_length(registry: HasherRegistry) -> None:
-    assert len(DecimalHasher().hash(Decimal(1), registry, length=16)) == 16
+    assert len(hash_with(DecimalHasher(), Decimal(1), registry, length=16)) == 16
 
 
 ####################################
@@ -86,36 +91,48 @@ def test_fraction_hasher_repr() -> None:
 
 def test_fraction_hasher_equal_values_normalized(registry: HasherRegistry) -> None:
     hasher = FractionHasher()
-    assert hasher.hash(Fraction(1, 2), registry) == hasher.hash(Fraction(2, 4), registry)
+    assert hash_with(hasher, Fraction(1, 2), registry) == hash_with(
+        hasher, Fraction(2, 4), registry
+    )
 
 
 def test_fraction_hasher_equal_values_from_string(registry: HasherRegistry) -> None:
     hasher = FractionHasher()
-    assert hasher.hash(Fraction(1, 2), registry) == hasher.hash(Fraction("0.5"), registry)
+    assert hash_with(hasher, Fraction(1, 2), registry) == hash_with(
+        hasher, Fraction("0.5"), registry
+    )
 
 
 def test_fraction_hasher_different_values_denominator(registry: HasherRegistry) -> None:
     hasher = FractionHasher()
-    assert hasher.hash(Fraction(1, 2), registry) != hasher.hash(Fraction(1, 3), registry)
+    assert hash_with(hasher, Fraction(1, 2), registry) != hash_with(
+        hasher, Fraction(1, 3), registry
+    )
 
 
 def test_fraction_hasher_different_values_integer(registry: HasherRegistry) -> None:
     hasher = FractionHasher()
-    assert hasher.hash(Fraction(1, 2), registry) != hasher.hash(Fraction(2, 1), registry)
+    assert hash_with(hasher, Fraction(1, 2), registry) != hash_with(
+        hasher, Fraction(2, 1), registry
+    )
 
 
 def test_fraction_hasher_different_values_sign(registry: HasherRegistry) -> None:
     hasher = FractionHasher()
-    assert hasher.hash(Fraction(1, 2), registry) != hasher.hash(Fraction(-1, 2), registry)
+    assert hash_with(hasher, Fraction(1, 2), registry) != hash_with(
+        hasher, Fraction(-1, 2), registry
+    )
 
 
 def test_fraction_hasher_numerator_denominator_boundary(registry: HasherRegistry) -> None:
     hasher = FractionHasher()
-    assert hasher.hash(Fraction(1, 23), registry) != hasher.hash(Fraction(12, 3), registry)
+    assert hash_with(hasher, Fraction(1, 23), registry) != hash_with(
+        hasher, Fraction(12, 3), registry
+    )
 
 
 def test_fraction_hasher_length(registry: HasherRegistry) -> None:
-    assert len(FractionHasher().hash(Fraction(1, 2), registry, length=32)) == 32
+    assert len(hash_with(FractionHasher(), Fraction(1, 2), registry, length=32)) == 32
 
 
 #################################
@@ -144,7 +161,7 @@ def test_range_equal_ranges_are_equal(first: range, second: range) -> None:
 @pytest.mark.parametrize(("first", "second"), EQUAL_RANGES)
 def test_range_hasher_equal_ranges(first: range, second: range, registry: HasherRegistry) -> None:
     hasher = RangeHasher()
-    assert hasher.hash(first, registry) == hasher.hash(second, registry)
+    assert hash_with(hasher, first, registry) == hash_with(hasher, second, registry)
 
 
 DIFFERENT_RANGES = [
@@ -167,52 +184,56 @@ def test_range_hasher_different_ranges(
     first: range, second: range, registry: HasherRegistry
 ) -> None:
     hasher = RangeHasher()
-    assert hasher.hash(first, registry) != hasher.hash(second, registry)
+    assert hash_with(hasher, first, registry) != hash_with(hasher, second, registry)
 
 
 def test_range_hasher_huge_range_is_fast(registry: HasherRegistry) -> None:
     hasher = RangeHasher()
-    assert hasher.hash(range(10**18), registry) != hasher.hash(range(10**18 + 1), registry)
+    assert hash_with(hasher, range(10**18), registry) != hash_with(
+        hasher, range(10**18 + 1), registry
+    )
 
 
 def test_range_hasher_length(registry: HasherRegistry) -> None:
-    assert len(RangeHasher().hash(range(3), registry, length=8)) == 8
+    assert len(hash_with(RangeHasher(), range(3), registry, length=8)) == 8
 
 
 def test_decimal_hasher_hash_beyond_context_precision(registry: HasherRegistry) -> None:
     hasher = DecimalHasher()
     first = Decimal("1." + "0" * 30 + "1")
     second = Decimal("1." + "0" * 30 + "2")
-    assert hasher.hash(first, registry) != hasher.hash(second, registry)
+    assert hash_with(hasher, first, registry) != hash_with(hasher, second, registry)
 
 
 def test_decimal_hasher_hash_ignores_context(registry: HasherRegistry) -> None:
     hasher = DecimalHasher()
     value = Decimal("1.234567890123456789")
-    expected = hasher.hash(value, registry)
+    expected = hash_with(hasher, value, registry)
     with localcontext() as ctx:
         ctx.prec = 3
-        assert hasher.hash(value, registry) == expected
+        assert hash_with(hasher, value, registry) == expected
 
 
 def test_decimal_hasher_hash_negative_zero(registry: HasherRegistry) -> None:
     hasher = DecimalHasher()
-    assert hasher.hash(Decimal("-0"), registry) == hasher.hash(Decimal("0.00"), registry)
+    assert hash_with(hasher, Decimal("-0"), registry) == hash_with(
+        hasher, Decimal("0.00"), registry
+    )
 
 
 def test_fraction_hasher_hash_huge_numerator() -> None:
     hasher = FractionHasher()
     registry = HasherRegistry()
-    assert hasher.hash(Fraction(10**5000, 3), registry) != hasher.hash(
-        Fraction(10**5000 + 1, 3), registry
+    assert hash_with(hasher, Fraction(10**5000, 3), registry) != hash_with(
+        hasher, Fraction(10**5000 + 1, 3), registry
     )
 
 
 def test_range_hasher_hash_huge_bounds() -> None:
     hasher = RangeHasher()
     registry = HasherRegistry()
-    assert hasher.hash(range(10**5000, 10**5000 + 3), registry) != hasher.hash(
-        range(10**5000 + 1, 10**5000 + 4), registry
+    assert hash_with(hasher, range(10**5000, 10**5000 + 3), registry) != hash_with(
+        hasher, range(10**5000 + 1, 10**5000 + 4), registry
     )
 
 
@@ -220,6 +241,6 @@ def test_decimal_hasher_hash_more_digits_than_the_int_conversion_limit(
     registry: HasherRegistry,
 ) -> None:
     hasher = DecimalHasher()
-    assert hasher.hash(Decimal("1" + "0" * 5000 + "1"), registry) != hasher.hash(
-        Decimal("1" + "0" * 5000 + "2"), registry
+    assert hash_with(hasher, Decimal("1" + "0" * 5000 + "1"), registry) != hash_with(
+        hasher, Decimal("1" + "0" * 5000 + "2"), registry
     )

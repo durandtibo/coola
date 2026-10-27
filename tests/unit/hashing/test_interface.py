@@ -30,16 +30,16 @@ from coola.hashing import (
     get_default_registry,
     get_stable_registry,
     hash_object,
-    hash_tagged,
     interface as hashing_interface,
     register_hashers,
+    tagged,
 )
 from coola.hashing.interface import _register_default_hashers
 from coola.hashing.pydantic import PydanticModelHasher
 from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError
 from coola.testing.fixtures import numpy_available, pydantic_available
 from coola.utils.imports import import_object, is_numpy_available, is_pydantic_available
-from tests.unit.hashing.helpers import Unhashable
+from tests.unit.hashing.helpers import Unhashable, leaf_hash
 
 if is_numpy_available():
     import numpy as np
@@ -70,52 +70,52 @@ class CustomList(list):
     [
         pytest.param(
             5,
-            "e082b7ec382aca2fd735131e1e0783773d3024db6b45dcc12663f1f58ee2acbe",
+            "febcf8e6dee75c90080cab5135bdd77b752cf87dd2f9bc39746793fb67522c4b",
             id="int",
         ),
         pytest.param(
             3.14,
-            "7f490c17244f4f05739d330c6b390f4d6ca1a259c63527d49ed4031de9f80fca",
+            "9855afb41eaf84538d763ca01faec06219f2bf9cd43a92ad6ecee96b340af804",
             id="float",
         ),
         pytest.param(
             complex(1, 2),
-            "4ee227f701d6a0eaa2429bfb3378dd865abe0e5fc9d303068c0befaffbab41b1",
+            "475b70f206b62fc93989cfc073a63c05b23accc90b082d77d984f4c3c87b1862",
             id="complex",
         ),
         pytest.param(
             True,
-            "d7d4d5d42aa13a2cb19b77506ff0e2cfe278713fecddd620b898d65bc7dc63dd",
+            "b125316ff709ad952976c214852acc80ef2e75dd12dd50a908a204705d373820",
             id="bool",
         ),
         pytest.param(
             "hello",
-            "9d4bd2af5629d5a22405d7fe02fe410ee11ae44178b4ee0eb9ca4d7795ac9906",
+            "2998e64e4b20ac91774f304f5527a5160d30249cdcdc984effac931cf54196e0",
             id="str",
         ),
         pytest.param(
             [1, 2, 3],
-            "ec609b5623c6456c63f338d63d699ebe4d5345baff999c5fc61471c62656f586",
+            "824284b9d2ee9802ca0d8a94a16de30c1078fe55a55ee9b74943681fbe9147dd",
             id="list",
         ),
         pytest.param(
             (1, 2, 3),
-            "68c32ffc6288f744784a055a2abd7392488a36623521e708f52da350c9038f40",
+            "039d1e5e77772efd4a39b67bfc3a51b9c51586626d7c860f87951462d9faf0b8",
             id="tuple",
         ),
         pytest.param(
             {"a": 1, "b": 2},
-            "cefc870254126d81d0209ed1b37eda8d4d9c06378205a1c802dd2a05b21dc896",
+            "e5a0bcc2799f418c155af1493bf8e86f270d5d61e002400b5cf8b79facb1bc88",
             id="dict",
         ),
         pytest.param(
             date(2021, 1, 1),
-            "1d7ccf2f2d2fa168388daafdef0be5efb6e74b780c83a649af3368a5a23911f1",
+            "5f04f6be9602d7a5af0207e8b221a3bceb87050c6ec80f5f818dad202bf76c5f",
             id="date",
         ),
         pytest.param(
             datetime(2021, 1, 1, tzinfo=UTC),
-            "1cc1275c7d33a7dc33384372f2b37341544cd099de233c9bcaa753fe08ea6621",
+            "9def71436f2f37949ee5c665e24af39f9886cf3e919baacdc81c77ba06493805",
             id="datetime",
         ),
     ],
@@ -135,7 +135,7 @@ def test_hash_object_is_deterministic() -> None:
 def test_hash_object_with_custom_registry() -> None:
     # A registry with only ReprHasher treats lists as leaf values.
     registry = HasherRegistry({object: ReprHasher()})
-    assert hash_object([1, 2, 3], registry=registry) == hash_tagged("list", repr([1, 2, 3]))
+    assert hash_object([1, 2, 3], registry=registry) == leaf_hash(tagged("list", repr([1, 2, 3])))
 
 
 def test_hash_object_with_custom_length_returns_str() -> None:
@@ -154,7 +154,7 @@ def test_hash_object_uses_default_registry_when_none() -> None:
 
 def test_hash_object_nested_structure() -> None:
     assert hash_object({"a": [1, 2], "b": [3, 4]}) == (
-        "df457ece3d6ba8364e163149129d84e5dad821264bc2fbaa5d239b07aa14be37"
+        "0aee2e48d5414fb43c8e14f3ab931a9622a28565f9804e5c54310eac7ab4e44a"
     )
 
 
@@ -335,13 +335,13 @@ def test_get_default_registry_registers_none() -> None:
 
 def test_get_default_registry_can_hash_list() -> None:
     assert get_default_registry().hash([1, 2, 3]) == (
-        "ec609b5623c6456c63f338d63d699ebe4d5345baff999c5fc61471c62656f586"
+        "824284b9d2ee9802ca0d8a94a16de30c1078fe55a55ee9b74943681fbe9147dd"
     )
 
 
 def test_get_default_registry_can_hash_dict() -> None:
     assert get_default_registry().hash({"a": 1, "b": 2}) == (
-        "cefc870254126d81d0209ed1b37eda8d4d9c06378205a1c802dd2a05b21dc896"
+        "e5a0bcc2799f418c155af1493bf8e86f270d5d61e002400b5cf8b79facb1bc88"
     )
 
 
@@ -467,14 +467,12 @@ class _Line:
     end: _Point
 
 
-class _HasHash:
-    def hash(
-        self,
-        registry: object = None,  # noqa: ARG002
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        return "a" * length
+class _HasContent:
+    def __init__(self, content: object = (1, 2)) -> None:
+        self.content = content
+
+    def __coola_hash__(self) -> object:
+        return self.content
 
 
 def test_hash_object_dataclass_same_value() -> None:
@@ -530,28 +528,49 @@ def test_hash_object_dataclass_registered_hasher_wins_default_hasher() -> None:
     assert isinstance(registry.find_hasher(_Point), DataclassHasher)
 
 
-def test_hash_object_supports_hash_differs_from_the_fallback() -> None:
-    assert hash_object(_HasHash(), length=8) != hash_object(
-        _HasHash(), length=8, registry=HasherRegistry({object: StrHasher()})
-    )
+def test_hash_object_custom_object_equal_content_same_hash() -> None:
+    assert hash_object(_HasContent((1, 2))) == hash_object(_HasContent((1, 2)))
 
 
-def test_hash_object_supports_hash_same_object() -> None:
-    assert hash_object(_HasHash()) == hash_object(_HasHash())
+def test_hash_object_custom_object_different_content_different_hash() -> None:
+    assert hash_object(_HasContent((1, 2))) != hash_object(_HasContent((1, 3)))
 
 
-def test_hash_object_dataclass_with_hash_method_uses_the_dataclass_hasher() -> None:
+def test_hash_object_custom_object_differs_from_its_content() -> None:
+    assert hash_object(_HasContent((1, 2))) != hash_object((1, 2))
+
+
+def test_hash_object_custom_object_differs_from_another_class_with_the_same_content() -> None:
+    class Other(_HasContent):
+        pass
+
+    assert hash_object(_HasContent((1, 2))) != hash_object(Other((1, 2)))
+
+
+def test_hash_object_custom_object_content_is_hashed_through_the_registry() -> None:
+    registry = get_default_registry().copy()
+    registry.register(str, ReprHasher(), exist_ok=True)
+    assert hash_object(_HasContent("a"), registry=registry) != hash_object(_HasContent("a"))
+
+
+def test_hash_object_custom_object_in_a_list() -> None:
+    assert hash_object([_HasContent((1, 2))]) == hash_object([_HasContent((1, 2))])
+
+
+def test_hash_object_custom_object_that_contains_itself_raises() -> None:
+    obj = _HasContent()
+    obj.content = [obj]
+    with pytest.raises(ValueError, match="self-referencing"):
+        hash_object(obj)
+
+
+def test_hash_object_dataclass_with_coola_hash_method_uses_the_dataclass_hasher() -> None:
     @dataclass
     class Both:
         x: int
 
-        def hash(
-            self,
-            registry: object = None,  # noqa: ARG002
-            length: int = 64,
-            ignore_unhashable: bool = False,  # noqa: ARG002
-        ) -> str:
-            return "b" * length
+        def __coola_hash__(self) -> object:
+            return "constant"
 
     assert hash_object(Both(1)) != hash_object(Both(2))
 
@@ -767,14 +786,6 @@ def test_hash_object_hash_method_with_another_signature_raises() -> None:
 def test_hash_object_hash_method_with_another_signature_ignore_unhashable() -> None:
     with pytest.warns(UserWarning, match="No hasher registered"):
         hash_object(_OtherHash(), ignore_unhashable=True)
-
-
-def test_hash_object_hash_method_without_signature_raises() -> None:
-    with (
-        patch("coola.hashing.interface.inspect.signature", side_effect=ValueError),
-        pytest.raises(TypeNotRegisteredError, match="register a hasher"),
-    ):
-        hash_object(_OtherHash())
 
 
 #############################################

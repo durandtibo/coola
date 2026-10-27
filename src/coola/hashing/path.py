@@ -4,22 +4,19 @@ from __future__ import annotations
 
 __all__ = ["PathHasher", "ResolvedPathHasher", "hash_path"]
 
+from contextlib import suppress
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
+from coola.hashing.base import BaseHasher, Encoding, tagged
 from coola.hashing.string import hash_tagged
-
-if TYPE_CHECKING:
-    from coola.hashing.registry import HasherRegistry
 
 
 class PathHasher(InlineDisplayMixin, BaseHasher[PurePath]):
     r"""Hasher for ``pathlib.PurePath`` and ``pathlib.Path`` objects.
 
-    This hasher delegates to ``hash_path``, which hashes the POSIX
-    string representation of the path as written. It never touches the
+    This hasher describes the POSIX string representation of the path
+    as written. It never touches the
     filesystem and does not depend on the current working directory, so
     hashes are portable across machines. A relative path and the
     absolute path of the same location therefore hash differently; use
@@ -28,47 +25,26 @@ class PathHasher(InlineDisplayMixin, BaseHasher[PurePath]):
     Example:
         ```pycon
         >>> from pathlib import Path
-        >>> from coola.hashing import PathHasher, HasherRegistry
-        >>> registry = HasherRegistry()
+        >>> from coola.hashing import PathHasher
         >>> hasher = PathHasher()
         >>> hasher
         PathHasher()
-        >>> len(hasher.hash(Path("/tmp/file.txt"), registry=registry))
-        64
+        >>> hasher.encode(Path("/tmp/file.txt"))
+        b'Path\x00/tmp/file.txt'
 
         ```
     """
 
-    def hash(
-        self,
-        data: PurePath,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        r"""Compute a deterministic hash of a path.
+    def encode(self, data: PurePath) -> Encoding:
+        r"""Describe a path.
 
         Args:
-            data: The path to hash.
-            registry: The hasher registry. Unused by this hasher since
-                the path is hashed directly with no need to dispatch to
-                another hasher for nested data; accepted only to
-                satisfy the common ``BaseHasher`` interface.
-            length: The desired length of the returned hex string. See
-                ``hash_path`` for constraints. Defaults to 64.
-            ignore_unhashable: Unused by this hasher; accepted only to
-                satisfy the common ``BaseHasher`` interface.
+            data: The path to describe.
 
         Returns:
-            A lowercase hexadecimal string of exactly ``length``
-            characters.
-
-        Raises:
-            ValueError: If ``length`` is not an even number between 2
-                and 128.
+            The leaf ``tagged("Path", posix_form).
         """
-        return hash_path(data, length=length)
+        return tagged("Path", _posix(data, resolve=False))
 
 
 class ResolvedPathHasher(InlineDisplayMixin, BaseHasher[Path]):
@@ -85,45 +61,26 @@ class ResolvedPathHasher(InlineDisplayMixin, BaseHasher[Path]):
     Example:
         ```pycon
         >>> from pathlib import Path
-        >>> from coola.hashing import ResolvedPathHasher, HasherRegistry
-        >>> registry = HasherRegistry()
+        >>> from coola.hashing import ResolvedPathHasher
         >>> hasher = ResolvedPathHasher()
         >>> hasher
         ResolvedPathHasher()
-        >>> len(hasher.hash(Path("file.txt"), registry=registry))
-        64
+        >>> hasher.encode(Path("file.txt")).startswith(b"Path")
+        True
 
         ```
     """
 
-    def hash(
-        self,
-        data: Path,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        r"""Compute a deterministic hash of the resolved path.
+    def encode(self, data: Path) -> Encoding:
+        r"""Describe a path.
 
         Args:
-            data: The path to hash.
-            registry: The hasher registry. Unused; accepted only to
-                satisfy the common ``BaseHasher`` interface.
-            length: The desired length of the returned hex string. See
-                ``hash_path`` for constraints. Defaults to 64.
-            ignore_unhashable: Unused; accepted only to satisfy the
-                common ``BaseHasher`` interface.
+            data: The path to describe.
 
         Returns:
-            A lowercase hexadecimal string of exactly ``length``
-            characters.
-
-        Raises:
-            ValueError: If ``length`` is not an even number between 2
-                and 128.
+            The leaf ``tagged("Path", posix_form) of the resolved path.
         """
-        return hash_path(data, length=length, resolve=True)
+        return tagged("Path", _posix(data, resolve=True))
 
 
 def hash_path(path: PurePath, length: int = 64, resolve: bool = False) -> str:
@@ -157,10 +114,16 @@ def hash_path(path: PurePath, length: int = 64, resolve: bool = False) -> str:
         ValueError: If ``length`` is not an even number between 2 and
             128.
     """
-    resolved = path
+    return hash_tagged("Path", _posix(path, resolve=resolve), length=length)
+
+
+def _posix(path: PurePath, *, resolve: bool = False) -> str:
+    r"""Return the POSIX form of a path, resolved if requested.
+
+    If the resolution fails (permission error, OS-level issue), the
+    path is used as given.
+    """
     if resolve and isinstance(path, Path):
-        try:
-            resolved = path.resolve()
-        except OSError:
-            resolved = path
-    return hash_tagged("Path", resolved.as_posix(), length=length)
+        with suppress(OSError):
+            path = path.resolve()
+    return path.as_posix()

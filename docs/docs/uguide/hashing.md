@@ -165,7 +165,7 @@ The default registry hashes **only** the following types (and their subclasses):
 | `range`                                      | The items, not the arguments: `range(0)` and `range(5, 5)` have the same hash, in constant time                      |
 | NumPy scalars (`np.float32`, `np.int64`...)  | Like the equivalent builtin value: `np.float32(1.5)` hashes like `1.5`                                               |
 | dataclass instances                          | The qualified class name and the fields, hashed through the registry                                                 |
-| objects with a `hash()` method               | The result of their `hash()` (see `SupportsHash`), tagged with the class name                                        |
+| objects with a `__coola_hash__()` method     | The value of their `__coola_hash__()` (see `SupportsCoolaHash`), tagged with the class name                          |
 | `pathlib.PurePath`, `pathlib.Path`           | The POSIX form of the path as written, without touching the filesystem                                               |
 | pydantic `BaseModel` (if pydantic installed) | The qualified class name and the fields, hashed through the registry                                                 |
 | `numpy.ndarray`, `torch.Tensor`, `jax.Array` | The dtype, the shape and the values (not the memory layout, the device or `requires_grad`); `-0.0` hashes like `0.0` |
@@ -175,18 +175,18 @@ The default registry hashes **only** the following types (and their subclasses):
 
 The array libraries are only imported if they are installed. A NumPy array and a PyTorch tensor with
 the same content hash differently. Your own classes still need a registered hasher (a class with a
-`hash()` method and a dataclass work without registration, see below). Otherwise `hash_object`
+`__coola_hash__()` method and a dataclass work without registration, see below). Otherwise `hash_object`
 raises a `TypeNotRegisteredError` that lists the remedies (or hashes a placeholder with
 `ignore_unhashable=True`). To change what is part of the hash, register your own hasher, for
 example for NumPy arrays:
 
 ```pycon
 >>> import numpy as np
->>> from coola.hashing import BaseHasher, hash_bytes, hash_object, register_hashers
+>>> from coola.hashing import BaseHasher, digest, hash_object, register_hashers, tagged
 >>> class NumpyHasher(BaseHasher[np.ndarray]):
-...     def hash(self, data, registry, *, length=64, ignore_unhashable=False):
+...     def encode(self, data):
 ...         header = f"{data.dtype}|{data.shape}|".encode()
-...         return hash_bytes(header + np.ascontiguousarray(data).tobytes(), length=length)
+...         return tagged("array", header + digest(np.ascontiguousarray(data).tobytes()))
 >>> register_hashers({np.ndarray: NumpyHasher()}, exist_ok=True)
 >>> hash_object({"a": np.arange(3)}) == hash_object({"a": np.arange(3)})
 True
@@ -299,8 +299,8 @@ delegating to a `HasherRegistry` to hash any nested values. The built-in hashers
   (used for every dataclass by the default registry)
 - `PydanticModelHasher` / `hash_pydantic_model` - hashes pydantic `BaseModel` objects from the
   class name and the fields, with configurable handling of `SecretStr`/`SecretBytes` fields
-- `HashableHasher` - hashes objects that implement the `SupportsHash` protocol (i.e. that define
-  their own `hash()` method), namespaced by the class name
+- `ContentHasher` - hashes objects that implement the `SupportsCoolaHash` protocol (i.e. that
+  define a `__coola_hash__()` method that returns their content), namespaced by the class name
 - `NumpyArrayHasher`, `TorchTensorHasher`, `JaxArrayHasher` - hash the dtype, the shape and the
   values of an array or of a tensor (require the corresponding package)
 - `PandasSeriesHasher`, `PandasDataFrameHasher`, `PolarsSeriesHasher`, `PolarsDataFrameHasher` - hash
@@ -311,14 +311,15 @@ delegating to a `HasherRegistry` to hash any nested values. The built-in hashers
 - `XarrayHasher` - hashes the dimensions, the values, the coordinates, the attributes and the name of
   an xarray `DataArray`, `Dataset` or `Variable` (requires `xarray`)
 
-Each hasher can be used directly:
+A hasher describes the content of a type with `encode`; the engine does the hashing. Each hasher
+can be used directly to see that description:
 
 ```pycon
->>> from coola.hashing import StrHasher, HasherRegistry
->>> registry = HasherRegistry()
->>> hasher = StrHasher()
->>> len(hasher.hash([1, 2, 3], registry=registry))
-64
+>>> from coola.hashing import SequenceHasher, StrHasher
+>>> StrHasher().encode(1)
+b'str:int\x001'
+>>> SequenceHasher("list").encode([1, 2, 3])
+Node(tag='list', children=[1, 2, 3], ordered=True, group=1)
 
 ```
 
@@ -368,11 +369,11 @@ If you need an isolated registry instead of mutating the shared singleton, creat
 ### Fallbacks
 
 A registry maps _types_ to hashers, so it cannot say "every dataclass" or "every class with a
-`hash()` method". `HasherRegistry.register_fallback(predicate, hasher)` registers a hasher for the
+`__coola_hash__()` method". `HasherRegistry.register_fallback(predicate, hasher)` registers a hasher for the
 types that satisfy a predicate. A fallback is only used if no hasher is registered for the type or
 for one of its parent types (`object` excluded), so a hasher registered for a type always wins. The default registry
-has two fallbacks: dataclasses (`DataclassHasher`) and the classes with a `hash()` method
-(`HashableHasher`). A dataclass that also defines `hash()` uses the dataclass hasher.
+has two fallbacks: dataclasses (`DataclassHasher`) and the classes with a `__coola_hash__()` method
+(`ContentHasher`). A dataclass that also defines `__coola_hash__()` uses the dataclass hasher.
 
 ```pycon
 >>> from coola.hashing import HasherRegistry, SequenceHasher, DataclassHasher
@@ -397,19 +398,40 @@ as the hashers.
 
 ## Custom Objects
 
-For a class that can compute its own hash, implement the `SupportsHash` protocol by defining a
-`hash(registry=..., length=..., ignore_unhashable=...)` method. `HashableHasher` then dispatches
-to it, and the registry-based hashers (`hash_object`, `SequenceHasher`, `MappingHasher`, ...) can
-hash instances of that class like any other registered type.
+For a class that cannot be a dataclass, define a `__coola_hash__()` method that returns the content
+of the object (any value that can be hashed). `ContentHasher` hashes that value through the
+registry, with the qualified class name as tag, so two classes with the same content hash
+differently and the object cannot bypass the protections of the engine (cycles, depth,
+`length`):
+
+```pycon
+>>> from coola.hashing import hash_object
+>>> class Point:
+...     def __init__(self, x, y):
+...         self.x, self.y = x, y
+...     def __coola_hash__(self):
+...         return (self.x, self.y)
+>>> hash_object(Point(1, 2)) == hash_object(Point(1, 2))
+True
+>>> hash_object(Point(1, 2)) == hash_object((1, 2))
+False
+
+```
 
 ### Writing a Hasher
 
-When you add a hasher, follow these rules so that it keeps the guarantees above:
+A hasher only describes the content of a type: `encode(data)` returns the bytes of a leaf
+(`tagged(tag, payload)`) or a `Node(tag, children)`. The engine hashes the children with the
+hasher of their own type, handles the cycles, the shared containers and the depth, and applies
+`length` and `ignore_unhashable`. When you add a hasher, follow these rules so that it keeps the
+guarantees above:
 
-1. Pick a unique, stable tag, and never reuse the tag of another type family.
-2. Return a tagged hash (`hash_tagged(tag, payload, length=length)`), never a bare `hash_string`.
-3. Hash children with `registry.hash(child, length=length, ignore_unhashable=ignore_unhashable)`:
-   always forward both arguments.
+1. Pick a unique, stable tag, and never reuse the tag of another type family. The tag is a
+   constant of the hasher, except for user-defined classes, whose qualified name is the identity.
+2. Return `tagged(...)` for a leaf, or a `Node` for a container. Reduce a big buffer with
+   `digest(buffer)` before it enters `tagged`.
+3. Do not call the registry and do not recurse: put the children in the `Node`. Use
+   `ordered=False` (and `group=2` for a key and a value) when the order is not meaningful.
 4. Do not depend on object addresses, `id()`, `hash()`, the iteration order of dicts or sets,
    the locale, the time zone or the clock.
 5. Register the hasher for the most general type whose semantics are identical, and for the

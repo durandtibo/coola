@@ -4,7 +4,8 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from coola.hashing import DataclassHasher, HasherRegistry, get_default_registry, hash_tagged
+from coola.hashing import DataclassHasher, HasherRegistry, Node, get_default_registry
+from tests.unit.hashing.helpers import FixedHasher, hash_with
 
 
 @dataclass
@@ -50,40 +51,34 @@ def test_dataclass_hasher_str() -> None:
 
 def test_dataclass_hasher_hash_is_deterministic(registry: HasherRegistry) -> None:
     hasher = DataclassHasher()
-    assert hasher.hash(Point(1, 2), registry=registry) == hasher.hash(
-        Point(1, 2), registry=registry
-    )
+    assert hash_with(hasher, Point(1, 2), registry) == hash_with(hasher, Point(1, 2), registry)
 
 
 def test_dataclass_hasher_hash_different_values_differ(registry: HasherRegistry) -> None:
     hasher = DataclassHasher()
-    assert hasher.hash(Point(1, 2), registry=registry) != hasher.hash(
-        Point(1, 3), registry=registry
-    )
+    assert hash_with(hasher, Point(1, 2), registry) != hash_with(hasher, Point(1, 3), registry)
 
 
 def test_dataclass_hasher_hash_depends_on_class(registry: HasherRegistry) -> None:
     hasher = DataclassHasher()
-    assert hasher.hash(Point(1, 2), registry=registry) != hasher.hash(
-        Other(1, 2), registry=registry
-    )
+    assert hash_with(hasher, Point(1, 2), registry) != hash_with(hasher, Other(1, 2), registry)
 
 
 def test_dataclass_hasher_hash_differs_from_plain_dict(registry: HasherRegistry) -> None:
     hasher = DataclassHasher()
-    assert hasher.hash(Point(1, 2), registry=registry) != registry.hash({"x": 1, "y": 2})
+    assert hash_with(hasher, Point(1, 2), registry) != registry.hash({"x": 1, "y": 2})
 
 
 def test_dataclass_hasher_hash_uses_class_tag(registry: HasherRegistry) -> None:
-    expected = hash_tagged(
-        f"dataclass:{Point.__module__}.{Point.__qualname__}", registry.hash({"x": 1, "y": 2})
+    node = Node(f"dataclass:{Point.__module__}.{Point.__qualname__}", ["x", 1, "y", 2], False, 2)
+    assert hash_with(DataclassHasher(), Point(1, 2), registry) == hash_with(
+        FixedHasher(node), Point(1, 2), registry
     )
-    assert DataclassHasher().hash(Point(1, 2), registry=registry) == expected
 
 
 @pytest.mark.parametrize("length", [2, 16, 64, 128])
 def test_dataclass_hasher_hash_length(length: int, registry: HasherRegistry) -> None:
-    assert len(DataclassHasher().hash(Point(1, 2), registry=registry, length=length)) == length
+    assert len(hash_with(DataclassHasher(), Point(1, 2), registry, length=length)) == length
 
 
 def test_dataclass_hasher_hash_nested_dataclasses() -> None:
@@ -109,17 +104,17 @@ def test_dataclass_hasher_hash_unregistered_field_raises(registry: HasherRegistr
         value: object
 
     with pytest.raises(KeyError):
-        DataclassHasher().hash(Holder(object()), registry=registry)
+        hash_with(DataclassHasher(), Holder(object()), registry)
 
 
 def test_dataclass_hasher_hash_not_a_dataclass_raises(registry: HasherRegistry) -> None:
     with pytest.raises(TypeError, match="Expected a dataclass instance"):
-        DataclassHasher().hash(1, registry=registry)
+        hash_with(DataclassHasher(), 1, registry)
 
 
 def test_dataclass_hasher_hash_dataclass_type_raises(registry: HasherRegistry) -> None:
     with pytest.raises(TypeError, match="Expected a dataclass instance"):
-        DataclassHasher().hash(Point, registry=registry)
+        hash_with(DataclassHasher(), Point, registry)
 
 
 @dataclass
@@ -131,17 +126,15 @@ class WithCache:
 def test_dataclass_hasher_hash_ignores_fields_with_compare_false() -> None:
     registry = get_default_registry()
     hasher = DataclassHasher()
-    assert hasher.hash(WithCache(1, cache=0), registry=registry) == hasher.hash(
-        WithCache(1, cache=5), registry=registry
+    assert hash_with(hasher, WithCache(1, cache=0), registry) == hash_with(
+        hasher, WithCache(1, cache=5), registry
     )
 
 
 def test_dataclass_hasher_hash_uses_fields_with_compare_true() -> None:
     registry = get_default_registry()
     hasher = DataclassHasher()
-    assert hasher.hash(WithCache(1), registry=registry) != hasher.hash(
-        WithCache(2), registry=registry
-    )
+    assert hash_with(hasher, WithCache(1), registry) != hash_with(hasher, WithCache(2), registry)
 
 
 def test_dataclass_hasher_hash_ignores_unhashable_field_with_compare_false() -> None:
@@ -151,6 +144,6 @@ def test_dataclass_hasher_hash_ignores_unhashable_field_with_compare_false() -> 
         other: object = field(default=None, compare=False)
 
     registry = get_default_registry()
-    assert DataclassHasher().hash(Holder(1, object()), registry=registry) == DataclassHasher().hash(
-        Holder(1), registry=registry
+    assert hash_with(DataclassHasher(), Holder(1, object()), registry) == hash_with(
+        DataclassHasher(), Holder(1), registry
     )

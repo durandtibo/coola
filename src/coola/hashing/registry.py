@@ -9,16 +9,12 @@ from __future__ import annotations
 
 __all__ = ["HasherRegistry"]
 
-import threading
-import warnings
 from enum import Enum
 from typing import Any
 
 from coola.hashing.base import Hasher
-from coola.hashing.string import hash_string
-from coola.registry import TypeNotRegisteredError, TypeRegistry
-
-_state = threading.local()
+from coola.hashing.engine import hash_hex
+from coola.registry import TypeRegistry
 
 
 class HasherRegistry(TypeRegistry[Hasher[Any]]):
@@ -109,6 +105,12 @@ class HasherRegistry(TypeRegistry[Hasher[Any]]):
         match). If no hasher is registered for the type or its parent
         types, the fallbacks (see ``register_fallback``) are tried.
 
+        A subclass of ``Enum`` resolves to the hasher of ``Enum`` unless
+        a hasher is registered for the enum class itself (or for a
+        parent that is not a builtin base of the mixin). A member of
+        ``class C(bytes, Enum)`` would otherwise hash as the plain
+        value, like a member of a different enum with the same value.
+
         Args:
             data_type: The Python type to find a hasher for.
 
@@ -131,62 +133,47 @@ class HasherRegistry(TypeRegistry[Hasher[Any]]):
 
             ```
         """
+        if issubclass(data_type, Enum) and self.has(Enum):
+            # A hasher registered for the enum itself (or for ``Enum``) is the most specific one.
+            base = next((base for base in data_type.__mro__ if self.has(base)), Enum)
+            if issubclass(base, Enum):
+                return self.resolve(base)
+            return self.resolve(Enum)
         return self.resolve(data_type)
 
-    def _find_enum_hasher(self, data_type: type) -> Hasher[Any] | None:
-        """Return the ``Enum`` hasher for an enum mixed with another
-        type, or ``None`` if the regular lookup should be used.
+    def hash(self, data: object, *, length: int = 64, ignore_unhashable: bool = False) -> str:
+        r"""Hash the given data.
 
-        A member of ``class C(bytes, Enum)`` would otherwise resolve to
-        the hasher of ``bytes`` and hash as the plain value, like a
-        member of a different enum with the same value.
-        """
-        if not self.has(Enum):
-            return None
-        # A hasher registered for the enum itself (or for ``Enum``) is the
-        # most specific one.
-        base = next((base for base in data_type.__mro__ if self.has(base)), Enum)
-        return None if issubclass(base, Enum) else self.resolve(Enum)
-
-    def hash(self, data: object, length: int = 64, ignore_unhashable: bool = False) -> str:
-        r"""Hash the given data by recursively traversing its structure.
-
-        This is the main entry point for hashing. It automatically:
-
-        1. Determines the data's type.
-        2. Finds the appropriate hasher via ``find_hasher``.
-        3. Delegates to that hasher's ``hash`` method, which recursively
-           processes any nested structures.
+        This is the registry-level entry point for hashing. It finds the
+        hasher of each object with ``find_hasher`` and walks the nested
+        structure with the engine (see ``coola.hashing.engine``). The
+        hash is the first ``length`` characters of the 128-character
+        hex digest, so a hash is the start of the longer ones.
 
         Args:
             data: The data to hash. Can be a nested structure such as
                 a ``list``, ``dict``, or ``tuple``.
-            length: The desired length of the returned hex string. Must be an
-                even number between 2 and 128 inclusive, since each byte of the
-                digest encodes as two hex characters.
+            length: The length of the returned hex string: an even
+                ``int`` between 2 and 128 inclusive.
             ignore_unhashable: If ``True``, objects for which no hasher is
                 registered (including their parent types via MRO) are
                 replaced by a deterministic placeholder hash instead of
-                raising a ``TypeNotRegisteredError``. This also applies to nested
-                objects encountered while recursing into sequences or
-                mappings. The placeholder only depends on the type, so
-                any two unsupported objects of the same type hash the
-                same; a ``UserWarning`` is emitted each time a
-                placeholder is used. Defaults to ``False``, which
-                raises an error.
+                raising a ``TypeNotRegisteredError``. This also applies to
+                nested objects. The placeholder only depends on the type,
+                so any two unsupported objects of the same type hash the
+                same; a ``UserWarning`` is emitted once per type.
+                Defaults to ``False``, which raises an error.
 
         Returns:
             A string representing the hash of the input data.
 
         Raises:
             TypeNotRegisteredError: If no hasher is registered for
-                ``data``'s type (or any of its parent types) and
-                ``ignore_unhashable`` is ``False``. It is a subclass of
-                ``KeyError``.
-            ValueError: If ``length`` is not valid, if ``data``
-                contains itself (a self-referencing container), or if
-                it is nested too deeply for the recursion limit of the
-                interpreter.
+                the type of ``data`` or of a nested object (or any of
+                their parent types) and ``ignore_unhashable`` is
+                ``False``. It is a subclass of ``KeyError``.
+            ValueError: If ``length`` is not valid, or if ``data``
+                contains itself (a self-referencing container).
 
         Example:
             ```pycon
@@ -197,45 +184,6 @@ class HasherRegistry(TypeRegistry[Hasher[Any]]):
 
             ```
         """
-        try:
-            hasher = self._find_enum_hasher(type(data)) if isinstance(data, Enum) else None
-            if hasher is None:
-                hasher = self.find_hasher(type(data))
-        except KeyError as exc:
-            if ignore_unhashable:
-                warnings.warn(
-                    f"No hasher registered for {type(data)!r}: using a type-only placeholder, "
-                    "so all objects of this type hash the same.",
-                    UserWarning,
-                    stacklevel=2,
-                )
-                return hash_string(f"<unhashable:{type(data)!r}>", length=length)
-            if isinstance(exc, TypeNotRegisteredError):
-                msg = (
-                    f"{exc}\nTo hash this type, register a hasher "
-                    f"(`register_hashers({{{type(data).__name__}: ...}})`), "
-                    "give the class a `hash()` method (see `SupportsHash`), "
-                    "or pass `ignore_unhashable=True` to hash a placeholder that only "
-                    "depends on the type."
-                )
-                raise TypeNotRegisteredError(msg) from exc
-            raise
-        active: set[int] | None = getattr(_state, "active", None)
-        if active is None:
-            active = _state.active = set()
-        key = id(data)
-        if key in active:
-            msg = f"Cannot hash a self-referencing {type(data)!r}."
-            raise ValueError(msg)
-        active.add(key)
-        try:
-            return hasher.hash(
-                data, registry=self, length=length, ignore_unhashable=ignore_unhashable
-            )
-        except RecursionError as exc:
-            if len(active) > 1:  # only the outermost call reports the error
-                raise
-            msg = "Cannot hash data that is nested too deeply (maximum recursion depth exceeded)."
-            raise ValueError(msg) from exc
-        finally:
-            active.discard(key)
+        return hash_hex(
+            data, self, length=length, ignore_unhashable=ignore_unhashable, stacklevel=2
+        )

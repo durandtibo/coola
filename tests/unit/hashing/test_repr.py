@@ -8,10 +8,11 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.hashing import HasherRegistry, ReprHasher, hash_enum, hash_tagged
+from coola.hashing import HasherRegistry, ReprHasher, hash_tagged, tagged
 from coola.hashing.repr import _numpy_scalar_to_builtin
 from coola.testing.fixtures import numpy_available
 from coola.utils.imports import is_numpy_available
+from tests.unit.hashing.helpers import hash_with, leaf_hash
 
 if is_numpy_available():
     import numpy as np
@@ -44,124 +45,124 @@ def test_repr_hasher_str() -> None:
     [
         pytest.param(
             1234,
-            "813efc59055b35ec46d4e6971b8c90e67b18f8b0cacd953e0d70493327f568a5",
+            "f6c0da974e8e498878127df2176ce818d5b1dd1f109d364635f0ee4ff5d0b76f",
             id="int",
         ),
         pytest.param(
             0,
-            "07f0eb8b3e8eb4fee6a02c0dc4c857d883793ed1d4fdff4e4cce1ed0bb9bc90c",
+            "55ca561f078b8ee39c12bf706a975da9bd93714cd8d9d4e7c4fbfab330ff0bd2",
             id="int_zero",
         ),
         pytest.param(
             -1,
-            "178ab2776b8954c1cf2805104d2582a0f974ad5dee25a0bd0d12f0791969e70c",
+            "de3827b566bd4de0e65c9ae59680f8f235cd324dbf9e5a3c7db4663d31414685",
             id="int_negative",
         ),
         pytest.param(
             1.5,
-            "d7f06307c8bc1fc0007627151ef4218c1380c4f83507367e5ffcaa908fae3f40",
+            "5ae23551bd86d7cd566f2c064292e3511a0c4077417627d6ec1f45d63b88f960",
             id="float",
         ),
         pytest.param(
             float("inf"),
-            "93b281324bf786c6cef88cdd98f0315df306f8d5b5e62749a3377efcfbfd0944",
+            "77e5af088c11e9a6f7998ba7e3c7482f17fd2c4908a81be6a851c89c669dd0b9",
             id="float_inf",
         ),
         pytest.param(
             True,
-            "d7d4d5d42aa13a2cb19b77506ff0e2cfe278713fecddd620b898d65bc7dc63dd",
+            "b125316ff709ad952976c214852acc80ef2e75dd12dd50a908a204705d373820",
             id="bool_true",
         ),
         pytest.param(
             False,
-            "901ccd048a2483766d509296bdbb1d9863cd49e807968da74103fc1b33d52921",
+            "9958f9ec91be1d950bf8bbce8d9210df87445fa139b8afe6f8aa4900579a4ea6",
             id="bool_false",
         ),
         pytest.param(
             complex(1, 2),
-            "4ee227f701d6a0eaa2429bfb3378dd865abe0e5fc9d303068c0befaffbab41b1",
+            "475b70f206b62fc93989cfc073a63c05b23accc90b082d77d984f4c3c87b1862",
             id="complex",
         ),
         pytest.param(
             complex(0, -1),
-            "34d318d9f41ef50c8a2b4985683cbd6bf7efdbe279d18c70efcccef62730ea04",
+            "5b354564a5c980427ce1193beb6905a6d6778c25cfaa4e69c0c7bad0873d9625",
             id="complex_imaginary",
         ),
         pytest.param(
             None,
-            "633466e4907837d7b866f9a81e2569b137155569e183d55f94b969e4becf2ebe",
+            "f8a2900c635ef9c70d6069a2c035ee698c3f90761c9b302e412a7a36da951ada",
             id="none",
         ),
         pytest.param(
             "hello",
-            "99c8f33e3377a9422a4845c80a7f46d896ae5f08954b2a462420af63c0871549",
+            "a8342aed984ebfd37f29c5c93f45f9e78b833a126929452b394dae3d4ffcfc73",
             id="str",
         ),
         pytest.param(
             [1, 2, 3],
-            "127538d692be01becf3979a9471bae50668ad68398df1197c246d5de213c3576",
+            "7ce70d150ad3b1f5bfa45e5fb3aac39c9f03a720916c2e8478c085a225828012",
             id="list",
         ),
         pytest.param(
             {"a": 1},
-            "8b779e67c126a8c758f22c73c9365bfbe1ba81881d4db992b9c481a05a62b113",
+            "fa58be2a8064c94238cbc3e995631feecc952cf3ed58a9b093be172432da77c0",
             id="dict",
         ),
         pytest.param(
             (1, 2, 3),
-            "7ea790fd3c5ebe3e9fd915fb0a860f85665e6773f000aa9f11d7c82f02e606c1",
+            "0204d5e38046b657b6e5fc9ff2e2364447a4cc84260d5cef0f214a33d24af5c5",
             id="tuple",
         ),
         pytest.param(
             b"bytes",
-            "d6609413d3c33ebac4d08b8046c811a7e9d6ed552b7c8c557cb53b53ec0b85d5",
+            "bfbd7c6379a32f43baed60a8caa5d82a02f30e0a41bfeec239552fc177a4e699",
             id="bytes",
         ),
     ],
 )
 def test_repr_hasher_hash_parametrized(data: Any, expected: str, registry: HasherRegistry) -> None:
-    assert ReprHasher().hash(data, registry=registry) == expected
+    assert hash_with(ReprHasher(), data, registry) == expected
 
 
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "eb848ef1723310c1", id="16"),
-        pytest.param(32, "7cc3d9ac0d2e7aed62365f475e476cd1", id="32"),
+        pytest.param(16, "f6c0da974e8e4988", id="16"),
+        pytest.param(32, "f6c0da974e8e498878127df2176ce818", id="32"),
         pytest.param(
-            64, "813efc59055b35ec46d4e6971b8c90e67b18f8b0cacd953e0d70493327f568a5", id="64-default"
+            64, "f6c0da974e8e498878127df2176ce818d5b1dd1f109d364635f0ee4ff5d0b76f", id="64-default"
         ),
     ],
 )
 def test_repr_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
-    result = ReprHasher().hash(1234, registry=registry, length=length)
+    result = hash_with(ReprHasher(), 1234, registry, length=length)
     assert result == expected
 
 
 @pytest.mark.parametrize("length", [16, 32, 64])
 def test_repr_hasher_hash_length_length_is_respected(length: int, registry: HasherRegistry) -> None:
-    result = ReprHasher().hash(1234, registry=registry, length=length)
+    result = hash_with(ReprHasher(), 1234, registry, length=length)
     assert len(result) == length
 
 
 def test_repr_hasher_hash_returns_str(registry: HasherRegistry) -> None:
-    assert isinstance(ReprHasher().hash(1234, registry=registry), str)
+    assert isinstance(hash_with(ReprHasher(), 1234, registry), str)
 
 
 def test_repr_hasher_hash_is_deterministic(registry: HasherRegistry) -> None:
     hasher = ReprHasher()
-    assert hasher.hash(1234, registry=registry) == hasher.hash(1234, registry=registry)
+    assert hash_with(hasher, 1234, registry) == hash_with(hasher, 1234, registry)
 
 
 def test_repr_hasher_hash_different_values_different_hashes(registry: HasherRegistry) -> None:
     hasher = ReprHasher()
-    assert hasher.hash(1, registry=registry) != hasher.hash(2, registry=registry)
+    assert hash_with(hasher, 1, registry) != hash_with(hasher, 2, registry)
 
 
 def test_repr_hasher_hash_bool_and_int_different_hashes(registry: HasherRegistry) -> None:
     # repr(True) == 'True' and repr(1) == '1', so they must not collide.
     hasher = ReprHasher()
-    assert hasher.hash(True, registry=registry) != hasher.hash(1, registry=registry)
+    assert hash_with(hasher, True, registry) != hash_with(hasher, 1, registry)
 
 
 def test_repr_hasher_hash_uses_repr_not_str_differs_from_the_str_hash(
@@ -178,7 +179,7 @@ def test_repr_hasher_hash_uses_repr_not_str_differs_from_the_str_hash(
     obj = MyObj()
     hasher = ReprHasher()
     tag = f"{type(obj).__module__}.{type(obj).__qualname__}"
-    assert hasher.hash(obj, registry=registry) != hash_tagged(tag, str(obj))
+    assert hash_with(hasher, obj, registry) != hash_tagged(tag, str(obj))
 
 
 def test_repr_hasher_hash_uses_repr_not_str_equals_the_repr_hash(registry: HasherRegistry) -> None:
@@ -193,52 +194,54 @@ def test_repr_hasher_hash_uses_repr_not_str_equals_the_repr_hash(registry: Hashe
     obj = MyObj()
     hasher = ReprHasher()
     tag = f"{type(obj).__module__}.{type(obj).__qualname__}"
-    assert hasher.hash(obj, registry=registry) == hash_tagged(tag, repr(obj))
+    assert hash_with(hasher, obj, registry) == leaf_hash(tagged(tag, repr(obj)))
 
 
 def test_repr_hasher_hash_ignore_unhashable_has_no_effect(registry: HasherRegistry) -> None:
     # ReprHasher is a leaf hasher — ignore_unhashable is accepted for
     # interface consistency but has no effect since it never recurses.
     hasher = ReprHasher()
-    assert hasher.hash(1234, registry=registry) == hasher.hash(
-        1234, registry=registry, ignore_unhashable=True
+    assert hash_with(hasher, 1234, registry) == hash_with(
+        hasher, 1234, registry, ignore_unhashable=True
     )
 
 
 def test_repr_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> None:
     empty_registry = HasherRegistry()
     hasher = ReprHasher()
-    assert hasher.hash(1234, registry=registry) == hasher.hash(1234, registry=empty_registry)
+    assert hash_with(hasher, 1234, registry) == hash_with(hasher, 1234, empty_registry)
 
 
 def test_repr_hasher_hash_negative_zero_equals_zero(registry: HasherRegistry) -> None:
     hasher = ReprHasher()
-    assert hasher.hash(-0.0, registry=registry) == hasher.hash(0.0, registry=registry)
+    assert hash_with(hasher, -0.0, registry) == hash_with(hasher, 0.0, registry)
 
 
 def test_repr_hasher_hash_negative_zero_complex_components_zero(registry: HasherRegistry) -> None:
     hasher = ReprHasher()
-    assert hasher.hash(complex(-0.0, -0.0), registry=registry) == hasher.hash(0j, registry=registry)
+    assert hash_with(hasher, complex(-0.0, -0.0), registry) == hash_with(hasher, 0j, registry)
 
 
 def test_repr_hasher_hash_negative_zero_complex_components_imaginary_part(
     registry: HasherRegistry,
 ) -> None:
     hasher = ReprHasher()
-    assert hasher.hash(complex(-0.0, 1.0), registry=registry) == hasher.hash(
-        complex(0.0, 1.0), registry=registry
+    assert hash_with(hasher, complex(-0.0, 1.0), registry) == hash_with(
+        hasher, complex(0.0, 1.0), registry
     )
 
 
 def test_repr_hasher_hash_zero_differs_from_one(registry: HasherRegistry) -> None:
     hasher = ReprHasher()
-    assert hasher.hash(0.0, registry=registry) != hasher.hash(1.0, registry=registry)
+    assert hash_with(hasher, 0.0, registry) != hash_with(hasher, 1.0, registry)
 
 
 @numpy_available
 def test_repr_hasher_numpy_scalar_without_builtin_equivalent(registry: HasherRegistry) -> None:
     value = np.datetime64("2020-01-01")
-    assert ReprHasher().hash(value, registry) == hash_tagged("numpy.datetime64", repr(value))
+    assert hash_with(ReprHasher(), value, registry) == leaf_hash(
+        tagged("numpy.datetime64", repr(value))
+    )
 
 
 def test_repr_hasher_hash_user_class_does_not_share_the_tag_of_a_builtin_name(
@@ -249,34 +252,30 @@ def test_repr_hasher_hash_user_class_does_not_share_the_tag_of_a_builtin_name(
             return "Decimal('1')"
 
     hasher = ReprHasher()
-    assert hasher.hash(Decimal(), registry) != hash_tagged("Decimal", "Decimal('1')")
+    assert hash_with(hasher, Decimal(), registry) != hash_tagged("Decimal", "Decimal('1')")
 
 
 def test_repr_hasher_hash_builtin_class_keeps_the_bare_name(registry: HasherRegistry) -> None:
-    assert ReprHasher().hash(None, registry) == hash_tagged("NoneType", "None")
+    assert hash_with(ReprHasher(), None, registry) == leaf_hash(tagged("NoneType", "None"))
 
 
 def test_repr_hasher_hash_int_above_str_conversion_limit(registry: HasherRegistry) -> None:
     hasher = ReprHasher()
-    assert hasher.hash(10**5000, registry) == hasher.hash(10**5000, registry)
+    assert hash_with(hasher, 10**5000, registry) == hash_with(hasher, 10**5000, registry)
 
 
 def test_repr_hasher_hash_int_above_str_conversion_limit_different_values(
     registry: HasherRegistry,
 ) -> None:
     hasher = ReprHasher()
-    assert hasher.hash(10**5000, registry) != hasher.hash(10**5000 + 1, registry)
+    assert hash_with(hasher, 10**5000, registry) != hash_with(hasher, 10**5000 + 1, registry)
 
 
 def test_repr_hasher_hash_int_above_str_conversion_limit_negative(
     registry: HasherRegistry,
 ) -> None:
     hasher = ReprHasher()
-    assert hasher.hash(-(10**5000), registry) != hasher.hash(10**5000, registry)
-
-
-def test_repr_hasher_hash_enum_member_of_int_mixin(registry: HasherRegistry) -> None:
-    assert ReprHasher().hash(MixedInt.ONE, registry) == hash_enum(MixedInt.ONE)
+    assert hash_with(hasher, -(10**5000), registry) != hash_with(hasher, 10**5000, registry)
 
 
 ##########################################
@@ -295,12 +294,10 @@ def test_repr_hasher_repr_with_tag() -> None:
 
 
 def test_repr_hasher_hash_explicit_tag(registry: HasherRegistry) -> None:
-    assert ReprHasher("timedelta").hash(timedelta(days=1), registry=registry) == hash_tagged(
-        "timedelta", repr(timedelta(days=1))
+    assert hash_with(ReprHasher("timedelta"), timedelta(days=1), registry) == leaf_hash(
+        tagged("timedelta", repr(timedelta(days=1)))
     )
 
 
 def test_repr_hasher_hash_explicit_tag_keeps_the_builtin_scalars(registry: HasherRegistry) -> None:
-    assert ReprHasher("timedelta").hash(1, registry=registry) == ReprHasher().hash(
-        1, registry=registry
-    )
+    assert hash_with(ReprHasher("timedelta"), 1, registry) == hash_with(ReprHasher(), 1, registry)
