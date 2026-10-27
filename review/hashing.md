@@ -28,9 +28,9 @@ code. Nothing in `src`, `tests` or `docs` was changed.
 3. **Consistent with equality.** "Equality drives hashing, not the reverse": equal objects must have
    the same hash, and where a hasher disagrees with `objects_are_equal` the hasher is changed
    (F7, F8).
-4. **No slower than today, and the gate exists.** There is no hashing benchmark in
-   `tests/benchmarks/` today **[verified]**. Step 1 adds one before anything else changes; a design
-   that is simpler but slower is rejected (section 8).
+4. **No slower than today, and the gate exists.** `tests/benchmarks/test_hashing_benchmark.py` was
+   added with this document, and the baseline of `main` is saved (appendix). A design that is
+   simpler but slower is rejected (section 8).
 5. **Consistent with the siblings.** The same input is handled the same way by `equality`,
    `summary`, `recursive`, `iterator` and `hashing`: dataclasses are entered, cycles are detected,
    there is no `RecursionError`, options are keyword-only, the engine owns the invariants and the
@@ -87,7 +87,7 @@ Not guaranteed, and documented as such:
 | F3  | **A DAG costs one visit per path.** `x = [x, x]` repeated 20 times has 20 objects and 2^20 paths: 4.2 s (0.26 s at 16 levels). Hashing is pure, so a container that was already hashed in the call can be reused (the prototype does 60 levels in 0.1 ms).                                                                                                                                                                                                                                                                                                          | **[verified]** |
 | F4  | **`UserString` cannot be hashed.** It is a `Sequence` whose items are `UserString` again, so `SequenceHasher` recurses until the limit and the user gets "nested too deeply". The same trap exists for any `Sequence` of itself.                                                                                                                                                                                                                                                                                                                                    | **[verified]** |
 | F5  | **The hasher contract is heavy.** `hash(data, registry, *, length, ignore_unhashable) -> str`: the 31 implementations repeat four parameters, 30 `# noqa: ARG002` silence the ones they do not use, and a hasher that recurses must remember to forward two of them. `length` is applied to **every node**, so `hash_object(x, length=16)` is not a prefix of `hash_object(x)` and a leaf function (`hash_string`, `hash_tagged`, `hash_bytes`, `hash_enum`, `hash_path`) each validates it again.                                                                  | **[reading]**  |
-| F6  | **Speed.** 1.4 µs per item of a list and 3.1 µs per item of a dict (100,000 items: 141 ms and 312 ms; a set: 164 ms). A fresh `blake2b` per leaf and per container, a hex round trip for each digest, a registry lookup per node (no per-call cache), no hashing benchmark.                                                                                                                                                                                                                                                                                         | **[verified]** |
+| F6  | **Speed.** 1.4 µs per item of a list and 3.1 µs per item of a dict (100,000 items: 141 ms and 312 ms; a set: 164 ms). A fresh `blake2b` per leaf and per container, a hex round trip for each digest, a registry lookup per node (no per-call cache). There was no hashing benchmark before this document.                                                                                                                                                                                                                                                          | **[verified]** |
 | F7  | **Equal objects with different hashes.** A dataclass with a `compare=False` field (equal for `objects_are_equal`, hash differs); a pandas `Series` named `None` and one named `NaN` (equal, hash differs). This is the open item 14.7 of `suggestions.md` (22.9); no test covers it today. `MappingProxyType` is equal to an equal proxy but cannot be hashed (14.4).                                                                                                                                                                                               | **[verified]** |
 | F8  | **Type-sensitivity gaps.** A `memoryview` hashes like a `bytes` with the same content (same tag, and `objects_are_equal` says they differ). The tags have no rule: `ReprHasher` uses the module-qualified class name, `StrHasher` the bare one (`str:UUID`, so a user class named `UUID` registered with `StrHasher` collides with `uuid.UUID`), `DatetimeHasher` the bare `__qualname__`, `SequenceHasher` a free string.                                                                                                                                          | **[verified]** |
 | F9  | **The enum-mixin rule is written three times.** `(str, Enum)`, `(int, Enum)` and `(bytes, Enum)` members would resolve to the hasher of the base type: `HasherRegistry._find_enum_hasher`, `StringHasher.hash` and `ReprHasher.hash` each handle it.                                                                                                                                                                                                                                                                                                                | **[reading]**  |
@@ -545,7 +545,7 @@ puts the measurement and the fixes that do not depend on the new engine first.
 
 | Step | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Breaking                         |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| 1    | **Benchmark (F6).** Add `tests/benchmarks/test_hashing_benchmark.py` with the inputs of section 6 (scalar, small dict, tree, flat list, str, dict, set, small dicts, deep list up to the current limit, NumPy array) and save the baseline of `main`. No source change.                                                                                                                                                                                                                              | no                               |
+| 1    | **Benchmark (F6). Done with this document.** `tests/benchmarks/test_hashing_benchmark.py` (22 benchmarks, only `hash_object(data)`), baseline of `main` saved in `.benchmarks/` (appendix). No source change.                                                                                                                                                                                                                                                                                        | no                               |
 | 2    | **Fix the documentation (F13).** The wrong docstrings and comments of `interface.py` and `registry.py`, the positional form in the guide; add the **Properties** table of section 1 at the top of the guide page and in the package docstring. Documentation only.                                                                                                                                                                                                                                   | no                               |
 | 3    | **Equality-consistency and type-sensitivity (F4, F7, F8).** `DataclassHasher` hashes only `compare=True` fields; a `NaN` pandas name is `None`; register `MappingProxyType`; register `UserString`; a `memoryview` gets its own tag; give `StrHasher` and `ReprHasher` the same tag rule. One regression test per defect, checked to fail without the fix (`git stash push src`).                                                                                                                    | yes (hash values)                |
 | 4    | **Engine and `encode` contract (F1 to F3, F5, F6, F9, F14, F15).** Add `engine.py`, `Node`, `tagged`, `digest`; change `Hasher`/`BaseHasher` to `encode`; port the built-in hashers and the library hashers; the registry delegates to the engine and gets the enum rule; delete the thread-local state, the recursion translation, the `ARG002` noqa and the leaf functions' `length` plumbing; validate `length` once. Rewrite the unit tests of each hasher on `encode`. Benchmark gate.          | yes (custom hashers, all hashes) |
@@ -606,7 +606,7 @@ seeded data).
   library (NumPy, torch, JAX, pandas, polars, pyarrow, xarray, pydantic), with no patching;
   `PYTHONHASHSEED` independence (a subprocess).
 - **Doctests** run as part of the docstrings; the guide examples are doctests.
-- **Benchmark gate** (`tests/benchmarks/test_hashing_benchmark.py`, step 1): the new engine must not
+- **Benchmark gate** (`tests/benchmarks/test_hashing_benchmark.py`, appendix): the new engine must not
   be slower than `main` on any input (target: at most the numbers of `main`; expected: 1.3 to 2.0
   times faster on containers). A failing gate rejects the step.
 - Coverage: 100 % of `src/coola/hashing` (`--cov=coola`), no `# pragma: no cover`.
@@ -716,3 +716,58 @@ extension of the class and is not needed otherwise: leave it out until someone a
 
 The line counts are estimates from the prototype and from the code to delete; the gate is the
 behaviour (sections 1 and 8), not the size.
+
+## Appendix: benchmark of the old implementation
+
+Baseline of `tests/benchmarks/test_hashing_benchmark.py` on the current implementation, to measure the
+progress of the steps of section 7. The benchmarks only use `hash_object(data)` with the default
+registry, so they run unchanged on the new design (no internals of the package). Run them with
+`inv test.benchmark` (or `pytest tests/benchmarks/test_hashing_benchmark.py --benchmark-only
+--benchmark-save=<name>`, then `--benchmark-compare=<name>`).
+
+Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark` 5.3. One run, nothing else heavy
+running, `main` at `314682c6` (`src/coola/hashing` identical to `d2e60e6fc`). The raw results are
+saved in `.benchmarks/Darwin-CPython-3.14-64bit/0009_hashing_old_314682c6.json`. Save the run of the
+new engine next to it and compare with `pytest --benchmark-compare=0009 --benchmark-only`. The
+absolute numbers depend on the machine; read the speed-ups (old time / new time: above 1 is faster).
+
+| Benchmark (`test_hash_object_<name>_benchmark`) | Input                                                                                      | Old median | Old min   | Gate (new median, at most) | Expected (section 6) |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------- | --------- | -------------------------- | -------------------- |
+| `scalar`                                        | `1`                                                                                        | 1.6 µs     | 1.5 µs    | 1.6 µs                     | about the same       |
+| `empty_list`                                    | `[]`                                                                                       | 1.2 µs     | 1.0 µs    | 1.2 µs                     | about the same       |
+| `small_dict`                                    | `{"a": 1, "b": [2, 3], "c": {"d": 4}}`                                                     | 13.8 µs    | 13.4 µs   | 13.8 µs                    | 1.3x                 |
+| `dataclass`                                     | a dataclass of a `str`, a `float` and a list of two `str`                                  | 12.3 µs    | 11.7 µs   | 12.3 µs                    | 1.3x                 |
+| `deep_list[10]`                                 | list nested 10 times                                                                       | 11.7 µs    | 11.4 µs   | 11.7 µs                    | 1.2x                 |
+| `deep_list[100]`                                | list nested 100 times                                                                      | 110.0 µs   | 108.0 µs  | 110.0 µs                   | 1.2x                 |
+| `deep_list[300]`                                | list nested 300 times                                                                      | 327.6 µs   | 321.2 µs  | 327.6 µs                   | 1.2x                 |
+| `list_of_numpy_arrays`                          | 1,000 arrays of 10 `float64`                                                               | 3.85 ms    | 3.74 ms   | 3.85 ms                    | about the same       |
+| `numpy_array`                                   | 1,000,000 `float64`                                                                        | 8.66 ms    | 8.59 ms   | 8.66 ms                    | about the same       |
+| `bytes`                                         | 10 MB of `bytes`                                                                           | 9.76 ms    | 9.68 ms   | 9.76 ms                    | about the same       |
+| `tree[4-10]`                                    | depth 4, width 10 (10^4 leaves)                                                            | 17.25 ms   | 17.01 ms  | 17.25 ms                   | 1.6x                 |
+| `tree[14-2]`                                    | depth 14, width 2 (2^14 leaves)                                                            | 59.34 ms   | 56.15 ms  | 59.34 ms                   | 1.6x                 |
+| `tree[10-3]`                                    | depth 10, width 3 (59,049 leaves)                                                          | 145.75 ms  | 144.40 ms | 145.75 ms                  | 1.6x                 |
+| `flat_list_of_strings`                          | list of 100,000 `str`                                                                      | 105.39 ms  | 104.25 ms | 105.39 ms                  | 1.5x                 |
+| `list_of_small_dicts`                           | 10,000 dicts of an int, a list and a tuple                                                 | 115.52 ms  | 113.85 ms | 115.52 ms                  | 1.4x                 |
+| `list_of_dataclasses`                           | 10,000 dataclasses (`str`, `float`, list of two `str`)                                     | 123.72 ms  | 121.85 ms | 123.72 ms                  | 1.4x                 |
+| `flat_tuple`                                    | tuple of 100,000 ints                                                                      | 145.76 ms  | 145.13 ms | 145.76 ms                  | 2.0x                 |
+| `flat_list`                                     | list of 100,000 ints                                                                       | 146.44 ms  | 145.64 ms | 146.44 ms                  | 2.0x                 |
+| `mixed_containers`                              | list, tuple, `deque`, set, `frozenset`, `OrderedDict`, named tuples and `str`, 10,000 each | 160.52 ms  | 158.84 ms | 160.52 ms                  | 1.5x                 |
+| `flat_list_of_floats`                           | list of 100,000 `float`                                                                    | 163.57 ms  | 159.73 ms | 163.57 ms                  | 2.0x                 |
+| `flat_set`                                      | set of 100,000 ints                                                                        | 172.21 ms  | 170.83 ms | 172.21 ms                  | 1.8x                 |
+| `flat_dict`                                     | dict of 100,000 ints                                                                       | 324.46 ms  | 322.43 ms | 324.46 ms                  | 1.7x                 |
+
+Reading the numbers:
+
+- **The cost is per node: about 1.4 µs per item of a list or a tuple, 1.7 µs per item of a set and
+  3.2 µs per item of a dict** (a key and a value). Flat containers of 100,000 items take 145 to 325 ms.
+  The deep list costs 1.1 µs per level, linear and recursive.
+- **The array and `bytes` benchmarks measure BLAKE2b and the canonicalisation**, not the engine
+  (10 MB in 9.8 ms, 8 MB of `float64` in 8.7 ms), so the new engine should not change them; they are
+  the guard that the `digest(raw)` reduction of section 3.1 does not copy the buffer.
+- **"Expected" is the ratio of the prototype of section 6** on the nearest input, not a promise: the
+  real `encode` is a method call and a `Node` per container, so the real engine will be somewhat
+  slower than the prototype. The gate is the "at most the old median" column.
+- A list nested 500 levels deep raises `ValueError` on this implementation (F2), so the benchmark
+  stops at 300. Add deeper cases (for example 10,000 and 100,000 levels), and a DAG (`x = [x, x]`
+  nested 20 times, 4.2 s on this implementation), once the explicit stack and the memo have landed:
+  they cannot run on the old design.
