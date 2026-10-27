@@ -243,9 +243,27 @@ class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
             and self.has(DataclassMarker)
             and self.has(object)
             and handler is self.find(object)
+            and self._accepts_dataclass_marker(data_type)
         ):
             return self.find(DataclassMarker)
         return handler
+
+    def _accepts_dataclass_marker(self, data_type: type) -> bool:  # noqa: ARG002
+        r"""Indicate if a dataclass can use the handler of
+        ``DataclassMarker``.
+
+        A registry overrides this method to keep the dataclasses that
+        must not use the marker handler. By default, every dataclass
+        can use it.
+
+        Args:
+            data_type: The dataclass type.
+
+        Returns:
+            ``True`` if the dataclass can use the handler of
+                ``DataclassMarker``.
+        """
+        return True
 
     def unregister(self, data_type: type) -> V:
         r"""Remove the handler registered for a given data type.
