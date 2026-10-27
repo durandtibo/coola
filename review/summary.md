@@ -289,6 +289,7 @@ common use of the default `max_depth=1` (decision D4).
 Rules (the examples are the output of the prototype of section 7):
 
 ```
+>>> from coola.summary import summarize
 >>> print(summarize({"a": [1, 2, 3, 4, 5, 6, 7], "b": {"c": {1, 2}, "d": "x\ny"}}, max_depth=3))
 <class 'dict'> (length=2)
   (a): <class 'list'> (length=7)
@@ -313,6 +314,7 @@ Rules (the examples are the output of the prototype of section 7):
 <class 'list'> (length=2)
   (0): <class 'int'> 1
   (1): <cycle>
+
 ```
 
 - A node is `header`, then its children one level deeper, then `... (+N more)` if some are not shown.

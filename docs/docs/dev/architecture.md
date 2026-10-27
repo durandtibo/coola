@@ -265,6 +265,18 @@ invariants: the transformer lookup (by MRO, cached for the call), the call of `f
 the cycle check and the depth (an explicit stack, so there is no `RecursionError`). This is the same
 split as the equality engine, where a tester returns the child pairs.
 
+### Summary
+
+`summarize` uses one engine (`coola.summary.engine`), one extension point and one option object
+(`SummaryConfig`). A summarizer only describes one type: `summarize(data, config, *, compact)`
+returns a `str` for a leaf, or a `Node` (a header, the lazy `(label, child)` pairs and their number)
+for a container. The engine owns the invariants: the summarizer lookup (by MRO), the display depth,
+`max_items` and `max_characters`, the cycle check, the layout, and the errors (a summarizer that
+raises is replaced by a placeholder). It walks the nodes with an explicit stack, so there is no
+`RecursionError`. A container at the display depth is shown on one line by `CompactRepr`, whose work
+is bounded by `max_items`, so the cost depends on the size of the summary and not on the size of the
+data. This is the same split as the equality and the recursive engines.
+
 ### Depth
 
 The engine does not recurse (see [Design of `coola.equality`](#design-of-coolaequality)), so a deep
