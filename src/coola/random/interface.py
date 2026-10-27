@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.random.python import PythonRandomManager
 from coola.random.registry import RandomManagerRegistry
-from coola.utils.imports import import_object, is_numpy_available, is_torch_available
+from coola.utils.imports import is_numpy_available, is_torch_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
@@ -226,15 +226,18 @@ def _register_default_managers(registry: RandomManagerRegistry) -> None:
         This function is called internally by get_default_registry() and should
         not typically be called directly by users.
     """
-    managers: dict[str, BaseRandomManager] = {"random": PythonRandomManager()}
+    registry.register("random", PythonRandomManager())
     # The managers of the optional libraries are imported here, not with ``coola.random``. They
     # must be in the registry before the first seed, because the RNG of a library has to be
     # seeded even if the library is imported later.
-    if is_numpy_available():  # pragma: no cover
-        managers["numpy"] = import_object("coola.random.numpy:NumpyRandomManager")()
-    if is_torch_available():  # pragma: no cover
-        managers["torch"] = import_object("coola.random.torch:TorchRandomManager")()
-    registry.register_many(managers)
+    if is_numpy_available():
+        from coola.random.numpy import NumpyRandomManager  # noqa: PLC0415
+
+        registry.register("numpy", NumpyRandomManager())
+    if is_torch_available():
+        from coola.random.torch import TorchRandomManager  # noqa: PLC0415
+
+        registry.register("torch", TorchRandomManager())
 
 
 _default_registry: LazySingleton[RandomManagerRegistry] = make_default_registry_singleton(
