@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import Counter, OrderedDict, deque, namedtuple
 from collections.abc import Iterator, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import pytest
@@ -36,6 +36,12 @@ Coord = namedtuple("Coord", ["x", "y"])  # noqa: PYI024
 class Point:
     x: int
     y: int
+
+
+@dataclass
+class Credentials:
+    name: str
+    token: str = field(default="", repr=False)
 
 
 @dataclass
@@ -215,6 +221,10 @@ def test_render_set() -> None:
 
 def test_render_dataclass() -> None:
     assert run(Point(1, 2)) == f"{Point} (fields=2)\n  (x): 1\n  (y): 2"
+
+
+def test_render_dataclass_does_not_print_the_field_without_repr() -> None:
+    assert "secret" not in run(Credentials("a", "secret"), max_depth=3)
 
 
 def test_render_dataclass_at_the_display_depth() -> None:
