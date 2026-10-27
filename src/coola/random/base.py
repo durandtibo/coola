@@ -24,6 +24,26 @@ class BaseRandomManager(ABC):
 
     The ``seed`` context manager is implemented with these methods.
 
+    A manager follows this contract:
+
+    1. ``get_rng_state`` returns an opaque object that does not alias
+        the live generator: drawing a number afterwards does not change
+        it.
+    2. ``set_rng_state(get_rng_state())`` leaves the draws unchanged.
+    3. ``manual_seed`` validates the seed with ``validate_seed`` before
+        it touches a generator, and the same seed gives the same draws.
+        ``seed`` validates the seed too, so a manager gets the seed
+        domain even if its ``manual_seed`` does not check.
+    4. A manager is stateless and cheap to build: it is shared by
+        registries, equal to another instance of its class and
+        hashable (``__eq__`` and ``__hash__``).
+    5. Building a manager of an uninstalled library raises an
+        ``ImportError``.
+
+    Only the global generators are managed. The generators created by
+    the user (``random.Random()``, ``numpy.random.default_rng()``,
+    ``torch.Generator()``) are not.
+
     Example:
         ```pycon
         >>> from coola.random import TorchRandomManager
