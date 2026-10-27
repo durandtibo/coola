@@ -340,12 +340,16 @@ method. The price is that a custom reducer is ported once (the migration page). 
 both and fix `sort` in `BaseBasicReducer`; less breaking, but the empty-case property still depends
 on which class the author picked.
 
+Decision: one
+
 **D2. How strict is the input?** _Recommended: strict (sequence of reals, or 1-D array / tensor of the
 backend; everything else is an error with the same message)._ A silent flatten of a 2-D array (F3)
 gives a number that looks right and is not; a set is accepted by one backend and not the others
 (F2). Alternative: be liberal, convert everything with `np.asarray` / `torch.as_tensor` and
 document the differences; shorter code, but the same call changes meaning with `auto_reducer`. The
 strictness costs one `isinstance` and one `ndim` check per call (nanoseconds against a 2.8 µs call).
+
+Decision: strict
 
 **D3. Does `auto_reducer` look at the values?** _Recommended: no._ `auto_reducer()` returns NumPy,
 then native; a tensor on a device is a reason to write `TorchReducer()`. A signature
@@ -354,11 +358,15 @@ default otherwise is about ten lines and a second dispatch; it can be added late
 anything, once a consumer asks. Alternative: keep "torch first" so that tensors are always handled;
 rejected on the measurements of F6 (slower on lists, 0.94 s of import).
 
+Decision: no
+
 **D4. `__eq__` and `__hash__` for reducers?** _Recommended: no._ A reducer is stateless but the user
 rarely compares two of them; the `equal` methods that the summary design deletes (`review/summary.md`,
 F3) carry no information either. If an `__eq__` is wanted (for example to cache a function by its
 reducer), `type(a) is type(b)` is one line for the base class and does not change the design.
 `InlineDisplayMixin` (the `repr`) stays: it costs nothing.
+
+Decision: no
 
 **D5. Keep `TorchReducer` at all?** _Recommended: yes._ It is the only backend for a tensor that lives
 on a GPU, and tensors are the data of the users of the sibling packages (`equality`, `summary`
@@ -367,11 +375,15 @@ median that is not the library's). The step 4 cleanup (one converter, the shared
 down; dropping it would be a decision about the scope of `coola`, not about this package, and
 nothing in `src` depends on it (F11).
 
+Decision: yes
+
 **D6. `NativeReducer.mean` exact or fast?** _Recommended: `statistics.fmean`._ The exact mean of
 `statistics.mean` is irrelevant to the cross-backend tolerance (NumPy and torch already differ in the
 last bit), and the time (104 ms against 6.8 ms) is the largest gap of the package. `fmean` also
 returns a `float` for ints, which is the documented result type. Alternative: keep `mean` and accept
 that the native reducer is 5 times slower than NumPy for the one method that is used the most.
+
+Decision: fmean
 
 ## 10. Not covered
 
