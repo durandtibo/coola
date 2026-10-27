@@ -5,13 +5,17 @@ from __future__ import annotations
 __all__ = ["TypeRegistry"]
 
 from collections import Counter
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar
 
 from coola.registry.base import BaseRegistry
-from coola.registry.exceptions import TypeNotRegisteredError
+from coola.registry.exceptions import (
+    AlreadyRegisteredError,
+    KeyNotRegisteredError,
+    TypeNotRegisteredError,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, ItemsView, Iterable
 
 T = TypeVar("T")
 
@@ -41,6 +45,12 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
     entries. It holds strong references to the types, so a dynamically
     created class stays alive until the cache is reset.
 
+    A type that cannot be a key (every dataclass, the classes that define a
+    method, the virtual subclasses of an abstract base class) is supported by
+    registering a fallback predicate with ``register_fallback``. The order of
+    precedence of ``resolve()`` is: the registered types (MRO order, ``object``
+    excluded), then the fallbacks (registration order), then ``object``.
+
     Note:
         ``resolve()`` walks ``dtype.__mro__``, which reflects real (static)
         inheritance only. Virtual subclasses registered via
@@ -65,6 +75,8 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         _state: Internal dictionary storing the type-value pairs.
         _cache: Bounded dictionary of type resolution lookups, filled under the lock and
             replaced by an empty one on any change.
+        _fallbacks: The ``(predicate, handler)`` pairs in registration order. The
+            dictionary is replaced on write, never mutated.
         _lock: Threading lock for synchronizing access to both state and cache.
 
     Example:
@@ -149,6 +161,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         # Bounded cache for type lookups. Only writers holding the lock add an entry,
         # so readers can look up a type without locking.
         self._cache: dict[type, T] = {}
+        self._fallbacks: dict[Callable[[type], bool], T] = {}
 
     _not_registered_error = TypeNotRegisteredError
 
@@ -201,6 +214,198 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             f"Types already registered: {', '.join(sorted(map(str, duplicates)))}. "
             "Use different types or set exist_ok=True to override."
         )
+
+    def _pending_msg(self) -> str:
+        lines = [
+            f"(fallback) {predicate!r}: {handler}" for predicate, handler in self._fallbacks.items()
+        ]
+        pending = super()._pending_msg()
+        if pending:
+            lines.append(pending)
+        return "\n  ".join(lines)
+
+    def copy(self) -> Self:
+        r"""Create a copy of the registry.
+
+        The copy has the same entries, the same fallbacks and the same
+        pending lazy groups as the registry, and is independent from it.
+        The keys, the predicates and the values are not copied.
+
+        Returns:
+            A new registry of the same class.
+
+        Example:
+            ```pycon
+            >>> from dataclasses import is_dataclass
+            >>> from coola.registry import TypeRegistry
+            >>> registry = TypeRegistry[str]({object: "object"})
+            >>> registry.register_fallback(is_dataclass, "dataclass")
+            >>> other = registry.copy()
+            >>> other.unregister_fallback(is_dataclass)
+            'dataclass'
+            >>> len(registry.fallbacks())
+            1
+
+            ```
+        """
+        with self._lock:
+            fallbacks = self._fallbacks
+            new = super().copy()
+        new._fallbacks = fallbacks  # Replaced on write, so it can be shared
+        return new
+
+    def clear(self) -> None:
+        r"""Remove all the entries, the fallbacks and the pending lazy
+        groups from the registry.
+
+        Example:
+            ```pycon
+            >>> from dataclasses import is_dataclass
+            >>> from coola.registry import TypeRegistry
+            >>> registry = TypeRegistry[str]({int: "int"})
+            >>> registry.register_fallback(is_dataclass, "dataclass")
+            >>> registry.clear()
+            >>> len(registry), len(registry.fallbacks())
+            (0, 0)
+
+            ```
+        """
+        with self._lock:
+            self._fallbacks = {}
+            super().clear()
+
+    def equal(self, other: object, equal_nan: bool = False) -> bool:
+        r"""Indicate if two objects are equal or not.
+
+        Two registries are equal if they have the same class, the same
+        entries and the same fallbacks (predicates and handlers).
+
+        Args:
+            other: The object to compare with.
+            equal_nan: If ``True``, then two ``NaN``s will be
+                considered equal.
+
+        Returns:
+            ``True`` if the two objects are equal, otherwise ``False``.
+
+        Example:
+            ```pycon
+            >>> from dataclasses import is_dataclass
+            >>> from coola.registry import TypeRegistry
+            >>> registry1 = TypeRegistry[str]({int: "int"})
+            >>> registry2 = TypeRegistry[str]({int: "int"})
+            >>> registry1.equal(registry2)
+            True
+            >>> registry2.register_fallback(is_dataclass, "dataclass")
+            >>> registry1.equal(registry2)
+            False
+
+            ```
+        """
+        if not isinstance(other, TypeRegistry) or not super().equal(other, equal_nan=equal_nan):
+            return False
+        return self._fallbacks == other._fallbacks
+
+    def register_fallback(
+        self, predicate: Callable[[type], bool], value: T, *, exist_ok: bool = False
+    ) -> None:
+        r"""Register a value for the types accepted by a predicate.
+
+        A fallback supports the types that cannot be a key of the
+        registry, for example every dataclass, the classes that define a
+        method, or the virtual subclasses of an abstract base class.
+        ``resolve`` tries the fallbacks, in registration order, only if
+        no registered type (``object`` excluded) matches, and before
+        ``object``. The predicate must be pure and cheap: its result is
+        cached per type until the next change of the registry. A
+        predicate that raises propagates and is not cached.
+
+        Args:
+            predicate: A function that takes a type and returns
+                ``True`` if ``value`` handles it.
+            value: The value to return for the types accepted by
+                ``predicate``.
+            exist_ok: If ``False`` (default), raises an error if the
+                predicate is already registered. If ``True``, replaces
+                the value and keeps the position of the predicate.
+
+        Raises:
+            AlreadyRegisteredError: If the predicate is already
+                registered and ``exist_ok`` is ``False``.
+
+        Example:
+            ```pycon
+            >>> from collections.abc import Sequence
+            >>> from collections import deque
+            >>> from coola.registry import TypeRegistry
+            >>> registry = TypeRegistry[str]({object: "object"})
+            >>> registry.register_fallback(lambda t: issubclass(t, Sequence), "sequence")
+            >>> registry.resolve(deque)
+            'sequence'
+
+            ```
+        """
+        with self._lock:
+            if predicate in self._fallbacks and not exist_ok:
+                msg = (
+                    f"A fallback is already registered for {predicate!r}. "
+                    "Set exist_ok=True to override."
+                )
+                raise AlreadyRegisteredError(msg)
+            self._fallbacks = {**self._fallbacks, predicate: value}
+            self._invalidate()
+
+    def unregister_fallback(self, predicate: Callable[[type], bool]) -> T:
+        r"""Remove a fallback and return its value.
+
+        Args:
+            predicate: The predicate given to ``register_fallback``.
+
+        Returns:
+            The value that was registered with the predicate.
+
+        Raises:
+            KeyNotRegisteredError: If the predicate is not registered.
+
+        Example:
+            ```pycon
+            >>> from dataclasses import is_dataclass
+            >>> from coola.registry import TypeRegistry
+            >>> registry = TypeRegistry[str]()
+            >>> registry.register_fallback(is_dataclass, "dataclass")
+            >>> registry.unregister_fallback(is_dataclass)
+            'dataclass'
+
+            ```
+        """
+        with self._lock:
+            if predicate not in self._fallbacks:
+                msg = f"No fallback is registered for {predicate!r}"
+                raise KeyNotRegisteredError(msg)
+            fallbacks = dict(self._fallbacks)
+            value = fallbacks.pop(predicate)
+            self._fallbacks = fallbacks
+            self._invalidate()
+            return value
+
+    def fallbacks(self) -> ItemsView[Callable[[type], bool], T]:
+        r"""Return a snapshot of the ``(predicate, value)`` pairs in
+        registration order.
+
+        A fallback registered after the call does not change the view.
+
+        Example:
+            ```pycon
+            >>> from dataclasses import is_dataclass
+            >>> from coola.registry import TypeRegistry
+            >>> registry = TypeRegistry[str]()
+            >>> registry.register_fallback(is_dataclass, "dataclass")
+            >>> list(registry.fallbacks())
+            [(<function is_dataclass at ...>, 'dataclass')]
+
+            ```
+        """
+        return self._fallbacks.items()
 
     def resolve(self, dtype: type) -> T:
         r"""Resolve a type to its associated value using MRO lookup.
@@ -327,10 +532,10 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         if value is not _MISSING:
             return value
         with self._lock:
+            self._validate_key(dtype)
             value = self._cache.get(dtype, _MISSING)  # Another thread may have filled it
             if value is not _MISSING:
                 return value
-            self._validate_key(dtype)
             self._load_lazy_for(dtype)  # Loading entries clears the cache
             value = self._resolve_uncached(dtype)
             if value is _MISSING:
@@ -358,19 +563,24 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             The appropriate value for the type or its nearest parent type, or
             ``_MISSING`` if no type matches.
         """
-        # Direct lookup first (most common case, O(1))
-        if dtype in self._state:
-            return self._state[dtype]
-
-        # MRO lookup for inheritance - finds the most specific parent type.
+        # MRO lookup - finds the most specific parent type, ``object`` excluded: it is
+        # the last resort, after the fallbacks.
         # ``issubclass`` is not used on purpose: it is slower and ambiguous when
         # several registered types match, and the MRO gives a deterministic "most
         # specific first" order. The consequence is that an abstract base class
         # (e.g. ``Sequence``) only matches the types that really inherit from it, not
         # the virtual subclasses (``list``, ``tuple``, ``deque``): these types must be
-        # registered explicitly.
+        # registered explicitly, or matched by a fallback.
+        state = self._state
         for base_type in dtype.__mro__:
-            if base_type in self._state:
-                return self._state[base_type]
+            if base_type is not object and base_type in state:
+                return state[base_type]
+
+        for predicate, value in self._fallbacks.items():
+            if predicate(dtype):
+                return value
+
+        if object in state:
+            return state[object]
 
         return _MISSING
