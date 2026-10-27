@@ -19,10 +19,9 @@ from coola.summary.mapping import MappingSummarizer
 from coola.summary.registry import DataclassMarker, SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
-from coola.utils.deprecation import deprecate_positional_options
 from coola.utils.imports import package_available
 from coola.utils.singleton import LazySingleton, make_default_registry_singleton
-from coola.validation import validate_non_negative
+from coola.validation import validate_int, validate_non_negative
 
 if TYPE_CHECKING:
     from coola.summary.base import Summarizer
@@ -40,15 +39,12 @@ _LAZY_SUMMARIZERS = (
 )
 
 
-@deprecate_positional_options("max_depth", "registry")
 def summarize(
     data: object, *, max_depth: int = 1, registry: SummarizerRegistry | None = None
 ) -> str:
     r"""Create a summary string representation of nested data.
 
-    The options must be passed by keyword. Passing ``max_depth`` or
-    ``registry`` as positional arguments is deprecated and emits a
-    ``DeprecationWarning``.
+    The options must be passed by keyword.
 
     Args:
         data: Input data to summarize.
@@ -66,6 +62,7 @@ def summarize(
         A formatted string summary of ``data``.
 
     Raises:
+        TypeError: If ``max_depth`` is not an ``int`` (a ``bool`` is rejected).
         ValueError: If ``max_depth`` is negative.
         RecursionError: If ``max_depth`` is so large that the Python recursion limit is
             exceeded (each nesting level uses a few interpreter frames).
@@ -80,6 +77,7 @@ def summarize(
 
         ```
     """
+    validate_int(max_depth, name="max_depth")
     validate_non_negative(max_depth, name="max_depth")
     if registry is None:
         registry = get_default_registry()
@@ -88,6 +86,7 @@ def summarize(
 
 def register_summarizers(
     mapping: Mapping[type, Summarizer[Any]],
+    *,
     exist_ok: bool = False,
 ) -> None:
     """Register custom summarizers to the default global registry.
