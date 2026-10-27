@@ -482,30 +482,25 @@ def test_get_default_summarizers_returns_nothing_if_the_library_is_unavailable(m
         assert import_object(f"{module}:get_default_summarizers")() == {}
 
 
-def test_summarize_positional_max_depth_is_deprecated() -> None:
-    with pytest.warns(DeprecationWarning, match="`max_depth` to `summarize`"):
-        summarize([1], 2)
+def test_summarize_positional_max_depth_raises() -> None:
+    with pytest.raises(TypeError, match="takes 1 positional argument"):
+        summarize([1], 2)  # ty: ignore[too-many-positional-arguments]
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
-def test_summarize_positional_max_depth_is_deprecated_result() -> None:
-    data = [[1, 2], [3]]
-    assert summarize(data, 2) == summarize(data, max_depth=2)
+def test_summarize_positional_registry_raises() -> None:
+    with pytest.raises(TypeError, match="takes 1 positional argument"):
+        summarize([1], 1, None)  # ty: ignore[too-many-positional-arguments]
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
-def test_summarize_positional_registry_is_deprecated_result() -> None:
-    registry = SummarizerRegistry({object: DefaultSummarizer()})
-    assert summarize(1, 1, registry) == summarize(1, registry=registry)
+@pytest.mark.parametrize("max_depth", [True, False, 1.5, "1", None])
+def test_summarize_max_depth_not_int_raises(max_depth: object) -> None:
+    with pytest.raises(TypeError, match="max_depth"):
+        summarize([1], max_depth=max_depth)  # ty: ignore[invalid-argument-type]
 
 
-def test_summarize_keyword_options_do_not_warn() -> None:
-    assert summarize([1], max_depth=2, registry=get_default_registry())
-
-
-def test_summarize_too_many_positional_arguments_raises() -> None:
-    with pytest.raises(TypeError, match="takes at most 3 positional arguments"):
-        summarize([1], 1, None, 4)
+def test_register_summarizers_positional_exist_ok_raises() -> None:
+    with pytest.raises(TypeError, match="takes 1 positional argument"):
+        register_summarizers({}, True)  # ty: ignore[too-many-positional-arguments]
 
 
 ##############################################
