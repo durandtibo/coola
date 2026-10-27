@@ -16,16 +16,16 @@ the code. Nothing in `src`, `tests` or `docs` was changed.
 
 ## Status
 
-| #   | PR           | Status                                                                                                                                                   |
-| --- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1  | #2419        | Merged                                                                                                                                                   |
-| R2  | #2423, #2428 | Merged (#2423 lost its `src` change in the merge, restored by #2428)                                                                                     |
-| R3  | #2425        | Merged (MPS and CUDA integration tests added; CUDA not run locally)                                                                                      |
-| R4  | #2427        | Merged                                                                                                                                                   |
-| R5  | #2429        | Merged                                                                                                                                                   |
-| R6  | #2430        | Open                                                                                                                                                     |
-| R7  | #2431        | Open. Finding: the CPU generator of PyTorch folds seeds modulo `2**32`, so "Seed injective" holds for `random` and NumPy only (stated in the user guide) |
-| R8  | this PR      | Open                                                                                                                                                     |
+| #   | PR           | Status                                                                                                                                                     |
+| --- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | #2419        | Merged                                                                                                                                                     |
+| R2  | #2423, #2428 | Merged (#2423 lost its `src` change in the merge, restored by #2428)                                                                                       |
+| R3  | #2425        | Merged (MPS and CUDA integration tests added; CUDA not run locally)                                                                                        |
+| R4  | #2427        | Merged                                                                                                                                                     |
+| R5  | #2429        | Merged                                                                                                                                                     |
+| R6  | #2430        | Merged                                                                                                                                                     |
+| R7  | #2431        | Merged. Finding: the CPU generator of PyTorch folds seeds modulo `2**32`, so "Seed injective" holds for `random` and NumPy only (stated in the user guide) |
+| R8  | #2432        | Merged                                                                                                                                                     |
 
 ## Constraints
 
@@ -58,7 +58,7 @@ one of them true **by construction** instead of by the discipline of each manage
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
 | One call, all libraries | `manual_seed` seeds `random`, and NumPy and PyTorch when they are installed. A library that is not installed is skipped, not an error.                                                                                                                 | the default registry                       |
 | One seed domain         | A seed is an `int` in `[0, 2**63)` (`bool` is rejected). Every public entry that takes a seed (`manual_seed`, `random_seed`, `Manager.manual_seed`, `Manager.seed`, `Registry.manual_seed`) validates it identically, before any generator is touched. | `validate_seed`, called by every entry     |
-| Seed injective          | Two different valid seeds give two different generator states for every managed library. No seed is silently folded onto another one.                                                                                                                  | the managers                               |
+| Seed injective          | Two different valid seeds give two different generator states for `random` and NumPy. PyTorch's CPU generator folds the seeds modulo `2**32` itself, which the manager cannot change (stated in the user guide).                                       | the managers                               |
 | Global generators only  | Only `random.seed`, `numpy.random.seed` (the legacy generator) and `torch.manual_seed` (all the default generators of torch) are managed. `random.Random()`, `default_rng()` and `torch.Generator()` are not.                                          | the managers (documented)                  |
 | Restorable              | `get_rng_state` then `set_rng_state` brings every managed generator back to where it was. The state is opaque: it is given back to the registry that produced it, in the same process.                                                                 | the managers, the registry                 |
 | Strict restore          | `set_rng_state` raises `ValueError`, and changes nothing, if the keys of the state differ from the registered keys. It never silently restores a part of the state.                                                                                    | `RandomManagerRegistry.set_rng_state`      |
