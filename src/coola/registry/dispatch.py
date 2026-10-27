@@ -12,7 +12,7 @@ free, and only need to add their domain-specific entry point (e.g.
 
 from __future__ import annotations
 
-__all__ = ["BaseTypeDispatchRegistry", "DataclassMarker"]
+__all__ = ["BaseTypeDispatchRegistry", "DataclassMarker", "FallbackMixin"]
 
 import copy
 import dataclasses
@@ -36,6 +36,62 @@ class DataclassMarker:
     the dataclasses that would otherwise be handled by the catch-all
     ``object`` handler.
     """
+
+
+class FallbackMixin(Generic[V]):
+    r"""Delegate the fallbacks of a ``BaseTypeDispatchRegistry`` to its
+    ``TypeRegistry``.
+
+    A fallback supports the types that cannot be a key of the registry
+    (for example every dataclass). The fallbacks are tried in
+    registration order, after the registered types and before the
+    handler of ``object``. This mixin is temporary: the dispatch
+    registries become ``TypeRegistry`` subclasses and inherit these
+    methods.
+    """
+
+    _state: TypeRegistry[V]
+
+    def register_fallback(
+        self, predicate: Callable[[type], bool], value: V, *, exist_ok: bool = False
+    ) -> None:
+        r"""Register a handler for the types accepted by a predicate.
+
+        See ``TypeRegistry.register_fallback``: the fallbacks are tried
+        in registration order, after the registered types and before
+        the handler of ``object``.
+
+        Args:
+            predicate: A function that takes a type and returns
+                ``True`` if ``value`` handles it.
+            value: The handler of the types accepted by ``predicate``.
+            exist_ok: If ``False`` (default), raises an error if the
+                predicate is already registered.
+
+        Raises:
+            AlreadyRegisteredError: If the predicate is already
+                registered and ``exist_ok`` is ``False``.
+        """
+        self._state.register_fallback(predicate, value, exist_ok=exist_ok)
+
+    def unregister_fallback(self, predicate: Callable[[type], bool]) -> V:
+        r"""Remove a fallback and return its handler.
+
+        Args:
+            predicate: The predicate given to ``register_fallback``.
+
+        Returns:
+            The handler that was registered with the predicate.
+
+        Raises:
+            KeyNotRegisteredError: If the predicate is not registered.
+        """
+        return self._state.unregister_fallback(predicate)
+
+    def fallbacks(self) -> ItemsView[Callable[[type], bool], V]:
+        r"""Return a snapshot of the ``(predicate, handler)`` pairs in
+        registration order."""
+        return self._state.fallbacks()
 
 
 class BaseTypeDispatchRegistry(MultilineDisplayMixin, Generic[V]):
