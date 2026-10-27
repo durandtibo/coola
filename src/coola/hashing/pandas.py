@@ -36,7 +36,8 @@ def _dtype_key(dtype: Any) -> Any:
 
 
 def _normalize_name(name: Any) -> Any:
-    r"""Return ``None`` for a missing name (``NaN``), and ``name`` otherwise.
+    r"""Return ``None`` for a missing name (``NaN``), and ``name``
+    otherwise.
 
     A series named ``None`` and a series named ``NaN`` are equal for
     ``objects_are_equal``, so they must have the same hash.

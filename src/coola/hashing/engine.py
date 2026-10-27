@@ -146,15 +146,15 @@ class _Walker:
         self._registry = registry
         self._ignore_unhashable = ignore_unhashable
         self._warn_level = warn_level
-        self._cache: dict[type, Hasher[Any] | None] = {}  # type -> hasher (None: placeholder)
+        self._cache: dict[type, Hasher[Any] | None] = {}  # map: type -> hasher (None: placeholder)
         # id -> (object, digest). The object is kept alive so that its id cannot be reused by a
         # temporary child during the call.
         self._memo: dict[int, tuple[object, bytes | None]] = {}
         self._tags: dict[str, bytes] = {}
 
     def start(self, obj: object, hasher: Hasher[Any], node: Node) -> _Frame:
-        r"""Return the frame of the root container, whose hasher was found
-        and called by the caller."""
+        r"""Return the frame of the root container, whose hasher was
+        found and called by the caller."""
         self._cache[type(obj)] = hasher
         self._memo[id(obj)] = (obj, None)
         return _Frame(obj, node)

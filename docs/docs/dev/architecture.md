@@ -524,17 +524,17 @@ digest_of(data, registry, ...)       explicit stack of frames; per-call type -> 
 the 64-byte digest of the root  ->  hex()[:length]
 ```
 
-| Decision                                                              | Why                                                                        |
-| --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `encode` returns a description, the engine hashes                     | cycles, depth, sharing, `length` and the placeholder cannot be forgotten   |
-| A leaf of at most 64 bytes is inlined in the preimage of its parent   | a flat container makes one BLAKE2b call instead of one per item            |
-| One 64-byte digest, cut at the end by `length`                        | a hasher never sees `length`; a short hash is the start of a longer one    |
-| The format version is the BLAKE2b `person` parameter                  | two formats can never be confused; a change is one constant               |
-| A shared container is hashed once per call (a memo by `id`)           | a hash is pure, so the memo is invisible; a DAG is linear                  |
-| A cycle raises `ValueError`                                           | the digest of a container in a cycle would depend on where it is reached   |
-| Secrets are types with a hasher (`SecretHasher`)                      | the policy is the one of the registry, wherever the secret is              |
-| `__coola_hash__` returns the content of a custom object, not a hash   | the object cannot bypass the engine and does not forward any option        |
-| Only the `compare=True` fields of a dataclass                         | equal dataclasses have the same hash                                       |
+| Decision                                                            | Why                                                                      |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `encode` returns a description, the engine hashes                   | cycles, depth, sharing, `length` and the placeholder cannot be forgotten |
+| A leaf of at most 64 bytes is inlined in the preimage of its parent | a flat container makes one BLAKE2b call instead of one per item          |
+| One 64-byte digest, cut at the end by `length`                      | a hasher never sees `length`; a short hash is the start of a longer one  |
+| The format version is the BLAKE2b `person` parameter                | two formats can never be confused; a change is one constant              |
+| A shared container is hashed once per call (a memo by `id`)         | a hash is pure, so the memo is invisible; a DAG is linear                |
+| A cycle raises `ValueError`                                         | the digest of a container in a cycle would depend on where it is reached |
+| Secrets are types with a hasher (`SecretHasher`)                    | the policy is the one of the registry, wherever the secret is            |
+| `__coola_hash__` returns the content of a custom object, not a hash | the object cannot bypass the engine and does not forward any option      |
+| Only the `compare=True` fields of a dataclass                       | equal dataclasses have the same hash                                     |
 
 See the [user guide](../uguide/hashing.md#properties) for the properties of the package.
 

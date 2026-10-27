@@ -1,5 +1,5 @@
-r"""Define the hashers of the objects that are described by their
-fields or by their content: the dataclasses and the classes with a
+r"""Define the hashers of the objects that are described by their fields
+or by their content: the dataclasses and the classes with a
 ``__coola_hash__`` method."""
 
 from __future__ import annotations
