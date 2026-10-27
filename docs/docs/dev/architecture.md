@@ -515,6 +515,13 @@ types.
 
 **Trade-off**: Slightly more complex than if/else chains, but much more maintainable.
 
+The registries are `TypeRegistry` objects (`coola.registry`). A lookup follows the Method
+Resolution Order of the type, then the fallback predicates (for the types that cannot be a key, such
+as every dataclass), then `object`. The handlers of the optional libraries are registered lazily
+(`register_lazy`), so importing `coola` imports none of these libraries. The state of a registry is
+a dictionary that is replaced on every write, so a lookup takes no lock; the registries survive
+`os.fork` and `pickle`. See the [registry guide](../uguide/registry.md).
+
 ## Future Directions
 
 Potential areas for enhancement:

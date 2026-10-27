@@ -75,9 +75,9 @@ when it is not installed. What is lazy is _who imports these modules_:
 TorchTensorEqualityTester` works as before, but the module is imported when the name is used.
   Import the names for the type checkers in the `if TYPE_CHECKING:` block.
 - **Registries.** The default registries do not import the modules of the optional libraries.
-  `registry.register_lazy(names, "package.module:get_default_...")` registers a group of entries
+  `registry.register_lazy(packages, "package.module:get_default_...")` registers a group of entries
   that is built the first time the registry looks for a type whose class (or one of its base
-  classes) comes from the package `names`, or needs the whole registry (`len`, iteration, `repr`).
+  classes) comes from one of the `packages`, or needs the whole registry (`len`, iteration, `items`).
   An object cannot have a type of a library that was not imported, so a library is only imported by
   the registry if the program already imported it. The entries that are already registered are not
   replaced.
