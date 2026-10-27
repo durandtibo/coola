@@ -3,8 +3,8 @@ r"""Define the summarizer base class.
 This module provides the ``Node`` that a summarizer returns for a
 container, the ``Summarizer`` protocol and an abstract base class for
 implementing summarizers that describe one type. A summarizer only
-describes its type: the recursion, the depth, the limits, the cycles
-and the errors are handled by the engine (see ``coola.summary.engine``).
+describes its type: the recursion, the depth, the limits, the cycles and
+the errors are handled by the engine (see ``coola.summary.engine``).
 """
 
 from __future__ import annotations
