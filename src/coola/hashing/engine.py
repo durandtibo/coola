@@ -152,6 +152,13 @@ class _Walker:
         self._memo: dict[int, tuple[object, bytes | None]] = {}
         self._tags: dict[str, bytes] = {}
 
+    def start(self, obj: object, hasher: Hasher[Any], node: Node) -> _Frame:
+        r"""Return the frame of the root container, whose hasher was found
+        and called by the caller."""
+        self._cache[type(obj)] = hasher
+        self._memo[id(obj)] = (obj, None)
+        return _Frame(obj, node)
+
     def enter(self, obj: object) -> _Frame | bytes:
         r"""Return a frame for a container to walk, and the digest
         otherwise."""
@@ -286,11 +293,31 @@ def digest_of(
 
         ```
     """
-    # _resolve -> _Walker.enter -> _Walker.fill -> digest_of -> caller
-    walker = _Walker(registry, ignore_unhashable, stacklevel + 4)
-    # The root is the only child of a frame that is never finished, so every object is entered
-    # from ``fill`` and the warning of a placeholder has the same depth for all of them.
-    stack = [_Frame(None, Node("", [data]))]
+    # _resolve -> _Walker.enter -> _Walker.fill -> _walk -> digest_of -> caller
+    walker = _Walker(registry, ignore_unhashable, stacklevel + 5)
+    try:
+        hasher = registry.find_hasher(type(data))
+    except KeyError:
+        hasher = None  # the walker raises the error, or hashes the placeholder
+    if hasher is None:
+        # The root is the only child of a frame that is never finished, so every object is
+        # entered from ``fill`` and the warning of a placeholder has the same depth for all.
+        return _walk(walker, _Frame(None, Node("", [data])))
+    encoding = hasher.encode(data)
+    if isinstance(encoding, bytes):  # a leaf at the root: no state is needed
+        return digest(_LEAF + encoding)
+    return _walk(walker, walker.start(data, hasher, encoding))
+
+
+def _walk(walker: _Walker, root: _Frame) -> bytes:
+    r"""Walk the containers below ``root`` with an explicit stack and
+    return the digest of the root.
+
+    ``root`` is either a container (its own digest is returned), or the
+    frame with the object as only child (``obj`` is ``None``: the digest
+    of the object is returned).
+    """
+    stack = [root]
     while True:
         child = walker.fill(stack[-1])
         if child is not None:
@@ -298,6 +325,8 @@ def digest_of(
             continue
         frame = stack.pop()
         if not stack:
+            if frame.obj is not None:  # the root is a container
+                return walker.leave(frame)[1:]
             entry = frame.digests[0]
             if entry[0] == _DIGEST[0]:  # a container or a long leaf
                 return entry[1:]
