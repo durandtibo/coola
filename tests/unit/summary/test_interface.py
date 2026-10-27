@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import UserString, deque
 from collections.abc import Generator, Mapping, Sequence
+from dataclasses import dataclass
 from types import MappingProxyType
 from unittest.mock import Mock, patch
 
@@ -9,6 +10,7 @@ import pytest
 
 from coola.registry import AlreadyRegisteredError
 from coola.summary import (
+    DataclassSummarizer,
     DefaultSummarizer,
     JaxArraySummarizer,
     MappingSummarizer,
@@ -189,6 +191,21 @@ def test_get_default_registry_returns_singleton() -> None:
     registry1 = get_default_registry()
     registry2 = get_default_registry()
     assert registry1 is registry2
+
+
+@dataclass
+class _Point:
+    x: int = 1
+
+
+def test_get_default_registry_dataclass_summarizer() -> None:
+    assert isinstance(get_default_registry().find_summarizer(_Point), DataclassSummarizer)
+
+
+def test_get_default_registry_has_the_dataclass_fallback() -> None:
+    assert [type(handler) for _, handler in get_default_registry().fallbacks()] == [
+        DataclassSummarizer
+    ]
 
 
 def test_get_default_registry_object_is_registered() -> None:

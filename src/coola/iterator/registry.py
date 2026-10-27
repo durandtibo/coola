@@ -9,9 +9,12 @@ from typing import Any
 
 from coola.iterator.base import BaseChildFinder
 from coola.registry import BaseTypeDispatchRegistry
+from coola.registry.dispatch import FallbackMixin
 
 
-class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
+class ChildFinderRegistry(
+    FallbackMixin[BaseChildFinder[Any]], BaseTypeDispatchRegistry[BaseChildFinder[Any]]
+):
     r"""Registry that maps Python types to child finders.
 
     During a traversal, the registry selects the most specific child
@@ -109,4 +112,4 @@ class ChildFinderRegistry(BaseTypeDispatchRegistry[BaseChildFinder[Any]]):
 
             ```
         """
-        return self._find_with_dataclass_marker(data_type)
+        return self.find(data_type)

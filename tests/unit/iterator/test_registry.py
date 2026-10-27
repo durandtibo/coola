@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, is_dataclass
 
 import pytest
 
@@ -11,7 +11,7 @@ from coola.iterator import (
     IterableChildFinder,
     MappingChildFinder,
 )
-from coola.registry import DataclassMarker, TypeNotRegisteredError
+from coola.registry import TypeNotRegisteredError
 
 
 @dataclass
@@ -25,14 +25,11 @@ class CustomList(list):
 
 @pytest.fixture
 def registry() -> ChildFinderRegistry:
-    return ChildFinderRegistry(
-        {
-            object: DefaultChildFinder(),
-            list: IterableChildFinder(),
-            dict: MappingChildFinder(),
-            DataclassMarker: DataclassChildFinder(),
-        }
+    registry = ChildFinderRegistry(
+        {object: DefaultChildFinder(), list: IterableChildFinder(), dict: MappingChildFinder()}
     )
+    registry.register_fallback(is_dataclass, DataclassChildFinder())
+    return registry
 
 
 #########################################
@@ -90,3 +87,20 @@ def test_child_finder_registry_copy_is_independent(registry: ChildFinderRegistry
     copy = registry.copy()
     copy.register(tuple, IterableChildFinder())
     assert not registry.has_child_finder(tuple)
+
+
+def test_child_finder_registry_find_child_finder_dataclass_with_registered_base() -> None:
+    """Regression test: a child finder shared by ``object`` and a base class
+    is used for a dataclass that inherits from the base class."""
+
+    class Base:
+        pass
+
+    @dataclass
+    class Derived(Base):
+        x: int = 1
+
+    shared = DefaultChildFinder()
+    registry = ChildFinderRegistry({object: shared, Base: shared})
+    registry.register_fallback(is_dataclass, DataclassChildFinder())
+    assert registry.find_child_finder(Derived) is shared

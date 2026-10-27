@@ -18,8 +18,8 @@ class DataclassChildFinder(InlineDisplayMixin, BaseChildFinder[Any]):
     r"""Child finder for dataclass instances.
 
     The children of a dataclass instance are the values of its fields,
-    in the order of the definition of the fields. It is registered for
-    ``DataclassMarker`` in the default registry. A child finder
+    in the order of the definition of the fields. It is registered as a
+    fallback for ``dataclasses.is_dataclass`` in the default registry. A child finder
     registered for the type of the dataclass has priority; register
     ``DefaultChildFinder`` to keep a dataclass as a leaf.
 
