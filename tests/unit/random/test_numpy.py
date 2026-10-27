@@ -176,9 +176,35 @@ def test_numpy_random_manager_seed_is_reproducible() -> None:
 
 
 @numpy_available
-def test_numpy_random_manager_manual_seed_is_folded_modulo_2_32() -> None:
+@pytest.mark.parametrize(
+    ("seed", "expected"),
+    [
+        (0, [209652396, 398764591, 924231285]),
+        (42, [1608637542, 1273642419, 1935803228]),
+        (2**32 - 1, [419326371, 479346978, 1771170828]),
+    ],
+)
+def test_numpy_random_manager_manual_seed_below_2_32_keeps_the_numbers(
+    seed: int, expected: list[int]
+) -> None:
+    NumpyRandomManager().manual_seed(seed)
+    assert np.random.randint(0, 2**31, size=3).tolist() == expected  # noqa: NPY002
+
+
+@numpy_available
+def test_numpy_random_manager_manual_seed_not_folded_modulo_2_32() -> None:
     manager = NumpyRandomManager()
     manager.manual_seed(1)
+    first = np.random.rand(3)  # noqa: NPY002
+    manager.manual_seed(2**32 + 1)
+    second = np.random.rand(3)  # noqa: NPY002
+    assert not objects_are_equal(first, second)
+
+
+@numpy_available
+def test_numpy_random_manager_manual_seed_large_seed_same_seed_same_values() -> None:
+    manager = NumpyRandomManager()
+    manager.manual_seed(2**32 + 1)
     first = np.random.rand(3)  # noqa: NPY002
     manager.manual_seed(2**32 + 1)
     second = np.random.rand(3)  # noqa: NPY002
@@ -186,13 +212,19 @@ def test_numpy_random_manager_manual_seed_is_folded_modulo_2_32() -> None:
 
 
 @numpy_available
-def test_numpy_random_manager_manual_seed_negative_seed_wraps() -> None:
+def test_numpy_random_manager_manual_seed_large_seeds_with_same_high_word_differ() -> None:
     manager = NumpyRandomManager()
-    manager.manual_seed(-1)
+    manager.manual_seed(2**32)
     first = np.random.rand(3)  # noqa: NPY002
-    manager.manual_seed(2**32 - 1)
+    manager.manual_seed(2**32 + 2**32)
     second = np.random.rand(3)  # noqa: NPY002
-    assert objects_are_equal(first, second)
+    assert not objects_are_equal(first, second)
+
+
+@numpy_available
+def test_numpy_random_manager_manual_seed_max_seed() -> None:
+    NumpyRandomManager().manual_seed(2**63 - 1)
+    assert np.random.rand(3).shape == (3,)  # noqa: NPY002
 
 
 @numpy_available
@@ -213,3 +245,17 @@ def test_numpy_random_manager_does_not_manage_default_rng_generators() -> None:
     with manager.seed(42):
         values = rng.random(3)  # the independent generator is not affected by the seed
     assert objects_are_equal(values, expected)
+
+
+@numpy_available
+@pytest.mark.parametrize("seed", [-1, 2**63])
+def test_numpy_random_manager_manual_seed_invalid_value_raises(seed: int) -> None:
+    with pytest.raises(ValueError, match=r"seed must be in the range"):
+        NumpyRandomManager().manual_seed(seed)
+
+
+@numpy_available
+@pytest.mark.parametrize("seed", ["a", 1.5, True])
+def test_numpy_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
+    with pytest.raises(TypeError, match=r"seed must be an int"):
+        NumpyRandomManager().manual_seed(seed)  # type: ignore[arg-type]

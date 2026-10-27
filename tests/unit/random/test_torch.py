@@ -144,12 +144,10 @@ def test_torch_random_manager_manual_seed_different_values() -> None:
 
 
 @torch_available
-@patch("torch.cuda.is_available", lambda: True)
-def test_torch_random_manager_manual_seed_with_cuda() -> None:
-    rng = TorchRandomManager()
-    with patch("torch.cuda.manual_seed_all") as mock_manual_seed_all:
-        rng.manual_seed(42)
-        mock_manual_seed_all.assert_called_with(42)
+def test_torch_random_manager_manual_seed_calls_torch_manual_seed() -> None:
+    with patch("torch.manual_seed") as mock_manual_seed:
+        TorchRandomManager().manual_seed(42)
+    mock_manual_seed.assert_called_once_with(42)
 
 
 @torch_available
@@ -158,23 +156,6 @@ def test_torch_random_manager_get_rng_state_with_mps() -> None:
     with patch("torch.mps.get_rng_state", return_value=torch.zeros(1)):
         state = TorchRandomManager().get_rng_state()
     assert objects_are_equal(state["torch.mps"], torch.zeros(1))
-
-
-@torch_available
-@patch("torch.backends.mps.is_available", lambda: True)
-def test_torch_random_manager_manual_seed_with_mps() -> None:
-    with patch("torch.mps.manual_seed") as mock_manual_seed:
-        TorchRandomManager().manual_seed(42)
-        mock_manual_seed.assert_called_with(42)
-
-
-@torch_available
-@patch("torch.backends.mps.is_available", lambda: False)
-def test_torch_random_manager_manual_seed_without_mps() -> None:
-    # ``torch.manual_seed`` seeds MPS by itself, so it is patched to isolate the call.
-    with patch("torch.manual_seed"), patch("torch.mps.manual_seed") as mock_manual_seed:
-        TorchRandomManager().manual_seed(42)
-        mock_manual_seed.assert_not_called()
 
 
 @torch_available
@@ -432,3 +413,17 @@ def test_get_torch_generator_does_not_change_the_default_generator() -> None:
 def test_get_torch_generator_seed_overflow_raises() -> None:
     with pytest.raises(ValueError, match="Overflow"):
         get_torch_generator(2**64)
+
+
+@torch_available
+@pytest.mark.parametrize("seed", [-1, 2**63])
+def test_torch_random_manager_manual_seed_invalid_value_raises(seed: int) -> None:
+    with pytest.raises(ValueError, match=r"seed must be in the range"):
+        TorchRandomManager().manual_seed(seed)
+
+
+@torch_available
+@pytest.mark.parametrize("seed", ["a", 1.5, True])
+def test_torch_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
+    with pytest.raises(TypeError, match=r"seed must be an int"):
+        TorchRandomManager().manual_seed(seed)  # type: ignore[arg-type]
