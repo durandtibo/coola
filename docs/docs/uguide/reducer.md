@@ -19,6 +19,38 @@ operations on sequences of numbers. It offers:
 This is particularly useful when you want to write backend-agnostic code or when you need to
 compute statistics on data but don't want to depend on a specific library.
 
+## Properties
+
+A reducer turns a one-dimensional sequence of real numbers into a statistic (`max`, `min`, `mean`,
+`median`, `std`, `quantile`) or into a sorted list. It exists so that code written once runs with
+whatever numeric library the user has, and gives the same answer.
+
+| Property                    | Statement                                                                                                                                                                                                                                                              |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Same interface              | `NativeReducer`, `NumpyReducer` and `TorchReducer` have the same methods, the same errors and the same result types; the backend can be swapped. A backend only computes.                                                                                              |
+| One input rule              | The input is a sequence of real numbers (`list`, `tuple`, `range`), or a one-dimensional array / tensor for the backend of the library. An iterator, a set, a string, a 0-d or n-d array is rejected with an error that says what to pass.                             |
+| Python results              | The result is a Python `int` or `float` (a `list` of them for `quantile` and `sort`), never a NumPy or torch scalar. `max`, `min` and `sort` keep the type of the elements; `mean`, `std` and `quantile` are `float`; the median of an odd number of ints is an `int`. |
+| Explicit empty case         | `max`, `min`, `mean`, `median`, `std` and `quantile` raise `EmptySequenceError` (a `ValueError`) on an empty input. `sort([])` is `[]`. `std` of one value is `NaN`.                                                                                                   |
+| Valid options first         | `quantiles` outside `[0, 1]` (or `NaN`) raise `ValueError` before the input is read, with the same type and message in every backend.                                                                                                                                  |
+| NaN                         | If a value is `NaN`, `max`, `min`, `mean`, `median`, `std` and every quantile are `NaN`, whatever the position of the `NaN`. `sort` puts the `NaN` last (first if `descending`). `std` is `NaN` if a value is infinite.                                                |
+| No silent overflow          | The median of finite values is finite (the two middle values are halved before the mean if their sum overflows).                                                                                                                                                       |
+| Unsupported values are loud | A value that the backend cannot represent (an integer beyond 64 bits for NumPy / torch, a complex number, a `Decimal`) raises `TypeError` that names the backend and, when it exists, the backend that supports it (`NativeReducer`).                                  |
+| Pure                        | The input is never modified or consumed. A reducer is stateless, so one instance can be shared by threads and calls.                                                                                                                                                   |
+| Lazy backends               | `import coola.reducer` imports no optional library. `NumpyReducer()` / `TorchReducer()` raise `MissingPackageError` at construction if the library is missing.                                                                                                         |
+| Automatic backend           | `auto_reducer()` returns the fastest backend that is installed for plain Python sequences: NumPy, then native. PyTorch is never chosen implicitly (it is for tensors that live on a device, which the user passes to `TorchReducer`).                                  |
+| Extensible                  | A backend is added by subclassing `BaseReducer` and implementing `_prepare` and six computations. It cannot forget the empty, iterator, quantile or shape checks, because it does not write them.                                                                      |
+
+Not guaranteed:
+
+- **Bit-identical floating point** across backends: the mean of `[0.1, 0.2, 0.3]` is `0.2` for
+  `NativeReducer` and `0.20000000000000004` for the other two.
+- **Sums that exceed the range of a `float`**: `mean([1e308, 1e308])` is `1e308` for `NativeReducer`
+  and `inf` for NumPy and torch.
+- **Other number types** (`bool`, `Fraction`, `Decimal`): `NativeReducer` computes with what Python
+  provides; NumPy and torch may reject them.
+- **Speed of PyTorch** for a Python list: the values are converted to a tensor first, so
+  `TorchReducer` is slower than `NumpyReducer` on lists.
+
 ## Available Reducers
 
 ### `NativeReducer`
@@ -232,7 +264,8 @@ This is useful when writing library code that should work with whatever the user
 
 ### Empty Sequences
 
-Most operations raise `EmptySequenceError` when given an empty sequence:
+`max`, `min`, `mean`, `median`, `std` and `quantile` raise `EmptySequenceError` when given an
+empty sequence. `EmptySequenceError` is a `ValueError`:
 
 ```pycon
 >>> from coola.reducer import NativeReducer, EmptySequenceError
@@ -245,16 +278,7 @@ Error: Cannot compute the mean because the sequence is empty
 
 ```
 
-Operations that raise `EmptySequenceError` on empty sequences:
-
-- `max()`
-- `min()`
-- `mean()`
-- `median()`
-- `std()`
-- `quantile()`
-
-Unlike the other reductions, sorting is well-defined for an empty sequence, so `sort()` returns
+Unlike the statistics, sorting is well-defined for an empty sequence, so `sort()` returns
 an empty list instead of raising an error:
 
 ```pycon
@@ -326,19 +350,6 @@ The `coola.reducer` package follows these design principles:
 2. **Backend flexibility**: Choose the backend that fits your needs (native, NumPy, PyTorch)
 3. **Automatic selection**: Use `auto_reducer()` to automatically select the best backend
 4. **Clear error handling**: Explicit `EmptySequenceError` for operations on empty sequences
-5. **Type safety**: Generic types ensure type correctness
-
-## Properties
-
-| Property              | Statement                                                                                                          |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Same interface        | `NativeReducer`, the NumPy reducer and the PyTorch reducer implement `BaseReducer`, so the backend can be swapped. |
-| Explicit empty case   | `max`, `min`, `mean`, `median`, `std` and `quantile` raise `EmptySequenceError` on an empty sequence.              |
-| Empty sort is defined | `sort([])` returns `[]`.                                                                                           |
-| Automatic backend     | `auto_reducer()` selects the best backend that is available.                                                       |
-| Extensible            | A reducer for another backend is added by subclassing `BaseReducer` or `BaseBasicReducer`.                         |
-
-Not guaranteed: results can differ between backends at the level of floating point precision.
 
 ## Advanced Usage
 
