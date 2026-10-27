@@ -6,7 +6,7 @@ __all__ = ["Registry"]
 
 import copy
 import threading
-from typing import TYPE_CHECKING, Generic, Self, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar, cast
 
 from coola.registry.exceptions import AlreadyRegisteredError, KeyNotRegisteredError
 from coola.utils.fork import track_fork
@@ -136,6 +136,17 @@ class Registry(Generic[K, V]):
             pending = self._pending_msg()
         body = "\n  ".join(filter(None, [str_indent(str_mapping(state)), pending]))
         return f"{self.__class__.__qualname__}(\n  {body}\n)"
+
+    def __getstate__(self) -> dict[str, Any]:
+        # The lock cannot be pickled: the clone creates its own.
+        state = self.__dict__.copy()
+        del state["_lock"]
+        return state
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        self.__dict__.update(state)
+        self._lock = threading.RLock()
+        track_fork(self)
 
     def _pending_msg(self) -> str:
         r"""Return the lines that complete the display of the entries

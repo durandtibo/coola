@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import contextlib
+import copy
+import pickle
 
 import pytest
 
@@ -896,3 +898,61 @@ def test_registry_equal_after_unregistration_is_false() -> None:
     other = registry.copy()
     other.unregister("a")
     assert not registry.equal(other)
+
+
+########################################
+#     Tests for pickle and deepcopy    #
+########################################
+
+
+def test_registry_pickle_round_trip_keeps_the_entries() -> None:
+    registry = Registry[str, int]({"a": 1, "b": 2})
+    assert pickle.loads(pickle.dumps(registry)).equal(registry)  # noqa: S301
+
+
+def test_registry_pickle_round_trip_keeps_the_class() -> None:
+    registry = Registry[str, int]({"a": 1})
+    assert type(pickle.loads(pickle.dumps(registry))) is Registry  # noqa: S301
+
+
+def test_registry_pickle_clone_can_register() -> None:
+    clone = pickle.loads(pickle.dumps(Registry[str, int]({"a": 1})))  # noqa: S301
+    clone.register("b", 2)
+    assert clone.get("b") == 2
+
+
+def test_registry_pickle_clone_has_its_own_lock() -> None:
+    registry = Registry[str, int]({"a": 1})
+    assert pickle.loads(pickle.dumps(registry))._lock is not registry._lock  # noqa: S301
+
+
+def test_registry_pickle_clone_is_tracked_for_forks() -> None:
+    assert pickle.loads(pickle.dumps(Registry[str, int]())) in fork._TRACKED  # noqa: S301
+
+
+def test_registry_pickle_does_not_change_the_source() -> None:
+    registry = Registry[str, int]({"a": 1})
+    pickle.dumps(registry)
+    assert registry.get("a") == 1
+
+
+def test_registry_deepcopy_keeps_the_entries() -> None:
+    registry = Registry[str, list]({"a": [1]})
+    assert copy.deepcopy(registry).equal(registry)
+
+
+def test_registry_deepcopy_copies_the_values() -> None:
+    registry = Registry[str, list]({"a": [1]})
+    assert copy.deepcopy(registry).get("a") is not registry.get("a")
+
+
+def test_registry_deepcopy_has_its_own_lock() -> None:
+    registry = Registry[str, int]()
+    assert copy.deepcopy(registry)._lock is not registry._lock
+
+
+def test_registry_copy_module_copy_is_independent() -> None:
+    registry = Registry[str, int]({"a": 1})
+    other = copy.copy(registry)
+    other.register("b", 2)
+    assert not registry.has("b")

@@ -418,6 +418,14 @@ load a group. The entries that are loaded never replace an entry registered by h
 whose factory raises stays pending, so the next access raises again. Because a lazy default is
 visible to `register`, registering a type over it needs `exist_ok=True`.
 
+## Pickling
+
+A registry can be pickled and deep-copied, so it can be sent to a `spawn` worker (the default start
+method on macOS and Windows). The clone has its own lock and an empty resolution cache; the entries,
+the fallbacks and the pending lazy groups are kept. The handlers, the fallback predicates and the
+lazy factories must be picklable: a lambda is not (use a module-level function or a
+`"module:name"` path). The default registries of `coola` can be pickled.
+
 ## Copying a Registry
 
 `copy()` creates an independent registry with the same entries (and the same pending lazy groups).
