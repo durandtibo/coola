@@ -51,7 +51,8 @@ Suggestions:
 - `random/registry.py` defines `RandomManagerRegistry` on top of a plain dict and does
   not share `BaseRegistry`. That is reasonable because its keys are strings, but it
   repeats register/has logic that `Registry` (string-keyed) already provides. Consider
-  composing `Registry[str, BaseRandomManager]`.
+  composing `Registry[str, BaseRandomManager]`. _(Fixed: `RandomManagerRegistry` subclasses
+  `Registry`, see `review/random.md`, R4, #2427.)_
 
 ## 3. Correctness / robustness leads
 

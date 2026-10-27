@@ -14,6 +14,19 @@ Evidence comes from probes run on `main` (Python 3.14, NumPy 2.5.4, torch 2.14.1
 kept outside the repository). Items marked **[verified]** were reproduced; **[reading]** comes from
 the code. Nothing in `src`, `tests` or `docs` was changed.
 
+## Status
+
+| #   | PR           | Status                                                                                                                                                   |
+| --- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | #2419        | Merged                                                                                                                                                   |
+| R2  | #2423, #2428 | Merged (#2423 lost its `src` change in the merge, restored by #2428)                                                                                     |
+| R3  | #2425        | Merged (MPS and CUDA integration tests added; CUDA not run locally)                                                                                      |
+| R4  | #2427        | Merged                                                                                                                                                   |
+| R5  | #2429        | Merged                                                                                                                                                   |
+| R6  | #2430        | Open                                                                                                                                                     |
+| R7  | #2431        | Open. Finding: the CPU generator of PyTorch folds seeds modulo `2**32`, so "Seed injective" holds for `random` and NumPy only (stated in the user guide) |
+| R8  | this PR      | Open                                                                                                                                                     |
+
 ## Constraints
 
 1. **Simple and easy to maintain.** The package is 1,044 lines of source (1,605 of unit tests) to

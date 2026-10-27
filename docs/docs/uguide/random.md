@@ -16,20 +16,45 @@ The `coola.random` package provides a unified interface for controlling random n
 - PyTorch's random module (if PyTorch is installed)
 
 This allows you to set seeds, get and restore RNG states, and manage randomness consistently across
-different libraries in a single call.
+different libraries in a single call. A manager knows one library, the registry knows the keys, and
+the base class knows the scoped context.
 
-!!! warning "Global generators only"
+## Properties
 
-    Only the **global** generator of each library is managed: `random.seed`, `numpy.random.seed` (the
-    legacy generator) and `torch.manual_seed`. Independent generator objects, such as
-    `random.Random()`, `numpy.random.default_rng()` and `torch.Generator()`, are not seeded and their
-    state is not saved or restored. Seed them explicitly, e.g. `numpy.random.default_rng(seed)`.
+| Property                | Statement                                                                                                                                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| One call, all libraries | `manual_seed` seeds `random`, and NumPy and PyTorch when they are installed. A library that is not installed is skipped, not an error.                                                                                            |
+| One seed domain         | A seed is an `int` in `[0, 2**63)` (`bool` is rejected). Every entry that takes a seed (`manual_seed`, `random_seed`, `Manager.manual_seed`, `Manager.seed`, `get_torch_generator`) validates it before any generator is touched. |
+| Seed injective          | For `random` and NumPy, two different valid seeds give different numbers: a NumPy seed `>= 2**32` is split in two 32-bit words, not folded. PyTorch's CPU generator folds the seeds modulo `2**32` itself (see below).            |
+| Global generators only  | Only `random.seed`, `numpy.random.seed` (the legacy generator) and `torch.manual_seed` (all the default generators of torch) are managed. `random.Random()`, `default_rng()` and `torch.Generator()` are not.                     |
+| Restorable              | `get_rng_state` then `set_rng_state` brings every managed generator back to where it was. The state is opaque: give it back to the registry that produced it, in the same process.                                                |
+| Strict restore          | `set_rng_state` raises a `ValueError`, and changes nothing, if the keys of the state differ from the registered keys. It never silently restores a part of the state.                                                             |
+| Complete restore        | If several managers fail to restore, all the others are still restored, then the error is raised (an `ExceptionGroup` if there are several errors).                                                                               |
+| Scoped seeding          | `random_seed` (and `Manager.seed`) restores the state when the block exits, also when the block raises, and also when the seeding itself raises.                                                                                  |
+| Nestable                | Nested `random_seed` blocks are independent: the inner block does not change the stream of the outer block.                                                                                                                       |
+| Extensible              | A manager for another generator is added by registering one `BaseRandomManager`, in the default registry or through the plugin group `coola.random.managers`.                                                                     |
+| Lazy                    | Importing `coola.random` imports no optional library. The first use of the default registry imports the installed ones, so a library imported after the first seed is still seeded.                                               |
+| Isolated registries     | A registry built by the user is independent from the default one; `copy()` gives an independent registry that shares the managers.                                                                                                |
 
-!!! note "NumPy seeds"
+Not guaranteed:
 
-    NumPy's legacy generator only accepts seeds between `0` and `2**32 - 1`. `NumpyRandomManager`
-    folds the seed into this range with `seed % 2**32`, so the seeds `1` and `2**32 + 1` give the same
-    random numbers. A negative seed raises a `ValueError`.
+- **Threads.** The generators are process-global. Two threads that call `random_seed` at the same
+  time interleave their saves and restores, and the state at exit is the one of whoever restores
+  last; a thread that draws numbers while another seeds gets numbers of the other's stream. Use one
+  `random_seed` block at a time, or independent generators (`numpy.random.default_rng(seed)`,
+  `get_torch_generator(seed)`) in threads.
+- **Independent generators.** `random.Random()`, `numpy.random.default_rng()` and `torch.Generator()`
+  are not seeded, and their state is not saved or restored. Seed them explicitly.
+- **CUDA created inside a scoped block.** The CUDA state is saved only if CUDA is already initialized
+  when the state is read (reading it would initialize CUDA, which fails in a forked worker). A CUDA
+  context that the block initializes is seeded by the block and not restored by it.
+- **PyTorch seeds.** The CPU generator of PyTorch folds the seed modulo `2**32`: the seeds `1` and
+  `2**32 + 1` give the same numbers.
+- **Equality of states.** A state holds NumPy arrays and tensors: compare two states with
+  `objects_are_equal`, not with `==`.
+- **Reproducibility across versions.** The package seeds the generators; the numbers a library draws
+  from a seed are the library's business. Kernels that are not deterministic
+  (`torch.use_deterministic_algorithms`) are out of scope.
 
 ## Basic Usage
 
@@ -125,78 +150,74 @@ dict_keys(['random', 'numpy', 'torch'])
 
 ## Library-Specific Seeds
 
-### Python's Random Module
+Each manager has a `seed` context manager, which seeds one library and restores its state when the
+block exits.
 
-Set the seed only for Python's `random` module:
+### Python's Random Module
 
 ```pycon
 >>> import random
->>> from coola.random.python import PythonRandomManager
->>> manager = PythonRandomManager()
->>> manager.manual_seed(42)
->>> val = random.randint(1, 100)
+>>> from coola.random import PythonRandomManager
+>>> with PythonRandomManager().seed(42):
+...     first = random.random()
+...
+>>> with PythonRandomManager().seed(42):
+...     second = random.random()
+...
+>>> first == second
+True
 
 ```
 
 ### NumPy
-
-Set the seed only for NumPy's random module, with the `seed` context manager of the manager:
 
 ```pycon
 >>> import numpy as np
 >>> from coola.random import NumpyRandomManager
 >>> with NumpyRandomManager().seed(42):
 ...     np.random.rand(3)
+...
 array([...])
 
 ```
 
-Or use the NumPy random manager directly:
-
-```pycon
->>> import numpy as np
->>> from coola.random.numpy import NumpyRandomManager
->>> manager = NumpyRandomManager()
->>> manager.manual_seed(42)
->>> np.random.rand(3)
-array([...])
-
-```
+NumPy's legacy generator only accepts a scalar seed between `0` and `2**32 - 1`.
+`NumpyRandomManager` gives a seed below `2**32` as is, and splits a larger seed in two 32-bit words,
+so two different seeds in `[0, 2**63)` never give the same numbers.
 
 ### PyTorch
-
-Set the seed only for PyTorch's random module, with the `seed` context manager of the manager:
 
 ```pycon
 >>> import torch
 >>> from coola.random import TorchRandomManager
 >>> with TorchRandomManager().seed(42):
 ...     torch.rand(3)
+...
 tensor([...])
 
 ```
 
-To get reproducible numbers without touching the global generators (for example in a thread), use an
-independent generator:
+`torch.manual_seed` seeds the CPU, CUDA and MPS generators, so one call is enough.
+
+### Independent Generators
+
+The generators created with `random.Random()`, `numpy.random.default_rng()` and `torch.Generator()`
+are not managed. Seed them explicitly. `get_torch_generator` creates a seeded `torch.Generator`
+(`device` is keyword-only), and `get_random_seed` derives a seed that is valid for `manual_seed`
+from another seed:
 
 ```pycon
+>>> import numpy as np
 >>> import torch
->>> from coola.random import get_torch_generator
+>>> from coola.random import get_random_seed, get_torch_generator
+>>> rng = np.random.default_rng(42)
+>>> rng.random(3)
+array([...])
 >>> generator = get_torch_generator(42)
 >>> torch.rand(3, generator=generator)
 tensor([...])
-
-```
-
-Or use the PyTorch random manager directly:
-
-```pycon
->>> import torch
->>> from coola.random.torch import TorchRandomManager
->>> manager = TorchRandomManager()
->>> manager.manual_seed(42)
->>> torch.rand(3)
-tensor([...])
+>>> 0 <= get_random_seed(42) < 2**63 - 1
+True
 
 ```
 
@@ -210,7 +231,7 @@ tensor([...])
     `get_default_random_manager_registry` is an alias of the same function with a more explicit name, which avoids
     import collisions.
 
-The default registry manages all available random managers:
+The default registry manages all available random managers, in registration order:
 
 ```pycon
 >>> from coola.random import get_default_registry
@@ -224,46 +245,142 @@ RandomManagerRegistry(
 
 ```
 
-### Registering Custom Managers
+`RandomManagerRegistry` is a [`Registry`](registry.md) of managers (`register`, `register_many`,
+`unregister`, `copy`, `in`, `[]`, ...) and it is itself a manager: it seeds, saves and restores all
+its managers, and the state is a `dict` that maps each key to the state of its manager.
 
-You can register custom random managers to support additional libraries:
+### Using a Custom Registry
+
+A registry built by the user is independent from the default one. `copy()` gives an independent
+registry that shares the managers:
 
 ```pycon
->>> from coola.random import register_managers, PythonRandomManager
->>> # Register a custom manager
->>> register_managers({"custom": PythonRandomManager()})  # doctest: +SKIP
+>>> from coola.random import RandomManagerRegistry, PythonRandomManager, random_seed
+>>> registry = RandomManagerRegistry()
+>>> registry.register("random", PythonRandomManager())
+>>> with random_seed(42, registry=registry):
+...     pass
+...
+>>> other = registry.copy()
+>>> other.register("other", PythonRandomManager())
+>>> "other" in registry
+False
 
 ```
 
-To create a custom manager, extend `BaseRandomManager`:
-
-```pycon
->>> from coola.random import BaseRandomManager
->>> class MyRandomManager(BaseRandomManager):
-...     def get_rng_state(self):
-...         # Return current RNG state
-...         return {}
-...
-...     def set_rng_state(self, state):
-...         # Restore RNG state
-...         pass
-...
-...     def manual_seed(self, seed):
-...         # Set seed
-...         pass
-
-```
-
-### Using Custom Registry
-
-You can create and use a custom registry:
+A registry is a manager, so a registry can be registered in another registry (for example a project
+registry that holds the default one and its own generators). The state is then a nested `dict`, and
+the keys rule of `set_rng_state` applies at each level:
 
 ```pycon
 >>> from coola.random import RandomManagerRegistry, PythonRandomManager
->>> registry = RandomManagerRegistry()
->>> registry.register("random", PythonRandomManager())
->>> registry.manual_seed(42)
+>>> inner = RandomManagerRegistry({"random": PythonRandomManager()})
+>>> outer = RandomManagerRegistry({"inner": inner})
+>>> outer.get_rng_state().keys()
+dict_keys(['inner'])
+>>> outer.get_rng_state()["inner"].keys()
+dict_keys(['random'])
 
+```
+
+### Strict Restore
+
+`set_rng_state` requires the keys of the state to be the registered keys. A state saved with torch
+cannot be restored into a registry without torch: it raises a `ValueError` and nothing is restored,
+instead of silently restoring a part of the state.
+
+```pycon
+>>> from coola.random import RandomManagerRegistry, PythonRandomManager
+>>> registry = RandomManagerRegistry({"random": PythonRandomManager()})
+>>> registry.set_rng_state({"random": registry.get_rng_state()["random"], "torch": None})
+Traceback (most recent call last):
+    ...
+ValueError: The state has the keys ['random', 'torch'] but the registered keys are ['random']
+
+```
+
+If a manager fails to restore its state, the other managers are still restored before the error is
+raised. One error is raised as is; several errors are raised as an `ExceptionGroup`.
+
+### Writing a Manager
+
+To support another generator, extend `BaseRandomManager`. A manager has to follow this contract
+(checked for the built-in managers by `tests/unit/random/test_contract.py`):
+
+1. `get_rng_state()` returns an opaque object that does not alias the live generator.
+2. `set_rng_state(get_rng_state())` leaves the draws unchanged.
+3. `manual_seed(seed)` validates the seed with `validate_seed` before it touches the generator, and
+   the same seed gives the same draws.
+4. A manager is stateless and cheap to build: it is shared by registries, equal to another instance
+   of its class and hashable (`__eq__` and `__hash__`).
+
+`seed()` validates the seed too, so a manager gets the seed domain even if its `manual_seed` does not
+check. This manager handles a module-level generator:
+
+```pycon
+>>> import random
+>>> from coola.random import BaseRandomManager, RandomManagerRegistry, validate_seed
+>>> RNG = random.Random()
+>>> class GlobalRngManager(BaseRandomManager):
+...     def __eq__(self, other):
+...         return type(other) is type(self)
+...
+...     def __hash__(self):
+...         return hash(type(self))
+...
+...     def get_rng_state(self):
+...         return RNG.getstate()
+...
+...     def manual_seed(self, seed):
+...         validate_seed(seed)
+...         RNG.seed(seed)
+...
+...     def set_rng_state(self, state):
+...         RNG.setstate(state)
+...
+>>> registry = RandomManagerRegistry({"global_rng": GlobalRngManager()})
+>>> with registry.seed(42):
+...     first = RNG.random()
+...
+>>> with registry.seed(42):
+...     second = RNG.random()
+...
+>>> first == second
+True
+
+```
+
+### Registering a Manager in the Default Registry
+
+`register_managers` adds managers to the default registry for the whole process (`exist_ok` is
+keyword-only). Use `temporary_default_registries` to scope the registration, for example in tests:
+
+```pycon
+>>> from coola.random import PythonRandomManager, get_default_registry, register_managers
+>>> from coola.utils.singleton import temporary_default_registries
+>>> with temporary_default_registries():
+...     register_managers({"custom": PythonRandomManager()})
+...     "custom" in get_default_registry()
+...
+True
+>>> "custom" in get_default_registry()
+False
+
+```
+
+A package can also register its managers through the plugin group `coola.random.managers` (see
+[Extending coola](extending.md)). The entry point is a function that takes the default registry:
+
+```toml
+# pyproject.toml of the plugin package
+[project.entry-points."coola.random.managers"]
+mypkg = "mypkg.coola_plugin:register"
+```
+
+```python
+# mypkg/coola_plugin.py
+def register(registry):
+    registry.register("mylib", MyLibRandomManager())
 ```
 
 ## Common Use Cases
@@ -366,52 +483,27 @@ Each manager implements the `BaseRandomManager` interface with three methods:
 - `get_rng_state()`: Get the current RNG state
 - `set_rng_state(state)`: Restore a previous RNG state
 
-## Design Principles
+## Threads and Processes
 
-The `coola.random` package design provides:
+The generators are process-global and `coola.random` does not lock them: it cannot, because other
+code draws from the same generators. In threads, use independent generators
+(`numpy.random.default_rng(seed)`, `get_torch_generator(seed)`) instead of `random_seed`.
 
-1. **Unified interface**: Control multiple RNG libraries with a single API
-2. **Automatic detection**: Automatically registers managers for available libraries
-3. **State management**: Save and restore complete RNG state across all libraries
-4. **Context managers**: Temporarily set seeds without affecting global state
-5. **Extensibility**: Easy to add support for new random number generators
-
-## Properties
-
-| Property                | Statement                                                                                                                                        |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| One call, all libraries | `manual_seed` seeds `random`, and NumPy and PyTorch when they are installed.                                                                     |
-| Global generators only  | Only `random.seed`, `numpy.random.seed` and `torch.manual_seed` are managed. `random.Random()`, `default_rng()` and `torch.Generator()` are not. |
-| Restorable              | `get_rng_state` and `set_rng_state` save and restore the state of every managed library.                                                         |
-| Scoped seeding          | `random_seed` restores the original state when the block exits.                                                                                  |
-| Optional dependencies   | A library that is not installed is skipped, not an error.                                                                                        |
-| Seed injective          | Two different seeds give different NumPy numbers: a seed `>= 2**32` is split in two 32-bit words, not folded.                                    |
-| Extensible              | A manager for another generator can be registered.                                                                                               |
+The CUDA state is read only if CUDA is already initialized, so `get_rng_state` can be called in a
+forked worker. A child process restores a state with `set_rng_state`.
 
 ## Best Practices
 
-### Always Use Context Managers When Possible
+### Prefer `random_seed`
 
-Prefer `random_seed()` context manager over `manual_seed()` for localized reproducibility:
+Prefer the `random_seed()` context manager over `manual_seed()` for localized reproducibility: the
+state is restored when the block exits.
 
 ```pycon
 >>> from coola.random import random_seed
->>> # Good: State is automatically restored
 >>> with random_seed(42):
-...     # reproducible code
-...     pass
-
-```
-
-Instead of:
-
-```pycon
->>> from coola.random import manual_seed, get_rng_state, set_rng_state
->>> # Not ideal: Manual state management
->>> state = get_rng_state()
->>> manual_seed(42)
->>> # reproducible code
->>> set_rng_state(state)
+...     pass  # reproducible code
+...
 
 ```
 
@@ -422,20 +514,12 @@ Set seeds at the beginning of your script for full reproducibility:
 ```pycon
 >>> from coola.random import manual_seed
 >>> manual_seed(42)
->>> # Rest of your code...
 
 ```
 
-### Document Seed Usage
+### Use a Generator in Threads
 
-Always document when and why you're setting seeds:
-
-```pycon
->>> from coola.random import manual_seed
->>> # Set seed for reproducible results in experiments
->>> manual_seed(42)
-
-```
+Give each thread its own generator, seeded explicitly, instead of seeding the global ones.
 
 ## See Also
 
