@@ -237,12 +237,27 @@ Passing another registry opts out of this stability.
   a file is a different operation that is not provided by a hasher.
 - **pydantic `BaseModel`**: the qualified model class name plus the fields, hashed as a mapping
   through the registry (extra fields included). Two different model classes with the same values
-  therefore differ. Secrets are controlled by `on_secret`:
-  - `"error"` (default) raises a `ValueError` (the message never contains the secret),
+  therefore differ. A secret (`SecretStr`, `SecretBytes`) is a value with a hasher, so the policy is
+  the one of the registry and applies wherever the secret is (in a model, a `dict`, a dataclass...).
+  The default registry raises a `ValueError` (the message never contains the secret). To change the
+  policy, build a registry with `get_secret_hashers`:
+  - `"error"` (default) raises a `ValueError`,
   - `"reveal"` hashes the real secret value,
-  - `"exclude"` drops secret fields, so models that differ only by a secret hash the same.
+  - `"exclude"` hashes a constant, so objects that differ only by a secret hash the same (the
+    position of the secret is kept).
 
-  Nested models use the same `on_secret` policy.
+  ```pycon
+  >>> from pydantic import BaseModel, SecretStr
+  >>> from coola.hashing import get_default_registry, get_secret_hashers
+  >>> class Creds(BaseModel):
+  ...     user: str
+  ...     password: SecretStr
+  >>> registry = get_default_registry().copy()
+  >>> registry.register_many(get_secret_hashers("exclude"), exist_ok=True)
+  >>> registry.hash(Creds(user="a", password="x")) == registry.hash(Creds(user="a", password="y"))
+  True
+
+  ```
 
 - **Dataclasses**: the qualified class name plus the field values. The default registry hashes every
   dataclass with `DataclassHasher` (a fallback, see [Fallbacks](#fallbacks)), without registration.
@@ -270,7 +285,7 @@ True
 | `length` is odd or outside 2 to 128   | `ValueError`                                                                     |
 | No hasher for the type                | `TypeNotRegisteredError` (a `KeyError`) naming the type, or a lossy placeholder with `ignore_unhashable=True` |
 | Self-referencing container            | `ValueError` instead of a stack overflow                                         |
-| Secret field with `on_secret="error"` | `ValueError`, without leaking the value                                          |
+| Secret with the default registry     | `ValueError`, without leaking the value                                          |
 
 ## Type-Specific Hashers
 
@@ -297,8 +312,9 @@ delegating to a `HasherRegistry` to hash any nested values. The built-in hashers
 - `SetHasher` - hashes `set` and `frozenset`, sorted by item hash
 - `DataclassHasher` - hashes dataclass instances from the class name and the field values
   (used for every dataclass by the default registry)
-- `PydanticModelHasher` / `hash_pydantic_model` - hashes pydantic `BaseModel` objects from the
-  class name and the fields, with configurable handling of `SecretStr`/`SecretBytes` fields
+- `PydanticModelHasher` - hashes pydantic `BaseModel` objects from the class name and the fields
+- `SecretHasher` / `get_secret_hashers` - the policy (`"error"`, `"reveal"`, `"exclude"`) for
+  `SecretStr` and `SecretBytes`, wherever they are
 - `ContentHasher` - hashes objects that implement the `SupportsCoolaHash` protocol (i.e. that
   define a `__coola_hash__()` method that returns their content), namespaced by the class name
 - `NumpyArrayHasher`, `TorchTensorHasher`, `JaxArrayHasher` - hash the dtype, the shape and the

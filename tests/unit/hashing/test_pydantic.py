@@ -1,12 +1,18 @@
 from __future__ import annotations
 
-from collections import OrderedDict
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Literal
 
 import pytest
 
-from coola.hashing import HasherRegistry, get_default_registry, hash_pydantic_model
-from coola.hashing.pydantic import PydanticModelHasher, unwrap_secrets
+from coola.hashing import (
+    HasherRegistry,
+    SecretHasher,
+    get_default_registry,
+    get_secret_hashers,
+    hash_object,
+)
+from coola.hashing.pydantic import PydanticModelHasher
 from coola.testing.fixtures import pydantic_available
 from coola.utils.imports import is_pydantic_available
 from tests.unit.hashing.helpers import hash_with
@@ -64,31 +70,13 @@ def registry() -> HasherRegistry:
 
 
 @pydantic_available
-def test_pydantic_model_hasher_repr_default() -> None:
-    assert repr(PydanticModelHasher()) == "PydanticModelHasher(on_secret='error')"
+def test_pydantic_model_hasher_repr() -> None:
+    assert repr(PydanticModelHasher()) == "PydanticModelHasher()"
 
 
 @pydantic_available
-def test_pydantic_model_hasher_repr_custom_on_secret() -> None:
-    assert (
-        repr(PydanticModelHasher(on_secret="exclude")) == "PydanticModelHasher(on_secret='exclude')"
-    )
-
-
-@pydantic_available
-def test_pydantic_model_hasher_str_default() -> None:
-    assert str(PydanticModelHasher()) == "PydanticModelHasher(on_secret=error)"
-
-
-@pydantic_available
-def test_pydantic_model_hasher_default_on_secret_is_error() -> None:
-    assert PydanticModelHasher()._on_secret == "error"  # noqa: S105
-
-
-@pydantic_available
-def test_pydantic_model_hasher_hash_matches_function(registry: HasherRegistry) -> None:
-    point = Point(x=1, y=2)
-    assert hash_with(PydanticModelHasher(), point, registry) == hash_pydantic_model(point)
+def test_pydantic_model_hasher_str() -> None:
+    assert str(PydanticModelHasher()) == "PydanticModelHasher()"
 
 
 @pydantic_available
@@ -266,469 +254,249 @@ def test_pydantic_model_hasher_hash_extra_fields_are_included(registry: HasherRe
 
 
 @pydantic_available
-def test_pydantic_model_hasher_hash_secret_error_does_not_leak_value(
-    registry: HasherRegistry,
-) -> None:
-    creds = Creds(username="alice", password="hunter2")
+def test_pydantic_model_hasher_encode_node_is_unordered_with_pairs() -> None:
+    node = PydanticModelHasher().encode(Point(x=1, y=2))
+    assert (node.ordered, node.group) == (False, 2)
+
+
+@pydantic_available
+def test_pydantic_model_hasher_self_referencing_model_raises() -> None:
+    model = AnyValue(value=[])
+    model.value.append(model)
+    with pytest.raises(ValueError, match="self-referencing"):
+        hash_object(model)
+
+
+@pydantic_available
+def test_pydantic_model_hasher_same_model_twice_is_not_a_cycle() -> None:
+    point = Point(x=1, y=2)
+    assert hash_object([point, point]) == hash_object([Point(x=1, y=2), Point(x=1, y=2)])
+
+
+########################################
+#     Tests for SecretHasher     #
+########################################
+
+
+def secret_registry(on_secret: Literal["reveal", "exclude", "error"]) -> HasherRegistry:
+    registry = get_default_registry().copy()
+    registry.register_many(get_secret_hashers(on_secret), exist_ok=True)
+    return registry
+
+
+@pydantic_available
+def test_secret_hasher_repr() -> None:
+    assert repr(SecretHasher("exclude")) == "SecretHasher(on_secret='exclude')"
+
+
+@pydantic_available
+def test_secret_hasher_default_on_secret_is_error() -> None:
+    assert SecretHasher()._on_secret == "error"  # noqa: S105
+
+
+@pydantic_available
+def test_secret_hasher_invalid_on_secret_raises() -> None:
+    invalid_policy: Any = "hide"
+    with pytest.raises(ValueError, match="on_secret must be"):
+        SecretHasher(invalid_policy)
+
+
+@pydantic_available
+def test_secret_hasher_encode_reveal_secret_str() -> None:
+    assert SecretHasher("reveal").encode(SecretStr("abc")) == b"pydantic.SecretStr\x00abc"
+
+
+@pydantic_available
+def test_secret_hasher_encode_reveal_secret_bytes() -> None:
+    assert SecretHasher("reveal").encode(SecretBytes(b"abc")) == b"pydantic.SecretBytes\x00abc"
+
+
+@pydantic_available
+def test_secret_hasher_encode_exclude_secret_str() -> None:
+    assert SecretHasher("exclude").encode(SecretStr("abc")) == b"pydantic.SecretStr\x00"
+
+
+@pydantic_available
+def test_secret_hasher_encode_exclude_secret_bytes() -> None:
+    assert SecretHasher("exclude").encode(SecretBytes(b"abc")) == b"pydantic.SecretBytes\x00"
+
+
+@pydantic_available
+def test_secret_hasher_encode_error_raises() -> None:
+    with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
+        SecretHasher().encode(SecretStr("abc"))
+
+
+@pydantic_available
+def test_secret_hasher_encode_error_does_not_leak_the_value() -> None:
     with pytest.raises(ValueError, match="SecretStr/SecretBytes") as exc_info:
-        hash_with(PydanticModelHasher(), creds, registry)
+        SecretHasher().encode(SecretStr("hunter2"))
     assert "hunter2" not in str(exc_info.value)
 
 
 @pydantic_available
-def test_pydantic_model_hasher_default_on_secret_raises_for_secret_field(
-    registry: HasherRegistry,
-) -> None:
-    hasher = PydanticModelHasher()
-    creds = Creds(username="alice", password="hunter2")
-    with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
-        hash_with(hasher, creds, registry)
+def test_get_secret_hashers_keys() -> None:
+    assert set(get_secret_hashers("reveal")) == {SecretStr, SecretBytes}
 
 
 @pydantic_available
-def test_pydantic_model_hasher_on_secret_exclude_ignores_secret_value(
-    registry: HasherRegistry,
-) -> None:
-    hasher = PydanticModelHasher(on_secret="exclude")
+def test_get_secret_hashers_policy() -> None:
+    assert get_secret_hashers("reveal")[SecretStr]._on_secret == "reveal"  # noqa: S105
+
+
+@pydantic_available
+def test_get_secret_hashers_default_policy_is_error() -> None:
+    assert get_secret_hashers()[SecretBytes]._on_secret == "error"  # noqa: S105
+
+
+@pydantic_available
+def test_default_registry_secret_in_a_model_raises() -> None:
+    with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
+        hash_object(Creds(username="alice", password="hunter2"))
+
+
+@pydantic_available
+def test_default_registry_secret_error_does_not_leak_the_value() -> None:
+    with pytest.raises(ValueError, match="SecretStr/SecretBytes") as exc_info:
+        hash_object(Creds(username="alice", password="hunter2"))
+    assert "hunter2" not in str(exc_info.value)
+
+
+@pydantic_available
+@pytest.mark.parametrize(
+    "factory",
+    [
+        pytest.param(lambda s: {"k": s}, id="dict"),
+        pytest.param(lambda s: [s], id="list"),
+        pytest.param(lambda s: (s,), id="tuple"),
+        pytest.param(lambda s: {s}, id="set"),
+    ],
+)
+def test_default_registry_secret_in_a_container_raises(factory: Any) -> None:
+    with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
+        hash_object(factory(SecretStr("hunter2")))
+
+
+@pydantic_available
+def test_default_registry_bare_secret_raises() -> None:
+    with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
+        hash_object(SecretStr("hunter2"))
+
+
+@pydantic_available
+def test_exclude_secrets_in_models_with_different_secrets_have_the_same_hash() -> None:
+    registry = secret_registry("exclude")
     a = Creds(username="alice", password="hunter2")
     b = Creds(username="alice", password="different")
-    assert hash_with(hasher, a, registry) == hash_with(hasher, b, registry)
+    assert registry.hash(a) == registry.hash(b)
 
 
 @pydantic_available
-def test_pydantic_model_hasher_on_secret_reveal_sensitive_to_secret_value(
-    registry: HasherRegistry,
-) -> None:
-    hasher = PydanticModelHasher(on_secret="reveal")
-    a = Creds(username="alice", password="hunter2")
-    b = Creds(username="alice", password="different")
-    assert hash_with(hasher, a, registry) != hash_with(hasher, b, registry)
-
-
-@pydantic_available
-def test_pydantic_model_hasher_on_secret_is_configured_once_via_constructor(
-    registry: HasherRegistry,
-) -> None:
-    exclude_hasher = PydanticModelHasher(on_secret="exclude")
-    reveal_hasher = PydanticModelHasher(on_secret="reveal")
-    creds = Creds(username="alice", password="hunter2")
-    assert hash_with(exclude_hasher, creds, registry) != hash_with(reveal_hasher, creds, registry)
-
-
-####################################
-#     Tests for unwrap_secrets     #
-####################################
-
-# --- Non-secret values pass through unchanged ---
-
-
-@pydantic_available
-def test_unwrap_secrets_plain_dict() -> None:
-    value = {"a": 1, "b": "x"}
-    assert unwrap_secrets(value, on_secret="error") == {"a": 1, "b": "x"}
-
-
-@pydantic_available
-def test_unwrap_secrets_plain_list() -> None:
-    value = [1, "x", True]
-    assert unwrap_secrets(value, on_secret="error") == [1, "x", True]
-
-
-@pydantic_available
-def test_unwrap_secrets_nested_structure_no_secrets() -> None:
-    value = {"a": [1, {"b": "x"}], "c": None}
-    assert unwrap_secrets(value, on_secret="error") == {"a": [1, {"b": "x"}], "c": None}
-
-
-@pydantic_available
-def test_unwrap_secrets_scalar_passthrough_int() -> None:
-    assert unwrap_secrets(42, on_secret="error") == 42
-
-
-@pydantic_available
-def test_unwrap_secrets_scalar_passthrough_str() -> None:
-    assert unwrap_secrets("hello", on_secret="error") == "hello"
-
-
-@pydantic_available
-def test_unwrap_secrets_scalar_passthrough_none() -> None:
-    assert unwrap_secrets(None, on_secret="error") is None
-
-
-@pydantic_available
-def test_unwrap_secrets_unhandled_on_secret() -> None:
-    with pytest.raises(AssertionError):
-        unwrap_secrets(SecretStr("hunter2"), on_secret="invalid")  # type: ignore[arg-type]
-
-
-# --- on_secret="reveal" ---
-
-
-@pydantic_available
-def test_unwrap_secrets_reveal_secret_str_in_dict() -> None:
-    value = {"user": "alice", "pwd": SecretStr("hunter2")}
-    assert unwrap_secrets(value, on_secret="reveal") == {"user": "alice", "pwd": "hunter2"}
-
-
-@pydantic_available
-def test_unwrap_secrets_reveal_secret_bytes_in_dict() -> None:
-    value = {"token": SecretBytes(b"raw-token")}
-    assert unwrap_secrets(value, on_secret="reveal") == {"token": b"raw-token"}
-
-
-@pydantic_available
-def test_unwrap_secrets_reveal_secret_in_list() -> None:
-    value = [SecretStr("s1"), "x", SecretStr("s2")]
-    assert unwrap_secrets(value, on_secret="reveal") == ["s1", "x", "s2"]
-
-
-@pydantic_available
-def test_unwrap_secrets_reveal_top_level_secret_str() -> None:
-    assert unwrap_secrets(SecretStr("hunter2"), on_secret="reveal") == "hunter2"
-
-
-@pydantic_available
-def test_unwrap_secrets_reveal_top_level_secret_bytes() -> None:
-    assert unwrap_secrets(SecretBytes(b"raw-token"), on_secret="reveal") == b"raw-token"
-
-
-@pydantic_available
-def test_unwrap_secrets_reveal_nested_secret() -> None:
-    value = {"outer": {"inner": [SecretStr("deep")]}}
-    assert unwrap_secrets(value, on_secret="reveal") == {"outer": {"inner": ["deep"]}}
-
-
-# --- on_secret="exclude" ---
-
-
-@pydantic_available
-def test_unwrap_secrets_exclude_secret_str_in_dict() -> None:
-    value = {"user": "alice", "pwd": SecretStr("hunter2")}
-    assert unwrap_secrets(value, on_secret="exclude") == {"user": "alice"}
-
-
-@pydantic_available
-def test_unwrap_secrets_exclude_secret_bytes_in_dict() -> None:
-    value = {"user": "alice", "token": SecretBytes(b"raw-token")}
-    assert unwrap_secrets(value, on_secret="exclude") == {"user": "alice"}
-
-
-@pydantic_available
-def test_unwrap_secrets_exclude_secret_in_list() -> None:
-    value = [SecretStr("s1"), "x", SecretStr("s2")]
-    assert unwrap_secrets(value, on_secret="exclude") == ["x"]
-
-
-@pydantic_available
-def test_unwrap_secrets_exclude_all_secrets_in_list() -> None:
-    value = [SecretStr("s1"), SecretStr("s2")]
-    assert unwrap_secrets(value, on_secret="exclude") == []
-
-
-@pydantic_available
-def test_unwrap_secrets_exclude_nested_secret() -> None:
-    value = {"outer": {"inner": [SecretStr("deep"), "keep"]}}
-    assert unwrap_secrets(value, on_secret="exclude") == {"outer": {"inner": ["keep"]}}
-
-
-@pydantic_available
-def test_unwrap_secrets_exclude_top_level_secret_raises() -> None:
-    with pytest.raises(ValueError, match="Cannot exclude a top-level secret"):
-        unwrap_secrets(SecretStr("hunter2"), on_secret="exclude")
-
-
-# --- on_secret="error" ---
-
-
-@pydantic_available
-def test_unwrap_secrets_error_secret_str_in_dict_raises() -> None:
-    value = {"pwd": SecretStr("hunter2")}
-    with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
-        unwrap_secrets(value, on_secret="error")
-
-
-@pydantic_available
-def test_unwrap_secrets_error_secret_bytes_in_list_raises() -> None:
-    value = [SecretBytes(b"raw-token")]
-    with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
-        unwrap_secrets(value, on_secret="error")
-
-
-@pydantic_available
-def test_unwrap_secrets_error_top_level_secret_raises() -> None:
-    with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
-        unwrap_secrets(SecretStr("hunter2"), on_secret="error")
-
-
-@pydantic_available
-def test_unwrap_secrets_error_no_secret_does_not_raise() -> None:
-    assert unwrap_secrets({"user": "alice"}, on_secret="error") == {"user": "alice"}
-
-
-#########################################
-#     Tests for hash_pydantic_model     #
-#########################################
-
-# --- Return type and format ---
-
-
-@pydantic_available
-def test_hash_pydantic_model_returns_str() -> None:
-    assert isinstance(hash_pydantic_model(Point(x=1, y=2)), str)
-
-
-@pydantic_available
-def test_hash_pydantic_model_returns_lowercase_hex() -> None:
-    result = hash_pydantic_model(Point(x=1, y=2))
-    assert all(c in "0123456789abcdef" for c in result)
-
-
-@pydantic_available
-def test_hash_pydantic_model_default_length_is_64() -> None:
-    assert len(hash_pydantic_model(Point(x=1, y=2))) == 64
-
-
-@pydantic_available
-@pytest.mark.parametrize("length", [2, 16, 32, 64, 128])
-def test_hash_pydantic_model_output_length_matches_requested(length: int) -> None:
-    assert len(hash_pydantic_model(Point(x=1, y=2), length=length)) == length
-
-
-@pydantic_available
-def test_hash_pydantic_model_invalid_length_raises() -> None:
-    with pytest.raises(ValueError, match="63"):
-        hash_pydantic_model(Point(x=1, y=2), length=63)
-
-
-# --- Determinism and field-order independence ---
-
-
-@pydantic_available
-def test_hash_pydantic_model_is_deterministic() -> None:
-    model = Point(x=1, y=2)
-    assert hash_pydantic_model(model) == hash_pydantic_model(model)
-
-
-@pydantic_available
-def test_hash_pydantic_model_independent_of_field_declaration_order() -> None:
-    assert hash_pydantic_model(Point(x=1, y=2)) == hash_pydantic_model(Point(y=2, x=1))
-
-
-@pydantic_available
-def test_hash_pydantic_model_equal_models_produce_same_hash() -> None:
-    assert hash_pydantic_model(Point(x=1, y=2)) == hash_pydantic_model(Point(x=1, y=2))
-
-
-# --- Sensitivity ---
-
-
-@pydantic_available
-def test_hash_pydantic_model_different_values_produce_different_hashes() -> None:
-    assert hash_pydantic_model(Point(x=1, y=2)) != hash_pydantic_model(Point(x=1, y=3))
-
-
-@pydantic_available
-def test_hash_pydantic_model_nested_model_field_change_affects_hash() -> None:
-    a = Nested(name="n", creds=Creds(username="alice", password="hunter2"))
-    b = Nested(name="n", creds=Creds(username="bob", password="hunter2"))
-    assert hash_pydantic_model(a, on_secret="exclude") != hash_pydantic_model(
-        b, on_secret="exclude"
-    )
-
-
-# --- on_secret behavior ---
-
-
-@pydantic_available
-def test_hash_pydantic_model_default_on_secret_is_error() -> None:
-    with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
-        hash_pydantic_model(Creds(username="alice", password="hunter2"))
-
-
-@pydantic_available
-def test_hash_pydantic_model_on_secret_exclude_ignores_secret_value() -> None:
-    a = Creds(username="alice", password="hunter2")
-    b = Creds(username="alice", password="different")
-    assert hash_pydantic_model(a, on_secret="exclude") == hash_pydantic_model(
-        b, on_secret="exclude"
-    )
-
-
-@pydantic_available
-def test_hash_pydantic_model_on_secret_exclude_still_sensitive_to_non_secret_fields() -> None:
+def test_exclude_secrets_keeps_the_other_fields() -> None:
+    registry = secret_registry("exclude")
     a = Creds(username="alice", password="hunter2")
     b = Creds(username="bob", password="hunter2")
-    assert hash_pydantic_model(a, on_secret="exclude") != hash_pydantic_model(
-        b, on_secret="exclude"
-    )
+    assert registry.hash(a) != registry.hash(b)
 
 
 @pydantic_available
-def test_hash_pydantic_model_on_secret_reveal_sensitive_to_secret_value() -> None:
+def test_exclude_secrets_keeps_the_position_of_the_secret() -> None:
+    registry = secret_registry("exclude")
+    assert registry.hash([SecretStr("a"), 1]) != registry.hash([1, SecretStr("a")])
+
+
+@pydantic_available
+def test_exclude_secrets_differs_from_a_list_without_the_secret() -> None:
+    registry = secret_registry("exclude")
+    assert registry.hash([SecretStr("a"), 1]) != registry.hash([1])
+
+
+@pydantic_available
+def test_exclude_secrets_in_a_dict() -> None:
+    registry = secret_registry("exclude")
+    assert registry.hash({"k": SecretStr("a")}) == registry.hash({"k": SecretStr("b")})
+
+
+@pydantic_available
+def test_exclude_top_level_secret() -> None:
+    registry = secret_registry("exclude")
+    assert registry.hash(SecretStr("a")) == registry.hash(SecretStr("b"))
+
+
+@pydantic_available
+def test_exclude_secret_str_and_secret_bytes_differ() -> None:
+    registry = secret_registry("exclude")
+    assert registry.hash(SecretStr("a")) != registry.hash(SecretBytes(b"a"))
+
+
+@pydantic_available
+def test_exclude_secrets_in_a_nested_model() -> None:
+    registry = secret_registry("exclude")
+    a = Nested(name="n", creds=Creds(username="alice", password="one"))
+    b = Nested(name="n", creds=Creds(username="alice", password="two"))
+    assert registry.hash(a) == registry.hash(b)
+
+
+@pydantic_available
+def test_exclude_secrets_in_a_dataclass() -> None:
+    @dataclass
+    class Holder:
+        secret: SecretStr
+
+    registry = secret_registry("exclude")
+    assert registry.hash(Holder(SecretStr("a"))) == registry.hash(Holder(SecretStr("b")))
+
+
+@pydantic_available
+def test_exclude_multiple_secret_fields() -> None:
+    registry = secret_registry("exclude")
+    a = CredsWithToken(username="alice", password="a", token=b"x")
+    b = CredsWithToken(username="alice", password="b", token=b"y")
+    assert registry.hash(a) == registry.hash(b)
+
+
+@pydantic_available
+def test_reveal_secrets_depends_on_the_value() -> None:
+    registry = secret_registry("reveal")
     a = Creds(username="alice", password="hunter2")
     b = Creds(username="alice", password="different")
-    assert hash_pydantic_model(a, on_secret="reveal") != hash_pydantic_model(b, on_secret="reveal")
+    assert registry.hash(a) != registry.hash(b)
 
 
 @pydantic_available
-def test_hash_pydantic_model_on_secret_reveal_secret_bytes() -> None:
-    a = CredsWithToken(username="alice", password="hunter2", token=b"tok-1")
-    b = CredsWithToken(username="alice", password="hunter2", token=b"tok-2")
-    assert hash_pydantic_model(a, on_secret="reveal") != hash_pydantic_model(
-        b,
-        on_secret="reveal",
-    )
+def test_reveal_secrets_equal_values_have_the_same_hash() -> None:
+    registry = secret_registry("reveal")
+    a = Creds(username="alice", password="hunter2")
+    b = Creds(username="alice", password="hunter2")
+    assert registry.hash(a) == registry.hash(b)
 
 
 @pydantic_available
-def test_hash_pydantic_model_reveal_and_exclude_produce_different_hashes() -> None:
-    model = Creds(username="alice", password="hunter2")
-    assert hash_pydantic_model(model, on_secret="reveal") != hash_pydantic_model(
-        model,
-        on_secret="exclude",
-    )
+def test_reveal_secret_bytes_depends_on_the_value() -> None:
+    registry = secret_registry("reveal")
+    assert registry.hash(SecretBytes(b"a")) != registry.hash(SecretBytes(b"b"))
 
 
 @pydantic_available
-def test_hash_pydantic_model_multiple_secret_fields_all_handled() -> None:
-    model = CredsWithToken(username="alice", password="hunter2", token=b"raw-token")
-    # Should not raise, and should not include either secret's value.
-    a = hash_pydantic_model(model, on_secret="exclude")
-    b = hash_pydantic_model(
-        CredsWithToken(username="alice", password="different", token=b"other-token"),
-        on_secret="exclude",
-    )
-    assert a == b
+def test_reveal_secret_differs_from_the_plain_string() -> None:
+    registry = secret_registry("reveal")
+    assert registry.hash(SecretStr("a")) != registry.hash("a")
 
 
 @pydantic_available
-@pytest.mark.parametrize("container", [tuple, list, set, frozenset])
-def test_hash_pydantic_model_secret_in_container_raises_by_default(container: type) -> None:
-    class Model(BaseModel):
-        values: Any
-
-    with pytest.raises(ValueError, match="SecretStr"):
-        hash_pydantic_model(Model(values=container([SecretStr("a")])))
+def test_reveal_and_exclude_differ() -> None:
+    creds = Creds(username="alice", password="hunter2")
+    assert secret_registry("reveal").hash(creds) != secret_registry("exclude").hash(creds)
 
 
 @pydantic_available
-@pytest.mark.parametrize("container", [tuple, list, set, frozenset])
-def test_hash_pydantic_model_secret_in_container_reveal_depends_on_secret(
-    container: type,
-) -> None:
-    class Model(BaseModel):
-        values: Any
-
-    first = hash_pydantic_model(Model(values=container([SecretStr("a")])), on_secret="reveal")
-    second = hash_pydantic_model(Model(values=container([SecretStr("b")])), on_secret="reveal")
-    assert first != second
+def test_reveal_secrets_in_a_container() -> None:
+    registry = secret_registry("reveal")
+    assert registry.hash([SecretStr("a")]) != registry.hash([SecretStr("b")])
 
 
 @pydantic_available
-@pytest.mark.parametrize("container", [tuple, list, set, frozenset])
-def test_hash_pydantic_model_secret_in_container_exclude_ignores_secret(
-    container: type,
-) -> None:
-    class Model(BaseModel):
-        values: Any
-
-    first = hash_pydantic_model(Model(values=container([SecretStr("a"), "x"])), on_secret="exclude")
-    second = hash_pydantic_model(
-        Model(values=container([SecretStr("b"), "x"])), on_secret="exclude"
-    )
-    assert first == second
-
-
-@pydantic_available
-def test_hash_pydantic_model_set_is_order_independent() -> None:
-    class Model(BaseModel):
-        values: Any
-
-    assert hash_pydantic_model(Model(values={"a", "b", "c"})) == hash_pydantic_model(
-        Model(values={"c", "b", "a"})
-    )
-
-
-@pydantic_available
-def test_unwrap_secrets_preserves_container_types_values() -> None:
-    value = {"a": (1, SecretStr("x")), "b": {1, 2}, "c": frozenset({3}), "d": [1]}
-    result = unwrap_secrets(value, on_secret="reveal")
-    assert result == {"a": (1, "x"), "b": {1, 2}, "c": frozenset({3}), "d": [1]}
-
-
-@pydantic_available
-def test_unwrap_secrets_preserves_container_types_tuple() -> None:
-    value = {"a": (1, SecretStr("x")), "b": {1, 2}, "c": frozenset({3}), "d": [1]}
-    result = unwrap_secrets(value, on_secret="reveal")
-    assert isinstance(result["a"], tuple)
-
-
-@pydantic_available
-def test_unwrap_secrets_preserves_container_types_set() -> None:
-    value = {"a": (1, SecretStr("x")), "b": {1, 2}, "c": frozenset({3}), "d": [1]}
-    result = unwrap_secrets(value, on_secret="reveal")
-    assert isinstance(result["b"], set)
-
-
-@pydantic_available
-def test_unwrap_secrets_preserves_container_types_frozenset() -> None:
-    value = {"a": (1, SecretStr("x")), "b": {1, 2}, "c": frozenset({3}), "d": [1]}
-    result = unwrap_secrets(value, on_secret="reveal")
-    assert isinstance(result["c"], frozenset)
-
-
-@pydantic_available
-def test_unwrap_secrets_leaves_other_values_unchanged() -> None:
-    value = OrderedDict(a=1)
-    assert unwrap_secrets(value, on_secret="error") is value
-
-
-@pydantic_available
-def test_hash_pydantic_model_uses_given_registry() -> None:
-    with pytest.raises(KeyError):
-        hash_pydantic_model(Point(x=1, y=2), registry=HasherRegistry())
-
-
-@pydantic_available
-def test_hash_pydantic_model_depends_on_model_class() -> None:
-    assert hash_pydantic_model(Point(x=1, y=2)) != hash_pydantic_model(Point3(x=1, y=2))
-
-
-@pydantic_available
-def test_hash_pydantic_model_secret_bytes_reveal_matches_bytes_field_differs_by_secret() -> None:
-    class Plain(BaseModel):
-        token: bytes
-
-    class Secret(BaseModel):
-        token: SecretBytes
-
-    # Different classes, so the hashes differ; the point is that revealing
-    # a SecretBytes does not raise and is sensitive to the content.
-    assert hash_pydantic_model(Secret(token=b"a"), on_secret="reveal") != hash_pydantic_model(
-        Secret(token=b"b"), on_secret="reveal"
-    )
-
-
-@pydantic_available
-def test_hash_pydantic_model_secret_bytes_reveal_matches_bytes_field_plain_model_is_a_str() -> None:
-    class Plain(BaseModel):
-        token: bytes
-
-    class Secret(BaseModel):
-        token: SecretBytes
-
-    assert isinstance(hash_pydantic_model(Plain(token=b"a")), str)
-
-
-@pydantic_available
-def test_hash_pydantic_model_self_referencing_model_raises_value_error() -> None:
-    model = AnyValue(value=None)
-    model.value = [model]
-    with pytest.raises(ValueError, match="self-referencing"):
-        hash_pydantic_model(model)
-
-
-@pydantic_available
-def test_hash_pydantic_model_same_model_twice_is_not_a_cycle() -> None:
-    inner = Point(x=1, y=2)
-    assert hash_pydantic_model(AnyValue(value=[inner, inner]))
+def test_secret_policy_does_not_change_the_default_registry() -> None:
+    secret_registry("exclude")
+    with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
+        hash_object(SecretStr("a"))

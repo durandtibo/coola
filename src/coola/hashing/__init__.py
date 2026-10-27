@@ -47,6 +47,7 @@ __all__ = [
     "PydanticModelHasher",
     "ReprHasher",
     "ResolvedPathHasher",
+    "SecretHasher",
     "SequenceHasher",
     "SetHasher",
     "StrHasher",
@@ -57,12 +58,12 @@ __all__ = [
     "digest",
     "get_default_hasher_registry",
     "get_default_registry",
+    "get_secret_hashers",
     "get_stable_registry",
     "hash_bytes",
     "hash_enum",
     "hash_object",
     "hash_path",
-    "hash_pydantic_model",
     "hash_string",
     "hash_tagged",
     "register_hashers",
@@ -100,7 +101,7 @@ if TYPE_CHECKING:
     from coola.hashing.pandas import PandasDataFrameHasher, PandasSeriesHasher
     from coola.hashing.polars import PolarsDataFrameHasher, PolarsSeriesHasher
     from coola.hashing.pyarrow import PyarrowArrayHasher, PyarrowTableHasher
-    from coola.hashing.pydantic import PydanticModelHasher, hash_pydantic_model
+    from coola.hashing.pydantic import PydanticModelHasher, SecretHasher, get_secret_hashers
     from coola.hashing.torch import TorchTensorHasher
     from coola.hashing.xarray import XarrayHasher
 
@@ -119,6 +120,7 @@ _LAZY_EXPORTS = {
     "PydanticModelHasher": "coola.hashing.pydantic",
     "TorchTensorHasher": "coola.hashing.torch",
     "XarrayHasher": "coola.hashing.xarray",
-    "hash_pydantic_model": "coola.hashing.pydantic",
+    "SecretHasher": "coola.hashing.pydantic",
+    "get_secret_hashers": "coola.hashing.pydantic",
 }
 __getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())
