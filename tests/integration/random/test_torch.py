@@ -42,3 +42,16 @@ def test_torch_random_manager_manual_seed_seeds_mps() -> None:
     torch.rand(5, device="mps")
     manager.manual_seed(42)
     assert torch.rand(3, device="mps").equal(first)
+
+
+@torch_available
+@pytest.mark.skipif(
+    not is_torch_available() or not torch.cuda.is_available(), reason="requires CUDA"
+)
+def test_torch_random_manager_manual_seed_seeds_cuda() -> None:
+    manager = TorchRandomManager()
+    manager.manual_seed(42)
+    first = torch.rand(3, device="cuda")
+    torch.rand(5, device="cuda")
+    manager.manual_seed(42)
+    assert torch.rand(3, device="cuda").equal(first)
