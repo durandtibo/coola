@@ -362,7 +362,54 @@ The `TypeRegistry` uses an internal cache for type resolution to optimize perfor
 
 ```
 
-The cache is automatically cleared when you register or unregister types to ensure consistency.
+The cache is a plain dictionary bounded to 1,024 types, and any change of the registry (a registration,
+an unregistration, a fallback, a lazy load) empties it. It holds strong references to the types, so a
+class created dynamically stays alive until the cache is reset.
+
+## Fallbacks
+
+The MRO lookup cannot support a type that cannot be a key of the registry: every dataclass is a
+different type, a class that defines a method (`__hash__`, `hash()`) is not a base class, and a class
+that is only _registered_ with an abstract base class is not in its MRO. A **fallback** supports such
+types: `register_fallback(predicate, handler)` registers a handler for the types that satisfy a
+predicate.
+
+```pycon
+>>> from collections import deque
+>>> from collections.abc import Sequence
+>>> from dataclasses import dataclass, is_dataclass
+>>> from coola.registry import TypeRegistry
+>>> registry = TypeRegistry[str]({object: "object"})
+>>> registry.register_fallback(is_dataclass, "dataclass")
+>>> registry.register_fallback(lambda t: issubclass(t, Sequence), "sequence")
+>>> @dataclass
+... class Point:
+...     x: int
+>>> registry.resolve(Point)
+'dataclass'
+>>> registry.resolve(deque)  # a virtual subclass of Sequence
+'sequence'
+>>> registry.resolve(int)
+'object'
+
+```
+
+The order of precedence of `resolve` is fixed:
+
+| Order | Lookup                                                           |
+| ----- | ---------------------------------------------------------------- |
+| 1     | The registered types, in the MRO order of the type (`object` excluded) |
+| 2     | The fallbacks, in registration order: the first predicate that accepts the type |
+| 3     | `object`, if it is registered                                    |
+| 4     | `TypeNotRegisteredError`                                         |
+
+A type registered for the type of the data always wins over a fallback, and `object` is the last
+resort. A predicate must be pure and cheap: its result is cached per type until the next change of
+the registry. A predicate that raises propagates and is not cached. Registering the same predicate
+twice raises `AlreadyRegisteredError`, unless `exist_ok=True`, which replaces the handler and keeps
+the position. `unregister_fallback(predicate)` returns the handler, `fallbacks()` returns a snapshot
+of the `(predicate, handler)` pairs, and `copy()`, `clear()`, `equal()` and `repr()` include the
+fallbacks.
 
 ## Thread Safety
 
@@ -396,9 +443,9 @@ is not affected.
 
 ## Lazy Registration
 
-`register_lazy(names, factory)` registers a group of entries that is built the first time it is
-needed. It is how `coola` registers the handlers of an optional library (numpy, torch, pandas, ...)
-without importing the library. `names` is a package name or a sequence of package names, and
+`TypeRegistry.register_lazy(packages, factory)` registers a group of entries that is built the first
+time it is needed. It is how `coola` registers the handlers of an optional library (numpy, torch, pandas, ...)
+without importing the library. `packages` is a top-level package name or a sequence of names, and
 `factory` is a callable that returns a mapping, or its path `"package.module:name"`, which is
 imported only when the group is loaded:
 
@@ -532,19 +579,29 @@ The `coola.registry` package design provides:
 
 ## Properties
 
-| Property                     | Statement                                                                                                                                                                                                       |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Most specific type wins      | `TypeRegistry.resolve` returns the value of the first registered class of the Method Resolution Order, and falls back to `object` if it is registered.                                                          |
-| No silent overwrite          | Registering an existing key raises `AlreadyRegisteredError`, unless `exist_ok=True`. `register_many` is atomic: nothing is registered if one key is invalid or a duplicate.                                      |
-| Thread-safe, cheap reads     | A reader sees the state before or after a write, never a partial one, and a lookup takes no lock. The writers are serialized by a reentrant lock (`threading.RLock`).                                           |
-| Stable views                 | `items()`, `keys()`, `values()` and iteration return snapshots: a later registration does not change a view already returned.                                                                                    |
-| Independent copies           | `copy()` returns a registry of the same class with the same entries and pending lazy groups. Registering in one does not change the other. The values are shared, not copied.                                     |
-| Fork-safe                    | A child created by `os.fork` creates new locks and keeps the content of the registry.                                                                                                                            |
-| Lazy for optional libraries  | `register_lazy` imports nothing. A group is loaded when a type from its package is looked up or when the whole content is read. `repr` and `copy` never load. Loaded entries never replace explicit ones.       |
-| Strict keys and clear errors | `TypeRegistry` keys are classes (`TypeError` otherwise). A missing key raises `KeyNotRegisteredError`, a missing type raises `TypeNotRegisteredError`. Both are `KeyError`.                                       |
-| Insertion order              | `items()`, `keys()`, `values()` and iteration follow the order of registration.                                                                                                                                  |
-| Cached resolution            | `TypeRegistry` caches the resolution of types for speed. Any change of the registry empties the cache.                                                                                                           |
-| Generic typing               | Both registries are generic in their key and value types.                                                                                                                                                        |
+| Property                     | Statement                                                                                                                                                                                                                                                                                |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Most specific type wins      | `TypeRegistry.resolve(t)` returns the handler of the first registered class of `t.__mro__`. The order of precedence is fixed: registered types (`object` excluded) > fallbacks (registration order) > `object` > `TypeNotRegisteredError`.                                              |
+| Extensible, no subclassing   | A type is supported by registering one handler. A type that cannot be a key (every dataclass, the classes that define a method, the virtual subclasses of an ABC) is supported by registering a fallback predicate.                                                                       |
+| No silent overwrite          | Registering an existing key (a type, a fallback predicate) raises `AlreadyRegisteredError`, unless `exist_ok=True`. `register_many` is atomic: nothing is registered if one key is invalid or a duplicate.                                                                              |
+| Thread-safe, cheap reads     | A reader sees the state before or after a write, never a partial one. A lookup of a known type takes no lock. The writers are serialized by one reentrant lock.                                                                                                                         |
+| Stable views                 | `items()`, `keys()`, `values()`, `fallbacks()` and iteration are snapshots: a later registration does not change a view already returned, and registering while iterating is safe.                                                                                                     |
+| Independent copies           | `copy()` returns a registry of the same class with the same entries, fallbacks and pending lazy groups. Registering in one does not change the other. The handlers are shared, not copied.                                                                                              |
+| Fork-safe and picklable      | A child created by `os.fork` never blocks on a lock held by a thread that does not exist there. A registry (with picklable handlers and predicates) survives `pickle` and `copy.deepcopy`, so it can be sent to a spawned worker.                                                       |
+| Lazy for optional libraries  | `register_lazy` imports nothing. A group is loaded when a type from its package is looked up, or when the whole content is read. `repr` and `copy` never load. A group that fails to load stays pending and raises again. Loaded entries never replace explicit ones.                  |
+| Strict keys and clear errors | `TypeRegistry` keys are classes (`TypeError` otherwise). A missing key raises `KeyNotRegisteredError`, a missing type `TypeNotRegisteredError`; both are `KeyError`. The message lists the MRO of the type and the registered types.                                                    |
+| Insertion order              | `items()`, `keys()`, `values()`, iteration and `fallbacks()` follow the order of registration.                                                                                                                                                                                          |
+| Generic typing               | `Registry[K, V]` and `TypeRegistry[V]` are generic.                                                                                                                                                                                                                                     |
+| Core package                 | `coola.registry` imports no feature package and no optional library. It depends on `coola.utils` only.                                                                                                                                                                                  |
+| One display                  | Every registry prints the same way: `ClassName(` then one `(key): value` line per entry, then the fallbacks and the pending lazy groups.                                                                                                                                                |
+
+Not guaranteed:
+
+- **Virtual subclasses.** The MRO lookup does not call `issubclass`: register the class, or register
+  a fallback.
+- **The handlers** are stored as given: not copied, not checked against a protocol.
+- **A registration made while another thread resolves** is seen by the lookups that start after the
+  registration returns. A traversal that already holds a handler keeps it until the end of the call.
 
 ## Comparison: Registry vs TypeRegistry
 
@@ -553,6 +610,8 @@ The `coola.registry` package design provides:
 | Key type   | Any hashable              | Python types only         |
 | MRO lookup | No                        | Yes (via `resolve()`)     |
 | Caching    | No                        | Yes (for type resolution) |
+| Fallbacks  | No                        | Yes (`register_fallback`) |
+| Lazy groups | No                       | Yes (`register_lazy`)     |
 | Use case   | Generic key-value storage | Type-based dispatch       |
 
 ## See Also
