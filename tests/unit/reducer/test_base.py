@@ -123,3 +123,32 @@ def test_base_reducer_prepare_default_returns_the_values(reducer: RecordingReduc
 
 def test_base_reducer_quantile_accepts_the_bounds(reducer: RecordingReducer) -> None:
     assert reducer.quantile([1, 2], [0, 1]) == [0.0, 1.0]
+
+
+def test_base_reducer_sort_iterator_is_rejected_before_prepare(reducer: RecordingReducer) -> None:
+    with pytest.raises(TypeError, match=r"of an iterator, convert it to a list first"):
+        reducer.sort(iter([1, 2]))
+    assert reducer.calls == []
+
+
+def test_base_reducer_set_is_rejected_before_prepare(reducer: RecordingReducer) -> None:
+    with pytest.raises(TypeError, match=r"of a set, pass a sequence of numbers"):
+        reducer.max({1, 2})
+    assert reducer.calls == []
+
+
+def test_base_reducer_raise_unsupported_names_the_backend_and_the_hint(
+    reducer: RecordingReducer,
+) -> None:
+    with pytest.raises(TypeError, match=r"^RecordingReducer does not support bytes; use another$"):
+        reducer._raise_unsupported("bytes", "use another")
+
+
+def test_base_reducer_raise_unsupported_without_hint(reducer: RecordingReducer) -> None:
+    with pytest.raises(TypeError, match=r"^RecordingReducer does not support bytes$"):
+        reducer._raise_unsupported("bytes")
+
+
+def test_base_reducer_raise_ndim_names_the_backend(reducer: RecordingReducer) -> None:
+    with pytest.raises(ValueError, match=r"^RecordingReducer takes a 1-D input, got 2 dimension"):
+        reducer._raise_ndim(2)

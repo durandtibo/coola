@@ -41,6 +41,13 @@ class NativeReducer(InlineDisplayMixin, BaseReducer[Sequence[float]]):
         ```
     """
 
+    def _prepare(self, values: Sequence[float]) -> Sequence[float]:
+        if not isinstance(values, Sequence):
+            module = type(values).__module__.partition(".")[0]
+            hint = {"numpy": "use NumpyReducer", "torch": "use TorchReducer"}.get(module)
+            self._raise_unsupported(f"an input of type {type(values).__name__}", hint)
+        return values
+
     def _max(self, values: Sequence[float]) -> int | float:
         # ``max`` depends on the order of the values if one is NaN.
         if _has_nan(values):

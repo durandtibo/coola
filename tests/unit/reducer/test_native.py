@@ -2,10 +2,23 @@ from __future__ import annotations
 
 import math
 from typing import TYPE_CHECKING
+from unittest.mock import Mock
 
 import pytest
 
 from coola.reducer import EmptySequenceError, NativeReducer
+from coola.testing.fixtures import numpy_available, torch_available
+from coola.utils.imports import is_numpy_available, is_torch_available
+
+if is_numpy_available():
+    import numpy as np
+else:
+    np = Mock()  # pragma: no cover
+
+if is_torch_available():
+    import torch
+else:
+    torch = Mock()  # pragma: no cover
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -302,3 +315,33 @@ def test_native_reducer_median_infinite_values() -> None:
 def test_native_reducer_max_generator_raises() -> None:
     with pytest.raises(TypeError, match="iterator"):
         NativeReducer().max(i for i in range(3))
+
+
+@numpy_available
+def test_native_reducer_array_raises() -> None:
+    with pytest.raises(
+        TypeError,
+        match=r"NativeReducer does not support an input of type ndarray; use NumpyReducer",
+    ):
+        NativeReducer().max(np.array([1, 2, 3]))
+
+
+@torch_available
+def test_native_reducer_tensor_raises() -> None:
+    with pytest.raises(
+        TypeError, match=r"NativeReducer does not support an input of type Tensor; use TorchReducer"
+    ):
+        NativeReducer().max(torch.tensor([1, 2, 3]))
+
+
+def test_native_reducer_dict_raises() -> None:
+    with pytest.raises(TypeError, match=r"NativeReducer does not support an input of type dict$"):
+        NativeReducer().max({1: 2})
+
+
+def test_native_reducer_max_range() -> None:
+    assert NativeReducer().max(range(5)) == 4
+
+
+def test_native_reducer_big_int() -> None:
+    assert NativeReducer().max([2**70, 1]) == 1180591620717411303424

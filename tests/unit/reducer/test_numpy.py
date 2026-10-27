@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from decimal import Decimal
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
@@ -342,13 +343,15 @@ def test_numpy_reducer_std_empty(values: Sequence[int | float]) -> None:
 
 
 @numpy_available
-def test_numpy_reducer_std_2d_array() -> None:
-    assert math.isclose(NumpyReducer().std(np.ones((1, 3))), 0.0, abs_tol=1e-6)
+def test_numpy_reducer_std_2d_array_raises() -> None:
+    with pytest.raises(ValueError, match=r"NumpyReducer takes a 1-D input, got 2 dimension"):
+        NumpyReducer().std(np.ones((1, 3)))
 
 
 @numpy_available
-def test_numpy_reducer_std_2d_array_one_element() -> None:
-    assert math.isnan(NumpyReducer().std(np.ones((1, 1))))
+def test_numpy_reducer_std_2d_array_one_element_raises() -> None:
+    with pytest.raises(ValueError, match=r"NumpyReducer takes a 1-D input, got 2 dimension"):
+        NumpyReducer().std(np.ones((1, 1)))
 
 
 @numpy_available
@@ -384,3 +387,49 @@ def test_numpy_reducer_median_infinite_values() -> None:
 def test_numpy_reducer_max_generator_raises() -> None:
     with pytest.raises(TypeError, match="iterator"):
         NumpyReducer().max(i for i in range(3))
+
+
+@numpy_available
+@pytest.mark.parametrize(
+    "values",
+    [
+        pytest.param([2**70, 1], id="big-int"),
+        pytest.param([1 + 2j, 3], id="complex"),
+        pytest.param([None, 1], id="none"),
+        pytest.param(["a", "b"], id="str"),
+        pytest.param([Decimal(1)], id="decimal"),
+    ],
+)
+def test_numpy_reducer_unsupported_values_raise(values: list) -> None:
+    with pytest.raises(TypeError, match=r"NumpyReducer does not support .*use NativeReducer"):
+        NumpyReducer().max(values)
+
+
+@numpy_available
+def test_numpy_reducer_ragged_sequences_raise() -> None:
+    with pytest.raises(TypeError, match=r"NumpyReducer does not support nested sequences"):
+        NumpyReducer().max([[1, 2], [3]])
+
+
+@numpy_available
+@pytest.mark.parametrize("values", [[[1, 2], [3, 4]], np.array(1), np.ones((2, 0))])
+def test_numpy_reducer_not_1d_raises(values: object) -> None:
+    with pytest.raises(ValueError, match=r"NumpyReducer takes a 1-D input"):
+        NumpyReducer().max(values)
+
+
+@numpy_available
+def test_numpy_reducer_sort_2d_raises() -> None:
+    with pytest.raises(ValueError, match=r"NumpyReducer takes a 1-D input, got 2 dimension"):
+        NumpyReducer().sort([[2, 1], [4, 3]])
+
+
+@numpy_available
+def test_numpy_reducer_array_does_not_copy() -> None:
+    array = np.array([3, 1, 2])
+    assert NumpyReducer()._prepare(array) is array
+
+
+@numpy_available
+def test_numpy_reducer_result_is_python_scalar() -> None:
+    assert type(NumpyReducer().max(np.array([1, 2]))) is int

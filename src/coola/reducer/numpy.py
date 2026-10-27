@@ -46,40 +46,53 @@ class NumpyReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | np.ndarray
     def __init__(self) -> None:
         check_numpy()
 
-    def _max(self, values: Sequence[float] | np.ndarray) -> int | float:
-        return np.max(np.asarray(values)).item()
+    def _prepare(self, values: Sequence[float] | np.ndarray) -> np.ndarray:
+        try:
+            array = np.asarray(values)
+        except ValueError:  # ragged nested sequences
+            self._raise_unsupported("nested sequences of different lengths")
+        if array.dtype.kind not in "biuf":
+            self._raise_unsupported(
+                f"values of dtype {array.dtype} (an integer beyond 64 bits, a complex number or "
+                "another type)",
+                "use NativeReducer for arbitrary precision integers",
+            )
+        if array.ndim != 1:
+            self._raise_ndim(array.ndim)
+        return array
 
-    def _mean(self, values: Sequence[float] | np.ndarray) -> float:
-        return np.mean(np.asarray(values)).item()
+    def _max(self, values: np.ndarray) -> int | float:
+        return values.max().item()
 
-    def _median(self, values: Sequence[float] | np.ndarray) -> int | float:
-        array = np.asarray(values)
-        if array.dtype.kind in "iu" and array.size % 2 == 1:
+    def _mean(self, values: np.ndarray) -> float:
+        return values.mean().item()
+
+    def _median(self, values: np.ndarray) -> int | float:
+        if values.dtype.kind in "iu" and values.size % 2 == 1:
             # Like the other reducers, the median of an odd number of integers is an integer.
-            return np.sort(array, axis=None)[array.size // 2].item()
+            return np.sort(values)[values.size // 2].item()
         with np.errstate(over="ignore"):
-            result = np.median(array).item()
-        if math.isinf(result) and np.isfinite(array).all():
+            result = np.median(values).item()
+        if math.isinf(result) and np.isfinite(values).all():
             # The mean of the two middle values overflowed: halve the values first.
-            return np.median(array / 2).item() * 2
+            return np.median(values / 2).item() * 2
         return result
 
-    def _min(self, values: Sequence[float] | np.ndarray) -> int | float:
-        return np.min(np.asarray(values)).item()
+    def _min(self, values: np.ndarray) -> int | float:
+        return values.min().item()
 
-    def _quantile(
-        self, values: Sequence[float] | np.ndarray, quantiles: Sequence[float]
-    ) -> list[float]:
-        return np.quantile(np.asarray(values), q=quantiles).tolist()
+    def _quantile(self, values: np.ndarray, quantiles: Sequence[float]) -> list[float]:
+        if values.dtype.kind == "b":
+            values = values.astype(np.float64)  # ``np.quantile`` does not support booleans
+        return np.quantile(values, q=quantiles).tolist()
 
-    def _sort(self, values: Sequence[float] | np.ndarray, *, descending: bool) -> list[int | float]:
-        array = np.sort(np.asarray(values))
+    def _sort(self, values: np.ndarray, *, descending: bool) -> list[int | float]:
+        array = np.sort(values)
         if descending:
             return array[::-1].tolist()
         return array.tolist()
 
-    def _std(self, values: Sequence[float] | np.ndarray) -> float:
-        array = np.asarray(values)
-        if array.size <= 1:
+    def _std(self, values: np.ndarray) -> float:
+        if values.size <= 1:
             return float("nan")
-        return np.std(array, ddof=1).item()
+        return np.std(values, ddof=1).item()

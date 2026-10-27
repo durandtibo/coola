@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from decimal import Decimal
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
@@ -8,8 +9,13 @@ import pytest
 
 from coola.reducer import EmptySequenceError, NativeReducer, TorchReducer
 from coola.reducer.torch import _to_float_tensor
-from coola.testing.fixtures import torch_available
-from coola.utils.imports import MissingPackageError, is_torch_available
+from coola.testing.fixtures import numpy_available, torch_available
+from coola.utils.imports import MissingPackageError, is_numpy_available, is_torch_available
+
+if is_numpy_available():
+    import numpy as np
+else:
+    np = Mock()  # pragma: no cover
 
 if is_torch_available():
     import torch
@@ -438,9 +444,6 @@ def test_torch_reducer_matches_native_reducer_quantile() -> None:
 @pytest.mark.parametrize(
     ("values", "dtype"),
     [
-        pytest.param([0.1, 0.2], "float64", id="list-of-floats"),
-        pytest.param([1, 2], "float64", id="list-of-ints"),
-        pytest.param((0.1, 0.2), "float64", id="tuple"),
         pytest.param(torch.tensor([0.1, 0.2], dtype=torch.float32), "float32", id="float32"),
         pytest.param(torch.tensor([0.1, 0.2], dtype=torch.float64), "float64", id="float64"),
         pytest.param(torch.tensor([0.1, 0.2], dtype=torch.float16), "float16", id="float16"),
@@ -505,3 +508,77 @@ def test_torch_reducer_median_infinite_values() -> None:
 def test_torch_reducer_max_generator_raises() -> None:
     with pytest.raises(TypeError, match="iterator"):
         TorchReducer().max(i for i in range(3))
+
+
+@torch_available
+@pytest.mark.parametrize(
+    "values",
+    [
+        pytest.param([2**70, 1], id="big-int"),
+        pytest.param([None, 1], id="none"),
+        pytest.param(["a", "b"], id="str"),
+        pytest.param([Decimal(1)], id="decimal"),
+        pytest.param([[1, 2], [3]], id="ragged"),
+    ],
+)
+def test_torch_reducer_unsupported_values_raise(values: list) -> None:
+    with pytest.raises(TypeError, match=r"TorchReducer does not support .*use NativeReducer"):
+        TorchReducer().max(values)
+
+
+@torch_available
+@pytest.mark.parametrize("values", [[1 + 2j, 3], torch.tensor([1 + 2j, 3])])
+def test_torch_reducer_complex_raises(values: object) -> None:
+    with pytest.raises(TypeError, match=r"TorchReducer does not support complex numbers"):
+        TorchReducer().max(values)
+
+
+@torch_available
+@numpy_available
+def test_torch_reducer_complex_array_raises() -> None:
+    with pytest.raises(TypeError, match=r"TorchReducer does not support an array of dtype complex"):
+        TorchReducer().max(np.array([1 + 2j, 3]))
+
+
+@torch_available
+@numpy_available
+def test_torch_reducer_array_max() -> None:
+    assert TorchReducer().max(np.array([1, 3, 2])) == 3
+
+
+@torch_available
+@pytest.mark.parametrize("values", [[[1, 2], [3, 4]], torch.tensor(1), torch.ones(2, 0)])
+def test_torch_reducer_not_1d_raises(values: object) -> None:
+    with pytest.raises(ValueError, match=r"TorchReducer takes a 1-D input"):
+        TorchReducer().max(values)
+
+
+@torch_available
+def test_torch_reducer_sort_2d_raises() -> None:
+    with pytest.raises(ValueError, match=r"TorchReducer takes a 1-D input, got 2 dimension"):
+        TorchReducer().sort([[2, 1], [4, 3]])
+
+
+@torch_available
+def test_torch_reducer_tensor_does_not_copy() -> None:
+    tensor = torch.tensor([3, 1, 2])
+    assert TorchReducer()._prepare(tensor) is tensor
+
+
+@torch_available
+@pytest.mark.parametrize(
+    ("values", "dtype"),
+    [
+        pytest.param([0.1, 0.2], "float64", id="list-of-floats"),
+        pytest.param([1, 2], "int64", id="list-of-ints"),
+        pytest.param((0.1, 0.2), "float64", id="tuple"),
+        pytest.param([1, 2.5], "float64", id="mixed"),
+    ],
+)
+def test_torch_reducer_prepare_dtype(values: object, dtype: str) -> None:
+    assert TorchReducer()._prepare(values).dtype == getattr(torch, dtype)
+
+
+@torch_available
+def test_torch_reducer_result_is_python_scalar() -> None:
+    assert type(TorchReducer().max(torch.tensor([1, 2]))) is int
