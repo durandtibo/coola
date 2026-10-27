@@ -262,6 +262,26 @@ This is useful when writing library code that should work with whatever the user
 
 ## Error Handling
 
+### Invalid Input
+
+The input is a sequence of real numbers, or a one-dimensional array / tensor for the backend. An
+iterator, a set, a string or a value that the backend cannot represent raises `TypeError`, and an
+input that is not one-dimensional raises `ValueError`. The message says what to pass:
+
+```pycon
+>>> from coola.reducer import NativeReducer
+>>> reducer = NativeReducer()
+>>> reducer.max({1, 2, 3})
+Traceback (most recent call last):
+    ...
+TypeError: Cannot compute the maximum of a set, pass a sequence of numbers (e.g. a list)
+>>> reducer.quantile([1, 2, 3], [2])
+Traceback (most recent call last):
+    ...
+ValueError: quantiles must be in [0, 1], got 2
+
+```
+
 ### Empty Sequences
 
 `max`, `min`, `mean`, `median`, `std` and `quantile` raise `EmptySequenceError` when given an
