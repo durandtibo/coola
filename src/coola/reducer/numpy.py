@@ -8,12 +8,14 @@ from __future__ import annotations
 __all__ = ["NumpyReducer"]
 
 import math
-from collections.abc import Sequence
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin
-from coola.reducer.base import BaseBasicReducer
+from coola.reducer.base import BaseReducer
 from coola.utils.imports import check_numpy, is_numpy_available
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 if TYPE_CHECKING or is_numpy_available():
     import numpy as np
@@ -21,10 +23,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
 
-T = TypeVar("T", Sequence[float], np.ndarray)
-
-
-class NumpyReducer(InlineDisplayMixin, BaseBasicReducer[T]):
+class NumpyReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | np.ndarray"]):
     r"""Implement a reducer based on NumPy functions.
 
     Raises:
@@ -47,18 +46,13 @@ class NumpyReducer(InlineDisplayMixin, BaseBasicReducer[T]):
     def __init__(self) -> None:
         check_numpy()
 
-    def _is_empty(self, values: T) -> bool:
-        if isinstance(values, np.ndarray):
-            return values.size == 0
-        return not values
-
-    def _max(self, values: T) -> int | float:
+    def _max(self, values: Sequence[float] | np.ndarray) -> int | float:
         return np.max(np.asarray(values)).item()
 
-    def _mean(self, values: T) -> float:
+    def _mean(self, values: Sequence[float] | np.ndarray) -> float:
         return np.mean(np.asarray(values)).item()
 
-    def _median(self, values: T) -> int | float:
+    def _median(self, values: Sequence[float] | np.ndarray) -> int | float:
         array = np.asarray(values)
         if array.dtype.kind in "iu" and array.size % 2 == 1:
             # Like the other reducers, the median of an odd number of integers is an integer.
@@ -70,19 +64,21 @@ class NumpyReducer(InlineDisplayMixin, BaseBasicReducer[T]):
             return np.median(array / 2).item() * 2
         return result
 
-    def _min(self, values: T) -> int | float:
+    def _min(self, values: Sequence[float] | np.ndarray) -> int | float:
         return np.min(np.asarray(values)).item()
 
-    def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
+    def _quantile(
+        self, values: Sequence[float] | np.ndarray, quantiles: Sequence[float]
+    ) -> list[float]:
         return np.quantile(np.asarray(values), q=quantiles).tolist()
 
-    def sort(self, values: T, descending: bool = False) -> list[int | float]:
+    def _sort(self, values: Sequence[float] | np.ndarray, *, descending: bool) -> list[int | float]:
         array = np.sort(np.asarray(values))
         if descending:
             return array[::-1].tolist()
         return array.tolist()
 
-    def _std(self, values: T) -> float:
+    def _std(self, values: Sequence[float] | np.ndarray) -> float:
         array = np.asarray(values)
         if array.size <= 1:
             return float("nan")

@@ -2,19 +2,20 @@ r"""Define the reducer base class."""
 
 from __future__ import annotations
 
-__all__ = ["BaseBasicReducer", "BaseReducer", "EmptySequenceError"]
+__all__ = ["BaseReducer", "EmptySequenceError"]
 
+import math
 from abc import ABC, abstractmethod
-from collections.abc import Iterator
+from collections.abc import Iterator, Sized
 from typing import TYPE_CHECKING, Generic, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-T = TypeVar("T")
+T = TypeVar("T", bound=Sized)
 
 
-class EmptySequenceError(Exception):
+class EmptySequenceError(ValueError):
     r"""Raise when the sequence is empty because it is not possible to
     reduce an empty sequence."""
 
@@ -36,7 +37,6 @@ class BaseReducer(ABC, Generic[T]):
         ```
     """
 
-    @abstractmethod
     def max(self, values: T) -> int | float:
         r"""Compute the maximum value.
 
@@ -59,8 +59,8 @@ class BaseReducer(ABC, Generic[T]):
 
             ```
         """
+        return self._max(self._prepare_non_empty(values, "the maximum"))
 
-    @abstractmethod
     def mean(self, values: T) -> float:
         r"""Compute the mean value.
 
@@ -82,8 +82,8 @@ class BaseReducer(ABC, Generic[T]):
 
             ```
         """
+        return self._mean(self._prepare_non_empty(values, "the mean"))
 
-    @abstractmethod
     def median(self, values: T) -> int | float:
         r"""Compute the median value.
 
@@ -105,8 +105,8 @@ class BaseReducer(ABC, Generic[T]):
 
             ```
         """
+        return self._median(self._prepare_non_empty(values, "the median"))
 
-    @abstractmethod
     def min(self, values: T) -> int | float:
         r"""Compute the minimum value.
 
@@ -128,8 +128,8 @@ class BaseReducer(ABC, Generic[T]):
 
             ```
         """
+        return self._min(self._prepare_non_empty(values, "the minimum"))
 
-    @abstractmethod
     def quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
         r"""Compute the quantiles.
 
@@ -141,6 +141,8 @@ class BaseReducer(ABC, Generic[T]):
             The quantiles.
 
         Raises:
+            ValueError: if a quantile is not in the range ``[0, 1]``
+                (or is ``NaN``). This is checked before the values.
             EmptySequenceError: if the input sequence is empty.
 
         Example:
@@ -152,9 +154,10 @@ class BaseReducer(ABC, Generic[T]):
 
             ```
         """
+        _check_quantiles(quantiles)
+        return self._quantile(self._prepare_non_empty(values, "the quantiles"), quantiles)
 
-    @abstractmethod
-    def sort(self, values: T, descending: bool = False) -> list[int | float]:
+    def sort(self, values: T, *, descending: bool = False) -> list[int | float]:
         r"""Sort the values.
 
         Args:
@@ -179,8 +182,8 @@ class BaseReducer(ABC, Generic[T]):
 
             ```
         """
+        return self._sort(self._prepare(values), descending=descending)
 
-    @abstractmethod
     def std(self, values: T) -> float:
         r"""Compute the standard deviation.
 
@@ -202,32 +205,31 @@ class BaseReducer(ABC, Generic[T]):
 
             ```
         """
+        return self._std(self._prepare_non_empty(values, "the standard deviation"))
 
+    def _prepare(self, values: T) -> T:
+        r"""Return the values as the container used by the computations.
 
-class BaseBasicReducer(BaseReducer[T]):
-    r"""Extension of ``BaseReducer`` that validates the input sequence is
-    not empty before calling the reduction methods.
+        The default implementation returns the values unchanged. A
+        backend overrides it to convert and validate the values.
 
-    This class provides concrete implementations of all ``BaseReducer``
-    abstract methods by first checking for empty sequences (raising
-    ``EmptySequenceError``) and then delegating to private ``_max``,
-    ``_mean``, etc. methods that subclasses must implement.
-    """
-
-    @abstractmethod
-    def _is_empty(self, values: T) -> bool:
-        r"""Return ``True`` if the values are empty.
+        Args:
+            values: The values.
 
         Returns:
-            ``True`` if the values are empty, ``False`` otherwise.
+            The values to reduce.
         """
+        return values
 
-    def _check_values(self, values: T, name: str) -> None:
-        r"""Check that the values can be reduced.
+    def _prepare_non_empty(self, values: T, name: str) -> T:
+        r"""Prepare the values and check that they are not empty.
 
         Args:
             values: The values.
             name: The name of the reduction, used in the error message.
+
+        Returns:
+            The prepared values.
 
         Raises:
             TypeError: if ``values`` is an iterator (e.g. a generator),
@@ -238,105 +240,104 @@ class BaseBasicReducer(BaseReducer[T]):
         if isinstance(values, Iterator):
             msg = f"Cannot compute {name} of an iterator, convert it to a list first"
             raise TypeError(msg)
-        if self._is_empty(values):
+        values = self._prepare(values)
+        if len(values) == 0:
             msg = f"Cannot compute {name} because the sequence is empty"
             raise EmptySequenceError(msg)
-
-    def max(self, values: T) -> int | float:
-        self._check_values(values, "the maximum")
-        return self._max(values)
+        return values
 
     @abstractmethod
     def _max(self, values: T) -> int | float:
-        r"""Compute the maximum value.
+        r"""Compute the maximum value of non-empty values.
 
         Args:
-            values: The values.
+            values: The prepared values, which are not empty.
 
         Returns:
-            The maximum value.
+            The result as a Python number.
         """
-
-    def mean(self, values: T) -> int | float:
-        self._check_values(values, "the mean")
-        return self._mean(values)
 
     @abstractmethod
     def _mean(self, values: T) -> float:
-        r"""Compute the mean value.
+        r"""Compute the mean value of non-empty values.
 
         Args:
-            values: The values.
+            values: The prepared values, which are not empty.
 
         Returns:
-            The mean value.
+            The result as a Python number.
         """
-
-    def median(self, values: T) -> int | float:
-        self._check_values(values, "the median")
-        return self._median(values)
 
     @abstractmethod
     def _median(self, values: T) -> int | float:
-        r"""Compute the median value.
+        r"""Compute the median value of non-empty values.
 
         Args:
-            values: The values.
+            values: The prepared values, which are not empty.
 
         Returns:
-            The median value.
+            The result as a Python number.
         """
-
-    def min(self, values: T) -> int | float:
-        self._check_values(values, "the minimum")
-        return self._min(values)
 
     @abstractmethod
     def _min(self, values: T) -> int | float:
-        r"""Compute the minimum value.
+        r"""Compute the minimum value of non-empty values.
 
         Args:
-            values: The values.
+            values: The prepared values, which are not empty.
 
         Returns:
-            The minimum value.
+            The result as a Python number.
         """
-
-    def quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
-        self._check_values(values, "the quantiles")
-        return self._quantile(values, quantiles)
-
-    @abstractmethod
-    def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
-        r"""Compute the quantiles.
-
-        Args:
-            values: The values.
-            quantiles: The quantile values in the
-                range ``[0, 1]``.
-
-        Returns:
-            The quantiles.
-        """
-
-    # Unlike the other reductions, sorting is well-defined for an empty
-    # sequence (``sorted([]) == []``), so ``sort`` intentionally has no
-    # concrete override here that would route it through the
-    # ``_is_empty`` check guarding max/mean/median/min/quantile/std;
-    # subclasses implement ``sort`` (inherited from ``BaseReducer``)
-    # directly.
-
-    def std(self, values: T) -> float:
-        self._check_values(values, "the standard deviation")
-        return self._std(values)
 
     @abstractmethod
     def _std(self, values: T) -> float:
-        r"""Compute the standard deviation.
+        r"""Compute the standard deviation of non-empty values.
 
         Args:
-            values: The values.
+            values: The prepared values, which are not empty.
 
         Returns:
-            The standard deviation.
+            The result as a Python number.
         """
+
+    @abstractmethod
+    def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
+        r"""Compute the quantiles of non-empty values.
+
+        Args:
+            values: The prepared values, which are not empty.
+            quantiles: The quantile values, which are validated: they
+                are in the range ``[0, 1]``.
+
+        Returns:
+            The quantiles as Python floats.
+        """
+
+    @abstractmethod
+    def _sort(self, values: T, *, descending: bool) -> list[int | float]:
+        r"""Sort the values.
+
+        Args:
+            values: The prepared values, which can be empty.
+            descending: If ``True``, sorts in descending order.
+
+        Returns:
+            A new list with the sorted values.
+        """
+
+
+def _check_quantiles(quantiles: Sequence[float]) -> None:
+    r"""Check that the quantiles are in the range ``[0, 1]``.
+
+    Args:
+        quantiles: The quantile values.
+
+    Raises:
+        ValueError: if a quantile is not in the range ``[0, 1]`` or
+            is ``NaN``.
+    """
+    for q in quantiles:
+        if math.isnan(q) or not 0 <= q <= 1:
+            msg = f"quantiles must be in [0, 1], got {q}"
+            raise ValueError(msg)
