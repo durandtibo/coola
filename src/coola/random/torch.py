@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
+from coola.random.seed import validate_seed
 from coola.utils.imports import check_torch, is_torch_available
 from coola.utils.introspection import is_same_type
 
@@ -62,6 +63,7 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
         return state
 
     def manual_seed(self, seed: int) -> None:
+        validate_seed(seed)
         torch.manual_seed(seed)  # seeds the CPU, CUDA (lazily) and MPS generators
 
     def set_rng_state(self, state: dict[str, Any]) -> None:

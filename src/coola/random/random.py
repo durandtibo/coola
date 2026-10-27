@@ -10,6 +10,7 @@ from typing import Any
 
 from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
+from coola.random.seed import validate_seed
 from coola.utils.introspection import is_same_type
 
 
@@ -41,6 +42,7 @@ class RandomRandomManager(InlineDisplayMixin, BaseRandomManager):
         return random.getstate()
 
     def manual_seed(self, seed: int) -> None:
+        validate_seed(seed)
         random.seed(seed)
 
     def set_rng_state(self, state: tuple[Any, ...]) -> None:

@@ -29,7 +29,7 @@ different libraries in a single call.
 
     NumPy's legacy generator only accepts seeds between `0` and `2**32 - 1`. `NumpyRandomManager`
     folds the seed into this range with `seed % 2**32`, so the seeds `1` and `2**32 + 1` give the same
-    random numbers, and a negative seed `-n` is the same as `2**32 - n`.
+    random numbers. A negative seed raises a `ValueError`.
 
 ## Basic Usage
 
@@ -375,7 +375,7 @@ The `coola.random` package design provides:
 | Restorable              | `get_rng_state` and `set_rng_state` save and restore the state of every managed library.                                                         |
 | Scoped seeding          | `random_seed` restores the original state when the block exits.                                                                                  |
 | Optional dependencies   | A library that is not installed is skipped, not an error.                                                                                        |
-| NumPy seed folding      | The NumPy seed is `seed % 2**32`, so `1` and `2**32 + 1` give the same numbers.                                                                  |
+| Seed injective          | Two different seeds give different NumPy numbers: a seed `>= 2**32` is split in two 32-bit words, not folded.                                    |
 | Extensible              | A manager for another generator can be registered.                                                                                               |
 
 ## Best Practices
