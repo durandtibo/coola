@@ -53,27 +53,27 @@ def test_string_hasher_str() -> None:
     [
         pytest.param(
             "hello",
-            "2998e64e4b20ac91774f304f5527a5160d30249cdcdc984effac931cf54196e0",
+            "0a465ca3e88a3a4c06a2865a8dcbe0ba8003136ee1e10c8039ea8af7580eb6ea",
             id="lowercase",
         ),
         pytest.param(
             "Hello",
-            "d2e6b55494e319a95d4724ef225b9c8fa1a8cecae70f33f9b4421bfc1703dbee",
+            "7509515a347cc999c315cefa99ccc434079465380b8e38ff4b6bf0f688959a9c",
             id="uppercase_first",
         ),
         pytest.param(
             "hello ",
-            "58629ea5bbc011db083e224e27e7dcc4b88c747964447d3fb51ab344fcc42a89",
+            "a85dd5ce008d668f8ddf73b72cd1bd97d2280276d181089a7f63f0a65e442629",
             id="trailing_space",
         ),
         pytest.param(
             "",
-            "13794f6a993bed50b22118af38aaa84e510b29e67ee82abb91bc758b9b8ba4d3",
+            "a09b15c53f4057a9a81fbcdd7fbcd67866dff35a5590aaaf5998ea5feee8c960",
             id="empty_string",
         ),
         pytest.param(
             "Meowwwwww",
-            "dc79d6439fb717960d695a964b67a3c46f68e692b07cc1b9e59828d6a9299f10",
+            "918aa95e727394667b4587c1cfb39ff2f4e60d9a704452aadb2185642ae5fe95",
             id="meow",
         ),
     ],
@@ -87,10 +87,10 @@ def test_string_hasher_hash_parametrized(
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "2998e64e4b20ac91", id="16"),
-        pytest.param(32, "2998e64e4b20ac91774f304f5527a516", id="32"),
+        pytest.param(16, "0a465ca3e88a3a4c", id="16"),
+        pytest.param(32, "0a465ca3e88a3a4c06a2865a8dcbe0ba", id="32"),
         pytest.param(
-            64, "2998e64e4b20ac91774f304f5527a5160d30249cdcdc984effac931cf54196e0", id="64-default"
+            64, "0a465ca3e88a3a4c06a2865a8dcbe0ba8003136ee1e10c8039ea8af7580eb6ea", id="64-default"
         ),
     ],
 )
@@ -207,27 +207,27 @@ def test_bytes_hasher_str() -> None:
     [
         pytest.param(
             b"hello",
-            "c0849551a6d5dac1460074b366025b791f95050cabe8473b0b4f9770d4d138fa",
+            "59f582b5108d6c1c121e060256a236dc66e973a51ad009e89399a48a4ba66e34",
             id="lowercase",
         ),
         pytest.param(
             b"Hello",
-            "292020a3ed29a425332b7bbb135895c6b5d45c44899e5cba853746c516463a5e",
+            "699b52a85de5656967dbd1e52bb131e08a62fb5a8c80fc3364565e2e7c283d83",
             id="uppercase_first",
         ),
         pytest.param(
             b"hello ",
-            "1ea576fab125b0927a421da5429b048386b50743b52c7a96001fe20dc35c1825",
+            "2e6c6814c0944afea8dc4652705ae941852f07767117d67f56e0fed2dfa1d085",
             id="trailing_space",
         ),
         pytest.param(
             b"",
-            "8c51179fe70c00c267a8efde9e8e22900a79d950843db47943c558d7fad41943",
+            "ad75ef3400e3b77e9d8b11bcd744d0f358b90e1f277c86a999b92df785ddc4a5",
             id="empty_bytes",
         ),
         pytest.param(
             b"Meowwwwww",
-            "655c0b921474575a246ed9ed9fd003150bf74732c0158d47055d06705bf889fc",
+            "0e2246fa0a141dae0327b967f86e1b49b055b481e84e4558b50caa32bbb55d93",
             id="meow",
         ),
     ],
@@ -241,10 +241,10 @@ def test_bytes_hasher_hash_parametrized(
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "c0849551a6d5dac1", id="16"),
-        pytest.param(32, "c0849551a6d5dac1460074b366025b79", id="32"),
+        pytest.param(16, "59f582b5108d6c1c", id="16"),
+        pytest.param(32, "59f582b5108d6c1c121e060256a236dc", id="32"),
         pytest.param(
-            64, "c0849551a6d5dac1460074b366025b791f95050cabe8473b0b4f9770d4d138fa", id="64-default"
+            64, "59f582b5108d6c1c121e060256a236dc66e973a51ad009e89399a48a4ba66e34", id="64-default"
         ),
     ],
 )
@@ -492,77 +492,77 @@ def test_repr_hasher_str() -> None:
     [
         pytest.param(
             1234,
-            "f6c0da974e8e498878127df2176ce818d5b1dd1f109d364635f0ee4ff5d0b76f",
+            "11b80ab95ac066f82081baeeebdc67964e556c683ec2370bf3e6f783b5b2a647",
             id="int",
         ),
         pytest.param(
             0,
-            "55ca561f078b8ee39c12bf706a975da9bd93714cd8d9d4e7c4fbfab330ff0bd2",
+            "8067e713e20a64b38fe0c49c2d966cc9a1d6935545fb48194155d5e015043a5a",
             id="int_zero",
         ),
         pytest.param(
             -1,
-            "de3827b566bd4de0e65c9ae59680f8f235cd324dbf9e5a3c7db4663d31414685",
+            "e9d315b8de70e9500f6077d067adbec8fde34bd687533e1395aad7c1379ff855",
             id="int_negative",
         ),
         pytest.param(
             1.5,
-            "5ae23551bd86d7cd566f2c064292e3511a0c4077417627d6ec1f45d63b88f960",
+            "bb7d0092c5be7ab08a61744098d71bf6cc7d553e98c19fa99703f9f1414c1784",
             id="float",
         ),
         pytest.param(
             float("inf"),
-            "77e5af088c11e9a6f7998ba7e3c7482f17fd2c4908a81be6a851c89c669dd0b9",
+            "859c57ad4343ab200b395aee0621d85a796d458dae06f61a6d217e8f3bae173f",
             id="float_inf",
         ),
         pytest.param(
             True,
-            "b125316ff709ad952976c214852acc80ef2e75dd12dd50a908a204705d373820",
+            "2dabca2e8bc28762bcdf8a5daeb58de61b4f26a7e7c06d9372cd328d124e62e0",
             id="bool_true",
         ),
         pytest.param(
             False,
-            "9958f9ec91be1d950bf8bbce8d9210df87445fa139b8afe6f8aa4900579a4ea6",
+            "4ccea996fe29ebaf6c6df31a94c2ccea4b6f905d664d11d321d677aa1f30f44a",
             id="bool_false",
         ),
         pytest.param(
             complex(1, 2),
-            "475b70f206b62fc93989cfc073a63c05b23accc90b082d77d984f4c3c87b1862",
+            "06abc3468c3b9ea9e476e269e6e9fa1e168be15d98c38c6d3897a9ecace763c2",
             id="complex",
         ),
         pytest.param(
             complex(0, -1),
-            "5b354564a5c980427ce1193beb6905a6d6778c25cfaa4e69c0c7bad0873d9625",
+            "523c2e7026065be8e895c873643ca70244915f946cfdaa54d790ae05c9c38b63",
             id="complex_imaginary",
         ),
         pytest.param(
             None,
-            "f8a2900c635ef9c70d6069a2c035ee698c3f90761c9b302e412a7a36da951ada",
+            "1e04f01fed015b7cf1213d1dd4139867935a82f34c292574722a64224042373c",
             id="none",
         ),
         pytest.param(
             "hello",
-            "a8342aed984ebfd37f29c5c93f45f9e78b833a126929452b394dae3d4ffcfc73",
+            "1d1bb12d476c02bfbf970f108bad8a0bfae8f523c48873dfb0111d5cc3933dc0",
             id="str",
         ),
         pytest.param(
             [1, 2, 3],
-            "7ce70d150ad3b1f5bfa45e5fb3aac39c9f03a720916c2e8478c085a225828012",
+            "b7d99ea0d3967c203b50d9a701bbcf4e096066196876492aebddecfedd963c89",
             id="list",
         ),
         pytest.param(
             {"a": 1},
-            "fa58be2a8064c94238cbc3e995631feecc952cf3ed58a9b093be172432da77c0",
+            "f2786b3350b432fa7e214b89caeb1dbf239840387431f23168aeef424dcde41a",
             id="dict",
         ),
         pytest.param(
             (1, 2, 3),
-            "0204d5e38046b657b6e5fc9ff2e2364447a4cc84260d5cef0f214a33d24af5c5",
+            "cef4265050afca2bca58c5515c87079a7364a437cd6c94a5b69e38c7bdf252a4",
             id="tuple",
         ),
         pytest.param(
             b"bytes",
-            "bfbd7c6379a32f43baed60a8caa5d82a02f30e0a41bfeec239552fc177a4e699",
+            "bd255581a7f31f3e3d0f5fa83b08bf76cf2621be1145f2cf2c99ab8951e28902",
             id="bytes",
         ),
     ],
@@ -574,10 +574,10 @@ def test_repr_hasher_hash_parametrized(data: Any, expected: str, registry: Hashe
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "f6c0da974e8e4988", id="16"),
-        pytest.param(32, "f6c0da974e8e498878127df2176ce818", id="32"),
+        pytest.param(16, "11b80ab95ac066f8", id="16"),
+        pytest.param(32, "11b80ab95ac066f82081baeeebdc6796", id="32"),
         pytest.param(
-            64, "f6c0da974e8e498878127df2176ce818d5b1dd1f109d364635f0ee4ff5d0b76f", id="64-default"
+            64, "11b80ab95ac066f82081baeeebdc67964e556c683ec2370bf3e6f783b5b2a647", id="64-default"
         ),
     ],
 )
@@ -748,77 +748,77 @@ def test_str_hasher_str() -> None:
     [
         pytest.param(
             1234,
-            "44cb4c7822fa217c5c06c223c5b0aacc8c5c77c768df58591c091cb1500d815e",
+            "69bcf1c0a109c54d2781a94c903016e096419a61760c8a32e8e8b1d65a20a89d",
             id="int",
         ),
         pytest.param(
             0,
-            "aa89b5cee92948ed5b79726bbe6ee622716714cb89d6a929b74e576c8f0ca378",
+            "98a04ad3ba306491b28b5abbc830c49a12754a2b057033dd774e969dc774a275",
             id="int_zero",
         ),
         pytest.param(
             -1,
-            "ed8e02ad8b7c52faf9cfc853e54b3458a897bac0fa4cba0adfaa7b3cfe625851",
+            "cff2c7dfaf05159186b2b32fb8fbbe84d517af38b3bc258df02489e4455a100b",
             id="int_negative",
         ),
         pytest.param(
             1.5,
-            "d2c7ed87af69f0e55c61e9c0ac0f7f542447e494741cb8abc05168c9af2915c0",
+            "2f06dc65964f2412520a9267b23416ee27c05dedc8286bcb86e537ba8769caab",
             id="float",
         ),
         pytest.param(
             float("inf"),
-            "237ebc3ac1cb090ca1513f9c741b1dcefae94a966e596e108ad9ebf562e98fef",
+            "7a11526692ccbc572863cfff60fe708135ef588494ff1566600cc2e76674e64d",
             id="float_inf",
         ),
         pytest.param(
             True,
-            "a1246624c11215e07f0539a1d087c88b9a5f9c80a51424fac2ae1653cb91c9d6",
+            "f79be2da3f4ea45034f6a8260340ec0a3e45ab1a96407000e8086b29fa0e3660",
             id="bool_true",
         ),
         pytest.param(
             False,
-            "6070e87c818c9d5527cc5b6d746bc073c252fe0f0ba6289e0e412e855005cc7a",
+            "034410805673cda59a26936f781d4e5a92a058aabd578b7b9b15045c256101fe",
             id="bool_false",
         ),
         pytest.param(
             complex(1, 2),
-            "e8f0895d7008e0922301b7a8802593794f7ab11f685fb7341fd705ebad5f3375",
+            "3897d4641540831678ab372f277bd8f3bccbd16e6cf40d00270ededd4d3da4c0",
             id="complex",
         ),
         pytest.param(
             complex(0, -1),
-            "a52d76525628375f316e05c2b99b63f6448b087bb37981bb13ad815f3c271604",
+            "39c969c599430ff093c02879810b3c68eae18c38579cc0a22fa22a4a7de09fe7",
             id="complex_imaginary",
         ),
         pytest.param(
             None,
-            "a0fa4225f8e9bd67116bcc6996d3f48b888caade696d53d26cbdf44179e8ea61",
+            "2118c9881ae2b84ac507a0fbd200c212dbefb68a93a5c2c88aa802b249c19a6f",
             id="none",
         ),
         pytest.param(
             "hello",
-            "c548d0f1ffb93319621f7004d9155e45eebfb2726ef58d4bf899944c6d1c0dc2",
+            "e806f3c0c67a48f80d326113f3f99dced865dc42ac62ff87da0489b6bdb13ea4",
             id="str",
         ),
         pytest.param(
             [1, 2, 3],
-            "8692ee439fcd517d39ce2e404a01f2fcc108a78ab7097301bb01ed452c96348d",
+            "42edfff29d19c1f109fb6b4b9a2b578c74599328a4d5001491f1a5770f38026f",
             id="list",
         ),
         pytest.param(
             {"a": 1},
-            "23f399661da961d8049800fdfcdead0e209e54ac9987f1a8f18eacd24ddc6064",
+            "767d45f75038f0ce27a51595541794d0d433308a297b484b40c536cbac90c402",
             id="dict",
         ),
         pytest.param(
             (1, 2, 3),
-            "6bb67c32d839f45ca6c2a9420c0f5550225505eb9cabec25b67fd16ebd0f7df7",
+            "6eaeaef2e269c69af5a93bd4011bff0c5946394eb0ac070b3858b07b28f571e6",
             id="tuple",
         ),
         pytest.param(
             b"bytes",
-            "1ab8454f86ef06979217c00d3887954f7b9488c8c5485e803b03398d8a35f6a7",
+            "a4af9f2b69d21c85b54f7900f1dcafc0493b6750d20ce8256e9ca08ee8951629",
             id="bytes",
         ),
     ],
@@ -830,10 +830,10 @@ def test_str_hasher_hash_parametrized(data: Any, expected: str, registry: Hasher
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "c548d0f1ffb93319", id="16"),
-        pytest.param(32, "c548d0f1ffb93319621f7004d9155e45", id="32"),
+        pytest.param(16, "e806f3c0c67a48f8", id="16"),
+        pytest.param(32, "e806f3c0c67a48f80d326113f3f99dce", id="32"),
         pytest.param(
-            64, "c548d0f1ffb93319621f7004d9155e45eebfb2726ef58d4bf899944c6d1c0dc2", id="64-default"
+            64, "e806f3c0c67a48f80d326113f3f99dced865dc42ac62ff87da0489b6bdb13ea4", id="64-default"
         ),
     ],
 )

@@ -24,7 +24,7 @@ T_contra = TypeVar("T_contra", contravariant=True)
 
 # The version of the format: it is the ``person`` parameter of BLAKE2b, so the digests of two
 # formats can never be mistaken for one another.
-PERSON = b"coola-hash-1"
+PERSON = b"coola-hash-2"
 
 
 @dataclass(slots=True)

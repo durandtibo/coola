@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 def blake2b(data: bytes) -> str:
     r"""Return the first 64 characters of the digest of the format."""
-    return hashlib.blake2b(data, digest_size=64, person=b"coola-hash-1").hexdigest()[:64]
+    return hashlib.blake2b(data, digest_size=64, person=b"coola-hash-2").hexdigest()[:64]
 
 
 class Counting(BaseHasher[Any]):
@@ -82,21 +82,51 @@ def test_leaf_digest_helper_matches_the_format() -> None:
     assert leaf_hash(tagged("int", "1")) == hash_object(1)
 
 
-def test_node_digest_is_the_blake2b_of_the_tag_and_the_children_digests() -> None:
-    child = hashlib.blake2b(b"\x00int\x001", digest_size=64, person=b"coola-hash-1").digest()
-    assert hash_object([1]) == blake2b(b"\x01list\x00" + child)
+def test_node_digest_inlines_a_short_leaf_with_its_size() -> None:
+    assert hash_object([1]) == blake2b(b"\x01list\x00" + b"\x05int\x001")
+
+
+def test_node_digest_uses_the_digest_of_a_long_leaf() -> None:
+    long = "a" * 100
+    leaf = hashlib.blake2b(
+        b"\x00" + b"str\x00" + long.encode(), digest_size=64, person=b"coola-hash-2"
+    ).digest()
+    assert hash_object([long]) == blake2b(b"\x01list\x00\xff" + leaf)
+
+
+def test_node_digest_inlines_a_leaf_of_64_bytes() -> None:
+    text = "a" * 60  # b"str\x00" + 60 bytes = 64 bytes
+    assert hash_object([text]) == blake2b(b"\x01list\x00\x40str\x00" + text.encode())
+
+
+def test_node_digest_uses_the_digest_of_a_leaf_of_65_bytes() -> None:
+    text = "a" * 61
+    leaf = hashlib.blake2b(
+        b"\x00str\x00" + text.encode(), digest_size=64, person=b"coola-hash-2"
+    ).digest()
+    assert hash_object([text]) == blake2b(b"\x01list\x00\xff" + leaf)
+
+
+def test_node_digest_uses_the_digest_of_a_nested_node() -> None:
+    inner = hashlib.blake2b(b"\x01list\x00", digest_size=64, person=b"coola-hash-2").digest()
+    assert hash_object([[]]) == blake2b(b"\x01list\x00\xff" + inner)
 
 
 def test_empty_node_digest_is_the_blake2b_of_the_marked_tag() -> None:
     assert hash_object([]) == blake2b(b"\x01list\x00")
 
 
-def test_unordered_node_digest_sorts_the_children_digests() -> None:
-    children = sorted(
-        hashlib.blake2b(f"\x00int\x00{i}".encode(), digest_size=64, person=b"coola-hash-1").digest()
-        for i in (1, 2)
-    )
-    assert hash_object({1, 2}) == blake2b(b"\x01set\x00" + b"".join(children))
+def test_unordered_node_digest_sorts_the_entries() -> None:
+    entries = sorted([b"\x05int\x001", b"\x05int\x002"])
+    assert hash_object({1, 2}) == blake2b(b"\x01set\x00" + b"".join(entries))
+
+
+def test_inlined_leaf_cannot_be_confused_with_a_digest() -> None:
+    assert hash_object(["\xff" * 30]) != hash_object([["\xff" * 30]])
+
+
+def test_long_leaf_in_a_mapping() -> None:
+    assert len(hash_object({"k": "x" * 1000})) == 64
 
 
 def test_leaf_and_node_with_the_same_tag_differ() -> None:
@@ -114,32 +144,32 @@ def test_leaf_and_node_with_the_same_tag_differ() -> None:
     [
         pytest.param(
             [1, 2, 3],
-            "824284b9d2ee9802ca0d8a94a16de30c1078fe55a55ee9b74943681fbe9147dd",
+            "b783328a416de7ddccf0c133be234184f06068efa172807d0eff2e721b3aec89",
             id="list",
         ),
         pytest.param(
             (1, 2, 3),
-            "039d1e5e77772efd4a39b67bfc3a51b9c51586626d7c860f87951462d9faf0b8",
+            "d942ea47e6839ee5f213ce809e2b56396653855379f1ebe28bff2156559afcd8",
             id="tuple",
         ),
         pytest.param(
             {"a": 1, "b": 2},
-            "e5a0bcc2799f418c155af1493bf8e86f270d5d61e002400b5cf8b79facb1bc88",
+            "9497920ce4a85b76ad7deb523668be68e98bfa66d982dc2887f95958f165423c",
             id="dict",
         ),
         pytest.param(
             {1, 2, 3},
-            "4f167270019d90eb37b6c5dbbbe63f9e0906a88241d4da874fb0c0400f9e9b3c",
+            "3ba373d2e386945cb8447dc96f44dd32e698cdca37c9fccd338d23a063d28863",
             id="set",
         ),
         pytest.param(
             {"a": [1, (2, 3)], "b": {"c": {4}}},
-            "247b3b12191a8a39cb859d4ef7a427d310364950bb4f6d66cdb1ed413c901296",
+            "8054bd4682c55847d2ea9dec43eff76c8e10ed4a505ceef6a708d4ae7494fb89",
             id="nested",
         ),
         pytest.param(
             OrderedDict(a=1),
-            "76e39876ec329b137fc22128607d419527423eb0a59ef1785a093d6b9e39b4b5",
+            "99ad84d5308d0594d0db9085a8e44be56b458f08a03736f5a5a613e8a14d5c43",
             id="ordered_dict",
         ),
     ],

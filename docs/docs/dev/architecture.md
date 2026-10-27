@@ -518,7 +518,8 @@ digest_of(data, registry, ...)       explicit stack of frames; per-call type -> 
         |-- encoding = hasher.encode(data)                  pure: no registry, no recursion
         |        bytes -> leaf:  digest = BLAKE2b(0x00 + encoding)
         |        Node  -> push the children; when done:
-        |                 digest = BLAKE2b(0x01 + tag + 0x00 + digests of the children)
+        |                 digest = BLAKE2b(0x01 + tag + 0x00 + entries of the children)
+        |                 (an entry is 0xFF + digest, or size + leaf for a leaf of at most 64 bytes)
         v
 the 64-byte digest of the root  ->  hex()[:length]
 ```
@@ -526,6 +527,7 @@ the 64-byte digest of the root  ->  hex()[:length]
 | Decision                                                              | Why                                                                        |
 | --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | `encode` returns a description, the engine hashes                     | cycles, depth, sharing, `length` and the placeholder cannot be forgotten   |
+| A leaf of at most 64 bytes is inlined in the preimage of its parent   | a flat container makes one BLAKE2b call instead of one per item            |
 | One 64-byte digest, cut at the end by `length`                        | a hasher never sees `length`; a short hash is the start of a longer one    |
 | The format version is the BLAKE2b `person` parameter                  | two formats can never be confused; a change is one constant               |
 | A shared container is hashed once per call (a memo by `id`)           | a hash is pure, so the memo is invisible; a DAG is linear                  |

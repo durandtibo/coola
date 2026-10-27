@@ -71,52 +71,52 @@ class CustomList(list):
     [
         pytest.param(
             5,
-            "febcf8e6dee75c90080cab5135bdd77b752cf87dd2f9bc39746793fb67522c4b",
+            "15a6a9af359cdbdad5c50a18a104794b07eeb8288237251a990b41d8b32c3e8c",
             id="int",
         ),
         pytest.param(
             3.14,
-            "9855afb41eaf84538d763ca01faec06219f2bf9cd43a92ad6ecee96b340af804",
+            "5afed065620673b46468998cd79f10d80081b86a66c2f0756601620a1b9b516d",
             id="float",
         ),
         pytest.param(
             complex(1, 2),
-            "475b70f206b62fc93989cfc073a63c05b23accc90b082d77d984f4c3c87b1862",
+            "06abc3468c3b9ea9e476e269e6e9fa1e168be15d98c38c6d3897a9ecace763c2",
             id="complex",
         ),
         pytest.param(
             True,
-            "b125316ff709ad952976c214852acc80ef2e75dd12dd50a908a204705d373820",
+            "2dabca2e8bc28762bcdf8a5daeb58de61b4f26a7e7c06d9372cd328d124e62e0",
             id="bool",
         ),
         pytest.param(
             "hello",
-            "2998e64e4b20ac91774f304f5527a5160d30249cdcdc984effac931cf54196e0",
+            "0a465ca3e88a3a4c06a2865a8dcbe0ba8003136ee1e10c8039ea8af7580eb6ea",
             id="str",
         ),
         pytest.param(
             [1, 2, 3],
-            "824284b9d2ee9802ca0d8a94a16de30c1078fe55a55ee9b74943681fbe9147dd",
+            "b783328a416de7ddccf0c133be234184f06068efa172807d0eff2e721b3aec89",
             id="list",
         ),
         pytest.param(
             (1, 2, 3),
-            "039d1e5e77772efd4a39b67bfc3a51b9c51586626d7c860f87951462d9faf0b8",
+            "d942ea47e6839ee5f213ce809e2b56396653855379f1ebe28bff2156559afcd8",
             id="tuple",
         ),
         pytest.param(
             {"a": 1, "b": 2},
-            "e5a0bcc2799f418c155af1493bf8e86f270d5d61e002400b5cf8b79facb1bc88",
+            "9497920ce4a85b76ad7deb523668be68e98bfa66d982dc2887f95958f165423c",
             id="dict",
         ),
         pytest.param(
             date(2021, 1, 1),
-            "5f04f6be9602d7a5af0207e8b221a3bceb87050c6ec80f5f818dad202bf76c5f",
+            "2f3e15e2b7f163a8206081e69471fa67b41bc72f009b31216f6f1872d9c22a5b",
             id="date",
         ),
         pytest.param(
             datetime(2021, 1, 1, tzinfo=UTC),
-            "9def71436f2f37949ee5c665e24af39f9886cf3e919baacdc81c77ba06493805",
+            "2920da84f6bb2ba85ca45f0cd0b90c8b4a269966291676b9eab483d001e9e47d",
             id="datetime",
         ),
     ],
@@ -155,7 +155,7 @@ def test_hash_object_uses_default_registry_when_none() -> None:
 
 def test_hash_object_nested_structure() -> None:
     assert hash_object({"a": [1, 2], "b": [3, 4]}) == (
-        "0aee2e48d5414fb43c8e14f3ab931a9622a28565f9804e5c54310eac7ab4e44a"
+        "473873f40417b4c103ccf39e2b135d6fab356711d6703f6f8d2020ab3b606319"
     )
 
 
@@ -336,13 +336,13 @@ def test_get_default_registry_registers_none() -> None:
 
 def test_get_default_registry_can_hash_list() -> None:
     assert get_default_registry().hash([1, 2, 3]) == (
-        "824284b9d2ee9802ca0d8a94a16de30c1078fe55a55ee9b74943681fbe9147dd"
+        "b783328a416de7ddccf0c133be234184f06068efa172807d0eff2e721b3aec89"
     )
 
 
 def test_get_default_registry_can_hash_dict() -> None:
     assert get_default_registry().hash({"a": 1, "b": 2}) == (
-        "e5a0bcc2799f418c155af1493bf8e86f270d5d61e002400b5cf8b79facb1bc88"
+        "9497920ce4a85b76ad7deb523668be68e98bfa66d982dc2887f95958f165423c"
     )
 
 

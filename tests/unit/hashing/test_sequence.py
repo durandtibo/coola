@@ -49,22 +49,22 @@ def test_sequence_hasher_str() -> None:
     [
         pytest.param(
             [1, 2, 3],
-            "8eb1ffe461d44bb7280ba7f9491b86210e7ac13f70a1d812491e15c57fefd90c",
+            "d4b06c73382157bf177e93c51702d837aa65bdde42ac5569528babb18797a387",
             id="list_of_ints",
         ),
         pytest.param(
             (1, 2, 3),
-            "8eb1ffe461d44bb7280ba7f9491b86210e7ac13f70a1d812491e15c57fefd90c",
+            "d4b06c73382157bf177e93c51702d837aa65bdde42ac5569528babb18797a387",
             id="tuple_default_tag",
         ),
         pytest.param(
             [42],
-            "59936f411786a64cf1bc663fb9193818c81953a6f88bacf8f2d9349dbc534c14",
+            "a68836d312928064e309ac695890de38ed7e84404ca0e50254fc414b6d9af4c9",
             id="single_element",
         ),
         pytest.param(
             [],
-            "55e9e7da712455e7f4d439bb9c12c58cb1aa651cfcf6e9252bd3ce66cf7d8a7b",
+            "a22c70eed7e818075d623bbe39c012daef9b7450cca490bb1c48bb92a53fbac0",
             id="empty_sequence",
         ),
     ],
@@ -78,10 +78,10 @@ def test_sequence_hasher_hash_parametrized(
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "8eb1ffe461d44bb7", id="16"),
-        pytest.param(32, "8eb1ffe461d44bb7280ba7f9491b8621", id="32"),
+        pytest.param(16, "d4b06c73382157bf", id="16"),
+        pytest.param(32, "d4b06c73382157bf177e93c51702d837", id="32"),
         pytest.param(
-            64, "8eb1ffe461d44bb7280ba7f9491b86210e7ac13f70a1d812491e15c57fefd90c", id="64-default"
+            64, "d4b06c73382157bf177e93c51702d837aa65bdde42ac5569528babb18797a387", id="64-default"
         ),
     ],
 )
@@ -134,7 +134,7 @@ def test_sequence_hasher_hash_is_deterministic(registry: HasherRegistry) -> None
 def test_sequence_hasher_hash_nested_sequence(registry: HasherRegistry) -> None:
     # Nested lists are recursed into via the registry.
     assert hash_with(SequenceHasher(), [[1, 2], [3, 4]], registry) == (
-        "d1e4e9deacc517ccadbc261238d93bcc83ce9be06d94367383af664190e8964b"
+        "2d6a9e7791286108a2527f96ca71fb2e8eae0ec4fc958f2ade02fbfddba453dd"
     )
 
 
