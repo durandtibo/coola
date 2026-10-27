@@ -61,24 +61,17 @@ Point(x=1, y=2)
 
 ## 3. Hashing
 
-Subclass `BaseHasher`. A hasher must be consistent with equality: objects that compare equal
+Subclass `BaseHasher`. A hasher only describes the content of a type: `encode` returns a `Node`
+(a tag and the children to hash) or, for a leaf, `tagged(tag, payload)`. The engine hashes the
+children with the hasher of their own type, so the hasher never receives the registry or the
+options of `hash_object`. A hasher must be consistent with equality: objects that compare equal
 must produce the same hash.
 
 ```pycon
->>> from coola.hashing import BaseHasher, HasherRegistry, hash_object, register_hashers
+>>> from coola.hashing import BaseHasher, Node, hash_object, register_hashers
 >>> class PointHasher(BaseHasher[Point]):
-...     def equal(self, other: object) -> bool:
-...         return type(other) is type(self)
-...
-...     def hash(
-...         self,
-...         data: Point,
-...         registry: HasherRegistry,
-...         *,
-...         length: int = 64,
-...         ignore_unhashable: bool = False,
-...     ) -> str:
-...         return registry.hash((data.x, data.y), length=length)
+...     def encode(self, data: Point) -> Node:
+...         return Node("Point", [data.x, data.y])
 >>> register_hashers({Point: PointHasher()})
 >>> hash_object(Point(1, 2)) == hash_object(Point(1, 2))
 True

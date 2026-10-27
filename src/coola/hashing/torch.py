@@ -7,8 +7,7 @@ __all__ = ["TorchTensorHasher"]
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
-from coola.hashing.bytes import hash_bytes
+from coola.hashing.base import BaseHasher, Encoding, digest
 from coola.hashing.numpy import hash_array_content
 from coola.utils.imports import is_torch_available
 
@@ -19,7 +18,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.hashing.base import Hasher
-    from coola.hashing.registry import HasherRegistry
 
 
 class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
@@ -38,20 +36,24 @@ class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
         >>> hasher = TorchTensorHasher()
         >>> hasher
         TorchTensorHasher()
-        >>> len(hasher.hash(torch.arange(3), registry=HasherRegistry()))
-        64
+        >>> hasher.encode(torch.arange(3)).startswith(b"torch.Tensor")
+        True
 
         ```
     """
 
-    def hash(
-        self,
-        data: torch.Tensor,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
+    def encode(self, data: torch.Tensor) -> Encoding:
+        r"""Describe a PyTorch tensor.
+
+        The dense values on the CPU are described: the device, the
+        layout and ``requires_grad`` are not part of the encoding.
+
+        Args:
+            data: The tensor to describe.
+
+        Returns:
+            The leaf that describes ``data``.
+        """
         tensor = data.detach()
         if tensor.layout != torch.strided:
             tensor = tensor.to_dense()
@@ -66,11 +68,7 @@ class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
             )
         raw = values.contiguous().reshape(-1).view(torch.uint8).numpy().tobytes()
         return hash_array_content(
-            "torch.Tensor",
-            str(tensor.dtype),
-            tuple(tensor.shape),
-            hash_bytes(raw, length=length),
-            length=length,
+            "torch.Tensor", str(tensor.dtype), tuple(tensor.shape), digest(raw)
         )
 
 

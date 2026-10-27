@@ -27,14 +27,15 @@ from __future__ import annotations
 __all__ = [
     "BaseHasher",
     "BytesHasher",
+    "ContentHasher",
     "DataclassHasher",
     "DatetimeHasher",
     "EnumHasher",
-    "HashableHasher",
     "Hasher",
     "HasherRegistry",
     "JaxArrayHasher",
     "MappingHasher",
+    "Node",
     "NumpyArrayHasher",
     "PandasDataFrameHasher",
     "PandasSeriesHasher",
@@ -50,9 +51,10 @@ __all__ = [
     "SetHasher",
     "StrHasher",
     "StringHasher",
-    "SupportsHash",
+    "SupportsCoolaHash",
     "TorchTensorHasher",
     "XarrayHasher",
+    "digest",
     "get_default_hasher_registry",
     "get_default_registry",
     "get_stable_registry",
@@ -64,16 +66,17 @@ __all__ = [
     "hash_string",
     "hash_tagged",
     "register_hashers",
+    "tagged",
 ]
 
 from typing import TYPE_CHECKING
 
-from coola.hashing.base import BaseHasher, Hasher
+from coola.hashing.base import BaseHasher, Hasher, Node, digest, tagged
 from coola.hashing.bytes import BytesHasher, hash_bytes
 from coola.hashing.dataclass import DataclassHasher
 from coola.hashing.datetime import DatetimeHasher
 from coola.hashing.enum import EnumHasher
-from coola.hashing.hashable import HashableHasher, SupportsHash
+from coola.hashing.hashable import ContentHasher, SupportsCoolaHash
 from coola.hashing.interface import (
     get_default_hasher_registry,
     get_default_registry,

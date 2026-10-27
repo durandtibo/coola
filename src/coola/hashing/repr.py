@@ -5,17 +5,12 @@ from __future__ import annotations
 __all__ = ["ReprHasher"]
 
 import sys
-from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_enum, hash_tagged
+from coola.hashing.base import BaseHasher, Encoding, tagged
 from coola.utils.integer import int_repr
 from coola.utils.introspection import get_qualified_class_name
-
-if TYPE_CHECKING:
-    from coola.hashing.registry import HasherRegistry
 
 
 def _numpy_scalar_to_builtin(data: Any) -> Any:
@@ -65,8 +60,7 @@ class ReprHasher(InlineDisplayMixin, BaseHasher[Any]):
     builtin ``repr`` and the builtin type name as tag, so they hash like
     the equivalent builtin value (``np.float32(1.5)`` hashes like ``1.5``,
     ``np.int64(3)`` like ``3``). Negative zero is normalised to zero,
-    since ``-0.0 == 0.0``. Enum members are hashed with
-    ``hash_enum`` instead. It is preferable to
+    since ``-0.0 == 0.0``. It is preferable to
     ``StrHasher`` for numeric types (``int``, ``float``, ``complex``,
     ``bool``) because ``repr()`` guarantees round-trip accuracy for
     floating point values, whereas ``str()`` may lose precision on some
@@ -86,13 +80,12 @@ class ReprHasher(InlineDisplayMixin, BaseHasher[Any]):
 
     Example:
         ```pycon
-        >>> from coola.hashing import ReprHasher, HasherRegistry
-        >>> registry = HasherRegistry()
+        >>> from coola.hashing import ReprHasher
         >>> hasher = ReprHasher()
         >>> hasher
         ReprHasher()
-        >>> len(hasher.hash(1234, registry=registry))
-        64
+        >>> hasher.encode(1234)
+        b'int\x001234'
 
         ```
     """
@@ -103,43 +96,23 @@ class ReprHasher(InlineDisplayMixin, BaseHasher[Any]):
     def _display_fields(self) -> dict[str, Any]:
         return {} if self._tag is None else {"tag": self._tag}
 
-    def hash(
-        self,
-        data: Any,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        r"""Compute a deterministic hash of ``repr(data)``.
+    def encode(self, data: Any) -> Encoding:
+        r"""Describe an object by its ``repr()``.
 
         Args:
-            data: The object to hash.
-            registry: The hasher registry. Unused by this hasher since
-                the ``repr()`` string is hashed directly with no need
-                to dispatch to another hasher for nested data; accepted
-                only to satisfy the common ``BaseHasher`` interface.
-            length: The desired length of the returned hex string. See
-                ``hash_string`` for constraints. Defaults to 64.
-            ignore_unhashable: Unused by this hasher; accepted only to
-                satisfy the common ``BaseHasher`` interface.
+            data: The object to describe.
 
         Returns:
-            A lowercase hexadecimal string of exactly ``length``
-            characters.
-
-        Raises:
-            ValueError: If ``length`` is not an even number between 2
-                and 128.
+            The leaf ``tagged(tag, repr(data))``. A ``bool``, an
+            ``int``, a ``float`` or a ``complex`` (and the NumPy
+            scalars) use the builtin type name as tag and the builtin
+            ``repr``.
         """
-        if isinstance(data, Enum):
-            # ``(int, Enum)`` mixins reach this hasher through the MRO.
-            return hash_enum(data, length=length)
         data = _numpy_scalar_to_builtin(data)
         for base in (bool, int, float, complex):
             if isinstance(data, base):
                 # Use the builtin repr so subclasses and the NumPy scalars
                 # hash like the builtin value, independent of library versions.
-                return hash_tagged(base.__name__, _builtin_repr(base, data), length=length)
+                return tagged(base.__name__, _builtin_repr(base, data))
         tag = self._tag or get_qualified_class_name(type(data))
-        return hash_tagged(tag, repr(data), length=length)
+        return tagged(tag, repr(data))

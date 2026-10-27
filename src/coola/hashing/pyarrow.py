@@ -4,12 +4,11 @@ from __future__ import annotations
 
 __all__ = ["PyarrowArrayHasher", "PyarrowTableHasher"]
 
+from itertools import chain
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
-from coola.hashing.bytes import hash_bytes
-from coola.hashing.string import hash_tagged
+from coola.hashing.base import BaseHasher, Encoding, Node, digest, tagged
 from coola.utils.imports import is_numpy_available, is_pyarrow_available
 
 if TYPE_CHECKING or is_pyarrow_available():
@@ -19,7 +18,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.hashing.base import Hasher
-    from coola.hashing.registry import HasherRegistry
 
 
 def _is_fixed_width(data_type: Any) -> bool:
@@ -32,45 +30,27 @@ def _is_fixed_width(data_type: Any) -> bool:
     )
 
 
-def _hash_fixed_width_array(array: Any, length: int) -> str:
-    r"""Hash the type, the positions of the nulls and the values of an
-    integer, floating-point or boolean array through NumPy.
-
-    The ``null`` values are replaced by zero (``False``) in the values,
-    and their positions are hashed apart. The values are canonicalized
-    like the NumPy arrays (``-0.0`` and NaN).
-    """
+def _encode_array(array: Any) -> Encoding:
+    r"""Describe an array: a leaf for the fixed-width types, a ``Node``
+    over ``to_pylist()`` for the others."""
+    if not (is_numpy_available() and _is_fixed_width(array.type)):
+        return Node("pyarrow.Array", [str(array.type), array.to_pylist()])
     import numpy as np  # noqa: PLC0415
     import pyarrow.compute as pc  # noqa: PLC0415
 
     from coola.hashing.numpy import canonicalize_floats  # noqa: PLC0415
 
-    mask = ""
+    mask = b""
     if array.null_count:
-        mask = hash_bytes(
-            np.ascontiguousarray(array.is_null().to_numpy(zero_copy_only=False)).tobytes(),
-            length=length,
+        mask = digest(
+            np.ascontiguousarray(array.is_null().to_numpy(zero_copy_only=False)).tobytes()
         )
         array = pc.fill_null(array, False if pa.types.is_boolean(array.type) else 0)
     values = canonicalize_floats(array.to_numpy(zero_copy_only=False))
-    parts = [
-        str(array.type),
-        hash_bytes(np.ascontiguousarray(values).tobytes(), length=length),
-        mask,
-    ]
-    return hash_tagged("pyarrow.Array", "\0".join(parts), length=length)
-
-
-def _hash_array(array: Any, registry: HasherRegistry, length: int, ignore_unhashable: bool) -> str:
-    r"""Hash the type and the values of an array."""
-    if is_numpy_available() and _is_fixed_width(array.type):
-        return _hash_fixed_width_array(array, length)
-    values = array.to_pylist()
-    parts = [
-        str(array.type),
-        registry.hash(values, length=length, ignore_unhashable=ignore_unhashable),
-    ]
-    return hash_tagged("pyarrow.Array", "\0".join(parts), length=length)
+    return tagged(
+        "pyarrow.Array",
+        f"{array.type}\0".encode() + digest(np.ascontiguousarray(values).tobytes()) + mask,
+    )
 
 
 class PyarrowArrayHasher(InlineDisplayMixin, BaseHasher["pa.Array | pa.ChunkedArray"]):
@@ -87,25 +67,28 @@ class PyarrowArrayHasher(InlineDisplayMixin, BaseHasher["pa.Array | pa.ChunkedAr
     Example:
         ```pycon
         >>> import pyarrow as pa
-        >>> from coola.hashing import PyarrowArrayHasher, get_default_registry
+        >>> from coola.hashing import PyarrowArrayHasher
         >>> hasher = PyarrowArrayHasher()
         >>> hasher
         PyarrowArrayHasher()
-        >>> len(hasher.hash(pa.array([1, 2, 3]), registry=get_default_registry()))
-        64
+        >>> hasher.encode(pa.array([1, 2, 3])).startswith(b'pyarrow.Array')
+        True
 
         ```
     """
 
-    def hash(
-        self,
-        data: pa.Array | pa.ChunkedArray,
-        registry: HasherRegistry,
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,
-    ) -> str:
-        return _hash_array(data, registry, length, ignore_unhashable)
+    def encode(self, data: pa.Array | pa.ChunkedArray) -> Encoding:
+        r"""Describe an array.
+
+        Args:
+            data: The array to describe.
+
+        Returns:
+            A leaf (the type, the digest of the values and of the
+            validity) for the fixed-width types, and a ``Node`` of the
+            type and the Python values for the other types.
+        """
+        return _encode_array(data)
 
 
 class PyarrowTableHasher(InlineDisplayMixin, BaseHasher["pa.Table | pa.RecordBatch"]):
@@ -117,29 +100,29 @@ class PyarrowTableHasher(InlineDisplayMixin, BaseHasher["pa.Table | pa.RecordBat
     Example:
         ```pycon
         >>> import pyarrow as pa
-        >>> from coola.hashing import PyarrowTableHasher, get_default_registry
+        >>> from coola.hashing import PyarrowTableHasher
         >>> hasher = PyarrowTableHasher()
         >>> hasher
         PyarrowTableHasher()
-        >>> len(hasher.hash(pa.table({"a": [1, 2]}), registry=get_default_registry()))
-        64
+        >>> hasher.encode(pa.table({"a": [1, 2]})).tag
+        'pyarrow.Table'
 
         ```
     """
 
-    def hash(
-        self,
-        data: pa.Table | pa.RecordBatch,
-        registry: HasherRegistry,
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,
-    ) -> str:
-        parts = []
-        for name, column in zip(data.schema.names, data.columns, strict=True):
-            parts.append(registry.hash(name, length=length, ignore_unhashable=ignore_unhashable))
-            parts.append(_hash_array(column, registry, length, ignore_unhashable))
-        return hash_tagged("pyarrow.Table", "\0".join(parts), length=length)
+    def encode(self, data: pa.Table | pa.RecordBatch) -> Encoding:
+        r"""Describe a table or a record batch.
+
+        Args:
+            data: The table to describe.
+
+        Returns:
+            The ``Node`` of the column names and the columns.
+        """
+        return Node(
+            "pyarrow.Table",
+            chain.from_iterable(zip(data.schema.names, data.columns, strict=True)),
+        )
 
 
 def get_default_hashers() -> dict[type, Hasher[Any]]:

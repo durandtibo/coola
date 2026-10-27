@@ -5,8 +5,9 @@ from enum import Enum
 
 import pytest
 
-from coola.hashing import HasherRegistry, StringHasher, hash_enum, hash_string, hash_tagged
+from coola.hashing import HasherRegistry, StringHasher, hash_string, tagged
 from coola.hashing.string import validate_hash_length
+from tests.unit.hashing.helpers import hash_with, leaf_hash
 
 
 class MixedStr(str, Enum):  # noqa: UP042
@@ -36,27 +37,27 @@ def test_string_hasher_str() -> None:
     [
         pytest.param(
             "hello",
-            "9d4bd2af5629d5a22405d7fe02fe410ee11ae44178b4ee0eb9ca4d7795ac9906",
+            "2998e64e4b20ac91774f304f5527a5160d30249cdcdc984effac931cf54196e0",
             id="lowercase",
         ),
         pytest.param(
             "Hello",
-            "6740b969578b13957189f26bdd86899a70899d4ff0ccff0e97ca1d3f8f411800",
+            "d2e6b55494e319a95d4724ef225b9c8fa1a8cecae70f33f9b4421bfc1703dbee",
             id="uppercase_first",
         ),
         pytest.param(
             "hello ",
-            "9b059b06a9ab65ac68ea58aae9f0afe24e713169770d9470946d86c3ae4d78ec",
+            "58629ea5bbc011db083e224e27e7dcc4b88c747964447d3fb51ab344fcc42a89",
             id="trailing_space",
         ),
         pytest.param(
             "",
-            "a024db9f50066fd82a7a075b9ed57faf248c835b586a8931b8f6ef2fb826cc29",
+            "13794f6a993bed50b22118af38aaa84e510b29e67ee82abb91bc758b9b8ba4d3",
             id="empty_string",
         ),
         pytest.param(
             "Meowwwwww",
-            "465fcb65cce407b13615e2324b10c99d6b94f7cca9cb69120d90415fb3632d9c",
+            "dc79d6439fb717960d695a964b67a3c46f68e692b07cc1b9e59828d6a9299f10",
             id="meow",
         ),
     ],
@@ -64,21 +65,21 @@ def test_string_hasher_str() -> None:
 def test_string_hasher_hash_parametrized(
     data: str, expected: str, registry: HasherRegistry
 ) -> None:
-    assert StringHasher().hash(data, registry=registry) == expected
+    assert hash_with(StringHasher(), data, registry) == expected
 
 
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "8145498007a9ef19", id="16"),
-        pytest.param(32, "2a34b1c3773ac9d514f55240b5b8a87e", id="32"),
+        pytest.param(16, "2998e64e4b20ac91", id="16"),
+        pytest.param(32, "2998e64e4b20ac91774f304f5527a516", id="32"),
         pytest.param(
-            64, "9d4bd2af5629d5a22405d7fe02fe410ee11ae44178b4ee0eb9ca4d7795ac9906", id="64-default"
+            64, "2998e64e4b20ac91774f304f5527a5160d30249cdcdc984effac931cf54196e0", id="64-default"
         ),
     ],
 )
 def test_string_hasher_hash_length(length: int, expected: str, registry: HasherRegistry) -> None:
-    result = StringHasher().hash("hello", registry=registry, length=length)
+    result = hash_with(StringHasher(), "hello", registry, length=length)
     assert result == expected
 
 
@@ -86,49 +87,49 @@ def test_string_hasher_hash_length(length: int, expected: str, registry: HasherR
 def test_string_hasher_hash_length_length_is_respected(
     length: int, registry: HasherRegistry
 ) -> None:
-    result = StringHasher().hash("hello", registry=registry, length=length)
+    result = hash_with(StringHasher(), "hello", registry, length=length)
     assert len(result) == length
 
 
 def test_string_hasher_hash_returns_str(registry: HasherRegistry) -> None:
-    assert isinstance(StringHasher().hash("hello", registry=registry), str)
+    assert isinstance(hash_with(StringHasher(), "hello", registry), str)
 
 
 def test_string_hasher_hash_is_deterministic(registry: HasherRegistry) -> None:
     hasher = StringHasher()
-    assert hasher.hash("hello", registry=registry) == hasher.hash("hello", registry=registry)
+    assert hash_with(hasher, "hello", registry) == hash_with(hasher, "hello", registry)
 
 
 def test_string_hasher_hash_is_case_sensitive(registry: HasherRegistry) -> None:
     hasher = StringHasher()
-    assert hasher.hash("hello", registry=registry) != hasher.hash("Hello", registry=registry)
+    assert hash_with(hasher, "hello", registry) != hash_with(hasher, "Hello", registry)
 
 
 def test_string_hasher_hash_is_whitespace_sensitive(registry: HasherRegistry) -> None:
     hasher = StringHasher()
-    assert hasher.hash("hello", registry=registry) != hasher.hash("hello ", registry=registry)
+    assert hash_with(hasher, "hello", registry) != hash_with(hasher, "hello ", registry)
 
 
 def test_string_hasher_hash_different_strings_different_hashes(
     registry: HasherRegistry,
 ) -> None:
     hasher = StringHasher()
-    assert hasher.hash("hello", registry=registry) != hasher.hash("world", registry=registry)
+    assert hash_with(hasher, "hello", registry) != hash_with(hasher, "world", registry)
 
 
 def test_string_hasher_hash_ignore_unhashable_has_no_effect(registry: HasherRegistry) -> None:
     # StringHasher is a leaf hasher — ignore_unhashable is accepted for
     # interface consistency but has no effect since it never recurses.
     hasher = StringHasher()
-    assert hasher.hash("hello", registry=registry) == hasher.hash(
-        "hello", registry=registry, ignore_unhashable=True
+    assert hash_with(hasher, "hello", registry) == hash_with(
+        hasher, "hello", registry, ignore_unhashable=True
     )
 
 
 def test_string_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> None:
     empty_registry = HasherRegistry()
     hasher = StringHasher()
-    assert hasher.hash("hello", registry=registry) == hasher.hash("hello", registry=empty_registry)
+    assert hash_with(hasher, "hello", registry) == hash_with(hasher, "hello", empty_registry)
 
 
 #################################
@@ -221,11 +222,11 @@ def test_hash_string_raises_for_invalid_length(length: int) -> None:
 
 
 def test_string_hasher_hash_is_tagged() -> None:
-    assert StringHasher().hash("hello", registry=HasherRegistry()) == hash_tagged("str", "hello")
+    assert hash_with(StringHasher(), "hello", HasherRegistry()) == leaf_hash(tagged("str", "hello"))
 
 
 def test_string_hasher_hash_differs_from_untagged_hash_string(registry: HasherRegistry) -> None:
-    assert StringHasher().hash("hello", registry=registry) != hash_string("hello")
+    assert hash_with(StringHasher(), "hello", registry) != hash_string("hello")
 
 
 def test_hash_string_lone_surrogate() -> None:
@@ -269,14 +270,12 @@ def test_validate_hash_length_returns_none() -> None:
     assert validate_hash_length(64) is None
 
 
-def test_string_hasher_hash_enum_member_of_str_mixin(registry: HasherRegistry) -> None:
-    assert StringHasher().hash(MixedStr.A, registry) == hash_enum(MixedStr.A)
-
-
 def test_string_hasher_hash_user_string_differs_from_str(registry: HasherRegistry) -> None:
     hasher = StringHasher()
-    assert hasher.hash(UserString("abc"), registry) != hasher.hash("abc", registry)
+    assert hash_with(hasher, UserString("abc"), registry) != hash_with(hasher, "abc", registry)
 
 
 def test_string_hasher_hash_user_string_equals_the_tagged_text(registry: HasherRegistry) -> None:
-    assert StringHasher().hash(UserString("abc"), registry) == hash_tagged("UserString", "abc")
+    assert hash_with(StringHasher(), UserString("abc"), registry) == leaf_hash(
+        tagged("UserString", "abc")
+    )

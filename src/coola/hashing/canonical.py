@@ -12,15 +12,10 @@ __all__ = ["DecimalHasher", "FractionHasher", "RangeHasher"]
 
 from decimal import Decimal
 from fractions import Fraction
-from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_tagged
+from coola.hashing.base import BaseHasher, Encoding, tagged
 from coola.utils.integer import int_repr
-
-if TYPE_CHECKING:
-    from coola.hashing.registry import HasherRegistry
 
 
 def _canonical_decimal(data: Decimal) -> str:
@@ -51,25 +46,24 @@ class DecimalHasher(InlineDisplayMixin, BaseHasher[Decimal]):
     Example:
         ```pycon
         >>> from decimal import Decimal
-        >>> from coola.hashing import HasherRegistry
         >>> from coola.hashing.canonical import DecimalHasher
         >>> hasher = DecimalHasher()
-        >>> registry = HasherRegistry()
-        >>> hasher.hash(Decimal("1.0"), registry) == hasher.hash(Decimal("1.00"), registry)
+        >>> hasher.encode(Decimal("1.0")) == hasher.encode(Decimal("1.00"))
         True
 
         ```
     """
 
-    def hash(
-        self,
-        data: Decimal,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        return hash_tagged("Decimal", _canonical_decimal(data), length=length)
+    def encode(self, data: Decimal) -> Encoding:
+        r"""Describe the canonical form of the value.
+
+        Args:
+            data: The value to describe.
+
+        Returns:
+            The leaf of the canonical form.
+        """
+        return tagged("Decimal", _canonical_decimal(data))
 
 
 class FractionHasher(InlineDisplayMixin, BaseHasher[Fraction]):
@@ -81,27 +75,24 @@ class FractionHasher(InlineDisplayMixin, BaseHasher[Fraction]):
     Example:
         ```pycon
         >>> from fractions import Fraction
-        >>> from coola.hashing import HasherRegistry
         >>> from coola.hashing.canonical import FractionHasher
         >>> hasher = FractionHasher()
-        >>> registry = HasherRegistry()
-        >>> hasher.hash(Fraction(1, 2), registry) == hasher.hash(Fraction(2, 4), registry)
+        >>> hasher.encode(Fraction(1, 2)) == hasher.encode(Fraction(2, 4))
         True
 
         ```
     """
 
-    def hash(
-        self,
-        data: Fraction,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        return hash_tagged(
-            "Fraction", f"{int_repr(data.numerator)}/{int_repr(data.denominator)}", length=length
-        )
+    def encode(self, data: Fraction) -> Encoding:
+        r"""Describe the canonical form of the value.
+
+        Args:
+            data: The value to describe.
+
+        Returns:
+            The leaf of the canonical form.
+        """
+        return tagged("Fraction", f"{int_repr(data.numerator)}/{int_repr(data.denominator)}")
 
 
 class RangeHasher(InlineDisplayMixin, BaseHasher[range]):
@@ -113,24 +104,23 @@ class RangeHasher(InlineDisplayMixin, BaseHasher[range]):
 
     Example:
         ```pycon
-        >>> from coola.hashing import HasherRegistry
         >>> from coola.hashing.canonical import RangeHasher
         >>> hasher = RangeHasher()
-        >>> registry = HasherRegistry()
-        >>> hasher.hash(range(0), registry) == hasher.hash(range(5, 5), registry)
+        >>> hasher.encode(range(0)) == hasher.encode(range(5, 5))
         True
 
         ```
     """
 
-    def hash(
-        self,
-        data: range,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
+    def encode(self, data: range) -> Encoding:
+        r"""Describe the canonical form of the value.
+
+        Args:
+            data: The value to describe.
+
+        Returns:
+            The leaf of the canonical form.
+        """
         size = len(data)
         if size == 0:
             payload = "0"
@@ -138,4 +128,4 @@ class RangeHasher(InlineDisplayMixin, BaseHasher[range]):
             payload = f"1:{int_repr(data[0])}"
         else:
             payload = f"{size}:{int_repr(data[0])}:{int_repr(data.step)}"
-        return hash_tagged("range", payload, length=length)
+        return tagged("range", payload)

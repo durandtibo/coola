@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 from collections.abc import Sequence
 from enum import Enum
 from typing import Any
@@ -17,11 +16,12 @@ from coola.hashing import (
     StrHasher,
     StringHasher,
     get_default_registry,
+    tagged,
 )
 from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError, TypeRegistry
 from coola.utils import fork
 from tests.helpers import nest
-from tests.unit.hashing.helpers import Unhashable
+from tests.unit.hashing.helpers import Unhashable, hash_with, leaf_hash
 
 
 class CustomList(list):
@@ -210,14 +210,14 @@ def test_hasher_registry_find_hasher_abc_not_in_mro() -> None:
 def test_hasher_registry_hash_with_list() -> None:
     assert (
         HasherRegistry({object: StrHasher(), list: SequenceHasher()}).hash([1, 2, 3])
-        == "bfe86f0fc5750a217446b5a88d2bfc543b33c63fa190489e917b16a0bc792cce"
+        == "8eb1ffe461d44bb7280ba7f9491b86210e7ac13f70a1d812491e15c57fefd90c"
     )
 
 
 def test_hasher_registry_hash_with_dict() -> None:
     assert (
         HasherRegistry({object: StrHasher(), dict: MappingHasher()}).hash({"a": 1, "b": 2})
-        == "0fde8be56160bfbace2c2f3ce1200a3a0b1355d40defca6fd85d8a423099a90a"
+        == "9becb0349da9a2c6cc72e313f067a42e12ca84a39a8a5786d464b9bd649e2779"
     )
 
 
@@ -231,27 +231,27 @@ def test_hasher_registry_hash_with_nested_structure() -> None:
     )
     assert (
         registry.hash({"a": [1, 2], "b": [3, 4]})
-        == "6371c181bcdd8a939db72ab6345e8cb2ce13a1aa6ed806f0ccb4123b6149f84f"
+        == "67a662f5f046df4b9b945c6ef6d089f462024a17e19be39bb4fe1336979f3ab0"
     )
 
 
 def test_hasher_registry_hash_with_empty_list() -> None:
     assert (
         HasherRegistry({list: SequenceHasher()}).hash([])
-        == "844dea01562659240f7c438c4bc74c7713eb68c6e4d693a30bda1798aaa972d7"
+        == "55e9e7da712455e7f4d439bb9c12c58cb1aa651cfcf6e9252bd3ce66cf7d8a7b"
     )
 
 
 def test_hasher_registry_hash_with_empty_dict() -> None:
     assert (
         HasherRegistry({dict: MappingHasher()}).hash({})
-        == "d0184328135d1a4b3a9492b8d5a214b49e15af380c2458d8a2671ecef2d2ee34"
+        == "dd52ef70f313f7b3f7c35a3ceb444f07a25cae594bb95ee8681307c25a6896a3"
     )
 
 
 def test_hasher_registry_hash_with_length() -> None:
     result = HasherRegistry({object: ReprHasher()}).hash(42, length=16)
-    assert result == "4d693658248572a8"
+    assert result == "ebaaf8a4ccc89421"
 
 
 def test_hasher_registry_hash_with_length_length() -> None:
@@ -365,18 +365,11 @@ def test_hasher_registry_hash_ignore_unhashable_nested_in_dict_raises_by_default
 
 def test_hasher_registry_accepts_protocol_implementation_without_subclassing() -> None:
     class PlainHasher:
-        def hash(
-            self,
-            data: Any,  # noqa: ARG002
-            registry: HasherRegistry,  # noqa: ARG002
-            *,
-            length: int = 64,
-            ignore_unhashable: bool = False,  # noqa: ARG002
-        ) -> str:
-            return "a" * length
+        def encode(self, data: Any) -> bytes:  # noqa: ARG002
+            return tagged("plain", "x")
 
     registry = HasherRegistry({object: PlainHasher()})
-    assert registry.hash(1, length=4) == "aaaa"
+    assert registry.hash(1, length=4) == leaf_hash(tagged("plain", "x"), length=4)
 
 
 def test_hasher_registry_hash_ignore_unhashable_warns() -> None:
@@ -482,21 +475,14 @@ def test_hasher_registry_fallback_wins_over_the_object_hasher() -> None:
 
 
 class ConstantHasher(BaseHasher[Any]):
-    def hash(
-        self,
-        data: Any,  # noqa: ARG002
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        return "c" * length
+    def encode(self, data: Any) -> bytes:  # noqa: ARG002
+        return tagged("constant")
 
 
 def test_hasher_registry_fallback_is_used_by_hash() -> None:
     registry = HasherRegistry()
     registry.register_fallback(is_marked, ConstantHasher())
-    assert registry.hash(Marked()) == "c" * 64
+    assert registry.hash(Marked()) == leaf_hash(tagged("constant"))
 
 
 def test_hasher_registry_has_hasher_ignores_the_fallbacks() -> None:
@@ -522,7 +508,7 @@ def test_hasher_registry_repr_shows_the_fallback_hashers() -> None:
 
 
 @pytest.mark.parametrize(
-    "text", ["register a hasher", "hash()", "ignore_unhashable=True", "Unhashable"]
+    "text", ["register a hasher", "__coola_hash__", "ignore_unhashable=True", "Unhashable"]
 )
 def test_hasher_registry_unhashable_error_names_the_remedies(text: str) -> None:
     registry = HasherRegistry()
@@ -547,22 +533,13 @@ def test_hasher_registry_hash_reraises_a_key_error_that_is_not_a_missing_type() 
     assert not isinstance(exc_info.value, TypeNotRegisteredError)
 
 
-def test_hasher_registry_hash_deeply_nested_data_raises_value_error() -> None:
-    with pytest.raises(ValueError, match="nested too deeply"):
-        get_default_registry().hash(nest([], 5000))
+def test_hasher_registry_hash_deeply_nested_data_does_not_raise() -> None:
+    assert len(get_default_registry().hash(nest([], 5000))) == 64
 
 
-def test_hasher_registry_hash_is_usable_after_deeply_nested_data_raises() -> None:
+def test_hasher_registry_hash_deeply_nested_data_equal_data_same_hash() -> None:
     registry = get_default_registry()
-    with pytest.raises(ValueError, match="nested too deeply"):
-        registry.hash(nest([], 5000))
-
-
-def test_hasher_registry_hash_is_usable_after_deeply_nested_data() -> None:
-    registry = get_default_registry()
-    with contextlib.suppress(ValueError):
-        registry.hash(nest([], 5000))
-    assert registry.hash([1])
+    assert registry.hash(nest([], 5000)) == registry.hash(nest([], 5000))
 
 
 class MixedStr(str, Enum):  # noqa: UP042
@@ -571,7 +548,7 @@ class MixedStr(str, Enum):  # noqa: UP042
 
 def test_hasher_registry_hash_enum_mixed_with_str_without_enum_hasher() -> None:
     registry = HasherRegistry({str: StrHasher()})
-    assert registry.hash(MixedStr.A) == StrHasher().hash(MixedStr.A, registry)
+    assert registry.hash(MixedStr.A) == hash_with(StrHasher(), MixedStr.A, registry)
 
 
 def test_hasher_registry_find_hasher_fallback_does_not_build_the_error_message() -> None:

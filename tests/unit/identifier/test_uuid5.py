@@ -176,7 +176,7 @@ def test_generate_stable_uuid5_options_are_keyword_only() -> None:
 
 
 def test_generate_stable_uuid5_golden_vector() -> None:
-    assert generate_stable_uuid5({"a": [1, 2]}) == "b0c09eff-b68b-546c-838a-56952e4c79a7"
+    assert generate_stable_uuid5({"a": [1, 2]}) == "f541185b-33b1-5d96-b515-c99b7eed8480"
 
 
 def test_generate_stable_uuid5_ignores_hashers_registered_in_default_registry() -> None:

@@ -5,14 +5,10 @@ from __future__ import annotations
 __all__ = ["BytesHasher", "hash_bytes"]
 
 import hashlib
-from typing import TYPE_CHECKING
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
+from coola.hashing.base import BaseHasher, Encoding, digest, tagged
 from coola.hashing.string import validate_hash_length
-
-if TYPE_CHECKING:
-    from coola.hashing.registry import HasherRegistry
 
 
 class BytesHasher(InlineDisplayMixin, BaseHasher[bytes | bytearray | memoryview]):
@@ -25,55 +21,35 @@ class BytesHasher(InlineDisplayMixin, BaseHasher[bytes | bytearray | memoryview]
 
     Example:
         ```pycon
-        >>> from coola.hashing import BytesHasher, HasherRegistry
-        >>> registry = HasherRegistry()
+        >>> from coola.hashing import BytesHasher
         >>> hasher = BytesHasher()
         >>> hasher
         BytesHasher()
-        >>> len(hasher.hash(b"hello", registry=registry))
-        64
-        >>> len(hasher.hash(b"hello", registry=registry, length=16))
-        16
+        >>> len(hasher.encode(b"hello"))
+        70
 
         ```
     """
 
-    def hash(
-        self,
-        data: bytes | bytearray | memoryview,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        r"""Compute a deterministic hash of bytes.
+    def encode(self, data: bytes | bytearray | memoryview) -> Encoding:
+        r"""Describe a ``bytes``, a ``bytearray`` or a ``memoryview``.
+
+        The content is reduced with ``digest`` so that the encoding is
+        small, whatever the size of the buffer.
 
         Args:
-            data: The input bytes to hash.
-            registry: The hasher registry. Unused by this hasher since
-                bytes are hashed directly with no need to dispatch to
-                another hasher for nested/composite data; accepted
-                only to satisfy the common ``BaseHasher`` interface.
-            length: The desired length of the returned hex string. See
-                ``hash_bytes`` for constraints. Defaults to 64.
-            ignore_unhashable: Unused by this hasher; accepted only to
-                satisfy the common ``BaseHasher`` interface.
+            data: The bytes to describe.
 
         Returns:
-            A lowercase hexadecimal string of exactly ``length``
-            characters.
-
-        Raises:
-            ValueError: If ``length`` is not an even number between 2
-                and 128.
+            The leaf ``tagged(tag, digest(content))``.
         """
         if isinstance(data, bytearray):
-            tag = b"bytearray"
+            tag = "bytearray"
         elif isinstance(data, memoryview):
-            tag = b"memoryview"
+            tag = "memoryview"
         else:
-            tag = b"bytes"
-        return hash_bytes(tag + b"\0" + bytes(data), length=length)
+            tag = "bytes"
+        return tagged(tag, digest(bytes(data)))
 
 
 def hash_bytes(value: bytes, length: int = 64) -> str:

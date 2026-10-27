@@ -19,7 +19,7 @@ from typing import Any, NamedTuple
 import pytest
 
 from coola.equality import objects_are_equal
-from coola.hashing import HasherRegistry, SequenceHasher, hash_object, hash_tagged
+from coola.hashing import HasherRegistry, SequenceHasher, hash_object, tagged
 from coola.hashing.base import BaseHasher
 from tests.properties.strategies import (
     lengths,
@@ -314,15 +314,8 @@ class Constant:
 class ConstantHasher(BaseHasher[Constant]):
     r"""Hash a ``Constant`` by ``value % 2``."""
 
-    def hash(
-        self,
-        data: Constant,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        return hash_tagged("constant", str(data.value % 2), length=length)
+    def encode(self, data: Constant) -> bytes:
+        return tagged("constant", str(data.value % 2))
 
 
 @given(a=st.lists(st.integers(), max_size=5), data=st.data())

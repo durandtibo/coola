@@ -12,7 +12,9 @@ from coola.hashing import (
     get_default_registry,
     hash_path,
     hash_tagged,
+    tagged,
 )
+from tests.unit.hashing.helpers import hash_with, leaf_hash
 
 
 @pytest.fixture
@@ -34,11 +36,11 @@ def test_path_hasher_str() -> None:
 
 
 def test_path_hasher_hash_returns_str(tmp_path: Path, registry: HasherRegistry) -> None:
-    assert isinstance(PathHasher().hash(tmp_path / "file.txt", registry=registry), str)
+    assert isinstance(hash_with(PathHasher(), tmp_path / "file.txt", registry), str)
 
 
 def test_path_hasher_hash_default_length(tmp_path: Path, registry: HasherRegistry) -> None:
-    assert len(PathHasher().hash(tmp_path / "file.txt", registry=registry)) == 64
+    assert len(hash_with(PathHasher(), tmp_path / "file.txt", registry)) == 64
 
 
 @pytest.mark.parametrize(
@@ -51,21 +53,21 @@ def test_path_hasher_hash_default_length(tmp_path: Path, registry: HasherRegistr
     ],
 )
 def test_path_hasher_hash_length(length: int, tmp_path: Path, registry: HasherRegistry) -> None:
-    result = PathHasher().hash(tmp_path / "file.txt", registry=registry, length=length)
+    result = hash_with(PathHasher(), tmp_path / "file.txt", registry, length=length)
     assert len(result) == length
 
 
 def test_path_hasher_hash_is_deterministic(tmp_path: Path, registry: HasherRegistry) -> None:
     hasher = PathHasher()
     path = tmp_path / "file.txt"
-    assert hasher.hash(path, registry=registry) == hasher.hash(path, registry=registry)
+    assert hash_with(hasher, path, registry) == hash_with(hasher, path, registry)
 
 
 def test_path_hasher_hash_equal_paths_same_hash(tmp_path: Path, registry: HasherRegistry) -> None:
     hasher = PathHasher()
     path_a = tmp_path / "file.txt"
     path_b = tmp_path / "file.txt"
-    assert hasher.hash(path_a, registry=registry) == hasher.hash(path_b, registry=registry)
+    assert hash_with(hasher, path_a, registry) == hash_with(hasher, path_b, registry)
 
 
 def test_path_hasher_hash_different_paths_different_hashes(
@@ -74,7 +76,7 @@ def test_path_hasher_hash_different_paths_different_hashes(
     hasher = PathHasher()
     path_a = tmp_path / "a.txt"
     path_b = tmp_path / "b.txt"
-    assert hasher.hash(path_a, registry=registry) != hasher.hash(path_b, registry=registry)
+    assert hash_with(hasher, path_a, registry) != hash_with(hasher, path_b, registry)
 
 
 def test_path_hasher_hash_ignore_unhashable_has_no_effect(
@@ -84,8 +86,8 @@ def test_path_hasher_hash_ignore_unhashable_has_no_effect(
     # interface consistency but has no effect since it never recurses.
     hasher = PathHasher()
     path = tmp_path / "file.txt"
-    assert hasher.hash(path, registry=registry) == hasher.hash(
-        path, registry=registry, ignore_unhashable=True
+    assert hash_with(hasher, path, registry) == hash_with(
+        hasher, path, registry, ignore_unhashable=True
     )
 
 
@@ -93,13 +95,13 @@ def test_path_hasher_hash_does_not_use_registry(tmp_path: Path, registry: Hasher
     empty_registry = HasherRegistry()
     hasher = PathHasher()
     path = tmp_path / "file.txt"
-    assert hasher.hash(path, registry=registry) == hasher.hash(path, registry=empty_registry)
+    assert hash_with(hasher, path, registry) == hash_with(hasher, path, empty_registry)
 
 
-def test_path_hasher_hash_matches_hash_path(tmp_path: Path, registry: HasherRegistry) -> None:
+def test_path_hasher_hash_is_the_hash_of_the_leaf(tmp_path: Path, registry: HasherRegistry) -> None:
     hasher = PathHasher()
     path = tmp_path / "file.txt"
-    assert hasher.hash(path, registry=registry) == hash_path(path)
+    assert hash_with(hasher, path, registry) == leaf_hash(tagged("Path", path.as_posix()))
 
 
 ###############################
@@ -240,12 +242,12 @@ def test_hash_path_windows_path_uses_posix_form() -> None:
 
 def test_default_registry_hashes_paths_without_resolving_path() -> None:
     registry = get_default_registry()
-    assert registry.hash(Path("a")) == hash_path(Path("a"))
+    assert registry.hash(Path("a")) == leaf_hash(tagged("Path", "a"))
 
 
 def test_default_registry_hashes_paths_without_resolving_pure_path() -> None:
     registry = get_default_registry()
-    assert registry.hash(PurePosixPath("a")) == hash_path(PurePosixPath("a"))
+    assert registry.hash(PurePosixPath("a")) == leaf_hash(tagged("Path", "a"))
 
 
 ########################################
@@ -262,10 +264,10 @@ def test_resolved_path_hasher_hash_resolves_path(tmp_path: Path) -> None:
     hasher = ResolvedPathHasher()
     direct = tmp_path / "file.txt"
     indirect = tmp_path / "sub" / ".." / "file.txt"
-    assert hasher.hash(direct, registry=registry) == hasher.hash(indirect, registry=registry)
+    assert hash_with(hasher, direct, registry) == hash_with(hasher, indirect, registry)
 
 
 def test_resolved_path_hasher_hash_matches_hash_path_resolve(tmp_path: Path) -> None:
     path = tmp_path / "file.txt"
-    result = ResolvedPathHasher().hash(path, registry=HasherRegistry())
-    assert result == hash_path(path, resolve=True)
+    result = hash_with(ResolvedPathHasher(), path, HasherRegistry())
+    assert result == leaf_hash(tagged("Path", path.resolve().as_posix()))

@@ -14,8 +14,7 @@ import math
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_tagged
+from coola.hashing.base import BaseHasher, Encoding, Node, tagged
 from coola.utils.imports import is_pandas_available
 
 if TYPE_CHECKING or is_pandas_available():
@@ -26,22 +25,13 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:
     from coola.hashing.base import Hasher
-    from coola.hashing.registry import HasherRegistry
 
 
-def _hash_values(
-    values: Any, registry: HasherRegistry, length: int, ignore_unhashable: bool
-) -> str:
-    return registry.hash(values, length=length, ignore_unhashable=ignore_unhashable)
-
-
-def _hash_dtype(dtype: Any, registry: HasherRegistry, length: int, ignore_unhashable: bool) -> str:
-    r"""Hash a dtype: ``str(dtype)`` is ``"category"`` for every
-    categorical dtype, so the categories and the ``ordered`` flag are
-    added."""
+def _dtype_key(dtype: Any) -> Any:
+    r"""Return the dtype in a form that can be hashed: the categories
+    and the ``ordered`` flag are added to a categorical dtype."""
     if isinstance(dtype, pd.CategoricalDtype):
-        categories = _hash_values(dtype.categories.to_numpy(), registry, length, ignore_unhashable)
-        return f"{dtype}\0{dtype.ordered}\0{categories}"
+        return [str(dtype), dtype.ordered, dtype.categories.to_numpy()]
     return str(dtype)
 
 
@@ -70,28 +60,22 @@ def _column_values(column: Any) -> Any:
     return column.to_numpy(dtype=object, na_value=None)
 
 
-def _hash_index(
-    index: pd.Index, registry: HasherRegistry, length: int, ignore_unhashable: bool
-) -> str:
-    r"""Hash an index: its names, its dtype(s) and its values.
+def _index_key(index: pd.Index) -> list[Any]:
+    r"""Return an index in a form that can be hashed: its names, its
+    dtype(s) and its values.
 
-    The values of a ``MultiIndex`` are hashed level by level, not as an
-    array of tuples.
+    The values of a ``MultiIndex`` are described level by level, not as
+    an array of tuples.
     """
     levels = (
         [index.get_level_values(i) for i in range(index.nlevels)]
         if isinstance(index, pd.MultiIndex)
         else [index]
     )
-    parts = [
-        _hash_values(
-            [_normalize_name(name) for name in index.names], registry, length, ignore_unhashable
-        )
-    ]
+    key: list[Any] = [[_normalize_name(name) for name in index.names]]
     for level in levels:
-        parts.append(_hash_dtype(level.dtype, registry, length, ignore_unhashable))
-        parts.append(_hash_values(_column_values(level), registry, length, ignore_unhashable))
-    return "\0".join(parts)
+        key.extend([_dtype_key(level.dtype), _column_values(level)])
+    return key
 
 
 class PandasSeriesHasher(InlineDisplayMixin, BaseHasher["pd.Series"]):
@@ -108,31 +92,35 @@ class PandasSeriesHasher(InlineDisplayMixin, BaseHasher["pd.Series"]):
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.hashing import HasherRegistry, PandasSeriesHasher, get_default_registry
+        >>> from coola.hashing import PandasSeriesHasher
         >>> hasher = PandasSeriesHasher()
         >>> hasher
         PandasSeriesHasher()
-        >>> len(hasher.hash(pd.Series([1, 2, 3]), registry=get_default_registry()))
-        64
+        >>> hasher.encode(pd.Series([1, 2, 3])).tag
+        'pandas.Series'
 
         ```
     """
 
-    def hash(
-        self,
-        data: pd.Series,
-        registry: HasherRegistry,
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,
-    ) -> str:
-        parts = [
-            _hash_values(_normalize_name(data.name), registry, length, ignore_unhashable),
-            _hash_dtype(data.dtype, registry, length, ignore_unhashable),
-            _hash_index(data.index, registry, length, ignore_unhashable),
-            _hash_values(_column_values(data), registry, length, ignore_unhashable),
-        ]
-        return hash_tagged("pandas.Series", "\0".join(parts), length=length)
+    def encode(self, data: pd.Series) -> Encoding:
+        r"""Describe a pandas series.
+
+        Args:
+            data: The series to describe.
+
+        Returns:
+            The ``Node`` of the name, the dtype, the index and the
+            values.
+        """
+        return Node(
+            "pandas.Series",
+            [
+                _normalize_name(data.name),
+                _dtype_key(data.dtype),
+                _index_key(data.index),
+                _column_values(data),
+            ],
+        )
 
 
 class PandasDataFrameHasher(InlineDisplayMixin, BaseHasher["pd.DataFrame"]):
@@ -145,33 +133,31 @@ class PandasDataFrameHasher(InlineDisplayMixin, BaseHasher["pd.DataFrame"]):
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.hashing import HasherRegistry, PandasDataFrameHasher, get_default_registry
+        >>> from coola.hashing import PandasDataFrameHasher
         >>> hasher = PandasDataFrameHasher()
         >>> hasher
         PandasDataFrameHasher()
-        >>> len(hasher.hash(pd.DataFrame({"a": [1, 2]}), registry=get_default_registry()))
-        64
+        >>> hasher.encode(pd.DataFrame({"a": [1, 2]})).tag
+        'pandas.DataFrame'
 
         ```
     """
 
-    def hash(
-        self,
-        data: pd.DataFrame,
-        registry: HasherRegistry,
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,
-    ) -> str:
-        parts = [
-            _hash_index(data.columns, registry, length, ignore_unhashable),
-            _hash_index(data.index, registry, length, ignore_unhashable),
-        ]
+    def encode(self, data: pd.DataFrame) -> Encoding:
+        r"""Describe a pandas data frame.
+
+        Args:
+            data: The data frame to describe.
+
+        Returns:
+            The ``Node`` of the columns index, the index and, for each
+            column, its dtype and its values.
+        """
+        children: list[Any] = [_index_key(data.columns), _index_key(data.index)]
         for i in range(data.shape[1]):
             column = data.iloc[:, i]
-            parts.append(_hash_dtype(column.dtype, registry, length, ignore_unhashable))
-            parts.append(_hash_values(_column_values(column), registry, length, ignore_unhashable))
-        return hash_tagged("pandas.DataFrame", "\0".join(parts), length=length)
+            children.extend([_dtype_key(column.dtype), _column_values(column)])
+        return Node("pandas.DataFrame", children)
 
 
 class PandasMissingHasher(InlineDisplayMixin, BaseHasher[Any]):
@@ -184,26 +170,27 @@ class PandasMissingHasher(InlineDisplayMixin, BaseHasher[Any]):
     Example:
         ```pycon
         >>> import pandas as pd
-        >>> from coola.hashing import HasherRegistry, get_default_registry
+        >>> from coola.hashing import get_default_registry
         >>> from coola.hashing.pandas import PandasMissingHasher
         >>> hasher = PandasMissingHasher()
         >>> hasher
         PandasMissingHasher()
-        >>> len(hasher.hash(pd.NaT, registry=get_default_registry()))
-        64
+        >>> hasher.encode(pd.NaT).startswith(b'pandas.')
+        True
 
         ```
     """
 
-    def hash(
-        self,
-        data: Any,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        return hash_tagged(f"pandas.{type(data).__name__}", "", length=length)
+    def encode(self, data: Any) -> Encoding:
+        r"""Describe a missing value.
+
+        Args:
+            data: The missing value (``pd.NA`` or ``pd.NaT``).
+
+        Returns:
+            The leaf with the tag ``pandas.NA`` or ``pandas.NaTType``.
+        """
+        return tagged(f"pandas.{type(data).__name__}")
 
 
 class PandasPeriodHasher(InlineDisplayMixin, BaseHasher["pd.Period"]):
@@ -219,21 +206,22 @@ class PandasPeriodHasher(InlineDisplayMixin, BaseHasher["pd.Period"]):
         >>> hasher = PandasPeriodHasher()
         >>> hasher
         PandasPeriodHasher()
-        >>> len(hasher.hash(pd.Period("2020"), registry=get_default_registry()))
-        64
+        >>> hasher.encode(pd.Period("2020")).startswith(b'pandas.Period')
+        True
 
         ```
     """
 
-    def hash(
-        self,
-        data: pd.Period,
-        registry: HasherRegistry,  # noqa: ARG002
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,  # noqa: ARG002
-    ) -> str:
-        return hash_tagged("pandas.Period", f"{data.freqstr}\0{data.ordinal}", length=length)
+    def encode(self, data: pd.Period) -> Encoding:
+        r"""Describe a period.
+
+        Args:
+            data: The period to describe.
+
+        Returns:
+            The leaf of the frequency and the ordinal.
+        """
+        return tagged("pandas.Period", f"{data.freqstr}\0{data.ordinal}")
 
 
 class PandasIntervalHasher(InlineDisplayMixin, BaseHasher["pd.Interval"]):
@@ -250,23 +238,22 @@ class PandasIntervalHasher(InlineDisplayMixin, BaseHasher["pd.Interval"]):
         >>> hasher = PandasIntervalHasher()
         >>> hasher
         PandasIntervalHasher()
-        >>> len(hasher.hash(pd.Interval(0, 1), registry=get_default_registry()))
-        64
+        >>> hasher.encode(pd.Interval(0, 1)).tag
+        'pandas.Interval'
 
         ```
     """
 
-    def hash(
-        self,
-        data: pd.Interval,
-        registry: HasherRegistry,
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,
-    ) -> str:
-        left = registry.hash(data.left, length=length, ignore_unhashable=ignore_unhashable)
-        right = registry.hash(data.right, length=length, ignore_unhashable=ignore_unhashable)
-        return hash_tagged("pandas.Interval", f"{left}\0{right}\0{data.closed}", length=length)
+    def encode(self, data: pd.Interval) -> Encoding:
+        r"""Describe an interval.
+
+        Args:
+            data: The interval to describe.
+
+        Returns:
+            The ``Node`` of the bounds and the closed side.
+        """
+        return Node("pandas.Interval", [data.left, data.right, data.closed])
 
 
 def get_default_hashers() -> dict[type, Hasher[Any]]:

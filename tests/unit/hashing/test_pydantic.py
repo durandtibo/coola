@@ -9,6 +9,7 @@ from coola.hashing import HasherRegistry, get_default_registry, hash_pydantic_mo
 from coola.hashing.pydantic import PydanticModelHasher, unwrap_secrets
 from coola.testing.fixtures import pydantic_available
 from coola.utils.imports import is_pydantic_available
+from tests.unit.hashing.helpers import hash_with
 
 if is_pydantic_available():
     from pydantic import BaseModel, ConfigDict, SecretBytes, SecretStr
@@ -87,36 +88,36 @@ def test_pydantic_model_hasher_default_on_secret_is_error() -> None:
 @pydantic_available
 def test_pydantic_model_hasher_hash_matches_function(registry: HasherRegistry) -> None:
     point = Point(x=1, y=2)
-    assert PydanticModelHasher().hash(point, registry=registry) == hash_pydantic_model(point)
+    assert hash_with(PydanticModelHasher(), point, registry) == hash_pydantic_model(point)
 
 
 @pydantic_available
 def test_pydantic_model_hasher_hash_known_value(registry: HasherRegistry) -> None:
     point = Point(x=1, y=2)
     assert (
-        PydanticModelHasher().hash(point, registry=registry)
-        == "91738e8f4e95f91bd94446057cccce6c1c4349a0f4af76f062a49cc8d4191b26"
+        hash_with(PydanticModelHasher(), point, registry)
+        == "fa225810c926bc0f4f2d720dda150f34df45a96bd35587cac42ed607d9535752"
     )
 
 
 @pydantic_available
 def test_pydantic_model_hasher_hash_returns_str(registry: HasherRegistry) -> None:
-    assert isinstance(PydanticModelHasher().hash(Point(x=1, y=2), registry=registry), str)
+    assert isinstance(hash_with(PydanticModelHasher(), Point(x=1, y=2), registry), str)
 
 
 @pydantic_available
 def test_pydantic_model_hasher_hash_default_length_is_64(registry: HasherRegistry) -> None:
-    assert len(PydanticModelHasher().hash(Point(x=1, y=2), registry=registry)) == 64
+    assert len(hash_with(PydanticModelHasher(), Point(x=1, y=2), registry)) == 64
 
 
 @pydantic_available
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "b679486885776e0f", id="16"),
+        pytest.param(16, "fa225810c926bc0f", id="16"),
         pytest.param(
             64,
-            "91738e8f4e95f91bd94446057cccce6c1c4349a0f4af76f062a49cc8d4191b26",
+            "fa225810c926bc0f4f2d720dda150f34df45a96bd35587cac42ed607d9535752",
             id="64-default",
         ),
     ],
@@ -124,7 +125,7 @@ def test_pydantic_model_hasher_hash_default_length_is_64(registry: HasherRegistr
 def test_pydantic_model_hasher_hash_length(
     length: int, expected: str, registry: HasherRegistry
 ) -> None:
-    result = PydanticModelHasher().hash(Point(x=1, y=2), registry=registry, length=length)
+    result = hash_with(PydanticModelHasher(), Point(x=1, y=2), registry, length=length)
     assert result == expected
 
 
@@ -133,7 +134,7 @@ def test_pydantic_model_hasher_hash_length(
 def test_pydantic_model_hasher_hash_length_length_is_respected(
     length: int, registry: HasherRegistry
 ) -> None:
-    result = PydanticModelHasher().hash(Point(x=1, y=2), registry=registry, length=length)
+    result = hash_with(PydanticModelHasher(), Point(x=1, y=2), registry, length=length)
     assert len(result) == length
 
 
@@ -141,7 +142,7 @@ def test_pydantic_model_hasher_hash_length_length_is_respected(
 def test_pydantic_model_hasher_hash_is_deterministic(registry: HasherRegistry) -> None:
     hasher = PydanticModelHasher()
     point = Point(x=1, y=2)
-    assert hasher.hash(point, registry=registry) == hasher.hash(point, registry=registry)
+    assert hash_with(hasher, point, registry) == hash_with(hasher, point, registry)
 
 
 @pydantic_available
@@ -149,8 +150,8 @@ def test_pydantic_model_hasher_hash_independent_of_field_declaration_order(
     registry: HasherRegistry,
 ) -> None:
     hasher = PydanticModelHasher()
-    assert hasher.hash(Point(x=1, y=2), registry=registry) == hasher.hash(
-        Point(y=2, x=1), registry=registry
+    assert hash_with(hasher, Point(x=1, y=2), registry) == hash_with(
+        hasher, Point(y=2, x=1), registry
     )
 
 
@@ -159,8 +160,8 @@ def test_pydantic_model_hasher_hash_different_values_different_hashes(
     registry: HasherRegistry,
 ) -> None:
     hasher = PydanticModelHasher()
-    assert hasher.hash(Point(x=1, y=2), registry=registry) != hasher.hash(
-        Point(x=1, y=3), registry=registry
+    assert hash_with(hasher, Point(x=1, y=2), registry) != hash_with(
+        hasher, Point(x=1, y=3), registry
     )
 
 
@@ -171,8 +172,8 @@ def test_pydantic_model_hasher_hash_ignore_unhashable_has_no_effect(
     # When every field value is hashable, ignore_unhashable changes nothing.
     hasher = PydanticModelHasher()
     point = Point(x=1, y=2)
-    assert hasher.hash(point, registry=registry) == hasher.hash(
-        point, registry=registry, ignore_unhashable=True
+    assert hash_with(hasher, point, registry) == hash_with(
+        hasher, point, registry, ignore_unhashable=True
     )
 
 
@@ -180,7 +181,7 @@ def test_pydantic_model_hasher_hash_ignore_unhashable_has_no_effect(
 def test_pydantic_model_hasher_hash_unhashable_field_raises(registry: HasherRegistry) -> None:
     model = AnyValue(value=object())
     with pytest.raises(KeyError):
-        PydanticModelHasher().hash(model, registry=registry)
+        hash_with(PydanticModelHasher(), model, registry)
 
 
 @pydantic_available
@@ -189,7 +190,7 @@ def test_pydantic_model_hasher_hash_unhashable_field_ignored_warns(
 ) -> None:
     model = AnyValue(value=object())
     with pytest.warns(UserWarning, match="placeholder"):
-        PydanticModelHasher().hash(model, registry=registry, ignore_unhashable=True)
+        hash_with(PydanticModelHasher(), model, registry, ignore_unhashable=True)
 
 
 @pydantic_available
@@ -198,7 +199,7 @@ def test_pydantic_model_hasher_hash_unhashable_field_ignored_returns_str(
     registry: HasherRegistry,
 ) -> None:
     model = AnyValue(value=object())
-    result = PydanticModelHasher().hash(model, registry=registry, ignore_unhashable=True)
+    result = hash_with(PydanticModelHasher(), model, registry, ignore_unhashable=True)
     assert isinstance(result, str)
 
 
@@ -207,14 +208,14 @@ def test_pydantic_model_hasher_hash_uses_registry() -> None:
     # Field values are hashed through the registry, so a registry that
     # cannot hash ints cannot hash a model with int fields.
     with pytest.raises(KeyError):
-        PydanticModelHasher().hash(Point(x=1, y=2), registry=HasherRegistry())
+        hash_with(PydanticModelHasher(), Point(x=1, y=2), HasherRegistry())
 
 
 @pydantic_available
 def test_pydantic_model_hasher_hash_depends_on_model_class(registry: HasherRegistry) -> None:
     hasher = PydanticModelHasher()
-    assert hasher.hash(Point(x=1, y=2), registry=registry) != hasher.hash(
-        Point3(x=1, y=2), registry=registry
+    assert hash_with(hasher, Point(x=1, y=2), registry) != hash_with(
+        hasher, Point3(x=1, y=2), registry
     )
 
 
@@ -223,8 +224,8 @@ def test_pydantic_model_hasher_hash_field_types_are_not_collapsed_list_and_tuple
     registry: HasherRegistry,
 ) -> None:
     hasher = PydanticModelHasher()
-    assert hasher.hash(AnyValue(value=[1, 2]), registry=registry) != hasher.hash(
-        AnyValue(value=(1, 2)), registry=registry
+    assert hash_with(hasher, AnyValue(value=[1, 2]), registry) != hash_with(
+        hasher, AnyValue(value=(1, 2)), registry
     )
 
 
@@ -233,8 +234,8 @@ def test_pydantic_model_hasher_hash_field_types_are_not_collapsed_int_and_float(
     registry: HasherRegistry,
 ) -> None:
     hasher = PydanticModelHasher()
-    assert hasher.hash(AnyValue(value=1), registry=registry) != hasher.hash(
-        AnyValue(value=1.0), registry=registry
+    assert hash_with(hasher, AnyValue(value=1), registry) != hash_with(
+        hasher, AnyValue(value=1.0), registry
     )
 
 
@@ -243,24 +244,24 @@ def test_pydantic_model_hasher_hash_set_field_is_order_independent(
     registry: HasherRegistry,
 ) -> None:
     hasher = PydanticModelHasher()
-    assert hasher.hash(AnyValue(value={1, 2, 3}), registry=registry) == hasher.hash(
-        AnyValue(value={3, 2, 1}), registry=registry
+    assert hash_with(hasher, AnyValue(value={1, 2, 3}), registry) == hash_with(
+        hasher, AnyValue(value={3, 2, 1}), registry
     )
 
 
 @pydantic_available
 def test_pydantic_model_hasher_hash_nested_model(registry: HasherRegistry) -> None:
     hasher = PydanticModelHasher()
-    assert hasher.hash(AnyValue(value=Point(x=1, y=2)), registry=registry) != hasher.hash(
-        AnyValue(value=Point(x=1, y=3)), registry=registry
+    assert hash_with(hasher, AnyValue(value=Point(x=1, y=2)), registry) != hash_with(
+        hasher, AnyValue(value=Point(x=1, y=3)), registry
     )
 
 
 @pydantic_available
 def test_pydantic_model_hasher_hash_extra_fields_are_included(registry: HasherRegistry) -> None:
     hasher = PydanticModelHasher()
-    assert hasher.hash(Open(x=1, extra=2), registry=registry) != hasher.hash(
-        Open(x=1, extra=3), registry=registry
+    assert hash_with(hasher, Open(x=1, extra=2), registry) != hash_with(
+        hasher, Open(x=1, extra=3), registry
     )
 
 
@@ -270,7 +271,7 @@ def test_pydantic_model_hasher_hash_secret_error_does_not_leak_value(
 ) -> None:
     creds = Creds(username="alice", password="hunter2")
     with pytest.raises(ValueError, match="SecretStr/SecretBytes") as exc_info:
-        PydanticModelHasher().hash(creds, registry=registry)
+        hash_with(PydanticModelHasher(), creds, registry)
     assert "hunter2" not in str(exc_info.value)
 
 
@@ -281,7 +282,7 @@ def test_pydantic_model_hasher_default_on_secret_raises_for_secret_field(
     hasher = PydanticModelHasher()
     creds = Creds(username="alice", password="hunter2")
     with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
-        hasher.hash(creds, registry=registry)
+        hash_with(hasher, creds, registry)
 
 
 @pydantic_available
@@ -291,7 +292,7 @@ def test_pydantic_model_hasher_on_secret_exclude_ignores_secret_value(
     hasher = PydanticModelHasher(on_secret="exclude")
     a = Creds(username="alice", password="hunter2")
     b = Creds(username="alice", password="different")
-    assert hasher.hash(a, registry=registry) == hasher.hash(b, registry=registry)
+    assert hash_with(hasher, a, registry) == hash_with(hasher, b, registry)
 
 
 @pydantic_available
@@ -301,7 +302,7 @@ def test_pydantic_model_hasher_on_secret_reveal_sensitive_to_secret_value(
     hasher = PydanticModelHasher(on_secret="reveal")
     a = Creds(username="alice", password="hunter2")
     b = Creds(username="alice", password="different")
-    assert hasher.hash(a, registry=registry) != hasher.hash(b, registry=registry)
+    assert hash_with(hasher, a, registry) != hash_with(hasher, b, registry)
 
 
 @pydantic_available
@@ -311,9 +312,7 @@ def test_pydantic_model_hasher_on_secret_is_configured_once_via_constructor(
     exclude_hasher = PydanticModelHasher(on_secret="exclude")
     reveal_hasher = PydanticModelHasher(on_secret="reveal")
     creds = Creds(username="alice", password="hunter2")
-    assert exclude_hasher.hash(creds, registry=registry) != reveal_hasher.hash(
-        creds, registry=registry
-    )
+    assert hash_with(exclude_hasher, creds, registry) != hash_with(reveal_hasher, creds, registry)
 
 
 ####################################

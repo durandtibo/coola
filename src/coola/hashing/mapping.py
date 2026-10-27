@@ -5,27 +5,22 @@ from __future__ import annotations
 __all__ = ["MappingHasher"]
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from itertools import chain
+from typing import Any
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher
-from coola.hashing.string import hash_tagged
-
-if TYPE_CHECKING:
-    from coola.hashing.registry import HasherRegistry
+from coola.hashing.base import BaseHasher, Encoding, Node
 
 
 class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
     r"""Hasher for mapping types.
 
-    This hasher hashes each key and value separately via the registry,
-    concatenates the key and value hashes per item, sorts the items by
-    key hash, concatenates all per-item strings, and hashes the result
-    under a type tag.
-
-    Sorting by key hash (not by key) ensures that mappings with the
-    same key-value pairs but different insertion orders produce the
-    same hash, without requiring keys to be orderable. This matches
+    This hasher describes a mapping as a ``Node`` whose children are
+    the keys and the values, which the engine hashes through the
+    registry. The entries (a key and its value) are sorted by digest,
+    not by key, so mappings with the same key-value pairs but different
+    insertion orders produce the same hash, without requiring keys to be
+    orderable. This matches
     ``coola`` equality, which ignores the order of the keys of a
     ``dict``. Register the hasher with ``ordered=True`` for a mapping
     type whose order is meaningful, like ``OrderedDict``: its equality
@@ -42,14 +37,12 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
 
     Example:
         ```pycon
-        >>> from collections.abc import Mapping
-        >>> from coola.hashing import MappingHasher, StrHasher, HasherRegistry
-        >>> registry = HasherRegistry({object: StrHasher(), Mapping: MappingHasher()})
+        >>> from coola.hashing import MappingHasher
         >>> hasher = MappingHasher()
         >>> hasher
         MappingHasher(tag='mapping', ordered=False)
-        >>> len(hasher.hash({"a": 1, "b": 2}, registry=registry))
-        64
+        >>> hasher.encode({"a": 1}).tag
+        'mapping'
 
         ```
     """
@@ -61,46 +54,15 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
     def _display_fields(self) -> dict[str, Any]:
         return {"tag": self._tag, "ordered": self._ordered}
 
-    def hash(
-        self,
-        data: Mapping[Any, Any],
-        registry: HasherRegistry,
-        *,
-        length: int = 64,
-        ignore_unhashable: bool = False,
-    ) -> str:
-        r"""Compute a deterministic hash of a mapping.
+    def encode(self, data: Mapping[Any, Any]) -> Encoding:
+        r"""Describe a mapping.
 
         Args:
-            data: The mapping to hash.
-            registry: The hasher registry used to hash each key and
-                value, and to recurse into any nested data structures.
-            length: The desired length of the returned hex string. Must
-                be an even number between 2 and 128 inclusive. Defaults
-                to 64.
-            ignore_unhashable: If ``True``, keys/values for which no
-                hasher is registered are replaced by a deterministic
-                placeholder hash instead of raising an error.
+            data: The mapping to describe.
 
         Returns:
-            A lowercase hexadecimal string of exactly ``length``
-            characters.
-
-        Raises:
-            KeyError: If a key or value has a type for which no hasher
-                is registered in ``registry`` and ``ignore_unhashable``
-                is ``False``.
-            ValueError: If ``length`` is not an even number between 2
-                and 128.
+            The ``Node`` of the keys and values (key, value, key, value,
+            ...) with ``group=2``. It is unordered unless the hasher was
+            built with ``ordered=True``.
         """
-        items: list[str] = []
-        for key, value in data.items():
-            key_hash = registry.hash(key, length=length, ignore_unhashable=ignore_unhashable)
-            val_hash = registry.hash(value, length=length, ignore_unhashable=ignore_unhashable)
-            items.append(key_hash + val_hash)
-        if not self._ordered:
-            # Sort by the full entry: keys can share a hash (placeholder of
-            # unhashable keys, short ``length``), and equal mappings must
-            # not depend on the insertion order.
-            items.sort()
-        return hash_tagged(self._tag, "".join(items), length=length)
+        return Node(self._tag, chain.from_iterable(data.items()), self._ordered, 2)

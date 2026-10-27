@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from unittest.mock import patch
-
 import pytest
 
-from coola.hashing import hash_object, pyarrow as pyarrow_hashing
+from coola.hashing import Node, PyarrowArrayHasher, hash_object
 from coola.testing.fixtures import (
     jax_available,
     numpy_available,
@@ -643,20 +641,13 @@ def test_hash_pyarrow_table_with_null() -> None:
         pytest.param(pa.chunked_array([[1], [2]]) if is_pyarrow_available() else 0, id="chunked"),
     ],
 )
-def test_hash_pyarrow_fixed_width_array_does_not_use_python_objects(array: pa.Array) -> None:
-    with patch(
-        "coola.hashing.pyarrow._hash_fixed_width_array",
-        wraps=pyarrow_hashing._hash_fixed_width_array,
-    ) as spy:
-        hash_object(array)
-    spy.assert_called_once()
+def test_hash_pyarrow_fixed_width_array_is_a_leaf(array: pa.Array) -> None:
+    assert isinstance(PyarrowArrayHasher().encode(array), bytes)
 
 
 @pyarrow_available
-def test_hash_pyarrow_string_array_uses_python_objects() -> None:
-    with patch("coola.hashing.pyarrow._hash_fixed_width_array") as mock:
-        hash_object(pa.array(["a"]))
-    mock.assert_not_called()
+def test_hash_pyarrow_string_array_is_a_node() -> None:
+    assert isinstance(PyarrowArrayHasher().encode(pa.array(["a"])), Node)
 
 
 @pandas_available
@@ -807,4 +798,18 @@ def test_hash_pandas_series_nan_name_differs_from_string_name() -> None:
 def test_hash_pandas_series_index_nan_name_equals_none_name() -> None:
     first = pd.Series([1, 2], index=pd.Index([0, 1], name=float("nan")))
     second = pd.Series([1, 2], index=pd.Index([0, 1], name=None))
+    assert hash_object(first) == hash_object(second)
+
+
+@numpy_available
+def test_hash_numpy_masked_object_array_depends_on_the_mask() -> None:
+    first = np.ma.array(np.array(["a", "b"], dtype=object), mask=[False, True])
+    second = np.ma.array(np.array(["a", "b"], dtype=object), mask=[False, False])
+    assert hash_object(first) != hash_object(second)
+
+
+@numpy_available
+def test_hash_numpy_masked_object_array_ignores_the_masked_values() -> None:
+    first = np.ma.array(np.array(["a", "b"], dtype=object), mask=[False, True])
+    second = np.ma.array(np.array(["a", "c"], dtype=object), mask=[False, True])
     assert hash_object(first) == hash_object(second)

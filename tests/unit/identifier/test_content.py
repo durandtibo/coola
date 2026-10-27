@@ -113,7 +113,7 @@ def test_generate_stable_content_id_options_are_keyword_only() -> None:
 
 
 def test_generate_stable_content_id_golden_vector() -> None:
-    assert generate_stable_content_id({"a": [1, 2]}, length=16) == "5a7a714bd5501390"
+    assert generate_stable_content_id({"a": [1, 2]}, length=16) == "026b568daad21eaa"
 
 
 def test_generate_stable_content_id_ignores_hashers_registered_in_default_registry() -> None:
