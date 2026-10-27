@@ -1,49 +1,36 @@
-r"""Stable hashing utilities for pydantic models, with secret-field
+r"""Stable hashing utilities for pydantic models, with secret
 handling."""
 
 from __future__ import annotations
 
-__all__ = ["PydanticModelHasher", "hash_pydantic_model", "unwrap_secrets"]
+__all__ = ["PydanticModelHasher", "SecretHasher", "get_secret_hashers"]
 
 from itertools import chain
-from typing import TYPE_CHECKING, Any, Literal, assert_never
+from typing import TYPE_CHECKING, Any, Literal
 
 from coola.display import InlineDisplayMixin
-from coola.hashing.base import BaseHasher, Encoding, Node
+from coola.hashing.base import BaseHasher, Encoding, Node, tagged
 from coola.utils.imports import is_pydantic_available
 
 if TYPE_CHECKING:
     from coola.hashing.base import Hasher
-    from coola.hashing.registry import HasherRegistry
 
 if TYPE_CHECKING or is_pydantic_available():
     import pydantic
     from pydantic import SecretBytes, SecretStr
-
-    _SECRET_TYPES = (SecretStr, SecretBytes)
 else:  # pragma: no cover
-    from coola.utils.fallback.pydantic import pydantic
-
-    _SECRET_TYPES = ()
+    from coola.utils.fallback.pydantic import SecretBytes, SecretStr, pydantic
 
 
 class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
     r"""Hasher for pydantic ``BaseModel`` objects.
 
-    This hasher computes a stable content hash of a pydantic model from
-    its qualified class name and its fields, with every field value
-    hashed through the registry - see ``hash_pydantic_model`` for
-    details. Nested models found directly in fields or in plain
-    containers (``dict``, ``list``, ``tuple``, ``set``, ``frozenset``)
-    are hashed with the same ``on_secret`` policy.
-
-    Args:
-        on_secret: How ``SecretStr``/``SecretBytes`` fields are
-            handled when hashing - one of ``"reveal"``, ``"exclude"``,
-            or ``"error"``. See ``unwrap_secrets`` for the semantics of
-            each option. Defaults to ``"error"`` so secret fields are
-            never silently included/excluded without an explicit
-            decision.
+    The model is described by its qualified class name and its fields
+    (extra fields included), with every field value hashed through the
+    registry. The fields are unordered, so the hash does not depend on
+    the order of the declaration. The secrets (``SecretStr`` and
+    ``SecretBytes``) are values like the others: their hasher decides
+    what happens (see ``SecretHasher``), wherever the secret is.
 
     Example:
         ```pycon
@@ -55,21 +42,12 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
         ...
         >>> hasher = PydanticModelHasher()
         >>> hasher
-        PydanticModelHasher(on_secret='error')
+        PydanticModelHasher()
         >>> hasher.encode(Point(x=1, y=2)).ordered
         False
 
         ```
     """
-
-    def __init__(
-        self,
-        on_secret: Literal["reveal", "exclude", "error"] = "error",  # noqa: S107
-    ) -> None:
-        self._on_secret: Literal["reveal", "exclude", "error"] = on_secret
-
-    def _display_fields(self) -> dict[str, Any]:
-        return {"on_secret": self._on_secret}
 
     def encode(self, data: pydantic.BaseModel) -> Encoding:
         r"""Describe a pydantic model.
@@ -80,192 +58,137 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
         Returns:
             The unordered ``Node`` of the field names and values (extra
             fields included), with the qualified class name in the tag.
-            The secrets are resolved according to ``on_secret``.
-
-        Raises:
-            ValueError: If ``on_secret="error"`` and the model contains
-                a ``SecretStr``/``SecretBytes`` field.
         """
         cls = type(data)
         fields = {name: getattr(data, name) for name in cls.model_fields}
         fields.update(data.model_extra or {})
-        resolved = unwrap_secrets(fields, on_secret=self._on_secret)
         return Node(
             f"pydantic:{cls.__module__}.{cls.__qualname__}",
-            chain.from_iterable(resolved.items()),
+            chain.from_iterable(fields.items()),
             False,
             2,
         )
 
 
-def unwrap_secrets(
-    value: Any,
-    *,
-    on_secret: Literal["reveal", "exclude", "error"],
-) -> Any:
-    """Recursively resolve ``SecretStr``/``SecretBytes`` values before
-    hashing.
+class SecretHasher(InlineDisplayMixin, BaseHasher["SecretStr | SecretBytes"]):
+    r"""Hasher for ``SecretStr`` and ``SecretBytes`` values.
 
-    Only plain ``dict``, ``list``, ``tuple``, ``set`` and ``frozenset``
-    containers are traversed, and they are rebuilt with the same type so
-    the type information is preserved. Any other value is returned
-    unchanged.
+    A secret is a value with a hasher, so the policy is the one of the
+    registry and applies wherever the secret is (in a model, a ``dict``,
+    a ``list``, a dataclass...).
 
     Args:
-        value: A (possibly nested) structure of containers and
-            primitives, e.g. the field values of a model.
-        on_secret: How to handle secret fields:
+        on_secret: What to do with a secret:
 
-            - ``"reveal"``: hash the real underlying secret value (via
-              ``get_secret_value()``). Use only when the hash itself
-              will be treated as sensitive (e.g. never logged, stored
-              encrypted-at-rest, or the secret has enough entropy that
-              the hash isn't practically reversible).
-            - ``"exclude"``: drop secret values entirely from the
-              hashed payload - removed as dict values, and removed as
-              sequence/set elements (never replaced with a placeholder
-              such as ``None``, so the "shape" of the payload doesn't
-              leak where a secret used to be). The hash then reflects
-              everything *except* secrets - two models differing only
-              in a secret value hash the same.
-            - ``"error"``: raise ``ValueError`` if any secret field is
-              encountered, forcing the caller to make an explicit
-              choice rather than hashing (or silently ignoring) secret
-              data by accident. The message never contains the secret.
+            - ``"error"``: raise a ``ValueError``. The message never
+              contains the secret. It forces an explicit decision
+              instead of hashing, or silently ignoring, secret data by
+              accident.
+            - ``"reveal"``: hash the real value (``get_secret_value()``).
+              Use it only when the hash itself is treated as sensitive.
+            - ``"exclude"``: hash a constant, so the value is never
+              hashed and two objects that differ only by a secret have
+              the same hash. The position of the secret is kept: it is
+              part of the schema of the class.
 
-    Returns:
-        The value with secrets resolved (or removed) according to
-        ``on_secret``. Never returns a bare secret wrapper; a
-        top-level ``SecretStr``/``SecretBytes`` passed in directly is
-        only valid when ``on_secret="reveal"``.
-
-    Raises:
-        ValueError: If ``on_secret="error"`` and a secret field is
-            found, or if ``on_secret="exclude"`` and ``value`` is
-            itself a bare secret with no enclosing container to drop
-            it from.
+            Defaults to ``"error"``.
 
     Example:
         ```pycon
         >>> from pydantic import SecretStr
-        >>> from coola.hashing.pydantic import unwrap_secrets
-        >>> unwrap_secrets({"user": "alice", "pwd": SecretStr("hunter2")}, on_secret="reveal")
-        {'user': 'alice', 'pwd': 'hunter2'}
-        >>> unwrap_secrets({"user": "alice", "pwd": SecretStr("hunter2")}, on_secret="exclude")
-        {'user': 'alice'}
+        >>> from coola.hashing import SecretHasher
+        >>> hasher = SecretHasher("exclude")
+        >>> hasher
+        SecretHasher(on_secret='exclude')
+        >>> hasher.encode(SecretStr("a")) == hasher.encode(SecretStr("b"))
+        True
 
         ```
     """
-    if isinstance(value, _SECRET_TYPES):
-        if on_secret == "reveal":  # noqa: S105
-            return value.get_secret_value()
-        if on_secret == "exclude":  # noqa: S105
-            msg = (
-                "Cannot exclude a top-level secret value with no enclosing "
-                "dict/list/tuple/set to drop it from."
-            )
+
+    def __init__(
+        self,
+        on_secret: Literal["reveal", "exclude", "error"] = "error",  # noqa: S107
+    ) -> None:
+        if on_secret not in {"reveal", "exclude", "error"}:
+            msg = f"on_secret must be 'reveal', 'exclude' or 'error', got {on_secret!r}."
             raise ValueError(msg)
-        if on_secret == "error":  # noqa: S105
-            msg = (
-                "Encountered a SecretStr/SecretBytes field while hashing; "
-                "pass on_secret='reveal' or on_secret='exclude' to hash_pydantic_model()."
-            )
-            raise ValueError(msg)
-        assert_never(on_secret)
+        self._on_secret: Literal["reveal", "exclude", "error"] = on_secret
 
-    def keep(item: Any) -> bool:
-        return not (isinstance(item, _SECRET_TYPES) and on_secret == "exclude")  # noqa: S105
+    def _display_fields(self) -> dict[str, Any]:
+        return {"on_secret": self._on_secret}
 
-    value_type = type(value)
-    if value_type is dict:
-        return {k: unwrap_secrets(v, on_secret=on_secret) for k, v in value.items() if keep(v)}
-    if value_type in {list, tuple, set, frozenset}:
-        return value_type(unwrap_secrets(v, on_secret=on_secret) for v in value if keep(v))
-    return value
+    def encode(self, data: SecretStr | SecretBytes) -> Encoding:
+        r"""Describe a secret.
+
+        Args:
+            data: The secret to describe.
+
+        Returns:
+            The leaf ``tagged("pydantic.SecretStr", value)`` for
+            ``"reveal"`` and ``tagged("pydantic.SecretStr")`` for
+            ``"exclude"`` (``pydantic.SecretBytes`` for a
+            ``SecretBytes``).
+
+        Raises:
+            ValueError: If ``on_secret="error"``. The message never
+                contains the secret.
+        """
+        tag = f"pydantic.{type(data).__name__}"
+        if self._on_secret == "reveal":  # noqa: S105
+            return tagged(tag, data.get_secret_value())
+        if self._on_secret == "exclude":  # noqa: S105
+            return tagged(tag)
+        msg = (
+            "Encountered a SecretStr/SecretBytes value while hashing; register "
+            "SecretHasher('reveal') or SecretHasher('exclude') for it "
+            "(see `get_secret_hashers`)."
+        )
+        raise ValueError(msg)
 
 
-def hash_pydantic_model(
-    model: pydantic.BaseModel,
-    *,
-    length: int = 64,
+def get_secret_hashers(
     on_secret: Literal["reveal", "exclude", "error"] = "error",  # noqa: S107
-    registry: HasherRegistry | None = None,
-    ignore_unhashable: bool = False,
-) -> str:
-    """Compute a stable content hash of a pydantic model.
-
-    The hash combines the qualified class name of the model, so two
-    different model classes with the same field values hash
-    differently, with the hash of a mapping from field name to field
-    value (extra fields included). Every value is hashed through the
-    registry, so it follows the same rules as any other data (type
-    sensitivity, order-insensitive sets, ...), and the hash is stable
-    regardless of field declaration order.
-
-    The nested models are hashed with the same ``on_secret`` policy: the
-    function hashes with a copy of the registry in which
-    ``PydanticModelHasher(on_secret)`` is registered for
-    ``pydantic.BaseModel``. A model whose class has a hasher of its own in
-    the registry keeps it.
+) -> dict[type, Hasher[Any]]:
+    r"""Get the hashers of ``SecretStr`` and ``SecretBytes`` for a
+    policy.
 
     Args:
-        model: The pydantic model instance to hash.
-        length: The desired length of the returned hex string. Must be
-            an even number between 2 and 128 inclusive. Defaults to
-            64.
-        on_secret: How ``SecretStr``/``SecretBytes`` fields are
-            handled - see ``unwrap_secrets`` for details. Defaults to
-            ``"error"`` so secret fields are never silently
-            included/excluded/masked without an explicit decision.
-        registry: The registry used to hash the field values. If
-            ``None``, the default registry is used.
-        ignore_unhashable: If ``True``, field values for which no
-            hasher is registered are replaced by a deterministic
-            placeholder hash instead of raising an error.
+        on_secret: The policy of the hashers, see ``SecretHasher``.
+            Defaults to ``"error"``.
 
     Returns:
-        The hex digest of the hash, as a string.
-
-    Raises:
-        ValueError: If ``on_secret="error"`` (the default) and the
-            model contains a ``SecretStr``/``SecretBytes`` field, if
-            the model contains itself, or if ``length`` is not an even
-            number between 2 and 128.
-        KeyError: If a field value has a type for which no hasher is
-            registered in ``registry`` and ``ignore_unhashable`` is
-            ``False``.
+        The mapping from ``SecretStr`` and ``SecretBytes`` to a
+        ``SecretHasher``, to give to ``HasherRegistry.register_many``.
 
     Example:
         ```pycon
         >>> from pydantic import BaseModel, SecretStr
-        >>> from coola.hashing import hash_pydantic_model
+        >>> from coola.hashing import get_default_registry, get_secret_hashers
         >>> class Creds(BaseModel):
-        ...     username: str
+        ...     user: str
         ...     password: SecretStr
         ...
-        >>> creds = Creds(username="alice", password="hunter2")
-        >>> hash_pydantic_model(creds, on_secret="exclude") == hash_pydantic_model(
-        ...     Creds(username="alice", password="different"), on_secret="exclude"
+        >>> registry = get_default_registry().copy()
+        >>> registry.register_many(get_secret_hashers("exclude"), exist_ok=True)
+        >>> registry.hash(Creds(user="a", password="x")) == registry.hash(
+        ...     Creds(user="a", password="y")
         ... )
         True
 
         ```
     """
-    if registry is None:
-        from coola.hashing.interface import get_default_registry  # noqa: PLC0415
-
-        registry = get_default_registry()
-    # The models nested in the fields are hashed with the same policy.
-    registry = registry.copy()
-    registry.register(pydantic.BaseModel, PydanticModelHasher(on_secret), exist_ok=True)
-    return registry.hash(model, length=length, ignore_unhashable=ignore_unhashable)
+    hasher = SecretHasher(on_secret)
+    return {SecretStr: hasher, SecretBytes: hasher}
 
 
 def get_default_hashers() -> dict[type, Hasher[Any]]:
-    r"""Get the default hashers of the pydantic models.
+    r"""Get the default hashers of the pydantic models and secrets.
 
     Returns:
-        The hashers of the pydantic models and their associated types.
+        The hashers of the pydantic models and secrets and their
+        associated types. The secrets are not hashed by default
+        (``on_secret="error"``).
 
     Notes:
         This function is called by the default registry the first time it
@@ -273,5 +196,4 @@ def get_default_hashers() -> dict[type, Hasher[Any]]:
     """
     if not is_pydantic_available():
         return {}
-    # Pydantic models - the fields are hashed through the registry.
-    return {pydantic.BaseModel: PydanticModelHasher()}
+    return {pydantic.BaseModel: PydanticModelHasher(), **get_secret_hashers("error")}
