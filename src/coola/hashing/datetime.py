@@ -96,8 +96,18 @@ class DatetimeHasher(InlineDisplayMixin, BaseHasher[date | time]):
                     microseconds=data.microsecond,
                 )
                 return hash_tagged(
-                    type(data).__qualname__,
+                    _tag(data),
                     f"utc:{(elapsed - offset) // timedelta(microseconds=1)}",
                     length=length,
                 )
-        return hash_tagged(type(data).__qualname__, data.isoformat(), length=length)
+        return hash_tagged(_tag(data), data.isoformat(), length=length)
+
+
+def _tag(data: date | time) -> str:
+    r"""Return the constant tag of the family of ``data``, so a subclass
+    (such as ``pandas.Timestamp``) hashes like its base."""
+    if isinstance(data, datetime):
+        return "datetime"
+    if isinstance(data, time):
+        return "time"
+    return "date"

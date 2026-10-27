@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import UserString
 from enum import Enum
 
 import pytest
@@ -270,3 +271,12 @@ def test_validate_hash_length_returns_none() -> None:
 
 def test_string_hasher_hash_enum_member_of_str_mixin(registry: HasherRegistry) -> None:
     assert StringHasher().hash(MixedStr.A, registry) == hash_enum(MixedStr.A)
+
+
+def test_string_hasher_hash_user_string_differs_from_str(registry: HasherRegistry) -> None:
+    hasher = StringHasher()
+    assert hasher.hash(UserString("abc"), registry) != hasher.hash("abc", registry)
+
+
+def test_string_hasher_hash_user_string_equals_the_tagged_text(registry: HasherRegistry) -> None:
+    assert StringHasher().hash(UserString("abc"), registry) == hash_tagged("UserString", "abc")

@@ -162,7 +162,7 @@ def test_str_hasher_hash_uses_str_not_repr_equals_the_str_hash(registry: HasherR
 
     obj = MyObj()
     hasher = StrHasher()
-    tag = f"str:{MyObj.__qualname__}"
+    tag = f"str:{MyObj.__module__}.{MyObj.__qualname__}"
     assert hasher.hash(obj, registry=registry) == hash_tagged(tag, str(obj))
 
 
@@ -211,3 +211,48 @@ def test_str_hasher_hash_does_not_use_registry(registry: HasherRegistry) -> None
     empty_registry = HasherRegistry()
     hasher = StrHasher()
     assert hasher.hash("hello", registry=registry) == hasher.hash("hello", registry=empty_registry)
+
+
+def test_str_hasher_repr_with_tag() -> None:
+    assert repr(StrHasher("UUID")) == "StrHasher(tag='UUID')"
+
+
+def test_str_hasher_hash_explicit_tag(registry: HasherRegistry) -> None:
+    assert StrHasher("UUID").hash(1234, registry=registry) == hash_tagged("UUID", "1234")
+
+
+def test_str_hasher_hash_explicit_tag_applies_to_subclasses(registry: HasherRegistry) -> None:
+    class MyStr(str):
+        pass
+
+    hasher = StrHasher("Name")
+    assert hasher.hash(MyStr("a"), registry=registry) == hasher.hash("a", registry=registry)
+
+
+def test_str_hasher_hash_user_class_does_not_share_the_tag_of_a_builtin_name(
+    registry: HasherRegistry,
+) -> None:
+    class int:  # noqa: A001, N801
+        def __str__(self) -> str:
+            return "1"
+
+    assert StrHasher().hash(int(), registry=registry) != StrHasher().hash(1, registry=registry)
+
+
+def test_str_hasher_hash_user_classes_with_the_same_name_in_different_scopes_differ(
+    registry: HasherRegistry,
+) -> None:
+    class Same:
+        def __str__(self) -> str:
+            return "x"
+
+    def make() -> object:
+        class Same:
+            def __str__(self) -> str:
+                return "x"
+
+        return Same()
+
+    assert StrHasher().hash(Same(), registry=registry) != StrHasher().hash(
+        make(), registry=registry
+    )

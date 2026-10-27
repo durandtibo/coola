@@ -12,6 +12,7 @@ from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_enum, hash_tagged
 from coola.utils.integer import int_repr
+from coola.utils.introspection import get_qualified_class_name
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -71,6 +72,18 @@ class ReprHasher(InlineDisplayMixin, BaseHasher[Any]):
     floating point values, whereas ``str()`` may lose precision on some
     platforms.
 
+    For the other types, the tag is the module and the qualified name of
+    the class by default, so a user class never shares the tag of
+    another class with the same name. Pass ``tag`` to register a
+    constant tag for a type (``ReprHasher("timedelta")``): a subclass
+    then hashes like its base.
+
+    Args:
+        tag: The type tag used for the values that are not a ``bool``,
+            an ``int``, a ``float`` or a ``complex``. If ``None``, the
+            tag is derived from the class of the hashed object.
+            Defaults to ``None``.
+
     Example:
         ```pycon
         >>> from coola.hashing import ReprHasher, HasherRegistry
@@ -83,6 +96,12 @@ class ReprHasher(InlineDisplayMixin, BaseHasher[Any]):
 
         ```
     """
+
+    def __init__(self, tag: str | None = None) -> None:
+        self._tag = tag
+
+    def _display_fields(self) -> dict[str, Any]:
+        return {} if self._tag is None else {"tag": self._tag}
 
     def hash(
         self,
@@ -122,13 +141,5 @@ class ReprHasher(InlineDisplayMixin, BaseHasher[Any]):
                 # Use the builtin repr so subclasses and the NumPy scalars
                 # hash like the builtin value, independent of library versions.
                 return hash_tagged(base.__name__, _builtin_repr(base, data), length=length)
-        cls = type(data)
-        # The module keeps a user class named ``Decimal`` or ``Path`` out of
-        # the tag namespace of the other hashers; the builtins keep the bare
-        # name (``NoneType``).
-        tag = (
-            cls.__qualname__
-            if cls.__module__ == "builtins"
-            else f"{cls.__module__}.{cls.__qualname__}"
-        )
+        tag = self._tag or get_qualified_class_name(type(data))
         return hash_tagged(tag, repr(data), length=length)

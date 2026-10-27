@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = ["StringHasher", "hash_enum", "hash_string", "hash_tagged"]
 
 import hashlib
+from collections import UserString
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -15,13 +16,14 @@ if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
 
 
-class StringHasher(InlineDisplayMixin, BaseHasher[str]):
+class StringHasher(InlineDisplayMixin, BaseHasher[str | UserString]):
     r"""Hasher for string objects.
 
     This hasher computes the hash of the string, namespaced by the
     ``str`` type tag, without any intermediate conversion. ``str``
     subclasses hash like plain strings, except enum members, which hash
-    through ``hash_enum``.
+    through ``hash_enum``. A ``UserString`` is hashed by its text under
+    the ``UserString`` tag, so it differs from a ``str``.
 
     Example:
         ```pycon
@@ -38,7 +40,7 @@ class StringHasher(InlineDisplayMixin, BaseHasher[str]):
 
     def hash(
         self,
-        data: str,
+        data: str | UserString,
         registry: HasherRegistry,  # noqa: ARG002
         *,
         length: int = 64,
@@ -68,6 +70,8 @@ class StringHasher(InlineDisplayMixin, BaseHasher[str]):
         if isinstance(data, Enum):
             # ``(str, Enum)`` mixins reach this hasher through the MRO.
             return hash_enum(data, length=length)
+        if isinstance(data, UserString):
+            return hash_tagged("UserString", str(data), length=length)
         return hash_tagged("str", data, length=length)
 
 

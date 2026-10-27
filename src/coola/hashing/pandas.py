@@ -10,6 +10,7 @@ __all__ = [
     "PandasSeriesHasher",
 ]
 
+import math
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
@@ -44,6 +45,15 @@ def _hash_dtype(dtype: Any, registry: HasherRegistry, length: int, ignore_unhash
     return str(dtype)
 
 
+def _normalize_name(name: Any) -> Any:
+    r"""Return ``None`` for a missing name (``NaN``), and ``name`` otherwise.
+
+    A series named ``None`` and a series named ``NaN`` are equal for
+    ``objects_are_equal``, so they must have the same hash.
+    """
+    return None if isinstance(name, float) and math.isnan(name) else name
+
+
 def _column_values(column: Any) -> Any:
     r"""Return the values of a column in a form that can be hashed.
 
@@ -73,7 +83,11 @@ def _hash_index(
         if isinstance(index, pd.MultiIndex)
         else [index]
     )
-    parts = [_hash_values(list(index.names), registry, length, ignore_unhashable)]
+    parts = [
+        _hash_values(
+            [_normalize_name(name) for name in index.names], registry, length, ignore_unhashable
+        )
+    ]
     for level in levels:
         parts.append(_hash_dtype(level.dtype, registry, length, ignore_unhashable))
         parts.append(_hash_values(_column_values(level), registry, length, ignore_unhashable))
@@ -113,7 +127,7 @@ class PandasSeriesHasher(InlineDisplayMixin, BaseHasher["pd.Series"]):
         ignore_unhashable: bool = False,
     ) -> str:
         parts = [
-            _hash_values(data.name, registry, length, ignore_unhashable),
+            _hash_values(_normalize_name(data.name), registry, length, ignore_unhashable),
             _hash_dtype(data.dtype, registry, length, ignore_unhashable),
             _hash_index(data.index, registry, length, ignore_unhashable),
             _hash_values(_column_values(data), registry, length, ignore_unhashable),

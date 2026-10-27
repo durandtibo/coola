@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import uuid
 import warnings
+from collections import UserString
 from collections.abc import Generator, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from fractions import Fraction
 from pathlib import Path
+from types import MappingProxyType
 from unittest.mock import patch
 from uuid import UUID
 from zoneinfo import ZoneInfo
@@ -675,8 +678,80 @@ def test_hash_object_invalid_length_is_rejected_before_hashing() -> None:
         hash_object([Unhashable()], length=3)
 
 
-def test_hash_object_memoryview_hashes_like_bytes() -> None:
-    assert hash_object(memoryview(b"abc")) == hash_object(b"abc")
+def test_hash_object_memoryview_differs_from_bytes() -> None:
+    assert hash_object(memoryview(b"abc")) != hash_object(b"abc")
+
+
+def test_hash_object_memoryview_differs_from_bytearray() -> None:
+    assert hash_object(memoryview(b"abc")) != hash_object(bytearray(b"abc"))
+
+
+def test_hash_object_equal_memoryviews_have_the_same_hash() -> None:
+    assert hash_object(memoryview(b"abc")) == hash_object(memoryview(b"abc"))
+
+
+def test_hash_object_user_string_is_hashable() -> None:
+    assert len(hash_object(UserString("abc"))) == 64
+
+
+def test_hash_object_equal_user_strings_have_the_same_hash() -> None:
+    assert hash_object(UserString("abc")) == hash_object(UserString("abc"))
+
+
+def test_hash_object_different_user_strings_have_different_hashes() -> None:
+    assert hash_object(UserString("abc")) != hash_object(UserString("abd"))
+
+
+def test_hash_object_user_string_differs_from_str() -> None:
+    assert hash_object(UserString("abc")) != hash_object("abc")
+
+
+def test_hash_object_user_string_in_a_list() -> None:
+    assert hash_object([UserString("abc")]) != hash_object(["abc"])
+
+
+def test_hash_object_mapping_proxy_is_hashable() -> None:
+    assert len(hash_object(MappingProxyType({"a": 1}))) == 64
+
+
+def test_hash_object_equal_mapping_proxies_have_the_same_hash() -> None:
+    assert hash_object(MappingProxyType({"a": 1, "b": 2})) == hash_object(
+        MappingProxyType({"b": 2, "a": 1})
+    )
+
+
+def test_hash_object_different_mapping_proxies_have_different_hashes() -> None:
+    assert hash_object(MappingProxyType({"a": 1})) != hash_object(MappingProxyType({"a": 2}))
+
+
+def test_hash_object_mapping_proxy_differs_from_dict() -> None:
+    assert hash_object(MappingProxyType({"a": 1})) != hash_object({"a": 1})
+
+
+def test_hash_object_user_class_named_uuid_does_not_collide_with_uuid() -> None:
+    class UUID:
+        def __str__(self) -> str:
+            return str(uuid.UUID(int=1))
+
+    registry = get_default_registry().copy()
+    registry.register(UUID, StrHasher())
+    assert registry.hash(UUID()) != registry.hash(uuid.UUID(int=1))
+
+
+def test_hash_object_uuid_subclass_hashes_like_uuid() -> None:
+    class MyUUID(uuid.UUID):
+        pass
+
+    assert hash_object(MyUUID(int=1)) == hash_object(uuid.UUID(int=1))
+
+
+def test_hash_object_datetime_subclass_hashes_like_datetime() -> None:
+    class MyDatetime(datetime):
+        pass
+
+    assert hash_object(MyDatetime(2024, 1, 2, tzinfo=UTC)) == hash_object(
+        datetime(2024, 1, 2, tzinfo=UTC)
+    )
 
 
 class _OtherHash:

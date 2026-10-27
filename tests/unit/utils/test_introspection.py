@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -10,6 +11,7 @@ from coola.utils.introspection import (
     check_not_lambda_function,
     get_all_child_classes,
     get_fully_qualified_name,
+    get_qualified_class_name,
     has_generated_dataclass_eq,
     is_lambda_function,
     is_same_type,
@@ -488,3 +490,25 @@ def test_has_generated_dataclass_eq_not_dataclass() -> None:
 
 def test_has_generated_dataclass_eq_builtin() -> None:
     assert not has_generated_dataclass_eq(int)
+
+
+##############################################
+#     Tests for get_qualified_class_name     #
+##############################################
+
+
+def test_get_qualified_class_name_builtin() -> None:
+    assert get_qualified_class_name(int) == "int"
+
+
+def test_get_qualified_class_name_standard_library() -> None:
+    assert get_qualified_class_name(Path) == "pathlib.Path"
+
+
+def test_get_qualified_class_name_nested_class() -> None:
+    assert get_qualified_class_name(Outer.Inner) == f"{Outer.__module__}.Outer.Inner"
+
+
+def test_get_qualified_class_name_main_module_is_kept() -> None:
+    cls = type("Fake", (), {"__module__": "__main__"})
+    assert get_qualified_class_name(cls) == "__main__.Fake"

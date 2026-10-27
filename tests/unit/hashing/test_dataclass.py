@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import pytest
 
@@ -120,3 +120,37 @@ def test_dataclass_hasher_hash_not_a_dataclass_raises(registry: HasherRegistry) 
 def test_dataclass_hasher_hash_dataclass_type_raises(registry: HasherRegistry) -> None:
     with pytest.raises(TypeError, match="Expected a dataclass instance"):
         DataclassHasher().hash(Point, registry=registry)
+
+
+@dataclass
+class WithCache:
+    value: int
+    cache: int = field(default=0, compare=False)
+
+
+def test_dataclass_hasher_hash_ignores_fields_with_compare_false() -> None:
+    registry = get_default_registry()
+    hasher = DataclassHasher()
+    assert hasher.hash(WithCache(1, cache=0), registry=registry) == hasher.hash(
+        WithCache(1, cache=5), registry=registry
+    )
+
+
+def test_dataclass_hasher_hash_uses_fields_with_compare_true() -> None:
+    registry = get_default_registry()
+    hasher = DataclassHasher()
+    assert hasher.hash(WithCache(1), registry=registry) != hasher.hash(
+        WithCache(2), registry=registry
+    )
+
+
+def test_dataclass_hasher_hash_ignores_unhashable_field_with_compare_false() -> None:
+    @dataclass
+    class Holder:
+        value: int
+        other: object = field(default=None, compare=False)
+
+    registry = get_default_registry()
+    assert DataclassHasher().hash(Holder(1, object()), registry=registry) == DataclassHasher().hash(
+        Holder(1), registry=registry
+    )
