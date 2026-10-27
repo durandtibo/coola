@@ -235,3 +235,17 @@ def test_bytes_hasher_hash_bytearray_depends_on_content_different_content(
     assert hasher.hash(bytearray(b"abc"), registry=registry) != hasher.hash(
         bytearray(b"xyz"), registry=registry
     )
+
+
+def test_bytes_hasher_hash_memoryview_differs_from_bytes(registry: HasherRegistry) -> None:
+    hasher = BytesHasher()
+    assert hasher.hash(memoryview(b"abc"), registry=registry) != hasher.hash(
+        b"abc", registry=registry
+    )
+
+
+def test_bytes_hasher_hash_memoryview_depends_on_content(registry: HasherRegistry) -> None:
+    hasher = BytesHasher()
+    assert hasher.hash(memoryview(b"abc"), registry=registry) != hasher.hash(
+        memoryview(b"xyz"), registry=registry
+    )

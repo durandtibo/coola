@@ -8,13 +8,14 @@ __all__ = ["get_default_hasher_registry", "get_default_registry", "hash_object",
 import dataclasses
 import inspect
 import warnings
-from collections import OrderedDict, deque
+from collections import OrderedDict, UserString, deque
 from collections.abc import Mapping, Sequence
 from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
 from enum import Enum
 from fractions import Fraction
 from pathlib import PurePath
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, overload
 from uuid import UUID
 from zoneinfo import ZoneInfo
@@ -311,6 +312,7 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
         {
             # Strings should not be iterated character by character
             str: string_hasher,
+            UserString: string_hasher,
             bytes: bytes_hasher,
             bytearray: bytes_hasher,
             memoryview: bytes_hasher,
@@ -319,7 +321,7 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             float: repr_hasher,
             complex: repr_hasher,
             bool: repr_hasher,
-            type(None): repr_hasher,
+            type(None): ReprHasher("NoneType"),
             Enum: EnumHasher(),
             # Ordered containers - one tag per family, so a list and a
             # tuple with the same items hash differently
@@ -331,6 +333,7 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             dict: MappingHasher("dict"),
             OrderedDict: MappingHasher("OrderedDict", ordered=True),
             Mapping: MappingHasher("mapping"),
+            MappingProxyType: MappingHasher("mappingproxy"),
             # Unordered containers
             set: SetHasher("set"),
             frozenset: SetHasher("frozenset"),
@@ -338,8 +341,8 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
             date: datetime_hasher,
             datetime: datetime_hasher,
             time: datetime_hasher,
-            timedelta: repr_hasher,
-            timezone: repr_hasher,
+            timedelta: ReprHasher("timedelta"),
+            timezone: ReprHasher("timezone"),
             # Path (hashed as written, without touching the filesystem)
             PurePath: PathHasher(),
         }
@@ -382,11 +385,10 @@ def _has_hash_method(data_type: type) -> bool:
 def _get_value_hashers() -> dict[type, Hasher[Any]]:
     r"""Get the hashers of the standard library values that are not
     containers."""
-    str_hasher = StrHasher()
     return {
         # ``str`` is canonical for these types
-        UUID: str_hasher,
-        ZoneInfo: str_hasher,
+        UUID: StrHasher("UUID"),
+        ZoneInfo: StrHasher("ZoneInfo"),
         # The equal values must have the same hash
         Decimal: DecimalHasher(),
         Fraction: FractionHasher(),

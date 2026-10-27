@@ -787,3 +787,24 @@ def test_hash_jax_bfloat16_negative_zero() -> None:
     assert hash_object(jnp.array([0.0], dtype=jnp.bfloat16)) == hash_object(
         jnp.array([-0.0], dtype=jnp.bfloat16)
     )
+
+
+@pandas_available
+def test_hash_pandas_series_nan_name_equals_none_name() -> None:
+    assert hash_object(pd.Series([1, 2], name=float("nan"))) == hash_object(
+        pd.Series([1, 2], name=None)
+    )
+
+
+@pandas_available
+def test_hash_pandas_series_nan_name_differs_from_string_name() -> None:
+    assert hash_object(pd.Series([1, 2], name=float("nan"))) != hash_object(
+        pd.Series([1, 2], name="nan")
+    )
+
+
+@pandas_available
+def test_hash_pandas_series_index_nan_name_equals_none_name() -> None:
+    first = pd.Series([1, 2], index=pd.Index([0, 1], name=float("nan")))
+    second = pd.Series([1, 2], index=pd.Index([0, 1], name=None))
+    assert hash_object(first) == hash_object(second)

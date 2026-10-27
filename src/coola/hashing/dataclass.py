@@ -20,7 +20,9 @@ class DataclassHasher(InlineDisplayMixin, BaseHasher[Any]):
 
     The hash combines the qualified class name with the hash of a
     mapping from field name to field value, with every value hashed
-    through the registry. Because dataclasses have no common base
+    through the registry. Only the fields with ``compare=True`` are
+    hashed, like in ``objects_are_equal``, so two equal dataclasses have
+    the same hash. Because dataclasses have no common base
     class, it cannot be registered for a type: the default registry
     uses it as a fallback (see ``HasherRegistry.register_fallback``)
     for every dataclass that has no hasher of its own.
@@ -80,7 +82,11 @@ class DataclassHasher(InlineDisplayMixin, BaseHasher[Any]):
         if not dataclasses.is_dataclass(data) or isinstance(data, type):
             msg = f"Expected a dataclass instance, got {type(data)!r}."
             raise TypeError(msg)
-        fields = {field.name: getattr(data, field.name) for field in dataclasses.fields(data)}
+        fields = {
+            field.name: getattr(data, field.name)
+            for field in dataclasses.fields(data)
+            if field.compare
+        }
         digest = registry.hash(fields, length=length, ignore_unhashable=ignore_unhashable)
         cls = type(data)
         return hash_tagged(f"dataclass:{cls.__module__}.{cls.__qualname__}", digest, length=length)

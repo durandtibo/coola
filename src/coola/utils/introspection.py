@@ -12,6 +12,7 @@ __all__ = [
     "check_not_lambda_function",
     "get_all_child_classes",
     "get_fully_qualified_name",
+    "get_qualified_class_name",
     "get_type_constructor",
     "has_generated_dataclass_eq",
     "is_lambda_function",
@@ -129,6 +130,37 @@ def get_fully_qualified_name(obj: Any) -> str:
     if module and module != "__main__":
         return f"{module}.{qualname}"
     return qualname
+
+
+def get_qualified_class_name(cls: type) -> str:
+    r"""Return the qualified name of a class, with its module unless it
+    is a builtin.
+
+    Unlike ``get_fully_qualified_name``, the module is also kept for
+    ``__main__``, so the name identifies the class in a namespace shared
+    with the names of the builtins and of other modules.
+
+    Args:
+        cls: The class whose name is to be computed.
+
+    Returns:
+        The name in the format ``"module.qualname"``, or ``"qualname"``
+        for a builtin class.
+
+    Example:
+        ```pycon
+        >>> from collections import Counter
+        >>> from coola.utils.introspection import get_qualified_class_name
+        >>> get_qualified_class_name(Counter)
+        'collections.Counter'
+        >>> get_qualified_class_name(int)
+        'int'
+
+        ```
+    """
+    if cls.__module__ == "builtins":
+        return cls.__qualname__
+    return f"{cls.__module__}.{cls.__qualname__}"
 
 
 def supports_methods(obj: Any, *method_names: str) -> bool:

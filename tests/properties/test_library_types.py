@@ -100,7 +100,6 @@ def test_different_frames_have_different_hashes(
     assert hash_object(make_frame(first)) != hash_object(make_frame(second))
 
 
-@pytest.mark.xfail(reason="fields with compare=False (14.7)", strict=False)
 @given(value=st.integers(0, 2), first=st.integers(0, 2), second=st.integers(0, 2))
 def test_equal_dataclasses_have_the_same_hash(value: int, first: int, second: int) -> None:
     left, right = WithCache(value, first), WithCache(value, second)

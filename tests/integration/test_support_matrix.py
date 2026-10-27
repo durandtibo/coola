@@ -200,7 +200,6 @@ HASH_GAPS = {
     "dict_keys",
     "dict_values",
     "dict_items",
-    "mappingproxy",
     "array.array",
     "Pattern",
     "np.datetime64",

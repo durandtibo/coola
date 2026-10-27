@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from datetime import timedelta
 from enum import Enum
 from typing import Any
 from unittest.mock import patch
@@ -287,3 +288,19 @@ def test_numpy_scalar_to_builtin_does_not_import_numpy() -> None:
     value = object()
     with patch.dict(sys.modules, {"numpy": None}):
         assert _numpy_scalar_to_builtin(value) is value
+
+
+def test_repr_hasher_repr_with_tag() -> None:
+    assert repr(ReprHasher("timedelta")) == "ReprHasher(tag='timedelta')"
+
+
+def test_repr_hasher_hash_explicit_tag(registry: HasherRegistry) -> None:
+    assert ReprHasher("timedelta").hash(timedelta(days=1), registry=registry) == hash_tagged(
+        "timedelta", repr(timedelta(days=1))
+    )
+
+
+def test_repr_hasher_hash_explicit_tag_keeps_the_builtin_scalars(registry: HasherRegistry) -> None:
+    assert ReprHasher("timedelta").hash(1, registry=registry) == ReprHasher().hash(
+        1, registry=registry
+    )

@@ -322,3 +322,22 @@ def test_hash_object_equal_aware_times_have_the_same_hash() -> None:
     second = time(13, tzinfo=timezone(timedelta(hours=1)))
     assert first == second
     assert hash_object(first) == hash_object(second)
+
+
+def test_datetime_hasher_hash_datetime_subclass_hashes_like_datetime(
+    registry: HasherRegistry,
+) -> None:
+    class MyDatetime(datetime):
+        pass
+
+    hasher = DatetimeHasher()
+    assert hasher.hash(MyDatetime(2024, 1, 2, tzinfo=UTC), registry=registry) == hasher.hash(
+        datetime(2024, 1, 2, tzinfo=UTC), registry=registry
+    )
+
+
+def test_datetime_hasher_hash_date_differs_from_datetime(registry: HasherRegistry) -> None:
+    hasher = DatetimeHasher()
+    assert hasher.hash(date(2024, 1, 2), registry=registry) != hasher.hash(
+        datetime(2024, 1, 2, tzinfo=UTC), registry=registry
+    )

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher
 from coola.hashing.string import hash_tagged
+from coola.utils.introspection import get_qualified_class_name
 
 if TYPE_CHECKING:
     from coola.hashing.registry import HasherRegistry
@@ -23,6 +24,17 @@ class StrHasher(InlineDisplayMixin, BaseHasher[Any]):
     ``repr()``, this hasher uses ``str()``, which is more human-readable
     but does not guarantee round-trip accuracy for floating point values.
 
+    The tag identifies the type family. By default it is ``str:`` followed
+    by the module and the qualified name of the class, so a user class
+    never shares the tag of another class with the same name. Pass
+    ``tag`` to register a constant tag for a type (``StrHasher("UUID")``):
+    a subclass then hashes like its base.
+
+    Args:
+        tag: The type tag mixed into the hash. If ``None``, the tag is
+            derived from the class of the hashed object. Defaults to
+            ``None``.
+
     Example:
         ```pycon
         >>> from coola.hashing import StrHasher, HasherRegistry
@@ -35,6 +47,12 @@ class StrHasher(InlineDisplayMixin, BaseHasher[Any]):
 
         ```
     """
+
+    def __init__(self, tag: str | None = None) -> None:
+        self._tag = tag
+
+    def _display_fields(self) -> dict[str, Any]:
+        return {} if self._tag is None else {"tag": self._tag}
 
     def hash(
         self,
@@ -65,4 +83,5 @@ class StrHasher(InlineDisplayMixin, BaseHasher[Any]):
             ValueError: If ``length`` is not an even number between 2
                 and 128.
         """
-        return hash_tagged(f"str:{type(data).__qualname__}", str(data), length=length)
+        tag = self._tag or f"str:{get_qualified_class_name(type(data))}"
+        return hash_tagged(tag, str(data), length=length)
