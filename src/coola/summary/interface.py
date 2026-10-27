@@ -9,8 +9,9 @@ __all__ = [
     "summarize",
 ]
 
-from collections import deque
+from collections import UserString, deque
 from collections.abc import Mapping, Sequence
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
 
 from coola.summary.dataclass import DataclassSummarizer
@@ -215,14 +216,9 @@ def _get_native_summarizers() -> dict[type, Summarizer[Any]]:
     return {
         # Object is the catch-all base for unregistered types
         object: default_summarizer,
-        # Strings should not be iterated character by character
-        str: default_summarizer,
-        # Numeric types - no recursion needed. The summarizers are resolved with the MRO, so
-        # ``object`` alone would be enough: these entries make the registry explicit.
-        int: default_summarizer,
-        float: default_summarizer,
-        complex: default_summarizer,
-        bool: default_summarizer,
+        # ``str`` and the numeric types are resolved to ``object`` with the MRO. ``UserString``
+        # is a ``Sequence`` of ``UserString``: it must not be shown as a list of characters.
+        UserString: default_summarizer,
         # Dataclasses without their own summarizer
         DataclassMarker: DataclassSummarizer(),
         # Sequences - summary transformation preserving order
@@ -236,6 +232,8 @@ def _get_native_summarizers() -> dict[type, Summarizer[Any]]:
         # Mappings - summary transformation of keys and values
         dict: mapping_summarizer,
         Mapping: mapping_summarizer,
+        # A mapping proxy is only a virtual ``Mapping``, so it is not found with the MRO
+        MappingProxyType: mapping_summarizer,
     }
 
 
