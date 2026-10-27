@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from decimal import Decimal
 
 import pytest
@@ -8,7 +9,7 @@ from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.hashing.registry import HasherRegistry
 from coola.iterator.registry import ChildFinderRegistry
 from coola.recursive.registry import TransformerRegistry
-from coola.registry import AlreadyRegisteredError, KeyNotRegisteredError
+from coola.registry import AlreadyRegisteredError, DataclassMarker, KeyNotRegisteredError
 from coola.registry.dispatch import BaseTypeDispatchRegistry
 from coola.summary.registry import SummarizerRegistry
 
@@ -301,3 +302,45 @@ def test_base_type_dispatch_registry_copy_of_a_subclass_has_its_own_state(
 ) -> None:
     registry = registry_cls()
     assert registry.copy()._state is not registry._state
+
+
+##################################################
+#     Tests for the DataclassMarker fallback     #
+##################################################
+
+
+@dataclass
+class Point:
+    x: int
+
+
+class RejectingRegistry(BaseTypeDispatchRegistry[str]):
+    def _accepts_dataclass_marker(self, data_type: type) -> bool:  # noqa: ARG002
+        return False
+
+
+def test_find_with_dataclass_marker_uses_the_marker_handler_for_a_dataclass() -> None:
+    registry = BaseTypeDispatchRegistry[str]({object: "object", DataclassMarker: "marker"})
+    assert registry._find_with_dataclass_marker(Point) == "marker"
+
+
+def test_find_with_dataclass_marker_keeps_the_handler_of_the_dataclass() -> None:
+    registry = BaseTypeDispatchRegistry[str](
+        {object: "object", DataclassMarker: "marker", Point: "point"}
+    )
+    assert registry._find_with_dataclass_marker(Point) == "point"
+
+
+def test_find_with_dataclass_marker_does_not_change_a_type_that_is_not_a_dataclass() -> None:
+    registry = BaseTypeDispatchRegistry[str]({object: "object", DataclassMarker: "marker"})
+    assert registry._find_with_dataclass_marker(int) == "object"
+
+
+def test_find_with_dataclass_marker_without_the_marker_handler() -> None:
+    registry = BaseTypeDispatchRegistry[str]({object: "object"})
+    assert registry._find_with_dataclass_marker(Point) == "object"
+
+
+def test_find_with_dataclass_marker_a_subclass_can_refuse_the_marker_handler() -> None:
+    registry = RejectingRegistry({object: "object", DataclassMarker: "marker"})
+    assert registry._find_with_dataclass_marker(Point) == "object"

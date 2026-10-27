@@ -9,7 +9,6 @@ from __future__ import annotations
 
 __all__ = ["DataclassMarker", "SummarizerRegistry"]
 
-import dataclasses
 from typing import Any
 
 from coola.registry import BaseTypeDispatchRegistry, DataclassMarker
@@ -136,18 +135,7 @@ class SummarizerRegistry(BaseTypeDispatchRegistry[Summarizer[Any]]):
 
             ```
         """
-        summarizer = self.find(data_type)
-        # A dataclass has no summarizer by type, so ``DataclassMarker`` is used if the
-        # lookup ended on the catch-all ``object`` summarizer. The cheap ``is_dataclass``
-        # check is first so the other types are not slowed down.
-        if (
-            dataclasses.is_dataclass(data_type)
-            and self.has(DataclassMarker)
-            and self.has(object)
-            and summarizer is self.find(object)
-        ):
-            return self.find(DataclassMarker)
-        return summarizer
+        return self._find_with_dataclass_marker(data_type)
 
     def summarize(self, data: object, config: SummaryConfig | None = None) -> str:
         r"""Generate a formatted string summary of the provided data.
