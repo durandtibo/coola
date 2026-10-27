@@ -84,7 +84,7 @@ def test_pydantic_model_hasher_hash_known_value(registry: HasherRegistry) -> Non
     point = Point(x=1, y=2)
     assert (
         hash_with(PydanticModelHasher(), point, registry)
-        == "fa225810c926bc0f4f2d720dda150f34df45a96bd35587cac42ed607d9535752"
+        == "235d706b42b86ee043ee2f39c80e0f22343cdcc7fc013f1163055dff91ab09db"
     )
 
 
@@ -102,10 +102,10 @@ def test_pydantic_model_hasher_hash_default_length_is_64(registry: HasherRegistr
 @pytest.mark.parametrize(
     ("length", "expected"),
     [
-        pytest.param(16, "fa225810c926bc0f", id="16"),
+        pytest.param(16, "235d706b42b86ee0", id="16"),
         pytest.param(
             64,
-            "fa225810c926bc0f4f2d720dda150f34df45a96bd35587cac42ed607d9535752",
+            "235d706b42b86ee043ee2f39c80e0f22343cdcc7fc013f1163055dff91ab09db",
             id="64-default",
         ),
     ],

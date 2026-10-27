@@ -69,7 +69,7 @@ def test_digest_length() -> None:
 
 
 def test_digest_is_the_blake2b_with_the_version_of_the_format() -> None:
-    expected = hashlib.blake2b(b"abc", digest_size=64, person=b"coola-hash-1").digest()
+    expected = hashlib.blake2b(b"abc", digest_size=64, person=b"coola-hash-2").digest()
     assert digest(b"abc") == expected
 
 

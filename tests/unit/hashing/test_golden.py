@@ -65,31 +65,31 @@ class Point:
 @pytest.mark.parametrize(
     ("data", "expected"),
     [
-        pytest.param("hello", "2998e64e4b20ac91", id="str"),
-        pytest.param(b"hello", "c0849551a6d5dac1", id="bytes"),
-        pytest.param(42, "ebaaf8a4ccc89421", id="int"),
-        pytest.param(1.5, "5ae23551bd86d7cd", id="float"),
-        pytest.param(True, "b125316ff709ad95", id="bool"),
-        pytest.param(None, "f8a2900c635ef9c7", id="none"),
-        pytest.param(1 + 2j, "475b70f206b62fc9", id="complex"),
-        pytest.param([1, 2, 3], "824284b9d2ee9802", id="list"),
-        pytest.param((1, 2, 3), "039d1e5e77772efd", id="tuple"),
-        pytest.param(deque([1, 2]), "bb65e1fb574a17c8", id="deque"),
-        pytest.param({"a": 1, "b": [1, 2]}, "fb93c37a6ee4027c", id="dict"),
-        pytest.param(OrderedDict(a=1, b=2), "35f6edcaea773cea", id="ordered_dict"),
-        pytest.param({1, 2, 3}, "4f167270019d90eb", id="set"),
-        pytest.param(frozenset({"a", "b"}), "0440abede833eb60", id="frozenset"),
-        pytest.param(date(2020, 1, 2), "8c1f8affa3b396e6", id="date"),
-        pytest.param(datetime(2020, 1, 2, 3, 4, 5, tzinfo=UTC), "ef744648301e4d3a", id="datetime"),
-        pytest.param(time(12, 30), "171974b74f846892", id="time"),
-        pytest.param(timedelta(days=1), "5bd56b8d9aa13658", id="timedelta"),
-        pytest.param(Color.RED, "36e9e174b6efc6e9", id="enum"),
-        pytest.param(PurePosixPath("a/b"), "7fae459e4cdcf0a3", id="path"),
-        pytest.param(UUID(int=1), "c967ba56faef28ea", id="uuid"),
-        pytest.param(Decimal("1.5"), "3650360fd2ef1106", id="decimal"),
-        pytest.param(Fraction(1, 3), "69572b36ed294f9a", id="fraction"),
-        pytest.param(range(3), "ce60d9991fc858cf", id="range"),
-        pytest.param(Point(1, "a"), "3655ae9ace425548", id="dataclass"),
+        pytest.param("hello", "0a465ca3e88a3a4c", id="str"),
+        pytest.param(b"hello", "59f582b5108d6c1c", id="bytes"),
+        pytest.param(42, "523ebc8accc11fcf", id="int"),
+        pytest.param(1.5, "bb7d0092c5be7ab0", id="float"),
+        pytest.param(True, "2dabca2e8bc28762", id="bool"),
+        pytest.param(None, "1e04f01fed015b7c", id="none"),
+        pytest.param(1 + 2j, "06abc3468c3b9ea9", id="complex"),
+        pytest.param([1, 2, 3], "b783328a416de7dd", id="list"),
+        pytest.param((1, 2, 3), "d942ea47e6839ee5", id="tuple"),
+        pytest.param(deque([1, 2]), "b88729ee89f5836b", id="deque"),
+        pytest.param({"a": 1, "b": [1, 2]}, "19c3aca4c41cf499", id="dict"),
+        pytest.param(OrderedDict(a=1, b=2), "b18eb1f07613c5c0", id="ordered_dict"),
+        pytest.param({1, 2, 3}, "3ba373d2e386945c", id="set"),
+        pytest.param(frozenset({"a", "b"}), "e0004934794e6fc7", id="frozenset"),
+        pytest.param(date(2020, 1, 2), "755d7c8e279de888", id="date"),
+        pytest.param(datetime(2020, 1, 2, 3, 4, 5, tzinfo=UTC), "8084880dcf26cc8a", id="datetime"),
+        pytest.param(time(12, 30), "87dbf4242693ae3d", id="time"),
+        pytest.param(timedelta(days=1), "704975e7a2e57aa0", id="timedelta"),
+        pytest.param(Color.RED, "73f359604b2faa89", id="enum"),
+        pytest.param(PurePosixPath("a/b"), "c3e1743441d86c59", id="path"),
+        pytest.param(UUID(int=1), "fe3c013a7e38167e", id="uuid"),
+        pytest.param(Decimal("1.5"), "70943555cdb50467", id="decimal"),
+        pytest.param(Fraction(1, 3), "2b7562b0d345efef", id="fraction"),
+        pytest.param(range(3), "68bdbc27a0ad8142", id="range"),
+        pytest.param(Point(1, "a"), "932bec13a7d3f950", id="dataclass"),
     ],
 )
 def test_golden_vectors(data: Any, expected: str) -> None:
@@ -103,29 +103,29 @@ def test_golden_vectors(data: Any, expected: str) -> None:
 
 @numpy_available
 def test_golden_vector_numpy() -> None:
-    assert hash_object(np.arange(6, dtype=np.int64).reshape(2, 3), length=16) == "11be6c42239ff9ff"
+    assert hash_object(np.arange(6, dtype=np.int64).reshape(2, 3), length=16) == "40143247a1021b65"
 
 
 @pandas_available
 def test_golden_vector_pandas_series() -> None:
-    assert hash_object(pd.Series([1, 2], name="a"), length=16) == "e3ca5082f10d22a4"
+    assert hash_object(pd.Series([1, 2], name="a"), length=16) == "1b20ced2f5504b26"
 
 
 @pandas_available
 def test_golden_vector_pandas_dataframe() -> None:
-    assert hash_object(pd.DataFrame({"a": [1, 2]}), length=16) == "73bcd65362dc4abc"
+    assert hash_object(pd.DataFrame({"a": [1, 2]}), length=16) == "08143bc5fe7b5cab"
 
 
 @polars_available
 def test_golden_vector_polars_series() -> None:
-    assert hash_object(pl.Series("a", [1, 2]), length=16) == "db7c9564e0871eae"
+    assert hash_object(pl.Series("a", [1, 2]), length=16) == "9504a6522469a81f"
 
 
 @pyarrow_available
 def test_golden_vector_pyarrow_array() -> None:
-    assert hash_object(pa.array([1, 2]), length=16) == "b091529d4b4a53ec"
+    assert hash_object(pa.array([1, 2]), length=16) == "95c31fa472871168"
 
 
 @torch_available
 def test_golden_vector_torch_tensor() -> None:
-    assert hash_object(torch.arange(4, dtype=torch.float32), length=16) == "1c09475c78a6bc15"
+    assert hash_object(torch.arange(4, dtype=torch.float32), length=16) == "9bd680607be34c1d"

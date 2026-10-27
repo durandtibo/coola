@@ -26,6 +26,18 @@ if TYPE_CHECKING:
 
 _LEAF = b"\x00"
 _NODE = b"\x01"
+_DIGEST = b"\xff"  # marks the entry of a child that is a 64-byte digest
+_MAX_INLINE = 64  # a leaf of at most this size is an entry of its parent, not a digest
+_LENGTHS = [bytes([i]) for i in range(_MAX_INLINE + 1)]  # the entry of a leaf starts with its size
+
+
+def _entry(encoding: bytes) -> bytes:
+    r"""Return the entry of a leaf in the preimage of its parent: the
+    leaf itself with its size if it is short, its digest otherwise."""
+    size = len(encoding)
+    if size <= _MAX_INLINE:
+        return _LENGTHS[size] + encoding
+    return _DIGEST + blake2b(_LEAF + encoding, digest_size=64, person=PERSON).digest()
 
 
 def validate_hash_length(length: int) -> None:
@@ -150,7 +162,7 @@ class _Walker:
             )
         hasher = self._cache[data_type]
         if hasher is None:
-            return digest(_LEAF + tagged("unhashable", get_qualified_class_name(data_type)))
+            return _entry(tagged("unhashable", get_qualified_class_name(data_type)))
         return self.encode(obj, hasher)
 
     def encode(self, obj: object, hasher: Hasher[Any]) -> _Frame | bytes:
@@ -158,7 +170,7 @@ class _Walker:
         container to walk, and the digest otherwise."""
         encoding = hasher.encode(obj)
         if isinstance(encoding, bytes):
-            return blake2b(_LEAF + encoding, digest_size=64, person=PERSON).digest()
+            return _entry(encoding)
         return self.container(obj, encoding)
 
     def container(self, obj: object, node: Node) -> _Frame | bytes:
@@ -169,7 +181,7 @@ class _Walker:
             if seen[1] is None:
                 msg = f"Cannot hash a self-referencing {type(obj)!r}."
                 raise ValueError(msg)
-            return seen[1]
+            return _DIGEST + seen[1]
         self._memo[id(obj)] = (obj, None)
         return _Frame(obj, node)
 
@@ -187,7 +199,8 @@ class _Walker:
             else:
                 encoding = hasher.encode(child)
                 if isinstance(encoding, bytes):  # a leaf, the common case
-                    append(blake2b(_LEAF + encoding, digest_size=64, person=PERSON).digest())
+                    size = len(encoding)
+                    append(_LENGTHS[size] + encoding if size <= _MAX_INLINE else _entry(encoding))
                     continue
                 entered = self.container(child, encoding)
             if isinstance(entered, bytes):
@@ -198,7 +211,7 @@ class _Walker:
 
     def leave(self, frame: _Frame) -> bytes:
         r"""Compute and remember the digest of a container whose
-        children are done."""
+        children are done, and return its entry in the parent."""
         node = frame.node
         digests = frame.digests
         if not node.ordered:
@@ -213,7 +226,7 @@ class _Walker:
             _NODE + self._tag(node.tag) + b"".join(digests), digest_size=64, person=PERSON
         ).digest()
         self._memo[id(frame.obj)] = (frame.obj, result)
-        return result
+        return _DIGEST + result
 
     def _tag(self, tag: str) -> bytes:
         r"""Return the encoded tag of a node followed by a NUL byte."""
@@ -285,5 +298,8 @@ def digest_of(
             continue
         frame = stack.pop()
         if not stack:
-            return frame.digests[0]
+            entry = frame.digests[0]
+            if entry[0] == _DIGEST[0]:  # a container or a long leaf
+                return entry[1:]
+            return digest(_LEAF + entry[1:])  # a short leaf: the entry is its size and itself
         stack[-1].digests.append(walker.leave(frame))

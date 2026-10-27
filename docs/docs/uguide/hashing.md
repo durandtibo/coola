@@ -61,15 +61,19 @@ Every hash is derived from one rule. A hasher describes a value as a leaf (`tag`
 payload) or as a node (a tag and the children to hash). The engine computes
 
 ```
-digest(x)  = BLAKE2b-512(preimage, person = b"coola-hash-1")          # 64 bytes
+digest(x)  = BLAKE2b-512(preimage, person = b"coola-hash-2")          # 64 bytes
 leaf       : preimage = 0x00 + tag + 0x00 + payload
-node       : preimage = 0x01 + tag + 0x00 + d1 + d2 + ... + dn         # fixed-width children
-unordered  : the entries (a key and its value) are sorted by digest
+node       : preimage = 0x01 + tag + 0x00 + e1 + e2 + ... + en         # one entry per child
+entry      : 0xFF + 64-byte digest of the child, or, if the child is a leaf of at most 64 bytes,
+             its size (one byte) + the leaf itself ("inlined leaf")
+unordered  : the entries (a key and its value) are sorted
 hash_object(x, length=n) = digest(x).hex()[:n]
 ```
 
-The children digests have a fixed width, which makes the concatenation unambiguous without
-delimiters. The leading `0x00`/`0x01` byte makes a leaf and a node with the same tag different. The
+The entries are self-delimiting (a marker `0xFF` and a fixed width, or a size), which makes the
+concatenation unambiguous without other delimiters. A short leaf (a number, a short string) is part
+of the preimage of its parent instead of a BLAKE2b call of its own, which is what makes the flat
+containers fast. The leading `0x00`/`0x01` byte makes a leaf and a node with the same tag different. The
 registry dispatches on `type(data)` along the Method Resolution Order, so the most specific
 registered type wins. A scalar and a standard-library container have a constant tag, so a subclass
 hashes like its base; a user-defined class (dataclass, model, enum, custom object) uses its
