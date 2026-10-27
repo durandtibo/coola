@@ -557,7 +557,7 @@ both caches).
 Run and compare with `inv test.benchmark` (or `pytest tests/benchmarks/test_registry_benchmark.py
 --benchmark-only --benchmark-save=<name>`, then `--benchmark-compare=<name>`).
 
-Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark`. One run, nothing else heavy
+Step 2 (plain `dict` cache) is filled in for the rows it moves; the other rows are filled by the step that moves them. Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark`. One run, nothing else heavy
 running. The raw results of the baseline are in
 `.benchmarks/Darwin-CPython-3.14-64bit/0008_registry_old_5ce6dfcd.json` (the directory is ignored by
 git: the table below is the record). The speed-up is old time / new time: above 1 is faster. The
@@ -566,11 +566,11 @@ otherwise; `Point` is a dataclass of two ints.
 
 | Benchmark (`test_<name>_benchmark`)           | Input                                                      | Old median | Old min  | New median | New min | Speed-up | Expected                          |
 | --------------------------------------------- | ---------------------------------------------------------- | ---------- | -------- | ---------- | ------- | -------- | --------------------------------- |
-| `type_registry_resolve_cached`                | `bool`, MRO of 3, hit                                      | 0.225 µs   | 0.220 µs |            |         |          | 4-5x faster (plain `dict` cache)  |
-| `type_registry_resolve_deep_mro`              | `D`, MRO of 5, hit                                         | 0.224 µs   | 0.216 µs |            |         |          | 4-5x faster                       |
-| `type_registry_resolve_abc`                   | `dict` with `Mapping` registered (not matched), hit        | 0.229 µs   | 0.220 µs |            |         |          | 4-5x faster                       |
-| `type_registry_resolve_uncached`              | `bool`, cache reset at each call                           | 0.458 µs   | 0.333 µs |            |         |          | no slower                         |
-| `type_registry_resolve_cold_types`            | 5,000 distinct types resolved once, new registry           | 360.2 ms   | 357.5 ms |            |         |          | 100x or more (no cache copy)      |
+| `type_registry_resolve_cached`                | `bool`, MRO of 3, hit                                      | 0.225 µs   | 0.220 µs | 0.098 µs | 0.095 µs | 2.3x | 4-5x faster (plain `dict` cache)  |
+| `type_registry_resolve_deep_mro`              | `D`, MRO of 5, hit                                         | 0.224 µs   | 0.216 µs | 0.098 µs | 0.095 µs | 2.3x | 4-5x faster                       |
+| `type_registry_resolve_abc`                   | `dict` with `Mapping` registered (not matched), hit        | 0.229 µs   | 0.220 µs | 0.098 µs | 0.095 µs | 2.3x | 4-5x faster                       |
+| `type_registry_resolve_uncached`              | `bool`, cache reset at each call                           | 0.458 µs   | 0.333 µs | 0.400 µs | 0.383 µs | 1.1x | no slower                         |
+| `type_registry_resolve_cold_types`            | 5,000 distinct types resolved once, new registry           | 360.2 ms   | 357.5 ms | 2.47 ms | 2.40 ms | 146x | 100x or more (no cache copy)      |
 | `type_registry_has`                           | `object`                                                   | 0.150 µs   | 0.145 µs |            |         |          | faster (no lock)                  |
 | `registry_has`                                | `"key10"`                                                  | 0.155 µs   | 0.150 µs |            |         |          | faster (no lock)                  |
 | `registry_get`                                | `"key10"`                                                  | 0.165 µs   | 0.156 µs |            |         |          | faster (no lock)                  |

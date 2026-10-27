@@ -6,7 +6,6 @@ __all__ = ["TypeRegistry"]
 
 from collections import Counter
 from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar
-from weakref import WeakKeyDictionary
 
 from coola.registry.base import BaseRegistry
 from coola.registry.exceptions import (
@@ -39,10 +38,12 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
     This makes it ideal for type-based dispatching systems.
 
     The registry includes an internal cache for type resolution, bounded to
-    ``_MAX_CACHE_SIZE`` (1024) entries. The cache is an immutable snapshot
-    that is replaced atomically (copy on write) on a miss or a mutation, so
-    cache hits in ``resolve()`` are lock-free and do not contend under
-    threads. When the cache is full, it is reset rather than evicting entries.
+    ``_MAX_CACHE_SIZE`` (1024) entries. The cache is a plain dictionary that
+    is filled under the lock and replaced by an empty one on any change of the
+    registry, so cache hits in ``resolve()`` are lock-free and do not contend
+    under threads. When the cache is full, it is reset rather than evicting
+    entries. It holds strong references to the types, so a dynamically
+    created class stays alive until the cache is reset.
 
     A type that cannot be a key (every dataclass, the classes that define a
     method, the virtual subclasses of an abstract base class) is supported by
@@ -72,8 +73,8 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     Attributes:
         _state: Internal dictionary storing the type-value pairs.
-        _cache: Bounded snapshot of type resolution lookups, swapped atomically. It holds
-            weak references to the types, so it does not keep a dynamic class alive.
+        _cache: Bounded dictionary of type resolution lookups, filled under the lock and
+            replaced by an empty one on any change.
         _fallbacks: The ``(predicate, handler)`` pairs in registration order. The
             dictionary is replaced on write, never mutated.
         _lock: Threading lock for synchronizing access to both state and cache.
@@ -157,17 +158,16 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     def __init__(self, initial_state: dict[type, T] | None = None) -> None:
         super().__init__(initial_state=initial_state)
-        # Bounded copy-on-write cache for type lookups. It is never mutated in
-        # place: writers (holding the lock) publish a new dict, so readers can
-        # use whichever snapshot they grab without locking.
-        self._cache: WeakKeyDictionary[type, T] = WeakKeyDictionary()
+        # Bounded cache for type lookups. Only writers holding the lock add an entry,
+        # so readers can look up a type without locking.
+        self._cache: dict[type, T] = {}
         self._fallbacks: dict[Callable[[type], bool], T] = {}
 
     _not_registered_error = TypeNotRegisteredError
 
     def _on_change(self) -> None:
         # Clear cache when registry changes to ensure new registrations are used
-        self._cache = WeakKeyDictionary()
+        self._cache = {}
 
     def _lazy_names(self, key: type) -> Iterable[str]:
         # Only an object whose class (or a base class) comes from a library can need the
@@ -524,27 +524,27 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
         return default if value is _MISSING else value
 
     def _resolve(self, dtype: type) -> T:
-        # Lock-free fast path: the snapshot is immutable once published.
-        cache = self._cache
-        if dtype in cache:
-            return cache[dtype]
+        # Lock-free fast path: a hit is a single dict lookup.
+        try:
+            value = self._cache.get(dtype, _MISSING)
+        except TypeError:  # Unhashable, rejected by _validate_key
+            value = _MISSING
+        if value is not _MISSING:
+            return value
         with self._lock:
-            cache = self._cache
-            if dtype in cache:
-                return cache[dtype]
+            value = self._cache.get(dtype, _MISSING)  # Another thread may have filled it
+            if value is not _MISSING:
+                return value
             self._validate_key(dtype)
-            self._load_lazy_for(dtype)
-            cache = self._cache  # Loading entries clears the cache
+            self._load_lazy_for(dtype)  # Loading entries clears the cache
             value = self._resolve_uncached(dtype)
             if value is _MISSING:
                 return value  # A miss is not cached
-            # Copy on write: readers hold an immutable snapshot, so cache hits need no
-            # lock. A miss costs O(len(cache)) (at most ``_MAX_CACHE_SIZE`` entries) and
-            # misses are rare after warm-up: resolving a type is cached for the life of
-            # the registry until the next ``register``/``unregister``.
-            new_cache = cache.copy() if len(cache) < _MAX_CACHE_SIZE else WeakKeyDictionary()
-            new_cache[dtype] = value
-            self._cache = new_cache
+            # The cache is only written under the lock, which a registration also
+            # holds when it empties the cache, so a stale value is never stored.
+            if len(self._cache) >= _MAX_CACHE_SIZE:
+                self._cache = {}
+            self._cache[dtype] = value
             return value
 
     def _resolve_uncached(self, dtype: type) -> T:

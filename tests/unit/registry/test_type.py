@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import abc
 import contextlib
-import gc
-import weakref
 from collections import deque
 from collections.abc import Sequence
 from dataclasses import dataclass, is_dataclass
@@ -409,21 +407,31 @@ def test_type_registry_resolve_cache_is_reset_when_full(monkeypatch: pytest.Monk
     assert registry._cache == {types[8]: "object"}
 
 
-def test_type_registry_resolve_cache_snapshot_not_mutated() -> None:
-    """Test resolve() publishes a new snapshot instead of mutating the
-    previous one (lock-free readers rely on this)."""
-    registry = TypeRegistry[str]({object: "object"})
-    registry.resolve(int)
-    snapshot = registry._cache
-    registry.resolve(str)
-    assert snapshot == {int: "object"}
-
-
-def test_type_registry_resolve_cache_snapshot_is_published() -> None:
+def test_type_registry_resolve_cache_holds_every_resolved_type() -> None:
     registry = TypeRegistry[str]({object: "object"})
     registry.resolve(int)
     registry.resolve(str)
     assert registry._cache == {int: "object", str: "object"}
+
+
+def test_type_registry_resolve_miss_is_not_cached() -> None:
+    registry = TypeRegistry[str]()
+    with pytest.raises(TypeNotRegisteredError):
+        registry.resolve(int)
+    assert registry._cache == {}
+
+
+def test_type_registry_resolve_unhashable_key_raises_type_error() -> None:
+    registry = TypeRegistry[str]({object: "object"})
+    with pytest.raises(TypeError, match="Expected a type as key"):
+        registry.resolve([])  # ty: ignore[invalid-argument-type]
+
+
+def test_type_registry_resolve_registered_after_cached_lookup_is_seen() -> None:
+    registry = TypeRegistry[str]({object: "object", int: "int"})
+    registry.resolve(bool)
+    registry.register(bool, "bool")
+    assert registry.resolve(bool) == "bool"
 
 
 def test_type_registry_resolve_cache_cleared_on_change() -> None:
@@ -896,16 +904,6 @@ def test_type_registry_many_already_registered_msg_is_sorted() -> None:
     registry = TypeRegistry[str]({str: "a", int: "b", float: "c"})
     with pytest.raises(AlreadyRegisteredError, match=r"float.*int.*str"):
         registry.register_many({str: "x", int: "y", float: "z"})
-
-
-def test_type_registry_cache_does_not_keep_a_dynamic_class_alive() -> None:
-    registry = TypeRegistry[str]({object: "obj"})
-    dynamic = type("Dynamic", (), {})
-    registry.resolve(dynamic)
-    reference = weakref.ref(dynamic)
-    del dynamic
-    gc.collect()
-    assert reference() is None
 
 
 ###########################################

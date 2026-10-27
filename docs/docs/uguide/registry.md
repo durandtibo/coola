@@ -31,32 +31,6 @@ The `Registry` class provides a thread-safe container for storing and retrieving
 
 ```
 
-!!! warning "Abstract base classes are only matched if they are real base classes"
-
-    The lookup follows `__mro__`, it does not call `issubclass`. A registration for an abstract
-    base class such as `collections.abc.Sequence` or `collections.abc.Mapping` therefore applies only
-    to the classes that inherit from it. A class that is only _registered_ as a virtual subclass is
-    not matched: `collections.deque` is a `MutableSequence` for `isinstance`, but it is not in the MRO
-    of `Sequence`. Register such types explicitly (the default registries of `coola` register
-    `deque` for this reason).
-
-```pycon
->>> from collections import deque
->>> from collections.abc import Sequence
->>> from coola.registry import TypeRegistry
->>> registry = TypeRegistry[str]()
->>> registry.register(object, "object")
->>> registry.register(Sequence, "sequence")
->>> registry.resolve(list)  # list is not a subclass of Sequence
-'object'
->>> registry.resolve(deque)
-'object'
->>> registry.register(deque, "deque")
->>> registry.resolve(deque)
-'deque'
-
-```
-
 ### Dictionary-Style Operations
 
 The registry supports standard dictionary operations:
@@ -91,16 +65,19 @@ You can initialize a registry with existing data:
 
 ### Safe Registration
 
-By default, registering a duplicate key raises an error to prevent accidental overwriting:
+By default, registering a duplicate key raises `AlreadyRegisteredError` to prevent accidental
+overwriting:
 
 ```pycon
->>> from coola.registry import Registry
+>>> from coola.registry import AlreadyRegisteredError, Registry
 >>> registry = Registry[str, int]()
 >>> registry.register("key1", 42)
->>> registry.register("key1", 100)  # doctest: +SKIP
-Traceback (most recent call last):
+>>> try:
+...     registry.register("key1", 100)
+... except AlreadyRegisteredError:
+...     print("already registered")
 ...
-RuntimeError: A value is already registered for 'key1'...
+already registered
 
 ```
 
@@ -280,13 +257,15 @@ Initialize with type mappings:
 Prevent accidental overwriting of type mappings:
 
 ```pycon
->>> from coola.registry import TypeRegistry
+>>> from coola.registry import AlreadyRegisteredError, TypeRegistry
 >>> registry = TypeRegistry[int]()
 >>> registry.register(str, 42)
->>> registry.register(str, 100)  # doctest: +SKIP
-Traceback (most recent call last):
+>>> try:
+...     registry.register(str, 100)
+... except AlreadyRegisteredError:
+...     print("already registered")
 ...
-RuntimeError: A value is already registered for <class 'str'>...
+already registered
 
 ```
 
@@ -339,6 +318,32 @@ The `resolve()` method walks the MRO to find the most specific registered type:
 
 ```
 
+!!! warning "Abstract base classes are only matched if they are real base classes"
+
+    The lookup follows `__mro__`, it does not call `issubclass`. A registration for an abstract
+    base class such as `collections.abc.Sequence` or `collections.abc.Mapping` therefore applies only
+    to the classes that inherit from it. A class that is only _registered_ as a virtual subclass is
+    not matched: `collections.deque` is a `MutableSequence` for `isinstance`, but it is not in the MRO
+    of `Sequence`. Register such types explicitly (the default registries of `coola` register
+    `deque` for this reason).
+
+```pycon
+>>> from collections import deque
+>>> from collections.abc import Sequence
+>>> from coola.registry import TypeRegistry
+>>> registry = TypeRegistry[str]()
+>>> registry.register(object, "object")
+>>> registry.register(Sequence, "sequence")
+>>> registry.resolve(list)  # list is not a subclass of Sequence
+'object'
+>>> registry.resolve(deque)
+'object'
+>>> registry.register(deque, "deque")
+>>> registry.resolve(deque)
+'deque'
+
+```
+
 ### Performance Optimization
 
 The `TypeRegistry` uses an internal cache for type resolution to optimize performance:
@@ -362,7 +367,8 @@ The cache is automatically cleared when you register or unregister types to ensu
 ## Thread Safety
 
 Both `Registry` and `TypeRegistry` are thread-safe, using reentrant locks (`threading.RLock`) to
-protect concurrent access:
+protect concurrent access. The lock is reentrant so that a lazy factory can register entries in the
+registry that loads it:
 
 ```pycon
 >>> from coola.registry import Registry
@@ -386,6 +392,30 @@ of the parent at the time of the fork would stay locked forever in the child, so
 new locks right after the fork and keeps the content of the registry. The same applies to
 `LazySingleton`, to the default registries and to the lock of the savers. The `spawn` start method
 is not affected.
+
+## Lazy Registration
+
+`register_lazy(names, factory)` registers a group of entries that is built the first time it is
+needed. It is how `coola` registers the handlers of an optional library (numpy, torch, pandas, ...)
+without importing the library. `names` is a package name or a sequence of package names, and
+`factory` is a callable that returns a mapping, or its path `"package.module:name"`, which is
+imported only when the group is loaded:
+
+```pycon
+>>> from coola.registry import TypeRegistry
+>>> from decimal import Decimal
+>>> registry = TypeRegistry[str]()
+>>> registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+>>> registry.resolve(Decimal)
+'decimal'
+
+```
+
+A group is loaded when a type from one of its packages is looked up, or when the whole content of
+the registry is read (`len`, iteration, `items`, `keys`, `values`, `equal`). `repr` and `copy` never
+load a group. The entries that are loaded never replace an entry registered by hand, and a group
+whose factory raises stays pending, so the next access raises again. Because a lazy default is
+visible to `register`, registering a type over it needs `exist_ok=True`.
 
 ## Copying a Registry
 
@@ -493,14 +523,19 @@ The `coola.registry` package design provides:
 
 ## Properties
 
-| Property                   | Statement                                                                                                              |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Thread-safe                | Reads and writes are protected by a reentrant lock (`threading.RLock`).                                                |
-| No silent overwrite        | Registering an existing key raises `AlreadyRegisteredError`, unless `exist_ok=True`.                                   |
-| Backward-compatible errors | A missing key raises `KeyNotRegisteredError`, and a missing type raises `TypeNotRegisteredError`. Both are `KeyError`. |
-| Most specific type wins    | `TypeRegistry.resolve` follows the Method Resolution Order.                                                            |
-| Cached resolution          | `TypeRegistry` caches the resolution of types for speed.                                                               |
-| Generic typing             | Both registries are generic in their key and value types.                                                              |
+| Property                     | Statement                                                                                                                                                                                                       |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Most specific type wins      | `TypeRegistry.resolve` returns the value of the first registered class of the Method Resolution Order, and falls back to `object` if it is registered.                                                          |
+| No silent overwrite          | Registering an existing key raises `AlreadyRegisteredError`, unless `exist_ok=True`. `register_many` is atomic: nothing is registered if one key is invalid or a duplicate.                                      |
+| Thread-safe                  | Reads and writes are protected by a reentrant lock (`threading.RLock`).                                                                                                                                         |
+| Stable views                 | `items()`, `keys()`, `values()` and iteration return snapshots: a later registration does not change a view already returned.                                                                                    |
+| Independent copies           | `copy()` returns a registry of the same class with the same entries and pending lazy groups. Registering in one does not change the other. The values are shared, not copied.                                     |
+| Fork-safe                    | A child created by `os.fork` creates new locks and keeps the content of the registry.                                                                                                                            |
+| Lazy for optional libraries  | `register_lazy` imports nothing. A group is loaded when a type from its package is looked up or when the whole content is read. `repr` and `copy` never load. Loaded entries never replace explicit ones.       |
+| Strict keys and clear errors | `TypeRegistry` keys are classes (`TypeError` otherwise). A missing key raises `KeyNotRegisteredError`, a missing type raises `TypeNotRegisteredError`. Both are `KeyError`.                                       |
+| Insertion order              | `items()`, `keys()`, `values()` and iteration follow the order of registration.                                                                                                                                  |
+| Cached resolution            | `TypeRegistry` caches the resolution of types for speed. Any change of the registry empties the cache.                                                                                                           |
+| Generic typing               | Both registries are generic in their key and value types.                                                                                                                                                        |
 
 ## Comparison: Registry vs TypeRegistry
 
@@ -513,6 +548,6 @@ The `coola.registry` package design provides:
 
 ## See Also
 
-- [`coola.recursive`](recursive.md): Uses `TransformerRegistry` (a `TypeRegistry`) internally
+- [`coola.recursive`](recursive.md): Its `TransformerRegistry` wraps a `TypeRegistry` internally
 - [`coola.iterator`](iterator.md): Uses registry pattern for iterator dispatch
 - [`coola.random`](random.md): Uses `Registry` to manage random managers
