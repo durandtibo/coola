@@ -14,16 +14,13 @@ import dataclasses
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.tester.base import BaseEqualityTester
-from coola.registry import BaseTypeDispatchRegistry
-from coola.registry.dispatch import FallbackMixin
+from coola.registry import TypeRegistry
 
 if TYPE_CHECKING:
     from coola.equality.config import EqualityConfig
 
 
-class EqualityTesterRegistry(
-    FallbackMixin[BaseEqualityTester[Any]], BaseTypeDispatchRegistry[BaseEqualityTester[Any]]
-):
+class EqualityTesterRegistry(TypeRegistry[BaseEqualityTester[Any]]):
     """Registry that manages and dispatches equality testers based on
     data type.
 
@@ -58,10 +55,8 @@ class EqualityTesterRegistry(
         ... )
         >>> registry
         EqualityTesterRegistry(
-          (state): TypeRegistry(
-              (<class 'object'>): DefaultEqualityTester()
-              (<class 'list'>): SequenceEqualityTester()
-            )
+          (<class 'object'>): DefaultEqualityTester()
+          (<class 'list'>): SequenceEqualityTester()
         )
         >>> config = EqualityConfig()
         >>> registry.objects_are_equal([1, 2, 3], [1, 2, 3], config=config)
@@ -74,7 +69,7 @@ class EqualityTesterRegistry(
         """Type-specific alias for ``has``: check if an equality
         tester is explicitly registered for the given type.
 
-        See ``BaseTypeDispatchRegistry.has`` for the full behavior
+        See ``Registry.has`` for the full behavior
         description.
 
         Args:
@@ -100,7 +95,7 @@ class EqualityTesterRegistry(
         """Type-specific alias for ``find``: find the appropriate
         equality tester for a given type.
 
-        See ``BaseTypeDispatchRegistry.find`` for the full behavior
+        See ``TypeRegistry.resolve`` for the full behavior
         description (MRO resolution, caching, and the ``KeyError`` on no
         match).
 
@@ -128,7 +123,7 @@ class EqualityTesterRegistry(
 
             ```
         """
-        return self.find(data_type)
+        return self.resolve(data_type)
 
     def objects_are_equal(self, actual: object, expected: object, config: EqualityConfig) -> bool:
         """Check if two objects are equal by recursively comparing their

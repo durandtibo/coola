@@ -7,12 +7,12 @@ __all__ = ["TypeRegistry"]
 from collections import Counter
 from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar
 
-from coola.registry.base import BaseRegistry
 from coola.registry.exceptions import (
     AlreadyRegisteredError,
     KeyNotRegisteredError,
     TypeNotRegisteredError,
 )
+from coola.registry.registry import Registry
 
 if TYPE_CHECKING:
     from collections.abc import Callable, ItemsView, Iterable
@@ -24,7 +24,7 @@ _MAX_CACHE_SIZE = 1024
 _MISSING: Any = object()  # Returned by ``_resolve_uncached`` if no type matches
 
 
-class TypeRegistry(BaseRegistry[type, T], Generic[T]):
+class TypeRegistry(Registry[type, T], Generic[T]):
     r"""A thread-safe type-based registry for storing and retrieving
     values.
 
@@ -165,7 +165,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
     _not_registered_error = TypeNotRegisteredError
 
-    def _on_change(self) -> None:
+    def _changed(self) -> None:
         # Clear cache when registry changes to ensure new registrations are used
         self._cache = {}
 
@@ -274,7 +274,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             self._fallbacks = {}
             super().clear()
 
-    def equal(self, other: object, equal_nan: bool = False) -> bool:
+    def equal(self, other: object) -> bool:
         r"""Indicate if two objects are equal or not.
 
         Two registries are equal if they have the same class, the same
@@ -282,8 +282,6 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
         Args:
             other: The object to compare with.
-            equal_nan: If ``True``, then two ``NaN``s will be
-                considered equal.
 
         Returns:
             ``True`` if the two objects are equal, otherwise ``False``.
@@ -302,7 +300,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
 
             ```
         """
-        if not isinstance(other, TypeRegistry) or not super().equal(other, equal_nan=equal_nan):
+        if not isinstance(other, TypeRegistry) or not super().equal(other):
             return False
         # The order of the fallbacks is their order of precedence.
         return list(self._fallbacks.items()) == list(other._fallbacks.items())
@@ -354,7 +352,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
                 )
                 raise AlreadyRegisteredError(msg)
             self._fallbacks = {**self._fallbacks, predicate: value}
-            self._invalidate()
+            self._changed()
 
     def unregister_fallback(self, predicate: Callable[[type], bool]) -> T:
         r"""Remove a fallback and return its value.
@@ -386,7 +384,7 @@ class TypeRegistry(BaseRegistry[type, T], Generic[T]):
             fallbacks = dict(self._fallbacks)
             value = fallbacks.pop(predicate)
             self._fallbacks = fallbacks
-            self._invalidate()
+            self._changed()
             return value
 
     def fallbacks(self) -> ItemsView[Callable[[type], bool], T]:

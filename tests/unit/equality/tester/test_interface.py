@@ -352,7 +352,7 @@ def test_default_tester_is_reflexive(data_type: type) -> None:
 
 @pytest.mark.parametrize("data_type", NATIVE_SAMPLES)
 def test_default_tester_equals_itself(data_type: type) -> None:
-    tester = get_default_registry().find(data_type)
+    tester = get_default_registry().resolve(data_type)
     assert tester == tester
 
 
@@ -371,7 +371,7 @@ def test_default_registry_dataclass_is_reflexive() -> None:
 
 
 def test_default_registry_dataclass_uses_the_dataclass_tester() -> None:
-    assert isinstance(get_default_registry().find(Point), DataclassEqualityTester)
+    assert isinstance(get_default_registry().resolve(Point), DataclassEqualityTester)
 
 
 def test_default_registry_has_the_dataclass_fallback() -> None:

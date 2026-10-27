@@ -366,8 +366,9 @@ The cache is automatically cleared when you register or unregister types to ensu
 
 ## Thread Safety
 
-Both `Registry` and `TypeRegistry` are thread-safe, using reentrant locks (`threading.RLock`) to
-protect concurrent access. The lock is reentrant so that a lazy factory can register entries in the
+Both `Registry` and `TypeRegistry` are thread-safe. The state is a dictionary that is replaced on
+every write and never mutated, so the reads take no lock, and `items()`, `keys()` and `values()`
+return snapshots. The writers are serialized by a reentrant lock (`threading.RLock`). The lock is reentrant so that a lazy factory can register entries in the
 registry that loads it:
 
 ```pycon
@@ -515,7 +516,7 @@ Store configuration handlers:
 
 The `coola.registry` package design provides:
 
-1. **Thread safety**: All operations are protected by locks for concurrent access
+1. **Thread safety**: The writers are serialized by a lock and the reads take none
 2. **Type safety**: Generic typing support for type hints and IDE support
 3. **Flexibility**: Support for both generic key-value and type-based registries
 4. **Performance**: Caching in `TypeRegistry` for efficient type resolution
@@ -527,7 +528,7 @@ The `coola.registry` package design provides:
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Most specific type wins      | `TypeRegistry.resolve` returns the value of the first registered class of the Method Resolution Order, and falls back to `object` if it is registered.                                                          |
 | No silent overwrite          | Registering an existing key raises `AlreadyRegisteredError`, unless `exist_ok=True`. `register_many` is atomic: nothing is registered if one key is invalid or a duplicate.                                      |
-| Thread-safe                  | Reads and writes are protected by a reentrant lock (`threading.RLock`).                                                                                                                                         |
+| Thread-safe, cheap reads     | A reader sees the state before or after a write, never a partial one, and a lookup takes no lock. The writers are serialized by a reentrant lock (`threading.RLock`).                                           |
 | Stable views                 | `items()`, `keys()`, `values()` and iteration return snapshots: a later registration does not change a view already returned.                                                                                    |
 | Independent copies           | `copy()` returns a registry of the same class with the same entries and pending lazy groups. Registering in one does not change the other. The values are shared, not copied.                                     |
 | Fork-safe                    | A child created by `os.fork` creates new locks and keeps the content of the registry.                                                                                                                            |

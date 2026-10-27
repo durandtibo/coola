@@ -8,10 +8,8 @@ __all__ = ["AlreadyRegisteredError", "KeyNotRegisteredError", "TypeNotRegistered
 class KeyNotRegisteredError(KeyError):
     r"""Raised when no value is registered for a key.
 
-    It subclasses ``KeyError`` so existing ``except KeyError`` code keeps
-    working (``KeyError`` is already a ``LookupError``). Registries whose
-    keys are types raise the more specific
-    ``TypeNotRegisteredError``.
+    It subclasses ``KeyError`` (a ``LookupError``). Registries whose
+    keys are types raise the more specific ``TypeNotRegisteredError``.
 
     Example:
         ```pycon
@@ -36,9 +34,8 @@ class TypeNotRegisteredError(KeyNotRegisteredError):
     r"""Raised when no value is registered for a type or any of its
     parent types.
 
-    It subclasses ``KeyNotRegisteredError`` (and so ``KeyError``) so existing
-    ``except KeyError`` code keeps working, but it lets callers distinguish a
-    missing type handler from an ordinary dict miss.
+    It subclasses ``KeyNotRegisteredError`` (and so ``KeyError``), and it lets
+    callers distinguish a missing type handler from an ordinary dict miss.
 
     Example:
         ```pycon
@@ -55,14 +52,12 @@ class TypeNotRegisteredError(KeyNotRegisteredError):
     """
 
 
-class AlreadyRegisteredError(ValueError, RuntimeError):
+class AlreadyRegisteredError(ValueError):
     r"""Raised when registering a key that is already registered and
     ``exist_ok`` is ``False``.
 
     It is a ``ValueError`` (the value passed is not acceptable in the
-    current state of the registry). It also derives from
-    ``RuntimeError``, which this error used to be, so existing
-    ``except RuntimeError`` code keeps working.
+    current state of the registry).
 
     Example:
         ```pycon

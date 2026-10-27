@@ -8,13 +8,10 @@ __all__ = ["ChildFinderRegistry"]
 from typing import Any
 
 from coola.iterator.base import BaseChildFinder
-from coola.registry import BaseTypeDispatchRegistry
-from coola.registry.dispatch import FallbackMixin
+from coola.registry import TypeRegistry
 
 
-class ChildFinderRegistry(
-    FallbackMixin[BaseChildFinder[Any]], BaseTypeDispatchRegistry[BaseChildFinder[Any]]
-):
+class ChildFinderRegistry(TypeRegistry[BaseChildFinder[Any]]):
     r"""Registry that maps Python types to child finders.
 
     During a traversal, the registry selects the most specific child
@@ -55,7 +52,7 @@ class ChildFinderRegistry(
         r"""Type-specific alias for ``has``: check if a child finder
         is directly registered for a data type.
 
-        See ``BaseTypeDispatchRegistry.has`` for the full behavior
+        See ``Registry.has`` for the full behavior
         description.
 
         Args:
@@ -82,7 +79,7 @@ class ChildFinderRegistry(
         r"""Type-specific alias for ``find``: find the appropriate
         child finder for a given data type.
 
-        See ``BaseTypeDispatchRegistry.find`` for the full behavior
+        See ``TypeRegistry.resolve`` for the full behavior
         description (MRO resolution, caching, and the error on no
         match).
 
@@ -112,4 +109,4 @@ class ChildFinderRegistry(
 
             ```
         """
-        return self.find(data_type)
+        return self.resolve(data_type)

@@ -13,16 +13,13 @@ from typing import TYPE_CHECKING, Any
 
 from coola.recursive.base import Transformer
 from coola.recursive.engine import transform
-from coola.registry import BaseTypeDispatchRegistry
-from coola.registry.dispatch import FallbackMixin
+from coola.registry import TypeRegistry
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-class TransformerRegistry(
-    FallbackMixin[Transformer[Any]], BaseTypeDispatchRegistry[Transformer[Any]]
-):
+class TransformerRegistry(TypeRegistry[Transformer[Any]]):
     r"""Registry that manages and dispatches transformers based on data
     type.
 
@@ -50,10 +47,8 @@ class TransformerRegistry(
         ... )
         >>> registry
         TransformerRegistry(
-          (state): TypeRegistry(
-              (<class 'object'>): DefaultTransformer()
-              (<class 'list'>): SequenceTransformer()
-            )
+          (<class 'object'>): DefaultTransformer()
+          (<class 'list'>): SequenceTransformer()
         )
         >>> registry.transform([1, 2, 3], str)
         ['1', '2', '3']
@@ -87,7 +82,7 @@ class TransformerRegistry(
         """Type-specific alias for ``has``: check if a transformer
         is explicitly registered for the given type.
 
-        See ``BaseTypeDispatchRegistry.has`` for the full behavior
+        See ``Registry.has`` for the full behavior
         description.
 
         Args:
@@ -115,7 +110,7 @@ class TransformerRegistry(
         """Type-specific alias for ``find``: find the appropriate
         transformer for a given type.
 
-        See ``BaseTypeDispatchRegistry.find`` for the full behavior
+        See ``TypeRegistry.resolve`` for the full behavior
         description (MRO resolution, caching, and the ``KeyError`` on no
         match).
 
@@ -139,7 +134,7 @@ class TransformerRegistry(
 
             ```
         """
-        return self.find(data_type)
+        return self.resolve(data_type)
 
     def transform(self, data: object, func: Callable[[Any], Any]) -> Any:
         """Transform data by applying a function recursively through the
