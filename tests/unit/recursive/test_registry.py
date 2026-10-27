@@ -343,8 +343,8 @@ def test_transformer_registry_find_transformer_class_that_is_not_a_dataclass_use
 
 
 def test_transformer_registry_find_transformer_dataclass_with_registered_base() -> None:
-    """Regression test: a transformer shared by ``object`` and a base class
-    is used for a dataclass that inherits from the base class."""
+    """Regression test: a transformer shared by ``object`` and a base
+    class is used for a dataclass that inherits from the base class."""
 
     class Base:
         pass

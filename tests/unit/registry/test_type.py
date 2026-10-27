@@ -1180,9 +1180,9 @@ def test_type_registry_resolve_fallback_exist_ok_keeps_the_position() -> None:
 
 
 def test_type_registry_resolve_handler_shared_by_object_and_base_class() -> None:
-    """Regression test: the handler of a base class is used for a dataclass
-    that inherits from it, even if the same handler is registered for
-    ``object``."""
+    """Regression test: the handler of a base class is used for a
+    dataclass that inherits from it, even if the same handler is
+    registered for ``object``."""
 
     @dataclass
     class Derived(Base):
@@ -1548,7 +1548,8 @@ def test_type_registry_register_lazy_factory_registration_is_kept() -> None:
 
 
 def test_type_registry_register_lazy_two_groups_with_the_same_package_are_both_loaded() -> None:
-    """Regression test (F4): the second group used to replace the first."""
+    """Regression test (F4): the second group used to replace the
+    first."""
     registry = TypeRegistry[str]()
     registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
     registry.register_lazy("decimal", lambda: {Fraction: "fraction"})

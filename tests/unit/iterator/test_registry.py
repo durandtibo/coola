@@ -90,8 +90,8 @@ def test_child_finder_registry_copy_is_independent(registry: ChildFinderRegistry
 
 
 def test_child_finder_registry_find_child_finder_dataclass_with_registered_base() -> None:
-    """Regression test: a child finder shared by ``object`` and a base class
-    is used for a dataclass that inherits from the base class."""
+    """Regression test: a child finder shared by ``object`` and a base
+    class is used for a dataclass that inherits from the base class."""
 
     class Base:
         pass

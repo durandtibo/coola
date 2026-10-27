@@ -47,7 +47,8 @@ class _LazyGroup(Generic[T]):
 
 @dataclass(frozen=True)
 class _NamedType:
-    r"""The name of a built-in type that cannot be pickled by reference."""
+    r"""The name of a built-in type that cannot be pickled by
+    reference."""
 
     name: str
 
@@ -439,8 +440,10 @@ class TypeRegistry(Registry[type, T], Generic[T]):
             self._load_groups(list(self._lazy))
 
     def _load_groups(self, groups: Sequence[_LazyGroup[T]]) -> None:
-        r"""Load some lazy groups. The entries that are already registered
-        are not replaced."""
+        r"""Load some lazy groups.
+
+        The entries that are already registered are not replaced.
+        """
         with self._lock:
             for group in groups:
                 if not any(g is group for g in self._lazy):
