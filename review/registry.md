@@ -78,7 +78,7 @@ Constraints that framed the analysis:
 | F6  | **Locking and derived state for nothing.** Every read (`has`, `get`, `[]`, `len`, `iter`) takes an `RLock` (`has` costs 182 ns); `_snapshot`, `_get_snapshot`, `_invalidate` and `_on_change` exist to keep a cache and a snapshot in sync with a state that is mutated in place. Replacing the state instead of mutating it removes the four.                                                                                                                                                                                                                                                                                                                               | **[reading]**  |
 | F7  | **Three layers for two behaviours.** `BaseRegistry` → `Registry` (an empty subclass: 71 lines of docstring) and `TypeRegistry`; then `BaseTypeDispatchRegistry` wraps a `TypeRegistry` by **composition** and redeclares `register`, `register_many`, `register_lazy`, `has`, `find`, `unregister`, `clear`, `items`, `equal`, `copy`, `__contains__`, `__len__`. The same operation has two names (`find` and `resolve`), and a third pair for each domain (`find_hasher`, ...).                                                                                                                                                                                            | **[reading]**  |
 | F8  | **Two display formats.** `Registry` and `TypeRegistry` print `TypeRegistry(\n  (<class 'int'>): i\n)`; the dispatch registries print `HasherRegistry(\n  (state): TypeRegistry(\n      (<class 'int'>): StrHasher()\n    )\n)` (a wrapper level, 6 spaces, and a blank line when empty). Four docstrings (hashing, equality, summary, recursive) quote the second format.                                                                                                                                                                                                                                                                                                    | **[verified]** |
-| F9  | **`equal()` is wrong for two of the six default registries and costs the only layering exception.** `get_default_registry().copy().equal(get_default_registry())` is `False` for the hashing and summary registries (handlers have no `__eq__`, `objects_are_equal` returns `False` for two equal-by-identity handlers), `True` for the four others. Nothing in `src` calls it except the override of `HasherRegistry`. It imports `coola.equality` at call time (the only `ignore_imports` of import-linter, "core must not import features"), holds two locks and orders them by `id`.                                                                                     | **[verified]** |
+| F9  | **`equal()` is wrong for two of the six default registries and costs the only layering exception.** `get_default_registry().copy().equal(get_default_registry())` is `False` for the hashing and summary registries (handlers have no `__eq__`, `objects_are_equal` returns `False` for two equal-by-identity handlers), `True` for the four others. Nothing in `src` calls it except the override of `HasherRegistry`. It imports `coola.equality` at call time (the only `ignore_imports` of import-linter, "core must not import features"), holds two locks and orders them by `id`. Decision D4: `equal` is kept and rewritten (section 3.8).                           | **[verified]** |
 | F10 | **Not picklable.** `pickle.dumps(Registry(...))`, `pickle.dumps(TypeRegistry(...))` and `copy.deepcopy(...)` raise `TypeError: cannot pickle '_thread.RLock' object`. A registry cannot be passed to a `spawn` worker (the default start method on macOS and Windows) or be part of a deep-copied configuration.                                                                                                                                                                                                                                                                                                                                                             | **[verified]** |
 | F11 | **Compatibility baggage.** `AlreadyRegisteredError(ValueError, RuntimeError)` "which this error used to be"; `KeyNotRegisteredError` documented as "so existing `except KeyError` code keeps working"; the property "Backward-compatible errors" of the guide; `register(key, value, exist_ok=False)` takes `exist_ok` positionally while `CLAUDE.md` asks for keyword-only options; `resolve_or` is public only for the hashing registry.                                                                                                                                                                                                                                   | **[verified]** |
 | F12 | **The guide contradicts the code.** The two `# doctest: +SKIP` examples show `RuntimeError: A value is already registered ...` (the class is `AlreadyRegisteredError`); the warning about abstract base classes sits under "Registry (Generic Key-Value)" and uses `TypeRegistry`; "See also" says `coola.recursive` "uses `TransformerRegistry` (a `TypeRegistry`)" (it is a `BaseTypeDispatchRegistry` that contains one); `register_lazy`, `DataclassMarker`, fallbacks and `BaseTypeDispatchRegistry` are not documented outside `architecture.md`; the Properties table omits fork, lazy and copy.                                                                      | **[verified]** |
@@ -278,8 +278,31 @@ class HasherRegistry(TypeRegistry[Hasher[Any]]):
 ```
 
 `HasherRegistry` loses `__init__`, `copy`, `_reset_after_fork`, `_display_fields`,
-`register_fallback`, `unregister_fallback`, `clear` and `equal` (about 110 lines): the base class
+`register_fallback`, `unregister_fallback`, `clear` and `equal` (about 110 lines; `equal` is inherited, see 3.8): the base class
 does them. `EqualityTesterRegistry` loses `_accepts_dataclass_marker`.
+
+### 3.8 `equal` (decision D4: kept)
+
+`equal(other)` stays, rewritten so that it is right and needs no feature package:
+
+```python
+def equal(self, other: object) -> bool:
+    if type(other) is not type(self):
+        return False
+    self._load_all()
+    other._load_all()
+    return self._state == other._state and self._fallbacks == other._fallbacks
+```
+
+- The states are replaced, never mutated, so the comparison needs **no lock** (the two-lock,
+  `id`-ordered code and the deferred `coola.equality` import are deleted, and with them the
+  import-linter exception).
+- Handlers are compared with `==`: a handler without `__eq__` is equal to itself only. A `copy()` is
+  therefore equal to its source (the handlers are shared), which fixes F9 for the hashing and summary
+  registries. Two registries built separately with handlers of the same class are equal only if the
+  handlers define `__eq__`.
+- `equal_nan` is dropped (it had no meaning for `==`). `HasherRegistry.equal` is deleted: the base
+  compares the fallbacks too.
 
 ## 4. Public API after the change
 
@@ -293,12 +316,12 @@ from coola.registry import (
 )
 ```
 
-| Class          | Methods                                                                                                                                                                                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Registry`     | `register(key, value, *, exist_ok=False)`, `register_many(mapping, *, exist_ok=False)`, `unregister(key) -> value`, `clear()`, `copy()`, `get(key, default=None)`, `has(key)`, `[]`, `[]=`, `del`, `in`, `len`, `iter`, `keys()`, `values()`, `items()` |
-| `TypeRegistry` | all of `Registry`, plus `resolve(dtype)`, `register_fallback(predicate, handler, *, exist_ok=False)`, `unregister_fallback(predicate)`, `fallbacks()`, `register_lazy(packages, factory)`                                                               |
+| Class          | Methods                                                                                                                                                                                                                                                                 |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Registry`     | `register(key, value, *, exist_ok=False)`, `register_many(mapping, *, exist_ok=False)`, `unregister(key) -> value`, `clear()`, `copy()`, `get(key, default=None)`, `has(key)`, `[]`, `[]=`, `del`, `in`, `len`, `iter`, `keys()`, `values()`, `items()`, `equal(other)` |
+| `TypeRegistry` | all of `Registry`, plus `resolve(dtype)`, `register_fallback(predicate, handler, *, exist_ok=False)`, `unregister_fallback(predicate)`, `fallbacks()`, `register_lazy(packages, factory)`                                                                               |
 
-Removed: `BaseTypeDispatchRegistry`, `DataclassMarker`, `find`, `resolve_or`, `equal` (decision D4),
+Removed: `BaseTypeDispatchRegistry`, `DataclassMarker`, `find`, `resolve_or`, the `equal_nan` argument of `equal`,
 the `RuntimeError` base of `AlreadyRegisteredError`, the positional `exist_ok`, `_snapshot` and the
 other private hooks listed in 3.1. Changed: the display of the dispatch registries, the order of
 precedence of `object` against the fallbacks of the hashing registry.
@@ -353,15 +376,15 @@ Reading the numbers:
 One branch and one pull request per step (`CLAUDE.md`). The order keeps every step releasable and
 puts the independent, low-risk steps first.
 
-| Step | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Breaking              |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| 1    | **Fix the guide (F12).** `AlreadyRegisteredError` in the two SKIP'd examples, the ABC warning under `TypeRegistry`, the "See also" paragraph, add `register_lazy`, `copy`, fork, and the **Properties** table of section 1 at the top of the page and in the package docstring. Documentation only.                                                                                                                                                                                                                 | no                    |
-| 2    | **Plain `dict` cache (F1).** Replace the `WeakKeyDictionary` copy on write by a `dict` filled under the lock, bounded to 1,024, emptied by `_on_change`. Replace `test_type_registry_cache_does_not_keep_a_dynamic_class_alive` by a test that the cache is bounded. Benchmarks: cached hit, 5,000 types. Independent of the other steps.                                                                                                                                                                           | no                    |
-| 3    | **Fallbacks in `TypeRegistry` (F2, F3).** Add `register_fallback`, `unregister_fallback`, `fallbacks()` to `TypeRegistry`, the lookup order of 3.3, `copy`/`clear`/`repr` support. Then one PR per package moves it from the marker (equality, summary, iterator, recursive, `nested.conversion`) or from its own code (hashing) to the base fallbacks. Last PR: delete `DataclassMarker`, `_find_with_dataclass_marker`, `_accepts_dataclass_marker`, `resolve_or`. Regression test for F3 (fails on `main`).      | yes (marker, display) |
-| 4    | **One storage class, replaced state (F5 partly, F6, F7, F8, F9, F11).** Merge `BaseRegistry` and `Registry`; `TypeRegistry` extends it; the domain registries extend `TypeRegistry` and `BaseTypeDispatchRegistry` is deleted; the state is replaced on write; reads take no lock; one `__repr__`; `exist_ok` keyword-only; delete `equal` (D4), `find`, `AlreadyRegisteredError`'s `RuntimeError` base; remove the import-linter exception. Update the four docstrings that quote the old display. Benchmark gate. | yes                   |
-| 5    | **Lazy groups in `TypeRegistry` as a tuple (F4, F5).** Move the lazy code from `Registry` to `TypeRegistry`, store the groups in a tuple, regression tests for both cases of F4 (they fail on `main`), keep the tests of reentrancy, failure and `repr`/`copy` not loading.                                                                                                                                                                                                                                         | no (a bug fix)        |
-| 6    | **Pickle (F10).** `__getstate__` / `__setstate__`, a test with `pickle` and `copy.deepcopy` for both classes and for the default registries (all of them), and an integration test that sends a registry to a `spawn` process.                                                                                                                                                                                                                                                                                      | no                    |
-| 7    | **Documentation.** Rewrite `uguide/registry.md` (properties, fallbacks, lazy groups, ABC fallback example, precedence table), the registry paragraphs of `dev/architecture.md` and the layering section, the migration page (marker, `find`, `resolve_or`, `equal`, positional `exist_ok`, `RuntimeError`, display), and the status table of `review/suggestions.md`.                                                                                                                                               | no                    |
+| Step | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Breaking              |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| 1    | **Fix the guide (F12).** `AlreadyRegisteredError` in the two SKIP'd examples, the ABC warning under `TypeRegistry`, the "See also" paragraph, add `register_lazy`, `copy`, fork, and the **Properties** table of section 1 at the top of the page and in the package docstring. Documentation only.                                                                                                                                                                                                                                                            | no                    |
+| 2    | **Plain `dict` cache (F1).** Replace the `WeakKeyDictionary` copy on write by a `dict` filled under the lock, bounded to 1,024, emptied by `_on_change`. Replace `test_type_registry_cache_does_not_keep_a_dynamic_class_alive` by a test that the cache is bounded. Benchmarks: cached hit, 5,000 types. Independent of the other steps.                                                                                                                                                                                                                      | no                    |
+| 3    | **Fallbacks in `TypeRegistry` (F2, F3).** Add `register_fallback`, `unregister_fallback`, `fallbacks()` to `TypeRegistry`, the lookup order of 3.3, `copy`/`clear`/`repr` support. Then one PR per package moves it from the marker (equality, summary, iterator, recursive, `nested.conversion`) or from its own code (hashing) to the base fallbacks. Last PR: delete `DataclassMarker`, `_find_with_dataclass_marker`, `_accepts_dataclass_marker`, `resolve_or`. Regression test for F3 (fails on `main`).                                                 | yes (marker, display) |
+| 4    | **One storage class, replaced state (F5 partly, F6, F7, F8, F9, F11).** Merge `BaseRegistry` and `Registry`; `TypeRegistry` extends it; the domain registries extend `TypeRegistry` and `BaseTypeDispatchRegistry` is deleted; the state is replaced on write; reads take no lock; one `__repr__`; `exist_ok` keyword-only; rewrite `equal` without the `equality` import (D4, 3.8), delete `find`, `AlreadyRegisteredError`'s `RuntimeError` base; remove the import-linter exception. Update the four docstrings that quote the old display. Benchmark gate. | yes                   |
+| 5    | **Lazy groups in `TypeRegistry` as a tuple (F4, F5).** Move the lazy code from `Registry` to `TypeRegistry`, store the groups in a tuple, regression tests for both cases of F4 (they fail on `main`), keep the tests of reentrancy, failure and `repr`/`copy` not loading.                                                                                                                                                                                                                                                                                    | no (a bug fix)        |
+| 6    | **Pickle (F10).** `__getstate__` / `__setstate__`, a test with `pickle` and `copy.deepcopy` for both classes and for the default registries (all of them), and an integration test that sends a registry to a `spawn` process.                                                                                                                                                                                                                                                                                                                                 | no                    |
+| 7    | **Documentation.** Rewrite `uguide/registry.md` (properties, fallbacks, lazy groups, ABC fallback example, precedence table), the registry paragraphs of `dev/architecture.md` and the layering section, the migration page (marker, `find`, `resolve_or`, `equal_nan`, positional `exist_ok`, `RuntimeError`, display), and the status table of `review/suggestions.md`.                                                                                                                                                                                      | no                    |
 
 Steps 4 and 5 can be merged if the diff stays reviewable; step 4 first because it removes the code
 that step 5 would otherwise have to change twice.
@@ -400,6 +423,11 @@ two remaining files unchanged.
   invalid key returned by a factory.
 - **Pickle and fork**: `pickle` and `copy.deepcopy` round trip (state, fallbacks, pending groups),
   the lock of the clone is its own, `_reset_after_fork` recreates the lock (existing test).
+- **`equal`**: a registry equals its copy (including for each default registry), differs after a
+  registration, an unregistration, a different handler, a different fallback or a different class,
+  handlers compare with `==`, a pending lazy group is loaded before the comparison, no lock is held
+  (a concurrent registration does not deadlock). Regression for F9: the hashing and summary default
+  registries equal their copy (fails on `main`).
 - **Errors**: the classes, the bases (`AlreadyRegisteredError` is not a `RuntimeError`), the
   `KeyError.__str__` override.
 - **Contract test over the default registries** (`tests/integration/test_default_registries.py`,
@@ -415,7 +443,7 @@ two remaining files unchanged.
   worker that receives a registry. No patching.
 - **Doctests** run as part of the docstrings; the guide examples are doctests (the SKIP'd traceback
   examples become real ones with `except AlreadyRegisteredError`).
-- **Benchmark gate** (`tests/benchmarks/test_registry_benchmark.py`, `inv test.benchmark`): keep
+- **Benchmark gate** (`tests/benchmarks/test_registry_benchmark.py`, `inv test.benchmark`; the file and the baseline are in the appendix): keep
   `test_type_registry_resolve_cached_benchmark` and `..._uncached_benchmark` (it resets `_cache`
   with `{}`: still valid), add **a dataclass lookup through a fallback**, **5,000 distinct types**,
   **`has`** and **`register`** on a 50-entry registry; the new code must not be slower than `main`
@@ -433,10 +461,14 @@ registry too (nobody registers `object` there), and the dataclass handler is no 
 "type" entry of `items()` / `len()`. Alternative: keep the marker and only fix the identity test;
 cheaper, but the five registries keep a second mechanism and the hashing registry keeps its own.
 
+**Decision: yes.**
+
 **D2. Keep the generic `Registry`?** _Recommended: yes._ `RandomManagerRegistry` uses it and
 `TypeRegistry` extends it, so it costs nothing: it is the storage class. Alternative: make it
 private (`_Registry`) and drop it from the guide (the "plugin system", "factory" and "configuration"
 examples are not what `coola` is for); this only changes the guide.
+
+**Decision: yes.**
 
 **D3. A strong bounded cache instead of a weak one?** _Recommended: yes._ The weak dictionary is the
 cost (F1). The cache holds at most 1,024 classes and is emptied by any change, so a program that
@@ -444,27 +476,39 @@ creates classes dynamically keeps at most 1,024 of them alive (a few MB) until t
 registration, instead of the last reference. Alternative: no cache; simpler by about 12 lines, but
 the dataclass fallback predicates run on every lookup (section 6).
 
-**D4. Delete `equal()`?** _Recommended: yes._ Nothing in `src` uses it, it is wrong for two default
+**Decision: yes.**
+
+**D4. Delete `equal()`?** _Recommended: yes. Answered: no, it is kept (rewritten as the alternative below, see 3.8)._ Nothing in `src` uses it, it is wrong for two default
 registries (F9), and it is the only reason `registry` depends on `equality`. A test that needs to
 compare two registries compares `dict(a.items()) == dict(b.items())`. Alternative: keep
 `equal(other)` as `type(a) is type(b) and a._state == b._state and a._fallbacks == b._fallbacks`
 (handlers compare by `==`, so a copy is equal), without `equal_nan` and without the second lock.
 
+**Decision: no.** `equal` stays; it is rewritten without the `equality` import and without `equal_nan`.
+
 **D5. Drop the `RuntimeError` base of `AlreadyRegisteredError`?** _Recommended: yes._ It is a
 `ValueError` (the value is not acceptable in the current state). `except RuntimeError` code is
 rare; the release notes say so. Alternative: keep it for one more major release.
+
+**Decision: yes.**
 
 **D6. Keep `resolve` as the only lookup name?** _Recommended: yes._ It is the name of the guide and
 of `TypeRegistry`; `find` only exists in `BaseTypeDispatchRegistry`. The domain aliases `has_<x>` and
 `find_<x>` stay (they read well at the call site and are public API of five packages): they become
 one-line delegations. Dropping them is a change of five packages, not of this one.
 
+**Decision: yes.**
+
 **D7. Registries are picklable?** _Recommended: yes._ Ten lines, and it removes a failure that only
 shows with `spawn`. Alternative: document that a registry is not picklable and pass the arguments
 that build it.
 
+**Decision: yes.**
+
 **D8. A duplicate fallback predicate is an error?** _Recommended: yes_ (`exist_ok=True` to replace,
 the position is kept). Today a duplicate is silently appended and never reached.
+
+**Decision: yes.**
 
 ## 10. Not covered
 
@@ -484,17 +528,81 @@ the position is kept). Today a duplicate is silently appended and never reached.
 
 ## Appendix: effect on the size of the package
 
-| Module                                                    | Lines today  | Expected after | Why                                                                                              |
-| --------------------------------------------------------- | ------------ | -------------- | ------------------------------------------------------------------------------------------------ |
-| `base.py` (`BaseRegistry`) → `registry.py`                | 693          | about 330      | no snapshot, no `_invalidate` / `_on_change`, no lock on reads, no `equal`, no lazy code (moved) |
-| `type.py`                                                 | 376          | about 400      | + fallbacks, + lazy groups (about 70 lines moved from `base.py`), − weak cache, − `resolve_or`   |
-| `dispatch.py`                                             | 308          | 0              | deleted                                                                                          |
-| `vanilla.py`                                              | 71           | 0              | deleted (`Registry` lives in `registry.py`)                                                      |
-| `exceptions.py`                                           | 80           | about 70       | no compatibility paragraph                                                                       |
-| `__init__.py`                                             | 22           | about 14       | five names                                                                                       |
-| **`coola.registry`**                                      | **1,550**    | **about 815**  |                                                                                                  |
-| `hashing/registry.py`                                     | 400          | about 290      | fallbacks, copy, clear, equal, display, fork, lock moved to the base                             |
-| `equality`, `summary`, `iterator`, `recursive` registries | 4 × about 10 | −40            | `_accepts_dataclass_marker`, `DataclassMarker` import and export                                 |
+| Module                                                    | Lines today  | Expected after | Why                                                                                                    |
+| --------------------------------------------------------- | ------------ | -------------- | ------------------------------------------------------------------------------------------------------ |
+| `base.py` (`BaseRegistry`) → `registry.py`                | 693          | about 330      | no snapshot, no `_invalidate` / `_on_change`, no lock on reads, a 6-line `equal`, no lazy code (moved) |
+| `type.py`                                                 | 376          | about 400      | + fallbacks, + lazy groups (about 70 lines moved from `base.py`), − weak cache, − `resolve_or`         |
+| `dispatch.py`                                             | 308          | 0              | deleted                                                                                                |
+| `vanilla.py`                                              | 71           | 0              | deleted (`Registry` lives in `registry.py`)                                                            |
+| `exceptions.py`                                           | 80           | about 70       | no compatibility paragraph                                                                             |
+| `__init__.py`                                             | 22           | about 14       | five names                                                                                             |
+| **`coola.registry`**                                      | **1,550**    | **about 815**  |                                                                                                        |
+| `hashing/registry.py`                                     | 400          | about 290      | fallbacks, copy, clear, equal, display, fork, lock moved to the base                                   |
+| `equality`, `summary`, `iterator`, `recursive` registries | 4 × about 10 | −40            | `_accepts_dataclass_marker`, `DataclassMarker` import and export                                       |
 
 The line counts are estimates from the prototype and from the code to delete (docstrings are most
 of the lines); the gate is the behaviour (sections 1 and 8), not the size.
+
+## Appendix: benchmark of the old and the new implementation
+
+Baseline of `tests/benchmarks/test_registry_benchmark.py` on the implementation before the change
+(`main` at `5ce6dfcd`). The **New** columns are empty: fill them with the same run after each step
+of section 7 (steps 2, 3 and 4 move the numbers). The benchmarks only use the public methods that
+exist before and after the redesign (`resolve`, `has`, `get`, `register`, `register_many`, `copy`,
+`items`, `len`, the `find_*` methods of the default registries, `hash_object`), so they run
+unchanged on the new design; the only use of an internal is
+`test_type_registry_resolve_uncached_benchmark`, which resets `registry._cache` with `{}` (valid for
+both caches).
+
+Run and compare with `inv test.benchmark` (or `pytest tests/benchmarks/test_registry_benchmark.py
+--benchmark-only --benchmark-save=<name>`, then `--benchmark-compare=<name>`).
+
+Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark`. One run, nothing else heavy
+running. The raw results of the baseline are in
+`.benchmarks/Darwin-CPython-3.14-64bit/0008_registry_old_5ce6dfcd.json` (the directory is ignored by
+git: the table below is the record). The speed-up is old time / new time: above 1 is faster. The
+absolute numbers depend on the machine; read the speed-ups. Registries of 50 entries unless said
+otherwise; `Point` is a dataclass of two ints.
+
+| Benchmark (`test_<name>_benchmark`)           | Input                                                      | Old median | Old min  | New median | New min | Speed-up | Expected                          |
+| --------------------------------------------- | ---------------------------------------------------------- | ---------- | -------- | ---------- | ------- | -------- | --------------------------------- |
+| `type_registry_resolve_cached`                | `bool`, MRO of 3, hit                                      | 0.225 µs   | 0.220 µs |            |         |          | 4-5x faster (plain `dict` cache)  |
+| `type_registry_resolve_deep_mro`              | `D`, MRO of 5, hit                                         | 0.224 µs   | 0.216 µs |            |         |          | 4-5x faster                       |
+| `type_registry_resolve_abc`                   | `dict` with `Mapping` registered (not matched), hit        | 0.229 µs   | 0.220 µs |            |         |          | 4-5x faster                       |
+| `type_registry_resolve_uncached`              | `bool`, cache reset at each call                           | 0.458 µs   | 0.333 µs |            |         |          | no slower                         |
+| `type_registry_resolve_cold_types`            | 5,000 distinct types resolved once, new registry           | 360.2 ms   | 357.5 ms |            |         |          | 100x or more (no cache copy)      |
+| `type_registry_has`                           | `object`                                                   | 0.150 µs   | 0.145 µs |            |         |          | faster (no lock)                  |
+| `registry_has`                                | `"key10"`                                                  | 0.155 µs   | 0.150 µs |            |         |          | faster (no lock)                  |
+| `registry_get`                                | `"key10"`                                                  | 0.165 µs   | 0.156 µs |            |         |          | faster (no lock)                  |
+| `registry_len`                                | 50 entries                                                 | 0.164 µs   | 0.155 µs |            |         |          | faster (no lock)                  |
+| `registry_items`                              | `list(registry.items())`, 50 entries                       | 0.958 µs   | 0.833 µs |            |         |          | about the same (no snapshot copy) |
+| `registry_register`                           | overwrite one key (`exist_ok=True`)                        | 0.281 µs   | 0.262 µs |            |         |          | slower by one `O(n)` dict copy    |
+| `registry_register_many`                      | overwrite 10 keys                                          | 0.950 µs   | 0.883 µs |            |         |          | about the same                    |
+| `type_registry_register`                      | overwrite one type                                         | 0.521 µs   | 0.496 µs |            |         |          | slower by one `O(n)` dict copy    |
+| `registry_copy`                               | 50 entries                                                 | 1.750 µs   | 1.625 µs |            |         |          | about the same                    |
+| `default_hasher_registry_copy`                | default hashing registry (53 entries)                      | 3.458 µs   | 3.291 µs |            |         |          | about the same                    |
+| `default_transformer_registry_find_list`      | `find_transformer(list)`                                   | 0.350 µs   | 0.335 µs |            |         |          | faster                            |
+| `default_transformer_registry_find_dataclass` | `find_transformer(Point)` (marker on `main`, fallback new) | 1.240 µs   | 1.146 µs |            |         |          | 20x or more (cached fallback)     |
+| `default_hasher_registry_find_dataclass`      | `find_hasher(Point)` (fallback on `main` and new)          | 1.033 µs   | 0.975 µs |            |         |          | 10x or more (fallback cached)     |
+| `default_tester_registry_find_dataclass`      | `find_equality_tester(Point)` (marker on `main`)           | 2.125 µs   | 2.000 µs |            |         |          | 20x or more                       |
+| `hash_object_flat_list`                       | list of 10,000 ints (one hasher lookup per node)           | 17.74 ms   | 17.42 ms |            |         |          | faster (cheaper lookup per node)  |
+| `hash_object_list_of_dataclasses`             | 1,000 `Point`                                              | 10.39 ms   | 10.16 ms |            |         |          | faster (dataclass lookup cached)  |
+
+Reading the baseline:
+
+- **A cache hit costs as much as the lookup it avoids.** The cached `resolve` (0.22-0.23 µs, the
+  same for MRO 3 and 5) is only 2x faster than the cache-less lookup (0.46 µs median, 0.33 µs
+  min), and is independent of the depth of the MRO: the price is the weak reference built by the
+  `WeakKeyDictionary` (F1). `has`, `get` and `len` cost 0.15-0.17 µs, almost all of it the `RLock`.
+- **The cold path is quadratic**: 5,000 types cost 360 ms, 72 µs per type, because every miss
+  copies the cache (F1).
+- **The dataclass lookups cost 1-2 µs**, 5 to 10 times a plain lookup, in all three registries (the
+  marker does four `find` calls and the hashing fallback runs its predicates on every lookup, F2).
+  `hash_object` costs 1.8 µs per int (17.7 ms for 10,000) and 10.4 µs per dataclass (10.4 ms
+  for 1,000); the lookup is one part of it, the rest is hashing, so the end-to-end gain will be
+  smaller than the gain of the lookup.
+- **Writes are cheap today** (0.28 µs): the state is mutated in place. The target pays one dict copy
+  per registration, about 1-2 µs for 50 entries; registrations happen at import time and in tests,
+  not in loops.
+- **Gate**: no benchmark may be slower than the baseline by more than 10 % except the two
+  `register` rows (accepted up to 3 µs), `registry_items` and `registry_copy` (within noise).
