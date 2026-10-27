@@ -487,6 +487,8 @@ cancellable acquire; (b) keep it for the fallback only (the link-less case): abo
 that affects FAT and some container volumes. If the maintainers want (b), keep `lock` out of the
 public signature and take the file lock only inside `_link`'s fallback.
 
+Decision: yes
+
 **D2. Keep `equal()`, make it concrete?** _Recommended: yes._ The method is the documented API and
 `objects_are_equal(a, b)` already works with it. Moving one implementation into the base class
 (same type, then `objects_are_equal` on `_display_fields()` with `equal_nan`) deletes the eight
@@ -495,6 +497,8 @@ loaders remain hashable. Alternative: `__eq__` as in `equality` (rejected: unhas
 change of a documented method for no gain). Cost: a format whose comparison differs from its displayed
 fields overrides `equal`; `TorchLoader` does not need to once `weights_only` is a named argument.
 
+Decision: yes
+
 **D3. How is async implemented?** _Recommended: `asyncio.to_thread` of the sync method._ It is the
 same strategy as `aiofiles` and `anyio.Path`, without a dependency, and the async path is the sync path
 (one set of behaviours to test). Alternatives: (a) depend on `aiofiles` or `anyio`: a new dependency
@@ -502,28 +506,40 @@ for the same threads; (b) native async I/O (`io_uring`, `asyncio` subprocess tri
 not available for `json`, `pickle` or `torch.save`, which are synchronous libraries; (c) make async
 the primary API and the sync one a wrapper: sync users would pay an event loop (`asyncio.run`) per call.
 
+Decision:
+
 **D4. Async shortcuts (`aload_json`, `asave_json`, ...)?** _Recommended: not now._ They would add 8
 functions and about 300 lines of docstrings (each repeats `exist_ok`, `fsync` and the format
 options). The class methods are the async API; a one-off call is
 `await asyncio.to_thread(save_json, data, path)`, which loses only the cancellation flag. Adding the
 functions later is mechanical and not breaking; add them if users ask.
 
+Decision: not now
+
 **D5. Cancellation flag?** _Recommended: yes._ It is nine lines, and it makes `asyncio.timeout`,
 `wait_for` and `TaskGroup` cancellation mean what they say (F6): after the exception the target is not
 modified by that call. Without it, the property "the file never appears after `asave` raised" is
 false. It does not claim more than a best effort once the commit started.
 
+Decision: yes
+
 **D6. `TextSaver` strict?** _Recommended: yes._ Writing `None` as the text "None" is the kind of
 silent conversion the architecture guide rejects, and the class is typed `str`. The caller who wants
 `str(x)` writes it, and the error says so. Alternative: keep `str()`: the typing stays dishonest.
+
+Decision: yes
 
 **D7. `_load` as the hook (template method)?** _Recommended: yes._ A custom loader cannot forget the
 path conversion (F5), and the base class is where a future cross-cutting step (a log line, a size
 check) would go. Cost: custom subclasses rename `load` to `_load` (they keep working if they do not,
 without the conversion). The saver side already works this way (`_save_file`).
 
+Decision: yes
+
 **D8. `add_uuid_suffix` out of `coola.io`?** _Recommended: yes, to `coola.utils.path`._ It is a path
 function (`CLAUDE.md`: shared helpers belong in `coola.utils`) and only the saver uses it.
+
+Decision: yes
 
 **D9. Choose the format from the suffix (`load("data.json")`)?** _Recommended: not in this design._
 A registry from suffix to loader is the natural next step (it would follow `coola.registry`), but it
@@ -531,9 +547,13 @@ is a new extension point and a security question: `load("x.pkl")` would unpickle
 Explicit loaders keep the format visible at the call site. If it is added, `PickleLoader` is not
 registered by default.
 
+Decision: follow recommendation
+
 **D10. Keep `BaseSaver` and `BaseFileSaver` apart?** _Recommended: yes._ The split costs a few
 lines and gives the seam for a saver that is not a local file, and for a native-async client that
 overrides `asave`. Merging them would put `fsync` and the temporary file on every saver.
+
+Decision: yes
 
 ## 10. Not covered
 
