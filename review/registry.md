@@ -443,7 +443,7 @@ two remaining files unchanged.
   worker that receives a registry. No patching.
 - **Doctests** run as part of the docstrings; the guide examples are doctests (the SKIP'd traceback
   examples become real ones with `except AlreadyRegisteredError`).
-- **Benchmark gate** (`tests/benchmarks/test_registry_benchmark.py`, `inv test.benchmark`): keep
+- **Benchmark gate** (`tests/benchmarks/test_registry_benchmark.py`, `inv test.benchmark`; the file and the baseline are in the appendix): keep
   `test_type_registry_resolve_cached_benchmark` and `..._uncached_benchmark` (it resets `_cache`
   with `{}`: still valid), add **a dataclass lookup through a fallback**, **5,000 distinct types**,
   **`has`** and **`register`** on a 50-entry registry; the new code must not be slower than `main`
@@ -542,3 +542,67 @@ the position is kept). Today a duplicate is silently appended and never reached.
 
 The line counts are estimates from the prototype and from the code to delete (docstrings are most
 of the lines); the gate is the behaviour (sections 1 and 8), not the size.
+
+## Appendix: benchmark of the old and the new implementation
+
+Baseline of `tests/benchmarks/test_registry_benchmark.py` on the implementation before the change
+(`main` at `5ce6dfcd`). The **New** columns are empty: fill them with the same run after each step
+of section 7 (steps 2, 3 and 4 move the numbers). The benchmarks only use the public methods that
+exist before and after the redesign (`resolve`, `has`, `get`, `register`, `register_many`, `copy`,
+`items`, `len`, the `find_*` methods of the default registries, `hash_object`), so they run
+unchanged on the new design; the only use of an internal is
+`test_type_registry_resolve_uncached_benchmark`, which resets `registry._cache` with `{}` (valid for
+both caches).
+
+Run and compare with `inv test.benchmark` (or `pytest tests/benchmarks/test_registry_benchmark.py
+--benchmark-only --benchmark-save=<name>`, then `--benchmark-compare=<name>`).
+
+Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark`. One run, nothing else heavy
+running. The raw results of the baseline are in
+`.benchmarks/Darwin-CPython-3.14-64bit/0008_registry_old_5ce6dfcd.json` (the directory is ignored by
+git: the table below is the record). The speed-up is old time / new time: above 1 is faster. The
+absolute numbers depend on the machine; read the speed-ups. Registries of 50 entries unless said
+otherwise; `Point` is a dataclass of two ints.
+
+| Benchmark (`test_<name>_benchmark`)           | Input                                                     | Old median | Old min    | New median | New min | Speed-up | Expected                          |
+| --------------------------------------------- | --------------------------------------------------------- | ---------- | ---------- | ---------- | ------- | -------- | --------------------------------- |
+| `type_registry_resolve_cached`                | `bool`, MRO of 3, hit                                     | 0.225 µs   | 0.220 µs   |            |         |          | 4-5x faster (plain `dict` cache)  |
+| `type_registry_resolve_deep_mro`              | `D`, MRO of 5, hit                                        | 0.224 µs   | 0.216 µs   |            |         |          | 4-5x faster                       |
+| `type_registry_resolve_abc`                   | `dict` with `Mapping` registered (not matched), hit       | 0.229 µs   | 0.220 µs   |            |         |          | 4-5x faster                       |
+| `type_registry_resolve_uncached`              | `bool`, cache reset at each call                          | 0.458 µs   | 0.333 µs   |            |         |          | no slower                         |
+| `type_registry_resolve_cold_types`            | 5,000 distinct types resolved once, new registry          | 360.2 ms   | 357.5 ms   |            |         |          | 100x or more (no cache copy)      |
+| `type_registry_has`                           | `object`                                                  | 0.150 µs   | 0.145 µs   |            |         |          | faster (no lock)                  |
+| `registry_has`                                | `"key10"`                                                 | 0.155 µs   | 0.150 µs   |            |         |          | faster (no lock)                  |
+| `registry_get`                                | `"key10"`                                                 | 0.165 µs   | 0.156 µs   |            |         |          | faster (no lock)                  |
+| `registry_len`                                | 50 entries                                                | 0.164 µs   | 0.155 µs   |            |         |          | faster (no lock)                  |
+| `registry_items`                              | `list(registry.items())`, 50 entries                      | 0.958 µs   | 0.833 µs   |            |         |          | about the same (no snapshot copy) |
+| `registry_register`                           | overwrite one key (`exist_ok=True`)                       | 0.281 µs   | 0.262 µs   |            |         |          | slower by one `O(n)` dict copy    |
+| `registry_register_many`                      | overwrite 10 keys                                         | 0.950 µs   | 0.883 µs   |            |         |          | about the same                    |
+| `type_registry_register`                      | overwrite one type                                        | 0.521 µs   | 0.496 µs   |            |         |          | slower by one `O(n)` dict copy    |
+| `registry_copy`                               | 50 entries                                                | 1.750 µs   | 1.625 µs   |            |         |          | about the same                    |
+| `default_hasher_registry_copy`                | default hashing registry (53 entries)                     | 3.458 µs   | 3.291 µs   |            |         |          | about the same                    |
+| `default_transformer_registry_find_list`      | `find_transformer(list)`                                  | 0.350 µs   | 0.335 µs   |            |         |          | faster                            |
+| `default_transformer_registry_find_dataclass` | `find_transformer(Point)` (marker on `main`, fallback new) | 1.240 µs   | 1.146 µs   |            |         |          | 20x or more (cached fallback)     |
+| `default_hasher_registry_find_dataclass`      | `find_hasher(Point)` (fallback on `main` and new)         | 1.033 µs   | 0.975 µs   |            |         |          | 10x or more (fallback cached)     |
+| `default_tester_registry_find_dataclass`      | `find_equality_tester(Point)` (marker on `main`)          | 2.125 µs   | 2.000 µs   |            |         |          | 20x or more                       |
+| `hash_object_flat_list`                       | list of 10,000 ints (one hasher lookup per node)          | 17.74 ms   | 17.42 ms   |            |         |          | faster (cheaper lookup per node)  |
+| `hash_object_list_of_dataclasses`             | 1,000 `Point`                                             | 10.39 ms   | 10.16 ms   |            |         |          | faster (dataclass lookup cached)  |
+
+Reading the baseline:
+
+- **A cache hit costs as much as the lookup it avoids.** The cached `resolve` (0.22-0.23 µs, the
+  same for MRO 3 and 5) is only 2x faster than the cache-less lookup (0.46 µs median, 0.33 µs
+  min), and is independent of the depth of the MRO: the price is the weak reference built by the
+  `WeakKeyDictionary` (F1). `has`, `get` and `len` cost 0.15-0.17 µs, almost all of it the `RLock`.
+- **The cold path is quadratic**: 5,000 types cost 360 ms, 72 µs per type, because every miss
+  copies the cache (F1).
+- **The dataclass lookups cost 1-2 µs**, 5 to 10 times a plain lookup, in all three registries (the
+  marker does four `find` calls and the hashing fallback runs its predicates on every lookup, F2).
+  `hash_object` costs 1.8 µs per int (17.7 ms for 10,000) and 10.4 µs per dataclass (10.4 ms
+  for 1,000); the lookup is one part of it, the rest is hashing, so the end-to-end gain will be
+  smaller than the gain of the lookup.
+- **Writes are cheap today** (0.28 µs): the state is mutated in place. The target pays one dict copy
+  per registration, about 1-2 µs for 50 entries; registrations happen at import time and in tests,
+  not in loops.
+- **Gate**: no benchmark may be slower than the baseline by more than 10 % except the two
+  `register` rows (accepted up to 3 µs), `registry_items` and `registry_copy` (within noise).
