@@ -1,15 +1,13 @@
-r"""Reduction utilities for computing statistics over numeric
-sequences.
+r"""Reduction utilities for computing statistics over numeric sequences.
 
 A reducer turns a one-dimensional sequence of real numbers into a
 statistic (``max``, ``min``, ``mean``, ``median``, ``std``,
-``quantile``) or into a sorted list. ``NativeReducer``,
-``NumpyReducer`` and ``TorchReducer`` have the same methods, the same
-errors and the same result types (a Python ``int`` or ``float``), so
-the backend can be swapped. The statistics raise
-``EmptySequenceError`` on an empty input, ``NaN`` propagates whatever
-its position, the input is never modified, and importing this package
-does not import NumPy or PyTorch.
+``quantile``) or into a sorted list. ``NativeReducer``, ``NumpyReducer``
+and ``TorchReducer`` have the same methods, the same errors and the same
+result types (a Python ``int`` or ``float``), so the backend can be
+swapped. The statistics raise ``EmptySequenceError`` on an empty input,
+``NaN`` propagates whatever its position, the input is never modified,
+and importing this package does not import NumPy or PyTorch.
 
 Not guaranteed: bit-identical floating point results across backends,
 sums that exceed the range of a ``float``, and number types other than
