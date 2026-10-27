@@ -91,14 +91,14 @@ def test_hasher_registry_is_usable_in_a_child_forked_while_its_lock_is_held() ->
         assert run_in_children(1, register_hasher) == ["done"]
 
 
-def test_hasher_registry_is_usable_in_a_child_forked_while_its_fallbacks_lock_is_held() -> None:
+def test_hasher_registry_can_register_a_fallback_in_a_child_forked_while_its_lock_is_held() -> None:
     registry = HasherRegistry()
 
     def register_fallback() -> str:
         registry.register_fallback(lambda tp: tp is complex, StrHasher())
         return "done"
 
-    with hold(registry, "_fallbacks_lock"):
+    with hold(registry._state, "_lock"):
         assert run_in_children(1, register_fallback) == ["done"]
 
 

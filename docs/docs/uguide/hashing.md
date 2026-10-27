@@ -370,7 +370,7 @@ If you need an isolated registry instead of mutating the shared singleton, creat
 A registry maps _types_ to hashers, so it cannot say "every dataclass" or "every class with a
 `hash()` method". `HasherRegistry.register_fallback(predicate, hasher)` registers a hasher for the
 types that satisfy a predicate. A fallback is only used if no hasher is registered for the type or
-for one of its parent types, so a hasher registered for a type always wins. The default registry
+for one of its parent types (`object` excluded), so a hasher registered for a type always wins. The default registry
 has two fallbacks: dataclasses (`DataclassHasher`) and the classes with a `hash()` method
 (`HashableHasher`). A dataclass that also defines `hash()` uses the dataclass hasher.
 
@@ -387,10 +387,11 @@ DataclassHasher()
 
 ```
 
-Registering a hasher for `object` makes the fallbacks unreachable, because `object` matches every
-type.
+The hasher registered for `object` is the last resort: the fallbacks are tried before it. A
+predicate can only be registered once (`AlreadyRegisteredError`, unless `exist_ok=True`, which keeps
+its position); if several predicates match, the first registered one wins.
 
-`HasherRegistry.unregister_fallback(predicate)` removes a fallback, `clear()` removes the hashers
+`HasherRegistry.unregister_fallback(predicate)` removes a fallback and returns its hasher, `clear()` removes the hashers
 and the fallbacks, and `equal()` compares the fallbacks (predicates, in order, and hashers) as well
 as the hashers.
 

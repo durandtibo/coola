@@ -455,7 +455,7 @@ def test_hasher_registry_find_hasher_first_matching_fallback_wins() -> None:
     first, second = StrHasher(), ReprHasher()
     registry = HasherRegistry()
     registry.register_fallback(is_marked, first)
-    registry.register_fallback(is_marked, second)
+    registry.register_fallback(lambda tp: tp is Marked, second)
     assert registry.find_hasher(Marked) is first
 
 
@@ -474,11 +474,11 @@ def test_hasher_registry_find_hasher_no_matching_fallback_raises() -> None:
         registry.find_hasher(Unhashable)
 
 
-def test_hasher_registry_object_hasher_makes_the_fallbacks_unreachable() -> None:
-    catch_all = ReprHasher()
-    registry = HasherRegistry({object: catch_all})
-    registry.register_fallback(is_marked, StrHasher())
-    assert registry.find_hasher(Marked) is catch_all
+def test_hasher_registry_fallback_wins_over_the_object_hasher() -> None:
+    fallback = StrHasher()
+    registry = HasherRegistry({object: ReprHasher()})
+    registry.register_fallback(is_marked, fallback)
+    assert registry.find_hasher(Marked) is fallback
 
 
 class ConstantHasher(BaseHasher[Any]):
@@ -506,13 +506,13 @@ def test_hasher_registry_has_hasher_ignores_the_fallbacks() -> None:
 
 
 def test_hasher_registry_repr_does_not_show_the_fallbacks_without_fallback() -> None:
-    assert "fallbacks" not in repr(HasherRegistry())
+    assert "(fallback)" not in repr(HasherRegistry())
 
 
 def test_hasher_registry_repr_shows_the_fallbacks() -> None:
     registry = HasherRegistry()
     registry.register_fallback(is_marked, StrHasher())
-    assert "fallbacks" in repr(registry)
+    assert "(fallback)" in repr(registry)
 
 
 def test_hasher_registry_repr_shows_the_fallback_hashers() -> None:
@@ -670,54 +670,18 @@ def test_hasher_registry_equal_different_type() -> None:
     assert not HasherRegistry().equal(object())
 
 
-def test_hasher_registry_is_tracked_for_forks() -> None:
-    registry = HasherRegistry()
-    assert registry in fork._TRACKED
-
-
-def test_hasher_registry_reset_after_fork_recreates_the_fallbacks_lock() -> None:
-    registry = HasherRegistry()
-    lock = registry._fallbacks_lock
-    registry._reset_after_fork()
-    assert registry._fallbacks_lock is not lock
-
-
 def test_hasher_registry_state_is_tracked_for_forks() -> None:
     registry = HasherRegistry()
     assert registry._state in fork._TRACKED
 
 
-def test_hasher_registry_reset_after_fork_keeps_the_fallbacks() -> None:
-    registry = HasherRegistry()
-    registry.register_fallback(lambda tp: tp is complex, StrHasher())
-    registry._reset_after_fork()
-    assert len(registry._fallbacks) == 1
-
-
-def test_hasher_registry_reset_after_fork_does_not_block_if_the_fallbacks_lock_was_held() -> None:
-    registry = HasherRegistry()
-    registry._fallbacks_lock.acquire()  # held by a thread that does not exist in the child
-    registry._reset_after_fork()
-    registry.register_fallback(lambda tp: tp is complex, StrHasher())
-    assert len(registry._fallbacks) == 1
-
-
 def test_hasher_registry_copy_has_the_same_fallbacks() -> None:
     registry = HasherRegistry()
     registry.register_fallback(lambda tp: tp is complex, StrHasher())
-    assert len(registry.copy()._fallbacks) == 1
+    assert len(registry.copy().fallbacks()) == 1
 
 
 def test_hasher_registry_copy_register_fallback_does_not_change_the_original() -> None:
     registry = HasherRegistry()
     registry.copy().register_fallback(lambda tp: tp is complex, StrHasher())
-    assert len(registry._fallbacks) == 0
-
-
-def test_hasher_registry_copy_has_its_own_fallbacks_lock() -> None:
-    registry = HasherRegistry()
-    assert registry.copy()._fallbacks_lock is not registry._fallbacks_lock
-
-
-def test_hasher_registry_copy_is_tracked_for_forks() -> None:
-    assert HasherRegistry().copy() in fork._TRACKED
+    assert len(registry.fallbacks()) == 0

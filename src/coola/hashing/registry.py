@@ -12,20 +12,17 @@ __all__ = ["HasherRegistry"]
 import threading
 import warnings
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Self, cast
+from typing import Any
 
 from coola.hashing.base import Hasher
 from coola.hashing.string import hash_string
 from coola.registry import BaseTypeDispatchRegistry, TypeNotRegisteredError
-from coola.utils.fork import track_fork
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
+from coola.registry.dispatch import FallbackMixin
 
 _state = threading.local()
 
 
-class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
+class HasherRegistry(FallbackMixin[Hasher[Any]], BaseTypeDispatchRegistry[Hasher[Any]]):
     r"""Registry that manages and dispatches hashers based on data type.
 
     This registry maintains a mapping from Python types to hasher instances
@@ -77,153 +74,6 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
 
         ```
     """
-
-    def __init__(self, initial_state: dict[type, Hasher[Any]] | None = None) -> None:
-        super().__init__(initial_state=initial_state)
-        # Copy-on-write tuple: readers do not need a lock.
-        self._fallbacks: tuple[tuple[Callable[[type], bool], Hasher[Any]], ...] = ()
-        self._fallbacks_lock = threading.Lock()
-        track_fork(self)
-
-    def copy(self) -> Self:
-        new = super().copy()
-        new._fallbacks_lock = threading.Lock()
-        track_fork(new)
-        return new
-
-    def _reset_after_fork(self) -> None:
-        r"""Recreate the lock of the fallbacks in a forked child process.
-
-        The lock may have been held by a thread that does not exist in
-        the child process, which would block the registry forever. The
-        registered hashers and fallbacks are kept. The lock of the
-        internal type registry is recreated by the type registry.
-        """
-        self._fallbacks_lock = threading.Lock()
-
-    def _display_fields(self) -> dict[str, Any]:
-        kwargs = super()._display_fields()
-        if self._fallbacks:
-            kwargs["fallbacks"] = [hasher for _, hasher in self._fallbacks]
-        return kwargs
-
-    def register_fallback(self, predicate: Callable[[type], bool], hasher: Hasher[Any]) -> None:
-        r"""Register a hasher for the types that satisfy a predicate.
-
-        A type-keyed registry cannot express "any dataclass" or "any
-        class that defines a ``hash`` method". A fallback is used only
-        if no hasher is registered for the type or for one of its
-        parent types, so a hasher registered for a type always wins.
-        If several predicates match, the first registered one is used.
-        Note that registering a hasher for ``object`` makes the
-        fallbacks unreachable, since ``object`` matches every type.
-
-        Args:
-            predicate: A function that takes a type and returns ``True``
-                if ``hasher`` can hash the instances of this type.
-            hasher: The hasher to use for these types.
-
-        Example:
-            ```pycon
-            >>> from dataclasses import dataclass, is_dataclass
-            >>> from coola.hashing import DataclassHasher, HasherRegistry, SequenceHasher
-            >>> registry = HasherRegistry({list: SequenceHasher()})
-            >>> registry.register_fallback(is_dataclass, DataclassHasher())
-            >>> @dataclass
-            ... class Point:
-            ...     x: int
-            ...
-            >>> registry.find_hasher(Point)
-            DataclassHasher()
-
-            ```
-        """
-        with self._fallbacks_lock:
-            self._fallbacks = (*self._fallbacks, (predicate, hasher))
-
-    def unregister_fallback(self, predicate: Callable[[type], bool]) -> None:
-        r"""Remove the fallback registered for a predicate.
-
-        Args:
-            predicate: The predicate that was given to
-                ``register_fallback``.
-
-        Raises:
-            KeyError: If no fallback is registered for this predicate.
-
-        Example:
-            ```pycon
-            >>> from dataclasses import dataclass, is_dataclass
-            >>> from coola.hashing import DataclassHasher, HasherRegistry
-            >>> registry = HasherRegistry()
-            >>> registry.register_fallback(is_dataclass, DataclassHasher())
-            >>> registry.unregister_fallback(is_dataclass)
-            >>> @dataclass
-            ... class Point:
-            ...     x: int
-            ...
-            >>> registry.has_hasher(Point)
-            False
-
-            ```
-        """
-        with self._fallbacks_lock:
-            remaining = tuple(item for item in self._fallbacks if item[0] != predicate)
-            if len(remaining) == len(self._fallbacks):
-                msg = f"No fallback is registered for {predicate!r}"
-                raise KeyError(msg)
-            self._fallbacks = remaining
-
-    def clear(self) -> None:
-        r"""Remove all the registered hashers and fallbacks."""
-        super().clear()
-        with self._fallbacks_lock:
-            self._fallbacks = ()
-
-    def equal(self, other: object, equal_nan: bool = False) -> bool:
-        r"""Indicate if two registries are equal or not.
-
-        Two registries are equal if they have the same hashers and the
-        same fallbacks (same predicates, in the same order, with equal
-        hashers).
-
-        Args:
-            other: The object to compare with.
-            equal_nan: If ``True``, then two ``NaN``s will be
-                considered equal.
-
-        Returns:
-            ``True`` if ``other`` has the same type, the same
-                registered hashers and the same fallbacks, otherwise
-                ``False``.
-
-        Example:
-            ```pycon
-            >>> from dataclasses import is_dataclass
-            >>> from coola.hashing import DataclassHasher, HasherRegistry
-            >>> registry1 = HasherRegistry()
-            >>> registry2 = HasherRegistry()
-            >>> registry1.equal(registry2)
-            True
-            >>> registry2.register_fallback(is_dataclass, DataclassHasher())
-            >>> registry1.equal(registry2)
-            False
-
-            ```
-        """
-        # Local import to avoid a cyclic import (see ``BaseRegistry.equal``).
-        from coola.equality import objects_are_equal  # noqa: PLC0415
-
-        if not super().equal(other, equal_nan):
-            return False
-        fallbacks, other_fallbacks = self._fallbacks, cast("HasherRegistry", other)._fallbacks
-        return len(fallbacks) == len(other_fallbacks) and all(
-            predicate == other_predicate
-            and objects_are_equal(hasher, other_hasher, equal_nan=equal_nan)
-            for (predicate, hasher), (other_predicate, other_hasher) in zip(
-                fallbacks, other_fallbacks, strict=True
-            )
-        )
 
     def has_hasher(self, data_type: type) -> bool:
         """Type-specific alias for ``has``: check if a hasher is
@@ -284,15 +134,7 @@ class HasherRegistry(BaseTypeDispatchRegistry[Hasher[Any]]):
 
             ```
         """
-        # ``resolve_or`` does not build the error message of a failing lookup, which is
-        # costly for the types that are hashed by a fallback (every dataclass).
-        hasher = self._state.resolve_or(data_type)
-        if hasher is not None:
-            return hasher
-        for predicate, fallback in self._fallbacks:
-            if predicate(data_type):
-                return fallback
-        raise TypeNotRegisteredError(self._state._not_registered_msg(data_type))
+        return self.find(data_type)
 
     def _find_enum_hasher(self, data_type: type) -> Hasher[Any] | None:
         """Return the ``Enum`` hasher for an enum mixed with another
