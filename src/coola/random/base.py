@@ -8,6 +8,8 @@ from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
+from coola.random.seed import validate_seed
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 
@@ -90,8 +92,15 @@ class BaseRandomManager(ABC):
         The state is restored even if an exception is raised inside the
         context.
 
+        The seed is validated with ``validate_seed`` before the state
+        is read, so an invalid seed changes nothing.
+
         Args:
             seed: The seed to use while inside the context manager.
+
+        Raises:
+            TypeError: If the seed is not an ``int``.
+            ValueError: If the seed is not in the range ``[0, 2**63)``.
 
         Example:
             ```pycon
@@ -109,6 +118,7 @@ class BaseRandomManager(ABC):
 
             ```
         """
+        validate_seed(seed)
         state = self.get_rng_state()
         try:
             self.manual_seed(seed)

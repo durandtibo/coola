@@ -27,9 +27,9 @@ different libraries in a single call.
 
 !!! note "NumPy seeds"
 
-    NumPy's legacy generator only accepts a scalar seed between `0` and `2**32 - 1`.
-    `NumpyRandomManager` gives a seed below `2**32` as is, and splits a larger seed in two 32-bit
-    words, so two different seeds in `[0, 2**63)` never give the same numbers.
+    NumPy's legacy generator only accepts seeds between `0` and `2**32 - 1`. `NumpyRandomManager`
+    folds the seed into this range with `seed % 2**32`, so the seeds `1` and `2**32 + 1` give the same
+    random numbers. A negative seed raises a `ValueError`.
 
 ## Basic Usage
 
