@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from collections import Counter, OrderedDict, deque, namedtuple
 from collections.abc import Iterator, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, is_dataclass
 from typing import Any
 
 import pytest
 
-from coola.registry import DataclassMarker
 from coola.summary import (
     BaseSummarizer,
     DataclassSummarizer,
@@ -601,10 +600,9 @@ def test_render_is_deterministic() -> None:
     assert run(data, max_depth=4) == run(data, max_depth=4)
 
 
-def test_render_dataclass_marker_is_used_with_a_registry_that_has_it() -> None:
-    registry = SummarizerRegistry(
-        {object: DefaultSummarizer(), DataclassMarker: DataclassSummarizer()}
-    )
+def test_render_dataclass_fallback_is_used_with_a_registry_that_has_it() -> None:
+    registry = SummarizerRegistry({object: DefaultSummarizer()})
+    registry.register_fallback(is_dataclass, DataclassSummarizer())
     assert (
         render(Point(1, 2), registry, SummaryConfig()) == f"{Point} (fields=2)\n  (x): 1\n  (y): 2"
     )
