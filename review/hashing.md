@@ -620,11 +620,15 @@ do. Alternative: keep `hash(data, registry, *, length, ignore_unhashable) -> str
 parameters into a context object (`hash(data, ctx)`). It removes the `noqa` but a hasher still
 recurses, so F1 to F3 stay and the engine cannot be an explicit loop.
 
+Decision: yes
+
 **D2. One digest size; `length` truncates the root.** _Recommended: yes._ A hasher no longer sees
 `length`, the hashes of different lengths are prefixes of one another, and 64 bytes is the speed of
 BLAKE2b anyway. The cost: the default `length=64` is half of a 128-character digest, and the
 hashes of a given `length` change (they all change anyway, section 3.4). Alternative: the root alone
 is computed with `digest_size=length // 2` (no prefix property, one more code path in the engine).
+
+Decision: I want to be able to control the hash length. 
 
 **D3. Memoize the shared containers.** _Recommended: yes._ Unlike `recursive_apply` (decision D3 of
 `review/recursive.md`: an impure `func` would be called a different number of times), a hash is pure,
@@ -633,6 +637,8 @@ dictionary entry per container and the objects kept alive until the call ends, w
 `id` reuse of temporary children impossible. Alternative: no memo and a plain set of ancestors for
 the cycles; simpler by three lines, 2^20 paths stay 4 s.
 
+Decision: yes
+
 **D4. Cycles.** _Recommended: keep `ValueError`._ `objects_are_equal` accepts a cyclic structure
 and says "equal", so strictly "equal implies the same hash" is violated by a cycle. A deterministic
 back-reference (the distance to the ancestor) would make a cycle hashable, but the digest of a
@@ -640,17 +646,23 @@ container in a cycle then depends on where it is reached from, which breaks the 
 "hash of a child is reusable" property. A cycle in a hashed configuration is a bug nine times out of
 ten; the loud error is the better default. Revisit if a user needs it.
 
+Decision: keep `ValueError`
+
 **D5. The protocol of a custom object.** _Recommended: `__hash_content__(self) -> object`._ The
 object says what its content is and does not recurse (F10); no signature inspection, no collision
 with a library `hash` method. Alternative: keep `hash(registry, length, ignore_unhashable)`, which
 forces the engine to support a re-entrant, parameterised call and keeps F10. Naming alternatives:
 `__coola_hash__`, `hash_content`.
 
+Decision: `__coola_hash__(self) -> object`
+
 **D6. Secrets are types with a hasher, and `exclude` replaces instead of removing.** _Recommended:
 yes._ It deletes a second traversal (`unwrap_secrets`), a second thread-local and the asymmetry
 between a model and a dataclass (F11). The policy is the one of the registry, so a caller that wants
 `reveal` builds a registry once. Alternative: keep the `on_secret` argument of the model hasher and
 the `unwrap_secrets` traversal, and live with F11.
+
+Decision: yes
 
 **D7. Inline the short leaves in the preimage of their parent.** _Recommended: not now._ It is 4
 times faster than `main` on flat containers (section 6) instead of 1.5 to 2 times, but it needs two
@@ -659,26 +671,36 @@ only when a benchmark or a user shows that hashing a million-element list is on 
 Streaming the digests of an ordered node into a running `blake2b` object (memory) is the other
 optimisation held back for the same reason.
 
+Decision: not now
+
 **D8. Remove the public leaf functions** (`hash_string`, `hash_bytes`, `hash_tagged`, `hash_enum`,
 `hash_path`, `hash_pydantic_model`). _Recommended: remove._ They hash one value under a tag with a
 `length`, which is `hash_object` for a scalar, and they keep `length` in the leaf code (F5). A caller
 that wants a plain BLAKE2b of a string uses `hashlib`. `tagged` and `digest` stay because a custom
 hasher needs them.
 
+Decision: remove
+
 **D9. A format version in the digest.** _Recommended: yes, `person=b"coola-hash-1"`._ It costs
 nothing, it makes two formats impossible to confuse (a stored hash of an older format never equals a
 new one by accident) and it turns a deliberate format change into a one-line constant plus the
 golden vectors. Alternative: no version and rely on the golden vectors alone.
 
+Decision: yes
+
 **D10. Keep the stable registry and the plugin group.** _Recommended: keep._ The plugin group is how
 a library adds its types, and `get_stable_registry()` is what keeps the identifiers independent of
 the plugins (22.4). Nothing in this design changes them except the `encode` contract of the entries.
+
+Decision: keep
 
 **D11. Only `compare=True` fields of a dataclass.** _Recommended: yes._ It is the rule of
 `objects_are_equal`, so equal dataclasses have the same hash (F7). A cache or a lazily computed
 field should not make two equal objects different. A user who wants every field registers
 `DataclassHasher(all_fields=True)` for the type, or a hasher of their own (the option is the one
 extension of the class and is not needed otherwise: leave it out until someone asks).
+
+Decision: yes
 
 ## 10. Not covered
 
