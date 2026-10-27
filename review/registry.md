@@ -433,10 +433,14 @@ registry too (nobody registers `object` there), and the dataclass handler is no 
 "type" entry of `items()` / `len()`. Alternative: keep the marker and only fix the identity test;
 cheaper, but the five registries keep a second mechanism and the hashing registry keeps its own.
 
+Decision: yes
+
 **D2. Keep the generic `Registry`?** _Recommended: yes._ `RandomManagerRegistry` uses it and
 `TypeRegistry` extends it, so it costs nothing: it is the storage class. Alternative: make it
 private (`_Registry`) and drop it from the guide (the "plugin system", "factory" and "configuration"
 examples are not what `coola` is for); this only changes the guide.
+
+Decision: yes
 
 **D3. A strong bounded cache instead of a weak one?** _Recommended: yes._ The weak dictionary is the
 cost (F1). The cache holds at most 1,024 classes and is emptied by any change, so a program that
@@ -444,27 +448,39 @@ creates classes dynamically keeps at most 1,024 of them alive (a few MB) until t
 registration, instead of the last reference. Alternative: no cache; simpler by about 12 lines, but
 the dataclass fallback predicates run on every lookup (section 6).
 
+Decision: yes
+
 **D4. Delete `equal()`?** _Recommended: yes._ Nothing in `src` uses it, it is wrong for two default
 registries (F9), and it is the only reason `registry` depends on `equality`. A test that needs to
 compare two registries compares `dict(a.items()) == dict(b.items())`. Alternative: keep
 `equal(other)` as `type(a) is type(b) and a._state == b._state and a._fallbacks == b._fallbacks`
 (handlers compare by `==`, so a copy is equal), without `equal_nan` and without the second lock.
 
+Decision: no
+
 **D5. Drop the `RuntimeError` base of `AlreadyRegisteredError`?** _Recommended: yes._ It is a
 `ValueError` (the value is not acceptable in the current state). `except RuntimeError` code is
 rare; the release notes say so. Alternative: keep it for one more major release.
+
+Decision: yes
 
 **D6. Keep `resolve` as the only lookup name?** _Recommended: yes._ It is the name of the guide and
 of `TypeRegistry`; `find` only exists in `BaseTypeDispatchRegistry`. The domain aliases `has_<x>` and
 `find_<x>` stay (they read well at the call site and are public API of five packages): they become
 one-line delegations. Dropping them is a change of five packages, not of this one.
 
+Decision: yes
+
 **D7. Registries are picklable?** _Recommended: yes._ Ten lines, and it removes a failure that only
 shows with `spawn`. Alternative: document that a registry is not picklable and pass the arguments
 that build it.
 
+Decision: yes
+
 **D8. A duplicate fallback predicate is an error?** _Recommended: yes_ (`exist_ok=True` to replace,
 the position is kept). Today a duplicate is silently appended and never reached.
+
+Decision: yes
 
 ## 10. Not covered
 
