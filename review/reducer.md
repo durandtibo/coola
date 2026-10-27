@@ -12,7 +12,8 @@ accepted, and the future state is more important than the past one.
 Evidence comes from probes run on `main` (Python 3.14, NumPy and PyTorch installed, scripts kept
 outside the repository). Items marked **[verified]** were reproduced; **[reading]** comes from the
 code. No prototype of the new base class was written: the sizes of the appendix are estimates.
-Nothing in `src`, `tests` or `docs` was changed.
+Nothing in `src`, `tests` or `docs` was changed. The decisions of section 9 (D1 to D6) are made and
+match the recommendations.
 
 ## Constraints
 
@@ -331,7 +332,21 @@ check that it fails on `main`, no local imports, `*_available` fixtures).
 - Coverage: 100 % of `src/coola/reducer` (`--cov=coola`), no `# pragma: no cover` except the
   `fallback` import branch if it is kept (it is not needed once F13 is fixed).
 
-## 9. Decisions for the maintainers
+## 9. Decisions
+
+All six decisions are made and follow the recommendations, so the design of sections 1 to 8 stands
+unchanged.
+
+| Decision | Question                                | Outcome                           | Where it applies               |
+| -------- | --------------------------------------- | --------------------------------- | ------------------------------ |
+| D1       | One base class or two?                  | One (`BaseReducer` as a template) | Section 3.1, step 3            |
+| D2       | How strict is the input?                | Strict                            | Section 1 (input rule), step 4 |
+| D3       | Does `auto_reducer` look at the values? | No                                | Section 3.3, step 2            |
+| D4       | `__eq__` and `__hash__` for reducers?   | No                                | Section 4 (equality unchanged) |
+| D5       | Keep `TorchReducer`?                    | Yes                               | Section 3.2, step 4            |
+| D6       | `NativeReducer.mean` exact or fast?     | `statistics.fmean`                | Section 4, step 5              |
+
+The reasoning for each is kept below.
 
 **D1. One base class or two?** _Recommended: one (`BaseReducer` as a template)._ Today the user must
 choose between a class that carries no checks and a class that carries them for six methods out of
