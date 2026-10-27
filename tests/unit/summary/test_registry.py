@@ -280,8 +280,8 @@ def test_summarizer_registry_find_summarizer_dataclass_with_a_fallback() -> None
 
 
 def test_summarizer_registry_find_summarizer_dataclass_with_registered_base() -> None:
-    """Regression test: a summarizer shared by ``object`` and a base class
-    is used for a dataclass that inherits from the base class."""
+    """Regression test: a summarizer shared by ``object`` and a base
+    class is used for a dataclass that inherits from the base class."""
 
     class Base:
         pass

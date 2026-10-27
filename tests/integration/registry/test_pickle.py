@@ -62,7 +62,8 @@ def test_default_registry_deepcopy_is_independent(get_registry: object) -> None:
 
 
 def test_registry_is_sent_to_a_spawned_worker() -> None:
-    """Test that a registry survives the pickling of a ``spawn`` worker."""
+    """Test that a registry survives the pickling of a ``spawn``
+    worker."""
     registry = Registry[str, int]({"a": 1, "b": 2})
     with multiprocessing.get_context("spawn").Pool(1) as pool:
         assert pool.apply(count_entries, (registry,)) == 2

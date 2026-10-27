@@ -547,8 +547,7 @@ def test_registry_changed_hook_called_on_unregister() -> None:
 
 
 def test_registry_changed_hook_called_on_clear() -> None:
-    """Test that ``_changed`` is called when the registry is
-    cleared."""
+    """Test that ``_changed`` is called when the registry is cleared."""
 
     class TrackedRegistry(Registry[str, int]):
         def __init__(self) -> None:

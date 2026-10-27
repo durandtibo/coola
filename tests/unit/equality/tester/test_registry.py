@@ -261,8 +261,8 @@ def test_equality_tester_registry_find_equality_tester_dataclass_no_fallback() -
 
 
 def test_equality_tester_registry_find_equality_tester_dataclass_with_registered_base() -> None:
-    """Regression test: a tester shared by ``object`` and a base class is
-    used for a dataclass that inherits from the base class."""
+    """Regression test: a tester shared by ``object`` and a base class
+    is used for a dataclass that inherits from the base class."""
 
     class Base:
         pass
