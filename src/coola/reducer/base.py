@@ -6,8 +6,8 @@ __all__ = ["BaseReducer", "EmptySequenceError"]
 
 import math
 from abc import ABC, abstractmethod
-from collections.abc import Iterator, Sized
-from typing import TYPE_CHECKING, Generic, TypeVar
+from collections.abc import Iterator, Set as AbstractSet, Sized
+from typing import TYPE_CHECKING, Any, Generic, NoReturn, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -182,7 +182,7 @@ class BaseReducer(ABC, Generic[T]):
 
             ```
         """
-        return self._sort(self._prepare(values), descending=descending)
+        return self._sort(self._prepare_input(values, "the sorted values"), descending=descending)
 
     def std(self, values: T) -> float:
         r"""Compute the standard deviation.
@@ -207,22 +207,33 @@ class BaseReducer(ABC, Generic[T]):
         """
         return self._std(self._prepare_non_empty(values, "the standard deviation"))
 
-    def _prepare(self, values: T) -> T:
+    def _prepare(self, values: T) -> Any:
         r"""Return the values as the container used by the computations.
 
-        The default implementation returns the values unchanged. A
-        backend overrides it to convert and validate the values.
+        The input is not an iterator, a set, a ``str`` or ``bytes``
+        (the base class rejects them before calling this method). The
+        default implementation returns the values unchanged. A backend
+        overrides it to convert and validate the values. The result
+        must support ``len`` and iteration, hold the values in a single
+        dimension, share the memory of the input when it can, and the
+        input must not be modified.
 
         Args:
             values: The values.
 
         Returns:
             The values to reduce.
+
+        Raises:
+            TypeError: if the input or one of its elements is not
+                supported by the backend (see ``_raise_unsupported``).
+            ValueError: if the input is not one-dimensional (see
+                ``_raise_ndim``).
         """
         return values
 
-    def _prepare_non_empty(self, values: T, name: str) -> T:
-        r"""Prepare the values and check that they are not empty.
+    def _prepare_input(self, values: T, name: str) -> Any:
+        r"""Check the type of the input and prepare it.
 
         Args:
             values: The values.
@@ -234,20 +245,70 @@ class BaseReducer(ABC, Generic[T]):
         Raises:
             TypeError: if ``values`` is an iterator (e.g. a generator),
                 because the reducers need to go over the values
-                several times. Convert it to a list first.
-            EmptySequenceError: if the input sequence is empty.
+                several times (convert it to a list first), or a set,
+                a ``str`` or ``bytes``.
         """
         if isinstance(values, Iterator):
             msg = f"Cannot compute {name} of an iterator, convert it to a list first"
             raise TypeError(msg)
-        values = self._prepare(values)
+        if isinstance(values, (AbstractSet, str, bytes, bytearray)):
+            msg = (
+                f"Cannot compute {name} of a {type(values).__name__}, "
+                "pass a sequence of numbers (e.g. a list)"
+            )
+            raise TypeError(msg)
+        return self._prepare(values)
+
+    def _prepare_non_empty(self, values: T, name: str) -> Any:
+        r"""Prepare the values and check that they are not empty.
+
+        Args:
+            values: The values.
+            name: The name of the reduction, used in the error message.
+
+        Returns:
+            The prepared values.
+
+        Raises:
+            TypeError: if the input is not supported (see
+                ``_prepare_input``).
+            EmptySequenceError: if the input sequence is empty.
+        """
+        values = self._prepare_input(values, name)
         if len(values) == 0:
             msg = f"Cannot compute {name} because the sequence is empty"
             raise EmptySequenceError(msg)
         return values
 
+    def _raise_unsupported(self, reason: str, hint: str | None = None) -> NoReturn:
+        r"""Raise the error for a value the backend cannot represent.
+
+        Args:
+            reason: Why the input is not supported.
+            hint: How to fix the problem (e.g. the reducer to use).
+
+        Raises:
+            TypeError: always. The message names the backend.
+        """
+        msg = f"{type(self).__name__} does not support {reason}"
+        if hint:
+            msg = f"{msg}; {hint}"
+        raise TypeError(msg)
+
+    def _raise_ndim(self, ndim: int) -> NoReturn:
+        r"""Raise the error for an input that is not one-dimensional.
+
+        Args:
+            ndim: The number of dimensions of the input.
+
+        Raises:
+            ValueError: always. The message names the backend.
+        """
+        msg = f"{type(self).__name__} takes a 1-D input, got {ndim} dimension(s)"
+        raise ValueError(msg)
+
     @abstractmethod
-    def _max(self, values: T) -> int | float:
+    def _max(self, values: Any) -> int | float:
         r"""Compute the maximum value of non-empty values.
 
         Args:
@@ -258,7 +319,7 @@ class BaseReducer(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def _mean(self, values: T) -> float:
+    def _mean(self, values: Any) -> float:
         r"""Compute the mean value of non-empty values.
 
         Args:
@@ -269,7 +330,7 @@ class BaseReducer(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def _median(self, values: T) -> int | float:
+    def _median(self, values: Any) -> int | float:
         r"""Compute the median value of non-empty values.
 
         Args:
@@ -280,7 +341,7 @@ class BaseReducer(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def _min(self, values: T) -> int | float:
+    def _min(self, values: Any) -> int | float:
         r"""Compute the minimum value of non-empty values.
 
         Args:
@@ -291,7 +352,7 @@ class BaseReducer(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def _std(self, values: T) -> float:
+    def _std(self, values: Any) -> float:
         r"""Compute the standard deviation of non-empty values.
 
         Args:
@@ -302,7 +363,7 @@ class BaseReducer(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def _quantile(self, values: T, quantiles: Sequence[float]) -> list[float]:
+    def _quantile(self, values: Any, quantiles: Sequence[float]) -> list[float]:
         r"""Compute the quantiles of non-empty values.
 
         Args:
@@ -315,7 +376,7 @@ class BaseReducer(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def _sort(self, values: T, *, descending: bool) -> list[int | float]:
+    def _sort(self, values: Any, *, descending: bool) -> list[int | float]:
         r"""Sort the values.
 
         Args:

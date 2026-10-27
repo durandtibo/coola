@@ -480,3 +480,40 @@ def test_reducers_quantile_empty_quantiles_returns_empty_list(reducer: BaseReduc
 def test_reducers_sort_descending_is_keyword_only(reducer: BaseReducer) -> None:
     with pytest.raises(TypeError, match=r"positional argument"):
         reducer.sort([1, 2, 3], True)
+
+
+@pytest.mark.parametrize("method", ["max", "mean", "median", "min", "std"])
+def test_reducers_statistic_set_raises(reducer: BaseReducer, method: str) -> None:
+    with pytest.raises(TypeError, match=r"of a set, pass a sequence of numbers"):
+        getattr(reducer, method)({1, 2, 3})
+
+
+def test_reducers_quantile_set_raises(reducer: BaseReducer) -> None:
+    with pytest.raises(TypeError, match=r"of a set, pass a sequence of numbers"):
+        reducer.quantile({1, 2, 3}, [0.5])
+
+
+def test_reducers_sort_set_raises(reducer: BaseReducer) -> None:
+    with pytest.raises(TypeError, match=r"of a set, pass a sequence of numbers"):
+        reducer.sort({1, 2, 3})
+
+
+@pytest.mark.parametrize("values", ["abc", b"abc"])
+def test_reducers_max_str_or_bytes_raises(reducer: BaseReducer, values: str | bytes) -> None:
+    with pytest.raises(TypeError, match=r"pass a sequence of numbers"):
+        reducer.max(values)
+
+
+def test_reducers_sort_generator_raises(reducer: BaseReducer) -> None:
+    with pytest.raises(TypeError, match=r"of an iterator, convert it to a list first"):
+        reducer.sort(x for x in [3, 1, 2])
+
+
+def test_reducers_quantile_bool_values(reducer: BaseReducer) -> None:
+    assert reducer.quantile([True, False], [0.0, 0.5, 1.0]) == [0.0, 0.5, 1.0]
+
+
+def test_reducers_input_is_not_modified(reducer: BaseReducer) -> None:
+    values = [3, 1, 2]
+    reducer.sort(values)
+    assert values == [3, 1, 2]
