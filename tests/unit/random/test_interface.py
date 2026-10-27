@@ -252,7 +252,7 @@ def test_register_managers_calls_registry() -> None:
     """Test that register_managers successfully registers managers in
     the default registry."""
     register_managers({"custom": RandomRandomManager()})
-    assert get_default_registry().has_manager("custom")
+    assert get_default_registry().has("custom")
 
 
 def test_register_managers_with_exist_ok_true() -> None:
@@ -293,7 +293,7 @@ def test_get_default_registry_returns_singleton() -> None:
 def test_get_default_registry_default() -> None:
     """Test that the 'random' manager is registered by default."""
     registry = get_default_registry()
-    assert registry.has_manager("random")
+    assert registry.has("random")
 
 
 @numpy_available
@@ -301,7 +301,7 @@ def test_get_default_registry_with_numpy() -> None:
     """Test that the 'numpy' manager is registered when NumPy is
     available."""
     registry = get_default_registry()
-    assert registry.has_manager("numpy")
+    assert registry.has("numpy")
 
 
 @numpy_not_available
@@ -309,7 +309,7 @@ def test_get_default_registry_without_numpy() -> None:
     """Test that the 'numpy' manager is not registered when NumPy is
     unavailable."""
     registry = get_default_registry()
-    assert not registry.has_manager("numpy")
+    assert not registry.has("numpy")
 
 
 @torch_available
@@ -317,7 +317,7 @@ def test_get_default_registry_with_torch() -> None:
     """Test that the 'torch' manager is registered when PyTorch is
     available."""
     registry = get_default_registry()
-    assert registry.has_manager("torch")
+    assert registry.has("torch")
 
 
 @torch_not_available
@@ -325,19 +325,19 @@ def test_get_default_registry_without_torch() -> None:
     """Test that the 'torch' manager is not registered when PyTorch is
     unavailable."""
     registry = get_default_registry()
-    assert not registry.has_manager("torch")
+    assert not registry.has("torch")
 
 
 def test_get_default_registry_singleton_does_not_have_the_custom_manager() -> None:
     """Test that the registry does not have the custom manager."""
-    assert not get_default_registry().has_manager("custom")
+    assert not get_default_registry().has("custom")
 
 
 def test_get_default_registry_singleton_persists_modifications() -> None:
     """Test that modifications to the singleton registry persist."""
     registry1 = get_default_registry()
     registry1.register("custom", RandomRandomManager())
-    assert registry1.has_manager("custom")
+    assert registry1.has("custom")
 
 
 def test_get_default_registry_singleton_returns_the_same_registry() -> None:
@@ -351,7 +351,7 @@ def test_get_default_registry_singleton_persists_modifications_across_calls() ->
     """Test that modifications persist across multiple calls to
     get_default_registry."""
     get_default_registry().register("custom", RandomRandomManager())
-    assert get_default_registry().has_manager("custom")
+    assert get_default_registry().has("custom")
 
 
 def test_random_seed_uses_an_empty_registry() -> None:

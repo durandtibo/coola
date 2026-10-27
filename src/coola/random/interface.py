@@ -193,11 +193,9 @@ def get_default_registry() -> RandomManagerRegistry:
         >>> # Registry is ready to use with available random managers
         >>> registry
         RandomManagerRegistry(
-          (state): Registry(
-              (random): RandomRandomManager()
-              (numpy): NumpyRandomManager()
-              (torch): TorchRandomManager()
-            )
+          (random): RandomRandomManager()
+          (numpy): NumpyRandomManager()
+          (torch): TorchRandomManager()
         )
 
         ```

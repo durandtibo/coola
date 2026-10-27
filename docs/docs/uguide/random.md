@@ -205,11 +205,9 @@ The default registry manages all available random managers:
 >>> registry = get_default_registry()
 >>> registry
 RandomManagerRegistry(
-  (state): Registry(
-      (random): RandomRandomManager()
-      (numpy): NumpyRandomManager()
-      (torch): TorchRandomManager()
-    )
+  (random): RandomRandomManager()
+  (numpy): NumpyRandomManager()
+  (torch): TorchRandomManager()
 )
 
 ```
