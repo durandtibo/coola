@@ -328,7 +328,7 @@ def test_recursive_apply_dataclass_registered_as_a_leaf(
     assert recursive_apply(Config(0.1, [1]), type, registry=local_registry) is Config
 
 
-def test_default_registry_dataclass_uses_the_marker() -> None:
+def test_default_registry_dataclass_uses_the_fallback() -> None:
     assert isinstance(get_default_registry().find_transformer(Config), DataclassTransformer)
 
 

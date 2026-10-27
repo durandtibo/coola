@@ -29,8 +29,8 @@ class DataclassTransformer(InlineDisplayMixin, BaseTransformer[Any]):
           become inconsistent with the field it was derived from after
           the function is applied. Register a transformer for the type
           to rebuild it differently.
-        - It is registered for ``DataclassMarker`` in the default
-          registry. A transformer registered for the type of the
+        - It is registered as a fallback for ``dataclasses.is_dataclass``
+          in the default registry. A transformer registered for the type of the
           dataclass has priority; register ``DefaultTransformer`` to
           keep a dataclass as a leaf.
 
