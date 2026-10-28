@@ -111,7 +111,7 @@ validation of `on_duplicate` before any work; the explicit rejection of `str`/`b
 
 ```
 coola.nested
-  flat.py        to_flat_dict, from_flat_dict            one explicit-stack loop + one transformer (_Node)
+  flat.py        to_flat_dict, from_flat_dict            dfs_items (iterator) + one transformer (_Node)
   keys.py        remove_keys_*, add_prefix_suffix_*      one private transformer (_KeyTransformer) + recursive_apply
   mappings.py    merge_mappings, flatten_mapping         plain loops over the top-level mappings, no nesting
   records.py     convert_to_dict_of_lists, ..._of_dicts  plain loops, no nesting
@@ -180,25 +180,28 @@ def _apply(data, **options):
 
 ### 3.2 `flat`
 
-**`to_flat_dict(data, *, prefix=None, separator=".", to_str=None, escape=False)`.** One loop on an
-explicit stack replaces `_flatten_into`, `_check_no_cycle`, `_build_key` and the recursion.
+**`to_flat_dict(data, *, prefix=None, separator=".", to_str=None, escape=False)`** is built on
+`dfs_items` of `coola.iterator` (decision D8: `dfs_items` is made first, as step 0 of section 7).
+`_flatten_into`, `_check_no_cycle`, `_build_key` and the recursion are deleted: the function is the
+join of the paths of the leaves.
 
-- The labels of the children are the only knowledge `nested` must have of the containers, because the
-  traversal packages return the children without their label (`iterator` plans `dfs_items` for that,
-  `review/iterator.md` D9). They are given by one function `_items(data)` of about ten lines:
-  `Mapping` gives `(str(key), value)` (the escape is applied to the label), a non-text `Sequence`
-  gives `(str(i), item)`, a dataclass gives `(field name, value)`, everything else is a leaf. Sets are
-  leaves (documented exception: no index); `bytes`, `bytearray`, `str` and iterators are leaves.
-  Dataclasses are entered, like in every package (behaviour change, F3).
-- **When `dfs_items` exists** (iterator step 8), `_items` and the loop are deleted and
-  `to_flat_dict` is the join of the paths; the only thing it keeps is the empty containers (see the
-  next point). Do not wait for it: the loop is 25 lines.
-- An empty container is kept as the value of its key (`{"a": {}}` gives `{"a": {}}`), as today, so a
-  round trip does not lose it. The root being empty gives `{}`.
-- A cycle raises `ValueError` through the stack of the ancestors of the loop (the shared message of
-  the other engines: "Cycle detected: an object of type ... contains itself").
-- A key collision raises `ValueError` (kept). `to_str` is kept (a leaf type stringified with `str`),
-  `prefix`, `separator`, `to_str`, `escape` are keyword-only (F7).
+- **What `nested` needs from `dfs_items`** (to put in the design of `review/iterator.md` D9, which only
+  says "the path of each leaf"): (1) the path is a tuple of labels from which the raw key, index or
+  field name can be read (`str(label)` of a key is the flat segment; the escape is applied to it);
+  (2) a keyword-only option `empty=True` that also yields an empty container, as `(path, container)`,
+  because an empty container is kept as the value of its key (`{"a": {}}` gives `{"a": {}}`) and the
+  round trip must not lose it (without the option `dfs_items` follows the rule of the package: an
+  empty container has no leaf); (3) the `registry` keyword of the other functions.
+- **The containers are the ones of `iterator`**: mappings, sequences, deques, named tuples, ranges and
+  dataclasses are entered (behaviour change for the dataclasses, F3); `str`, `bytes`, `bytearray` and
+  iterators are leaves. Sets are the one documented exception (no index, so no label): the function
+  uses a registry derived from the default one in which `set` and `frozenset` are leaves. Likewise
+  each type of `to_str` is a leaf of that registry, and the leaf is written with `str()`.
+- The cycle (`ValueError`), the depth (no `RecursionError`) and the order come from the engine of
+  `iterator`, which `to_flat_dict` no longer duplicates.
+- A key collision raises `ValueError` (kept). `to_str` is kept; `prefix`, `separator`, `to_str` and
+  `escape` are keyword-only (F7). The root being a leaf needs a `prefix`, as today (`ValueError`
+  otherwise). The root being empty gives `{}`.
 - `prefix=""` is a prefix like any other (`".a"`). Documented; no special case.
 
 **`from_flat_dict(data, *, separator=".", restore_lists=False, escape=False)`.** The build loop
@@ -270,8 +273,10 @@ equal_nan=False)`.
   already does for text (F9), and accepts any `Sequence` (a generator is not one: `TypeError` that
   names the type instead of the `len` error). **`convert_to_dict_of_lists`** accepts any iterable of
   mappings (it materialises it once), so a generator works.
-- **`get_first_value` is deleted** (F8; decision D1). `next(iter(data.values()))` is the idiom; the
-  error message was the only value.
+- **`get_first_value` moves to `coola.utils.mapping`** (F8; decision D1), next to `sort_by_keys` and
+  `sort_by_values`: it does not look into a nested structure, so it is not a function of `nested`.
+  The signature, the `ValueError` on an empty mapping, the docstring and the tests move with it;
+  `coola.nested` stops exporting it (breaking).
 
 ### 3.5 `polars`: `flatten_frame` (F8, F12)
 
@@ -285,10 +290,11 @@ equal_nan=False)`.
 - Only a `DataFrame` is accepted: a `LazyFrame` raises a `TypeError` that names the type and says
   "call `collect()`" (a lazy frame has no cheap schema, and the row count of an exploded list is only
   known after the evaluation). It is a visible rule instead of a warning at the end of a long chain.
-- The version checks use `coola.utils.version.compare_version` (feature gate on the version where
-  `unnest(separator=...)` and `explode(empty_as_null=...)` appeared) instead of `except TypeError`, so
-  a real `TypeError` propagates. If the minimum supported polars version rises, the two branches are
-  deleted (decision D3).
+- **The supported range stays `polars>=1.0,<3.0`** (decision D3), so the two compatibility branches
+  stay (`unnest(separator=...)` and `explode(empty_as_null=...)` are missing in the old versions).
+  They are selected with `coola.utils.version.compare_version` on the version where each option
+  appeared (looked up in the polars changelog in step 8 and tested with the oldest version in the
+  CI matrix) instead of `except TypeError`, so a real `TypeError` propagates.
 
 ## 4. Public API after the change
 
@@ -310,7 +316,7 @@ from coola.nested import (
 )
 ```
 
-Removed: `get_first_value`, `try_sorted_list` (private), `SetToListTransformer` (private),
+Moved: `get_first_value` to `coola.utils.mapping`. Removed: `try_sorted_list` (private), `SetToListTransformer` (private),
 `coola.nested.polars.{is_nested_struct, unnest_with_separator, unnest_one_level, expand_list_columns}`
 (private), `coola.recursive.KeyFilterTransformer` (moved, private), the positional options, the
 dataclass branch of `coola.utils.conversion.to_jsonable`. The names of the modules (`flat`, `mapping`,
@@ -326,7 +332,7 @@ diff of each step small; the split of section 3 is optional.
 | `coola.io.json` (`save_json`)                   | The docstring already points to `convert_to_jsonable`; no code change.                                                                                                                                                                            |
 | `tests/integration/recursive/test_dataclass.py` | `test_remove_keys_if_dataclass_is_a_leaf` is replaced by `test_remove_keys_if_enters_the_dataclass`; `test_convert_to_jsonable_dataclass_is_converted_whole` stays and gains the set and the tuple of F5.                                         |
 | `tests/package_checks.py`                       | Unchanged (`coola.nested.to_flat_dict`).                                                                                                                                                                                                          |
-| `iterator`                                      | None now. `dfs_items` (D9 of `review/iterator.md`) later replaces `_items` of `to_flat_dict`.                                                                                                                                                     |
+| `iterator`                                      | **Prerequisite (step 0):** `dfs_items` with the labels and the `empty` option of section 3.2 (D9 of `review/iterator.md`).                                                                                                                                                     |
 | Docs                                            | `uguide/nested.md` rewritten (section 7, step 9), `uguide/nested_data.md` (row of `nested` in the table), `dev/architecture.md` (one paragraph), migration page, `refs/nested.md` (the polars function appears through the lazy export).          |
 
 ## 6. Evidence: a prototype
@@ -361,14 +367,15 @@ One branch and one pull request per step (`CLAUDE.md`). The order keeps every st
 
 | Step | Change                                                                                                                                                                                                                                                                                                                                          | Breaking                             |
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| 0    | **Prerequisite, in `coola.iterator` (decision D8).** `dfs_items` with the path labels and the `empty` option required by `to_flat_dict` (section 3.2), following `review/iterator.md` section 3.4 and D9. Additive, with its own tests and benchmark. Steps 1 to 5 and 7 to 9 do not depend on it and can go in parallel. | no |
 | 1    | **Properties first (F13).** Package docstring, **Properties** table of section 1 in the guide, remove "Design Principles", file `to_flat_dict` under its own heading, add `flatten_frame`. Documentation only; statements that the code does not honour yet carry "(from step N)" until the step lands, or the PR is merged after the steps.    | no                                   |
-| 2    | **Keyword-only options and dead API (F7, F8).** Options of the five functions keyword-only, `get_first_value` deleted, `try_sorted_list` and `SetToListTransformer` private, the four polars helpers private, migration notes.                                                                                                                  | yes                                  |
+| 2    | **Keyword-only options and dead API (F7, F8).** Options of the five functions keyword-only, `get_first_value` moved to `coola.utils.mapping`, `try_sorted_list` and `SetToListTransformer` private, the four polars helpers private, migration notes.                                                                                                                  | yes                                  |
 | 3    | **Keys on the engine (F1, F2, F3, F4, F6).** `_KeyTransformer`, `remove_keys_*` and `add_prefix_suffix_to_keys` on `recursive_apply`, type kept, `TypeError` for a non-mapping, `DuplicateKeyError` on a collision, `KeyFilterTransformer` deleted from `recursive`. Regression tests: cycle, 20,000 levels, `OrderedDict` at depth, dataclass. | yes (types, dataclass)               |
 | 4    | **`from_flat_dict` without recursion (F1, F10).** `_Node`, final `recursive_apply`, the `created` set deleted, a caller dict is never converted, `Mapping` annotation. Regression test: 20,000 levels, a dict value kept with `restore_lists`.                                                                                                  | yes (value dicts of the caller kept) |
 | 5    | **`convert_to_jsonable` deterministic (F5).** Dataclass and set transformers, `_sorted_elements`, `to_jsonable` loses the dataclass branch. Regression tests with several `PYTHONHASHSEED` values in `tests/integration/` (a subprocess is the only way to change it).                                                                          | yes                                  |
-| 6    | **`to_flat_dict` on an explicit stack (F1, F2, F3).** One loop and `_items`; dataclasses entered; cycle `ValueError`; keyword-only options (can be merged into step 2). Regression tests: 20,000 levels, a dataclass, a cycle.                                                                                                                  | yes (dataclass entries)              |
+| 6    | **`to_flat_dict` on `dfs_items` (F1, F2, F3).** Needs step 0. The join of the paths, sets and `to_str` types as leaves of a derived registry; dataclasses entered; cycle `ValueError`; keyword-only options (can be merged into step 2). Regression tests: 20,000 levels, a dataclass, a cycle.                                                                                                                  | yes (dataclass entries)              |
 | 7    | **Mappings and records (F9, F11).** `merge_mappings` suffix order-independent, `flatten_mapping` prefix keeps the order, sets rejected by `convert_to_list_of_dicts`, `convert_to_dict_of_lists` takes any iterable. Optional: the split of the modules.                                                                                        | yes (outputs)                        |
-| 8    | **polars (F12).** `flatten_frame` exported lazily and documented, `DataFrame` only, version checks by `compare_version`.                                                                                                                                                                                                                        | yes (`LazyFrame`)                    |
+| 8    | **polars (F12).** `flatten_frame` exported lazily and documented, `DataFrame` only, version checks by `compare_version` (the branches for polars 1.0 stay).                                                                                                                                                                                                                        | yes (`LazyFrame`)                    |
 | 9    | **Documentation.** Rewrite `uguide/nested.md`, the `nested` row of `nested_data.md`, the paragraph of `dev/architecture.md`, the migration page, and the status table of `review/suggestions.md` (items 25.3, 26.2 with the PR numbers).                                                                                                        | no                                   |
 
 ## 8. Tests and gates
@@ -421,7 +428,7 @@ package shrinks to functions that do real work. The cost is one line for the cal
 it costs nothing to maintain, but it is the only function of the package that nobody needs from a
 nested structure.
 
-Decision: move it to coola.utils.mapping
+Decision: move it to `coola.utils.mapping` (not deleted). Reflected in section 3.4, the API list and step 2.
 
 **D2. Own the key transformer in `nested`, or generalise it in `recursive`?** _Recommended: in
 `nested`, private._ `recursive` says "keys are never transformed", and a transformer that renames or
@@ -437,7 +444,7 @@ Decision: follow recommendation
 (`unnest_with_separator`, `_explode`) are deleted, about 25 lines and two untestable branches on
 current CI. If not, keep them behind `compare_version`.
 
-Decision: keep `polars>=1.0,<3.0`
+Decision: keep `polars>=1.0,<3.0`. The compatibility branches stay, behind `compare_version` (section 3.5, step 8).
 
 **D4. Enter dataclasses in `to_flat_dict`, `remove_keys_*` and `add_prefix_suffix_to_keys`?**
 _Recommended: yes._ `nested_data.md` says that a dataclass is a container in every package and
@@ -476,7 +483,7 @@ and fixes the depth, the cycle and the dataclass today, and deleting it when `df
 local change. Alternative: make `dfs_items` first and keep `to_flat_dict` as is; it blocks the fix on
 an unrelated feature.
 
-Decision: make `dfs_items` first
+Decision: make `dfs_items` first. `to_flat_dict` is built on it (section 3.2); the work is split in step 0 (iterator) and step 6 (nested). The design of `dfs_items` has two requirements from `nested`: readable raw labels and an `empty` option.
 
 ## 10. Not covered
 
@@ -498,10 +505,10 @@ Decision: make `dfs_items` first
 
 | Module                | Lines today | Expected after | Why                                                                                                                               |
 | --------------------- | ----------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `flat.py`             | 456         | about 330      | one loop and `_items` instead of `_flatten_into`, `_check_no_cycle`, `_build_key`; `_Node` instead of `created`, `_restore_lists` |
-| `mapping.py`          | 562         | about 450      | `get_first_value`, `_rename_nested_keys`, `_make_key_filter_registry` deleted; `keys.py` added (about 70)                         |
+| `flat.py`             | 456         | about 300      | `dfs_items` instead of `_flatten_into`, `_check_no_cycle`, `_build_key`; `_Node` instead of `created`, `_restore_lists` |
+| `mapping.py`          | 562         | about 450      | `get_first_value` moved to `utils`, `_rename_nested_keys`, `_make_key_filter_registry` deleted; `keys.py` added (about 70)                         |
 | `conversion.py`       | 201         | about 190      | `_sorted_elements` instead of the public helper; the dataclass transformer is added                                               |
-| `polars.py`           | 286         | about 260      | version gates instead of two `try/except TypeError`                                                                               |
+| `polars.py`           | 286         | about 260      | version gates (the old-version branches stay) instead of two `try/except TypeError`                                                                               |
 | `__init__.py`         | 38          | about 55       | the lazy export                                                                                                                   |
 | `recursive/key.py`    | 66          | 0              | moved (private) to `nested.keys`                                                                                                  |
 | `utils/conversion.py` | 149         | about 115      | `_to_jsonable_recursive` and the dataclass branch deleted                                                                         |
