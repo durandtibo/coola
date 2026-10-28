@@ -443,3 +443,22 @@ np.ndarray)` works; a dtype check belongs to the package that owns the array lib
 
 The line counts are estimates from the current docstrings and from the code to delete; the gate is the
 behaviour (sections 1 and 8), not the size.
+
+## Status
+
+| Step | Change                                   | PR    |
+| ---- | ---------------------------------------- | ----- |
+| 1    | Fix the guide (F15)                      | #2555 |
+| 2    | One helper, one message format           | #2556 |
+| 3    | `validate_range`, the empty range        | #2557 |
+| 4    | Delete the synonyms, delete `numeric.py` | #2558 |
+| 5    | Use the package where checks were copied | #2559 |
+| 6    | Tests and benchmark, fast success path   | #2560 |
+| 7    | Documentation                            | #2561 |
+
+Differences from the design that the implementation found: the package has 11 functions, not 14
+(the design counted 14 in its text, its table lists 11); the migration section is in
+`migration/v1.1_to_v2.0.md` (`2.0.0a0` is the current version); `registry._validate_key` is kept
+local as decided; the cost gate (section 8) needed an inline fast path in the bound checks,
+`validate_range`, `validate_finite` and `validate_number`, because a closure and `_compare` on every
+call were 2 to 4 times slower than `main`.

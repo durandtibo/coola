@@ -34,6 +34,8 @@
   convention or reformat code you do not otherwise change.
 - Shared helpers belong in `coola.utils` as public functions (no leading underscore) with their
   own tests, not as private functions imported across modules.
+- Validate an argument with `coola.validation`; do not write `raise ValueError` for a type, range
+  or membership check, and do not add a validator that is one `isinstance` or one comparison.
 - Prefer `LazySingleton` for lazily built process-wide objects, not `functools.cache`.
 - Keep new options keyword-only (`*`), as `hash_object` does.
 - Optional libraries (numpy, torch, pandas, polars, ...) are imported lazily; do not import them

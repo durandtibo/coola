@@ -544,6 +544,25 @@ decoder (ULID and the checksummed identifiers), and the range and type checks co
 canonical form only. See the [user guide](../uguide/identifier.md#properties) for the properties of
 the package.
 
+## Design of `coola.validation`
+
+`coola.validation` is a core package: it imports the standard library only (NumPy scalars are
+supported through the `numbers` ABCs they register with). It has eleven functions in three modules,
+named by what the function checks: `type.py` (`validate_isinstance`, `validate_int`,
+`validate_number`), `comparison.py` (`validate_ge/gt/le/lt`, `validate_range`, `validate_finite`)
+and `container.py` (`validate_not_empty`, `validate_in`). Two private helpers own the invariants:
+`_type_error` builds every `TypeError` and `_compare` evaluates every comparison and builds the
+`TypeError` (incomparable value) or `ValueError` (comparison false), so all the messages have one
+form, `<name> must be <requirement>, got <value!r>`. The success path is inline (a plain comparison
+or an exact type test) and the helpers run on the failure path only, which keeps a call as cheap as
+the code it replaces (`tests/benchmarks/test_validation_benchmark.py`).
+
+The rule for the whole project: validate an argument with `coola.validation`; do not write
+`raise ValueError` for a type, range or membership check, and do not add a validator that is one
+`isinstance` or one comparison (`validate_str(x)` is `validate_isinstance(x, str)`,
+`validate_positive(x)` is `validate_gt(x, 0)`). See the
+[user guide](../uguide/validation.md#properties) for the properties of the package.
+
 ## Design of `coola.hashing`
 
 The package has **one engine, one extension point and one encoding rule**. A hasher only describes
