@@ -16,6 +16,7 @@ from coola.iterator import (
     IterableChildFinder,
     MappingChildFinder,
     bfs_iterate,
+    dfs_items,
     dfs_iterate,
     get_default_child_finder_registry,
     get_default_registry,
@@ -218,3 +219,46 @@ def test_default_child_finder_is_pure(data: Any) -> None:
 def test_default_child_finder_result_is_none_or_iterable(data: Any) -> None:
     children = get_default_registry().find_child_finder(type(data)).find_children(data)
     assert children is None or isinstance(children, Iterable)
+
+
+###############################
+#     Tests for dfs_items     #
+###############################
+
+
+def test_dfs_items() -> None:
+    assert list(dfs_items({"a": 1, "b": [2, {"c": 3}]})) == [
+        (("a",), 1),
+        (("b", 0), 2),
+        (("b", 1, "c"), 3),
+    ]
+
+
+def test_dfs_items_dataclass_labels_are_the_field_names() -> None:
+    assert list(dfs_items(Config(0.1, [1]))) == [(("lr",), 0.1), (("layers", 0), 1)]
+
+
+def test_dfs_items_empty_container_yields_nothing() -> None:
+    assert list(dfs_items({"a": {}})) == []
+
+
+def test_dfs_items_empty_container_with_empty() -> None:
+    assert list(dfs_items({"a": {}}, empty=True)) == [(("a",), {})]
+
+
+def test_dfs_items_is_lazy() -> None:
+    assert next(dfs_items([1, [2]])) == ((0,), 1)
+
+
+def test_dfs_items_uses_the_default_registry() -> None:
+    register_child_finders({Pair: PairChildFinder()})
+    assert list(dfs_items(Pair(1, 2))) == [((0,), 1), ((1,), 2)]
+
+
+def test_dfs_items_uses_the_given_registry_leaf_rule(registry: ChildFinderRegistry) -> None:
+    assert list(dfs_items(Pair(1, [2]), registry=registry)) == [((0,), 1), ((1,), [2])]
+
+
+def test_dfs_items_with_a_registry_without_the_type_as_a_leaf() -> None:
+    registry = ChildFinderRegistry({object: DefaultChildFinder()})
+    assert list(dfs_items([1], registry=registry)) == [((), [1])]

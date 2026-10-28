@@ -4,13 +4,13 @@ from __future__ import annotations
 
 __all__ = ["from_flat_dict", "to_flat_dict"]
 
-from collections.abc import Mapping, Sequence
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
+from coola.iterator import DefaultChildFinder, dfs_items, get_default_registry
 from coola.validation import validate_not_empty
 
-# ``str``, ``bytes`` and ``bytearray`` are sequences, but they are leaves.
-_LEAF_SEQUENCES = (str, bytes, bytearray)
+if TYPE_CHECKING:
+    from coola.iterator import ChildFinderRegistry
 
 
 def from_flat_dict(
@@ -207,10 +207,10 @@ def _set_nested(
 
 def to_flat_dict(
     data: object,
+    *,
     prefix: str | None = None,
     separator: str = ".",
     to_str: type | tuple[type, ...] | None = None,
-    *,
     escape: bool = False,
 ) -> dict[str, Any]:
     r"""Return a flat representation of a nested structure as a dict
@@ -223,10 +223,11 @@ def to_flat_dict(
     keep them apart.
 
     Args:
-        data: The nested structure to flatten. Any ``Mapping`` or
-            non-string, non-bytes ``Sequence`` (including ``range``) is
-            recursed into; everything else, including the sets (they are
-            not ordered, so they have no index), is treated as a leaf value.
+        data: The nested structure to flatten. The containers of
+            ``coola.iterator`` are recursed into (mappings, sequences,
+            dataclasses, ...); ``str``, ``bytes``, iterators and every
+            unknown type are leaves. The sets are leaves too, whatever
+            the registry: they are not ordered, so they have no index.
         prefix: The prefix prepended to each key. ``None`` means no
             prefix; only valid when ``data`` is a mapping or sequence —
             a ``ValueError`` is raised if a bare scalar is passed
@@ -280,119 +281,58 @@ def to_flat_dict(
 
         ```
     """
+    to_str_types = _normalize_to_str(to_str)
+    registry = _make_registry(to_str_types)
     flat: dict[str, Any] = {}
-    _flatten_into(
-        flat=flat,
-        data=data,
-        prefix=prefix,
-        separator=separator,
-        to_str=_normalize_to_str(to_str),
-        ancestors=set(),
-        escape=escape,
-    )
+    for path, value in dfs_items(data, registry=registry, empty=True):
+        if to_str_types and isinstance(value, to_str_types):
+            value = str(value)  # noqa: PLW2901
+            from_to_str = True
+        else:
+            from_to_str = False
+        if not path and prefix is None:
+            if from_to_str:
+                msg = (
+                    f"Cannot create a flat dict entry with a None key. "
+                    f"Provide a prefix when the top-level value is matched by to_str. "
+                    f"Got data={data!r}"
+                )
+                raise ValueError(msg)
+            if registry.find_child_finder(type(value)).find_children(value) is None:
+                msg = (
+                    f"Cannot create a flat dict entry with a None key. "
+                    f"Provide a non-None prefix or pass a mapping/sequence as data. "
+                    f"Got data={data!r}"
+                )
+                raise ValueError(msg)
+            continue  # an empty container at the root has no entry
+        _set_leaf(flat, _build_key(prefix, path, separator, escape=escape), value)
     return flat
 
 
-def _flatten_into(
-    *,
-    flat: dict[str, Any],
-    data: object,
-    prefix: str | None,
-    separator: str,
-    to_str: tuple[type, ...],
-    ancestors: set[int],
-    escape: bool,
-) -> None:
-    """Flatten *data* into the shared output dict *flat*.
+def _make_registry(to_str: tuple[type, ...]) -> ChildFinderRegistry:
+    r"""Make the registry used to flatten the data.
 
-    Every nested level writes directly into the same ``flat`` dict, so
-    flattening is a single pass without intermediate per-level dicts.
+    It is derived from the default registry of ``coola.iterator`` so the
+    containers are the ones of the other packages. The sets (they have
+    no index) and the types of ``to_str`` are leaves.
 
     Args:
-        flat: The output dict (mutated in-place).
-        data: The value to flatten.
-        prefix: The accumulated key path so far, or ``None`` at the
-            root level.
-        separator: The string used to join key segments.
-        to_str: Normalised tuple of types that should be stringified
-            rather than recursed into.
-        ancestors: The ids of the containers being flattened, from the
-            root to ``data``, used to detect the cycles.
-        escape: If ``True``, the separators and the backslashes of the
-            mapping keys are escaped.
+        to_str: The types that are written with ``str()``.
 
-    Raises:
-        ValueError: If a leaf is reached with no key to store it under,
-            or if a container contains itself.
+    Returns:
+        The registry.
     """
-    if isinstance(data, to_str):
-        if prefix is None:
-            msg = (
-                f"Cannot create a flat dict entry with a None key. "
-                f"Provide a prefix when the top-level value is matched by to_str. "
-                f"Got data={data!r}"
-            )
-            raise ValueError(msg)
-        _set_leaf(flat, prefix, str(data))
-    elif (
-        isinstance(data, (Mapping, Sequence)) and not isinstance(data, _LEAF_SEQUENCES) and not data
-    ):
-        # Keep empty containers: they would otherwise vanish from the output.
-        if prefix is not None:
-            _set_leaf(flat, prefix, data)
-    elif isinstance(data, Mapping):
-        _check_no_cycle(data, ancestors)
-        for key, value in cast("Mapping[Any, Any]", data).items():
-            segment = _escape_key(str(key), separator) if escape else str(key)
-            child = _build_key(prefix, segment, separator)
-            _flatten_into(
-                flat=flat,
-                data=value,
-                prefix=child,
-                separator=separator,
-                to_str=to_str,
-                ancestors=ancestors,
-                escape=escape,
-            )
-        ancestors.remove(id(data))
-    # str, bytes and bytearray are Sequences, so they must be excluded before
-    # the Sequence check to avoid iterating over individual characters or bytes.
-    elif isinstance(data, Sequence) and not isinstance(data, _LEAF_SEQUENCES):
-        _check_no_cycle(data, ancestors)
-        for i, value in enumerate(cast("Sequence[Any]", data)):
-            child = _build_key(prefix, str(i), separator)
-            _flatten_into(
-                flat=flat,
-                data=value,
-                prefix=child,
-                separator=separator,
-                to_str=to_str,
-                ancestors=ancestors,
-                escape=escape,
-            )
-        ancestors.remove(id(data))
-    elif prefix is None:
-        msg = (
-            f"Cannot create a flat dict entry with a None key. "
-            f"Provide a non-None prefix or pass a mapping/sequence as data. "
-            f"Got data={data!r}"
-        )
-        raise ValueError(msg)
-    else:
-        _set_leaf(flat, prefix, data)
-
-
-def _check_no_cycle(data: object, ancestors: set[int]) -> None:
-    """Add *data* to the ancestors, refusing a container that contains
-    itself.
-
-    Raises:
-        ValueError: If *data* is already one of its ancestors.
-    """
-    if id(data) in ancestors:
-        msg = f"Cycle detected: an object of type {type(data)} contains itself"
-        raise ValueError(msg)
-    ancestors.add(id(data))
+    registry = get_default_registry().copy()
+    leaf = DefaultChildFinder()
+    for data_type in (set, frozenset, *to_str):
+        registry.register(data_type, leaf, exist_ok=True)
+    if to_str:
+        # A registered subclass of a ``to_str`` type is more specific, so it must be a leaf too.
+        for data_type in list(registry.keys()):
+            if issubclass(data_type, to_str):
+                registry.register(data_type, leaf, exist_ok=True)
+    return registry
 
 
 def _set_leaf(flat: dict[str, Any], key: str, value: Any) -> None:
@@ -435,22 +375,22 @@ def _normalize_to_str(to_str: type | tuple[type, ...] | None) -> tuple[type, ...
     return tuple(to_str)  # handles lists or other iterables defensively
 
 
-def _build_key(prefix: str | None, child: str, separator: str) -> str:
-    """Join a parent prefix and a child key segment with the separator.
-
-    If ``prefix`` is ``None`` (i.e. we are at the root level with no
-    enclosing key), the child segment is returned as-is.  Otherwise
-    ``prefix``, ``separator``, and ``child`` are concatenated to form
-    the full dotted path.
+def _build_key(prefix: str | None, path: tuple[Any, ...], separator: str, *, escape: bool) -> str:
+    """Join a prefix and the labels of a path with the separator.
 
     Args:
-        prefix: The accumulated key path so far, or ``None`` at the
-            root level.
-        child: The next key segment to append (a mapping key or a
-            sequence index as a string).
-        separator: The string used to join path segments.
+        prefix: The prefix of the key, or ``None`` for no prefix. It is
+            used as it is.
+        path: The labels of the containers crossed to reach the leaf: a
+            key, an index or the name of a field.
+        separator: The string used to join the segments.
+        escape: If ``True``, the separators and the backslashes of the
+            labels are escaped.
 
     Returns:
-        The combined key path as a string.
+        The key.
     """
-    return f"{prefix}{separator}{child}" if prefix is not None else child
+    segments = [_escape_key(str(label), separator) if escape else str(label) for label in path]
+    if prefix is not None:
+        segments.insert(0, prefix)
+    return separator.join(segments)

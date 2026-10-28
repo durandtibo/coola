@@ -10,9 +10,10 @@ call.
 
 from __future__ import annotations
 
-__all__ = ["breadth_first", "depth_first"]
+__all__ = ["breadth_first", "depth_first", "depth_first_items"]
 
 from collections import deque
+from itertools import chain
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -21,9 +22,27 @@ if TYPE_CHECKING:
     from coola.iterator.registry import ChildFinderRegistry
 
 
+def _get_method(finder: Any, method: str) -> Callable[[Any], Iterable[Any] | None]:
+    r"""Get a method of a child finder.
+
+    A child finder that follows the ``ChildFinder`` protocol has no
+    ``find_items`` method: its children are numbered.
+    """
+    find = getattr(finder, method, None)
+    if find is not None:
+        return find
+
+    def find_items(data: Any) -> Iterable[Any] | None:
+        children = finder.find_children(data)
+        return None if children is None else enumerate(children)
+
+    return find_items
+
+
 def _make_find(
     registry: ChildFinderRegistry,
     cache: dict[type, Callable[[Any], Iterable[Any] | None]],
+    method: str = "find_children",
 ) -> Callable[[Any], Iterable[Any] | None]:
     r"""Create a function that finds the children of an object.
 
@@ -32,9 +51,10 @@ def _make_find(
 
     Args:
         registry: The registry used to resolve the child finders.
-        cache: The ``find_children`` method of the types already
-            resolved in this call. It is filled by the returned
-            function.
+        cache: The method of the types already resolved in this
+            call. It is filled by the returned function.
+        method: The name of the method of the child finder to use,
+            ``"find_children"`` or ``"find_items"``.
 
     Returns:
         A function that returns the children of an object, or ``None``
@@ -46,7 +66,8 @@ def _make_find(
         try:
             find_children = cache[data_type]
         except KeyError:
-            find_children = cache[data_type] = registry.find_child_finder(data_type).find_children
+            finder = registry.find_child_finder(data_type)
+            find_children = cache[data_type] = _get_method(finder, method)
         return find_children(data)
 
     return find
@@ -143,3 +164,76 @@ def breadth_first(data: object, registry: ChildFinderRegistry) -> Iterator[Any]:
         expanded.add(id(item))
         chain = (item, chain)
         queue.extend((child, chain) for child in children)
+
+
+_END = object()
+
+
+def _peek(items: Iterable[Any]) -> Iterator[Any] | None:
+    r"""Return an iterator over the items, or ``None`` if there is no
+    item."""
+    iterator = iter(items)
+    first = next(iterator, _END)
+    if first is _END:
+        return None
+    return chain((first,), iterator)
+
+
+def depth_first_items(
+    data: object, registry: ChildFinderRegistry, *, empty: bool = False
+) -> Iterator[tuple[tuple[Any, ...], Any]]:
+    r"""Yield the leaves of nested data with their path, in depth-first
+    (pre-order) order.
+
+    It visits the same leaves, in the same order, as ``depth_first``.
+    The path is the tuple of the labels of the containers to cross to
+    reach the leaf.
+
+    Args:
+        data: The nested data to traverse.
+        registry: The registry used to resolve the child finders.
+        empty: If ``True``, an empty container is also yielded, as a
+            leaf.
+
+    Yields:
+        The pairs ``(path, leaf)`` of ``data``, once per occurrence.
+
+    Raises:
+        ValueError: If a container contains itself.
+    """
+    find = _make_find(registry, {}, "find_items")
+    items = find(data)
+    iterator = None if items is None else _peek(items)
+    if iterator is None:
+        # A leaf, or an empty container
+        if items is None or empty:
+            yield (), data
+        return
+    # The containers on the path are kept in the stack, so their ids cannot be reused.
+    ancestors = {id(data)}
+    stack = [(data, iterator)]
+    # ``labels[i]`` is the label of the child of ``stack[i]`` that is being visited.
+    labels: list[Any] = []
+    while stack:
+        owner, iterator = stack[-1]
+        for label, item in iterator:
+            children = find(item)
+            if children is None:
+                yield (*labels, label), item
+                continue
+            if id(item) in ancestors:
+                raise _cycle_error(item)
+            iterator = _peek(children)
+            if iterator is None:
+                if empty:
+                    yield (*labels, label), item
+                continue
+            ancestors.add(id(item))
+            labels.append(label)
+            stack.append((item, iterator))
+            break
+        else:
+            stack.pop()
+            ancestors.discard(id(owner))
+            if labels:
+                labels.pop()
