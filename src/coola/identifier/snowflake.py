@@ -12,25 +12,13 @@ the worker/shard that minted them.
 
 from __future__ import annotations
 
-__all__ = [
-    "SnowflakeIdGenerator",
-    "extract_snowflake_timestamp_ms",
-    "generate_snowflake_id",
-]
+__all__ = ["SnowflakeIdGenerator", "extract_snowflake_timestamp_ms"]
 
 import secrets
-import threading
-import time
 
+from coola.identifier.sequence import TickSequence
 from coola.utils.fork import track_fork
-from coola.utils.singleton import LazySingleton
 from coola.validation import validate_closed_range, validate_int
-
-# Sleep briefly between spins while waiting for the next millisecond, to
-# avoid busy-waiting a full CPU core (and holding the lock) at 100%
-# utilization when the per-millisecond sequence is exhausted.
-_SPIN_SLEEP_S = 0.0001
-
 
 # Custom epoch (2024-01-01T00:00:00Z, in ms since the Unix epoch) so the
 # 41-bit timestamp field does not waste bits on years before this
@@ -46,6 +34,8 @@ _MAX_TIMESTAMP_MS = _EPOCH_MS + (1 << _TIMESTAMP_BITS) - 1
 _MAX_WORKER_ID = (1 << _WORKER_ID_BITS) - 1
 _MAX_SEQUENCE = (1 << _SEQUENCE_BITS) - 1
 
+_MAX_SNOWFLAKE_ID = (1 << (_TIMESTAMP_BITS + _WORKER_ID_BITS + _SEQUENCE_BITS)) - 1
+
 _WORKER_ID_SHIFT = _SEQUENCE_BITS
 _TIMESTAMP_SHIFT = _SEQUENCE_BITS + _WORKER_ID_BITS
 
@@ -53,47 +43,48 @@ _TIMESTAMP_SHIFT = _SEQUENCE_BITS + _WORKER_ID_BITS
 class SnowflakeIdGenerator:
     r"""Generate Snowflake-style 64-bit identifiers.
 
-    All the state needed to mint monotonically increasing IDs (the
-    last timestamp seen and the current sequence number) lives on the
-    instance rather than at module scope, so each generator is
-    independent: create one per worker/shard/test instead of sharing
-    mutable global state.
+    An ID packs a 41-bit millisecond timestamp (counted from
+    2024-01-01), the 10-bit ``worker_id`` of the generator and a 12-bit
+    sequence number into an integer of at most 63 bits. IDs minted with
+    the current time are strictly increasing within a generator, from
+    any number of threads. The generator never raises or sleeps because
+    of the clock: when more than 4,096 IDs are requested in the same
+    millisecond, or when the clock moves backward, the timestamp is kept
+    (or advanced by one millisecond) and the sequence goes on, so the
+    timestamp of the IDs may run ahead of the clock until the clock
+    catches up.
+
+    Create one generator per process (or worker) and share it: the state
+    is per generator, and there is no module-level generator because the
+    ``worker_id`` can only be chosen by the caller.
 
     Warning:
         The uniqueness of the IDs across processes comes from the
-        ``worker_id`` passed to ``generate``, not from random values.
-        Two processes that use the same ``worker_id`` (the default is
-        ``0``) can generate the same ID in the same millisecond. This
-        includes the children of a fork, which inherit the state of
-        the generator of their parent: give each process or worker a
-        distinct ``worker_id``.
+        ``worker_id``, not from random values. Two generators that use
+        the same ``worker_id`` can mint the same ID in the same
+        millisecond. Assigning the worker numbers is the job of the
+        caller (a database row, an environment variable, ...).
 
     Note:
-        If the system clock moves backward, ``generate`` raises a
-        ``RuntimeError`` instead of waiting for the clock to catch up
-        (the wait could be unbounded). The state of the generator is
-        not modified by the failed call.
+        A generator cannot be used in the child process of a fork
+        (``os.fork``, or ``multiprocessing`` with the ``fork`` start
+        method): the child would continue the sequence of its parent
+        with the same ``worker_id``. ``generate`` raises a
+        ``RuntimeError`` in the child, which has to create a generator
+        with its own ``worker_id``.
 
     Args:
-        last_timestamp_ms: The millisecond timestamp of the last ID
-            minted by this generator, or ``-1`` (default) if none has
-            been minted yet. Pass the value persisted from a previous
-            instance (e.g. across a process restart) together with
-            ``sequence`` to preserve the monotonically increasing
-            guarantee; leave at the default for a fresh generator.
-        sequence: The sequence number of the last ID minted for
-            ``last_timestamp_ms``. Ignored (treated as ``0``) when
-            ``last_timestamp_ms`` is ``-1``.
+        worker_id: The worker ID, in ``[0, 1023]``, written in every ID.
 
     Raises:
-        ValueError: If ``last_timestamp_ms`` is not ``-1`` and does
-            not fit in 41 bits, or if ``sequence`` does not fit in 12
-            bits.
+        TypeError: If ``worker_id`` is not an ``int`` (a ``bool`` is
+            rejected).
+        ValueError: If ``worker_id`` does not fit in 10 bits.
 
     Example:
         ```pycon
         >>> from coola.identifier import SnowflakeIdGenerator
-        >>> generator = SnowflakeIdGenerator()
+        >>> generator = SnowflakeIdGenerator(worker_id=3)
         >>> snowflake_id = generator.generate()
         >>> isinstance(snowflake_id, int)
         True
@@ -101,215 +92,71 @@ class SnowflakeIdGenerator:
         ```
     """
 
-    def __init__(self, last_timestamp_ms: int = -1, sequence: int = 0) -> None:
-        if last_timestamp_ms != -1:
-            # last_timestamp_ms is an absolute Unix ms timestamp (like
-            # time.time_ns() // 1_000_000), not one already shifted by
-            # _EPOCH_MS, so it must fit in 41 bits only once the epoch
-            # is subtracted back out, matching what `generate` does
-            # when packing the returned integer.
-            validate_int(last_timestamp_ms, name="last_timestamp_ms")
-            validate_closed_range(
-                last_timestamp_ms, _EPOCH_MS, _MAX_TIMESTAMP_MS, name="last_timestamp_ms"
-            )
-        validate_int(sequence, name="sequence")
-        validate_closed_range(sequence, 0, _MAX_SEQUENCE, name="sequence")
-        self._lock = threading.Lock()
-        self._last_timestamp_ms = last_timestamp_ms
-        self._sequence = sequence
+    def __init__(self, *, worker_id: int) -> None:
+        validate_int(worker_id, name="worker_id")
+        validate_closed_range(worker_id, 0, _MAX_WORKER_ID, name="worker_id")
+        self._worker_id = worker_id
+        self._sequence = TickSequence(bits=_SEQUENCE_BITS, random_start=False)
+        self._forked = False
         track_fork(self)
 
     def _reset_after_fork(self) -> None:
-        r"""Recreate the lock in a forked child process.
+        # The child would continue the sequence of its parent with the same worker id.
+        self._forked = True
 
-        The lock may have been held by a thread that does not exist in
-        the child process, which would block it forever. The timestamp
-        and the sequence are kept: a Snowflake ID is made unique across
-        processes by its ``worker_id``, not by random values.
-        """
-        self._lock = threading.Lock()
-
-    def generate(self, worker_id: int = 0, timestamp_ms: int | None = None) -> int:
+    def generate(self, *, timestamp_ms: int | None = None) -> int:
         r"""Generate a Snowflake-style 64-bit identifier.
 
-        The returned integer is composed of a 41-bit millisecond
-        timestamp (relative to a fixed epoch), a 10-bit ``worker_id``,
-        and a 12-bit sequence number that increments for IDs minted
-        within the same millisecond by this generator. Because the
-        timestamp is the most significant part, IDs generated later
-        are numerically greater than IDs generated earlier (from the
-        same, or an earlier, millisecond).
-
-        Note:
-            The sequence counter is local to this generator instance:
-            it guarantees uniqueness for calls made on this instance
-            for a given ``worker_id``, not across other instances or
-            processes. Assign each concurrently running generator (one
-            per process or shard, typically) a distinct ``worker_id``
-            to avoid collisions between them.
-
         Args:
-            worker_id: An identifier for the process or shard minting
-                the ID, used to avoid collisions between concurrent
-                generators. Must fit in 10 bits (``0`` to ``1023``).
-                Defaults to ``0``, which is fine for a single-process
-                use case.
             timestamp_ms: The Unix timestamp in milliseconds to encode.
-                If ``None`` (default), the current time is used.
-                Exposed mainly for deterministic testing. An explicit
-                timestamp does not update the state of the generator,
-                and the sequence number is random instead of
-                incrementing, so such IDs are neither monotonic nor
-                guaranteed to be unique.
+                If ``None`` (default), the current time is used and the
+                IDs are strictly increasing. An explicit timestamp is
+                for tests and backfills: it does not touch the state of
+                the generator and the sequence part is random, so such
+                IDs are neither ordered nor guaranteed to be unique.
 
         Returns:
-            A 64-bit non-negative integer, monotonically increasing
-            for successive calls with the same ``worker_id`` (as long
-            as the system clock does not move backward).
+            A non-negative integer of at most 63 bits.
 
         Raises:
-            ValueError: If ``worker_id`` does not fit in 10 bits, or if
-                ``timestamp_ms`` (relative to the fixed epoch) does not
-                fit in 41 bits.
-            RuntimeError: If the system clock moved backward relative
-                to the last call, which would otherwise risk
-                generating a duplicate or decreasing ID.
+            RuntimeError: If the generator is used in the child
+                process of a fork.
+            TypeError: If ``timestamp_ms`` is not an ``int`` (a
+                ``bool`` is rejected).
+            ValueError: If ``timestamp_ms`` is before 2024-01-01 or
+                after the last millisecond of the 41-bit field.
 
         Example:
             ```pycon
             >>> from coola.identifier import SnowflakeIdGenerator
-            >>> generator = SnowflakeIdGenerator()
-            >>> snowflake_id = generator.generate(worker_id=3)
+            >>> generator = SnowflakeIdGenerator(worker_id=3)
+            >>> snowflake_id = generator.generate()
             >>> isinstance(snowflake_id, int)
             True
 
             ```
         """
-        validate_int(worker_id, name="worker_id")
-        validate_closed_range(worker_id, 0, _MAX_WORKER_ID, name="worker_id")
-
-        with self._lock:
-            if timestamp_ms is not None:
-                # An explicit timestamp does not touch the state of the
-                # generator (a future value would make every later call
-                # fail with "clock moved backward"), so the sequence is
-                # random, like the random part of ``generate_ulid``.
-                validate_int(timestamp_ms, name="timestamp_ms")
+        if self._forked:
+            msg = (
+                "SnowflakeIdGenerator cannot be used in a forked process: "
+                "create one with its own worker_id"
+            )
+            raise RuntimeError(msg)
+        if timestamp_ms is None:
+            timestamp_ms, sequence = self._sequence.next()
+            if not _EPOCH_MS <= timestamp_ms <= _MAX_TIMESTAMP_MS:
                 validate_closed_range(
                     timestamp_ms, _EPOCH_MS, _MAX_TIMESTAMP_MS, name="timestamp_ms"
                 )
-                return (
-                    ((timestamp_ms - _EPOCH_MS) << _TIMESTAMP_SHIFT)
-                    | (worker_id << _WORKER_ID_SHIFT)
-                    | secrets.randbits(_SEQUENCE_BITS)
-                )
-            timestamp_ms = time.time_ns() // 1_000_000
+        else:
+            validate_int(timestamp_ms, name="timestamp_ms")
             validate_closed_range(timestamp_ms, _EPOCH_MS, _MAX_TIMESTAMP_MS, name="timestamp_ms")
-            if timestamp_ms < self._last_timestamp_ms:
-                msg = (
-                    f"clock moved backward: last timestamp was {self._last_timestamp_ms} ms, "
-                    f"got {timestamp_ms} ms"
-                )
-                raise RuntimeError(msg)
-            if timestamp_ms == self._last_timestamp_ms:
-                self._sequence = (self._sequence + 1) & _MAX_SEQUENCE
-                if self._sequence == 0:
-                    # Sequence exhausted for this millisecond: spin-wait
-                    # for the next one so the ID stays monotonically
-                    # increasing. The lock is held during the wait (at
-                    # most one millisecond): releasing it without
-                    # committing a timestamp lets another thread mint a
-                    # (timestamp, sequence) pair this call already used.
-                    # Re-check for backward clock movement on every spin,
-                    # since the clock could jump backward while this loop
-                    # is running, which would otherwise spin forever.
-                    last_timestamp_ms = self._last_timestamp_ms
-                    while timestamp_ms <= last_timestamp_ms:
-                        time.sleep(_SPIN_SLEEP_S)
-                        timestamp_ms = time.time_ns() // 1_000_000
-                        if timestamp_ms < last_timestamp_ms:
-                            # The sequence wrapped to 0 above, but no ID was minted: put
-                            # it back, otherwise the next call at the same millisecond
-                            # (once the clock is back) would mint again the IDs of the
-                            # sequence numbers 1, 2, ... that were already used.
-                            self._sequence = _MAX_SEQUENCE
-                            msg = (
-                                f"clock moved backward: last timestamp was "
-                                f"{last_timestamp_ms} ms, got {timestamp_ms} ms"
-                            )
-                            raise RuntimeError(msg)
-                    # timestamp_ms is now strictly greater than the last
-                    # timestamp, so the sequence restarts at 0.
-                    self._sequence = 0
-            else:
-                self._sequence = 0
-            self._last_timestamp_ms = timestamp_ms
-            sequence = self._sequence
-
+            sequence = secrets.randbits(_SEQUENCE_BITS)
         return (
             ((timestamp_ms - _EPOCH_MS) << _TIMESTAMP_SHIFT)
-            | (worker_id << _WORKER_ID_SHIFT)
+            | (self._worker_id << _WORKER_ID_SHIFT)
             | sequence
         )
-
-
-_default_generator: LazySingleton[SnowflakeIdGenerator] = LazySingleton(SnowflakeIdGenerator)
-
-
-def get_default_generator() -> SnowflakeIdGenerator:
-    r"""Get or create the default, process-wide generator backing
-    ``generate_snowflake_id``.
-
-    Returns a singleton ``SnowflakeIdGenerator`` instance shared by
-    every call to ``generate_snowflake_id``. Uses the same lazy,
-    ``LazySingleton`` pattern, so concurrent first calls
-    build a single generator.
-
-    Returns:
-        The shared, process-wide ``SnowflakeIdGenerator`` instance.
-    """
-    return _default_generator.get()
-
-
-def generate_snowflake_id(worker_id: int = 0, timestamp_ms: int | None = None) -> int:
-    r"""Generate a Snowflake-style 64-bit identifier.
-
-    Convenience wrapper around a shared, process-wide
-    ``SnowflakeIdGenerator`` instance. Use ``SnowflakeIdGenerator``
-    directly if you need multiple independent generators (e.g. one per
-    worker) or want to avoid sharing state through a module-level
-    singleton.
-
-    Args:
-        worker_id: An identifier for the process or shard minting the
-            ID, used to avoid collisions between concurrent generators.
-            Must fit in 10 bits (``0`` to ``1023``). Defaults to ``0``,
-            which is fine for a single-process use case.
-        timestamp_ms: The Unix timestamp in milliseconds to encode. If
-            ``None`` (default), the current time is used. Exposed
-            mainly for deterministic testing.
-
-    Returns:
-        A 64-bit non-negative integer, monotonically increasing for
-        successive calls with the same ``worker_id`` (as long as the
-        system clock does not move backward).
-
-    Raises:
-        ValueError: If ``worker_id`` does not fit in 10 bits.
-        RuntimeError: If the system clock moved backward relative to
-            the last call, which would otherwise risk generating a
-            duplicate or decreasing ID.
-
-    Example:
-        ```pycon
-        >>> from coola.identifier import generate_snowflake_id
-        >>> snowflake_id = generate_snowflake_id()
-        >>> isinstance(snowflake_id, int)
-        True
-
-        ```
-    """
-    return get_default_generator().generate(worker_id=worker_id, timestamp_ms=timestamp_ms)
 
 
 def extract_snowflake_timestamp_ms(snowflake_id: int) -> int:
@@ -317,14 +164,13 @@ def extract_snowflake_timestamp_ms(snowflake_id: int) -> int:
     identifier.
 
     Inverse of the encoding done by ``SnowflakeIdGenerator.generate``
-    (and ``generate_snowflake_id``): shifts out the worker ID and
+    : shifts out the worker ID and
     sequence fields and adds back the fixed epoch that was subtracted
     when the ID was minted.
 
     Args:
         snowflake_id: The identifier previously returned by
-            ``SnowflakeIdGenerator.generate`` or
-            ``generate_snowflake_id``.
+            ``SnowflakeIdGenerator.generate``.
 
     Returns:
         The Unix timestamp, in milliseconds, that was encoded in
@@ -338,18 +184,16 @@ def extract_snowflake_timestamp_ms(snowflake_id: int) -> int:
 
     Example:
         ```pycon
-        >>> from coola.identifier import extract_snowflake_timestamp_ms, generate_snowflake_id
-        >>> snowflake_id = generate_snowflake_id()
-        >>> isinstance(extract_snowflake_timestamp_ms(snowflake_id), int)
-        True
+        >>> from coola.identifier import SnowflakeIdGenerator, extract_snowflake_timestamp_ms
+        >>> snowflake_id = SnowflakeIdGenerator(worker_id=3).generate(timestamp_ms=1704067200000)
+        >>> extract_snowflake_timestamp_ms(snowflake_id)
+        1704067200000
 
         ```
     """
-    validate_int(snowflake_id, name="snowflake_id")
-    validate_closed_range(
-        snowflake_id,
-        0,
-        (1 << (_TIMESTAMP_BITS + _WORKER_ID_BITS + _SEQUENCE_BITS)) - 1,
-        name="snowflake_id",
-    )
+    # The validators cost more than the shift: they only run for an input that is not a plain
+    # ``int`` of 63 bits, to raise the error.
+    if not (type(snowflake_id) is int and 0 <= snowflake_id <= _MAX_SNOWFLAKE_ID):
+        validate_int(snowflake_id, name="snowflake_id")
+        validate_closed_range(snowflake_id, 0, _MAX_SNOWFLAKE_ID, name="snowflake_id")
     return (snowflake_id >> _TIMESTAMP_SHIFT) + _EPOCH_MS
