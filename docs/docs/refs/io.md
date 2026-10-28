@@ -4,4 +4,3 @@
 ::: coola.io.pickle
 ::: coola.io.text
 ::: coola.io.torch
-::: coola.io.utils

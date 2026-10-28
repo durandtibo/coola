@@ -14,7 +14,6 @@ __all__ = [
     "TextSaver",
     "TorchLoader",
     "TorchSaver",
-    "add_uuid_suffix",
     "is_loader_config",
     "is_saver_config",
     "load_json",
@@ -43,7 +42,6 @@ from coola.io.base import (
 from coola.io.json import JsonLoader, JsonSaver, load_json, save_json
 from coola.io.pickle import PickleLoader, PickleSaver, load_pickle, save_pickle
 from coola.io.text import TextLoader, TextSaver, load_text, save_text
-from coola.io.utils import add_uuid_suffix
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
