@@ -8,6 +8,8 @@ import math
 import numbers
 from typing import Any
 
+from coola.validation.type import _type_error
+
 
 def validate_finite(value: float, *, name: str = "value") -> None:
     r"""Validate that ``value`` is finite (neither infinite nor NaN).
@@ -17,7 +19,7 @@ def validate_finite(value: float, *, name: str = "value") -> None:
         name: The name of the value, used in the error message.
 
     Raises:
-        TypeError: If ``value`` is not a number.
+        TypeError: If ``value`` is not a real number (``bool`` is rejected).
         ValueError: If ``value`` is infinite or NaN.
 
     Example:
@@ -28,8 +30,9 @@ def validate_finite(value: float, *, name: str = "value") -> None:
         ```
     """
     # An int is always finite, but ``math.isfinite`` overflows for the huge ones.
+    validate_number(value, name=name)
     if not isinstance(value, int) and not math.isfinite(value):
-        msg = f"{name} must be finite, got {value}"
+        msg = f"{name} must be finite, got {value!r}"
         raise ValueError(msg)
 
 
@@ -56,5 +59,4 @@ def validate_number(value: Any, *, name: str = "value") -> None:
         ```
     """
     if not isinstance(value, numbers.Real) or isinstance(value, bool):
-        msg = f"{name} must be a real number, got {type(value)}"
-        raise TypeError(msg)
+        _type_error(value, "a real number", name)

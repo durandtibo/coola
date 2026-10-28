@@ -16,38 +16,37 @@ __all__ = [
     "validate_positive",
 ]
 
-import operator
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def _check(
-    compare: Callable[[Any, Any], Any], value: Any, bound: Any, name: str, requirement: str
+def _compare(
+    test: Callable[[Any], Any], value: Any, bounds: str, name: str, requirement: str
 ) -> None:
-    r"""Check a comparison and raise a clear error if it fails.
+    r"""Evaluate a comparison and raise a clear error if it fails.
 
     Args:
-        compare: The comparison function (e.g. ``operator.ge``).
+        test: The function that evaluates the comparison of a value.
         value: The value to validate.
-        bound: The bound to compare ``value`` with.
+        bounds: The representation of the bounds, used in the error message.
         name: The name of the value, used in the error message.
         requirement: The requirement, used in the error message.
 
     Raises:
-        TypeError: If ``value`` cannot be compared with ``bound`` (for
+        TypeError: If ``value`` cannot be compared with the bounds (for
             example ``None``, a ``str`` or an array with several items).
         ValueError: If the comparison is false (or ``value`` is NaN).
     """
     try:
-        is_valid = bool(compare(value, bound))
+        is_valid = bool(test(value))
     except (TypeError, ValueError) as exc:
         # ValueError: the truth value of an array with several items is ambiguous.
-        msg = f"{name} must be a number that can be compared with {bound}, got {value!r}"
+        msg = f"{name} cannot be compared with {bounds}, got {value!r}"
         raise TypeError(msg) from exc
     if not is_valid:
-        msg = f"{name} must be {requirement}, got {value}"
+        msg = f"{name} must be {requirement}, got {value!r}"
         raise ValueError(msg)
 
 
@@ -71,7 +70,7 @@ def validate_ge(value: Any, low: Any, *, name: str = "value") -> None:
 
         ```
     """
-    _check(operator.ge, value, low, name, f"greater than or equal to {low}")
+    _compare(lambda v: v >= low, value, repr(low), name, f"greater than or equal to {low!r}")
 
 
 def validate_gt(value: Any, low: Any, *, name: str = "value") -> None:
@@ -94,7 +93,7 @@ def validate_gt(value: Any, low: Any, *, name: str = "value") -> None:
 
         ```
     """
-    _check(operator.gt, value, low, name, f"greater than {low}")
+    _compare(lambda v: v > low, value, repr(low), name, f"greater than {low!r}")
 
 
 def validate_le(value: Any, high: Any, *, name: str = "value") -> None:
@@ -117,7 +116,7 @@ def validate_le(value: Any, high: Any, *, name: str = "value") -> None:
 
         ```
     """
-    _check(operator.le, value, high, name, f"less than or equal to {high}")
+    _compare(lambda v: v <= high, value, repr(high), name, f"less than or equal to {high!r}")
 
 
 def validate_lt(value: Any, high: Any, *, name: str = "value") -> None:
@@ -140,7 +139,7 @@ def validate_lt(value: Any, high: Any, *, name: str = "value") -> None:
 
         ```
     """
-    _check(operator.lt, value, high, name, f"less than {high}")
+    _compare(lambda v: v < high, value, repr(high), name, f"less than {high!r}")
 
 
 def validate_non_negative(value: Any, *, name: str = "value") -> None:
@@ -162,7 +161,7 @@ def validate_non_negative(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    _check(operator.ge, value, 0, name, "non-negative")
+    _compare(lambda v: v >= 0, value, "0", name, "non-negative")
 
 
 def validate_positive(value: Any, *, name: str = "value") -> None:
@@ -184,7 +183,7 @@ def validate_positive(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    _check(operator.gt, value, 0, name, "positive")
+    _compare(lambda v: v > 0, value, "0", name, "positive")
 
 
 def validate_negative(value: Any, *, name: str = "value") -> None:
@@ -206,7 +205,7 @@ def validate_negative(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    _check(operator.lt, value, 0, name, "negative")
+    _compare(lambda v: v < 0, value, "0", name, "negative")
 
 
 def validate_non_positive(value: Any, *, name: str = "value") -> None:
@@ -228,39 +227,7 @@ def validate_non_positive(value: Any, *, name: str = "value") -> None:
 
         ```
     """
-    _check(operator.le, value, 0, name, "non-positive")
-
-
-def _check_range(
-    value: Any, low: Any, high: Any, name: str, requirement: str, *, low_open: bool, high_open: bool
-) -> None:
-    r"""Check that a value is in a range and raise a clear error if it is
-    not.
-
-    Args:
-        value: The value to validate.
-        low: The lower bound.
-        high: The upper bound.
-        name: The name of the value, used in the error message.
-        requirement: The requirement, used in the error message.
-        low_open: If ``True``, the lower bound is excluded.
-        high_open: If ``True``, the upper bound is excluded.
-
-    Raises:
-        TypeError: If ``value`` cannot be compared with the bounds.
-        ValueError: If ``value`` is not in the range (or is NaN).
-    """
-    lower = operator.gt if low_open else operator.ge
-    upper = operator.lt if high_open else operator.le
-    try:
-        is_valid = bool(lower(value, low)) and bool(upper(value, high))
-    except (TypeError, ValueError) as exc:
-        # ValueError: the truth value of an array with several items is ambiguous.
-        msg = f"{name} must be a number that can be compared with {low} and {high}, got {value!r}"
-        raise TypeError(msg) from exc
-    if not is_valid:
-        msg = f"{name} must be {requirement}, got {value}"
-        raise ValueError(msg)
+    _compare(lambda v: v <= 0, value, "0", name, "non-positive")
 
 
 def validate_open_range(value: Any, low: Any, high: Any, *, name: str = "value") -> None:
@@ -285,14 +252,12 @@ def validate_open_range(value: Any, low: Any, high: Any, *, name: str = "value")
 
         ```
     """
-    _check_range(
+    _compare(
+        lambda v: low < v < high,
         value,
-        low,
-        high,
+        f"{low!r} and {high!r}",
         name,
-        f"in the open range ({low}, {high})",
-        low_open=True,
-        high_open=True,
+        f"in the open range ({low!r}, {high!r})",
     )
 
 
@@ -318,14 +283,12 @@ def validate_closed_range(value: Any, low: Any, high: Any, *, name: str = "value
 
         ```
     """
-    _check_range(
+    _compare(
+        lambda v: low <= v <= high,
         value,
-        low,
-        high,
+        f"{low!r} and {high!r}",
         name,
-        f"in the closed range [{low}, {high}]",
-        low_open=False,
-        high_open=False,
+        f"in the closed range [{low!r}, {high!r}]",
     )
 
 
@@ -351,12 +314,10 @@ def validate_half_open_range(value: Any, low: Any, high: Any, *, name: str = "va
 
         ```
     """
-    _check_range(
+    _compare(
+        lambda v: low <= v < high,
         value,
-        low,
-        high,
+        f"{low!r} and {high!r}",
         name,
-        f"in the half-open range [{low}, {high})",
-        low_open=False,
-        high_open=True,
+        f"in the half-open range [{low!r}, {high!r})",
     )

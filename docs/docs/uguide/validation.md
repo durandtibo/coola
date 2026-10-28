@@ -38,7 +38,7 @@ argument used to identify the value in the error message. On success, the functi
 >>> validate_isinstance("abc", int, name="count")
 Traceback (most recent call last):
     ...
-TypeError: count must be an instance of <class 'int'>, got <class 'str'>
+TypeError: count must be an instance of int, got str
 
 ```
 

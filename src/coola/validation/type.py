@@ -25,7 +25,43 @@ __all__ = [
 ]
 
 from collections.abc import Mapping
-from typing import Any
+from typing import TYPE_CHECKING, Any, NoReturn, get_args
+
+if TYPE_CHECKING:
+    from types import UnionType
+
+
+def _type_name(cls: Any) -> str:
+    r"""Return the name of a type, a tuple of types or a union, for an
+    error message.
+
+    Args:
+        cls: The type, tuple of types or union.
+
+    Returns:
+        The ``__qualname__`` of a class, or the names joined by ``or``.
+    """
+    if isinstance(cls, tuple):
+        return " or ".join(_type_name(c) for c in cls)
+    if args := get_args(cls):  # ``int | str``
+        return " or ".join(_type_name(c) for c in args)
+    return getattr(cls, "__qualname__", str(cls))
+
+
+def _type_error(value: Any, expected: str, name: str) -> NoReturn:
+    r"""Raise the ``TypeError`` of a validator.
+
+    Args:
+        value: The value that has the wrong type.
+        expected: The expected type, with its article (for example
+            ``an int``).
+        name: The name of the value, used in the error message.
+
+    Raises:
+        TypeError: Always.
+    """
+    msg = f"{name} must be {expected}, got {type(value).__qualname__}"
+    raise TypeError(msg)
 
 
 def validate_bool(value: Any, *, name: str = "value") -> None:
@@ -73,8 +109,7 @@ def validate_int(value: Any, *, name: str = "value") -> None:
     # (for example for a size or a count), so it is rejected like in the other
     # strict checks of this module. Use ``validate_isinstance(value, int)`` to accept it.
     if not (isinstance(value, int) and not isinstance(value, bool)):
-        msg = f"{name} must be an int, got {type(value)}"
-        raise TypeError(msg)
+        _type_error(value, "an int", name)
 
 
 def validate_float(value: Any, *, name: str = "value") -> None:
@@ -242,7 +277,9 @@ def validate_frozenset(value: Any, *, name: str = "value") -> None:
     validate_isinstance(value, frozenset, name=name)
 
 
-def validate_isinstance(value: Any, cls: type | tuple[type, ...], *, name: str = "value") -> None:
+def validate_isinstance(
+    value: Any, cls: type | tuple[type, ...] | UnionType, *, name: str = "value"
+) -> None:
     r"""Validate that ``value`` is an instance of ``cls``.
 
     Args:
@@ -262,5 +299,4 @@ def validate_isinstance(value: Any, cls: type | tuple[type, ...], *, name: str =
         ```
     """
     if not isinstance(value, cls):
-        msg = f"{name} must be an instance of {cls}, got {type(value)}"
-        raise TypeError(msg)
+        _type_error(value, f"an instance of {_type_name(cls)}", name)
