@@ -295,3 +295,9 @@ forbidden_modules = [
   "coola.identifier",
   "coola.testing",
 ]
+
+[[tool.importlinter.contracts]]
+name = "Hashing must not import identifier"
+type = "forbidden"
+source_modules = ["coola.hashing"]
+forbidden_modules = ["coola.identifier"]
