@@ -582,6 +582,7 @@ Checked against `git log 0287a61a..HEAD` and by re-running the repros.
 | 17.4                       | **Open**    | The 11 availability modules of `utils/imports` and 11 fallbacks are unchanged                        |
 | 18.1, 18.2, 18.3           | Fixed       | #2267, #2268, #2269 (but see 29.1 for the markers of 18.2)                                           |
 | 18.4                       | Partly      | Type diagnostics of the tests in CI (#2270); `fail_under`, mutation testing, pytest plugin: open     |
+| testing.md                 | Fixed       | #2526 to #2530, and the guide PR (`review/testing.md`)                                               |
 | 19.1, 19.2, 19.3           | **Open**    | See 30.1 and 28.4                                                                                    |
 
 ## 32. Suggested order
