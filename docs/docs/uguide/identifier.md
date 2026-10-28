@@ -17,17 +17,17 @@ problems:
 | `generate_stable_content_id` |   :white_check_mark:   | hex string          | Reproducible ID, full hash strength (dedup, caching)                             |
 | `generate_ulid`              |          :x:           | 26-char string      | Unique, sortable-by-creation-time ID                                             |
 | `generate_uuid7`             |          :x:           | UUID string         | Unique, sortable-by-creation-time ID, needs a valid UUID                         |
-| `generate_snowflake_id`      |          :x:           | 64-bit integer      | Unique, sortable-by-creation-time ID as a single integer                         |
+| `SnowflakeIdGenerator`       |          :x:           | 64-bit integer      | Unique, sortable-by-creation-time ID as a single integer                         |
 | `generate_object_id`         |          :x:           | 24-char hex string  | Unique, sortable-by-creation-time ID, never blocks/raises                        |
 | `generate_checksummed_id`    |          :x:           | grouped string      | Random ID with a check symbol, for identifiers humans retype                     |
 
 `generate_stable_uuid5` and `generate_stable_content_id` are content-addressed: they are built on
 top of [`coola.hashing`](../refs/hashing.md)'s `hash_object`, so calling them twice with equal data
 (regardless of e.g. mapping insertion order) always returns the same identifier. `generate_ulid`,
-`generate_uuid7`, `generate_snowflake_id` and `generate_object_id` are not derived from data at all:
+`generate_uuid7`, `SnowflakeIdGenerator` and `generate_object_id` are not derived from data at all:
 they mint a fresh, unique value every call, ordered by creation time instead.
 
-The four time-ordered generators (`generate_ulid`, `generate_uuid7`, `generate_snowflake_id`, and
+The four time-ordered generators (`generate_ulid`, `generate_uuid7`, `SnowflakeIdGenerator`, and
 `generate_object_id`) each have a matching `extract_*_timestamp*` function
 (`extract_ulid_timestamp_ms`, `extract_uuid7_timestamp_ms`, `extract_snowflake_timestamp_ms`, and
 `extract_object_id_timestamp_s`) that recovers the timestamp packed into a previously generated
@@ -203,58 +203,55 @@ for a ULID:
 
 ```
 
-### `generate_snowflake_id`
+### `SnowflakeIdGenerator`
 
-`generate_snowflake_id` generates a Snowflake-style 64-bit integer identifier, in the spirit of
-Twitter's original Snowflake service: a 41-bit millisecond timestamp, a 10-bit `worker_id`, and a
-12-bit per-millisecond sequence number, packed into a single integer:
-
-```pycon
->>> from coola.identifier import generate_snowflake_id
->>> id1 = generate_snowflake_id()
->>> id2 = generate_snowflake_id(worker_id=3)
-
-```
-
-Like `generate_ulid`, successive IDs are monotonically increasing, but the result is a plain
-64-bit integer rather than a string, useful when the identifier must fit a `BIGINT`-style column,
-or when IDs need to be attributable to the worker/shard that minted them via `worker_id`.
-
-`generate_snowflake_id` is a thread-safe convenience wrapper around a shared, process-wide
-`SnowflakeIdGenerator` instance: its sequence counter is local to that instance, so it guarantees
-uniqueness across calls sharing it, not across other instances or processes. Assign each
-concurrently running generator (typically one per process or shard) a distinct `worker_id` to
-avoid collisions between them. This includes the children of a fork (`os.fork`, or `multiprocessing`
-with the `fork` start method): they inherit the state of the generator of their parent, so they must
-not keep the default `worker_id=0`.
-
-If the system clock moves backward (typically a step adjustment by NTP, or a virtual machine that
-resumes from a pause), the generator raises a `RuntimeError` instead of minting an ID that could be a
-duplicate or smaller than a previous one. This is a deliberate choice: waiting for the clock to catch
-up could block for an unbounded time. The error is raised before the state of the generator is
-modified, so the next call works once the clock is back to the last timestamp. If your system can
-see steps of the clock, retry the call after a short delay, or run the time synchronization in
-slew mode.
-
-Use `SnowflakeIdGenerator` directly instead of the module-level function when you need several
-independent generators in the same process, e.g. one per worker thread, or an isolated instance
-in a test, without them sharing state through a global singleton:
+`SnowflakeIdGenerator` generates Snowflake-style 64-bit integer identifiers, in the spirit of
+Twitter's original Snowflake service: a 41-bit millisecond timestamp (from 2024-01-01), a 10-bit
+`worker_id`, and a 12-bit sequence number, packed into a single integer of at most 63 bits. The
+`worker_id` is required and keyword-only:
 
 ```pycon
 >>> from coola.identifier import SnowflakeIdGenerator
->>> generator = SnowflakeIdGenerator()
+>>> generator = SnowflakeIdGenerator(worker_id=3)
 >>> id1 = generator.generate()
->>> id2 = generator.generate(worker_id=3)
+>>> id2 = generator.generate()
+>>> id1 < id2
+True
 
 ```
+
+Like `generate_ulid`, successive IDs of a generator are strictly increasing, from any number of
+threads, but the result is a plain integer rather than a string, useful when the identifier must fit
+a `BIGINT`-style column, or when IDs need to be attributable to the worker/shard that minted them via
+`worker_id`.
+
+Create **one generator per process** and share it. There is no module-level function: a
+process-wide generator has one `worker_id`, which only the caller knows. The uniqueness of the IDs
+across processes comes from the `worker_id`, so assigning distinct numbers to the workers (a
+database row, an environment variable, a coordinator) is the job of the caller. A generator keeps its
+own sequence; two generators with the same `worker_id` can mint the same ID.
+
+The generator never raises or sleeps because of the clock. If more than 4,096 IDs are requested in
+the same millisecond, or if the clock moves backward (an NTP step, a virtual machine that resumes
+from a pause), the timestamp is kept (or advanced by one millisecond) and the sequence goes on. Order
+and uniqueness win over accuracy: the timestamp of the IDs runs ahead of the clock until the clock
+catches up.
+
+A generator cannot be used in the child process of a fork (`os.fork`, or `multiprocessing` with the
+`fork` start method): the child would continue the sequence of its parent with the same `worker_id`.
+`generate` raises a `RuntimeError` in the child, which creates a generator with its own `worker_id`.
+
+`generate(timestamp_ms=...)` is for tests and backfills. It does not touch the state of the
+generator and the sequence part is random, so such IDs are neither ordered nor guaranteed to be
+unique.
 
 `extract_snowflake_timestamp_ms` recovers the timestamp encoded in a Snowflake-style ID:
 
 ```pycon
->>> from coola.identifier import extract_snowflake_timestamp_ms, generate_snowflake_id
->>> snowflake_id = generate_snowflake_id()
->>> isinstance(extract_snowflake_timestamp_ms(snowflake_id), int)
-True
+>>> from coola.identifier import SnowflakeIdGenerator, extract_snowflake_timestamp_ms
+>>> generator = SnowflakeIdGenerator(worker_id=3)
+>>> extract_snowflake_timestamp_ms(generator.generate(timestamp_ms=1704067200000))
+1704067200000
 
 ```
 
@@ -315,17 +312,18 @@ True
 
 | Property                       | Statement                                                                                                                                                                           |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Declared shape                 | Every generator returns a `str`, except `SnowflakeIdGenerator.generate` and `generate_snowflake_id`, which return an `int` of at most 63 bits.                                      |
+| Declared shape                 | Every generator returns a `str`, except `SnowflakeIdGenerator.generate`, which returns an `int` of at most 63 bits.                                      |
 | Random bits are CSPRNG         | The random bits of `generate_ulid`, `generate_uuid7`, `generate_object_id` and `generate_checksummed_id` come from `secrets` or `os.urandom`, never `random`.   |
 | Identifier, not a secret       | An identifier is not an access token. The time-ordered ones are guessable (the next value is the previous one plus one) and the content-derived ones are reproducible. Authorize every access explicitly. |
 | Stable IDs are content-derived | `generate_stable_uuid5` and `generate_stable_content_id` give the same ID for equal data, regardless of the mapping insertion order.                                                |
 | Collision resistance           | `generate_stable_uuid5` is bounded by the 122 random bits of a UUID (birthday bound 2^61), whatever the hash. `generate_stable_content_id` keeps the strength of the underlying hash. |
 | Time-ordered IDs sort          | ULID, UUIDv7, ObjectId and Snowflake IDs sort in creation order. They are strictly increasing within a process when the current time is used (the timestamp may run ahead of the clock after a burst or a backward step). |
 | Not ordered across processes   | Two processes that mint an ID in the same tick (a millisecond, a second for ObjectId) do not give ordered IDs.                                                                      |
-| Snowflake uniqueness           | It holds for the calls that share a generator. Give each concurrent generator, including each fork, its own `worker_id`.                                                            |
+| Snowflake uniqueness           | It holds for the IDs of a generator, and across generators with distinct `worker_id`. Give each concurrent generator its own `worker_id`.                                           |
 | Thread-safe                    | Every generator can be called from several threads without a lock of the caller.                                                                                                    |
-| Fork-safe                      | After a fork, `generate_ulid`, `generate_uuid7` and `generate_object_id` do not repeat the identifiers of the parent. A Snowflake generator does, unless the child uses another `worker_id`. |
+| Fork-safe                      | After a fork, `generate_ulid`, `generate_uuid7` and `generate_object_id` do not repeat the identifiers of the parent. A `SnowflakeIdGenerator` raises `RuntimeError` in the child.      |
 | Recoverable timestamp          | The four time-ordered generators have a matching `extract_*` function.                                                                                                              |
+| Never raises or blocks         | A time-ordered generator does not raise, sleep or spin when the clock steps backward or when more than one ID is requested in the same tick: the timestamp is kept (or advanced by one tick) and the counter goes on. |
 | Check symbol                   | `verify_checksummed_id` is `True` for every identifier of `generate_checksummed_id` and detects any single wrong character and any swap of two adjacent characters.                  |
 
 The stable IDs inherit the [hashing](hashing.md) properties, including the fact that they can change between versions of `coola`.
@@ -346,7 +344,7 @@ Not guaranteed:
   format) or `generate_stable_content_id` (raw hash, stronger collision resistance, configurable
   length).
 - Need a unique identifier per call, sortable by creation time? Use `generate_ulid` (string,
-  more randomness), `generate_uuid7` (string, valid UUID format), `generate_snowflake_id`
+  more randomness), `generate_uuid7` (string, valid UUID format), `SnowflakeIdGenerator`
   (64-bit integer) or `generate_object_id` (24-character hex string, sorts by second).
 - Need a code that a human retypes (support code, license key)? Use `generate_checksummed_id`
   and `verify_checksummed_id`.

@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from coola.identifier import generate_object_id, objectid
+from coola.identifier import SnowflakeIdGenerator, generate_object_id, objectid
 from coola.identifier.sequence import TickSequence
 from tests.integration.helpers import run_in_children
 
@@ -48,3 +48,29 @@ def test_object_id_works_in_the_child_if_the_lock_is_held_during_the_fork() -> N
     finally:
         sequence._lock.release()
     assert len(children[0]) == 24
+
+
+def test_snowflake_id_generator_raises_in_a_forked_child() -> None:
+    generator = SnowflakeIdGenerator(worker_id=1)
+    generator.generate()
+
+    def child() -> str:
+        try:
+            generator.generate()
+        except RuntimeError as error:
+            return str(error)
+        return "no error"
+
+    assert run_in_children(1, child) == [
+        "SnowflakeIdGenerator cannot be used in a forked process: create one with its own worker_id"
+    ]
+
+
+def test_snowflake_id_generator_works_in_the_parent_after_a_fork() -> None:
+    generator = SnowflakeIdGenerator(worker_id=1)
+    run_in_children(1, lambda: "")
+    assert isinstance(generator.generate(), int)
+
+
+def test_new_snowflake_id_generator_works_in_a_forked_child() -> None:
+    assert run_in_children(1, lambda: str(SnowflakeIdGenerator(worker_id=2).generate()))[0] != ""

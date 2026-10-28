@@ -6,8 +6,7 @@ The stable identifiers (``generate_stable_content_id``,
 Snowflake, ObjectId) or checksummed.
 
 Every generator returns a ``str`` identifier except
-``generate_snowflake_id``/``SnowflakeIdGenerator.generate``, which
-return a plain ``int`` (a Snowflake ID is defined as a 64-bit integer,
+``SnowflakeIdGenerator.generate``, which returns a plain ``int`` (a Snowflake ID is defined as a 64-bit integer,
 e.g. for use as a database ``BIGINT`` primary key).
 """
 
@@ -21,7 +20,6 @@ __all__ = [
     "extract_uuid7_timestamp_ms",
     "generate_checksummed_id",
     "generate_object_id",
-    "generate_snowflake_id",
     "generate_stable_content_id",
     "generate_stable_uuid5",
     "generate_ulid",
@@ -38,7 +36,6 @@ from coola.identifier.objectid import (
 from coola.identifier.snowflake import (
     SnowflakeIdGenerator,
     extract_snowflake_timestamp_ms,
-    generate_snowflake_id,
 )
 from coola.identifier.ulid import extract_ulid_timestamp_ms, generate_ulid
 from coola.identifier.uuid5 import generate_stable_uuid5
