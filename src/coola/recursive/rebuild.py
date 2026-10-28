@@ -17,7 +17,7 @@ __all__ = ["rebuild_mapping", "rebuild_sequence", "rebuild_set"]
 from collections import defaultdict, deque
 from typing import TYPE_CHECKING, Any
 
-from coola.utils.introspection import get_fully_qualified_name, get_type_constructor
+from coola.utils.introspection import get_qualified_class_name, get_type_constructor
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
@@ -128,7 +128,7 @@ def rebuild_set(data: Any, items: Iterable[Any]) -> Any:
 
 def _rebuild_error(data: Any, exc: TypeError) -> TypeError:
     r"""Create the error raised when a container cannot be rebuilt."""
-    name = get_fully_qualified_name(type(data))
+    name = get_qualified_class_name(type(data))
     msg = (
         f"Cannot rebuild an object of type {name} from its transformed items. "
         f"If its constructor differs from its base type, register a transformer for {name} "

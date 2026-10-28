@@ -218,7 +218,12 @@ def test_rebuild_set_unhashable_item_raises() -> None:
 
 
 def test_rebuild_set_unhashable_item_error_names_the_type() -> None:
-    with pytest.raises(TypeError, match=r"Cannot rebuild an object of type .*frozenset"):
+    with pytest.raises(TypeError, match=r"Cannot rebuild an object of type frozenset from"):
+        rebuild_set(frozenset({1}), [[1]])
+
+
+def test_rebuild_set_unhashable_item_error_suggests_registering_the_type() -> None:
+    with pytest.raises(TypeError, match=r"register a transformer for frozenset with"):
         rebuild_set(frozenset({1}), [[1]])
 
 
