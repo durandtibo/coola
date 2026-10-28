@@ -241,6 +241,24 @@ src = ["src"]
   "S101", # flake8-bandit: assert
 ]
 "tests/unit/hashing/test_pydantic.py" = ["S106"]
+# The decorators of coola.utils.imports are meant for the library code.
+"src/**" = ["TID251"]
+"tests/package_checks.py" = ["TID251"]
+"tests/unit/utils/imports/**" = ["TID251"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"coola.utils.imports.colorlog_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
+"coola.utils.imports.jax_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
+"coola.utils.imports.numpy_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
+"coola.utils.imports.packaging_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
+"coola.utils.imports.pandas_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
+"coola.utils.imports.polars_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
+"coola.utils.imports.pyarrow_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
+"coola.utils.imports.pydantic_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
+"coola.utils.imports.rich_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
+"coola.utils.imports.torch_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
+"coola.utils.imports.xarray_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
+"coola.utils.imports.torch_numpy_available".msg = "In tests, import the pytest mark from coola.testing.marks: this decorator removes the test from the run instead of skipping it."
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
