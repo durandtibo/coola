@@ -32,3 +32,6 @@ class MappingChildFinder(InlineDisplayMixin, BaseChildFinder[Mapping[Any, Any]])
 
     def find_children(self, data: Mapping[Any, Any]) -> Iterable[Any]:
         return data.values()
+
+    def find_items(self, data: Mapping[Any, Any]) -> Iterable[tuple[Any, Any]]:
+        return data.items()
