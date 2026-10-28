@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import operator
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
@@ -132,7 +133,10 @@ def test_unnest_with_separator_fallback_single_struct() -> None:
         {"id": [1, 2], "coords": [{"x": 10, "y": 20}, {"x": 30, "y": 40}]},
         schema={"id": pl.Int64, "coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
     )
-    with patch.object(pl.DataFrame, "unnest", unnest_without_separator):
+    with (
+        patch("coola.nested.polars.compare_version", return_value=False),
+        patch.object(pl.DataFrame, "unnest", unnest_without_separator),
+    ):
         assert_frame_equal(
             unnest_with_separator(frame, ["coords"], separator="."),
             pl.DataFrame(
@@ -156,7 +160,10 @@ def test_unnest_with_separator_fallback_multiple_structs() -> None:
             "meta": pl.Struct({"label": pl.String}),
         },
     )
-    with patch.object(pl.DataFrame, "unnest", unnest_without_separator):
+    with (
+        patch("coola.nested.polars.compare_version", return_value=False),
+        patch.object(pl.DataFrame, "unnest", unnest_without_separator),
+    ):
         assert_frame_equal(
             unnest_with_separator(frame, ["coords", "meta"], separator="."),
             pl.DataFrame(
@@ -185,7 +192,10 @@ def test_unnest_with_separator_fallback_separators(separator: str) -> None:
         {"coords": [{"x": 1, "y": 2}]},
         schema={"coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
     )
-    with patch.object(pl.DataFrame, "unnest", unnest_without_separator):
+    with (
+        patch("coola.nested.polars.compare_version", return_value=False),
+        patch.object(pl.DataFrame, "unnest", unnest_without_separator),
+    ):
         assert_frame_equal(
             unnest_with_separator(frame, ["coords"], separator=separator),
             pl.DataFrame(
@@ -298,7 +308,10 @@ def test_unnest_one_level_list_of_struct_fallback_no_empty_as_null() -> None:
         {"id": [1, 2], "items": [[{"name": "a"}], [{"name": "b"}, {"name": "c"}]]},
         schema={"id": pl.Int64, "items": pl.List(pl.Struct({"name": pl.String}))},
     )
-    with patch.object(pl.DataFrame, "explode", explode_without_empty_as_null):
+    with (
+        patch("coola.nested.polars.compare_version", return_value=False),
+        patch.object(pl.DataFrame, "explode", explode_without_empty_as_null),
+    ):
         assert_frame_equal(
             unnest_one_level(frame, separator="."),
             pl.DataFrame(
@@ -851,3 +864,54 @@ def test_expand_list_columns_all_empty_or_null_keeps_column() -> None:
         schema={"id": pl.Int64, "tags": pl.List(pl.String)},
     )
     assert_frame_equal(expand_list_columns(frame, separator="."), frame)
+
+
+@polars_available
+def test_flatten_frame_lazy_frame_raises() -> None:
+    with pytest.raises(TypeError, match=r"got LazyFrame.*Call collect\(\)"):
+        flatten_frame(pl.LazyFrame({"a": [1]}))
+
+
+@polars_available
+@pytest.mark.parametrize("value", [None, 42, {"a": 1}, [1]])
+def test_flatten_frame_non_frame_raises(value: object) -> None:
+    with pytest.raises(TypeError, match="must be a polars DataFrame"):
+        flatten_frame(value)
+
+
+@polars_available
+def test_flatten_frame_unrelated_type_error_of_unnest_propagates() -> None:
+    frame = pl.DataFrame({"coords": [{"x": 1}]})
+    with (
+        patch("coola.nested.polars.compare_version", return_value=True),
+        patch.object(pl.DataFrame, "unnest", side_effect=TypeError("boom")),
+        pytest.raises(TypeError, match="boom"),
+    ):
+        flatten_frame(frame)
+
+
+@polars_available
+def test_flatten_frame_unrelated_type_error_of_explode_propagates() -> None:
+    frame = pl.DataFrame({"items": [[{"name": "a"}]]})
+    with (
+        patch("coola.nested.polars.compare_version", return_value=True),
+        patch.object(pl.DataFrame, "explode", side_effect=TypeError("boom")),
+        pytest.raises(TypeError, match="boom"),
+    ):
+        flatten_frame(frame)
+
+
+@polars_available
+def test_unnest_with_separator_checks_the_version_of_polars() -> None:
+    frame = pl.DataFrame({"coords": [{"x": 1}]})
+    with patch("coola.nested.polars.compare_version", return_value=True) as compare:
+        unnest_with_separator(frame, ["coords"], separator=".")
+    compare.assert_called_once_with("polars", operator.ge, "1.35.0")
+
+
+@polars_available
+def test_unnest_one_level_checks_the_version_of_polars_for_explode() -> None:
+    frame = pl.DataFrame({"items": [[{"name": "a"}]]})
+    with patch("coola.nested.polars.compare_version", return_value=True) as compare:
+        unnest_one_level(frame, separator=".")
+    assert compare.call_args_list[0].args == ("polars", operator.ge, "1.36.0")

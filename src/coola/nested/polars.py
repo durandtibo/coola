@@ -10,15 +10,22 @@ __all__ = [
     "unnest_with_separator",
 ]
 
+import operator
 from typing import TYPE_CHECKING, cast
 
 from coola.utils.imports import is_polars_available
+from coola.utils.version import compare_version
 from coola.validation import validate_non_negative
 
 if TYPE_CHECKING or is_polars_available():
     import polars as pl
 else:  # pragma: no cover
     from coola.utils.fallback.polars import polars as pl
+
+
+# The first versions of polars that have the options used below.
+_UNNEST_SEPARATOR_VERSION = "1.35.0"  # ``DataFrame.unnest(separator=...)``
+_EXPLODE_EMPTY_AS_NULL_VERSION = "1.36.0"  # ``DataFrame.explode(empty_as_null=...)``
 
 
 def is_nested_struct(dtype: pl.DataType) -> bool:
@@ -52,7 +59,7 @@ def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: st
     r"""Unnest struct columns with a separator prefix, compatible with
     polars>=1.0.0.
 
-    On polars>=1.35.0, delegates to the native ``unnest(separator=...)`` parameter.
+    On polars>=1.35.0 (the version that added the parameter), delegates to the native ``unnest(separator=...)`` parameter.
     On older versions, unnests without a separator and renames the resulting columns
     to ``<parent><separator><field>`` manually.
 
@@ -66,15 +73,14 @@ def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: st
         A DataFrame with the given struct columns unnested and output columns
         named ``<parent><separator><field>``.
     """
-    try:
+    if compare_version("polars", operator.ge, _UNNEST_SEPARATOR_VERSION):
         return frame.unnest(columns, separator=separator)
-    except TypeError:
-        rename_map = {
-            field.name: f"{col}{separator}{field.name}"
-            for col in columns
-            for field in cast("pl.Struct", frame.schema[col]).fields
-        }
-        return frame.unnest(columns).rename(rename_map)
+    rename_map = {
+        field.name: f"{col}{separator}{field.name}"
+        for col in columns
+        for field in cast("pl.Struct", frame.schema[col]).fields
+    }
+    return frame.unnest(columns).rename(rename_map)
 
 
 def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
@@ -174,11 +180,10 @@ def _explode(frame: pl.DataFrame, columns: list[str]) -> pl.DataFrame:
     Returns:
         The exploded DataFrame.
     """
-    try:
+    if compare_version("polars", operator.ge, _EXPLODE_EMPTY_AS_NULL_VERSION):
         return frame.explode(columns, empty_as_null=True)
-    except TypeError:
-        # empty_as_null is not available in older polars versions
-        return frame.explode(columns)
+    # empty_as_null is not available in older polars versions
+    return frame.explode(columns)
 
 
 def flatten_frame(
@@ -219,12 +224,16 @@ def flatten_frame(
         positional columns.
 
     Raises:
+        TypeError: If ``frame`` is not a ``polars.DataFrame``, for
+            example a ``LazyFrame`` (call ``collect()`` first: a lazy
+            frame has no cheap schema, and the number of rows of an
+            exploded list is only known after the evaluation).
         ValueError: If ``depth`` is negative.
 
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.nested.polars import flatten_frame
+        >>> from coola.nested import flatten_frame
         >>> frame = pl.DataFrame(
         ...     {
         ...         "id": [1, 2],
@@ -268,6 +277,12 @@ def flatten_frame(
 
         ```
     """
+    if not isinstance(frame, pl.DataFrame):
+        msg = (
+            f"frame must be a polars DataFrame, got {type(frame).__qualname__}. "
+            "Call collect() on a LazyFrame first."
+        )
+        raise TypeError(msg)
     if depth is not None:
         validate_non_negative(depth, name="depth")
 
