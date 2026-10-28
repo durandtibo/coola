@@ -105,6 +105,8 @@ def hash_object(
             it) has a type for which no hasher is registered and
             ``ignore_unhashable`` is ``False``. It is a subclass of
             ``KeyError``.
+        TypeError: If ``length`` is not an ``int`` (``bool`` is
+            rejected too).
         ValueError: If ``length`` is not an even number between 2 and
             128, or if ``data`` contains itself (a self-referencing
             container).

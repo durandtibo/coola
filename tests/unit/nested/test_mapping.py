@@ -12,9 +12,9 @@ from coola.nested import (
 
 
 class _PassesValidationOnly(str):
-    """A string that equals its value only for the first comparison.
+    """A string that equals its value only the first time they match.
 
-    It lets a test get past the ``on_duplicate`` validation (a set
+    It lets a test get past the ``on_duplicate`` validation (a
     membership check) while matching none of the strategy branches
     afterwards, to exercise the defensive ``assert_never`` branches.
     """
@@ -28,9 +28,9 @@ class _PassesValidationOnly(str):
         return str.__hash__(self)
 
     def __eq__(self, other: object) -> bool:
-        if self._remaining > 0:
+        if self._remaining > 0 and str.__eq__(self, other):
             self._remaining -= 1
-            return str.__eq__(self, other)
+            return True
         return False
 
     def __ne__(self, other: object) -> bool:
@@ -67,7 +67,7 @@ def test_flatten_mapping_unhandled_on_duplicate() -> None:
 
 
 def test_flatten_mapping_incorrect_on_duplicate() -> None:
-    with pytest.raises(ValueError, match="Incorrect on_duplicate value"):
+    with pytest.raises(ValueError, match=r"^on_duplicate must be one of \(.*\), got 'incorrect'$"):
         flatten_mapping({"module": {"a": 1}}, on_duplicate="incorrect")
 
 
@@ -247,7 +247,7 @@ def test_merge_mappings_no_duplicate_keys() -> None:
 
 
 def test_merge_mappings_incorrect_on_duplicate() -> None:
-    with pytest.raises(ValueError, match="Incorrect on_duplicate value"):
+    with pytest.raises(ValueError, match=r"^on_duplicate must be one of \(.*\), got 'incorrect'$"):
         merge_mappings([{"a": 1}], on_duplicate="incorrect")
 
 
