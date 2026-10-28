@@ -116,6 +116,19 @@ def test_generate_stable_content_id_golden_vector() -> None:
     assert generate_stable_content_id({"a": [1, 2]}, length=16) == "8884c93b49393739"
 
 
+def test_generate_stable_content_id_golden_vector_default_length() -> None:
+    assert generate_stable_content_id({"source": "cats.txt", "page": 1}) == (
+        "f65b60565db14f8b43dc9aa7077c4f390b7a9a70a389b24d2b336d237981c06e"
+    )
+
+
+def test_generate_stable_content_id_golden_vector_maximum_length() -> None:
+    assert generate_stable_content_id({"source": "cats.txt", "page": 1}, length=128) == (
+        "f65b60565db14f8b43dc9aa7077c4f390b7a9a70a389b24d2b336d237981c06e"
+        "5541d95f94e7fca1933c8d83ca7ab02c6121532e5092a156b8ea29651bf7d534"
+    )
+
+
 def test_generate_stable_content_id_ignores_hashers_registered_in_default_registry() -> None:
     expected = generate_stable_content_id(MyInt(1))
     register_hashers({MyInt: StringHasher()})

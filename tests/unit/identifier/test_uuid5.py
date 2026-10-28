@@ -179,6 +179,24 @@ def test_generate_stable_uuid5_golden_vector() -> None:
     assert generate_stable_uuid5({"a": [1, 2]}) == "06ae7b88-52be-5262-ae72-b9b4174e193a"
 
 
+def test_generate_stable_uuid5_golden_vector_nested_dict() -> None:
+    assert (
+        generate_stable_uuid5({"source": "cats.txt", "page": 1})
+        == "3a4d214a-e7be-5842-a015-6be4af56a7ee"
+    )
+
+
+def test_generate_stable_uuid5_golden_vector_list() -> None:
+    assert generate_stable_uuid5([1, 2, 3]) == "262fdcc3-2be3-5ce8-be86-ff0eec580ab6"
+
+
+def test_generate_stable_uuid5_golden_vector_custom_namespace() -> None:
+    assert (
+        generate_stable_uuid5({"source": "cats.txt", "page": 1}, namespace=uuid.UUID(int=0))
+        == "ffc04f29-021a-5e4d-8536-95ea21d9500f"
+    )
+
+
 def test_generate_stable_uuid5_ignores_hashers_registered_in_default_registry() -> None:
     expected = generate_stable_uuid5(MyInt(1))
     register_hashers({MyInt: StringHasher()})
