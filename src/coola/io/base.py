@@ -30,10 +30,9 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 from coola.display import InlineDisplayMixin
 from coola.equality import objects_are_equal
 from coola.factory import is_object_config, resolve_object
-from coola.io.utils import add_uuid_suffix
 from coola.utils.fork import track_fork
 from coola.utils.introspection import is_same_type
-from coola.utils.path import sanitize_path
+from coola.utils.path import add_uuid_suffix, sanitize_path
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
