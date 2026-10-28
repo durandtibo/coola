@@ -212,8 +212,10 @@ leaves too, because a set has no index. A dataclass is entered field by field:
 ### Restoring Lists
 
 `from_flat_dict()` keeps the integer segments as dictionary keys by default, so a list does not come
-back as a list. Use `restore_lists=True` to rebuild the lists. A dictionary whose keys are exactly
-`"0"`, `"1"`, ..., `"n-1"` is converted, and the tuples come back as lists:
+back as a list. Use `restore_lists=True` to rebuild the lists. A dictionary built from the keys whose
+keys are exactly `"0"`, `"1"`, ..., `"n-1"` is converted, and the tuples come back as lists. A
+dictionary given as a value is a value of the caller: it is kept as it is. There is no limit on the
+depth:
 
 ```pycon
 >>> from coola.nested import from_flat_dict
