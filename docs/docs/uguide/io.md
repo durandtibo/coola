@@ -142,8 +142,9 @@ keyword arguments to `pickle.dump`.
 
 ```
 
-`TextLoader`/`TextSaver` accept an `encoding` argument (defaults to `"utf-8"`). If the data
-passed to `save_text` is not a string, it is converted with `str` before being written.
+`TextLoader`/`TextSaver` accept an `encoding` argument (defaults to `"utf-8"`).
+`save_text` and `TextSaver` accept a `str` only and raise a `TypeError` for any other object: call
+`str` on the data to write its text representation.
 
 ### PyTorch
 

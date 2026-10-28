@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["TorchLoader", "TorchSaver", "load_torch", "save_torch"]
 
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.equality import objects_are_equal
@@ -20,10 +20,8 @@ if TYPE_CHECKING:
 if TYPE_CHECKING or is_torch_available():  # pragma: no cover
     import torch
 
-T = TypeVar("T")
 
-
-class TorchLoader(InlineDisplayMixin, BaseLoader[T]):
+class TorchLoader(InlineDisplayMixin, BaseLoader[Any]):
     r"""Implement a data loader to load data in a PyTorch file.
 
     Args:
@@ -68,12 +66,12 @@ class TorchLoader(InlineDisplayMixin, BaseLoader[T]):
     def _load_kwargs(self) -> dict[str, Any]:
         return {"weights_only": True, **self._kwargs}
 
-    def load(self, path: str | os.PathLike[str]) -> T:
+    def load(self, path: str | os.PathLike[str]) -> Any:
         path = sanitize_path(path, resolve=False)
         return torch.load(path, **self._load_kwargs())
 
 
-class TorchSaver(InlineDisplayMixin, BaseFileSaver[T]):
+class TorchSaver(InlineDisplayMixin, BaseFileSaver[Any]):
     r"""Implement a file saver to save data with a PyTorch file.
 
     Args:
@@ -107,7 +105,7 @@ class TorchSaver(InlineDisplayMixin, BaseFileSaver[T]):
             return False
         return objects_are_equal(self._kwargs, other._kwargs, equal_nan=equal_nan)
 
-    def _save_file(self, to_save: T, path: Path) -> None:
+    def _save_file(self, to_save: Any, path: Path) -> None:
         torch.save(to_save, path, **self._kwargs)
 
 
@@ -142,7 +140,7 @@ def load_torch(path: str | os.PathLike[str], **kwargs: Any) -> Any:
 
         ```
     """
-    return TorchLoader[Any](**kwargs).load(path)
+    return TorchLoader(**kwargs).load(path)
 
 
 def save_torch(
@@ -198,4 +196,4 @@ def save_torch(
 
         ```
     """
-    TorchSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock)
+    TorchSaver(**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock)

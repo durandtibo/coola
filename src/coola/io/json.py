@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["JsonLoader", "JsonSaver", "load_json", "save_json"]
 
 import json
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.equality import objects_are_equal
@@ -17,12 +17,11 @@ if TYPE_CHECKING:
     import os
     from pathlib import Path
 
-T = TypeVar("T")
 
 DEFAULT_ENCODING = "utf-8"
 
 
-class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
+class JsonLoader(InlineDisplayMixin, BaseLoader[Any]):
     r"""Implement a data loader to load data in a JSON file.
 
     Args:
@@ -58,7 +57,7 @@ class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
             return False
         return self._encoding == other._encoding
 
-    def load(self, path: str | os.PathLike[str]) -> T:
+    def load(self, path: str | os.PathLike[str]) -> Any:
         path = sanitize_path(path, resolve=False)
         if self._encoding is None:
             with path.open(mode="rb") as file:
@@ -67,7 +66,7 @@ class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
             return json.load(file)
 
 
-class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
+class JsonSaver(InlineDisplayMixin, BaseFileSaver[Any]):
     r"""Implement a file saver to save data with a JSON file.
 
     Args:
@@ -112,7 +111,7 @@ class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
             self._kwargs, other._kwargs, equal_nan=equal_nan
         )
 
-    def _save_file(self, to_save: T, path: Path) -> None:
+    def _save_file(self, to_save: Any, path: Path) -> None:
         with path.open(mode="w", encoding=self._encoding) as file:
             json.dump(to_save, file, **self._kwargs)
 
@@ -143,7 +142,7 @@ def load_json(path: str | os.PathLike[str], encoding: str | None = None) -> Any:
 
         ```
     """
-    return JsonLoader[Any](encoding=encoding).load(path)
+    return JsonLoader(encoding=encoding).load(path)
 
 
 def save_json(
@@ -213,6 +212,6 @@ def save_json(
 
         ```
     """
-    JsonSaver[Any](encoding=encoding, **kwargs).save(
+    JsonSaver(encoding=encoding, **kwargs).save(
         to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock
     )
