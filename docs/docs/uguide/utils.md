@@ -193,22 +193,16 @@ The `coola.utils.path` module provides utilities for working with file paths:
   `.` and `..`)
 - `find_root_package_parent()` - Walk upward from a file or a directory to find the directory that
   contains the root Python package
-- `working_directory()` - Context manager that temporarily changes the working directory
 - `add_uuid_suffix()` - Return a path with a unique UUID added to the file name, before the
   extension
 
 ```pycon
->>> import tempfile
 >>> from pathlib import Path
->>> from coola.utils.path import add_uuid_suffix, sanitize_path, working_directory
+>>> from coola.utils.path import add_uuid_suffix, sanitize_path
 >>> sanitize_path("~").is_absolute()
 True
 >>> path = add_uuid_suffix(Path("data.json"))
 >>> path.name.startswith("data-") and path.suffix == ".json"
-True
->>> with tempfile.TemporaryDirectory() as tmpdir:
-...     with working_directory(tmpdir):
-...         Path.cwd() == Path(tmpdir).resolve()
 True
 
 ```
