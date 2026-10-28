@@ -3,7 +3,6 @@ from __future__ import annotations
 import base64
 import datetime
 import json
-import threading
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
@@ -41,37 +40,15 @@ class Point:
     y: int
 
 
-@dataclass
-class Line:
-    start: Point
-    end: Point
-
-
-@dataclass
-class Container:
-    items: list
-    mapping: dict
-
-
-@dataclass
-class Wrapper:
-    value: object
-
-
 #################################
 #     Tests for to_jsonable     #
 #################################
 
 
-def test_to_json_dataclass() -> None:
-    assert to_jsonable(Point(x=1, y=2)) == {"x": 1, "y": 2}
-
-
-def test_to_json_nested_dataclass() -> None:
-    assert to_jsonable(Line(start=Point(x=1, y=2), end=Point(x=3, y=4))) == {
-        "start": {"x": 1, "y": 2},
-        "end": {"x": 3, "y": 4},
-    }
+def test_to_json_dataclass_is_returned_unchanged() -> None:
+    """A dataclass is not converted: use ``convert_to_jsonable``."""
+    data = Point(x=1, y=2)
+    assert to_jsonable(data) is data
 
 
 def test_to_json_int() -> None:
@@ -125,51 +102,6 @@ def test_to_json_torch_tensor_2d() -> None:
     assert to_jsonable(torch.tensor([[1, 2], [3, 4]])) == [[1, 2], [3, 4]]
 
 
-@numpy_available
-def test_to_json_dataclass_with_nested_numpy_array() -> None:
-    """A numpy.ndarray field nested inside a dataclass must be
-    converted, even though dataclasses.asdict does not convert it on its
-    own."""
-    assert to_jsonable(Wrapper(value=np.array([1, 2, 3]))) == {"value": [1, 2, 3]}
-
-
-@torch_available
-def test_to_json_dataclass_with_nested_torch_tensor() -> None:
-    """A torch.Tensor field nested inside a dataclass must be converted,
-    even though dataclasses.asdict does not convert it on its own."""
-    assert to_jsonable(Wrapper(value=torch.tensor([1, 2, 3]))) == {"value": [1, 2, 3]}
-
-
-@pydantic_available
-def test_to_json_dataclass_with_nested_pydantic_model() -> None:
-    """A pydantic.BaseModel field nested inside a dataclass must be
-    converted, even though dataclasses.asdict does not convert it on its
-    own."""
-    assert to_jsonable(Wrapper(value=MyModel(name="alice", age=30))) == {
-        "value": {"name": "alice", "age": 30}
-    }
-
-
-@numpy_available
-def test_to_json_dataclass_with_nested_numpy_array_in_list() -> None:
-    """A numpy.ndarray nested inside a list field of a dataclass must be
-    converted."""
-    assert to_jsonable(Container(items=[np.array([1, 2])], mapping={})) == {
-        "items": [[1, 2]],
-        "mapping": {},
-    }
-
-
-@numpy_available
-def test_to_json_dataclass_with_nested_numpy_array_in_dict() -> None:
-    """A numpy.ndarray nested inside a dict field of a dataclass must be
-    converted."""
-    assert to_jsonable(Container(items=[], mapping={"data": np.array([1, 2])})) == {
-        "items": [],
-        "mapping": {"data": [1, 2]},
-    }
-
-
 def test_to_json_path() -> None:
     assert to_jsonable(Path("a/b.txt")) == str(Path("a/b.txt"))
 
@@ -219,39 +151,6 @@ def test_to_json_numpy_int_scalar_type() -> None:
 @numpy_available
 def test_to_json_numpy_bool_scalar_type() -> None:
     assert type(to_jsonable(np.bool_(True))) is bool
-
-
-def test_to_json_dataclass_with_tuple_and_set_fields() -> None:
-    @dataclass
-    class Container:
-        values: tuple
-        unique: set
-        nested: dict
-
-    result = to_jsonable(Container(values=(1, (2, 3)), unique={4}, nested={"a": (5,)}))
-    assert result == {"values": [1, [2, 3]], "unique": [4], "nested": {"a": [5]}}
-
-
-class NoCopy:
-    def __deepcopy__(self, memo: dict) -> None:
-        msg = "must not be copied"
-        raise TypeError(msg)
-
-
-def test_to_json_dataclass_does_not_copy_the_fields() -> None:
-    """A field that cannot be copied (for example a lock) must not make
-    the conversion fail."""
-    obj = NoCopy()
-    assert to_jsonable(Wrapper(value=obj))["value"] is obj
-
-
-def test_to_json_dataclass_does_not_copy_the_nested_fields() -> None:
-    obj = NoCopy()
-    assert to_jsonable(Wrapper(value=Wrapper(value=obj)))["value"]["value"] is obj
-
-
-def test_to_json_dataclass_with_lock() -> None:
-    assert set(to_jsonable(Wrapper(value=threading.Lock()))) == {"value"}
 
 
 def test_to_jsonable_bytes() -> None:
