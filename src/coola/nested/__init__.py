@@ -76,12 +76,14 @@ from coola.nested.conversion import (
     convert_to_list_of_dicts,
 )
 from coola.nested.flat import from_flat_dict, to_flat_dict
-from coola.nested.mapping import (
-    DuplicateKeyError,
+from coola.nested.keys import (
     add_prefix_suffix_to_keys,
-    flatten_mapping,
-    merge_mappings,
     remove_keys_containing,
     remove_keys_if,
     remove_keys_starting_with,
+)
+from coola.nested.mapping import (
+    DuplicateKeyError,
+    flatten_mapping,
+    merge_mappings,
 )

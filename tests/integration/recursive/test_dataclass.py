@@ -72,6 +72,6 @@ def test_convert_to_jsonable_dataclass_is_converted_whole() -> None:
     assert convert_to_jsonable(Frozen(1, {2})) == {"a": 1, "b": [2]}
 
 
-def test_remove_keys_if_dataclass_is_a_leaf() -> None:
-    node = Node("a", [{"key": 1}])
-    assert remove_keys_if({"x": node}, lambda key: key == "key") == {"x": node}
+def test_remove_keys_if_enters_the_dataclass() -> None:
+    node = Node("a", [{"key": 1, "other": 2}])
+    assert remove_keys_if({"x": node}, lambda key: key == "key") == {"x": Node("a", [{"other": 2}])}
