@@ -7,11 +7,11 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.nested.polars import (
-    expand_list_columns,
+    _expand_list_columns,
+    _is_nested_struct,
+    _unnest_one_level,
+    _unnest_with_separator,
     flatten_frame,
-    is_nested_struct,
-    unnest_one_level,
-    unnest_with_separator,
 )
 from coola.testing.marks import polars_available
 from coola.utils.imports import is_polars_available
@@ -24,7 +24,7 @@ else:  # pragma: no cover
 
 
 ######################################
-#     Tests for is_nested_struct     #
+#     Tests for _is_nested_struct     #
 ######################################
 
 
@@ -42,11 +42,11 @@ else:  # pragma: no cover
     ],
 )
 def test_is_nested_struct(dtype: pl.DataType, expected: bool) -> None:
-    assert is_nested_struct(dtype) == expected
+    assert _is_nested_struct(dtype) == expected
 
 
 ###########################################
-#     Tests for unnest_with_separator     #
+#     Tests for _unnest_with_separator     #
 ###########################################
 
 dataframe_original_unnest = pl.DataFrame.unnest
@@ -73,7 +73,7 @@ def test_unnest_with_separator_single_struct() -> None:
         schema={"id": pl.Int64, "coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
     )
     assert_frame_equal(
-        unnest_with_separator(frame, ["coords"], separator="."),
+        _unnest_with_separator(frame, ["coords"], separator="."),
         pl.DataFrame(
             {"id": [1, 2], "coords.x": [10, 30], "coords.y": [20, 40]},
             schema={"id": pl.Int64, "coords.x": pl.Int64, "coords.y": pl.Int64},
@@ -96,7 +96,7 @@ def test_unnest_with_separator_multiple_structs() -> None:
         },
     )
     assert_frame_equal(
-        unnest_with_separator(frame, ["coords", "meta"], separator="."),
+        _unnest_with_separator(frame, ["coords", "meta"], separator="."),
         pl.DataFrame(
             {"id": [1, 2], "coords.x": [10, 30], "coords.y": [20, 40], "meta.label": ["a", "b"]},
             schema={
@@ -119,7 +119,7 @@ def test_unnest_with_separator_separators(separator: str) -> None:
         schema={"coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
     )
     assert_frame_equal(
-        unnest_with_separator(frame, ["coords"], separator=separator),
+        _unnest_with_separator(frame, ["coords"], separator=separator),
         pl.DataFrame(
             {f"coords{separator}x": [1], f"coords{separator}y": [2]},
             schema={f"coords{separator}x": pl.Int64, f"coords{separator}y": pl.Int64},
@@ -138,7 +138,7 @@ def test_unnest_with_separator_fallback_single_struct() -> None:
         patch.object(pl.DataFrame, "unnest", unnest_without_separator),
     ):
         assert_frame_equal(
-            unnest_with_separator(frame, ["coords"], separator="."),
+            _unnest_with_separator(frame, ["coords"], separator="."),
             pl.DataFrame(
                 {"id": [1, 2], "coords.x": [10, 30], "coords.y": [20, 40]},
                 schema={"id": pl.Int64, "coords.x": pl.Int64, "coords.y": pl.Int64},
@@ -165,7 +165,7 @@ def test_unnest_with_separator_fallback_multiple_structs() -> None:
         patch.object(pl.DataFrame, "unnest", unnest_without_separator),
     ):
         assert_frame_equal(
-            unnest_with_separator(frame, ["coords", "meta"], separator="."),
+            _unnest_with_separator(frame, ["coords", "meta"], separator="."),
             pl.DataFrame(
                 {
                     "id": [1, 2],
@@ -197,7 +197,7 @@ def test_unnest_with_separator_fallback_separators(separator: str) -> None:
         patch.object(pl.DataFrame, "unnest", unnest_without_separator),
     ):
         assert_frame_equal(
-            unnest_with_separator(frame, ["coords"], separator=separator),
+            _unnest_with_separator(frame, ["coords"], separator=separator),
             pl.DataFrame(
                 {f"coords{separator}x": [1], f"coords{separator}y": [2]},
                 schema={f"coords{separator}x": pl.Int64, f"coords{separator}y": pl.Int64},
@@ -206,7 +206,7 @@ def test_unnest_with_separator_fallback_separators(separator: str) -> None:
 
 
 ######################################
-#     Tests for unnest_one_level     #
+#     Tests for _unnest_one_level     #
 ######################################
 
 
@@ -217,7 +217,7 @@ def test_unnest_one_level_flat_passthrough() -> None:
         schema={"id": pl.Int64, "value": pl.String},
     )
     assert_frame_equal(
-        unnest_one_level(frame, separator="."),
+        _unnest_one_level(frame, separator="."),
         pl.DataFrame(
             {"id": [1, 2], "value": ["a", "b"]},
             schema={"id": pl.Int64, "value": pl.String},
@@ -232,7 +232,7 @@ def test_unnest_one_level_single_struct() -> None:
         schema={"id": pl.Int64, "coords": pl.Struct({"x": pl.Int64, "y": pl.Int64})},
     )
     assert_frame_equal(
-        unnest_one_level(frame, separator="."),
+        _unnest_one_level(frame, separator="."),
         pl.DataFrame(
             {"id": [1, 2], "coords.x": [10, 30], "coords.y": [20, 40]},
             schema={"id": pl.Int64, "coords.x": pl.Int64, "coords.y": pl.Int64},
@@ -247,7 +247,7 @@ def test_unnest_one_level_list_of_struct() -> None:
         schema={"id": pl.Int64, "items": pl.List(pl.Struct({"name": pl.String}))},
     )
     assert_frame_equal(
-        unnest_one_level(frame, separator="."),
+        _unnest_one_level(frame, separator="."),
         pl.DataFrame(
             {"id": [1, 2, 2], "items.name": ["a", "b", "c"]},
             schema={"id": pl.Int64, "items.name": pl.String},
@@ -293,7 +293,7 @@ def test_unnest_one_level_list_of_struct_empty_as_null_supported() -> None:
     )
     with patch.object(pl.DataFrame, "explode", explode_requiring_empty_as_null):
         assert_frame_equal(
-            unnest_one_level(frame, separator="."),
+            _unnest_one_level(frame, separator="."),
             pl.DataFrame(
                 {"id": [1, 2, 2], "items.name": ["a", "b", "c"]},
                 schema={"id": pl.Int64, "items.name": pl.String},
@@ -313,7 +313,7 @@ def test_unnest_one_level_list_of_struct_fallback_no_empty_as_null() -> None:
         patch.object(pl.DataFrame, "explode", explode_without_empty_as_null),
     ):
         assert_frame_equal(
-            unnest_one_level(frame, separator="."),
+            _unnest_one_level(frame, separator="."),
             pl.DataFrame(
                 {"id": [1, 2, 2], "items.name": ["a", "b", "c"]},
                 schema={"id": pl.Int64, "items.name": pl.String},
@@ -322,7 +322,7 @@ def test_unnest_one_level_list_of_struct_fallback_no_empty_as_null() -> None:
 
 
 #########################################
-#     Tests for expand_list_columns     #
+#     Tests for _expand_list_columns     #
 #########################################
 
 
@@ -333,7 +333,7 @@ def test_expand_list_columns_no_lists() -> None:
         schema={"id": pl.Int64, "value": pl.String},
     )
     assert_frame_equal(
-        expand_list_columns(frame, separator="."),
+        _expand_list_columns(frame, separator="."),
         pl.DataFrame(
             {"id": [1, 2], "value": ["a", "b"]},
             schema={"id": pl.Int64, "value": pl.String},
@@ -348,7 +348,7 @@ def test_expand_list_columns_equal_length_lists() -> None:
         schema={"id": pl.Int64, "tags": pl.List(pl.String)},
     )
     assert_frame_equal(
-        expand_list_columns(frame, separator="."),
+        _expand_list_columns(frame, separator="."),
         pl.DataFrame(
             {"id": [1, 2], "tags.0": ["a", "c"], "tags.1": ["b", "d"]},
             schema={"id": pl.Int64, "tags.0": pl.String, "tags.1": pl.String},
@@ -363,7 +363,7 @@ def test_expand_list_columns_array() -> None:
         schema={"id": pl.Int64, "vec": pl.Array(pl.Int64, 2)},
     )
     assert_frame_equal(
-        expand_list_columns(frame, separator="."),
+        _expand_list_columns(frame, separator="."),
         pl.DataFrame(
             {"id": [1, 2], "vec.0": [1, 3], "vec.1": [2, 4]},
             schema={"id": pl.Int64, "vec.0": pl.Int64, "vec.1": pl.Int64},
@@ -375,7 +375,7 @@ def test_expand_list_columns_array() -> None:
 def test_expand_list_columns_array_with_null() -> None:
     frame = pl.DataFrame({"vec": [[1.0, 2.0], None]}, schema={"vec": pl.Array(pl.Float64, 2)})
     assert_frame_equal(
-        expand_list_columns(frame, separator="/"),
+        _expand_list_columns(frame, separator="/"),
         pl.DataFrame(
             {"vec/0": [1.0, None], "vec/1": [2.0, None]},
             schema={"vec/0": pl.Float64, "vec/1": pl.Float64},
@@ -389,7 +389,7 @@ def test_expand_list_columns_array_and_list_columns() -> None:
         {"vec": [[1, 2]], "tags": [["a"]]},
         schema={"vec": pl.Array(pl.Int64, 2), "tags": pl.List(pl.String)},
     )
-    result = expand_list_columns(frame, separator=".")
+    result = _expand_list_columns(frame, separator=".")
     assert sorted(result.columns) == ["tags.0", "vec.0", "vec.1"]
 
 
@@ -399,7 +399,7 @@ def test_expand_list_columns_array_and_list_row() -> None:
         {"vec": [[1, 2]], "tags": [["a"]]},
         schema={"vec": pl.Array(pl.Int64, 2), "tags": pl.List(pl.String)},
     )
-    result = expand_list_columns(frame, separator=".")
+    result = _expand_list_columns(frame, separator=".")
     assert result.row(0, named=True) == {"vec.0": 1, "vec.1": 2, "tags.0": "a"}
 
 
@@ -419,7 +419,7 @@ def test_expand_list_columns_unequal_length_lists() -> None:
         schema={"id": pl.Int64, "tags": pl.List(pl.String)},
     )
     assert_frame_equal(
-        expand_list_columns(frame, separator="."),
+        _expand_list_columns(frame, separator="."),
         pl.DataFrame(
             {"id": [1, 2], "tags.0": ["foo", "baz"], "tags.1": ["bar", None]},
             schema={"id": pl.Int64, "tags.0": pl.String, "tags.1": pl.String},
@@ -434,7 +434,7 @@ def test_expand_list_columns_single_element_lists() -> None:
         schema={"id": pl.Int64, "tags": pl.List(pl.String)},
     )
     assert_frame_equal(
-        expand_list_columns(frame, separator="."),
+        _expand_list_columns(frame, separator="."),
         pl.DataFrame(
             {"id": [1, 2], "tags.0": ["a", "b"]},
             schema={"id": pl.Int64, "tags.0": pl.String},
@@ -449,7 +449,7 @@ def test_expand_list_columns_empty_list() -> None:
         schema={"id": pl.Int64, "tags": pl.List(pl.String)},
     )
     assert_frame_equal(
-        expand_list_columns(frame, separator="."),
+        _expand_list_columns(frame, separator="."),
         pl.DataFrame(
             {"id": [1, 2], "tags.0": ["a", None]},
             schema={"id": pl.Int64, "tags.0": pl.String},
@@ -463,7 +463,7 @@ def test_expand_list_columns_drops_original() -> None:
         {"tags": [["a", "b"], ["c"]]},
         schema={"tags": pl.List(pl.String)},
     )
-    result = expand_list_columns(frame, separator=".")
+    result = _expand_list_columns(frame, separator=".")
     assert "tags" not in result.columns
 
 
@@ -474,7 +474,7 @@ def test_expand_list_columns_multiple_list_columns() -> None:
         schema={"id": pl.Int64, "tags": pl.List(pl.String), "scores": pl.List(pl.Float64)},
     )
     assert_frame_equal(
-        expand_list_columns(frame, separator="."),
+        _expand_list_columns(frame, separator="."),
         pl.DataFrame(
             {
                 "id": [1, 2],
@@ -506,7 +506,7 @@ def test_expand_list_columns_separator(separator: str) -> None:
         schema={"tags": pl.List(pl.String)},
     )
     assert_frame_equal(
-        expand_list_columns(frame, separator=separator),
+        _expand_list_columns(frame, separator=separator),
         pl.DataFrame(
             {f"tags{separator}0": ["a", "c"], f"tags{separator}1": ["b", None]},
             schema={f"tags{separator}0": pl.String, f"tags{separator}1": pl.String},
@@ -844,7 +844,7 @@ def test_expand_list_columns_existing_column_raises() -> None:
         schema={"l": pl.List(pl.Int64), "l.0": pl.Int64},
     )
     with pytest.raises(ValueError, match="already exists"):
-        expand_list_columns(frame, separator=".")
+        _expand_list_columns(frame, separator=".")
 
 
 @polars_available
@@ -854,7 +854,7 @@ def test_expand_list_columns_new_columns_collide_raises() -> None:
         schema={"a1": pl.List(pl.Int64), "a": pl.List(pl.Int64)},
     )
     with pytest.raises(ValueError, match="already exists"):
-        expand_list_columns(frame, separator="")
+        _expand_list_columns(frame, separator="")
 
 
 @polars_available
@@ -863,7 +863,7 @@ def test_expand_list_columns_all_empty_or_null_keeps_column() -> None:
         {"id": [1, 2], "tags": [[], None]},
         schema={"id": pl.Int64, "tags": pl.List(pl.String)},
     )
-    assert_frame_equal(expand_list_columns(frame, separator="."), frame)
+    assert_frame_equal(_expand_list_columns(frame, separator="."), frame)
 
 
 @polars_available
@@ -905,7 +905,7 @@ def test_flatten_frame_unrelated_type_error_of_explode_propagates() -> None:
 def test_unnest_with_separator_checks_the_version_of_polars() -> None:
     frame = pl.DataFrame({"coords": [{"x": 1}]})
     with patch("coola.nested.polars.compare_version", return_value=True) as compare:
-        unnest_with_separator(frame, ["coords"], separator=".")
+        _unnest_with_separator(frame, ["coords"], separator=".")
     compare.assert_called_once_with("polars", operator.ge, "1.35.0")
 
 
@@ -913,5 +913,5 @@ def test_unnest_with_separator_checks_the_version_of_polars() -> None:
 def test_unnest_one_level_checks_the_version_of_polars_for_explode() -> None:
     frame = pl.DataFrame({"items": [[{"name": "a"}]]})
     with patch("coola.nested.polars.compare_version", return_value=True) as compare:
-        unnest_one_level(frame, separator=".")
+        _unnest_one_level(frame, separator=".")
     assert compare.call_args_list[0].args == ("polars", operator.ge, "1.36.0")

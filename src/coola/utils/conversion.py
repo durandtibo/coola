@@ -7,21 +7,20 @@ __all__ = ["to_jsonable"]
 import base64
 import datetime
 import sys
-from dataclasses import fields, is_dataclass
 from decimal import Decimal
 from enum import Enum
 from pathlib import PurePath
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable
 
 
 def to_jsonable(data: Any) -> Any:
     r"""Convert a single object to a JSON-compatible representation.
 
-    This function converts ``pydantic.BaseModel``, dataclass,
+    This function converts ``pydantic.BaseModel``,
     ``numpy.ndarray``, ``numpy`` scalar, ``torch.Tensor``,
     ``pathlib`` path, ``datetime.date``/``datetime.datetime``/``datetime.time``,
     ``datetime.timedelta``,
@@ -31,12 +30,10 @@ def to_jsonable(data: Any) -> Any:
     timedeltas to a number of seconds,
     bytes to a Base64 string
     (ASCII) and enum members to their (converted) value.
-    Dataclasses are
-    converted recursively, field by field, without copying the field
-    values (``dataclasses.asdict`` deep-copies them), so a nested
-    dataclass or ``BaseModel`` field is converted too. All other object types,
-    including containers such as ``list`` or ``dict``, are returned
-    unchanged. Non-string ``dict`` keys are not converted, so the result
+    All other object types, including containers such as ``list`` or
+    ``dict`` and dataclasses, are returned unchanged: use
+    ``coola.nested.convert_to_jsonable`` for a dataclass. Non-string
+    ``dict`` keys are not converted, so the result
     is accepted by ``json.dumps`` only if the keys are ``str``, ``int``,
     ``float``, ``bool`` or ``None``; ``NaN`` and infinite floats are
     kept as they are. Sets are not converted (use
@@ -55,25 +52,18 @@ def to_jsonable(data: Any) -> Any:
 
     Example:
         ```pycon
-        >>> from dataclasses import dataclass
+        >>> from pathlib import PurePosixPath
         >>> from coola.utils.conversion import to_jsonable
-        >>> @dataclass
-        ... class Point:
-        ...     x: int
-        ...     y: int
-        ...
-        >>> to_jsonable(Point(x=1, y=2))
-        {'x': 1, 'y': 2}
-        >>> to_jsonable([Point(x=1, y=2)])  # not converted because it is a list
-        [Point(x=1, y=2)]
+        >>> to_jsonable(PurePosixPath("a/b"))
+        'a/b'
+        >>> to_jsonable([PurePosixPath("a/b")])  # not converted because it is a list
+        [PurePosixPath('a/b')]
 
         ```
     """
     for matches, convert in _CONVERTERS:
         if matches(data):
             return convert(data)
-    if is_dataclass(data) and not isinstance(data, type):
-        return _to_jsonable_recursive({f.name: getattr(data, f.name) for f in fields(data)})
     return data
 
 
@@ -123,27 +113,3 @@ _CONVERTERS: tuple[tuple[Callable[[Any], bool], Callable[[Any], Any]], ...] = (
     (lambda data: isinstance(data, Enum), lambda data: to_jsonable(data.value)),
     (lambda data: isinstance(data, range), list),
 )
-
-
-def _to_jsonable_recursive(data: Any) -> Any:
-    r"""Recursively apply ``to_jsonable`` to the dict/list structure
-    built from the fields of a dataclass.
-
-    The field values (e.g. ``numpy.ndarray``, ``torch.Tensor``,
-    ``pydantic.BaseModel``, nested dataclasses) are not converted yet.
-    This helper walks the structure and converts each leaf.
-
-    Args:
-        data: The dict/list structure to convert.
-
-    Returns:
-        The converted object.
-    """
-    if isinstance(data, dict):
-        return {
-            key: _to_jsonable_recursive(value)
-            for key, value in cast("dict[Any, Any]", data).items()
-        }
-    if isinstance(data, (list, tuple, set, frozenset)):
-        return [_to_jsonable_recursive(value) for value in cast("Iterable[Any]", data)]
-    return to_jsonable(data)

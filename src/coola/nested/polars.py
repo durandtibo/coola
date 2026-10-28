@@ -2,13 +2,7 @@ r"""Contain functions for polars DataFrame."""
 
 from __future__ import annotations
 
-__all__ = [
-    "expand_list_columns",
-    "flatten_frame",
-    "is_nested_struct",
-    "unnest_one_level",
-    "unnest_with_separator",
-]
+__all__ = ["flatten_frame"]
 
 import operator
 from typing import TYPE_CHECKING, cast
@@ -28,7 +22,7 @@ _UNNEST_SEPARATOR_VERSION = "1.35.0"  # ``DataFrame.unnest(separator=...)``
 _EXPLODE_EMPTY_AS_NULL_VERSION = "1.36.0"  # ``DataFrame.explode(empty_as_null=...)``
 
 
-def is_nested_struct(dtype: pl.DataType) -> bool:
+def _is_nested_struct(dtype: pl.DataType) -> bool:
     r"""Return ``True`` if ``dtype`` is a ``List`` or ``Array`` whose
     inner type is a ``Struct``.
 
@@ -42,10 +36,10 @@ def is_nested_struct(dtype: pl.DataType) -> bool:
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.nested.polars import is_nested_struct
-        >>> is_nested_struct(pl.List(pl.Struct({"x": pl.Int64})))
+        >>> from coola.nested.polars import _is_nested_struct
+        >>> _is_nested_struct(pl.List(pl.Struct({"x": pl.Int64})))
         True
-        >>> is_nested_struct(pl.List(pl.Int64))
+        >>> _is_nested_struct(pl.List(pl.Int64))
         False
 
         ```
@@ -55,7 +49,7 @@ def is_nested_struct(dtype: pl.DataType) -> bool:
     return False
 
 
-def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: str) -> pl.DataFrame:
+def _unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: str) -> pl.DataFrame:
     r"""Unnest struct columns with a separator prefix, compatible with
     polars>=1.0.0.
 
@@ -83,7 +77,7 @@ def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: st
     return frame.unnest(columns).rename(rename_map)
 
 
-def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
+def _expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     r"""Expand list and array columns into one column per index position.
 
     For each ``List`` or ``Array`` column, creates new columns named
@@ -137,7 +131,7 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     )
 
 
-def unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
+def _unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     r"""Unnest all top-level struct columns in a DataFrame by one level.
 
     Columns that are lists or arrays of structs are exploded first to expose
@@ -153,7 +147,7 @@ def unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
         by one level. Non-struct columns are passed through unchanged. If no
         struct columns are present the frame is returned as-is.
     """
-    nested_struct_cols = [name for name, dtype in frame.schema.items() if is_nested_struct(dtype)]
+    nested_struct_cols = [name for name, dtype in frame.schema.items() if _is_nested_struct(dtype)]
     if nested_struct_cols:
         try:
             frame = _explode(frame, nested_struct_cols)
@@ -167,7 +161,7 @@ def unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     if not struct_cols:
         return frame
 
-    return unnest_with_separator(frame, struct_cols, separator)
+    return _unnest_with_separator(frame, struct_cols, separator)
 
 
 def _explode(frame: pl.DataFrame, columns: list[str]) -> pl.DataFrame:
@@ -289,13 +283,13 @@ def flatten_frame(
     current_depth = 0
     while depth is None or current_depth < depth:
         has_structs = any(isinstance(dtype, pl.Struct) for dtype in frame.schema.values())
-        has_nested_structs = any(is_nested_struct(dtype) for dtype in frame.schema.values())
+        has_nested_structs = any(_is_nested_struct(dtype) for dtype in frame.schema.values())
         if not has_structs and not has_nested_structs:
             break
-        frame = unnest_one_level(frame, separator)
+        frame = _unnest_one_level(frame, separator)
         current_depth += 1
 
     if expand_lists:
-        frame = expand_list_columns(frame, separator)
+        frame = _expand_list_columns(frame, separator)
 
     return frame

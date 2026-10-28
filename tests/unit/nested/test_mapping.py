@@ -1,19 +1,13 @@
 from __future__ import annotations
 
-from collections import OrderedDict
-from typing import NamedTuple, Self
+from typing import Self
 
 import pytest
 
 from coola.nested import (
     DuplicateKeyError,
-    add_prefix_suffix_to_keys,
     flatten_mapping,
-    get_first_value,
     merge_mappings,
-    remove_keys_containing,
-    remove_keys_if,
-    remove_keys_starting_with,
 )
 
 
@@ -41,65 +35,6 @@ class _PassesValidationOnly(str):
 
     def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
-
-
-###############################################
-#     Tests for add_prefix_suffix_to_keys     #
-###############################################
-
-
-def test_add_prefix_suffix_to_keys_empty_mapping() -> None:
-    assert add_prefix_suffix_to_keys({}, prefix="prefix_") == {}
-
-
-def test_add_prefix_suffix_to_keys_prefix_only() -> None:
-    assert add_prefix_suffix_to_keys({"key1": 1, "key2": 2}, prefix="prefix_") == {
-        "prefix_key1": 1,
-        "prefix_key2": 2,
-    }
-
-
-def test_add_prefix_suffix_to_keys_suffix_only() -> None:
-    assert add_prefix_suffix_to_keys({"key1": 1, "key2": 2}, suffix="_suffix") == {
-        "key1_suffix": 1,
-        "key2_suffix": 2,
-    }
-
-
-def test_add_prefix_suffix_to_keys_prefix_and_suffix() -> None:
-    assert add_prefix_suffix_to_keys({"key1": 1, "key2": 2}, prefix="pre_", suffix="_suf") == {
-        "pre_key1_suf": 1,
-        "pre_key2_suf": 2,
-    }
-
-
-def test_add_prefix_suffix_to_keys_no_prefix_or_suffix() -> None:
-    assert add_prefix_suffix_to_keys({"key1": 1, "key2": 2}) == {"key1": 1, "key2": 2}
-
-
-def test_add_prefix_suffix_to_keys_non_string_key() -> None:
-    assert add_prefix_suffix_to_keys({1: "a", "key": "b"}, prefix="prefix_") == {
-        1: "a",
-        "prefix_key": "b",
-    }
-
-
-def test_add_prefix_suffix_to_keys_not_recursive_by_default() -> None:
-    assert add_prefix_suffix_to_keys({"key1": 1, "key2": {"key3": 3}}, prefix="prefix_") == {
-        "prefix_key1": 1,
-        "prefix_key2": {"key3": 3},
-    }
-
-
-def test_add_prefix_suffix_to_keys_recursive() -> None:
-    assert add_prefix_suffix_to_keys(
-        {"key1": 1, "key2": {"key3": 3, "key4": {"key5": 5}}},
-        prefix="prefix_",
-        recursive=True,
-    ) == {
-        "prefix_key1": 1,
-        "prefix_key2": {"prefix_key3": 3, "prefix_key4": {"prefix_key5": 5}},
-    }
 
 
 #####################################
@@ -290,22 +225,6 @@ def test_flatten_mapping_always_prefix_separator(separator: str) -> None:
     ) == {f"module1{separator}a": 1, f"module2{separator}b": 2}
 
 
-#####################################
-#     Tests for get_first_value     #
-#####################################
-
-
-def test_get_first_value_empty() -> None:
-    with pytest.raises(
-        ValueError, match=r"First value cannot be returned because the mapping is empty"
-    ):
-        get_first_value({})
-
-
-def test_get_first_value() -> None:
-    assert get_first_value({"key1": 1, "key2": 2}) == 1
-
-
 ####################################
 #     Tests for merge_mappings     #
 ####################################
@@ -461,184 +380,6 @@ def test_merge_mappings_non_string_keys() -> None:
     assert merge_mappings([{1: "a"}, {(2, 3): "b"}]) == {1: "a", (2, 3): "b"}
 
 
-####################################
-#     Tests for remove_keys_if     #
-####################################
-
-
-def test_remove_keys_if_empty() -> None:
-    assert remove_keys_if({}, lambda key: key == "key") == {}
-
-
-def test_remove_keys_if() -> None:
-    assert remove_keys_if(
-        {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6},
-        lambda key: isinstance(key, str) and "key" in key,
-    ) == {
-        "abc": 3,
-        1: 5,
-        (2, 3): 6,
-    }
-
-
-def test_remove_keys_if_non_string_predicate() -> None:
-    assert remove_keys_if(
-        {"a": 1, "b": 2, 1: 3, 2: 4}, lambda key: isinstance(key, int) and key % 2 == 0
-    ) == {"a": 1, "b": 2, 1: 3}
-
-
-def test_remove_keys_if_nested_mapping() -> None:
-    assert remove_keys_if(
-        {"abc": {"key": 1, "abc": 2}, "key": {"abc": 3}},
-        lambda key: isinstance(key, str) and "key" in key,
-    ) == {"abc": {"abc": 2}}
-
-
-def test_remove_keys_if_nested_list() -> None:
-    assert remove_keys_if(
-        {"list": [{"key": 1, "abc": 2}, {"key": 3}], "abc": 4},
-        lambda key: isinstance(key, str) and "key" in key,
-    ) == {"list": [{"abc": 2}, {}], "abc": 4}
-
-
-def test_remove_keys_if_nested_tuple() -> None:
-    assert remove_keys_if(
-        {"tuple": ({"key": 1, "abc": 2},)}, lambda key: isinstance(key, str) and "key" in key
-    ) == {"tuple": ({"abc": 2},)}
-
-
-def test_remove_keys_if_nested_set() -> None:
-    assert remove_keys_if(
-        {"set": {1, 2, 3}, "key": 4}, lambda key: isinstance(key, str) and "key" in key
-    ) == {"set": {1, 2, 3}}
-
-
-def test_remove_keys_if_preserves_mapping_type_values() -> None:
-    out = remove_keys_if(
-        OrderedDict(key=1, abc=2), lambda key: isinstance(key, str) and "key" in key
-    )
-    assert out == {"abc": 2}
-
-
-def test_remove_keys_if_preserves_mapping_type_type() -> None:
-    out = remove_keys_if(
-        OrderedDict(key=1, abc=2), lambda key: isinstance(key, str) and "key" in key
-    )
-    assert isinstance(out, OrderedDict)
-
-
-def test_remove_keys_if_preserves_namedtuple_values() -> None:
-    class Point(NamedTuple):
-        x: int
-        y: dict
-
-    out = remove_keys_if(
-        {"point": Point(1, {"key": 2, "abc": 3})},
-        lambda key: isinstance(key, str) and "key" in key,
-    )
-    assert out == {"point": Point(1, {"abc": 3})}
-
-
-def test_remove_keys_if_preserves_namedtuple_type() -> None:
-    class Point(NamedTuple):
-        x: int
-        y: dict
-
-    out = remove_keys_if(
-        {"point": Point(1, {"key": 2, "abc": 3})},
-        lambda key: isinstance(key, str) and "key" in key,
-    )
-    assert isinstance(out["point"], Point)
-
-
-############################################
-#     Tests for remove_keys_containing     #
-############################################
-
-
-def test_remove_keys_containing_empty() -> None:
-    assert remove_keys_containing({}, "key") == {}
-
-
-def test_remove_keys_containing() -> None:
-    assert remove_keys_containing(
-        {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6}, "key"
-    ) == {
-        "abc": 3,
-        1: 5,
-        (2, 3): 6,
-    }
-
-
-def test_remove_keys_containing_another_substring() -> None:
-    assert remove_keys_containing(
-        {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6}, "xyz"
-    ) == {
-        "key": 1,
-        "key.abc": 2,
-        "abc": 3,
-        "abc.key": 4,
-        1: 5,
-        (2, 3): 6,
-    }
-
-
-def test_remove_keys_containing_nested_mapping() -> None:
-    assert remove_keys_containing({"abc": {"key": 1, "abc": 2}, "key": {"abc": 3}}, "key") == {
-        "abc": {"abc": 2}
-    }
-
-
-def test_remove_keys_containing_nested_list() -> None:
-    assert remove_keys_containing(
-        {"list": [{"key": 1, "abc": 2}, {"key": 3}], "abc": 4}, "key"
-    ) == {"list": [{"abc": 2}, {}], "abc": 4}
-
-
-def test_remove_keys_containing_nested_tuple() -> None:
-    assert remove_keys_containing({"tuple": ({"key": 1, "abc": 2},)}, "key") == {
-        "tuple": ({"abc": 2},)
-    }
-
-
-###############################################
-#     Tests for remove_keys_starting_with     #
-###############################################
-
-
-def test_remove_keys_starting_with_empty() -> None:
-    assert remove_keys_starting_with({}, "key") == {}
-
-
-def test_remove_keys_starting_with() -> None:
-    assert remove_keys_starting_with(
-        {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6}, "key"
-    ) == {
-        "abc": 3,
-        "abc.key": 4,
-        1: 5,
-        (2, 3): 6,
-    }
-
-
-def test_remove_keys_starting_with_another_key() -> None:
-    assert remove_keys_starting_with(
-        {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6}, "key."
-    ) == {
-        "key": 1,
-        "abc": 3,
-        "abc.key": 4,
-        1: 5,
-        (2, 3): 6,
-    }
-
-
-def test_remove_keys_starting_with_nested_mapping() -> None:
-    assert remove_keys_starting_with({"abc": {"key": 1, "abc": 2}, "key": {"abc": 3}}, "key") == {
-        "abc": {"abc": 2}
-    }
-
-
 def test_duplicate_key_error_is_key_error_and_value_error_key_error() -> None:
     assert issubclass(DuplicateKeyError, KeyError)
 
@@ -667,31 +408,12 @@ def test_merge_mappings_suffix_does_not_overwrite_existing_key() -> None:
     assert result == {"a": 1, "a_1": 10, "a_2": 2}
 
 
-def test_merge_mappings_suffix_key_colliding_with_later_key_raises() -> None:
-    # The suffixed duplicate "a_1" collides with the original key "a_1" of the third mapping.
-    with pytest.raises(DuplicateKeyError, match="collides"):
-        merge_mappings([{"a": 1}, {"a": 2}, {"a_1": 3}], on_duplicate="suffix")
-
-
-def test_remove_keys_if_uses_the_predicate_of_each_call_first_predicate() -> None:
-    data = {"a": 1, "b": {"a": 2, "b": 3}}
-    assert remove_keys_if(data, lambda key: key == "a") == {"b": {"b": 3}}
-
-
-def test_remove_keys_if_uses_the_predicate_of_each_call_second_predicate() -> None:
-    data = {"a": 1, "b": {"a": 2, "b": 3}}
-    assert remove_keys_if(data, lambda key: key == "b") == {"a": 1}
-
-
-def test_remove_keys_if_uses_the_predicate_of_each_call_predicate_that_keeps_all() -> None:
-    data = {"a": 1, "b": {"a": 2, "b": 3}}
-    assert remove_keys_if(data, lambda key: False) == data  # noqa: ARG005
-
-
-def test_remove_keys_if_values_equal_to_the_removed_key_are_kept() -> None:
-    assert remove_keys_if({"x": "a", "a": 1, "y": ["a"]}, lambda key: key == "a") == {
-        "x": "a",
-        "y": ["a"],
+def test_merge_mappings_suffix_input_key_equal_to_a_generated_key_is_kept() -> None:
+    # The suffixed duplicate "a_1" would collide with the input key "a_1" of the third mapping.
+    assert merge_mappings([{"a": 1}, {"a": 2}, {"a_1": 3}], on_duplicate="suffix") == {
+        "a": 1,
+        "a_2": 2,
+        "a_1": 3,
     }
 
 
@@ -733,28 +455,6 @@ def test_flatten_mapping_equal_nan() -> None:
     assert list(result) == ["a"]
 
 
-def test_add_prefix_suffix_to_keys_recursive_list_of_dicts() -> None:
-    assert add_prefix_suffix_to_keys(
-        {"a": [{"b": 1}, [{"c": 2}], 3]}, prefix="p_", recursive=True
-    ) == {"p_a": [{"p_b": 1}, [{"p_c": 2}], 3]}
-
-
-def test_add_prefix_suffix_to_keys_recursive_tuple_of_dicts() -> None:
-    assert add_prefix_suffix_to_keys({"a": ({"b": 1},)}, suffix="_s", recursive=True) == {
-        "a_s": ({"b_s": 1},)
-    }
-
-
-def test_add_prefix_suffix_to_keys_recursive_keeps_strings() -> None:
-    assert add_prefix_suffix_to_keys({"a": ["abc", b"x"]}, prefix="p_", recursive=True) == {
-        "p_a": ["abc", b"x"]
-    }
-
-
-def test_add_prefix_suffix_to_keys_not_recursive_keeps_lists() -> None:
-    assert add_prefix_suffix_to_keys({"a": [{"b": 1}]}, prefix="p_") == {"p_a": [{"b": 1}]}
-
-
 def test_flatten_mapping_always_prefix_colliding_keys_raises() -> None:
     with pytest.raises(DuplicateKeyError, match="collides"):
         flatten_mapping({"a.b": {"c": 1}, "a": {"b.c": 2}}, always_prefix=True)
@@ -783,3 +483,87 @@ def test_flatten_mapping_value_that_is_not_a_mapping_names_the_type() -> None:
 def test_flatten_mapping_value_that_is_not_a_mapping_raises_with_always_prefix() -> None:
     with pytest.raises(TypeError, match="must be an instance of"):
         flatten_mapping({"a": None}, always_prefix=True)
+
+
+@pytest.mark.parametrize(
+    "mappings",
+    [
+        [{"a": 1}, {"a": 2}, {"a_1": 3}],
+        [{"a": 1}, {"a_1": 3}, {"a": 2}],
+        [{"a_1": 3}, {"a": 1}, {"a": 2}],
+    ],
+)
+def test_merge_mappings_suffix_has_the_same_entries_for_every_order(mappings: list) -> None:
+    result = merge_mappings(mappings, on_duplicate="suffix")
+    assert sorted(result.items()) == [("a", 1), ("a_1", 3), ("a_2", 2)]
+
+
+def test_merge_mappings_suffix_input_key_first_whole_output() -> None:
+    assert merge_mappings([{"a_1": 3}, {"a": 1}, {"a": 2}], on_duplicate="suffix") == {
+        "a_1": 3,
+        "a": 1,
+        "a_2": 2,
+    }
+
+
+def test_merge_mappings_suffix_skips_several_input_keys() -> None:
+    mappings = [{"a": 1}, {"a": 2}, {"a": 3}, {"a_1": 4, "a_2": 5}]
+    assert merge_mappings(mappings, on_duplicate="suffix") == {
+        "a": 1,
+        "a_3": 2,
+        "a_4": 3,
+        "a_1": 4,
+        "a_2": 5,
+    }
+
+
+def test_merge_mappings_accepts_a_generator() -> None:
+    assert merge_mappings(({"a": i} for i in range(1)), on_duplicate="suffix") == {"a": 0}
+
+
+def test_merge_mappings_generator_with_suffix_sees_the_later_keys() -> None:
+    mappings = ({k: v} for k, v in [("a", 1), ("a", 2), ("a_1", 3)])
+    assert merge_mappings(mappings, on_duplicate="suffix") == {"a": 1, "a_2": 2, "a_1": 3}
+
+
+def test_merge_mappings_keeps_the_order_of_the_input() -> None:
+    assert list(merge_mappings([{"c": 1, "a": 2}, {"b": 3}])) == ["c", "a", "b"]
+
+
+def test_flatten_mapping_prefix_keeps_the_order_of_the_input() -> None:
+    metrics = {"train": {"loss": 1}, "val": {"acc": 2, "loss": 3}}
+    assert list(flatten_mapping(metrics, on_duplicate="prefix")) == [
+        "train.loss",
+        "acc",
+        "val.loss",
+    ]
+
+
+def test_flatten_mapping_prefix_whole_output_of_the_guide_example() -> None:
+    metrics = {"train": {"loss": 1, "acc": 2}, "val": {"loss": 3}}
+    assert flatten_mapping(metrics, on_duplicate="prefix") == {
+        "train.loss": 1,
+        "acc": 2,
+        "val.loss": 3,
+    }
+
+
+def test_flatten_mapping_prefix_renamed_key_collides_with_an_existing_key() -> None:
+    mapping = {"a": {"x": 1}, "c": {"a.x": 5}, "b": {"x": 2}}
+    with pytest.raises(DuplicateKeyError, match="collides"):
+        flatten_mapping(mapping, on_duplicate="prefix")
+
+
+def test_flatten_mapping_last_keeps_the_position_of_the_first_occurrence() -> None:
+    mapping = {"a": {"x": 1, "y": 2}, "b": {"x": 3}}
+    assert list(flatten_mapping(mapping, on_duplicate="last").items()) == [("x", 3), ("y", 2)]
+
+
+def test_flatten_mapping_options_are_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional"):
+        flatten_mapping({"a": {"b": 1}}, "raise")
+
+
+def test_merge_mappings_options_are_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional"):
+        merge_mappings([{"a": 1}], "raise")
