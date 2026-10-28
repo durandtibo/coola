@@ -10,7 +10,7 @@ specification also used by ``generate_ulid``) so a single mistyped or
 transposed character is caught locally, before the identifier is looked
 up anywhere. Use it for identifiers a human is expected to read back or
 retype, e.g. a support code, license key, or invoice number; use
-``generate_ulid`` or ``generate_nano_id`` instead for identifiers only
+``generate_ulid`` instead for identifiers only
 handled by machines, since the check symbol trades away one character
 of entropy for the error-detection guarantee.
 """

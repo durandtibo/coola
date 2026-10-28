@@ -19,18 +19,13 @@ problems:
 | `generate_uuid7`             |          :x:           | UUID string         | Unique, sortable-by-creation-time ID, needs a valid UUID                         |
 | `generate_snowflake_id`      |          :x:           | 64-bit integer      | Unique, sortable-by-creation-time ID as a single integer                         |
 | `generate_object_id`         |          :x:           | 24-char hex string  | Unique, sortable-by-creation-time ID, never blocks/raises                        |
-| `generate_uuid4`             |          :x:           | UUID string         | Plain random ID, needs a valid UUID, no ordering                                 |
-| `generate_nano_id`           |          :x:           | configurable string | Short, URL-safe random ID with custom alphabet/length                            |
 | `generate_checksummed_id`    |          :x:           | grouped string      | Random ID with a check symbol, for identifiers humans retype                     |
-| `generate_obfuscated_id`     | reversible, not random | base62 string       | Obfuscates an existing sequential integer, decodable with `decode_obfuscated_id` |
-| `generate_prefixed_id`       |  depends on generator  | `"{prefix}_{id}"`   | Wraps any of the above so the ID's type is recognizable at a glance              |
 
 `generate_stable_uuid5` and `generate_stable_content_id` are content-addressed: they are built on
 top of [`coola.hashing`](../refs/hashing.md)'s `hash_object`, so calling them twice with equal data
 (regardless of e.g. mapping insertion order) always returns the same identifier. `generate_ulid`,
-`generate_uuid7`, and `generate_snowflake_id` are not derived from data at all: they mint a fresh,
-unique value every call, ordered by creation time instead. `generate_prefixed_id` is not a new
-algorithm; it wraps any of the others (or a custom callable) to tag the identifier's type.
+`generate_uuid7`, `generate_snowflake_id` and `generate_object_id` are not derived from data at all:
+they mint a fresh, unique value every call, ordered by creation time instead.
 
 The four time-ordered generators (`generate_ulid`, `generate_uuid7`, `generate_snowflake_id`, and
 `generate_object_id`) each have a matching `extract_*_timestamp*` function
@@ -263,34 +258,6 @@ True
 
 ```
 
-### `generate_uuid4`
-
-`generate_uuid4` is a thin wrapper around `uuid.uuid4()`, provided for API symmetry with
-`generate_uuid7` and `generate_stable_uuid5`. It carries no timestamp and does not sort by
-creation time:
-
-```pycon
->>> from coola.identifier import generate_uuid4
->>> generate_uuid4()  # doctest: +ELLIPSIS
-'...'
-
-```
-
-### `generate_nano_id`
-
-`generate_nano_id` generates a [Nano ID](https://github.com/ai/nanoid) style random string: unlike
-`generate_ulid` and `generate_uuid7`, both its alphabet and its length are configurable, which
-makes it a better fit for short, URL-safe identifiers (e.g. slugs):
-
-```pycon
->>> from coola.identifier import generate_nano_id
->>> generate_nano_id()  # doctest: +ELLIPSIS
-'...'
->>> generate_nano_id(length=8, alphabet="0123456789abcdef")  # doctest: +ELLIPSIS
-'...'
-
-```
-
 ### `generate_object_id`
 
 `generate_object_id` generates a MongoDB `ObjectId` style 24-character hex string: a 4-byte
@@ -343,77 +310,12 @@ True
 
 ```
 
-### `generate_obfuscated_id` and `decode_obfuscated_id`
-
-Unlike every other generator above, `generate_obfuscated_id` does not mint a new value: it takes
-an existing non-negative integer (e.g. a database autoincrement ID) and reshapes it into a short
-opaque string that hides its magnitude and ordering, while remaining exactly reversible via
-`decode_obfuscated_id` given the same `salt`:
-
-```pycon
->>> from coola.identifier import generate_obfuscated_id, decode_obfuscated_id
->>> encoded = generate_obfuscated_id(42, salt="orders")
->>> decode_obfuscated_id(encoded, salt="orders")
-42
-
-```
-
-!!! warning "Obfuscation, not encryption"
-
-    The `salt` is not a secret key. Anyone who can observe two `(plaintext, obfuscated)` pairs for a
-    known `salt` can recover the constants and decode every identifier. Do not use it to protect
-    sensitive data or as an access control: authorize every access explicitly.
-
-## Prefixed identifiers
-
-### `generate_prefixed_id`
-
-`generate_prefixed_id` is not a new identifier-generation algorithm: it wraps any of the
-generators above (via its `generator` argument, defaulting to `generate_ulid`) to produce
-Stripe-style prefixed identifiers, which make an identifier's type recognizable at a glance (e.g.
-in logs, URLs, or support tickets) without a lookup:
-
-```pycon
->>> from coola.identifier import generate_prefixed_id
->>> generate_prefixed_id("cus")  # doctest: +ELLIPSIS
-'cus_...'
-
-```
-
-Pass a different `generator` to prefix a different kind of identifier, e.g. a `SnowflakeIdGenerator`
-instance's output turned into a string:
-
-```pycon
->>> from coola.identifier import SnowflakeIdGenerator, generate_prefixed_id
->>> generator = SnowflakeIdGenerator()
->>> generate_prefixed_id("evt", generator=lambda: str(generator.generate()))
-... # doctest: +ELLIPSIS
-'evt_...'
-
-```
-
-`prefix` must be non-empty and must not contain `"_"` (the separator between the prefix and the
-generated identifier):
-
-```pycon
->>> from coola.identifier import generate_prefixed_id
->>> generate_prefixed_id("")
-Traceback (most recent call last):
-    ...
-ValueError: prefix must not be empty
->>> generate_prefixed_id("cus_tom")
-Traceback (most recent call last):
-    ...
-ValueError: prefix must not contain '_', got 'cus_tom'
-
-```
-
 ## Properties
 
 | Property                       | Statement                                                                                                                                                                           |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Declared shape                 | Every generator returns a `str`, except `SnowflakeIdGenerator.generate` and `generate_snowflake_id`, which return an `int` of at most 63 bits.                                      |
-| Random bits are CSPRNG         | The random bits of `generate_ulid`, `generate_uuid7`, `generate_object_id`, `generate_nano_id` and `generate_checksummed_id` come from `secrets` or `os.urandom`, never `random`.   |
+| Random bits are CSPRNG         | The random bits of `generate_ulid`, `generate_uuid7`, `generate_object_id` and `generate_checksummed_id` come from `secrets` or `os.urandom`, never `random`.   |
 | Identifier, not a secret       | An identifier is not an access token. The time-ordered ones are guessable (the next value is the previous one plus one) and the content-derived ones are reproducible. Authorize every access explicitly. |
 | Stable IDs are content-derived | `generate_stable_uuid5` and `generate_stable_content_id` give the same ID for equal data, regardless of the mapping insertion order.                                                |
 | Collision resistance           | `generate_stable_uuid5` is bounded by the 122 random bits of a UUID (birthday bound 2^61), whatever the hash. `generate_stable_content_id` keeps the strength of the underlying hash. |
@@ -424,7 +326,6 @@ ValueError: prefix must not contain '_', got 'cus_tom'
 | Fork-safe                      | After a fork, `generate_ulid`, `generate_uuid7` and `generate_object_id` do not repeat the identifiers of the parent. A Snowflake generator does, unless the child uses another `worker_id`. |
 | Recoverable timestamp          | The four time-ordered generators have a matching `extract_*` function.                                                                                                              |
 | Check symbol                   | `verify_checksummed_id` is `True` for every identifier of `generate_checksummed_id` and detects any single wrong character and any swap of two adjacent characters.                  |
-| Obfuscation is not encryption  | `generate_obfuscated_id` is an affine map that two known pairs break. It hides the magnitude of a number, nothing else.                                                              |
 
 The stable IDs inherit the [hashing](hashing.md) properties, including the fact that they can change between versions of `coola`.
 
@@ -446,13 +347,10 @@ Not guaranteed:
 - Need a unique identifier per call, sortable by creation time? Use `generate_ulid` (string,
   more randomness), `generate_uuid7` (string, valid UUID format), `generate_snowflake_id`
   (64-bit integer) or `generate_object_id` (24-character hex string, sorts by second).
-- Need a unique identifier that does not sort? Use `generate_uuid4` (valid UUID format) or
-  `generate_nano_id` (short, custom alphabet and length).
 - Need a code that a human retypes (support code, license key)? Use `generate_checksummed_id`
   and `verify_checksummed_id`.
-- Need to hide the magnitude of an existing integer? Use `generate_obfuscated_id` and
-  `decode_obfuscated_id`, never for anything sensitive.
-- Need the identifier's type recognizable at a glance (e.g. in logs or URLs)? Wrap any of the
-  above with `generate_prefixed_id`.
+- Need a plain random UUID, a short random string, a prefixed identifier or an opaque public
+  identifier? Use the standard library or a dedicated library: `str(uuid.uuid4())`,
+  `secrets.token_urlsafe(16)`, `f"cus_{generate_ulid()}"`, or a library such as `sqids`.
 - Need an unpredictable token (session, API key, password reset link)? None of these: use
   `secrets.token_urlsafe`.

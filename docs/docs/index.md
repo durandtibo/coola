@@ -218,8 +218,8 @@ Compute stable hashes of nested objects:
 
 ### 🆔 **Identifiers**
 
-Generate unique identifiers: ULID, UUID (v4, v5, v7), Snowflake, ObjectId, NanoID, and
-prefixed, checksummed, obfuscated and content-based identifiers.
+Generate unique identifiers: ULID, UUID (v5, v7), Snowflake, ObjectId, and checksummed and
+content-based identifiers.
 
 [Learn more →](uguide/identifier.md)
 
