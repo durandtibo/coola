@@ -421,17 +421,23 @@ package shrinks to functions that do real work. The cost is one line for the cal
 it costs nothing to maintain, but it is the only function of the package that nobody needs from a
 nested structure.
 
+Decision: move it to coola.utils.mapping
+
 **D2. Own the key transformer in `nested`, or generalise it in `recursive`?** _Recommended: in
 `nested`, private._ `recursive` says "keys are never transformed", and a transformer that renames or
 drops keys is the exception that only `nested` needs. Alternative: a public `MapKeysTransformer` in
 `recursive`, which `review/recursive.md` section 10 foresees. It becomes the right home as soon as a
 second package needs it; moving a private class is a rename.
 
+Decision: follow recommendation
+
 **D3. Raise the minimum polars version?** _Recommended: look at the support policy of
 `pyproject.toml` (`polars>=1.0,<3.0`) when step 8 is made._ If the oldest supported version has
 `unnest(separator=...)` and `explode(empty_as_null=...)`, the two compatibility branches
 (`unnest_with_separator`, `_explode`) are deleted, about 25 lines and two untestable branches on
 current CI. If not, keep them behind `compare_version`.
+
+Decision: keep `polars>=1.0,<3.0`
 
 **D4. Enter dataclasses in `to_flat_dict`, `remove_keys_*` and `add_prefix_suffix_to_keys`?**
 _Recommended: yes._ `nested_data.md` says that a dataclass is a container in every package and
@@ -441,26 +447,36 @@ being a leaf of the flat dict, and that a dataclass does not come back from `fro
 Alternative: keep dataclasses as leaves of `nested` and document it; the table of
 `nested_data.md` then gets an exception per function.
 
+Decision: follow recommendation
+
 **D5. Keep `recursive=False` as the default of `add_prefix_suffix_to_keys`?** _Recommended: yes, as a
 keyword-only option._ The common use (a prefix such as `train/` on the top-level metrics) is
 non-recursive, and the `remove_keys_*` functions are always recursive because removing a key at the
 top only is a dict comprehension. Alternative: make the rename always recursive and delete the flag
 (one branch less); users of the top level write `{f"x_{k}": v for ...}`.
 
+Decision: follow recommendation
+
 **D6. Should a collision on rename raise, or should the last entry win?** _Recommended: raise_
 (`DuplicateKeyError`, the exception of the package). It is the rule for every other function that can
 merge two entries and the only one that makes a rename function safe to expose later.
+
+Decision: follow recommendation
 
 **D7. Cache the derived registries?** _Recommended: no._ A copy of the default registry is 6 µs, which
 is below the noise of any call on a real structure, and a cache of derived registries must track the
 changes of the default registry (a user registers a transformer after the first call). Revisit if the
 benchmark of tiny inputs matters to a user.
 
+Decision: follow recommendation
+
 **D8. `to_flat_dict` on top of `dfs_items` or its own loop?** _Recommended: its own loop now
 (25 lines, section 3.2), `dfs_items` later._ The path-aware iterator is not built, the loop is small
 and fixes the depth, the cycle and the dataclass today, and deleting it when `dfs_items` lands is a
 local change. Alternative: make `dfs_items` first and keep `to_flat_dict` as is; it blocks the fix on
 an unrelated feature.
+
+Decision: make `dfs_items` first
 
 ## 10. Not covered
 
