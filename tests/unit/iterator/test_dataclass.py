@@ -70,3 +70,11 @@ def test_dataclass_child_finder_find_children_does_not_modify_the_data() -> None
     data = Point(1.0, 2.0)
     list(DataclassChildFinder().find_children(data))
     assert data == Point(1.0, 2.0)
+
+
+def test_dataclass_child_finder_find_items() -> None:
+    assert list(DataclassChildFinder().find_items(Point(1.0, 2.0))) == [("x", 1.0), ("y", 2.0)]
+
+
+def test_dataclass_child_finder_find_items_without_field() -> None:
+    assert list(DataclassChildFinder().find_items(Empty())) == []
