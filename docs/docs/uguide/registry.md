@@ -493,6 +493,32 @@ Every registry of `coola` has a `copy()` method (`TypeRegistry`, `HasherRegistry
 leaking the registration to the other tests, see "Isolating the Default Registries" in the
 [testing guide](testing.md).
 
+## Default Registries and Plugins
+
+The packages built on `coola.registry` (equality, hashing, summary, iterator, recursive, random) each
+have a default registry, built the first time it is used. `coola.registry.default` builds them:
+
+```pycon
+>>> from coola.registry.default import make_default_registry_singleton
+>>> singleton = make_default_registry_singleton(dict, lambda registry: registry.update(a=1))
+>>> singleton.get()
+{'a': 1}
+
+```
+
+With `plugin_group="my.entry.point.group"`, every entry point of that group is loaded after the
+defaults and called with the registry, so a third-party package can register its types without
+touching `coola`. `coola.registry.plugins` has the loader and the diagnostics:
+
+- `load_registry_plugins(registry, group)` populates a registry from the entry points of a group. A
+  plugin that fails emits a `RuntimeWarning` and is skipped. If `COOLA_STRICT_PLUGINS` is set, all the
+  failures are raised together as an `ExceptionGroup`. If `COOLA_DISABLE_PLUGINS` is set, no plugin
+  is loaded.
+- `get_loaded_plugins()` lists the plugins that were applied in this process.
+- `reset_default_registries()` and `temporary_default_registries()` (in `coola.registry.default`)
+  forget the default registries, or run a block on copies of them. See "Isolating the Default
+  Registries" in the [testing guide](testing.md).
+
 ## Common Use Cases
 
 ### Plugin System
