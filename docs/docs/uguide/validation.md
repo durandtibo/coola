@@ -17,6 +17,8 @@ The package has eleven functions in three families:
 | Comparison | `validate_ge`, `validate_gt`, `validate_le`, `validate_lt`, `validate_range`, `validate_finite` | **compares** to (a bound, a range, `inf`) |
 | Container  | `validate_not_empty`, `validate_in`                              | **holds**, or belongs to                  |
 
+The [Properties](#properties) section lists the rules that every function follows.
+
 Every function takes the value to validate as its first argument, and an optional `name` keyword
 argument used to identify the value in the error message. On success, the function returns
 `None`; on failure, it raises an exception. The [Properties](#properties) section lists the rules
