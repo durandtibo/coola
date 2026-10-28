@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.io import BaseFileSaver
-from coola.io.base import _acquire_file_lock, _break_stale_lock, _keep_lock_fresh, _save_lock
 from tests.integration.helpers import run_python, run_threads
 
 if TYPE_CHECKING:
@@ -51,14 +50,10 @@ class SlowFileSaver(BaseFileSaver[str]):
 def test_base_file_saver_save_concurrent_exist_ok_true_does_not_interleave(
     tmp_path: Path,
 ) -> None:
-    # Regression test: concurrent ``save(..., exist_ok=True)`` calls to the
-    # same path must not interleave their write/commit steps. Before the
-    # per-path lock was added, each thread wrote its own tmp file and then
-    # raced to commit, so the final content could in principle come from a
-    # tmp file that had already been unlinked by another thread, or the
-    # commit steps could otherwise interleave; the fix serializes the whole
-    # write+commit sequence per path so the result is always exactly one
-    # writer's full content, never a mix or a crash.
+    """Test that concurrent overwrites of one path from threads leave one
+    writer's complete content."""
+    # Each thread writes its own hidden tmp file and commits it atomically, so
+    # the result is always exactly one writer's full content, never a mix.
     path = tmp_path.joinpath("data.txt")
     saver = SlowFileSaver()
     values = [f"value-{i}" for i in range(8)]
@@ -77,204 +72,6 @@ def test_base_file_saver_save_concurrent_exist_ok_true_does_not_interleave(
     assert path.read_text() in values
     # No leftover tmp files from any writer.
     assert list(tmp_path.iterdir()) == [path]
-
-
-def test_base_file_saver_save_concurrent_exist_ok_true_serializes_writers(
-    tmp_path: Path,
-) -> None:
-    # Directly verify the per-path lock prevents two ``save`` calls to the
-    # same path from ever being inside the write/commit section at the same
-    # time.
-    path = tmp_path.joinpath("data.txt")
-    saver = SlowFileSaver()
-    active = 0
-    max_active = 0
-    guard = threading.Lock()
-
-    original_save_file = saver._save_file
-
-    def tracked_save_file(to_save: Any, path: Path) -> None:
-        nonlocal active, max_active
-        with guard:
-            active += 1
-            max_active = max(max_active, active)
-        try:
-            original_save_file(to_save, path)
-        finally:
-            with guard:
-                active -= 1
-
-    saver._save_file = tracked_save_file
-    run_threads(
-        [
-            threading.Thread(
-                target=saver.save, args=(f"value-{i}",), kwargs={"path": path, "exist_ok": True}
-            )
-            for i in range(6)
-        ]
-    )
-
-    assert max_active == 1
-
-
-def test_acquire_file_lock_blocks_while_another_holder_owns_the_lock_file(
-    tmp_path: Path,
-) -> None:
-    # Simulate a concurrent writer (possibly in another process) holding the
-    # lock file: ``_acquire_file_lock`` must not return until it is removed.
-    path = tmp_path.joinpath("data.txt")
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.touch()
-    acquired: list[Path] = []
-
-    def waiter() -> None:
-        acquired.append(_acquire_file_lock(path, poll_interval=0.001))
-
-    thread = threading.Thread(target=waiter)
-    thread.start()
-    time.sleep(0.05)
-    assert not acquired  # still waiting, the lock file is held
-    lock_path.unlink()
-    thread.join(timeout=5)
-    assert not thread.is_alive()
-    assert acquired == [lock_path]
-    lock_path.unlink()
-
-
-def test_base_file_saver_save_blocks_while_lock_file_is_held(tmp_path: Path) -> None:
-    # Regression test for cross-process serialization: even though the
-    # in-process ``threading.Lock`` used by ``_get_save_lock`` cannot see
-    # holders in other processes, ``save`` must still wait on the lock file
-    # left behind by such a holder before writing/committing.
-    path = tmp_path.joinpath("data.txt")
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.touch()
-    saver = SimpleFileSaver()
-    done = threading.Event()
-
-    def worker() -> None:
-        saver.save("value", path, exist_ok=True)
-        done.set()
-
-    thread = threading.Thread(target=worker)
-    thread.start()
-    time.sleep(0.05)
-    assert not done.is_set()
-    assert not path.is_file()
-    lock_path.unlink()
-    thread.join(timeout=5)
-    assert done.is_set()
-    assert path.is_file()
-    assert path.read_text() == "value"
-    assert not lock_path.is_file()
-
-
-def _hold_lock(path: Path, locked: Any) -> None:  # pragma: no cover  (runs in a child)
-    _acquire_file_lock(path)
-    locked.set()
-    time.sleep(60)
-
-
-@requires_fork
-def test_acquire_file_lock_recovers_after_holder_process_is_killed(tmp_path: Path) -> None:
-    # Regression test for stale lock-file recovery: a process killed while
-    # holding the lock never releases it, so the lock file is left behind.
-    # A later writer must be able to break it once it is old enough.
-    path = tmp_path.joinpath("data.txt")
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    locked = _FORK.Event()
-    child = _FORK.Process(target=_hold_lock, args=(path, locked))
-    child.start()
-    try:
-        assert locked.wait(timeout=30)
-        assert lock_path.is_file()
-    finally:
-        child.kill()
-        child.join()
-
-    # The killed process cannot release the lock, so it is still there and
-    # a writer that does not consider it stale times out.
-    assert lock_path.is_file()
-    with pytest.raises(TimeoutError, match="timed out"):
-        _acquire_file_lock(path, timeout=0.05, poll_interval=0.001, stale_after=3600)
-
-    # Once the lock is older than ``stale_after`` it is broken.
-    time.sleep(0.03)
-    assert _acquire_file_lock(path, timeout=5, stale_after=0.02) == lock_path
-    lock_path.unlink()
-
-
-#####################################
-#     Tests for the lock heartbeat  #
-#####################################
-
-
-def test_save_lock_keeps_a_slow_save_from_being_stale(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    with _save_lock(path, stale_after=0.2):
-        old = time.time() - 1000
-        os.utime(lock_path, (old, old))
-        # The heartbeat thread refreshes the lock while the save is running.
-        time.sleep(0.25)
-        assert time.time() - lock_path.stat().st_mtime < 0.2
-        assert not _break_stale_lock(lock_path, stale_after=0.2)
-
-
-def test_save_lock_heartbeat_thread_stops(tmp_path: Path) -> None:
-    before = {t.name for t in threading.enumerate()}
-    with _save_lock(tmp_path.joinpath("data.txt")):
-        pass
-    after = {t.name for t in threading.enumerate()}
-    assert after == before
-
-
-def test_keep_lock_fresh_updates_the_modification_time(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("abc")
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    stop = threading.Event()
-
-    def stop_later() -> None:
-        time.sleep(0.05)
-        stop.set()
-
-    run_threads(
-        [
-            threading.Thread(target=_keep_lock_fresh, args=(lock_path, "abc", 0.01, stop)),
-            threading.Thread(target=stop_later),
-        ]
-    )
-    assert time.time() - lock_path.stat().st_mtime < 10
-
-
-def test_keep_lock_fresh_stops_if_the_lock_has_another_owner(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("other")
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    # The thread returns by itself because the lock is not owned by the token.
-    run_threads(
-        [
-            threading.Thread(
-                target=_keep_lock_fresh, args=(lock_path, "abc", 0.01, threading.Event())
-            )
-        ]
-    )
-    assert time.time() - lock_path.stat().st_mtime > 100
-
-
-def test_keep_lock_fresh_stops_if_the_lock_is_missing(tmp_path: Path) -> None:
-    # The thread returns by itself because the lock does not exist.
-    run_threads(
-        [
-            threading.Thread(
-                target=_keep_lock_fresh,
-                args=(tmp_path.joinpath("missing.lock"), "abc", 0.01, threading.Event()),
-            )
-        ]
-    )
 
 
 ############################################
@@ -308,39 +105,160 @@ def test_default_equality_registry_has_the_io_testers_after_importing_coola_io()
 #########################################################
 
 
-def _locked_writer(
-    path: Path, log: Path, name: str, hold: float, stale_after: float
-) -> None:  # pragma: no cover  (runs in a child)
-    with _save_lock(path, stale_after=stale_after):
-        with log.open("a") as f:
-            f.write(f"{name} start\n")
-        time.sleep(hold)
-        with log.open("a") as f:
-            f.write(f"{name} end\n")
+########################################################
+#     Tests for the atomic commit across processes     #
+########################################################
+
+_NUM_PROCESSES = 8
+_CONTENT_SIZE = 200_000
+
+
+def _create_file(path: Path, value: str, barrier: Any, queue: Any) -> None:  # pragma: no cover
+    r"""Create ``path`` with ``exist_ok=False`` and report the outcome."""
+    barrier.wait()
+    try:
+        SimpleFileSaver().save(value * _CONTENT_SIZE, path)
+    except FileExistsError:
+        queue.put("exists")
+    else:
+        queue.put("created")
+
+
+def _overwrite_file(path: Path, value: str, barrier: Any, queue: Any) -> None:  # pragma: no cover
+    r"""Overwrite ``path`` with ``exist_ok=True`` and report the outcome."""
+    barrier.wait()
+    try:
+        SimpleFileSaver().save(value * _CONTENT_SIZE, path, exist_ok=True)
+    except BaseException:  # noqa: BLE001
+        queue.put("error")
+    else:
+        queue.put("done")
+
+
+def _run_processes(target: Any, path: Path) -> list[str]:
+    r"""Run ``target`` in several forked processes that start together
+    and return the outcome reported by each."""
+    barrier = _FORK.Barrier(_NUM_PROCESSES)
+    queue = _FORK.Queue()
+    values = [str(i) for i in range(_NUM_PROCESSES)]
+    processes = [_FORK.Process(target=target, args=(path, v, barrier, queue)) for v in values]
+    for process in processes:
+        process.start()
+    outcomes = [queue.get(timeout=60) for _ in processes]
+    for process in processes:
+        process.join(timeout=60)
+        assert process.exitcode == 0
+    return outcomes
 
 
 @requires_fork
-def test_save_lock_serializes_two_processes_even_if_the_save_outlasts_stale_after(
-    tmp_path: Path,
-) -> None:
-    # Each process holds the lock for 0.2s, which is longer than ``stale_after``
-    # (0.09s): the heartbeat must keep the lock alive, otherwise the second
-    # process breaks it and both write at the same time.
-    path = tmp_path.joinpath("data.txt")
-    log = tmp_path.joinpath("log.txt")
-    children = [
-        _FORK.Process(target=_locked_writer, args=(path, log, name, 0.2, 0.09))
-        for name in ("a", "b")
-    ]
-    for child in children:
-        child.start()
-    for child in children:
-        child.join(timeout=60)
-        assert child.exitcode == 0
+def test_processes_create_the_same_file_exactly_one_wins(tmp_path: Path) -> None:
+    """Test that processes that create the same file at the same time
+    have exactly one winner and that the others see ``FileExistsError``."""
+    outcomes = _run_processes(_create_file, tmp_path.joinpath("data.txt"))
+    assert sorted(outcomes) == ["created"] + ["exists"] * (_NUM_PROCESSES - 1)
 
-    events = [line.split() for line in log.read_text().splitlines()]
-    assert len(events) == 4
-    assert [event for _, event in events] == ["start", "end", "start", "end"]
-    assert events[0][0] == events[1][0]
-    assert events[2][0] == events[3][0]
-    assert not tmp_path.joinpath("data.txt.lock").is_file()
+
+@requires_fork
+def test_processes_create_the_same_file_content_is_complete(tmp_path: Path) -> None:
+    """Test that the file created by racing processes is the complete
+    content of one of them."""
+    path = tmp_path.joinpath("data.txt")
+    _run_processes(_create_file, path)
+    assert path.read_text() in [str(i) * _CONTENT_SIZE for i in range(_NUM_PROCESSES)]
+
+
+@requires_fork
+def test_processes_create_the_same_file_leaves_only_the_file(tmp_path: Path) -> None:
+    """Test that racing processes leave neither a temporary file nor a
+    lock file."""
+    _run_processes(_create_file, tmp_path.joinpath("data.txt"))
+    assert [p.name for p in tmp_path.iterdir()] == ["data.txt"]
+
+
+@requires_fork
+def test_processes_overwrite_the_same_file_all_succeed(tmp_path: Path) -> None:
+    """Test that processes that overwrite the same file at the same time
+    all succeed."""
+    assert (
+        _run_processes(_overwrite_file, tmp_path.joinpath("data.txt")) == ["done"] * _NUM_PROCESSES
+    )
+
+
+@requires_fork
+def test_processes_overwrite_the_same_file_content_is_complete(tmp_path: Path) -> None:
+    """Test that the file overwritten by racing processes is the
+    complete content of one of them."""
+    path = tmp_path.joinpath("data.txt")
+    _run_processes(_overwrite_file, path)
+    assert path.read_text() in [str(i) * _CONTENT_SIZE for i in range(_NUM_PROCESSES)]
+
+
+@requires_fork
+def test_processes_overwrite_the_same_file_leaves_only_the_file(tmp_path: Path) -> None:
+    """Test that overwriting processes leave one file in the directory."""
+    _run_processes(_overwrite_file, tmp_path.joinpath("data.txt"))
+    assert [p.name for p in tmp_path.iterdir()] == ["data.txt"]
+
+
+########################################################
+#     Tests for the atomic commit across threads       #
+########################################################
+
+
+def test_threads_create_the_same_file_exactly_one_wins(tmp_path: Path) -> None:
+    """Test that threads that create the same file have exactly one
+    winner and that the others see ``FileExistsError``."""
+    path = tmp_path.joinpath("data.txt")
+    outcomes: list[str] = []
+    lock = threading.Lock()
+
+    def worker(value: str) -> None:
+        try:
+            SimpleFileSaver().save(value, path)
+        except FileExistsError:
+            outcome = "exists"
+        else:
+            outcome = "created"
+        with lock:
+            outcomes.append(outcome)
+
+    run_threads([threading.Thread(target=worker, args=(str(i),)) for i in range(8)])
+
+    assert sorted(outcomes) == ["created"] + ["exists"] * 7
+
+
+def test_threads_save_the_same_path_without_a_lock_file(tmp_path: Path) -> None:
+    """Test that concurrent saves create no lock file."""
+    path = tmp_path.joinpath("data.txt")
+    run_threads(
+        [
+            threading.Thread(
+                target=SimpleFileSaver().save, args=(str(i), path), kwargs={"exist_ok": True}
+            )
+            for i in range(8)
+        ]
+    )
+    assert [p.name for p in tmp_path.iterdir()] == ["data.txt"]
+
+
+########################################
+#     Tests for the real file system   #
+########################################
+
+
+def test_save_fsync_with_the_real_fsync_leaves_one_file(tmp_path: Path) -> None:
+    """Test that ``fsync=True`` succeeds with the real ``os.fsync``."""
+    SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"), fsync=True)
+    assert [p.name for p in tmp_path.iterdir()] == ["data.txt"]
+
+
+@pytest.mark.skipif(not hasattr(os, "geteuid") or os.geteuid() == 0, reason="Requires non-root")
+def test_save_in_a_read_only_directory_raises_permission_error(tmp_path: Path) -> None:
+    """Test that a read-only target directory raises ``PermissionError``."""
+    tmp_path.chmod(0o500)
+    try:
+        with pytest.raises(PermissionError):
+            SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"))
+    finally:
+        tmp_path.chmod(0o700)

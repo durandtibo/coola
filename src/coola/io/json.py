@@ -135,7 +135,6 @@ def save_json(
     encoding: str = DEFAULT_ENCODING,
     exist_ok: bool = False,
     fsync: bool = False,
-    lock: bool = True,
     **kwargs: Any,
 ) -> None:
     r"""Save the given data in a JSON file.
@@ -166,14 +165,6 @@ def save_json(
             It is slower. Defaults to ``False``: the file is replaced
             atomically, but its content may be lost if the machine
             crashes right after the call.
-        lock: If ``True`` (the default), concurrent saves to the same
-            path are serialized with a lock file next to the path (see
-            ``BaseFileSaver.save``). If ``False``, no lock is used:
-            the file is still written to a temporary file and committed
-            atomically, so a reader never sees a partial file, but two
-            concurrent writers of the same path are not serialized
-            (the last one wins). It is faster, which matters for
-            batch jobs that write many distinct files.
         **kwargs: Additional arguments passed to ``json.dump``, e.g.
             ``indent`` or ``sort_keys``.
 
@@ -195,6 +186,4 @@ def save_json(
 
         ```
     """
-    JsonSaver(encoding=encoding, **kwargs).save(
-        to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock
-    )
+    JsonSaver(encoding=encoding, **kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync)

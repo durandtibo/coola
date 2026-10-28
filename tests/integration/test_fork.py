@@ -7,14 +7,12 @@ from typing import TYPE_CHECKING, Self
 import pytest
 
 from coola.hashing import HasherRegistry, StrHasher
-from coola.io import base as io_base
 from coola.registry import Registry
 from coola.utils.singleton import LazySingleton
 from tests.integration.helpers import run_in_children
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from pathlib import Path
 
 pytestmark = [
     pytest.mark.skipif(not hasattr(os, "fork"), reason="Requires os.fork"),
@@ -106,15 +104,6 @@ def test_lazy_singleton_is_usable_in_a_child_forked_while_its_lock_is_held() -> 
     singleton = LazySingleton(lambda: 42)
     with hold(singleton, "_lock"):
         assert run_in_children(1, lambda: str(singleton.get())) == ["42"]
-
-
-def test_save_locks_are_usable_in_a_child_forked_while_the_guard_is_held(tmp_path: Path) -> None:
-    def get_lock() -> str:
-        io_base._get_save_lock(tmp_path.joinpath("data.txt"))
-        return "done"
-
-    with HeldLock(lambda: io_base._SAVE_LOCKS_GUARD):
-        assert run_in_children(1, get_lock) == ["done"]
 
 
 def test_parent_registry_still_works_after_the_children_exit() -> None:

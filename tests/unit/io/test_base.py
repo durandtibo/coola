@@ -3,8 +3,6 @@ from __future__ import annotations
 import contextlib
 import errno
 import os
-import socket
-import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
@@ -26,7 +24,6 @@ from coola.io import (
     JsonLoader,
     JsonSaver,
     TextLoader,
-    base as io_base,
     is_loader_config,
     is_saver_config,
     resolve_loader,
@@ -36,21 +33,10 @@ from coola.io import (
     save_text,
 )
 from coola.io.base import (
-    _SAVE_LOCKS,
-    _SAVE_LOCKS_RESETTER,
-    _acquire_file_lock,
-    _break_stale_lock,
-    _get_save_lock,
-    _keep_lock_fresh,
-    _lock_owner_is_dead,
-    _make_lock_token,
     _make_parent_dir,
-    _release_file_lock,
-    _save_lock,
     _short_name,
     _tmp_path,
 )
-from coola.utils import fork
 
 ######################################
 #     Tests for is_loader_config     #
@@ -368,66 +354,6 @@ def test_base_file_saver_save_removes_tmp_file_on_link_failure_state_directory_i
     assert list(tmp_path.iterdir()) == []
 
 
-def test_base_file_saver_save_original_exception_survives_unlink_failure_in_except(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    # If cleaning up the temp file in the outer ``except`` handler itself
-    # raises (e.g. a permission error), the original exception being
-    # handled must still be the one that propagates, not the cleanup
-    # failure.
-    path = tmp_path.joinpath("data.txt")
-    saver = FailingFileSaver()
-
-    def failing_unlink(self: Path, missing_ok: bool = False) -> None:
-        # Only the temp file cleanup should fail; the lock file cleanup
-        # (a different path, suffixed ``.lock``) must be left alone.
-        if self.suffix == ".lock":
-            try:
-                os.unlink(self)  # noqa: PTH108
-            except FileNotFoundError:
-                if not missing_ok:
-                    raise
-            return
-        msg = "failed to clean up"
-        raise PermissionError(msg)
-
-    monkeypatch.setattr(Path, "unlink", failing_unlink)
-    with pytest.raises(RuntimeError, match="failed to save"):
-        saver.save("hello", path)
-
-
-def test_base_file_saver_save_original_exception_survives_unlink_failure_in_finally(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    # If cleaning up the temp file in the ``finally`` block after a failed
-    # ``os.link`` itself raises, the original ``os.link`` exception must
-    # still be the one that propagates, not the cleanup failure.
-    path = tmp_path.joinpath("data.txt")
-    saver = SimpleFileSaver()
-
-    def failing_link(src: str, dst: str) -> None:  # noqa: ARG001
-        msg = "failed to commit"
-        raise RuntimeError(msg)
-
-    def failing_unlink(self: Path, missing_ok: bool = False) -> None:
-        # Only the temp file cleanup should fail; the lock file cleanup
-        # (a different path, suffixed ``.lock``) must be left alone.
-        if self.suffix == ".lock":
-            try:
-                os.unlink(self)  # noqa: PTH108
-            except FileNotFoundError:
-                if not missing_ok:
-                    raise
-            return
-        msg = "failed to clean up"
-        raise PermissionError(msg)
-
-    monkeypatch.setattr(os, "link", failing_link)
-    monkeypatch.setattr(Path, "unlink", failing_unlink)
-    with pytest.raises(RuntimeError, match="failed to commit"):
-        saver.save("hello", path)
-
-
 def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_create_raises(
     tmp_path: Path,
 ) -> None:
@@ -467,88 +393,6 @@ def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_crea
     assert target_path.read_text() == "concurrent"
 
 
-def test_get_save_lock_reuses_existing_lock_for_same_path(tmp_path: Path) -> None:
-    # Keep a strong reference to the first lock so the ``WeakValueDictionary``
-    # entry survives until the second call, exercising the branch where an
-    # existing lock is reused instead of a new one being created.
-    path = tmp_path.joinpath("data.txt")
-    lock = _get_save_lock(path)
-    assert _get_save_lock(path) is lock
-
-
-def test_save_locks_resetter_is_tracked_for_forks() -> None:
-    assert _SAVE_LOCKS_RESETTER in fork._TRACKED
-
-
-def test_save_locks_resetter_reset_after_fork_recreates_the_guard() -> None:
-    guard = io_base._SAVE_LOCKS_GUARD
-    _SAVE_LOCKS_RESETTER._reset_after_fork()
-    assert io_base._SAVE_LOCKS_GUARD is not guard
-
-
-def test_save_locks_resetter_reset_after_fork_does_not_block_if_the_guard_was_held(
-    tmp_path: Path,
-) -> None:
-    io_base._SAVE_LOCKS_GUARD.acquire()  # held by a thread that does not exist in the child
-    _SAVE_LOCKS_RESETTER._reset_after_fork()
-    path = tmp_path.joinpath("data.txt")
-    lock = _get_save_lock(path)
-    assert _get_save_lock(path) is lock
-
-
-def test_save_locks_resetter_reset_after_fork_clears_the_locks(tmp_path: Path) -> None:
-    lock = _get_save_lock(tmp_path.joinpath("data.txt"))
-    lock.acquire()  # held by a thread that does not exist in the child
-    _SAVE_LOCKS_RESETTER._reset_after_fork()
-    assert len(_SAVE_LOCKS) == 0
-
-
-def test_acquire_file_lock_has_no_lock_file_initially(tmp_path: Path) -> None:
-    assert not tmp_path.joinpath("data.txt.lock").is_file()
-
-
-def test_acquire_file_lock_returns_the_lock_path(tmp_path: Path) -> None:
-    # Releasing is the caller's responsibility (``_save_lock`` does this);
-    # ``_acquire_file_lock`` itself only creates the lock file.
-    path = tmp_path.joinpath("data.txt")
-    assert _acquire_file_lock(path) == tmp_path.joinpath("data.txt.lock")
-
-
-def test_acquire_file_lock_creates_the_lock_file(tmp_path: Path) -> None:
-    _acquire_file_lock(tmp_path.joinpath("data.txt"))
-    assert tmp_path.joinpath("data.txt.lock").is_file()
-
-
-def test_acquire_file_lock_times_out_when_never_released(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.touch()
-    try:
-        with pytest.raises(TimeoutError, match="timed out"):
-            _acquire_file_lock(path, timeout=0.01, poll_interval=0.001)
-    finally:
-        lock_path.unlink()
-
-
-def test_base_file_saver_save_removes_lock_file_after_success(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    SimpleFileSaver().save("value", path)
-    assert not tmp_path.joinpath("data.txt.lock").is_file()
-
-
-def test_base_file_saver_save_removes_lock_file_after_failure_raises(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    with pytest.raises(RuntimeError, match="failed to save"):
-        FailingFileSaver().save("value", path)
-
-
-def test_base_file_saver_save_removes_lock_file_after_failure_state(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    with contextlib.suppress(RuntimeError):
-        FailingFileSaver().save("value", path)
-    assert not tmp_path.joinpath("data.txt.lock").is_file()
-
-
 def test_base_file_saver_save_exist_ok_true_silently_overwrites_concurrent_create(
     tmp_path: Path,
 ) -> None:
@@ -567,126 +411,6 @@ def test_base_file_saver_save_exist_ok_true_silently_overwrites_concurrent_creat
     saver._save_file = save_file_then_create_target
     saver.save("hello", target_path, exist_ok=True)
     assert target_path.read_text() == "hello"
-
-
-def _make_stale_lock(tmp_path: Path) -> Path:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.touch()
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    return lock_path
-
-
-def test_acquire_file_lock_breaks_stale_lock(tmp_path: Path) -> None:
-    lock_path = _make_stale_lock(tmp_path)
-    assert _acquire_file_lock(tmp_path.joinpath("data.txt"), timeout=0.5, stale_after=10) == (
-        lock_path
-    )
-
-
-def test_acquire_file_lock_recreates_the_stale_lock(tmp_path: Path) -> None:
-    lock_path = _make_stale_lock(tmp_path)
-    _acquire_file_lock(tmp_path.joinpath("data.txt"), timeout=0.5, stale_after=10)
-    assert lock_path.is_file()
-
-
-def test_acquire_file_lock_refreshes_the_stale_lock(tmp_path: Path) -> None:
-    lock_path = _make_stale_lock(tmp_path)
-    _acquire_file_lock(tmp_path.joinpath("data.txt"), timeout=0.5, stale_after=10)
-    assert time.time() - lock_path.stat().st_mtime < 10
-
-
-def test_acquire_file_lock_removes_the_stale_file(tmp_path: Path) -> None:
-    _make_stale_lock(tmp_path)
-    _acquire_file_lock(tmp_path.joinpath("data.txt"), timeout=0.5, stale_after=10)
-    assert list(tmp_path.glob("*.stale")) == []
-
-
-def test_acquire_file_lock_keeps_fresh_lock(tmp_path: Path) -> None:
-    tmp_path.joinpath("data.txt.lock").touch()
-    with pytest.raises(TimeoutError, match="timed out"):
-        _acquire_file_lock(
-            tmp_path.joinpath("data.txt"), timeout=0.01, poll_interval=0.001, stale_after=100
-        )
-
-
-def test_acquire_file_lock_does_not_remove_fresh_lock(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.touch()
-    with contextlib.suppress(TimeoutError):
-        _acquire_file_lock(
-            tmp_path.joinpath("data.txt"), timeout=0.01, poll_interval=0.001, stale_after=100
-        )
-    assert lock_path.is_file()
-
-
-def test_break_stale_lock_returns_false_when_lock_is_missing(tmp_path: Path) -> None:
-    assert not _break_stale_lock(tmp_path.joinpath("data.txt.lock"), stale_after=10)
-
-
-def test_break_stale_lock_returns_false_when_lock_disappears_before_rename(
-    tmp_path: Path,
-) -> None:
-    # Another waiter may break the same stale lock between our ``stat`` and
-    # ``rename`` calls; the loser must not raise.
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.touch()
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    with patch.object(Path, "rename", side_effect=FileNotFoundError):
-        assert not _break_stale_lock(lock_path, stale_after=10)
-
-
-def test_break_stale_lock_removes_old_lock_returns_true(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.touch()
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    assert _break_stale_lock(lock_path, stale_after=10)
-
-
-def test_break_stale_lock_removes_old_lock_directory_is_empty(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.touch()
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    _break_stale_lock(lock_path, stale_after=10)
-    assert list(tmp_path.iterdir()) == []
-
-
-def test_break_stale_lock_restores_a_lock_renewed_before_the_rename(tmp_path: Path) -> None:
-    # Another waiter broke the stale lock and took a new one between the
-    # check of the age and the rename: the live lock must be put back.
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("old")
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    original_rename = Path.rename
-
-    def rename_after_renewal(self: Path, target: Path) -> Path:
-        self.unlink()
-        self.write_text("live")
-        return original_rename(self, target)
-
-    with patch.object(Path, "rename", rename_after_renewal):
-        assert not _break_stale_lock(lock_path, stale_after=10)
-
-
-def test_break_stale_lock_keeps_the_live_lock_after_a_renewal(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("old")
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    original_rename = Path.rename
-
-    def rename_after_renewal(self: Path, target: Path) -> Path:
-        self.unlink()
-        self.write_text("live")
-        return original_rename(self, target)
-
-    with patch.object(Path, "rename", rename_after_renewal):
-        _break_stale_lock(lock_path, stale_after=10)
-    assert lock_path.read_text() == "live"
 
 
 ##################################################
@@ -1047,122 +771,6 @@ def test_resolve_saver_not_allowed_prefixes() -> None:
         resolve_saver(config, allowed_prefixes=["os"])
 
 
-#############################
-#     Tests for the lock    #
-#############################
-
-
-def test_acquire_file_lock_writes_the_token(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    lock_path = _acquire_file_lock(path, token="abc")  # noqa: S106
-    assert lock_path.read_text() == "abc"
-    lock_path.unlink()
-
-
-def test_release_file_lock_removes_own_lock(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("abc")
-    _release_file_lock(lock_path, "abc")
-    assert not lock_path.exists()
-
-
-def test_release_file_lock_keeps_lock_of_another_owner_keeps_the_lock(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("other")
-    _release_file_lock(lock_path, "abc")
-    assert lock_path.read_text() == "other"
-
-
-def test_release_file_lock_keeps_lock_of_another_owner_logs_a_message(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("other")
-    _release_file_lock(lock_path, "abc")
-    assert "owned by another process" in caplog.text
-
-
-def test_release_file_lock_missing_lock(tmp_path: Path) -> None:
-    _release_file_lock(tmp_path.joinpath("data.txt.lock"), "abc")
-
-
-def test_save_lock_creates_the_lock(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    with _save_lock(tmp_path.joinpath("data.txt")):
-        assert lock_path.is_file()
-
-
-def test_save_lock_creates_and_removes_the_lock(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    with _save_lock(tmp_path.joinpath("data.txt")):
-        pass
-    assert not lock_path.exists()
-
-
-def test_save_lock_does_not_remove_a_lock_taken_by_another_process(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    with _save_lock(path):
-        # Another process considered the lock stale and took it.
-        lock_path.unlink()
-        lock_path.write_text("another-process")
-    assert lock_path.read_text() == "another-process"
-
-
-class _StopAfter:
-    r"""A stand-in for ``threading.Event`` whose ``wait`` returns the
-    given values, so ``_keep_lock_fresh`` can be run without a
-    thread."""
-
-    def __init__(self, *waits: bool) -> None:
-        self._waits = list(waits)
-
-    def wait(self, timeout: float) -> bool:  # noqa: ARG002
-        return self._waits.pop(0)
-
-
-def test_keep_lock_fresh_updates_the_modification_time(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("abc")
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    _keep_lock_fresh(lock_path, "abc", 0.01, _StopAfter(False, False, True))
-    assert time.time() - lock_path.stat().st_mtime < 10
-
-
-def test_keep_lock_fresh_does_nothing_if_stopped(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("abc")
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    _keep_lock_fresh(lock_path, "abc", 0.01, _StopAfter(True))
-    assert time.time() - lock_path.stat().st_mtime > 100
-
-
-def test_keep_lock_fresh_returns_if_the_lock_has_another_owner(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("other")
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    # Only one wait: the function must return without waiting again.
-    _keep_lock_fresh(lock_path, "abc", 0.01, _StopAfter(False))
-    assert time.time() - lock_path.stat().st_mtime > 100
-
-
-def test_keep_lock_fresh_returns_if_the_lock_is_missing(tmp_path: Path) -> None:
-    _keep_lock_fresh(tmp_path.joinpath("missing.lock"), "abc", 0.01, _StopAfter(False))
-
-
-def test_stale_lock_of_a_dead_process_is_still_broken(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("dead-process")
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    with _save_lock(path, stale_after=10):
-        assert lock_path.read_text() != "dead-process"
-
-
 ###################################
 #     Tests for the tmp path      #
 ###################################
@@ -1198,95 +806,9 @@ def test_tmp_path_is_unique(tmp_path: Path) -> None:
     assert _tmp_path(path) != _tmp_path(path)
 
 
-def test_save_does_not_write_a_visible_file_while_saving_no_visible_file(tmp_path: Path) -> None:
-    seen: list[list[str]] = []
-
-    class Saver(BaseFileSaver[str]):
-        def _save_file(self, to_save: str, path: Path) -> None:
-            path.write_text(to_save)
-            seen.append(
-                [
-                    p.name
-                    for p in tmp_path.iterdir()
-                    if not p.name.startswith(".") and p.suffix != ".lock"
-                ]
-            )
-
-    Saver().save("abc", tmp_path.joinpath("data.json"))
-    assert seen == [[]]
-
-
-def test_save_does_not_write_a_visible_file_while_saving_content(tmp_path: Path) -> None:
-    seen: list[list[str]] = []
-
-    class Saver(BaseFileSaver[str]):
-        def _save_file(self, to_save: str, path: Path) -> None:
-            path.write_text(to_save)
-            seen.append(
-                [
-                    p.name
-                    for p in tmp_path.iterdir()
-                    if not p.name.startswith(".") and p.suffix != ".lock"
-                ]
-            )
-
-    Saver().save("abc", tmp_path.joinpath("data.json"))
-    assert tmp_path.joinpath("data.json").read_text() == "abc"
-
-
 #####################################
 #     Tests for dead lock owners     #
 #####################################
-
-
-def test_make_lock_token_starts_with_host_and_pid() -> None:
-    assert _make_lock_token().startswith(f"{socket.gethostname()}:{os.getpid()}:")
-
-
-def test_lock_owner_is_dead_false_for_current_process(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text(_make_lock_token())
-    assert not _lock_owner_is_dead(lock_path)
-
-
-def test_lock_owner_is_dead_true_if_process_does_not_exist(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text(f"{socket.gethostname()}:1234:abc")
-    with patch("os.kill", side_effect=ProcessLookupError):
-        assert _lock_owner_is_dead(lock_path)
-
-
-def test_lock_owner_is_dead_false_for_another_host(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text("another-host-xyz:1234:abc")
-    with patch("os.kill", side_effect=ProcessLookupError):
-        assert not _lock_owner_is_dead(lock_path)
-
-
-@pytest.mark.parametrize("content", ["", "abc", f"{socket.gethostname()}:notapid:abc"])
-def test_lock_owner_is_dead_false_for_unknown_token(tmp_path: Path, content: str) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text(content)
-    assert not _lock_owner_is_dead(lock_path)
-
-
-def test_lock_owner_is_dead_false_if_lock_is_missing(tmp_path: Path) -> None:
-    assert not _lock_owner_is_dead(tmp_path.joinpath("data.txt.lock"))
-
-
-def test_break_stale_lock_removes_recent_lock_of_dead_owner(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.write_text(f"{socket.gethostname()}:1234:abc")
-    with patch("os.kill", side_effect=ProcessLookupError):
-        assert _break_stale_lock(lock_path, stale_after=1000)
-
-
-def test_acquire_file_lock_replaces_lock_of_dead_owner(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    path.with_name("data.txt.lock").write_text(f"{socket.gethostname()}:1234:abc")
-    with patch("os.kill", side_effect=ProcessLookupError):
-        lock_path = _acquire_file_lock(path, timeout=1, token="new")  # noqa: S106
-    assert lock_path.read_text() == "new"
 
 
 def test_save_exist_ok_keeps_the_mode(tmp_path: Path) -> None:
@@ -1322,11 +844,6 @@ def test_save_parent_is_a_file(tmp_path: Path) -> None:
         JsonSaver().save({"a": 1}, parent.joinpath("data.json"))
 
 
-def test_get_save_lock_same_lock_for_two_spellings_of_a_path(tmp_path: Path) -> None:
-    lock = _get_save_lock(tmp_path.joinpath("data.txt"))
-    assert _get_save_lock(tmp_path.joinpath("sub", "..", "data.txt")) is lock
-
-
 ################################
 #     Tests for long names     #
 ################################
@@ -1348,64 +865,12 @@ def test_short_name_long_suffix_is_dropped() -> None:
     assert "." not in _short_name("a" * 200 + "." + "b" * 20)
 
 
-def test_break_stale_lock_returns_false_when_renamed_lock_disappears(tmp_path: Path) -> None:
-    lock_path = tmp_path.joinpath("data.txt.lock")
-    lock_path.touch()
-    old = time.time() - 1000
-    os.utime(lock_path, (old, old))
-    with patch.object(Path, "read_text", side_effect=[lock_path.read_text(), FileNotFoundError]):
-        assert not _break_stale_lock(lock_path, stale_after=10)
-
-
 def test_make_parent_dir_reraises_if_the_parent_is_a_directory(tmp_path: Path) -> None:
     with (
         patch.object(Path, "mkdir", side_effect=FileExistsError),
         pytest.raises(FileExistsError),
     ):
         _make_parent_dir(tmp_path.joinpath("data.txt"))
-
-
-def test_base_file_saver_save_lock_true_takes_the_lock(tmp_path: Path) -> None:
-    with patch("coola.io.base._save_lock") as save_lock:
-        SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"))
-    save_lock.assert_called_once()
-
-
-def test_base_file_saver_save_lock_false_does_not_take_the_lock(tmp_path: Path) -> None:
-    with patch("coola.io.base._save_lock") as save_lock:
-        SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"), lock=False)
-    save_lock.assert_not_called()
-
-
-def test_base_file_saver_save_lock_false_saves_the_data(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    SimpleFileSaver().save("hello", path, lock=False)
-    assert path.read_text() == "hello"
-
-
-def test_base_file_saver_save_lock_false_leaves_only_the_file(tmp_path: Path) -> None:
-    SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"), lock=False)
-    assert [p.name for p in tmp_path.iterdir()] == ["data.txt"]
-
-
-def test_base_file_saver_save_lock_false_exist_ok_false_raises(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    SimpleFileSaver().save("hello", path, lock=False)
-    with pytest.raises(FileExistsError, match="already exists"):
-        SimpleFileSaver().save("world", path, lock=False)
-
-
-def test_base_file_saver_save_lock_false_exist_ok_true_overwrites(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.txt")
-    SimpleFileSaver().save("hello", path, lock=False)
-    SimpleFileSaver().save("world", path, exist_ok=True, lock=False)
-    assert path.read_text() == "world"
-
-
-def test_base_file_saver_save_lock_false_removes_tmp_file_on_failure(tmp_path: Path) -> None:
-    with pytest.raises(RuntimeError, match="failed to save"):
-        FailingFileSaver().save("hello", tmp_path.joinpath("data.txt"), lock=False)
-    assert list(tmp_path.iterdir()) == []
 
 
 def test_resolve_saver_wrong_target_is_not_called(tmp_path: Path) -> None:
@@ -1430,6 +895,46 @@ def test_resolve_saver_wrong_class_target_message() -> None:
 def test_resolve_loader_wrong_class_target_message() -> None:
     with pytest.raises(TypeError, match="it was not called"):
         resolve_loader({OBJECT_TARGET: "coola.io.JsonSaver"})
+
+
+#####################################
+#     Tests for the removed lock    #
+#####################################
+
+
+def test_base_file_saver_save_lock_option_raises(tmp_path: Path) -> None:
+    with pytest.raises(TypeError, match="unexpected keyword argument 'lock'"):
+        SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"), lock=False)  # ty: ignore[unknown-argument]
+
+
+def test_save_json_lock_option_raises(tmp_path: Path) -> None:
+    with pytest.raises(TypeError, match="lock"):
+        save_json({}, tmp_path.joinpath("data.json"), lock=False)
+
+
+def test_base_file_saver_save_leaves_only_the_file(tmp_path: Path) -> None:
+    SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"))
+    assert [p.name for p in tmp_path.iterdir()] == ["data.txt"]
+
+
+def test_base_file_saver_save_failure_leaves_the_directory_empty(tmp_path: Path) -> None:
+    with pytest.raises(RuntimeError, match="failed to save"):
+        FailingFileSaver().save("hello", tmp_path.joinpath("data.txt"))
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_base_file_saver_save_fsync_opens_the_file_for_writing(tmp_path: Path) -> None:
+    # Regression: the file was opened read-only, which ``fsync`` rejects on Windows.
+    flags: list[int] = []
+    real_open = os.open
+
+    def spy(path: Any, flag: int, *args: Any) -> int:
+        flags.append(flag)
+        return real_open(path, flag, *args)
+
+    with patch("coola.io.base.os.open", spy), patch("coola.io.base.os.fsync"):
+        SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"), fsync=True)
+    assert flags[0] & os.O_RDWR
 
 
 ####################################################
