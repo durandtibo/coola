@@ -510,3 +510,55 @@ move for little benefit.
 
 The line counts are estimates from the prototype and from the code to delete; the gate is the
 behaviour (sections 1 and 9), not the size.
+
+## Appendix: benchmark of the old implementation (baseline)
+
+`tests/benchmarks/test_identifier_benchmark.py` measures the implementation on `main` (`11a0a8c0`)
+and is meant to be run unchanged on the new one. It only uses the public generators and extractors
+that exist in both designs (the Snowflake generator is imported with a fallback to
+`SnowflakeIdGenerator(worker_id=0).generate`, the constructor of the new design). The time-ordered
+generators, the extractors and the checksummed functions are called 10,000 times per round, so the
+time divided by 10,000 is the cost of one call. The stable identifiers are measured per call.
+Compare with `inv test.benchmark` (or `pytest tests/benchmarks/test_identifier_benchmark.py
+--benchmark-only --benchmark-save=<name>`, then `--benchmark-compare=<name>`).
+
+Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark`. One run, nothing else heavy
+running. The absolute numbers depend on the machine; compare the old and the new on the same one.
+The raw result is saved in `.benchmarks/` as `identifier_old_11a0a8c0` (the directory is ignored by
+git). The "New" columns are to be filled when a step of section 8 lands; the speed-up is old time /
+new time (above 1 is faster). "Prototype" is the per-call cost measured in section 7, for the four
+generators it covers.
+
+| Benchmark (`test_<name>_benchmark`) | Input                        | Old median | Old min  | Per call (old) | Prototype per call | New median | Speed-up |
+| ----------------------------------- | ---------------------------- | ---------- | -------- | -------------- | ------------------ | ---------- | -------- |
+| `generate_ulid`                     | 10,000 calls                 | 21.20 ms   | 20.80 ms | 2.12 µs        | 2.06 µs            |            |          |
+| `generate_uuid7`                    | 10,000 calls                 | 13.99 ms   | 13.68 ms | 1.40 µs        | 1.27 µs            |            |          |
+| `generate_snowflake_id`             | 10,000 calls                 | 5.92 ms    | 5.80 ms  | 0.59 µs        | 0.37 µs            |            |          |
+| `generate_object_id`                | 10,000 calls                 | 5.10 ms    | 5.00 ms  | 0.51 µs        | 0.40 µs            |            |          |
+| `extract_ulid_timestamp_ms`         | 10,000 calls                 | 25.06 ms   | 24.57 ms | 2.51 µs        |                    |            |          |
+| `extract_uuid7_timestamp_ms`        | 10,000 calls                 | 8.15 ms    | 8.07 ms  | 0.81 µs        |                    |            |          |
+| `extract_snowflake_timestamp_ms`    | 10,000 calls                 | 1.55 ms    | 1.51 ms  | 0.15 µs        |                    |            |          |
+| `generate_checksummed_id`           | 10,000 calls                 | 38.68 ms   | 37.12 ms | 3.87 µs        |                    |            |          |
+| `verify_checksummed_id`             | 10,000 calls                 | 18.67 ms   | 18.56 ms | 1.87 µs        |                    |            |          |
+| `generate_stable_content_id_small`  | dict of a `str` and an `int` | 5.4 µs     | 5.2 µs   | 5.4 µs         |                    |            |          |
+| `generate_stable_uuid5_small`       | dict of a `str` and an `int` | 7.2 µs     | 6.9 µs   | 7.2 µs         |                    |            |          |
+| `generate_stable_content_id_nested` | 100 floats, 100 small dicts  | 698.4 µs   | 681.4 µs | 698.4 µs       |                    |            |          |
+| `generate_stable_uuid5_nested`      | 100 floats, 100 small dicts  | 692.8 µs   | 683.0 µs | 692.8 µs       |                    |            |          |
+
+Reading the numbers:
+
+- **The costs are small and dominated by encoding, not by the lock.** A UUIDv7 costs 1.4 µs and a
+  ULID 2.1 µs: the difference is the 26-iteration Base32 loop of `_encode_base32`, and the ULID
+  extractor pays the same loop in reverse (2.5 µs against 0.8 µs for UUIDv7). The gate is "no
+  slower than old" for every row.
+- **The stable identifiers cost what `hash_object` costs.** The UUID5 wrapper adds 1.8 µs to a small
+  input (one `uuid.uuid5`), nothing measurable on the nested one. Merging the two modules (step 6)
+  must not change these rows.
+- **The checksummed generator is the slowest row** (3.9 µs, 38.7 ms per 10,000): the mod-37 decode of
+  the payload is a Python loop over the characters. The rejection sampling of step 7 draws a payload
+  again in 5 of 37 cases (1.16 draws on average), so expect about 1.16 times this cost for the
+  generator, and no change for `verify_checksummed_id`; the shared `crockford.decode` of step 3
+  should keep both rows within 10 % of the old numbers.
+- **Not in the table:** the behaviour that no benchmark of speed can show (strictly increasing
+  values, the Snowflake burst above 4,096 identifiers per millisecond, which today sleeps and
+  raises on a backward clock) is covered by the integration tests of section 9.
