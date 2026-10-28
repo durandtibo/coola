@@ -58,7 +58,7 @@ def test_snowflake_id_generator_worker_id_wrong_type_raises(worker_id: object) -
 
 @pytest.mark.parametrize("worker_id", [-1, 1024])
 def test_snowflake_id_generator_worker_id_out_of_range_raises(worker_id: int) -> None:
-    with pytest.raises(ValueError, match="worker_id must be in the closed range"):
+    with pytest.raises(ValueError, match="worker_id must be in the range"):
         SnowflakeIdGenerator(worker_id=worker_id)
 
 
@@ -158,7 +158,7 @@ def test_snowflake_id_generator_generate_current_time_before_the_epoch_raises() 
     generator = SnowflakeIdGenerator(worker_id=5)
     with (
         patch(TIME_NS, return_value=at(_EPOCH_MS - 1)),
-        pytest.raises(ValueError, match="timestamp_ms must be in the closed range"),
+        pytest.raises(ValueError, match="timestamp_ms must be in the range"),
     ):
         generator.generate()
 
@@ -167,7 +167,7 @@ def test_snowflake_id_generator_generate_current_time_after_the_field_raises() -
     generator = SnowflakeIdGenerator(worker_id=5)
     with (
         patch(TIME_NS, return_value=at(_EPOCH_MS + 2**41)),
-        pytest.raises(ValueError, match="timestamp_ms must be in the closed range"),
+        pytest.raises(ValueError, match="timestamp_ms must be in the range"),
     ):
         generator.generate()
 
@@ -198,7 +198,7 @@ def test_snowflake_id_generator_generate_explicit_timestamp_maximum() -> None:
 def test_snowflake_id_generator_generate_explicit_timestamp_out_of_range_raises(
     timestamp_ms: int,
 ) -> None:
-    with pytest.raises(ValueError, match="timestamp_ms must be in the closed range"):
+    with pytest.raises(ValueError, match="timestamp_ms must be in the range"):
         SnowflakeIdGenerator(worker_id=5).generate(timestamp_ms=timestamp_ms)
 
 
@@ -276,7 +276,7 @@ def test_extract_snowflake_timestamp_ms_minimum() -> None:
 
 
 def test_extract_snowflake_timestamp_ms_negative_raises() -> None:
-    with pytest.raises(ValueError, match="snowflake_id must be in the closed range"):
+    with pytest.raises(ValueError, match="snowflake_id must be in the range"):
         extract_snowflake_timestamp_ms(-1)
 
 
@@ -287,7 +287,7 @@ def test_extract_snowflake_timestamp_ms_wrong_type_raises(snowflake_id: object) 
 
 
 def test_extract_snowflake_timestamp_ms_rejects_a_64_bit_value() -> None:
-    with pytest.raises(ValueError, match="snowflake_id must be in the closed range"):
+    with pytest.raises(ValueError, match="snowflake_id must be in the range"):
         extract_snowflake_timestamp_ms(1 << 63)
 
 

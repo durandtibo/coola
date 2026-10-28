@@ -16,7 +16,7 @@ import re
 import secrets
 
 from coola.identifier.sequence import TickSequence
-from coola.validation import validate_closed_range, validate_int, validate_str
+from coola.validation import validate_int, validate_range, validate_str
 
 _TIMESTAMP_BITS = 32
 _MAX_TIMESTAMP_S = (1 << _TIMESTAMP_BITS) - 1
@@ -73,10 +73,10 @@ def generate_object_id(*, timestamp_s: int | None = None) -> str:
     if timestamp_s is None:
         timestamp_s, randomness = _SEQUENCE.next()
         if timestamp_s > _MAX_TIMESTAMP_S:  # the tick of the sequence is never negative
-            validate_closed_range(timestamp_s, 0, _MAX_TIMESTAMP_S, name="timestamp_s")
+            validate_range(timestamp_s, 0, _MAX_TIMESTAMP_S, name="timestamp_s")
     else:
         validate_int(timestamp_s, name="timestamp_s")
-        validate_closed_range(timestamp_s, 0, _MAX_TIMESTAMP_S, name="timestamp_s")
+        validate_range(timestamp_s, 0, _MAX_TIMESTAMP_S, name="timestamp_s")
         randomness = secrets.randbits(_RANDOM_BITS)
     return f"{(timestamp_s << _RANDOM_BITS) | randomness:0{_LENGTH}x}"
 

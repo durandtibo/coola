@@ -122,12 +122,12 @@ def test_generate_object_id_explicit_timestamp_does_not_use_the_sequence() -> No
 
 
 def test_generate_object_id_negative_timestamp_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp_s must be in the closed range"):
+    with pytest.raises(ValueError, match="timestamp_s must be in the range"):
         generate_object_id(timestamp_s=-1)
 
 
 def test_generate_object_id_timestamp_too_large_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp_s must be in the closed range"):
+    with pytest.raises(ValueError, match="timestamp_s must be in the range"):
         generate_object_id(timestamp_s=2**32)
 
 
@@ -145,7 +145,7 @@ def test_generate_object_id_timestamp_is_keyword_only() -> None:
 def test_generate_object_id_current_time_beyond_32_bits_raises() -> None:
     with (
         patch(TIME_NS, return_value=2**32 * 10**9),
-        pytest.raises(ValueError, match="timestamp_s must be in the closed range"),
+        pytest.raises(ValueError, match="timestamp_s must be in the range"),
     ):
         generate_object_id()
 

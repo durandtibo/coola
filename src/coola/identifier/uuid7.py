@@ -19,7 +19,7 @@ import re
 import uuid
 
 from coola.identifier.sequence import TickSequence
-from coola.validation import validate_closed_range, validate_int, validate_str
+from coola.validation import validate_int, validate_range, validate_str
 
 _TIMESTAMP_BITS = 48
 _MAX_TIMESTAMP_MS = (1 << _TIMESTAMP_BITS) - 1
@@ -85,14 +85,14 @@ def generate_uuid7(*, timestamp_ms: int | None = None) -> str:
     if timestamp_ms is None:
         timestamp_ms, rand_bits = _SEQUENCE.next()
         if timestamp_ms > _MAX_TIMESTAMP_MS:  # the tick of the sequence is never negative
-            validate_closed_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
+            validate_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
         # Spread the 74 monotonic random bits around the version and variant bits:
         # 12 bits (rand_a) before the variant, and 62 bits (rand_b) after.
         rand_a, rand_b = rand_bits >> 62, rand_bits & ((1 << 62) - 1)
         value = (timestamp_ms << 80) | (rand_a << 64) | rand_b
     else:
         validate_int(timestamp_ms, name="timestamp_ms")
-        validate_closed_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
+        validate_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
         # 48-bit timestamp, followed by 80 bits of randomness that the
         # version/variant bits below are then stamped onto.
         value = (timestamp_ms << 80) | int.from_bytes(os.urandom(10), byteorder="big")

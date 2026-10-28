@@ -18,7 +18,7 @@ import secrets
 
 from coola.identifier.sequence import TickSequence
 from coola.utils.fork import track_fork
-from coola.validation import validate_closed_range, validate_int
+from coola.validation import validate_int, validate_range
 
 # Custom epoch (2024-01-01T00:00:00Z, in ms since the Unix epoch) so the
 # 41-bit timestamp field does not waste bits on years before this
@@ -94,7 +94,7 @@ class SnowflakeIdGenerator:
 
     def __init__(self, *, worker_id: int) -> None:
         validate_int(worker_id, name="worker_id")
-        validate_closed_range(worker_id, 0, _MAX_WORKER_ID, name="worker_id")
+        validate_range(worker_id, 0, _MAX_WORKER_ID, name="worker_id")
         self._worker_id = worker_id
         self._sequence = TickSequence(bits=_SEQUENCE_BITS, random_start=False)
         self._forked = False
@@ -145,12 +145,10 @@ class SnowflakeIdGenerator:
         if timestamp_ms is None:
             timestamp_ms, sequence = self._sequence.next()
             if not _EPOCH_MS <= timestamp_ms <= _MAX_TIMESTAMP_MS:
-                validate_closed_range(
-                    timestamp_ms, _EPOCH_MS, _MAX_TIMESTAMP_MS, name="timestamp_ms"
-                )
+                validate_range(timestamp_ms, _EPOCH_MS, _MAX_TIMESTAMP_MS, name="timestamp_ms")
         else:
             validate_int(timestamp_ms, name="timestamp_ms")
-            validate_closed_range(timestamp_ms, _EPOCH_MS, _MAX_TIMESTAMP_MS, name="timestamp_ms")
+            validate_range(timestamp_ms, _EPOCH_MS, _MAX_TIMESTAMP_MS, name="timestamp_ms")
             sequence = secrets.randbits(_SEQUENCE_BITS)
         return (
             ((timestamp_ms - _EPOCH_MS) << _TIMESTAMP_SHIFT)
@@ -195,5 +193,5 @@ def extract_snowflake_timestamp_ms(snowflake_id: int) -> int:
     # ``int`` of 63 bits, to raise the error.
     if not (type(snowflake_id) is int and 0 <= snowflake_id <= _MAX_SNOWFLAKE_ID):
         validate_int(snowflake_id, name="snowflake_id")
-        validate_closed_range(snowflake_id, 0, _MAX_SNOWFLAKE_ID, name="snowflake_id")
+        validate_range(snowflake_id, 0, _MAX_SNOWFLAKE_ID, name="snowflake_id")
     return (snowflake_id >> _TIMESTAMP_SHIFT) + _EPOCH_MS
