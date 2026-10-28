@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -12,7 +13,7 @@ from coola.iterator import (
     MappingChildFinder,
     get_default_registry,
 )
-from coola.iterator.engine import breadth_first, depth_first
+from coola.iterator.engine import breadth_first, depth_first, depth_first_items
 from coola.registry import TypeNotRegisteredError
 from tests.helpers import nest
 
@@ -239,3 +240,135 @@ def test_engine_finder_with_only_find_children_is_accepted(
 ) -> None:
     registry.register(Node, NodeChildFinder())
     assert [type(leaf) for leaf in engine(Node(2), registry)] == [Node]
+
+
+#######################################
+#     Tests for depth_first_items     #
+#######################################
+
+
+@dataclass
+class Item:
+    a: int
+    b: list
+
+
+class ProtocolChildFinder:
+    r"""A child finder that follows the protocol: no ``find_items``."""
+
+    def find_children(self, data: Any) -> Iterable[Any]:
+        return [data.depth, data.depth + 1]
+
+
+def test_depth_first_items_whole_output(registry: ChildFinderRegistry) -> None:
+    data = {"a": 1, "b": [2, (3, {"c": 4})], "d": Item(5, [6])}
+    assert list(depth_first_items(data, registry)) == [
+        (("a",), 1),
+        (("b", 0), 2),
+        (("b", 1, 0), 3),
+        (("b", 1, 1, "c"), 4),
+        (("d", "a"), 5),
+        (("d", "b", 0), 6),
+    ]
+
+
+def test_depth_first_items_root_leaf_has_an_empty_path(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items(42, registry)) == [((), 42)]
+
+
+def test_depth_first_items_keeps_the_raw_keys(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items({1: {(2, 3): "x"}}, registry)) == [((1, (2, 3)), "x")]
+
+
+def test_depth_first_items_set_label_is_the_element(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items({"a": {7}}, registry)) == [(("a", 7), 7)]
+
+
+@pytest.mark.parametrize("data", [[], {}, [[], {}], {"a": {"b": []}}])
+def test_depth_first_items_empty_container_yields_nothing(
+    data: Any, registry: ChildFinderRegistry
+) -> None:
+    assert list(depth_first_items(data, registry)) == []
+
+
+def test_depth_first_items_empty_root_with_empty(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items({}, registry, empty=True)) == [((), {})]
+
+
+def test_depth_first_items_empty_containers_with_empty(registry: ChildFinderRegistry) -> None:
+    data = {"a": {}, "b": [1, []], "c": ()}
+    assert list(depth_first_items(data, registry, empty=True)) == [
+        (("a",), {}),
+        (("b", 0), 1),
+        (("b", 1), []),
+        (("c",), ()),
+    ]
+
+
+def test_depth_first_items_empty_dataclass_with_empty(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items({"a": Item(1, [])}, registry, empty=True)) == [
+        (("a", "a"), 1),
+        (("a", "b"), []),
+    ]
+
+
+def test_depth_first_items_same_leaves_as_depth_first(registry: ChildFinderRegistry) -> None:
+    data = {"a": [1, {"b": 2}], "c": (3, [4, [5]]), "d": Item(6, [7])}
+    assert [leaf for _, leaf in depth_first_items(data, registry)] == list(
+        depth_first(data, registry)
+    )
+
+
+def test_depth_first_items_deep_structure_does_not_raise(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items(nest(1, 100_000), registry)) == [((0,) * 100_000, 1)]
+
+
+def test_depth_first_items_cycle_raises(registry: ChildFinderRegistry) -> None:
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(depth_first_items(make_cycle(), registry))
+
+
+def test_depth_first_items_cycle_yields_the_leaves_before_it(
+    registry: ChildFinderRegistry,
+) -> None:
+    items = depth_first_items(make_cycle(), registry)
+    assert next(items) == ((0,), 1)
+
+
+def test_depth_first_items_shared_container_is_not_a_cycle(registry: ChildFinderRegistry) -> None:
+    shared = [1]
+    assert list(depth_first_items([shared, shared], registry)) == [((0, 0), 1), ((1, 0), 1)]
+
+
+def test_depth_first_items_is_lazy(registry: ChildFinderRegistry) -> None:
+    items = depth_first_items([1, make_cycle()], registry)
+    assert next(items) == ((0,), 1)
+
+
+def test_depth_first_items_does_not_modify_the_data(registry: ChildFinderRegistry) -> None:
+    data = {"a": [1, {"b": 2}]}
+    list(depth_first_items(data, registry))
+    assert data == {"a": [1, {"b": 2}]}
+
+
+def test_depth_first_items_protocol_child_finder_is_numbered(
+    registry: ChildFinderRegistry,
+) -> None:
+    registry.register(Node, ProtocolChildFinder())
+    assert list(depth_first_items({"n": Node(3)}, registry)) == [(("n", 0), 3), (("n", 1), 4)]
+
+
+def test_depth_first_items_protocol_child_finder_leaf(registry: ChildFinderRegistry) -> None:
+    registry.register(Node, NodeChildFinder())
+    assert [path for path, _ in depth_first_items([Node(0)], registry)] == [(0,)]
+
+
+def test_depth_first_items_base_child_finder_is_numbered(registry: ChildFinderRegistry) -> None:
+    registry.register(Node, NodeChildFinder())
+    assert [path for path, _ in depth_first_items(Node(2), registry)] == [(0, 0)]
+
+
+def test_depth_first_items_failing_child_finder_raises(registry: ChildFinderRegistry) -> None:
+    registry.register(Node, FailingChildFinder())
+    with pytest.raises(RuntimeError, match="failing finder"):
+        list(depth_first_items(Node(1), registry))

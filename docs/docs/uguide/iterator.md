@@ -208,6 +208,37 @@ a dataclass as a leaf, register `DefaultChildFinder()` for its type:
 
 ```
 
+## Paths of the Leaves
+
+The `dfs_items` function is `dfs_iterate` with the path of each leaf: it yields the pairs
+`(path, leaf)` in the same order, where `path` is the tuple of the labels of the containers crossed to
+reach the leaf. The label of a child is the key of a mapping (not converted), the index of a
+sequence, the name of the field of a dataclass, or the element itself for a set (a set has no
+position). The path of a root that is a leaf is the empty tuple.
+
+```pycon
+>>> from coola.iterator import dfs_items
+>>> list(dfs_items({"a": 1, "b": [2, {"c": 3}]}))
+[(('a',), 1), (('b', 0), 2), (('b', 1, 'c'), 3)]
+
+```
+
+By default an empty container yields nothing, like in `dfs_iterate`. The keyword-only option
+`empty=True` also yields an empty container as a leaf, so it is not lost:
+
+```pycon
+>>> from coola.iterator import dfs_items
+>>> list(dfs_items({"a": {}, "b": 1}))
+[(('b',), 1)]
+>>> list(dfs_items({"a": {}, "b": 1}, empty=True))
+[(('a',), {}), (('b',), 1)]
+
+```
+
+The labels come from the `find_items` method of the child finder. The base class derives it from
+`find_children` by numbering the children, so a custom child finder works with `dfs_items` without
+change; override `find_items` to give the real key or name of each child.
+
 ## Type-Based Filtering
 
 ### Basic Filtering

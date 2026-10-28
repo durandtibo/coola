@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["IterableChildFinder"]
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Set as AbstractSet
 from typing import Any
 
 from coola.display import InlineDisplayMixin
@@ -16,7 +16,9 @@ class IterableChildFinder(InlineDisplayMixin, BaseChildFinder[Iterable[Any]]):
 
     The container is its own iterable of children: its elements are
     visited in the order of its iteration. It works with lists, tuples,
-    sets and any object implementing the ``Iterable`` protocol.
+    sets and any object implementing the ``Iterable`` protocol. The
+    label of an element is its index, or the element itself for a set
+    (a set has no position).
 
     Example:
         ```pycon
@@ -32,3 +34,8 @@ class IterableChildFinder(InlineDisplayMixin, BaseChildFinder[Iterable[Any]]):
 
     def find_children(self, data: Iterable[Any]) -> Iterable[Any]:
         return data
+
+    def find_items(self, data: Iterable[Any]) -> Iterable[tuple[Any, Any]]:
+        if isinstance(data, AbstractSet):
+            return ((item, item) for item in data)
+        return enumerate(data)

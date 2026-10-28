@@ -9,6 +9,7 @@ never yielded, the input is never modified, iterators and generators are
 leaves (never consumed), and a container that contains itself raises a
 ``ValueError``. Both orders yield the same leaves; only the order
 differs, and neither is limited by the depth of the data.
+``dfs_items`` yields the same leaves with their path.
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ __all__ = [
     "IterableChildFinder",
     "MappingChildFinder",
     "bfs_iterate",
+    "dfs_items",
     "dfs_iterate",
     "filter_by_type",
     "get_default_child_finder_registry",
@@ -35,6 +37,7 @@ from coola.iterator.default import DefaultChildFinder
 from coola.iterator.filtering import filter_by_type
 from coola.iterator.interface import (
     bfs_iterate,
+    dfs_items,
     dfs_iterate,
     get_default_child_finder_registry,
     get_default_registry,
