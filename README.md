@@ -1,369 +1,246 @@
-# coola
+# shared-makefiles
 
-<p align="center">
-    <a href="https://github.com/durandtibo/coola/actions/workflows/ci.yaml">
-        <img alt="CI" src="https://github.com/durandtibo/coola/actions/workflows/ci.yaml/badge.svg">
-    </a>
-    <a href="https://github.com/durandtibo/coola/actions/workflows/nightly-package.yaml">
-        <img alt="Nightly Package Tests" src="https://github.com/durandtibo/coola/actions/workflows/nightly-package.yaml/badge.svg">
-    </a>
-    <a href="https://codecov.io/gh/durandtibo/coola">
-        <img alt="Codecov" src="https://codecov.io/gh/durandtibo/coola/branch/main/graph/badge.svg">
-    </a>
-    <br/>
-    <a href="https://durandtibo.github.io/coola/">
-        <img alt="Documentation" src="https://github.com/durandtibo/coola/actions/workflows/release-docs.yaml/badge.svg">
-    </a>
-    <a href="https://durandtibo.github.io/coola/dev/">
-        <img alt="Documentation" src="https://github.com/durandtibo/coola/actions/workflows/release-docs-dev.yaml/badge.svg">
-    </a>
-    <br/>
-    <a href="https://github.com/psf/black">
-        <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
-    </a>
-    <a href="https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings">
-        <img alt="Doc style: google" src="https://img.shields.io/badge/%20style-google-3666d6.svg">
-    </a>
-    <a href="https://github.com/astral-sh/ruff">
-        <img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json">
-    </a>
-    <a href="https://github.com/guilatrova/tryceratops">
-        <img alt="try/except style: tryceratops" src="https://img.shields.io/badge/try%2Fexcept%20style-tryceratops%20%F0%9F%A6%96%E2%9C%A8-black">
-    </a>
-    <br/>
-    <a href="https://pypi.org/project/coola/">
-        <img alt="PYPI version" src="https://img.shields.io/pypi/v/coola">
-    </a>
-    <a href="https://pypi.org/project/coola/">
-        <img alt="Python" src="https://img.shields.io/pypi/pyversions/coola.svg">
-    </a>
-    <a href="https://opensource.org/licenses/BSD-3-Clause">
-        <img alt="BSD-3-Clause" src="https://img.shields.io/pypi/l/coola">
-    </a>
-    <br/>
-    <a href="https://pepy.tech/project/coola">
-        <img alt="Downloads" src="https://static.pepy.tech/badge/coola">
-    </a>
-    <a href="https://pepy.tech/project/coola">
-        <img alt="Monthly downloads" src="https://static.pepy.tech/badge/coola/month">
-    </a>
-    <a href="https://github.com/durandtibo/coola/stargazers">
-        <img alt="GitHub stars" src="https://img.shields.io/github/stars/durandtibo/coola">
-    </a>
-    <br/>
-    <a href="https://www.bestpractices.dev/projects/14387">
-        <img src="https://www.bestpractices.dev/projects/14387/badge">
-    </a>
-    <a href="https://scorecard.dev/viewer/?uri=github.com/durandtibo/coola">
-        <img alt="OpenSSF Scorecard" src="https://img.shields.io/badge/dynamic/json?url=https://api.scorecard.dev/projects/github.com/durandtibo/coola&label=openssf%20scorecard&query=score">
-    </a>
-</p>
+Shared/reusable Makefiles for formatting and linting common file types across projects.
 
-## Overview
+Each file is self-contained, include-guarded, and configurable via variables — pull in only what
+you need.
 
-`coola` is a lightweight Python library that makes it easy to compare complex and nested data
-structures.
-It provides simple, extensible functions to check equality between objects containing
-[PyTorch tensors](https://pytorch.org/docs/stable/tensors.html),
-[NumPy arrays](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html),
-[pandas](https://pandas.pydata.org/)/[polars](https://www.pola.rs/) DataFrames, and other scientific
-computing objects.
+## Usage
 
-**Quick Links:**
+Include the files you need in your project's `Makefile`:
 
-- [Documentation](https://durandtibo.github.io/coola/)
-- [User Guide](https://durandtibo.github.io/coola/uguide/equality)
-- [Installation](#installation)
-- [Features](#features)
-- [Contributing](#contributing)
-- [License](#license)
-- [Security](SECURITY.md)
+```makefile
+include yaml.mk
+include makefile.mk
+include shell.mk
+include toml.mk
+include markdown.mk
+include actions.mk
+include help.mk
 
-## Why coola?
+.DEFAULT_GOAL := help
 
-Python's native equality operator (`==`) doesn't work well with complex nested structures
-containing tensors, arrays, or DataFrames. You'll often encounter errors or unexpected behavior.
-`coola` solves this with intuitive comparison functions:
+.PHONY: install-tools
+install-tools: install-prettier install-yamllint install-mbake install-checkmake install-shellcheck install-shfmt install-bats install-taplo install-markdownlint install-actionlint ## Install all formatting/linting tools
 
-**Check exact equality:**
+.PHONY: format
+format: format-yaml format-makefile format-shell format-toml format-markdown ## Format all files
 
-```pycon
->>> import numpy as np
->>> import torch
->>> from coola.equality import objects_are_equal
->>> data1 = {"torch": torch.ones(2, 3), "numpy": np.zeros((2, 3))}
->>> data2 = {"torch": torch.ones(2, 3), "numpy": np.zeros((2, 3))}
->>> objects_are_equal(data1, data2)
-True
-
+.PHONY: lint
+lint: lint-yaml lint-makefile lint-shell lint-markdown lint-actions ## Lint all files
 ```
 
-**Compare with numerical tolerance:**
+Required tools (`prettier`, `yamllint`, `mbake`, `checkmake`, `shellcheck`, `shfmt`, `markdownlint`,
+`actionlint`) are installed on demand — each
+`format-*`/`lint-*` target depends on an `install-*` target that installs the tool if it isn't
+already on `PATH`. Run `make install-tools` to install all of them upfront.
 
-```pycon
->>> from coola.equality import objects_are_allclose
->>> data1 = {"value": 1.0}
->>> data2 = {"value": 1.0 + 1e-9}
->>> objects_are_allclose(data1, data2)
-True
+Run `make help` to list every target that has a `## description` comment (see `help.mk` below).
 
-```
+## Adding as a git subtree
 
-**Debug differences easily:**
-
-```pycon
->>> from coola.equality import objects_are_equal
->>> actual = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 87}]}
->>> expected = {"users": [{"id": 1, "score": 95}, {"id": 2, "score": 88}]}
->>> objects_are_equal(actual, expected, show_difference=True)
-False
-
-```
-
-Log output
-
-```textmate
-numbers are different:
-  actual   : 87
-  expected : 88
-mappings have different values for key 'score'
-sequences have different values at index 1
-mappings have different values for key 'users'
-```
-
-See the [user guide](https://durandtibo.github.io/coola/uguide/equality) for detailed examples.
-
-## Features
-
-`coola` provides a comprehensive set of utilities for working with complex data structures:
-
-### 🔍 **Equality Comparison**
-
-Compare complex nested objects with support for multiple data types:
-
-- **Exact equality**: `objects_are_equal()` for strict comparison
-- **Approximate equality**: `objects_are_allclose()` for numerical tolerance
-- **User-friendly difference reporting**: Clear, structured output showing exactly what differs
-- **Extensible**: Add custom comparators for your own types
-
-[Learn more →](https://durandtibo.github.io/coola/uguide/equality)
-
-**Supported types:**
-[JAX](https://jax.readthedocs.io/) •
-[NumPy](https://numpy.org/) •
-[pandas](https://pandas.pydata.org/) •
-[polars](https://www.pola.rs/) •
-[PyArrow](https://arrow.apache.org/docs/python/) •
-[PyTorch](https://pytorch.org/) •
-[xarray](https://docs.xarray.dev/) •
-Python built-ins (dict, list, tuple, set, etc.)
-
-[See all type-specific comparison rules →](https://durandtibo.github.io/coola/uguide/equality#type-specific-behavior)
-
-### 📊 **Data Summarization**
-
-Generate human-readable summaries of nested data structures for debugging and logging:
-
-- Configurable depth control
-- Type-specific formatting
-- Truncation for large collections
-
-[Learn more →](https://durandtibo.github.io/coola/uguide/summary)
-
-### 🔄 **Data Conversion**
-
-Transform data between different nested structures:
-
-- Convert between list-of-dicts and dict-of-lists formats
-- Useful for working with tabular data and different data representations
-
-[Learn more →](https://durandtibo.github.io/coola/uguide/nested)
-
-### 🗂️ **Mapping Utilities**
-
-Work with nested dictionaries efficiently:
-
-- Flatten nested dictionaries into flat key-value pairs
-- Extract specific values from complex nested structures
-- Filter dictionary keys based on patterns or criteria
-
-[Learn more →](https://durandtibo.github.io/coola/uguide/nested)
-
-### 🔁 **Iteration**
-
-Traverse nested data structures systematically:
-
-- Depth-first search (DFS) traversal for nested containers
-- Breadth-first search (BFS) traversal for level-by-level processing
-- Filter and extract specific types from heterogeneous collections
-
-[Learn more →](https://durandtibo.github.io/coola/uguide/iterator)
-
-### 📈 **Reduction**
-
-Compute statistics on sequences with flexible backends:
-
-- Calculate min, max, mean, median, quantile, std on numeric sequences
-- Support for multiple backends: native Python, NumPy, PyTorch
-- Consistent API regardless of backend choice
-
-[Learn more →](https://durandtibo.github.io/coola/uguide/reducer)
-
-## Installation
-
-We highly recommend installing
-`coola` in
-a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
-to avoid dependency conflicts.
-
-### Using uv (recommended)
-
-[`uv`](https://docs.astral.sh/uv/) is a fast Python package installer and resolver:
+This repo is meant to be vendored into consuming projects as a git subtree (conventionally at
+`.make/`), rather than being added as a submodule or copy-pasted:
 
 ```shell
-uv pip install coola
+git remote add shared-makefiles https://github.com/durandtibo/shared-makefiles.git
+git fetch shared-makefiles main
+
+git subtree add --prefix=.make shared-makefiles main --squash
 ```
 
-**Install with all optional dependencies:**
+Then `include` the files you need from `.make/` in your project's `Makefile`, e.g.
+`include .make/yaml.mk`.
 
-```shell
-uv pip install coola[all]
+To pull in upstream changes later, `include .make/self.mk` and run `make update-subtree` — see
+[`self.mk`](#self-mk) below. It fetches the latest commits and runs `git subtree pull`, so you
+don't need to remember the raw `git subtree`/`git remote` invocations yourself.
+
+## Available files
+
+| File          | Targets                                     | Tools                      | Description                                                           |
+| ------------- | ------------------------------------------- | -------------------------- | --------------------------------------------------------------------- |
+| `yaml.mk`     | `format-yaml`, `lint-yaml`                  | `prettier`, `yamllint`     | Format and lint YAML files                                            |
+| `makefile.mk` | `format-makefile`, `lint-makefile`          | `mbake`, `checkmake`       | Format and lint Makefiles and `.mk` files                             |
+| `shell.mk`    | `format-shell`, `lint-shell`                | `shfmt`, `shellcheck`      | Format and lint shell scripts                                         |
+| `toml.mk`     | `format-toml`                               | `taplo`                    | Format TOML files                                                     |
+| `markdown.mk` | `format-markdown`, `lint-markdown`          | `prettier`, `markdownlint` | Format and lint Markdown files                                        |
+| `actions.mk`  | `lint-actions`                              | `actionlint`               | Lint GitHub Actions workflow files                                    |
+| `uv.mk`       | `install-invoke`, `update-uv`, `setup-venv` | `uv`                       | Manage Python virtual environments with `uv`                          |
+| `prettier.mk` | `install-prettier`                          | `prettier`                 | Shared `install-prettier` target, included by `yaml.mk`/`markdown.mk` |
+| `self.mk`     | `update-subtree`                            | `git`                      | Sync the `.make` shared-makefiles subtree                             |
+| `help.mk`     | `help`                                      | —                          | List all documented (`## ...`) targets                                |
+
+### `yaml.mk`
+
+Optional variables (set before `include`):
+
+| Variable           | Default | Description                                                   |
+| ------------------ | ------- | ------------------------------------------------------------- |
+| `YAML_FORMAT_PATH` | `.`     | Root path globbed for `**/*.{yml,yaml}`, passed to `prettier` |
+| `YAML_LINT_PATH`   | `.`     | Path passed to `yamllint`                                     |
+
+```makefile
+include yaml.mk
+
+YAML_LINT_PATH = .github/workflows
 ```
 
-**Install with specific optional dependencies:**
+### `makefile.mk`
 
-```shell
-uv pip install coola[numpy,torch]  # with NumPy and PyTorch
+Optional variables (set before `include`):
+
+| Variable                | Default         | Description                    |
+| ----------------------- | --------------- | ------------------------------ |
+| `MAKEFILE_FORMAT_FILES` | `Makefile *.mk` | Files passed to `mbake format` |
+| `MAKEFILE_LINT_FILES`   | `Makefile *.mk` | Files passed to `checkmake`    |
+
+```makefile
+include makefile.mk
+
+MAKEFILE_LINT_FILES = Makefile makefile.mk yaml.mk
 ```
 
-### Using pip
+### `shell.mk`
 
-Alternatively, you can use `pip`:
+Optional variables (set before `include`):
 
-```shell
-pip install coola
+| Variable            | Default | Description                                           |
+| ------------------- | ------- | ----------------------------------------------------- |
+| `SHELL_FORMAT_PATH` | `.`     | Path passed to `shfmt` (walked recursively)           |
+| `SHELL_LINT_PATH`   | `.`     | Path searched for `*.sh` files passed to `shellcheck` |
+
+```makefile
+include shell.mk
+
+SHELL_LINT_PATH = scripts
 ```
 
-**Install with all optional dependencies:**
+### `toml.mk`
 
-```shell
-pip install coola[all]
+Optional variables (set before `include`):
+
+| Variable           | Default | Description                                        |
+| ------------------ | ------- | -------------------------------------------------- |
+| `TOML_FORMAT_PATH` | `.`     | Path searched for `*.toml` files passed to `taplo` |
+
+```makefile
+include toml.mk
+
+TOML_FORMAT_PATH = config
 ```
 
-**Install with specific optional dependencies:**
+### `markdown.mk`
 
-```shell
-pip install coola[numpy,torch]  # with NumPy and PyTorch
+Optional variables (set before `include`):
+
+| Variable               | Default   | Description                                           |
+| ---------------------- | --------- | ----------------------------------------------------- |
+| `MARKDOWN_FORMAT_PATH` | `.`       | Root path globbed for `**/*.md`, passed to `prettier` |
+| `MARKDOWN_LINT_GLOB`   | `**/*.md` | Glob passed to `markdownlint`                         |
+
+```makefile
+include markdown.mk
+
+MARKDOWN_LINT_GLOB = docs/**/*.md
 ```
 
-### Requirements
+### `actions.mk`
 
-- **Python**: 3.10 or higher
-- **Operating system**: Linux or macOS (no Windows support)
-- **Core dependencies**: None (fully optional dependencies)
+Optional variables (set before `include`):
 
-**Optional dependencies** (install with `coola[all]`):
-[JAX](https://jax.readthedocs.io/) •
-[NumPy](https://numpy.org/) •
-[pandas](https://pandas.pydata.org/) •
-[polars](https://www.pola.rs/) •
-[PyArrow](https://arrow.apache.org/docs/python/) •
-[PyTorch](https://pytorch.org/) •
-[xarray](https://docs.xarray.dev/)
+| Variable            | Default | Description                                                                      |
+| ------------------- | ------- | -------------------------------------------------------------------------------- |
+| `ACTIONS_LINT_PATH` | `.`     | Path searched for `.github/workflows/*.{yml,yaml}` files, passed to `actionlint` |
 
-> **Note:** the `jax` and `torch` extras are further restricted to Linux and Apple Silicon (macOS
-> arm64), matching the platforms these libraries publish wheels for — installing `coola[jax]` or
-> `coola[torch]` on Intel macOS will fail to resolve.
+```makefile
+include actions.mk
 
-For detailed installation instructions, compatibility information, and alternative installation
-methods, see the [installation guide](https://durandtibo.github.io/coola/get_started).
+ACTIONS_LINT_PATH = .
+```
 
-### Compatibility Matrix
+### `uv.mk`
 
-| `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `pydantic`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python` |
-| -------- | ----------------- | ------------------- | ----------------------- | -------------------- | -------------------- | --------------------- | ---------------------- | ------------------- | -------------------- | -------- |
-| `main`   | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              | `>=2.0,<3.0`           | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.1.10` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              | `>=2.0,<3.0`           | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.1.9`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              | `>=2.0,<3.0`           | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.1.8`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.1.7`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.1.6`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.1.5`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.1.4`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.1.3`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.1.2`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.1.1`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.1.0`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.0.1`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
-| `1.0.0`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<23.0`        |                        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
+Optional variables (set before `include`):
 
-<sup>*</sup> indicates an optional dependency
+| Variable         | Default | Description                                 |
+| ---------------- | ------- | ------------------------------------------- |
+| `PYTHON_VERSION` | `3.14`  | Python version passed to `uv venv --python` |
 
-<details>
-    <summary>older versions</summary>
+```makefile
+include uv.mk
 
-| `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`       |
-| -------- | ----------------- | ------------------- | ----------------------- | -------------------- | -------------------- | --------------------- | ------------------- | -------------------- | -------------- |
-| `0.11.1` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10`       |
-| `0.11.0` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10`       |
-| `0.10.0` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10`       |
-| `0.9.1`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0,<26.0`          | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10,<3.15` |
-| `0.9.0`  | `>=0.4.6,<1.0`    | `>=1.24,<3.0`       | `>=22.0,<26.0`          | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<20.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.9,<3.14`  |
-| `0.8.7`  | `>=0.4.6,<1.0`    | `>=1.22,<3.0`       | `>=21.0,<26.0`          | `>=1.5,<3.0`         | `>=1.0,<2.0`         | `>=10.0,<20.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14`  |
-| `0.8.6`  | `>=0.4.6,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<20.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14`  |
-| `0.8.5`  | `>=0.4.6,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<19.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14`  |
-| `0.8.4`  | `>=0.4.6,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.14`  |
-| `0.8.3`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.8.2`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.8.1`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.8.0`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.7.4`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      | `>=10.0,<18.0`        | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.7.3`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      |                       | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.7.2`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<2.0`      |                       | `>=1.11,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.7.1`  | `>=0.4.1,<1.0`    | `>=1.21,<3.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.7.0`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.6.2`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.6.1`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.6.0`  | `>=0.4.1,<1.0`    | `>=1.21,<2.0`       |                         | `>=1.3,<3.0`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<3.0`       | `>=2023.1`           | `>=3.9,<3.13`  |
-| `0.5.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13`  |
-| `0.4.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13`  |
-| `0.3.1`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13`  |
-| `0.3.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13`  |
-| `0.2.2`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13`  |
-| `0.2.1`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13`  |
-| `0.2.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<1.0`      |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13`  |
-| `0.1.2`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.21`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13`  |
-| `0.1.1`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.13`  |
-| `0.1.0`  | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.12`  |
-| `0.0.26` | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.1,<2023.13`  | `>=3.9,<3.12`  |
-| `0.0.25` | `>=0.4.1,<0.5`    | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.4,<2023.11`  | `>=3.9,<3.12`  |
-| `0.0.24` | `>=0.3,<0.5`      | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.2`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12`  |
-| `0.0.23` | `>=0.3,<0.5`      | `>=1.21,<1.27`      |                         | `>=1.3,<2.2`         | `>=0.18.3,<0.20`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12`  |
-| `0.0.22` | `>=0.3,<0.5`      | `>=1.20,<1.26`      |                         | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.9`   | `>=3.9,<3.12`  |
-| `0.0.21` | `>=0.3,<0.5`      | `>=1.20,<1.26`      |                         | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9,<3.12`  |
-| `0.0.20` | `>=0.3,<0.5`      | `>=1.20,<1.26`      |                         | `>=1.3,<2.1`         | `>=0.18.3,<0.19`     |                       | `>=1.10,<2.1`       | `>=2023.3,<2023.8`   | `>=3.9`        |
+PYTHON_VERSION = 3.12
+```
 
-</details>
+`install-invoke` installs `uv` on demand and then `invoke>=3.0` and `invoke-tasklib>=0.0.8` via `uv pip install` into the
+active virtual environment (create one first, e.g. with `uv venv`).
+`update-uv` runs `uv self update`. `setup-venv` updates `uv`, creates a fresh `.venv`
+(`uv venv --python $(PYTHON_VERSION) --clear`), installs `invoke` into it, and runs
+`uv run inv env.create-venv` and `uv run inv env.install` — it assumes the project's
+`tasks.py` exposes the `invoke-tasklib` tasks (`from invoke_tasklib import ns`).
 
-## Contributing
+### `self.mk`
 
-Contributions are welcome! We appreciate bug fixes, feature additions, documentation improvements,
-and more. Please check the [contributing guidelines](CONTRIBUTING.md) for details on:
+For projects that vendor this repo as a subtree (e.g. at `.make/`), `self.mk` provides a target
+to pull in upstream changes.
 
-- Setting up the development environment
-- Code style and testing requirements
-- Submitting pull requests
+Optional variables (set before `include`):
 
-Whether you're fixing a bug or proposing a new feature, please open an issue first to discuss
-your changes.
+| Variable                       | Default                                              | Description     |
+| ------------------------------ | ---------------------------------------------------- | --------------- |
+| `SHARED_MAKEFILES_REMOTE_NAME` | `shared-makefiles`                                   | Git remote name |
+| `SHARED_MAKEFILES_REMOTE_URL`  | `https://github.com/durandtibo/shared-makefiles.git` | Git remote URL  |
+| `SHARED_MAKEFILES_BRANCH`      | `main`                                               | Branch to pull  |
+| `SHARED_MAKEFILES_PREFIX`      | `.make`                                              | Subtree prefix  |
 
-## API Stability
+```makefile
+include self.mk
+```
 
-:warning: **Important**: As `coola` is under active development, its API is not yet stable and may
-change between releases. We recommend pinning a specific version in your project’s dependencies to
-ensure consistent behavior.
+`update-subtree` adds the `$(SHARED_MAKEFILES_REMOTE_NAME)` remote if missing, fetches
+`$(SHARED_MAKEFILES_BRANCH)`, and runs `git subtree pull --prefix=$(SHARED_MAKEFILES_PREFIX)
+$(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash` to sync the subtree. It then
+removes the `.github/` and `testdata/` folders from within `$(SHARED_MAKEFILES_PREFIX)` (not
+needed in consuming projects) and commits the removal.
+
+### `help.mk`
+
+```makefile
+include help.mk
+
+.PHONY: format
+format: format-yaml ## Format all files
+```
+
+`help` scans every included Makefile (`$(MAKEFILE_LIST)`) for lines matching
+`target: ... ## description` and prints them, sorted, as `target` / `description` pairs. Only
+targets with a trailing `## ...` comment show up — add one to any target you want documented. Every
+target defined in this repo's own `.mk` files is already annotated this way, so `include`-ing any
+of them and running `make help` lists them for free.
+
+## Design
+
+- **Include guards** — each file defines an `_MK_INCLUDED` variable so it's safe to `include`
+  more than once (e.g. transitively from multiple project Makefiles).
+- **On-demand install** — every lint/format target depends on an `install-<tool>` target that
+  checks `command -v` before installing, so CI and local runs don't need the tool preinstalled.
+- **Configurable paths** — variables default to sensible project-wide values but can be
+  overridden per project or per target invocation.
+- **`.make/` excluded by default** — this repo is meant to be vendored as a subtree at `.make/`
+  in consuming projects, so every formatter/linter skips that folder by default:
+  [`.prettierignore`](.prettierignore) and [`.markdownlintignore`](.markdownlintignore) exclude
+  it, `.yamllint.yaml` sets `ignore: .make/`, and `shell.mk`'s `find` commands `-prune` it.
+
+## Testing
+
+[`.github/workflows/ci-test.yml`](.github/workflows/ci-test.yml) exercises every file against the
+Unix OS matrix (Ubuntu and macOS runners) resolved dynamically via
+[`durandtibo/workflow-config-action`](https://github.com/durandtibo/workflow-config-action) on
+every push/PR to `main`, running both the lint and format targets (including on-demand tool
+installation) to make sure the rules stay portable across platforms.
 
 ## License
 
-`coola` is licensed under BSD 3-Clause "New" or "Revised" license available in [LICENSE](LICENSE)
+This repo is licensed under BSD 3-Clause "New" or "Revised" license available in [LICENSE](LICENSE)
 file.
