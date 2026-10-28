@@ -51,7 +51,6 @@ nav:
       - uguide/rounding.md
       - uguide/summary.md
       - uguide/testing.md
-      - uguide/tools.md
       - uguide/utils.md
       - uguide/validation.md
   - Developer Guide:
@@ -78,7 +77,6 @@ nav:
       - refs/rounding.md
       - refs/summary.md
       - refs/testing.md
-      - refs/tools.md
       - refs/utils.md
       - refs/validation.md
   - GitHub: https://github.com/durandtibo/coola

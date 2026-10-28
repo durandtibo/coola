@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.reducer.base import BaseReducer
-from coola.tools.tensor import to_tensor
 from coola.utils.imports import check_torch, is_numpy_available, is_torch_available
+from coola.utils.tensor import to_tensor
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

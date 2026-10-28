@@ -81,12 +81,12 @@ class _Dependency(NamedTuple):
 
 
 def _is_cuda_available() -> bool:
-    # ``coola.tools.tensor`` imports ``torch`` when it is installed: import it on first call.
-    return import_module("coola.tools.tensor").is_cuda_available()
+    # ``coola.utils.tensor`` imports ``torch`` when it is installed: import it on first call.
+    return import_module("coola.utils.tensor").is_cuda_available()
 
 
 def _is_mps_available() -> bool:
-    return import_module("coola.tools.tensor").is_mps_available()
+    return import_module("coola.utils.tensor").is_mps_available()
 
 
 # The availability of a package is checked when its marks are first accessed, not when this

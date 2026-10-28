@@ -5,15 +5,15 @@ import pkgutil
 import pytest
 
 import coola
-import coola.tools
+import coola.utils
 from coola.testing.marks import numpy_available, polars_available, torch_available
 from tests.integration.helpers import run_python
 
 OPTIONAL_LIBRARIES = ("jax", "numpy", "pandas", "polars", "pyarrow", "pydantic", "torch", "xarray")
 PACKAGES = ["coola", *(f"coola.{m.name}" for m in pkgutil.iter_modules(coola.__path__) if m.ispkg)]
 
-TOOLS_MODULES = [
-    m.name for m in pkgutil.iter_modules(coola.tools.__path__) if m.name not in {"array", "tensor"}
+UTILS_MODULES = [
+    m.name for m in pkgutil.iter_modules(coola.utils.__path__) if m.name not in {"array", "tensor"}
 ]
 
 
@@ -53,11 +53,11 @@ def test_importing_a_formatting_module_does_not_import_the_optional_libraries(mo
     assert loaded_libraries(f"import coola.formatting.{module}") == []
 
 
-@pytest.mark.parametrize("module", TOOLS_MODULES)
-def test_importing_a_tools_module_does_not_import_the_optional_libraries(module: str) -> None:
-    """Test that importing a module of ``coola.tools`` other than
+@pytest.mark.parametrize("module", UTILS_MODULES)
+def test_importing_a_utils_module_does_not_import_the_optional_libraries(module: str) -> None:
+    """Test that importing a module of ``coola.utils`` other than
     ``array`` and ``tensor`` does not load the optional libraries."""
-    assert loaded_libraries(f"import coola.tools.{module}") == []
+    assert loaded_libraries(f"import coola.utils.{module}") == []
 
 
 def test_importing_a_lazy_name_imports_its_module() -> None:

@@ -358,7 +358,6 @@ coola/
 ├── summary/, hashing/, recursive/, iterator/, nested/, random/, reducer/
 ├── io/, factory/, identifier/, display/, validation/, testing/
 ├── formatting/           # Turning values into text
-├── tools/                # General-purpose helpers that coola does not need
 └── utils/                # The helpers that coola is built on
 ```
 
@@ -643,7 +642,7 @@ Potential areas for enhancement:
 Packages fall into two groups:
 
 - **Core**: `registry` (type-based dispatch), `utils` (generic helpers), `display`,
-  `validation`, `formatting` (turning values into text) and `tools` (general-purpose helpers that `coola` itself does not import). These must not import from any feature package.
+  `validation` and `formatting` (turning values into text). These must not import from any feature package.
 - **Features**: `equality`, `hashing`, `summary`, `recursive`, `iterator`, `random`, `nested`,
   `reducer`, `io`, `factory`, `identifier` and `testing`. Only `equality`, `hashing`, `summary`,
   `recursive` and `iterator` are built on `registry`; `reducer` and `random` are standalone
