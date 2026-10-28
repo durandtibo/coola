@@ -36,8 +36,8 @@ _LITERALS = (int, float, bool, type(None))
 
 
 def _cut(text: str, max_characters: int | None) -> str:
-    r"""Cut a text to ``max_characters`` characters, followed by
-    ``...`` if it is cut."""
+    r"""Cut a text to ``max_characters`` characters, followed by ``...``
+    if it is cut."""
     if max_characters is None or len(text) <= max_characters:
         return text
     return text[:max_characters] + "..."
