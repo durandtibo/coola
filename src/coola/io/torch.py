@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["TorchLoader", "TorchSaver", "load_torch", "save_torch"]
 
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.imports import check_torch, is_torch_available
@@ -16,10 +16,8 @@ if TYPE_CHECKING:
 if TYPE_CHECKING or is_torch_available():  # pragma: no cover
     import torch
 
-T = TypeVar("T")
 
-
-class TorchLoader(BaseLoader[T]):
+class TorchLoader(BaseLoader[Any]):
     r"""Implement a data loader to load data in a PyTorch file.
 
     Args:
@@ -56,11 +54,11 @@ class TorchLoader(BaseLoader[T]):
     def _display_fields(self) -> dict[str, Any]:
         return {"weights_only": self._weights_only, **self._kwargs}
 
-    def _load(self, path: Path) -> T:
+    def _load(self, path: Path) -> Any:
         return torch.load(path, weights_only=self._weights_only, **self._kwargs)
 
 
-class TorchSaver(BaseFileSaver[T]):
+class TorchSaver(BaseFileSaver[Any]):
     r"""Implement a file saver to save data with a PyTorch file.
 
     Args:
@@ -89,7 +87,7 @@ class TorchSaver(BaseFileSaver[T]):
     def _display_fields(self) -> dict[str, Any]:
         return self._kwargs
 
-    def _save_file(self, to_save: T, path: Path) -> None:
+    def _save_file(self, to_save: Any, path: Path) -> None:
         torch.save(to_save, path, **self._kwargs)
 
 
@@ -124,7 +122,7 @@ def load_torch(path: str | os.PathLike[str], **kwargs: Any) -> Any:
 
         ```
     """
-    return TorchLoader[Any](**kwargs).load(path)
+    return TorchLoader(**kwargs).load(path)
 
 
 def save_torch(
@@ -139,7 +137,7 @@ def save_torch(
     r"""Save the given data in a PyTorch file.
 
     Args:
-        to_save: The data to write in a PyTorch file.
+        to_save: Anyhe data to write in a PyTorch file.
         path: The path where to write the PyTorch file. A ``str`` or any path-like object is converted to a ``Path``.
         exist_ok: If ``exist_ok`` is ``False`` (the default),
             ``FileExistsError`` is raised if the target file
@@ -152,7 +150,6 @@ def save_torch(
             It is slower. Defaults to ``False``: the file is replaced
             atomically, but its content may be lost if the machine
             crashes right after the call.
-        **kwargs: Additional arguments passed to ``torch.save``.
         lock: If ``True`` (the default), concurrent saves to the same
             path are serialized with a lock file next to the path (see
             ``BaseFileSaver.save``). If ``False``, no lock is used:
@@ -161,6 +158,7 @@ def save_torch(
             concurrent writers of the same path are not serialized
             (the last one wins). It is faster, which matters for
             batch jobs that write many distinct files.
+        **kwargs: Additional arguments passed to ``torch.save``.
 
     Raises:
         FileExistsError: if the file already exists.
@@ -180,4 +178,4 @@ def save_torch(
 
         ```
     """
-    TorchSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock)
+    TorchSaver(**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock)

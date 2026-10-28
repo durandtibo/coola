@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["JsonLoader", "JsonSaver", "load_json", "save_json"]
 
 import json
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from coola.io.base import BaseFileSaver, BaseLoader
 
@@ -13,12 +13,11 @@ if TYPE_CHECKING:
     import os
     from pathlib import Path
 
-T = TypeVar("T")
 
 DEFAULT_ENCODING = "utf-8"
 
 
-class JsonLoader(BaseLoader[T]):
+class JsonLoader(BaseLoader[Any]):
     r"""Implement a data loader to load data in a JSON file.
 
     Args:
@@ -49,7 +48,7 @@ class JsonLoader(BaseLoader[T]):
     def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding}
 
-    def _load(self, path: Path) -> T:
+    def _load(self, path: Path) -> Any:
         if self._encoding is None:
             with path.open(mode="rb") as file:
                 return json.load(file)
@@ -57,7 +56,7 @@ class JsonLoader(BaseLoader[T]):
             return json.load(file)
 
 
-class JsonSaver(BaseFileSaver[T]):
+class JsonSaver(BaseFileSaver[Any]):
     r"""Implement a file saver to save data with a JSON file.
 
     Args:
@@ -95,7 +94,7 @@ class JsonSaver(BaseFileSaver[T]):
     def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding, **self._kwargs}
 
-    def _save_file(self, to_save: T, path: Path) -> None:
+    def _save_file(self, to_save: Any, path: Path) -> None:
         with path.open(mode="w", encoding=self._encoding) as file:
             json.dump(to_save, file, **self._kwargs)
 
@@ -126,7 +125,7 @@ def load_json(path: str | os.PathLike[str], encoding: str | None = None) -> Any:
 
         ```
     """
-    return JsonLoader[Any](encoding=encoding).load(path)
+    return JsonLoader(encoding=encoding).load(path)
 
 
 def save_json(
@@ -152,7 +151,7 @@ def save_json(
     ``json`` does not support.
 
     Args:
-        to_save: The data to write in a JSON file.
+        to_save: Anyhe data to write in a JSON file.
         path: The path where to write the JSON file. A ``str`` or any path-like object is converted to a ``Path``.
         encoding: The file encoding to use when writing the file.
             Defaults to ``"utf-8"``.
@@ -167,8 +166,6 @@ def save_json(
             It is slower. Defaults to ``False``: the file is replaced
             atomically, but its content may be lost if the machine
             crashes right after the call.
-        **kwargs: Additional arguments passed to ``json.dump``, e.g.
-            ``indent`` or ``sort_keys``.
         lock: If ``True`` (the default), concurrent saves to the same
             path are serialized with a lock file next to the path (see
             ``BaseFileSaver.save``). If ``False``, no lock is used:
@@ -177,6 +174,8 @@ def save_json(
             concurrent writers of the same path are not serialized
             (the last one wins). It is faster, which matters for
             batch jobs that write many distinct files.
+        **kwargs: Additional arguments passed to ``json.dump``, e.g.
+            ``indent`` or ``sort_keys``.
 
     Raises:
         FileExistsError: if the file already exists.
@@ -196,6 +195,6 @@ def save_json(
 
         ```
     """
-    JsonSaver[Any](encoding=encoding, **kwargs).save(
+    JsonSaver(encoding=encoding, **kwargs).save(
         to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock
     )

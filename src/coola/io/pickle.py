@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["PickleLoader", "PickleSaver", "load_pickle", "save_pickle"]
 
 import pickle
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from coola.io.base import BaseFileSaver, BaseLoader
 
@@ -13,10 +13,8 @@ if TYPE_CHECKING:
     import os
     from pathlib import Path
 
-T = TypeVar("T")
 
-
-class PickleLoader(BaseLoader[T]):
+class PickleLoader(BaseLoader[Any]):
     r"""Implement a data loader to load data in a pickle file.
 
     Warning:
@@ -42,12 +40,12 @@ class PickleLoader(BaseLoader[T]):
         ```
     """
 
-    def _load(self, path: Path) -> T:
+    def _load(self, path: Path) -> Any:
         with path.open(mode="rb") as file:
             return pickle.load(file)  # noqa: S301
 
 
-class PickleSaver(BaseFileSaver[T]):
+class PickleSaver(BaseFileSaver[Any]):
     r"""Implement a file saver to save data with a pickle file.
 
     Args:
@@ -75,7 +73,7 @@ class PickleSaver(BaseFileSaver[T]):
     def _display_fields(self) -> dict[str, Any]:
         return self._kwargs
 
-    def _save_file(self, to_save: T, path: Path) -> None:
+    def _save_file(self, to_save: Any, path: Path) -> None:
         with path.open(mode="wb") as file:
             pickle.dump(to_save, file, **self._kwargs)
 
@@ -111,7 +109,7 @@ def load_pickle(path: str | os.PathLike[str]) -> Any:
 
         ```
     """
-    return PickleLoader[Any]().load(path)
+    return PickleLoader().load(path)
 
 
 def save_pickle(
@@ -126,7 +124,7 @@ def save_pickle(
     r"""Save the given data in a pickle file.
 
     Args:
-        to_save: The data to write in a pickle file.
+        to_save: Anyhe data to write in a pickle file.
         path: The path where to write the pickle file. A ``str`` or any path-like object is converted to a ``Path``.
         exist_ok: If ``exist_ok`` is ``False`` (the default),
             ``FileExistsError`` is raised if the target file
@@ -139,7 +137,6 @@ def save_pickle(
             It is slower. Defaults to ``False``: the file is replaced
             atomically, but its content may be lost if the machine
             crashes right after the call.
-        **kwargs: Additional arguments passed to ``pickle.dump``.
         lock: If ``True`` (the default), concurrent saves to the same
             path are serialized with a lock file next to the path (see
             ``BaseFileSaver.save``). If ``False``, no lock is used:
@@ -148,6 +145,7 @@ def save_pickle(
             concurrent writers of the same path are not serialized
             (the last one wins). It is faster, which matters for
             batch jobs that write many distinct files.
+        **kwargs: Additional arguments passed to ``pickle.dump``.
 
     Raises:
         FileExistsError: if the file already exists.
@@ -167,4 +165,4 @@ def save_pickle(
 
         ```
     """
-    PickleSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock)
+    PickleSaver(**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock)
