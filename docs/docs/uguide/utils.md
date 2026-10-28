@@ -292,25 +292,38 @@ Provide fallback behavior when optional packages are not available:
 
 ## Properties
 
-| Property              | Statement                                                                                 |
-| --------------------- | ----------------------------------------------------------------------------------------- |
-| Optional dependencies | The import helpers report whether a package is available, without failing when it is not. |
-| Cached checks         | The availability of a package is cached, so repeated checks are cheap.                    |
-| Focused submodules    | Each submodule (`imports`, `mapping`, `path`, ...) has one responsibility.      |
-| Informative errors    | Errors and formatted values are written to be read by a person.                           |
+`coola.utils` is the foundation of `coola`: the helpers that the other packages import. It is a leaf
+of the package layering. The general-purpose helpers that `coola` does not need are in
+[`coola.tools`](tools.md), and the functions that turn values into text are in
+[`coola.formatting`](formatting.md).
 
-## Design Principles
+| Property                        | Statement                                                                                                                                                                                      |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Leaf layer                      | `coola.utils` imports the standard library and `coola.validation` only. `coola.validation` does not import `coola.utils`. Both rules are checked by `lint-imports`.                            |
+| Placed by role                  | A helper used by two or more packages of `coola` is in `coola.utils`. A general-purpose helper that `coola` does not use is in `coola.tools`.                                                  |
+| One name per concept            | One concept has one function and one message: `get_qualified_class_name` is the one qualified name, and every missing package gives the same error message.                                     |
+| Optional packages stay optional | `is_<pkg>_available()` is the single definition of "available" (the package can be imported). It is cached, and `clear_availability_caches()` resets it. `check_<pkg>()` raises `MissingPackageError`. |
+| Import-light                    | Importing a module of `coola.utils` imports no optional library and does no work, except `os.register_at_fork` in `fork`.                                                                      |
+| Strict contracts                | An argument is checked by `coola.validation`, and options are keyword-only. A helper does not hide an error (`safe_str` and `safe_repr` report the error as a value, it is their job).          |
+| Stateless, with named exceptions | The exceptions are the availability caches, the registry of the objects that reset after a fork (`track_fork`) and the `LazySingleton` instances. No helper changes `os.environ`, the working directory or a logger. |
+| Thread-safe, fork-safe          | A `LazySingleton` builds its value once under a lock, detects a request from its own factory, and rebuilds its lock in a forked child.                                                         |
+| Explicit modules                | There is no re-export at `coola.utils`: import a name from the module that defines it (`coola.utils.mapping`). `coola.utils.imports` re-exports its public names.                              |
 
-The `coola.utils` package follows these design principles:
+### Not Guaranteed
 
-1. **Modular**: Utilities are organized into focused submodules
-2. **Efficient**: Uses caching where appropriate (e.g., import checks)
-3. **Flexible**: Works with various backends and data types
-4. **Informative**: Provides clear error messages and formatting
-5. **Optional dependencies**: Gracefully handles missing packages
+- **The availability of a package cannot change during the life of the process.** It is cached on
+  the first call. A test that changes `sys.modules` calls `clear_availability_caches()`.
+- **`is_<pkg>_available()` imports the package** the first time (a package that is installed but
+  broken is reported as not available, with a logged warning). Use `package_available(name)` to ask
+  whether a package is installed without importing it.
+- **`LazySingleton` is not a registry of its values.** `reset()` forgets the value, and a reference
+  obtained before is not changed.
+- **The order of `smallest_items` when the items cannot be compared** is the iteration order of the
+  collection.
 
 ## See Also
 
 - [`coola.testing`](testing.md): For pytest fixtures that use import utilities
+- [Tools](tools.md) and [Formatting](formatting.md): the helpers that moved out of `coola.utils`
 - [`coola.reducer`](reducer.md): For examples of automatic backend selection
 - [`coola.equality`](equality.md): For examples of handling multiple backends
