@@ -40,7 +40,7 @@ from coola.equality.tester import (
 from coola.io import TextLoader, TextSaver
 from coola.io.base import BaseLoader, BaseSaver
 from coola.registry import AlreadyRegisteredError
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 from coola.utils.imports import (
     import_object,
     is_jax_available,

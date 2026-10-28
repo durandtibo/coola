@@ -38,7 +38,7 @@ from coola.hashing import (
 from coola.hashing.interface import _register_default_hashers
 from coola.hashing.pydantic import PydanticModelHasher
 from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError
-from coola.testing.fixtures import numpy_available, pydantic_available
+from coola.testing.marks import numpy_available, pydantic_available
 from coola.utils.imports import import_object, is_numpy_available, is_pydantic_available
 from tests.unit.hashing.helpers import Unhashable, leaf_hash
 

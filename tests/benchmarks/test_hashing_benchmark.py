@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 import pytest
 
 from coola.hashing import hash_object
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
 
 if TYPE_CHECKING:

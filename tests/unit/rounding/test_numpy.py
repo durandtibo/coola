@@ -5,7 +5,7 @@ import math
 import pytest
 
 from coola.rounding.numpy import round_numpy
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
 
 if is_numpy_available():

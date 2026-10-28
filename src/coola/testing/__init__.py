@@ -1,10 +1,12 @@
-r"""Provide ``pytest`` fixtures to skip or require tests based on the
-availability of optional dependencies (e.g. NumPy, pandas, PyTorch).
+r"""Provide ``pytest`` marks and fixtures to test code that has optional
+dependencies (e.g. NumPy, pandas, PyTorch).
 
-The fixtures are defined in ``coola.testing.fixtures``. Import one from
-there and use it as a test decorator, e.g. ``from coola.testing.fixtures
-import numpy_available`` then ``@numpy_available`` skips the test unless
-NumPy is installed.
+The marks are defined in ``coola.testing.marks``. Import one from there
+and use it as a test decorator, e.g. ``from coola.testing.marks import
+numpy_available`` then ``@numpy_available`` skips the test unless NumPy
+is installed. The fixtures are defined in ``coola.testing.fixtures``:
+load them with ``pytest_plugins = ["coola.testing.fixtures"]`` in the
+top-level ``conftest.py``.
 
 ``pytest`` is required: install ``coola`` with the ``testing`` extra
 (``pip install coola[testing]``).

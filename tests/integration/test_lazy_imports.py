@@ -5,7 +5,7 @@ import pkgutil
 import pytest
 
 import coola
-from coola.testing.fixtures import numpy_available, torch_available
+from coola.testing.marks import numpy_available, torch_available
 from tests.integration.helpers import run_python
 
 OPTIONAL_LIBRARIES = ("jax", "numpy", "pandas", "polars", "pyarrow", "pydantic", "torch", "xarray")

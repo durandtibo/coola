@@ -4,7 +4,7 @@ import threading
 
 from coola.equality import objects_are_equal
 from coola.random import get_torch_generator
-from coola.testing.fixtures import torch_available
+from coola.testing.marks import torch_available
 from coola.utils.imports import is_torch_available
 from tests.integration.helpers import run_threads
 

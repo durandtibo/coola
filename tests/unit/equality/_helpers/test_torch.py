@@ -9,7 +9,7 @@ from coola.equality._helpers.torch import (
 )
 from coola.equality.config import EqualityConfig
 from coola.equality.tolerance import Tolerance
-from coola.testing.fixtures import torch_available
+from coola.testing.marks import torch_available
 from coola.utils.imports import is_torch_available
 
 if is_torch_available():

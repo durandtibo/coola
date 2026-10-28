@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 from coola.equality import compare, objects_are_allclose, objects_are_equal
-from coola.testing.fixtures import (
+from coola.testing.marks import (
     numpy_available,
     pandas_available,
     polars_available,

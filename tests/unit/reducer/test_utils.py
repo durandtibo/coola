@@ -2,7 +2,7 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 from coola.reducer import NativeReducer, NumpyReducer, auto_reducer
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 
 ##################################
 #     Tests for auto_reducer     #

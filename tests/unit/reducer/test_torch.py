@@ -9,7 +9,7 @@ import pytest
 
 from coola.reducer import EmptySequenceError, NativeReducer, TorchReducer
 from coola.reducer.torch import _to_float_tensor
-from coola.testing.fixtures import numpy_available, torch_available
+from coola.testing.marks import numpy_available, torch_available
 from coola.utils.imports import MissingPackageError, is_numpy_available, is_torch_available
 
 if is_numpy_available():

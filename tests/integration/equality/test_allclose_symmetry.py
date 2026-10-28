@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from coola.equality import objects_are_allclose
-from coola.testing.fixtures import (
+from coola.testing.marks import (
     jax_available,
     numpy_available,
     pandas_available,

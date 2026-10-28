@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from coola.hashing import Node, PyarrowArrayHasher, hash_object
-from coola.testing.fixtures import (
+from coola.testing.marks import (
     jax_available,
     numpy_available,
     pandas_available,

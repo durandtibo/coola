@@ -34,7 +34,7 @@ from coola.summary import (
     register_summarizers,
     summarize,
 )
-from coola.testing.fixtures import (
+from coola.testing.marks import (
     jax_available,
     numpy_available,
     pandas_available,

@@ -13,7 +13,7 @@ from coola.equality.tester.pandas import (
     PandasSeriesTable,
     get_default_testers,
 )
-from coola.testing.fixtures import pandas_available
+from coola.testing.marks import pandas_available
 from coola.utils.imports import is_pandas_available
 from tests.unit.equality.utils import ExamplePair
 

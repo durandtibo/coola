@@ -7,7 +7,7 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.io import TorchLoader, TorchSaver, load_torch, save_text, save_torch
-from coola.testing.fixtures import torch_available, torch_not_available
+from coola.testing.marks import torch_available, torch_not_available
 from coola.utils.imports import MissingPackageError, is_torch_available
 
 if TYPE_CHECKING:

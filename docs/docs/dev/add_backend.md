@@ -23,7 +23,7 @@ In this page, `<pkg>` is the name of the library, e.g. `pandas`.
    classes that raise `MissingPackageError`, used when the library is not installed. It must have
    every attribute of the library that is used in an annotation or a `class X(Base[pkg.Type])`
    statement, because these are evaluated when the module is imported.
-4. Add the marks for the tests: add one row to `_DEPENDENCIES` in `src/coola/testing/fixtures.py`
+4. Add the marks for the tests: add one row to `_DEPENDENCIES` in `src/coola/testing/marks.py`
    (the `is_<pkg>_available` function and the name used in the skip reasons). `__all__` is computed
    from the table and the marks are typed by the module `__getattr__`, so nothing else changes:
 
@@ -32,7 +32,7 @@ In this page, `<pkg>` is the name of the library, e.g. `pandas`.
 ```
 
    Do not call `requires(is_<pkg>_available(), "<pkg>")` at module level: it runs the check, and
-   so imports the library, as soon as `coola.testing.fixtures` is imported. The table stores the
+   so imports the library, as soon as `coola.testing.marks` is imported. The table stores the
    function, and the marks are built on first use.
 
 ## 2. Equality
@@ -106,7 +106,7 @@ TorchTensorEqualityTester` works as before, but the module is imported when the 
 
 | Step              | Files                                                                                                                                                           |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dependency        | `pyproject.toml`, `utils/imports/<pkg>.py`, `utils/imports/__init__.py`, `utils/fallback/<pkg>.py`, `testing/fixtures.py`                                       |
+| Dependency        | `pyproject.toml`, `utils/imports/<pkg>.py`, `utils/imports/__init__.py`, `utils/fallback/<pkg>.py`, `testing/marks.py`                                       |
 | Equality          | `equality/_helpers/<pkg>.py` (the kernel, if the library has arrays), `equality/tester/<pkg>.py`, `equality/tester/__init__.py`, `equality/tester/interface.py` |
 | Summary           | `summary/<pkg>.py`, `summary/__init__.py`, `summary/interface.py`                                                                                               |
 | Others (optional) | `random/<pkg>.py`, `random/interface.py`, `reducer/<pkg>.py`                                                                                                    |

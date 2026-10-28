@@ -14,7 +14,7 @@ from coola.random import (
     PythonRandomManager,
     TorchRandomManager,
 )
-from coola.testing.fixtures import numpy_available, torch_available
+from coola.testing.marks import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
 
 if TYPE_CHECKING:

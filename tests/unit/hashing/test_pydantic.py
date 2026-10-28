@@ -13,7 +13,7 @@ from coola.hashing import (
     hash_object,
 )
 from coola.hashing.pydantic import PydanticModelHasher
-from coola.testing.fixtures import pydantic_available
+from coola.testing.marks import pydantic_available
 from coola.utils.imports import is_pydantic_available
 from tests.unit.hashing.helpers import hash_with
 

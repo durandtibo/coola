@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from coola.equality import objects_are_allclose
-from coola.testing.fixtures import torch_available
+from coola.testing.marks import torch_available
 from tests.integration.equality.checks.utils import EQUALITY_TESTER_FUNCTIONS, reported_messages
 from tests.unit.equality.tester.test_torch import (
     TORCH_EQUAL,

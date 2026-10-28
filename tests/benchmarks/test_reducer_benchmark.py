@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from coola.reducer import BaseReducer, NativeReducer, NumpyReducer, TorchReducer, auto_reducer
-from coola.testing.fixtures import numpy_available, torch_available
+from coola.testing.marks import numpy_available, torch_available
 
 if TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture

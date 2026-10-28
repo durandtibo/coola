@@ -10,7 +10,7 @@ from coola.iterator import (
     dfs_iterate,
     get_default_registry,
 )
-from coola.testing.fixtures import numpy_available, pandas_available
+from coola.testing.marks import numpy_available, pandas_available
 from coola.utils.imports import is_numpy_available, is_pandas_available
 from tests.integration.helpers import run_python
 

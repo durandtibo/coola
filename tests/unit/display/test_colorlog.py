@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.display.colorlog import configure_colorlog_logging
-from coola.testing.fixtures import colorlog_available
+from coola.testing.marks import colorlog_available
 from coola.utils.imports import is_colorlog_available
 
 if is_colorlog_available():

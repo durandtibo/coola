@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from coola.hashing import XarrayHasher
-from coola.testing.fixtures import xarray_available
+from coola.testing.marks import xarray_available
 
 ###################################
 #     Tests for XarrayHasher      #

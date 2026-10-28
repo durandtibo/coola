@@ -7,7 +7,7 @@ from coola.equality.tester import (
     NumpyArrayEqualityTester,
     NumpyMaskedArrayEqualityTester,
 )
-from coola.testing.fixtures import numpy_available, numpy_not_available
+from coola.testing.marks import numpy_available, numpy_not_available
 from coola.utils.imports import MissingPackageError, is_numpy_available
 from tests.unit.equality.utils import run_tester
 

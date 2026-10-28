@@ -3,7 +3,7 @@ from __future__ import annotations
 from unittest.mock import Mock
 
 from coola.summary import NDArraySummarizer, SummaryConfig
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
 
 if is_numpy_available():

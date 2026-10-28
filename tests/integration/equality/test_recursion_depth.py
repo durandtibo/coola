@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.equality import MaxDepthExceededError, objects_are_equal
-from coola.testing.fixtures import pydantic_available
+from coola.testing.marks import pydantic_available
 from coola.utils.imports import is_pydantic_available
 
 if TYPE_CHECKING:

@@ -1,5 +1,5 @@
 from coola.reducer import NativeReducer, auto_reducer
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 
 ##################################
 #     Tests for auto_reducer     #

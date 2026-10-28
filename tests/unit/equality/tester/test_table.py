@@ -12,7 +12,7 @@ from coola.equality.engine import Engine
 from coola.equality.tester import EqualityTesterRegistry, TableEqualityTester, get_default_registry
 from coola.equality.tester.table import Column, column_close
 from coola.equality.tolerance import Tolerance
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
 
 if TYPE_CHECKING:

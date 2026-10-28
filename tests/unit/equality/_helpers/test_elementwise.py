@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from coola.equality._helpers.elementwise import elementwise_close
-from coola.testing.fixtures import torch_available
+from coola.testing.marks import torch_available
 from coola.utils.imports import is_torch_available
 
 if is_torch_available():

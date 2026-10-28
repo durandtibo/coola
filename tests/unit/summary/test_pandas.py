@@ -9,7 +9,7 @@ from coola.summary import (
     PandasSeriesSummarizer,
     SummaryConfig,
 )
-from coola.testing.fixtures import pandas_available
+from coola.testing.marks import pandas_available
 from coola.utils.imports import MissingPackageError, is_pandas_available
 
 if is_pandas_available():
