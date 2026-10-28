@@ -569,8 +569,8 @@ generators it covers.
 | `extract_ulid_timestamp_ms`         | 10,000 calls                 | 25.06 ms   | 24.57 ms | 2.51 µs        |                    | 15.03 ms   | 1.67     |
 | `extract_uuid7_timestamp_ms`        | 10,000 calls                 | 8.15 ms    | 8.07 ms  | 0.81 µs        |                    | 3.77 ms    | 2.16     |
 | `extract_snowflake_timestamp_ms`    | 10,000 calls                 | 1.55 ms    | 1.51 ms  | 0.15 µs        |                    | 0.94 ms    | 1.65     |
-| `generate_checksummed_id`           | 10,000 calls                 | 38.68 ms   | 37.12 ms | 3.87 µs        |                    |            |          |
-| `verify_checksummed_id`             | 10,000 calls                 | 18.67 ms   | 18.56 ms | 1.87 µs        |                    |            |          |
+| `generate_checksummed_id`           | 10,000 calls                 | 38.68 ms   | 37.12 ms | 3.87 µs        |                    | 38.34 ms   | 1.01     |
+| `verify_checksummed_id`             | 10,000 calls                 | 18.67 ms   | 18.56 ms | 1.87 µs        |                    | 11.61 ms   | 1.61     |
 | `generate_stable_content_id_small`  | dict of a `str` and an `int` | 5.4 µs     | 5.2 µs   | 5.4 µs         |                    | 5.3 µs     | 1.02     |
 | `generate_stable_uuid5_small`       | dict of a `str` and an `int` | 7.2 µs     | 6.9 µs   | 7.2 µs         |                    | 7.1 µs     | 1.01     |
 | `generate_stable_content_id_nested` | 100 floats, 100 small dicts  | 698.4 µs   | 681.4 µs | 698.4 µs       |                    | 694.1 µs   | 1.01     |
