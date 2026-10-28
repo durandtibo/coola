@@ -1,20 +1,26 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
+from typing import Any
 
 import pytest
 
+from coola.testing.marks import numpy_available
+from coola.utils.imports import is_numpy_available
 from coola.validation import (
+    validate_finite,
     validate_ge,
     validate_gt,
     validate_le,
     validate_lt,
-    validate_negative,
-    validate_non_negative,
-    validate_non_positive,
-    validate_positive,
     validate_range,
 )
+
+if is_numpy_available():
+    import numpy as np
+else:  # pragma: no cover
+    np = None
 
 
 def test_validate_ge_greater() -> None:
@@ -91,80 +97,6 @@ def test_validate_lt_custom_name() -> None:
         validate_lt(1, 0, name="count")
 
 
-def test_validate_non_negative_zero() -> None:
-    validate_non_negative(0)
-
-
-def test_validate_non_negative_positive() -> None:
-    validate_non_negative(1)
-
-
-def test_validate_non_negative_negative() -> None:
-    with pytest.raises(ValueError, match="value must be non-negative, got -1"):
-        validate_non_negative(-1)
-
-
-def test_validate_non_negative_custom_name() -> None:
-    with pytest.raises(ValueError, match="count must be non-negative, got -1"):
-        validate_non_negative(-1, name="count")
-
-
-def test_validate_positive_positive() -> None:
-    validate_positive(1)
-
-
-def test_validate_positive_zero() -> None:
-    with pytest.raises(ValueError, match="value must be positive, got 0"):
-        validate_positive(0)
-
-
-def test_validate_positive_negative() -> None:
-    with pytest.raises(ValueError, match="value must be positive, got -1"):
-        validate_positive(-1)
-
-
-def test_validate_positive_custom_name() -> None:
-    with pytest.raises(ValueError, match="count must be positive, got 0"):
-        validate_positive(0, name="count")
-
-
-def test_validate_negative_negative() -> None:
-    validate_negative(-1)
-
-
-def test_validate_negative_zero() -> None:
-    with pytest.raises(ValueError, match="value must be negative, got 0"):
-        validate_negative(0)
-
-
-def test_validate_negative_positive() -> None:
-    with pytest.raises(ValueError, match="value must be negative, got 1"):
-        validate_negative(1)
-
-
-def test_validate_negative_custom_name() -> None:
-    with pytest.raises(ValueError, match="count must be negative, got 0"):
-        validate_negative(0, name="count")
-
-
-def test_validate_non_positive_zero() -> None:
-    validate_non_positive(0)
-
-
-def test_validate_non_positive_negative() -> None:
-    validate_non_positive(-1)
-
-
-def test_validate_non_positive_positive() -> None:
-    with pytest.raises(ValueError, match="value must be non-positive, got 1"):
-        validate_non_positive(1)
-
-
-def test_validate_non_positive_custom_name() -> None:
-    with pytest.raises(ValueError, match="count must be non-positive, got 1"):
-        validate_non_positive(1, name="count")
-
-
 @pytest.mark.parametrize(
     "validate",
     [
@@ -172,31 +104,11 @@ def test_validate_non_positive_custom_name() -> None:
         pytest.param(lambda v: validate_gt(v, 0), id="gt"),
         pytest.param(lambda v: validate_le(v, 0), id="le"),
         pytest.param(lambda v: validate_lt(v, 0), id="lt"),
-        pytest.param(validate_negative, id="negative"),
-        pytest.param(validate_non_negative, id="non_negative"),
-        pytest.param(validate_non_positive, id="non_positive"),
-        pytest.param(validate_positive, id="positive"),
     ],
 )
 def test_validate_comparison_rejects_nan(validate: object) -> None:
     with pytest.raises(ValueError, match="nan"):
         validate(float("nan"))  # type: ignore[operator]
-
-
-@pytest.mark.parametrize("value", [None, "a"])
-def test_validate_non_negative_not_a_number_raises(value: object) -> None:
-    with pytest.raises(TypeError, match="value cannot be compared with 0, got"):
-        validate_non_negative(value)
-
-
-def test_validate_non_negative_list_raises() -> None:
-    with pytest.raises(TypeError, match="value cannot be compared with 0, got"):
-        validate_non_negative([1, 2])
-
-
-def test_validate_non_negative_nan_raises() -> None:
-    with pytest.raises(ValueError, match="non-negative"):
-        validate_non_negative(float("nan"))
 
 
 ####################################
@@ -329,3 +241,46 @@ def test_validate_ge_nan_raises() -> None:
 def test_validate_range_message_shows_the_bounds_with_repr() -> None:
     with pytest.raises(ValueError, match=r"^value must be in the range \['a', 'c'\], got 'd'$"):
         validate_range("d", "a", "c")
+
+
+@pytest.mark.parametrize("value", [0, 1, -1.5, 1e300])
+def test_validate_finite_valid(value: float) -> None:
+    validate_finite(value)
+
+
+@pytest.mark.parametrize("value", [float("inf"), float("-inf"), float("nan")])
+def test_validate_finite_invalid(value: float) -> None:
+    with pytest.raises(ValueError, match="value must be finite, got"):
+        validate_finite(value)
+
+
+def test_validate_finite_custom_name() -> None:
+    with pytest.raises(ValueError, match="atol must be finite, got inf"):
+        validate_finite(float("inf"), name="atol")
+
+
+def test_validate_finite_huge_int() -> None:
+    validate_finite(10**400)
+
+
+@pytest.mark.parametrize("value", [None, "a"])
+def test_validate_finite_not_a_number_raises(value: Any) -> None:
+    with pytest.raises(TypeError, match="real number"):
+        validate_finite(value)
+
+
+@pytest.mark.parametrize("value", [True, Decimal("1.5")])
+def test_validate_finite_not_a_real_number_raises(value: Any) -> None:
+    with pytest.raises(TypeError, match="value must be a real number"):
+        validate_finite(value)
+
+
+@numpy_available
+def test_validate_finite_array_raises_a_named_type_error() -> None:
+    with pytest.raises(TypeError, match=r"^value must be a real number, got ndarray$"):
+        validate_finite(np.array([1.0, 2.0]))
+
+
+def test_validate_finite_message_shows_the_value_with_repr() -> None:
+    with pytest.raises(ValueError, match=r"^lr must be finite, got inf$"):
+        validate_finite(float("inf"), name="lr")

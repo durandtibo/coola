@@ -25,7 +25,7 @@ import math
 from typing import TYPE_CHECKING, Any
 
 from coola.utils.mapping import sort_by_keys
-from coola.validation import validate_non_negative, validate_positive
+from coola.validation import validate_ge, validate_gt
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping, Sequence
@@ -69,7 +69,7 @@ def make_bar(value: float, length: int = 10) -> str:
     if not 0.0 <= value <= 1.0:
         msg = f"value must be in [0, 1], but got {value}"
         raise ValueError(msg)
-    validate_positive(length, name="length")
+    validate_gt(length, 0, name="length")
 
     filled = round(value * length)
     return f"[{'█' * filled}{'░' * (length - filled)}]"
@@ -439,7 +439,7 @@ def str_human_byte_size(size: int, unit: str | None = None) -> str:
 
         ```
     """
-    validate_non_negative(size, name="Size")
+    validate_ge(size, 0, name="Size")
     if unit is None:  # Find the best unit.
         unit = find_best_byte_unit(size)
         # Pick the unit after rounding: 1048575 B is 1,024.00 KB, i.e. 1.00 MB.
@@ -478,7 +478,7 @@ def find_best_byte_unit(size: int) -> str:
 
         ```
     """
-    validate_non_negative(size, name="Size")
+    validate_ge(size, 0, name="Size")
     best_unit = "B"
     for unit, multiplier in BYTE_UNITS.items():
         if (size / multiplier) >= 1:

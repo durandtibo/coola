@@ -3,18 +3,18 @@ r"""Contain functions to validate comparisons."""
 from __future__ import annotations
 
 __all__ = [
+    "validate_finite",
     "validate_ge",
     "validate_gt",
     "validate_le",
     "validate_lt",
-    "validate_negative",
-    "validate_non_negative",
-    "validate_non_positive",
-    "validate_positive",
     "validate_range",
 ]
 
+import math
 from typing import TYPE_CHECKING, Any
+
+from coola.validation.type import validate_number
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -140,94 +140,6 @@ def validate_lt(value: Any, high: Any, *, name: str = "value") -> None:
     _compare(lambda v: v < high, value, repr(high), name, f"less than {high!r}")
 
 
-def validate_non_negative(value: Any, *, name: str = "value") -> None:
-    r"""Validate that ``value`` is not negative.
-
-    Args:
-        value: The value to validate.
-        name: The name of the value, used in the error message.
-
-    Raises:
-        TypeError: If ``value`` cannot be compared (for example ``None``, a
-            ``str`` or an array with several items).
-        ValueError: If ``value`` is negative.
-
-    Example:
-        ```pycon
-        >>> from coola.validation import validate_non_negative
-        >>> validate_non_negative(1)
-
-        ```
-    """
-    _compare(lambda v: v >= 0, value, "0", name, "non-negative")
-
-
-def validate_positive(value: Any, *, name: str = "value") -> None:
-    r"""Validate that ``value`` is strictly positive.
-
-    Args:
-        value: The value to validate.
-        name: The name of the value, used in the error message.
-
-    Raises:
-        TypeError: If ``value`` cannot be compared (for example ``None``, a
-            ``str`` or an array with several items).
-        ValueError: If ``value`` is not positive.
-
-    Example:
-        ```pycon
-        >>> from coola.validation import validate_positive
-        >>> validate_positive(1)
-
-        ```
-    """
-    _compare(lambda v: v > 0, value, "0", name, "positive")
-
-
-def validate_negative(value: Any, *, name: str = "value") -> None:
-    r"""Validate that ``value`` is strictly negative.
-
-    Args:
-        value: The value to validate.
-        name: The name of the value, used in the error message.
-
-    Raises:
-        TypeError: If ``value`` cannot be compared (for example ``None``, a
-            ``str`` or an array with several items).
-        ValueError: If ``value`` is not negative.
-
-    Example:
-        ```pycon
-        >>> from coola.validation import validate_negative
-        >>> validate_negative(-1)
-
-        ```
-    """
-    _compare(lambda v: v < 0, value, "0", name, "negative")
-
-
-def validate_non_positive(value: Any, *, name: str = "value") -> None:
-    r"""Validate that ``value`` is not positive.
-
-    Args:
-        value: The value to validate.
-        name: The name of the value, used in the error message.
-
-    Raises:
-        TypeError: If ``value`` cannot be compared (for example ``None``, a
-            ``str`` or an array with several items).
-        ValueError: If ``value`` is positive.
-
-    Example:
-        ```pycon
-        >>> from coola.validation import validate_non_positive
-        >>> validate_non_positive(-1)
-
-        ```
-    """
-    _compare(lambda v: v <= 0, value, "0", name, "non-positive")
-
-
 def validate_range(
     value: Any,
     low: Any,
@@ -286,3 +198,28 @@ def validate_range(
         name,
         f"in the range {interval}",
     )
+
+
+def validate_finite(value: float, *, name: str = "value") -> None:
+    r"""Validate that ``value`` is finite (neither infinite nor NaN).
+
+    Args:
+        value: The value to validate.
+        name: The name of the value, used in the error message.
+
+    Raises:
+        TypeError: If ``value`` is not a real number (``bool`` is rejected).
+        ValueError: If ``value`` is infinite or NaN.
+
+    Example:
+        ```pycon
+        >>> from coola.validation import validate_finite
+        >>> validate_finite(1.0)
+
+        ```
+    """
+    # An int is always finite, but ``math.isfinite`` overflows for the huge ones.
+    validate_number(value, name=name)
+    if not isinstance(value, int) and not math.isfinite(value):
+        msg = f"{name} must be finite, got {value!r}"
+        raise ValueError(msg)

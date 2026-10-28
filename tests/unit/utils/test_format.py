@@ -31,12 +31,12 @@ def test_make_bar_raises_value_error(value: float) -> None:
 
 
 def test_make_bar_raises_value_error_if_length_is_zero() -> None:
-    with pytest.raises(ValueError, match="length must be positive"):
+    with pytest.raises(ValueError, match="length must be greater than 0"):
         make_bar(0.5, length=0)
 
 
 def test_make_bar_raises_value_error_if_length_is_negative() -> None:
-    with pytest.raises(ValueError, match="length must be positive"):
+    with pytest.raises(ValueError, match="length must be greater than 0"):
         make_bar(0.5, length=-1)
 
 
@@ -494,7 +494,7 @@ def test_str_human_byte_size_incorrect_unit() -> None:
 
 
 def test_str_human_byte_size_negative_size() -> None:
-    with pytest.raises(ValueError, match=r"Size must be non-negative"):
+    with pytest.raises(ValueError, match=r"Size must be greater than or equal to 0"):
         str_human_byte_size(-1)
 
 
@@ -549,7 +549,7 @@ def test_find_best_byte_unit_exact_gb_boundary() -> None:
 
 
 def test_find_best_byte_unit_negative_size() -> None:
-    with pytest.raises(ValueError, match=r"Size must be non-negative"):
+    with pytest.raises(ValueError, match=r"Size must be greater than or equal to 0"):
         find_best_byte_unit(-1)
 
 

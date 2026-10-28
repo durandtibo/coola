@@ -19,7 +19,7 @@ import re
 import uuid
 
 from coola.identifier.sequence import TickSequence
-from coola.validation import validate_int, validate_range, validate_str
+from coola.validation import validate_int, validate_isinstance, validate_range
 
 _TIMESTAMP_BITS = 48
 _MAX_TIMESTAMP_MS = (1 << _TIMESTAMP_BITS) - 1
@@ -141,7 +141,7 @@ def extract_uuid7_timestamp_ms(uuid7: str) -> int:
 
         ```
     """
-    validate_str(uuid7, name="uuid7")
+    validate_isinstance(uuid7, str, name="uuid7")
     if _UUID7_PATTERN.fullmatch(uuid7) is None:
         msg = f"uuid7 must be a UUID in its canonical 36-character form, got {uuid7!r}"
         raise ValueError(msg)

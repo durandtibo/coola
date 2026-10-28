@@ -22,7 +22,7 @@ __all__ = ["generate_checksummed_id", "verify_checksummed_id"]
 import os
 
 from coola.identifier import crockford
-from coola.validation import validate_int, validate_positive, validate_str
+from coola.validation import validate_gt, validate_int, validate_isinstance
 
 # The 5 extra check symbols from the Crockford spec, extending the
 # alphabet from 32 to the 37 values needed for a mod-37 checksum.
@@ -76,7 +76,7 @@ def _validate_sep(sep: str) -> None:
             is a character of the Crockford Base32 alphabet (the case
             is ignored, ``O``, ``I`` and ``L`` are read as digits).
     """
-    validate_str(sep, name="sep")
+    validate_isinstance(sep, str, name="sep")
     if len(sep) > 1:
         msg = f"sep must be empty or a single character, got {sep!r}"
         raise ValueError(msg)
@@ -143,12 +143,12 @@ def generate_checksummed_id(
         ```
     """
     validate_int(length, name="length")
-    validate_positive(length, name="length")
+    validate_gt(length, 0, name="length")
     if length > _MAX_LENGTH:
         msg = f"length must be at most {_MAX_LENGTH}, got {length}"
         raise ValueError(msg)
     validate_int(group_size, name="group_size")
-    validate_positive(group_size, name="group_size")
+    validate_gt(group_size, 0, name="group_size")
     _validate_sep(sep)
     while True:
         payload = "".join(crockford.ALPHABET[b % 32] for b in os.urandom(length))
