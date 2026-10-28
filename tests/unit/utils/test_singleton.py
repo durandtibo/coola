@@ -484,6 +484,19 @@ def test_lazy_singleton_reset_rebuilds_the_value() -> None:
     assert singleton.get() == 2
 
 
+def test_lazy_singleton_reset_from_the_factory_raises() -> None:
+    singleton = LazySingleton(lambda: singleton.reset())
+    with pytest.raises(RuntimeError, match="reset while its value is being built"):
+        singleton.get()
+
+
+def test_lazy_singleton_reset_from_the_factory_does_not_build_the_value() -> None:
+    singleton = LazySingleton(lambda: singleton.reset())
+    with contextlib.suppress(RuntimeError):
+        singleton.get()
+    assert not singleton.is_built()
+
+
 def test_lazy_singleton_is_tracked_for_forks() -> None:
     singleton = LazySingleton(lambda: 1)
     assert singleton in fork._TRACKED

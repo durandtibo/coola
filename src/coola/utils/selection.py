@@ -9,10 +9,10 @@ from itertools import islice
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Collection
 
 
-def smallest_items(data: Iterable[Any], limit: int | None = None) -> list[Any]:
+def smallest_items(data: Collection[Any], limit: int | None = None) -> list[Any]:
     r"""Return the smallest items in order.
 
     The items are selected in one pass without sorting all of them. If
@@ -20,7 +20,9 @@ def smallest_items(data: Iterable[Any], limit: int | None = None) -> list[Any]:
     the first items in iteration order are returned instead.
 
     Args:
-        data: The items, for example a set.
+        data: The items, for example a set. It is a collection (not an
+            iterator) because it is iterated twice when the items cannot
+            be compared.
         limit: The maximum number of items to return. ``None`` returns
             all the items.
 

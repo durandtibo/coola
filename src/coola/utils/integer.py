@@ -27,8 +27,8 @@ def int_repr(value: int) -> str:
         value: The integer to convert.
 
     Returns:
-        The decimal ``repr`` of ``value``, or ``0x...`` when it has
-            more than 4300 digits.
+        The decimal ``repr`` of ``value``, or ``0x...`` (``-0x...`` for
+            a negative integer) when it has more than 4300 digits.
 
     Example:
         ```pycon
@@ -45,4 +45,5 @@ def int_repr(value: int) -> str:
         digits = str(Decimal(abs(value)))
         if len(digits) <= _MAX_DECIMAL_DIGITS:
             return f"-{digits}" if value < 0 else digits
-    return f"0x{value:x}"
+    sign = "-" if value < 0 else ""
+    return f"{sign}0x{abs(value):x}"

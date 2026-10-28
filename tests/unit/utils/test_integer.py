@@ -17,7 +17,7 @@ def test_int_repr_above_the_conversion_limit() -> None:
 
 
 def test_int_repr_above_the_conversion_limit_negative() -> None:
-    assert int_repr(-(10**5000)) == f"0x{-(10**5000):x}"
+    assert int_repr(-(10**5000)) == hex(-(10**5000))
 
 
 def test_int_repr_below_the_conversion_limit() -> None:
@@ -62,3 +62,7 @@ def test_int_repr_does_not_depend_on_the_conversion_limit_below() -> None:
 
 def test_int_repr_largest_decimal_negative() -> None:
     assert int_repr(-(10**4299)) == f"-1{'0' * 4299}"
+
+
+def test_int_repr_huge_negative_has_the_sign_before_the_prefix() -> None:
+    assert int_repr(-(1 << 20000)).startswith("-0x1000")
