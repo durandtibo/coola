@@ -279,3 +279,55 @@ def test_save_text_load_text_preserves_line_endings_loaded_content(tmp_path: Pat
     path = tmp_path.joinpath("data.txt")
     save_text("a\r\nb\rc\n", path)
     assert load_text(path) == "a\r\nb\rc\n"
+
+
+###########################################
+#     Tests for the str paths of text     #
+###########################################
+
+
+@pytest.fixture
+def str_path(tmp_path: Path) -> str:
+    return str(tmp_path.joinpath("out", "data.bin"))
+
+
+def test_save_text_str_path(str_path: str) -> None:
+    save_text("hello", str_path)
+    assert load_text(str_path) == "hello"
+
+
+def test_text_saver_str_path_creates_the_file(str_path: str, tmp_path: Path) -> None:
+    TextSaver().save("hello", str_path)
+    assert tmp_path.joinpath("out", "data.bin").is_file()
+
+
+def test_text_loader_str_path(str_path: str) -> None:
+    TextSaver().save("hello", str_path)
+    assert TextLoader().load(str_path) == "hello"
+
+
+def test_save_text_str_path_exist_ok_false_raises(str_path: str) -> None:
+    save_text("a", str_path)
+    with pytest.raises(FileExistsError, match="already exists"):
+        save_text("b", str_path)
+
+
+def test_save_text_str_path_exist_ok_true_overwrites(str_path: str) -> None:
+    save_text("a", str_path)
+    save_text("b", str_path, exist_ok=True)
+    assert load_text(str_path) == "b"
+
+
+def test_save_text_str_path_directory_raises(tmp_path: Path) -> None:
+    with pytest.raises(IsADirectoryError, match="is a directory"):
+        save_text("a", str(tmp_path))
+
+
+def test_save_text_incorrect_path_type_raises() -> None:
+    with pytest.raises(TypeError, match=r"expected str, bytes or os\.PathLike"):
+        save_text("a", 1)
+
+
+def test_load_text_incorrect_path_type_raises() -> None:
+    with pytest.raises(TypeError, match=r"expected str, bytes or os\.PathLike"):
+        load_text(1)

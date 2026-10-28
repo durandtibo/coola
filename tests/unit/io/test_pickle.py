@@ -218,3 +218,23 @@ def test_save_pickle_protocol_content(tmp_path: Path, protocol: int) -> None:
     data = {"key1": [1, 2, 3], "key2": "abc"}
     save_pickle(data, path, protocol=protocol)
     assert objects_are_equal(load_pickle(path), data)
+
+
+#############################################
+#     Tests for the str paths of pickle     #
+#############################################
+
+
+@pytest.fixture
+def str_path(tmp_path: Path) -> str:
+    return str(tmp_path.joinpath("out", "data.bin"))
+
+
+def test_save_pickle_str_path(str_path: str) -> None:
+    save_pickle({"a": 1}, str_path)
+    assert load_pickle(str_path) == {"a": 1}
+
+
+def test_pickle_loader_str_path(str_path: str) -> None:
+    PickleSaver().save([1, 2], str_path)
+    assert PickleLoader().load(str_path) == [1, 2]
