@@ -512,6 +512,8 @@ text_diff; `system`: git, env_vars, file_size, timing), which is a better public
 of the paths and of the tests, not a rename. Not recommended now; a later step can do it once the
 move is merged.
 
+Decision: follow recommendation
+
 **D1b. A `coola.formatting` sub-package?** _Recommended: yes, named `coola.formatting`._ The
 functions that format are in four modules of `utils` and the formatting is the base of `display`
 (`InlineDisplayMixin` builds its `repr` with `str_mapping` and `repr_indent`) and of the error
@@ -522,6 +524,8 @@ format`); `coola.text` (the byte and time functions are not text); fold it into 
 guide does not allow today). The sequence and mapping functions stay in one module (`structure`)
 because they share `str_indent`.
 
+Decision: yes
+
 **D2. Delete `password`, `recursion` and `working_directory`?** _Recommended: yes._ They are the only
 three items removed. `password` handles credentials (the risk of a bug is a security issue, the
 benefit to `coola` is nil), `working_directory` is `contextlib.chdir`, and `recursion` explains an
@@ -529,17 +533,23 @@ error that no function raises since the explicit stacks. Alternative: keep `pass
 it is tested (233 lines), and the risk is small if nobody calls it, but it is code that a
 comparison library gets asked about in a security review.
 
+Decision: Remove `working_directory`, keep others for now
+
 **D3. Move the default registries and the plugin loader to `coola.registry`?** _Recommended: yes._
 It is registry code (it copies registries, it loads entry points into them), and it is what
 `LazySingleton` should not know. The cost is a changed import in seven packages, which `lint-imports`
 checks. Alternative: split `singleton.py` in `singleton.py`, `default_registry.py` and `plugins.py`
 inside `utils`; cheaper, but `utils` would keep a concept it should not know (F3).
 
+Decision: follow recommendation
+
 **D3b. One `optional.py` or one module per library?** _Recommended: one module._ The 11 modules differ
 by a string; a single module makes the repetition visible and a parametrized test covers all of them.
 The cost is 21 patches in tests and the `add_backend.md` recipe. Alternative: keep one module per
 library with two functions each (about 35 lines): the same patch paths, the same recipe, 400 lines
 instead of 330 and 11 test files instead of one.
+
+Decision: follow recommendation
 
 **D4. Enforce the role of `utils` with a test?** _Recommended: yes, as an integration test._ A rule
 that rests on discipline is the rule that produced F1: 16 modules were added to `utils` with their
@@ -548,19 +558,27 @@ tests, each for a reason that was true on the day. The test is 30 lines and fail
 modules, not names, so nothing useful is deleted. Alternative: only the sentence in the guide and
 `CLAUDE.md`.
 
+Decision: not now
+
 **D5. Change the hash of a huge negative integer?** _Recommended: yes._ `0x-1000…` is not a
 representation of the number, and a hash is only stable inside a version of `coola`
 (`hashing` states that the hashes may change between major versions). Only a negative integer with
 more than 4,300 digits is affected. Alternative: keep the bug and document it; not recommended
 because the fix is the only way to keep `int_repr` equal to `hex(value)` for the negative case.
 
+Decision: follow recommendation
+
 **D6. Replace `import_object` by `pkgutil.resolve_name`?** _Recommended: yes._ Same format
 (`"pkg.mod:name"`), same errors, and no second function named like the one of `coola.factory`. The
 only difference is `"pkg.mod:"`, which returns the module instead of raising; nobody passes it.
 
+Decision: follow recommendation
+
 **D7. Make `_reset_after_fork` public?** _Recommended: no._ It is a hook for the fork handler, not
 part of the API of a registry or of `LazySingleton`. The protocol (`ForkAware`) says so. A callback
 passed to `track_fork(obj, callback)` would need a `WeakMethod` for the same effect, with more code.
+
+Decision: follow recommendation
 
 ## 10. Not covered
 
