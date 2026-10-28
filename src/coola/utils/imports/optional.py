@@ -80,8 +80,7 @@ def check_colorlog() -> None:
 
 @availability_cache
 def is_jax_available() -> bool:
-    r"""Indicate if the ``jax`` package is installed and can be
-    imported.
+    r"""Indicate if the ``jax`` package is installed and can be imported.
 
     Returns:
         ``True`` if ``jax`` is available otherwise ``False``.

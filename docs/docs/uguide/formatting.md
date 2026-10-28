@@ -8,13 +8,13 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 
 ## Overview
 
-| Module                       | Content                                                                       |
-| ---------------------------- | ----------------------------------------------------------------------------- |
-| `coola.formatting.structure` | `str_*` and `repr_*` of sequences and mappings, indentation                   |
-| `coola.formatting.quantity`  | Human-readable byte sizes and durations, `make_bar`                           |
+| Module                       | Content                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| `coola.formatting.structure` | `str_*` and `repr_*` of sequences and mappings, indentation                         |
+| `coola.formatting.quantity`  | Human-readable byte sizes and durations, `make_bar`                                 |
 | `coola.formatting.text`      | `count_lines`, `remove_empty_lines`, `slugify`, `truncate_str`, `char_diff_summary` |
-| `coola.formatting.secret`    | `mask_secret`                                                                 |
-| `coola.formatting.diff`      | `unified_diff`                                                                |
+| `coola.formatting.secret`    | `mask_secret`                                                                       |
+| `coola.formatting.diff`      | `unified_diff`                                                                      |
 
 ## Formatting Utilities (`coola.formatting`)
 
