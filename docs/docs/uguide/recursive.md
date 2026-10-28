@@ -190,25 +190,9 @@ The `coola.recursive` package provides several built-in transformers:
 - **`SetTransformer`**: For sets - recursive transformation without order
 - **`IdentityTransformer`**: For leaf values that must be kept as they are: the function is never
   applied
-- **`KeyFilterTransformer`**: For mappings: drops the entries whose key satisfies a predicate and
-  transforms the remaining values
 
-```pycon
->>> from coola.recursive import (
-...     DefaultTransformer,
-...     KeyFilterTransformer,
-...     TransformerRegistry,
-... )
->>> registry = TransformerRegistry(
-...     {
-...         object: DefaultTransformer(),
-...         dict: KeyFilterTransformer(key_predicate=lambda key: key == "secret"),
-...     }
-... )
->>> registry.transform({"keep": 1, "secret": 2, "nested": {"secret": 3, "x": 4}}, str)
-{'keep': '1', 'nested': {'x': '4'}}
-
-```
+To drop or rename the keys, see `remove_keys_if` and `add_prefix_suffix_to_keys` of
+[`coola.nested`](nested.md): `recursive` itself never transforms a key.
 
 ### Rebuilding Containers
 

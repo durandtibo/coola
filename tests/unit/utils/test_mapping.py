@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from coola.utils.mapping import sort_by_keys, sort_by_values
+import pytest
+
+from coola.utils.mapping import get_first_value, sort_by_keys, sort_by_values
 
 ##################################
 #     Tests for sort_by_keys     #
@@ -125,3 +127,19 @@ def test_sort_by_keys_does_not_change_the_input() -> None:
     data = {("a",): 2, (1,): 1}
     sort_by_keys(data)
     assert list(data) == [("a",), (1,)]
+
+
+#####################################
+#     Tests for get_first_value     #
+#####################################
+
+
+def test_get_first_value_empty() -> None:
+    with pytest.raises(
+        ValueError, match=r"First value cannot be returned because the mapping is empty"
+    ):
+        get_first_value({})
+
+
+def test_get_first_value() -> None:
+    assert get_first_value({"key1": 1, "key2": 2}) == 1
