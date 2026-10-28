@@ -1,5 +1,5 @@
-r"""Benchmarks for the functions of ``coola.nested`` that look inside
-the values.
+r"""Benchmarks for the functions of ``coola.nested`` that look inside the
+values.
 
 Run them explicitly with:
 

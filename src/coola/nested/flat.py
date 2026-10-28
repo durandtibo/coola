@@ -117,10 +117,11 @@ class _NodeTransformer(BaseTransformer[_Node]):
     r"""Transformer that turns a ``_Node`` into a ``dict``, or into a
     ``list`` when its keys are exactly ``"0"``, ..., ``"n-1"``.
 
-    A dict is converted to a list only if its keys are exactly "0", "1", ..., "n-1": a gap or
-    a different key means that it was not built from a list, and converting it would lose the
-    keys. The conversion is opt-in (``restore_lists``) because a dict built with such keys looks
-    the same as a list in the flat dict.
+    A dict is converted to a list only if its keys are exactly "0", "1",
+    ..., "n-1": a gap or a different key means that it was not built
+    from a list, and converting it would lose the keys. The conversion
+    is opt-in (``restore_lists``) because a dict built with such keys
+    looks the same as a list in the flat dict.
     """
 
     def __init__(self, *, restore_lists: bool) -> None:
