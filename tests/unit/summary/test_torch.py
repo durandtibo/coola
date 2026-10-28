@@ -1,22 +1,11 @@
 from __future__ import annotations
 
-from unittest.mock import Mock
-
-import pytest
-
 from coola.summary import SummaryConfig, TensorSummarizer
-from coola.testing.marks import torch_available
+from coola.testing.marks import torch_available, torch_cuda_available
 from coola.utils.imports import is_torch_available
 
 if is_torch_available():
     import torch
-
-    cuda_available = pytest.mark.skipif(
-        not torch.cuda.is_available(), reason="Requires a CUDA device"
-    )
-else:
-    torch = Mock()
-    cuda_available = pytest.mark.skipif(False, reason="Requires PyTorch and a CUDA device")
 
 CONFIG = SummaryConfig()
 SHOW_DATA = SummaryConfig(show_data=True)
@@ -122,7 +111,7 @@ def test_tensor_summarizer_summarize_meta_tensor() -> None:
 
 
 @torch_available
-@cuda_available
+@torch_cuda_available
 def test_tensor_summarizer_summarize_cuda_tensor() -> None:
     """Test summarizing a tensor on CUDA device."""
     tensor = torch.empty(5).cuda()
