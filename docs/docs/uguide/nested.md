@@ -70,7 +70,9 @@ dictionaries (rows):
 This is useful when you have columnar data and need to process it row-by-row, or when interfacing
 with APIs that expect row-oriented data.
 
-**Important:** All sequences in the dictionary should have the same length.
+**Important:** All sequences in the dictionary should have the same length. A value must be a `Sequence`: a `str`, a set
+(its elements have no position) or a generator raises a `TypeError` that names the type.
+`convert_to_dict_of_lists()` accepts any iterable of mappings, a generator included.
 
 ### Round-Trip Conversion
 
@@ -88,141 +90,14 @@ These conversion functions are inverse operations of each other:
 
 ```
 
-## Flat Dictionaries
-
-### Flattening Nested Dictionaries
-
-Use `to_flat_dict()` to convert nested dictionaries into a flat dictionary with dot-separated keys:
-
-```pycon
->>> from coola.nested import to_flat_dict
->>> nested = {
-...     "database": {
-...         "host": "localhost",
-...         "port": 5432,
-...         "credentials": {
-...             "username": "admin",
-...             "password": "secret",
-...         },
-...     },
-...     "debug": True,
-... }
->>> to_flat_dict(nested)
-{'database.host': 'localhost', 'database.port': 5432, 'database.credentials.username': 'admin', 'database.credentials.password': 'secret', 'debug': True}
-
-```
-
-This is particularly useful for:
-
-- Configuration management
-- Logging hierarchical data
-- Creating command-line arguments from nested configurations
-- Storing nested data in flat storage systems
-
-### Customizing the Separator
-
-You can change the separator used to join keys:
-
-```pycon
->>> from coola.nested import to_flat_dict
->>> nested = {"a": {"b": {"c": 1}}}
->>> to_flat_dict(nested, separator="/")
-{'a/b/c': 1}
-
-```
-
-### Handling Lists and Tuples
-
-The function also handles lists and tuples by using numeric indices:
-
-```pycon
->>> from coola.nested import to_flat_dict
->>> data = {
-...     "items": [10, 20, 30],
-...     "matrix": [[1, 2], [3, 4]],
-... }
->>> to_flat_dict(data)
-{'items.0': 10, 'items.1': 20, 'items.2': 30, 'matrix.0.0': 1, 'matrix.0.1': 2, 'matrix.1.0': 3, 'matrix.1.1': 4}
-
-```
-
-### Mixed Nested Structures
-
-The function works with any combination of dicts, lists, and tuples:
-
-```pycon
->>> from coola.nested import to_flat_dict
->>> complex_data = {
-...     "users": [
-...         {"name": "Alice", "scores": [95, 87]},
-...         {"name": "Bob", "scores": [78, 92]},
-...     ],
-... }
->>> to_flat_dict(complex_data)
-{'users.0.name': 'Alice', 'users.0.scores.0': 95, 'users.0.scores.1': 87, 'users.1.name': 'Bob', 'users.1.scores.0': 78, 'users.1.scores.1': 92}
-
-```
-
-`str`, `bytes` and `bytearray` values are leaves: they are never split into characters or bytes.
-
-`to_flat_dict()` enters the containers of `coola.iterator` (mappings, sequences, `deque`, named
-tuples, dataclasses). Text, bytes, iterators, `range` and the unknown types are leaves. The sets are
-leaves too, because a set has no index. A dataclass is entered field by field:
-
-```pycon
->>> from dataclasses import dataclass
->>> from coola.nested import to_flat_dict
->>> @dataclass
-... class Point:
-...     x: int
-...     y: int
->>> to_flat_dict({"p": Point(1, 2), "tags": {"a"}})
-{'p.x': 1, 'p.y': 2, 'tags': {'a'}}
-
-```
-
-### Restoring Lists
-
-`from_flat_dict()` keeps the integer segments as dictionary keys by default, so a list does not come
-back as a list. Use `restore_lists=True` to rebuild the lists. A dictionary whose keys are exactly
-`"0"`, `"1"`, ..., `"n-1"` is converted, and the tuples come back as lists:
-
-```pycon
->>> from coola.nested import from_flat_dict
->>> flat = {"items.0": 10, "items.1": 20, "matrix.0.0": 1, "matrix.1.0": 3}
->>> from_flat_dict(flat)
-{'items': {'0': 10, '1': 20}, 'matrix': {'0': {'0': 1}, '1': {'0': 3}}}
->>> from_flat_dict(flat, restore_lists=True)
-{'items': [10, 20], 'matrix': [[1], [3]]}
-
-```
-
-### Converting Types to Strings
-
-Use the `to_str` parameter to specify types that should be converted to strings instead of being
-flattened:
-
-```pycon
->>> from coola.nested import to_flat_dict
->>> data = {
-...     "items": [1, 2, 3],
-...     "config": {"values": [4, 5, 6]},
-... }
->>> to_flat_dict(data, to_str=(list,))
-{'items': '[1, 2, 3]', 'config.values': '[4, 5, 6]'}
-
-```
-
-This is useful when you want to preserve certain data types as strings in the flattened output.
-
 ## Mapping Utilities
 
 ### Getting the First Value
 
-Use `get_first_value()` to extract the first value from a mapping:
+Use `get_first_value()` of `coola.utils.mapping` to extract the first value from a mapping:
 
 ```pycon
->>> from coola.nested import get_first_value
+>>> from coola.utils.mapping import get_first_value
 >>> data = {"first": 10, "second": 20, "third": 30}
 >>> get_first_value(data)
 10
@@ -235,7 +110,7 @@ the mapping should have at least one value but don't know the key.
 **Note:** If the mapping is empty, this function raises a `ValueError`.
 
 ```pycon
->>> from coola.nested import get_first_value
+>>> from coola.utils.mapping import get_first_value
 >>> get_first_value({})
 Traceback (most recent call last):
     ...
@@ -341,18 +216,29 @@ coola.nested.mapping.DuplicateKeyError: Duplicate key found: 'a'
 
 Use `equal_nan=True` to consider two `NaN` values equal when the duplicate keys are compared.
 
+With `"suffix"`, a generated key never takes the name of a key of an input mapping, whatever the
+position of its mapping, so the result does not depend on the order of the mappings:
+
+```pycon
+>>> from coola.nested import merge_mappings
+>>> merge_mappings([{"a": 1}, {"a": 2}, {"a_1": 3}], on_duplicate="suffix")
+{'a': 1, 'a_2': 2, 'a_1': 3}
+
+```
+
 ### Flattening a Mapping of Mappings
 
 Use `flatten_mapping()` to flatten a mapping whose values are mappings (for example, the metrics of
 several splits) into a single dictionary. `on_duplicate` takes `"raise"` (default), `"first"`,
 `"last"` or `"prefix"`. With `"prefix"`, all the values are kept and the duplicated keys are renamed
-`<outer key><separator><inner key>`. Use `always_prefix=True` to rename every key:
+`<outer key><separator><inner key>`, in place: the output follows the order of the input. Use
+`always_prefix=True` to rename every key:
 
 ```pycon
 >>> from coola.nested import flatten_mapping
 >>> metrics = {"train": {"loss": 1, "acc": 2}, "val": {"loss": 3}}
 >>> flatten_mapping(metrics, on_duplicate="prefix")
-{'acc': 2, 'train.loss': 1, 'val.loss': 3}
+{'train.loss': 1, 'acc': 2, 'val.loss': 3}
 >>> flatten_mapping(metrics, always_prefix=True, separator="/")
 {'train/loss': 1, 'train/acc': 2, 'val/loss': 3}
 >>> flatten_mapping(metrics, on_duplicate="last")
@@ -362,11 +248,142 @@ several splits) into a single dictionary. `on_duplicate` takes `"raise"` (defaul
 
 With the default `on_duplicate="raise"`, a `DuplicateKeyError` is raised for the key `loss`.
 
+## Flat Dictionaries
+
+### Flattening Nested Dictionaries
+
+Use `to_flat_dict()` to convert nested dictionaries into a flat dictionary with dot-separated keys:
+
+```pycon
+>>> from coola.nested import to_flat_dict
+>>> nested = {
+...     "database": {
+...         "host": "localhost",
+...         "port": 5432,
+...         "credentials": {
+...             "username": "admin",
+...             "password": "secret",
+...         },
+...     },
+...     "debug": True,
+... }
+>>> to_flat_dict(nested)
+{'database.host': 'localhost', 'database.port': 5432, 'database.credentials.username': 'admin', 'database.credentials.password': 'secret', 'debug': True}
+
+```
+
+This is particularly useful for:
+
+- Configuration management
+- Logging hierarchical data
+- Creating command-line arguments from nested configurations
+- Storing nested data in flat storage systems
+
+### Customizing the Separator
+
+You can change the separator used to join keys:
+
+```pycon
+>>> from coola.nested import to_flat_dict
+>>> nested = {"a": {"b": {"c": 1}}}
+>>> to_flat_dict(nested, separator="/")
+{'a/b/c': 1}
+
+```
+
+### Handling Lists and Tuples
+
+The function also handles lists and tuples by using numeric indices:
+
+```pycon
+>>> from coola.nested import to_flat_dict
+>>> data = {
+...     "items": [10, 20, 30],
+...     "matrix": [[1, 2], [3, 4]],
+... }
+>>> to_flat_dict(data)
+{'items.0': 10, 'items.1': 20, 'items.2': 30, 'matrix.0.0': 1, 'matrix.0.1': 2, 'matrix.1.0': 3, 'matrix.1.1': 4}
+
+```
+
+### Mixed Nested Structures
+
+The function works with any combination of dicts, lists, and tuples:
+
+```pycon
+>>> from coola.nested import to_flat_dict
+>>> complex_data = {
+...     "users": [
+...         {"name": "Alice", "scores": [95, 87]},
+...         {"name": "Bob", "scores": [78, 92]},
+...     ],
+... }
+>>> to_flat_dict(complex_data)
+{'users.0.name': 'Alice', 'users.0.scores.0': 95, 'users.0.scores.1': 87, 'users.1.name': 'Bob', 'users.1.scores.0': 78, 'users.1.scores.1': 92}
+
+```
+
+`str`, `bytes` and `bytearray` values are leaves: they are never split into characters or bytes.
+
+`to_flat_dict()` enters the containers of `coola.iterator` (mappings, sequences, `deque`, named
+tuples, dataclasses). Text, bytes, iterators, `range` and the unknown types are leaves. The sets are
+leaves too, because a set has no index. A dataclass is entered field by field:
+
+```pycon
+>>> from dataclasses import dataclass
+>>> from coola.nested import to_flat_dict
+>>> @dataclass
+... class Point:
+...     x: int
+...     y: int
+>>> to_flat_dict({"p": Point(1, 2), "tags": {"a"}})
+{'p.x': 1, 'p.y': 2, 'tags': {'a'}}
+
+```
+
+### Restoring Lists
+
+`from_flat_dict()` keeps the integer segments as dictionary keys by default, so a list does not come
+back as a list. Use `restore_lists=True` to rebuild the lists. A dictionary built from the keys whose
+keys are exactly `"0"`, `"1"`, ..., `"n-1"` is converted, and the tuples come back as lists. A
+dictionary given as a value is a value of the caller: it is kept as it is. There is no limit on the
+depth:
+
+```pycon
+>>> from coola.nested import from_flat_dict
+>>> flat = {"items.0": 10, "items.1": 20, "matrix.0.0": 1, "matrix.1.0": 3}
+>>> from_flat_dict(flat)
+{'items': {'0': 10, '1': 20}, 'matrix': {'0': {'0': 1}, '1': {'0': 3}}}
+>>> from_flat_dict(flat, restore_lists=True)
+{'items': [10, 20], 'matrix': [[1], [3]]}
+
+```
+
+### Converting Types to Strings
+
+Use the `to_str` parameter to specify types that should be converted to strings instead of being
+flattened:
+
+```pycon
+>>> from coola.nested import to_flat_dict
+>>> data = {
+...     "items": [1, 2, 3],
+...     "config": {"values": [4, 5, 6]},
+... }
+>>> to_flat_dict(data, to_str=(list,))
+{'items': '[1, 2, 3]', 'config.values': '[4, 5, 6]'}
+
+```
+
+This is useful when you want to preserve certain data types as strings in the flattened output.
+
 ## JSON Conversion
 
 Use `convert_to_jsonable()` to recursively convert a nested structure to JSON-compatible data.
 Dataclasses and pydantic models found at any depth are converted to dictionaries, and sets are
-converted to sorted lists:
+converted to sorted lists (the order does not depend on the iteration order of the set, so it is the
+same in every process). A dataclass is converted by the engine, field by field, like any other
+container, and a tuple stays a tuple:
 
 ```pycon
 >>> from dataclasses import dataclass
@@ -377,16 +394,6 @@ converted to sorted lists:
 ...     y: int
 >>> convert_to_jsonable([Point(x=1, y=2), {"key": Point(x=3, y=4)}, {3, 1, 2}])
 [{'x': 1, 'y': 2}, {'key': {'x': 3, 'y': 4}}, [1, 2, 3]]
-
-```
-
-`try_sorted_list()` converts an iterable (e.g. a set) to a list. The list is sorted when the values
-are comparable, so the output is deterministic, otherwise it keeps the iteration order:
-
-```pycon
->>> from coola.nested import try_sorted_list
->>> try_sorted_list({3, 1, 2})
-[1, 2, 3]
 
 ```
 

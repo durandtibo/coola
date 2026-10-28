@@ -5,7 +5,7 @@ import pkgutil
 import pytest
 
 import coola
-from coola.testing.marks import numpy_available, torch_available
+from coola.testing.marks import numpy_available, polars_available, torch_available
 from tests.integration.helpers import run_python
 
 OPTIONAL_LIBRARIES = ("jax", "numpy", "pandas", "polars", "pyarrow", "pydantic", "torch", "xarray")
@@ -138,4 +138,18 @@ def test_importing_coola_does_not_import_importlib_metadata() -> None:
 def test_using_the_version_imports_importlib_metadata() -> None:
     """Test that ``__version__`` is read from the metadata."""
     code = "import sys, coola; coola.__version__; print('importlib.metadata' in sys.modules)"
+    assert run_python(code) == ["True"]
+
+
+@polars_available
+def test_importing_flatten_frame_imports_polars() -> None:
+    """Test that ``flatten_frame`` loads polars the first time it is
+    used, not when ``coola.nested`` is imported."""
+    assert loaded_libraries("from coola.nested import flatten_frame") == ["polars"]
+
+
+def test_flatten_frame_is_in_the_dir_of_nested() -> None:
+    """Test that ``dir`` lists ``flatten_frame`` before it is
+    imported."""
+    code = "import coola.nested; print('flatten_frame' in dir(coola.nested))"
     assert run_python(code) == ["True"]

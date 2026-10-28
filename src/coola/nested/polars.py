@@ -2,17 +2,13 @@ r"""Contain functions for polars DataFrame."""
 
 from __future__ import annotations
 
-__all__ = [
-    "expand_list_columns",
-    "flatten_frame",
-    "is_nested_struct",
-    "unnest_one_level",
-    "unnest_with_separator",
-]
+__all__ = ["flatten_frame"]
 
+import operator
 from typing import TYPE_CHECKING, cast
 
 from coola.utils.imports import is_polars_available
+from coola.utils.version import compare_version
 from coola.validation import validate_non_negative
 
 if TYPE_CHECKING or is_polars_available():
@@ -21,7 +17,12 @@ else:  # pragma: no cover
     from coola.utils.fallback.polars import polars as pl
 
 
-def is_nested_struct(dtype: pl.DataType) -> bool:
+# The first versions of polars that have the options used below.
+_UNNEST_SEPARATOR_VERSION = "1.35.0"  # ``DataFrame.unnest(separator=...)``
+_EXPLODE_EMPTY_AS_NULL_VERSION = "1.36.0"  # ``DataFrame.explode(empty_as_null=...)``
+
+
+def _is_nested_struct(dtype: pl.DataType) -> bool:
     r"""Return ``True`` if ``dtype`` is a ``List`` or ``Array`` whose
     inner type is a ``Struct``.
 
@@ -35,10 +36,10 @@ def is_nested_struct(dtype: pl.DataType) -> bool:
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.nested.polars import is_nested_struct
-        >>> is_nested_struct(pl.List(pl.Struct({"x": pl.Int64})))
+        >>> from coola.nested.polars import _is_nested_struct
+        >>> _is_nested_struct(pl.List(pl.Struct({"x": pl.Int64})))
         True
-        >>> is_nested_struct(pl.List(pl.Int64))
+        >>> _is_nested_struct(pl.List(pl.Int64))
         False
 
         ```
@@ -48,11 +49,11 @@ def is_nested_struct(dtype: pl.DataType) -> bool:
     return False
 
 
-def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: str) -> pl.DataFrame:
+def _unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: str) -> pl.DataFrame:
     r"""Unnest struct columns with a separator prefix, compatible with
     polars>=1.0.0.
 
-    On polars>=1.35.0, delegates to the native ``unnest(separator=...)`` parameter.
+    On polars>=1.35.0 (the version that added the parameter), delegates to the native ``unnest(separator=...)`` parameter.
     On older versions, unnests without a separator and renames the resulting columns
     to ``<parent><separator><field>`` manually.
 
@@ -66,18 +67,17 @@ def unnest_with_separator(frame: pl.DataFrame, columns: list[str], separator: st
         A DataFrame with the given struct columns unnested and output columns
         named ``<parent><separator><field>``.
     """
-    try:
+    if compare_version("polars", operator.ge, _UNNEST_SEPARATOR_VERSION):
         return frame.unnest(columns, separator=separator)
-    except TypeError:
-        rename_map = {
-            field.name: f"{col}{separator}{field.name}"
-            for col in columns
-            for field in cast("pl.Struct", frame.schema[col]).fields
-        }
-        return frame.unnest(columns).rename(rename_map)
+    rename_map = {
+        field.name: f"{col}{separator}{field.name}"
+        for col in columns
+        for field in cast("pl.Struct", frame.schema[col]).fields
+    }
+    return frame.unnest(columns).rename(rename_map)
 
 
-def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
+def _expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     r"""Expand list and array columns into one column per index position.
 
     For each ``List`` or ``Array`` column, creates new columns named
@@ -131,7 +131,7 @@ def expand_list_columns(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     )
 
 
-def unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
+def _unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     r"""Unnest all top-level struct columns in a DataFrame by one level.
 
     Columns that are lists or arrays of structs are exploded first to expose
@@ -147,7 +147,7 @@ def unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
         by one level. Non-struct columns are passed through unchanged. If no
         struct columns are present the frame is returned as-is.
     """
-    nested_struct_cols = [name for name, dtype in frame.schema.items() if is_nested_struct(dtype)]
+    nested_struct_cols = [name for name, dtype in frame.schema.items() if _is_nested_struct(dtype)]
     if nested_struct_cols:
         try:
             frame = _explode(frame, nested_struct_cols)
@@ -161,7 +161,7 @@ def unnest_one_level(frame: pl.DataFrame, separator: str) -> pl.DataFrame:
     if not struct_cols:
         return frame
 
-    return unnest_with_separator(frame, struct_cols, separator)
+    return _unnest_with_separator(frame, struct_cols, separator)
 
 
 def _explode(frame: pl.DataFrame, columns: list[str]) -> pl.DataFrame:
@@ -174,11 +174,10 @@ def _explode(frame: pl.DataFrame, columns: list[str]) -> pl.DataFrame:
     Returns:
         The exploded DataFrame.
     """
-    try:
+    if compare_version("polars", operator.ge, _EXPLODE_EMPTY_AS_NULL_VERSION):
         return frame.explode(columns, empty_as_null=True)
-    except TypeError:
-        # empty_as_null is not available in older polars versions
-        return frame.explode(columns)
+    # empty_as_null is not available in older polars versions
+    return frame.explode(columns)
 
 
 def flatten_frame(
@@ -219,12 +218,16 @@ def flatten_frame(
         positional columns.
 
     Raises:
+        TypeError: If ``frame`` is not a ``polars.DataFrame``, for
+            example a ``LazyFrame`` (call ``collect()`` first: a lazy
+            frame has no cheap schema, and the number of rows of an
+            exploded list is only known after the evaluation).
         ValueError: If ``depth`` is negative.
 
     Example:
         ```pycon
         >>> import polars as pl
-        >>> from coola.nested.polars import flatten_frame
+        >>> from coola.nested import flatten_frame
         >>> frame = pl.DataFrame(
         ...     {
         ...         "id": [1, 2],
@@ -268,19 +271,25 @@ def flatten_frame(
 
         ```
     """
+    if not isinstance(frame, pl.DataFrame):
+        msg = (
+            f"frame must be a polars DataFrame, got {type(frame).__qualname__}. "
+            "Call collect() on a LazyFrame first."
+        )
+        raise TypeError(msg)
     if depth is not None:
         validate_non_negative(depth, name="depth")
 
     current_depth = 0
     while depth is None or current_depth < depth:
         has_structs = any(isinstance(dtype, pl.Struct) for dtype in frame.schema.values())
-        has_nested_structs = any(is_nested_struct(dtype) for dtype in frame.schema.values())
+        has_nested_structs = any(_is_nested_struct(dtype) for dtype in frame.schema.values())
         if not has_structs and not has_nested_structs:
             break
-        frame = unnest_one_level(frame, separator)
+        frame = _unnest_one_level(frame, separator)
         current_depth += 1
 
     if expand_lists:
-        frame = expand_list_columns(frame, separator)
+        frame = _expand_list_columns(frame, separator)
 
     return frame
