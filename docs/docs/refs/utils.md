@@ -1,5 +1,4 @@
 ::: coola.utils
-::: coola.utils.conversion
 ::: coola.utils.fallback
 ::: coola.utils.fork
 ::: coola.utils.imports

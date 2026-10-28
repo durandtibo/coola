@@ -21,7 +21,7 @@ variables, ...) are in [`coola.tools`](tools.md).
 
 The modules used by the other `coola` packages are the **core helpers**: `imports`, `fallback`,
 `fork`, `integer`, `introspection`, `mapping`, `path`, `safe`, `selection`, `singleton`,
-`stats`, `conversion` and `version`.
+`stats` and `version`.
 
 ## Import Utilities (`coola.utils.imports`)
 

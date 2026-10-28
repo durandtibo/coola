@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import base64
+import datetime
 import json
 import threading
 from collections import deque
 from dataclasses import dataclass
+from decimal import Decimal
 from enum import Enum
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
+from uuid import UUID
 
 import pytest
 
@@ -14,7 +18,12 @@ from coola.nested import (
     convert_to_jsonable,
     convert_to_list_of_dicts,
 )
-from coola.nested.conversion import _SetToListTransformer, _sorted_elements
+from coola.nested.conversion import (
+    _is_instance_of_loaded,
+    _SetToListTransformer,
+    _sorted_elements,
+    to_jsonable,
+)
 from coola.recursive import recursive_apply
 from coola.testing.marks import numpy_available, pydantic_available, torch_available
 from coola.utils.imports import (
@@ -514,3 +523,170 @@ def test_sorted_elements_lists_of_different_types() -> None:
 
 def test_convert_to_jsonable_set_of_mixed_types() -> None:
     assert convert_to_jsonable({"a", 1, 2}) == [1, 2, "a"]
+
+
+#################################
+#     Tests for to_jsonable     #
+#################################
+
+
+def test_to_json_dataclass_is_returned_unchanged() -> None:
+    """A dataclass is not converted: use ``convert_to_jsonable``."""
+    data = Point(x=1, y=2)
+    assert to_jsonable(data) is data
+
+
+def test_to_json_int() -> None:
+    assert to_jsonable(1) == 1
+
+
+def test_to_json_str() -> None:
+    assert to_jsonable("abc") == "abc"
+
+
+def test_to_json_none() -> None:
+    assert to_jsonable(None) is None
+
+
+def test_to_json_list_not_converted() -> None:
+    """A list is not a dataclass or BaseModel, so it is returned
+    unchanged, even if it contains objects that would be converted."""
+    data = [Point(x=1, y=2)]
+    assert to_jsonable(data) is data
+
+
+def test_to_json_dict_not_converted() -> None:
+    """A dict is not a dataclass or BaseModel, so it is returned
+    unchanged, even if it contains objects that would be converted."""
+    data = {"point": Point(x=1, y=2)}
+    assert to_jsonable(data) is data
+
+
+@pydantic_available
+def test_to_json_pydantic_model() -> None:
+    assert to_jsonable(MyModel(name="alice", age=30)) == {"name": "alice", "age": 30}
+
+
+@numpy_available
+def test_to_json_numpy_array() -> None:
+    assert to_jsonable(np.array([1, 2, 3])) == [1, 2, 3]
+
+
+@numpy_available
+def test_to_json_numpy_array_2d() -> None:
+    assert to_jsonable(np.array([[1, 2], [3, 4]])) == [[1, 2], [3, 4]]
+
+
+@torch_available
+def test_to_json_torch_tensor() -> None:
+    assert to_jsonable(torch.tensor([1, 2, 3])) == [1, 2, 3]
+
+
+@torch_available
+def test_to_json_torch_tensor_2d() -> None:
+    assert to_jsonable(torch.tensor([[1, 2], [3, 4]])) == [[1, 2], [3, 4]]
+
+
+def test_to_json_path() -> None:
+    assert to_jsonable(Path("a/b.txt")) == str(Path("a/b.txt"))
+
+
+def test_to_json_date() -> None:
+    assert to_jsonable(datetime.date(2024, 1, 2)) == "2024-01-02"
+
+
+def test_to_json_datetime() -> None:
+    assert (
+        to_jsonable(datetime.datetime(2024, 1, 2, 3, 4, 5, tzinfo=datetime.UTC))
+        == "2024-01-02T03:04:05+00:00"
+    )
+
+
+class Name(Enum):
+    A = "a"
+
+
+def test_to_json_enum_with_int_value() -> None:
+    assert to_jsonable(Color.RED) == 1
+
+
+def test_to_json_enum_with_str_value() -> None:
+    assert to_jsonable(Name.A) == "a"
+
+
+@numpy_available
+def test_to_json_numpy_scalar() -> None:
+    assert to_jsonable(np.float32(1.5)) == 1.5
+
+
+@numpy_available
+def test_to_json_numpy_float_scalar_type() -> None:
+    assert type(to_jsonable(np.float32(1.5))) is float
+
+
+@numpy_available
+def test_to_json_numpy_int_scalar_type() -> None:
+    assert type(to_jsonable(np.int64(3))) is int
+
+
+@numpy_available
+def test_to_json_numpy_bool_scalar_type() -> None:
+    assert type(to_jsonable(np.bool_(True))) is bool
+
+
+def test_to_jsonable_bytes() -> None:
+    assert to_jsonable(b"xy") == "eHk="
+
+
+def test_to_jsonable_bytearray() -> None:
+    assert to_jsonable(bytearray(b"xy")) == "eHk="
+
+
+def test_to_jsonable_empty_bytes() -> None:
+    assert to_jsonable(b"") == ""
+
+
+def test_to_jsonable_bytes_round_trip() -> None:
+    data = bytes(range(256))
+    assert base64.b64decode(to_jsonable(data)) == data
+
+
+def test_to_jsonable_decimal() -> None:
+    assert to_jsonable(Decimal("1.10")) == "1.10"
+
+
+def test_to_jsonable_uuid() -> None:
+    assert to_jsonable(UUID(int=1)) == "00000000-0000-0000-0000-000000000001"
+
+
+def test_to_jsonable_new_types_are_json_serializable() -> None:
+    assert json.dumps([to_jsonable(x) for x in (b"a", Decimal(1), UUID(int=2))])
+
+
+def test_to_jsonable_range() -> None:
+    assert to_jsonable(range(3)) == [0, 1, 2]
+
+
+def test_to_jsonable_time() -> None:
+    assert to_jsonable(datetime.time(1, 2, 3)) == "01:02:03"
+
+
+def test_to_jsonable_timedelta() -> None:
+    assert to_jsonable(datetime.timedelta(minutes=1, milliseconds=500)) == 60.5
+
+
+##########################################
+#     Tests for _is_instance_of_loaded   #
+##########################################
+
+
+def test_is_instance_of_loaded_true() -> None:
+    assert _is_instance_of_loaded(1, "builtins", "str", "int")
+
+
+def test_is_instance_of_loaded_false() -> None:
+    assert not _is_instance_of_loaded("a", "builtins", "int")
+
+
+def test_is_instance_of_loaded_library_not_loaded() -> None:
+    assert not _is_instance_of_loaded(1, "coola_missing_library", "int")
