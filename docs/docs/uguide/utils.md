@@ -24,23 +24,22 @@ The modules used by the other `coola` packages are the **core helpers**: `import
 need (`array`, `tensor`, `batching`, `bloom_filter`, `date`, `deprecation`, `env_vars`, `file_size`,
 `git`, `logging`, `lru`, `password`, `recursion`, `timing`); they are public and tested like the rest:
 
-| Module | Content |
-| --- | --- |
-| `coola.utils.array` | Convert an object to a NumPy array |
-| `coola.utils.tensor` | Convert an object to a PyTorch tensor, device checks |
-| `coola.utils.batching` | Split an iterable in batches |
-| `coola.utils.bloom_filter` | `BloomFilter`, an approximate set for duplicate detection |
-| `coola.utils.date` | Today's date and conversion of dates |
-| `coola.utils.deprecation` | Deprecate the positional use of options |
-| `coola.utils.env_vars` | Read, check and temporarily set environment variables |
-| `coola.utils.file_size` | The size of a file or of a directory |
-| `coola.utils.git` | The branch and the commit of a git repository |
-| `coola.utils.logging` | `CaptureHandler`, a logging handler that keeps the records |
-| `coola.utils.lru` | `LRUCache`, a least-recently-used cache |
-| `coola.utils.password` | Read a password from the terminal |
-| `coola.utils.recursion` | Explain a `RecursionError` |
-| `coola.utils.timing` | The `timeblock` context manager |
-
+| Module                     | Content                                                    |
+| -------------------------- | ---------------------------------------------------------- |
+| `coola.utils.array`        | Convert an object to a NumPy array                         |
+| `coola.utils.tensor`       | Convert an object to a PyTorch tensor, device checks       |
+| `coola.utils.batching`     | Split an iterable in batches                               |
+| `coola.utils.bloom_filter` | `BloomFilter`, an approximate set for duplicate detection  |
+| `coola.utils.date`         | Today's date and conversion of dates                       |
+| `coola.utils.deprecation`  | Deprecate the positional use of options                    |
+| `coola.utils.env_vars`     | Read, check and temporarily set environment variables      |
+| `coola.utils.file_size`    | The size of a file or of a directory                       |
+| `coola.utils.git`          | The branch and the commit of a git repository              |
+| `coola.utils.logging`      | `CaptureHandler`, a logging handler that keeps the records |
+| `coola.utils.lru`          | `LRUCache`, a least-recently-used cache                    |
+| `coola.utils.password`     | Read a password from the terminal                          |
+| `coola.utils.recursion`    | Explain a `RecursionError`                                 |
+| `coola.utils.timing`       | The `timeblock` context manager                            |
 
 ## Import Utilities (`coola.utils.imports`)
 
@@ -393,7 +392,6 @@ Provide fallback behavior when optional packages are not available:
 ...     mean = sum(data) / len(data)
 ...     variance = sum((x - mean) ** 2 for x in data) / len(data)
 ...     return {"mean": mean, "std": variance**0.5}
-...
 
 ```
 
@@ -403,17 +401,17 @@ Provide fallback behavior when optional packages are not available:
 of the package layering. The functions that turn values into text are in
 [`coola.formatting`](formatting.md).
 
-| Property                        | Statement                                                                                                                                                                                      |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Leaf layer                      | `coola.utils` imports the standard library and `coola.validation` only. `coola.validation` does not import `coola.utils`. Both rules are checked by `lint-imports`.                            |
-| Public, documented, tested      | A name used by another module has no leading underscore. Each public function has a Google docstring with a `pycon` example, a test module per source module, and a line in `refs/utils.md`. |
-| One name per concept            | One concept has one function and one message: `get_qualified_class_name` is the one qualified name, and every missing package gives the same error message.                                     |
-| Optional packages stay optional | `is_<pkg>_available()` is the single definition of "available" (the package can be imported). It is cached, and `clear_availability_caches()` resets it. `check_<pkg>()` raises `MissingPackageError`. |
-| Import-light                    | Importing a module of `coola.utils` imports no optional library and does no work, except `os.register_at_fork` in `fork`.                                                                      |
-| Strict contracts                | An argument is checked by `coola.validation`, and options are keyword-only. A helper does not hide an error (`safe_str` and `safe_repr` report the error as a value, it is their job).          |
+| Property                         | Statement                                                                                                                                                                                                            |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Leaf layer                       | `coola.utils` imports the standard library and `coola.validation` only. `coola.validation` does not import `coola.utils`. Both rules are checked by `lint-imports`.                                                  |
+| Public, documented, tested       | A name used by another module has no leading underscore. Each public function has a Google docstring with a `pycon` example, a test module per source module, and a line in `refs/utils.md`.                         |
+| One name per concept             | One concept has one function and one message: `get_qualified_class_name` is the one qualified name, and every missing package gives the same error message.                                                          |
+| Optional packages stay optional  | `is_<pkg>_available()` is the single definition of "available" (the package can be imported). It is cached, and `clear_availability_caches()` resets it. `check_<pkg>()` raises `MissingPackageError`.               |
+| Import-light                     | Importing a module of `coola.utils` imports no optional library and does no work, except `os.register_at_fork` in `fork`.                                                                                            |
+| Strict contracts                 | An argument is checked by `coola.validation`, and options are keyword-only. A helper does not hide an error (`safe_str` and `safe_repr` report the error as a value, it is their job).                               |
 | Stateless, with named exceptions | The exceptions are the availability caches, the registry of the objects that reset after a fork (`track_fork`) and the `LazySingleton` instances. No helper changes `os.environ`, the working directory or a logger. |
-| Thread-safe, fork-safe          | A `LazySingleton` builds its value once under a lock, detects a request from its own factory, and rebuilds its lock in a forked child.                                                         |
-| Explicit modules                | There is no re-export at `coola.utils`: import a name from the module that defines it (`coola.utils.mapping`). `coola.utils.imports` re-exports its public names.                              |
+| Thread-safe, fork-safe           | A `LazySingleton` builds its value once under a lock, detects a request from its own factory, and rebuilds its lock in a forked child.                                                                               |
+| Explicit modules                 | There is no re-export at `coola.utils`: import a name from the module that defines it (`coola.utils.mapping`). `coola.utils.imports` re-exports its public names.                                                    |
 
 ### Not Guaranteed
 
