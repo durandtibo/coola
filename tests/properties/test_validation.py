@@ -1,5 +1,4 @@
-r"""Property-based tests for the type validators of
-``coola.validation``."""
+r"""Property-based tests for the validators of ``coola.validation``."""
 
 from __future__ import annotations
 
@@ -9,7 +8,16 @@ from typing import Any
 import pytest
 from hypothesis import assume, given, strategies as st
 
-from coola.validation import validate_int, validate_isinstance
+from coola.validation import (
+    validate_finite,
+    validate_ge,
+    validate_gt,
+    validate_int,
+    validate_isinstance,
+    validate_le,
+    validate_lt,
+    validate_range,
+)
 
 VALIDATORS: dict[type, Any] = {
     bool: partial(validate_isinstance, cls=bool),
@@ -104,3 +112,111 @@ def test_container_validators_do_not_convert_between_types(
     convert: type, validator: Any, items: list[int]
 ) -> None:
     assert _raises(validator, convert(items))
+
+
+################################################
+#     Tests for the value validators     #
+################################################
+
+finite_floats = st.floats(allow_nan=False, allow_infinity=False)
+
+
+@given(x=finite_floats, y=finite_floats)
+def test_validate_ge_raises_exactly_when_lower(x: float, y: float) -> None:
+    assert _raises_value(validate_ge, x, y) == (x < y)
+
+
+@given(x=finite_floats, y=finite_floats)
+def test_validate_gt_raises_exactly_when_lower_or_equal(x: float, y: float) -> None:
+    assert _raises_value(validate_gt, x, y) == (x <= y)
+
+
+@given(x=finite_floats, y=finite_floats)
+def test_validate_le_raises_exactly_when_greater(x: float, y: float) -> None:
+    assert _raises_value(validate_le, x, y) == (x > y)
+
+
+@given(x=finite_floats, y=finite_floats)
+def test_validate_lt_raises_exactly_when_greater_or_equal(x: float, y: float) -> None:
+    assert _raises_value(validate_lt, x, y) == (x >= y)
+
+
+@given(
+    x=finite_floats,
+    bounds=st.tuples(finite_floats, finite_floats).map(sorted),
+    low_inclusive=st.booleans(),
+    high_inclusive=st.booleans(),
+)
+def test_validate_range_is_the_conjunction_of_two_bound_checks(
+    x: float, bounds: list[float], low_inclusive: bool, high_inclusive: bool
+) -> None:
+    low, high = bounds
+    assume(low < high)
+    lower = validate_ge if low_inclusive else validate_gt
+    upper = validate_le if high_inclusive else validate_lt
+    expected = _raises_value(lower, x, low) or _raises_value(upper, x, high)
+    assert (
+        _raises_value(
+            validate_range,
+            x,
+            low,
+            high,
+            low_inclusive=low_inclusive,
+            high_inclusive=high_inclusive,
+        )
+        == expected
+    )
+
+
+@given(x=finite_floats, bounds=st.tuples(finite_floats, finite_floats).map(sorted))
+def test_validate_range_closed_matches_the_interval(x: float, bounds: list[float]) -> None:
+    low, high = bounds
+    assert _raises_value(validate_range, x, low, high) == (not low <= x <= high)
+
+
+@given(
+    x=finite_floats,
+    bounds=st.tuples(finite_floats, finite_floats).map(sorted),
+)
+def test_validate_range_open_matches_the_interval(x: float, bounds: list[float]) -> None:
+    low, high = bounds
+    assume(low < high)
+    raises = _raises_value(validate_range, x, low, high, low_inclusive=False, high_inclusive=False)
+    assert raises == (not low < x < high)
+
+
+@given(x=finite_floats, bounds=st.tuples(finite_floats, finite_floats).map(sorted))
+def test_validate_range_half_open_matches_the_interval(x: float, bounds: list[float]) -> None:
+    low, high = bounds
+    assume(low < high)
+    assert _raises_value(validate_range, x, low, high, high_inclusive=False) == (
+        not low <= x < high
+    )
+
+
+@given(x=finite_floats)
+def test_validate_finite_accepts_every_finite_float(x: float) -> None:
+    validate_finite(x)
+
+
+@pytest.mark.parametrize("value", [float("inf"), float("-inf"), float("nan")])
+def test_validate_finite_rejects_non_finite_floats(value: float) -> None:
+    assert _raises_value(validate_finite, value)
+
+
+@given(y=finite_floats)
+def test_validate_ge_rejects_nan(y: float) -> None:
+    assert _raises_value(validate_ge, float("nan"), y)
+
+
+@given(y=finite_floats)
+def test_validate_le_rejects_nan(y: float) -> None:
+    assert _raises_value(validate_le, float("nan"), y)
+
+
+def _raises_value(validator: Any, *args: Any, **kwargs: Any) -> bool:
+    try:
+        validator(*args, **kwargs)
+    except ValueError:
+        return True
+    return False

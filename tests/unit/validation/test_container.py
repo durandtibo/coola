@@ -86,3 +86,23 @@ def test_validate_in_long_container_message_listing() -> None:
 def test_validate_in_not_a_container_raises_type_error() -> None:
     with pytest.raises(TypeError, match="not a container or iterable"):
         validate_in(1, 5)
+
+
+def test_validate_not_empty_does_not_modify_the_list() -> None:
+    value = [1, 2]
+    validate_not_empty(value)
+    assert value == [1, 2]
+
+
+def test_validate_not_empty_does_not_modify_the_dict_on_failure() -> None:
+    value: dict[str, int] = {}
+    with pytest.raises(ValueError, match="must not be empty"):
+        validate_not_empty(value)
+    assert value == {}
+
+
+def test_validate_in_does_not_modify_the_valid_values() -> None:
+    valid = ["a", "b"]
+    with pytest.raises(ValueError, match="must be one of"):
+        validate_in("c", valid)
+    assert valid == ["a", "b"]

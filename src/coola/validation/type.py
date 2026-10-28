@@ -128,5 +128,8 @@ def validate_number(value: Any, *, name: str = "value") -> None:
 
         ```
     """
+    # The exact ``int`` and ``float`` are the common cases: the ``numbers.Real`` ABC check is slow.
+    if type(value) is int or type(value) is float:
+        return
     if not isinstance(value, numbers.Real) or isinstance(value, bool):
         _type_error(value, "a real number", name)

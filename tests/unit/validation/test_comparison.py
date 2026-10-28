@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from fractions import Fraction
 from typing import Any
 
 import pytest
@@ -16,6 +17,12 @@ from coola.validation import (
     validate_lt,
     validate_range,
 )
+from coola.validation.comparison import _compare
+
+
+class _Float(float):
+    pass
+
 
 if is_numpy_available():
     import numpy as np
@@ -284,3 +291,28 @@ def test_validate_finite_array_raises_a_named_type_error() -> None:
 def test_validate_finite_message_shows_the_value_with_repr() -> None:
     with pytest.raises(ValueError, match=r"^lr must be finite, got inf$"):
         validate_finite(float("inf"), name="lr")
+
+
+@pytest.mark.parametrize("validate", [validate_gt, validate_le, validate_lt])
+def test_validate_bound_incomparable_value_raises_type_error(validate: Any) -> None:
+    with pytest.raises(TypeError, match="value cannot be compared with 0, got None"):
+        validate(None, 0)
+
+
+def test_validate_range_incomparable_value_keeps_the_cause() -> None:
+    with pytest.raises(TypeError) as exc_info:
+        validate_range(None, 0, 1)
+    assert isinstance(exc_info.value.__cause__, TypeError)
+
+
+def test_validate_finite_accepts_a_fraction() -> None:
+    validate_finite(Fraction(1, 2))
+
+
+def test_validate_finite_rejects_a_non_finite_float_subclass() -> None:
+    with pytest.raises(ValueError, match="value must be finite, got nan"):
+        validate_finite(_Float("nan"))
+
+
+def test_compare_returns_none_when_the_test_passes() -> None:
+    assert _compare(bool, 1, "0", "value", "positive") is None
