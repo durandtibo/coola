@@ -31,9 +31,9 @@ In this page, `<pkg>` is the name of the library, e.g. `pandas`.
 "<pkg>": _Dependency(is_<pkg>_available, "<pkg>"),
 ```
 
-   Do not call `requires(is_<pkg>_available(), "<pkg>")` at module level: it runs the check, and
-   so imports the library, as soon as `coola.testing.marks` is imported. The table stores the
-   function, and the marks are built on first use.
+Do not call `requires(is_<pkg>_available(), "<pkg>")` at module level: it runs the check, and
+so imports the library, as soon as `coola.testing.marks` is imported. The table stores the
+function, and the marks are built on first use.
 
 ## 2. Equality
 
@@ -106,7 +106,7 @@ TorchTensorEqualityTester` works as before, but the module is imported when the 
 
 | Step              | Files                                                                                                                                                           |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dependency        | `pyproject.toml`, `utils/imports/<pkg>.py`, `utils/imports/__init__.py`, `utils/fallback/<pkg>.py`, `testing/marks.py`                                       |
+| Dependency        | `pyproject.toml`, `utils/imports/<pkg>.py`, `utils/imports/__init__.py`, `utils/fallback/<pkg>.py`, `testing/marks.py`                                          |
 | Equality          | `equality/_helpers/<pkg>.py` (the kernel, if the library has arrays), `equality/tester/<pkg>.py`, `equality/tester/__init__.py`, `equality/tester/interface.py` |
 | Summary           | `summary/<pkg>.py`, `summary/__init__.py`, `summary/interface.py`                                                                                               |
 | Others (optional) | `random/<pkg>.py`, `random/interface.py`, `reducer/<pkg>.py`                                                                                                    |

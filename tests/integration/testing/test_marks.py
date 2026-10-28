@@ -97,17 +97,16 @@ def test_value(value): ...
 
 def test_real_mark_is_importable_in_a_generated_module(pytester: pytest.Pytester) -> None:
     pytester.makepyfile(
+        """From coola.testing.marks import numpy_available,
+        numpy_not_available.
+
+        @numpy_available
+        def test_with_numpy(): ...
+
+
+        @numpy_not_available
+        def test_without_numpy(): ...
         """
-from coola.testing.marks import numpy_available, numpy_not_available
-
-
-@numpy_available
-def test_with_numpy(): ...
-
-
-@numpy_not_available
-def test_without_numpy(): ...
-"""
     )
     pytester.runpytest().assert_outcomes(passed=1, skipped=1)
 
