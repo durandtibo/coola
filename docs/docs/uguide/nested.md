@@ -165,6 +165,22 @@ The function works with any combination of dicts, lists, and tuples:
 
 `str`, `bytes` and `bytearray` values are leaves: they are never split into characters or bytes.
 
+`to_flat_dict()` enters the containers of `coola.iterator` (mappings, sequences, `deque`, named
+tuples, dataclasses). Text, bytes, iterators, `range` and the unknown types are leaves. The sets are
+leaves too, because a set has no index. A dataclass is entered field by field:
+
+```pycon
+>>> from dataclasses import dataclass
+>>> from coola.nested import to_flat_dict
+>>> @dataclass
+... class Point:
+...     x: int
+...     y: int
+>>> to_flat_dict({"p": Point(1, 2), "tags": {"a"}})
+{'p.x': 1, 'p.y': 2, 'tags': {'a'}}
+
+```
+
 ### Restoring Lists
 
 `from_flat_dict()` keeps the integer segments as dictionary keys by default, so a list does not come
