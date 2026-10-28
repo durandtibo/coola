@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 from collections import OrderedDict, deque
+from types import MappingProxyType
 from typing import Any
 from unittest.mock import Mock
 
@@ -589,8 +590,8 @@ def test_from_flat_dict_dict_leaf_then_nested_does_not_mutate_input_input_is_not
     assert leaf == {"x": 1}
 
 
-def test_from_flat_dict_dict_leaf_is_kept_with_restore_lists() -> None:
-    assert from_flat_dict({"a": {"0": 1}}, restore_lists=True) == {"a": [1]}
+def test_from_flat_dict_dict_value_is_not_converted_by_restore_lists() -> None:
+    assert from_flat_dict({"a": {"0": 1}}, restore_lists=True) == {"a": {"0": 1}}
 
 
 #######################################
@@ -684,3 +685,59 @@ def test_from_flat_dict_separator_is_keyword_only() -> None:
 def test_from_flat_dict_restore_lists_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional argument"):
         from_flat_dict({"a.0": 1}, ".", True)
+
+
+def test_from_flat_dict_dict_value_is_the_object_of_the_caller() -> None:
+    value = {"0": 1}
+    assert from_flat_dict({"a": value}, restore_lists=True)["a"] is value
+
+
+def test_from_flat_dict_dict_value_is_not_converted_inside_a_node() -> None:
+    assert from_flat_dict({"a.b": {"0": 1}, "a.c": 2}, restore_lists=True) == {
+        "a": {"b": {"0": 1}, "c": 2}
+    }
+
+
+def test_from_flat_dict_list_value_is_the_object_of_the_caller() -> None:
+    value = [{"0": 1}]
+    assert from_flat_dict({"a": value})["a"] is value
+
+
+def test_from_flat_dict_root_is_a_plain_dict() -> None:
+    assert type(from_flat_dict({"0": 1, "1": 2}, restore_lists=True)) is dict
+
+
+def test_from_flat_dict_nodes_are_plain_dicts() -> None:
+    assert type(from_flat_dict({"a.b": 1})["a"]) is dict
+
+
+def test_from_flat_dict_root_with_integer_keys_is_a_dict_with_restore_lists() -> None:
+    assert from_flat_dict({"0": 1, "1": 2}, restore_lists=True) == {"0": 1, "1": 2}
+
+
+def test_from_flat_dict_empty_with_restore_lists() -> None:
+    assert from_flat_dict({}, restore_lists=True) == {}
+
+
+def test_from_flat_dict_mapping_input() -> None:
+    assert from_flat_dict(MappingProxyType({"a.b": 1})) == {"a": {"b": 1}}
+
+
+def test_from_flat_dict_does_not_modify_the_input() -> None:
+    data = {"a.0": 1, "a.1": {"0": 2}}
+    from_flat_dict(data, restore_lists=True)
+    assert data == {"a.0": 1, "a.1": {"0": 2}}
+
+
+def test_from_flat_dict_deep_structure_does_not_raise() -> None:
+    result = from_flat_dict({".".join(["0"] * 20_000): 1}, restore_lists=True)
+    for _ in range(20_000):
+        result = result["0"] if isinstance(result, dict) else result[0]
+    assert result == 1
+
+
+def test_from_flat_dict_deep_structure_without_restore_lists_does_not_raise() -> None:
+    result = from_flat_dict({".".join(["a"] * 20_000): 1})
+    for _ in range(20_000):
+        result = result["a"]
+    assert result == 1

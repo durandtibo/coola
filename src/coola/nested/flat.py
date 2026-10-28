@@ -5,16 +5,21 @@ from __future__ import annotations
 __all__ = ["from_flat_dict", "to_flat_dict"]
 
 from collections.abc import Mapping, Sequence
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
+from coola.recursive import IdentityTransformer, TransformerRegistry, recursive_apply
+from coola.recursive.base import BaseTransformer
 from coola.validation import validate_not_empty
+
+if TYPE_CHECKING:
+    from coola.recursive.base import Expansion
 
 # ``str``, ``bytes`` and ``bytearray`` are sequences, but they are leaves.
 _LEAF_SEQUENCES = (str, bytes, bytearray)
 
 
 def from_flat_dict(
-    data: dict[str, Any],
+    data: Mapping[str, Any],
     *,
     separator: str = ".",
     restore_lists: bool = False,
@@ -41,8 +46,9 @@ def from_flat_dict(
             (``n >= 1``) is converted to a ``list``. A ``dict`` that
             was originally built with such keys is converted too, so
             the original container type is not always recovered, and
-            ``tuple`` objects come back as ``list`` objects.
-            Defaults to ``False``.
+            ``tuple`` objects come back as ``list`` objects. Only the
+            nodes built from the keys are converted: a ``dict`` given
+            as a value is kept as it is. Defaults to ``False``.
         escape: If ``True``, a backslash escapes the separator (and
             the backslash itself) in the keys, as written by
             ``to_flat_dict(..., escape=True)``, so the keys of the
@@ -79,20 +85,85 @@ def from_flat_dict(
     """
     validate_not_empty(separator, name="separator")
 
-    nested: dict[str, Any] = {}
-    # Only the dicts created here can be extended. A dict given as a value belongs
-    # to the caller and must be neither mutated nor extended.
-    created: set[int] = {id(nested)}
+    # Only the ``_Node`` created here can be extended. A dict given as a value is a plain
+    # ``dict``: it belongs to the caller and must be neither mutated, extended nor converted.
+    nested = _Root()
     for flat_key, value in data.items():
         if not isinstance(flat_key, str):
             msg = f"Flat dict keys must be strings, got {flat_key!r} ({type(flat_key).__name__})"
             raise TypeError(msg)
         segments = _split_key(flat_key, separator) if escape else flat_key.split(separator)
-        _set_nested(nested, segments, value, flat_key, separator, created=created)
-    if restore_lists:
-        # The root is always a dict, only its children can become lists.
-        return {key: _restore_lists(value) for key, value in nested.items()}
-    return nested
+        _set_nested(nested, segments, value, flat_key, separator)
+    return _freeze(nested, restore_lists=restore_lists)
+
+
+class _Node(dict[str, Any]):
+    r"""A dict created by ``from_flat_dict`` while it builds the result.
+
+    A value given by the caller is a plain ``dict``, so
+    ``isinstance(value, _Node)`` means that the dict belongs to the
+    function.
+    """
+
+
+class _Root(_Node):
+    r"""The root of the result, which is always a ``dict``."""
+
+
+class _NodeTransformer(BaseTransformer[_Node]):
+    r"""Transformer that turns a ``_Node`` into a ``dict``, or into a
+    ``list`` when its keys are exactly ``"0"``, ..., ``"n-1"``.
+
+    A dict is converted to a list only if its keys are exactly "0", "1", ..., "n-1": a gap or
+    a different key means that it was not built from a list, and converting it would lose the
+    keys. The conversion is opt-in (``restore_lists``) because a dict built with such keys looks
+    the same as a list in the flat dict.
+    """
+
+    def __init__(self, *, restore_lists: bool) -> None:
+        self._restore_lists = restore_lists
+
+    def expand(self, data: _Node) -> Expansion | None:
+        keys = list(data)
+        restore = (
+            self._restore_lists and bool(keys) and set(keys) == {str(i) for i in range(len(keys))}
+        )
+        if restore:
+            return [data[str(i)] for i in range(len(keys))], list
+        return [data[key] for key in keys], lambda items: dict(zip(keys, items, strict=True))
+
+
+class _RootTransformer(_NodeTransformer):
+    r"""Transformer of the root, which never becomes a list."""
+
+    def __init__(self) -> None:
+        super().__init__(restore_lists=False)
+
+
+def _freeze(nested: _Root, *, restore_lists: bool) -> dict[str, Any]:
+    r"""Replace the nodes built by ``from_flat_dict`` by ``dict`` and
+    ``list``.
+
+    The registry only knows the nodes: every other value (even a
+    container given by the caller) is a leaf that is kept as it is.
+
+    Args:
+        nested: The root of the nodes.
+        restore_lists: If ``True``, the nodes whose keys are ``"0"``,
+            ..., ``"n-1"`` become lists.
+
+    Returns:
+        The nested ``dict``.
+    """
+    registry = TransformerRegistry(
+        {
+            object: IdentityTransformer(),
+            _Node: _NodeTransformer(restore_lists=restore_lists),
+            _Root: _RootTransformer(),
+        }
+    )
+    # ``IdentityTransformer`` never applies the function, it is only required by the API
+    return recursive_apply(nested, lambda value: value, registry=registry)
 
 
 def _split_key(key: str, separator: str) -> list[str]:
@@ -127,27 +198,12 @@ def _escape_key(key: str, separator: str) -> str:
     return key.replace("\\", "\\\\").replace(separator, "\\" + separator)
 
 
-def _restore_lists(node: Any) -> Any:
-    # A dict is converted to a list only if its keys are exactly "0", "1", ...,
-    # "n-1": a gap or a different key means that it was not built from a list, and
-    # converting it would lose the keys. The conversion is opt-in (``restore_lists``)
-    # because a dict built with such keys looks the same as a list in the flat dict.
-    if not isinstance(node, dict):
-        return node
-    restored = {key: _restore_lists(value) for key, value in node.items()}
-    if restored and set(restored) == {str(i) for i in range(len(restored))}:
-        return [restored[str(i)] for i in range(len(restored))]
-    return restored
-
-
 def _set_nested(
-    target: dict[str, Any],
+    target: _Node,
     segments: list[str],
     value: Any,
     original_key: str,
     separator: str,
-    *,
-    created: set[int],
 ) -> None:
     """Drill into *target* along *segments* and set the leaf to *value*.
 
@@ -164,25 +220,20 @@ def _set_nested(
         value: The leaf value to assign.
         original_key: The original flat key, used only for error messages.
         separator: The separator used to rejoin segments in error messages.
-        created: The ids of the dicts created by ``from_flat_dict``
-            (updated in-place). A dict that is not in this set is a
-            value given by the caller and is never extended.
 
     Raises:
         ValueError: If an interior segment collides with an existing
             scalar leaf, or the final segment collides with an existing
             nested dict.
     """
-    current: dict[str, Any] = target
+    current: _Node = target
     for depth, segment in enumerate(segments[:-1]):
         if segment not in current:
-            current[segment] = {}
-            current = current[segment]
-            created.add(id(current))
+            current[segment] = current = _Node()
         else:
             existing: Any = current[segment]
-            if isinstance(existing, dict) and id(existing) in created:
-                current = cast("dict[str, Any]", existing)
+            if isinstance(existing, _Node):
+                current = existing
             else:
                 path_so_far = separator.join(segments[: depth + 1])
                 msg = (
