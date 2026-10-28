@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -111,8 +112,9 @@ def test_check_package_message_is_the_one_of_raise_package_missing_error() -> No
 
 
 def test_check_package_install_is_keyword_only() -> None:
+    function: Any = check_package
     with pytest.raises(TypeError, match="positional argument"):
-        check_package("os", "pip install os")  # type: ignore[misc]
+        function("os", "pip install os")
 
 
 def test_check_package_imports_the_package() -> None:

@@ -19,12 +19,13 @@ __all__ = [
 from typing import TYPE_CHECKING, Any
 
 from coola.utils.mapping import sort_by_keys
+from coola.validation import validate_ge
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping, Sequence
 
 
-def repr_indent(original: object, num_spaces: int = 2) -> str:
+def repr_indent(original: object, *, num_spaces: int = 2) -> str:
     r"""Add indentations if the original string is a multi-lines string.
 
     Args:
@@ -43,7 +44,7 @@ def repr_indent(original: object, num_spaces: int = 2) -> str:
     Example:
         ```pycon
         >>> from coola.formatting.structure import repr_indent
-        >>> print(repr_indent("string1\nstring2\n  string3", 4))
+        >>> print(repr_indent("string1\nstring2\n  string3", num_spaces=4))
         string1
             string2
               string3
@@ -52,10 +53,12 @@ def repr_indent(original: object, num_spaces: int = 2) -> str:
     """
     if not isinstance(original, str):
         original = repr(original)
-    return str_indent(original, num_spaces)
+    return str_indent(original, num_spaces=num_spaces)
 
 
-def repr_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_spaces: int = 2) -> str:
+def repr_mapping(
+    mapping: Mapping[Any, Any], *, sorted_keys: bool = False, num_spaces: int = 2
+) -> str:
     r"""Compute a string representation of a mapping.
 
     This function was designed for flat dictionary. If you have a
@@ -90,7 +93,7 @@ def repr_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_spac
 
 
 def repr_mapping_line(
-    mapping: Mapping[Any, Any], sorted_keys: bool = False, separator: str = ", "
+    mapping: Mapping[Any, Any], *, sorted_keys: bool = False, separator: str = ", "
 ) -> str:
     r"""Compute a single line string representation of the given mapping.
 
@@ -119,7 +122,7 @@ def repr_mapping_line(
     return separator.join(f"{key}={value!r}" for key, value in _iter_items(mapping, sorted_keys))
 
 
-def repr_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
+def repr_sequence(sequence: Sequence[Any], *, num_spaces: int = 2) -> str:
     r"""Compute a string representation of a sequence.
 
     Args:
@@ -146,7 +149,7 @@ def repr_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
     return "\n".join(lines)
 
 
-def repr_sequence_line(sequence: Sequence[Any], separator: str = ", ") -> str:
+def repr_sequence_line(sequence: Sequence[Any], *, separator: str = ", ") -> str:
     r"""Compute a single line string representation of a sequence.
 
     Args:
@@ -167,7 +170,7 @@ def repr_sequence_line(sequence: Sequence[Any], separator: str = ", ") -> str:
     return separator.join(map(repr, sequence))
 
 
-def str_indent(original: object, num_spaces: int = 2) -> str:
+def str_indent(original: object, *, num_spaces: int = 2) -> str:
     r"""Add indentations if the original string is a multi-lines string.
 
     Args:
@@ -186,16 +189,14 @@ def str_indent(original: object, num_spaces: int = 2) -> str:
     Example:
         ```pycon
         >>> from coola.formatting.structure import str_indent
-        >>> print(str_indent("string1\nstring2\n  string3", 4))
+        >>> print(str_indent("string1\nstring2\n  string3", num_spaces=4))
         string1
             string2
               string3
 
         ```
     """
-    if num_spaces < 0:
-        msg = f"Incorrect num_spaces. Expected a non-negative integer but received {num_spaces}"
-        raise ValueError(msg)
+    validate_ge(num_spaces, 0, name="num_spaces")
     formatted = str(original).split("\n")
     if len(formatted) == 1:  # single line
         return formatted[0]
@@ -205,7 +206,9 @@ def str_indent(original: object, num_spaces: int = 2) -> str:
     return first + "\n" + formatted
 
 
-def str_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_spaces: int = 2) -> str:
+def str_mapping(
+    mapping: Mapping[Any, Any], *, sorted_keys: bool = False, num_spaces: int = 2
+) -> str:
     r"""Compute a string representation of a mapping.
 
     This function was designed for flat dictionary. If you have a
@@ -240,7 +243,7 @@ def str_mapping(mapping: Mapping[Any, Any], sorted_keys: bool = False, num_space
 
 
 def str_mapping_line(
-    mapping: Mapping[Any, Any], sorted_keys: bool = False, separator: str = ", "
+    mapping: Mapping[Any, Any], *, sorted_keys: bool = False, separator: str = ", "
 ) -> str:
     r"""Compute a single line string representation of the given mapping.
 
@@ -269,7 +272,7 @@ def str_mapping_line(
     return separator.join(f"{key}={value!s}" for key, value in _iter_items(mapping, sorted_keys))
 
 
-def str_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
+def str_sequence(sequence: Sequence[Any], *, num_spaces: int = 2) -> str:
     r"""Compute a string representation of a sequence.
 
     Args:
@@ -296,7 +299,7 @@ def str_sequence(sequence: Sequence[Any], num_spaces: int = 2) -> str:
     return "\n".join(lines)
 
 
-def str_sequence_line(sequence: Sequence[Any], separator: str = ", ") -> str:
+def str_sequence_line(sequence: Sequence[Any], *, separator: str = ", ") -> str:
     r"""Compute a single line string representation of a sequence.
 
     Args:

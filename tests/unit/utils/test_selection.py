@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from coola.utils.selection import smallest_items
@@ -52,3 +54,14 @@ def test_smallest_items_does_not_modify_the_data() -> None:
     data = [3, 1, 2]
     smallest_items(data, limit=2)
     assert data == [3, 1, 2]
+
+
+def test_smallest_items_limit_is_keyword_only() -> None:
+    function: Any = smallest_items
+    with pytest.raises(TypeError, match="positional argument"):
+        function([3, 1, 2], 2)
+
+
+def test_smallest_items_negative_limit_raises() -> None:
+    with pytest.raises(ValueError, match=r"limit must be greater than or equal to 0, got -1"):
+        smallest_items([3, 1, 2], limit=-1)

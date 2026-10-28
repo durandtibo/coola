@@ -107,7 +107,7 @@ def test_quantile_empty_values_raises_error() -> None:
 
 @pytest.mark.parametrize("q", [-0.1, 1.1, float("nan"), float("inf")])
 def test_quantile_invalid_quantile_raises(q: float) -> None:
-    with pytest.raises(ValueError, match=r"quantiles must be in \[0, 1\]"):
+    with pytest.raises(ValueError, match=r"quantiles must be in the range \[0.0, 1.0\]"):
         quantile([1, 2, 3], [0.5, q])
 
 
@@ -138,7 +138,7 @@ def test_quantile_nan_with_no_quantile() -> None:
 
 
 def test_quantile_nan_invalid_quantile_still_raises() -> None:
-    with pytest.raises(ValueError, match="quantiles must be in"):
+    with pytest.raises(ValueError, match="quantiles must be in the range"):
         quantile([float("nan")], (2.0,))
 
 
