@@ -7,23 +7,18 @@ Run them explicitly with:
 They exist to compare the performance of the implementations of
 ``coola.io`` over time. They only use the public functions and classes
 (``save_*``, ``load_*``, ``JsonSaver``, ``JsonLoader``), so that they run
-unchanged on any design of the package. The async benchmarks are skipped
-when the saver has no ``asave`` method. Do not use the internals of the
+unchanged on any design of the package. Do not use the internals of the
 package (locks, temporary files) in this file.
 """
 
 from __future__ import annotations
 
-import asyncio
 import itertools
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Any
 
-import pytest
-
 from coola.io import (
     JsonLoader,
-    JsonSaver,
     load_json,
     load_pickle,
     load_text,
@@ -41,10 +36,6 @@ SMALL = {"key1": [1, 2, 3], "key2": "abc"}
 # About 590 KB of JSON.
 LARGE_JSON = list(range(100_000))
 ONE_MIB = 2**20
-
-requires_async = pytest.mark.skipif(
-    not hasattr(JsonSaver, "asave"), reason="the implementation has no async API"
-)
 
 #######################
 #     Small files     #
@@ -186,38 +177,3 @@ def test_save_json_distinct_paths_4_threads_benchmark(
     counter = itertools.count()
     benchmark(lambda: distinct_paths_threads(tmp_path, 4, 25, next(counter)))
     assert load_json(tmp_path.joinpath("run0-3-24.json")) == SMALL
-
-
-####################
-#     Async        #
-####################
-
-
-@requires_async
-def test_asave_json_small_benchmark(benchmark: BenchmarkFixture, tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.json")
-    saver: Any = JsonSaver()
-    benchmark(lambda: asyncio.run(saver.asave(SMALL, path, exist_ok=True)))
-    assert load_json(path) == SMALL
-
-
-@requires_async
-def test_aload_json_small_benchmark(benchmark: BenchmarkFixture, tmp_path: Path) -> None:
-    path = tmp_path.joinpath("data.json")
-    save_json(SMALL, path)
-    loader: Any = JsonLoader()
-    assert benchmark(lambda: asyncio.run(loader.aload(path))) == SMALL
-
-
-@requires_async
-def test_asave_json_100_files_gather_benchmark(benchmark: BenchmarkFixture, tmp_path: Path) -> None:
-    counter = itertools.count()
-    saver: Any = JsonSaver()
-
-    async def main(run: int) -> None:
-        await asyncio.gather(
-            *(saver.asave(SMALL, tmp_path.joinpath(f"run{run}-{i}.json")) for i in range(100))
-        )
-
-    benchmark(lambda: asyncio.run(main(next(counter))))
-    assert load_json(tmp_path.joinpath("run0-99.json")) == SMALL
