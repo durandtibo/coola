@@ -23,6 +23,7 @@ from coola.iterator import (
     register_child_finders,
 )
 from coola.registry import AlreadyRegisteredError
+from tests.helpers import CONTAINER_SAMPLES, LEAF_SAMPLES
 
 
 @dataclass
@@ -198,16 +199,9 @@ def test_default_registry_dataclass_with_a_default_child_finder_is_a_leaf(iterat
 ################################################
 
 SAMPLES = [
-    pytest.param(42, id="int"),
-    pytest.param("abc", id="str"),
+    *LEAF_SAMPLES,
     pytest.param(None, id="none"),
-    pytest.param([1, [2]], id="list"),
-    pytest.param((1, (2,)), id="tuple"),
-    pytest.param(deque([1, 2]), id="deque"),
-    pytest.param({1, 2}, id="set"),
-    pytest.param(frozenset([1]), id="frozenset"),
-    pytest.param({"a": 1, "b": [2]}, id="dict"),
-    pytest.param(MappingProxyType({"a": 1}), id="mapping proxy"),
+    *CONTAINER_SAMPLES,
     pytest.param(Config(0.1, [1]), id="dataclass"),
 ]
 

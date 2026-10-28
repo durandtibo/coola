@@ -3,8 +3,7 @@ default registry."""
 
 from __future__ import annotations
 
-import types
-from collections import OrderedDict, UserString, deque
+from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta, timezone
 from decimal import Decimal
@@ -36,6 +35,7 @@ from coola.utils.imports import (
     is_torch_available,
     is_xarray_available,
 )
+from tests.helpers import CONTAINER_SAMPLES, LEAF_SAMPLES
 
 if is_numpy_available():
     import numpy as np
@@ -69,25 +69,14 @@ class Content:
 
 
 SAMPLES = [
-    pytest.param(1, id="int"),
-    pytest.param(1.5, id="float"),
-    pytest.param(1 + 2j, id="complex"),
-    pytest.param(True, id="bool"),
+    *LEAF_SAMPLES,
+    *CONTAINER_SAMPLES,
     pytest.param(None, id="none"),
-    pytest.param("abc", id="str"),
-    pytest.param(UserString("abc"), id="user_string"),
     pytest.param(b"abc", id="bytes"),
     pytest.param(bytearray(b"abc"), id="bytearray"),
     pytest.param(memoryview(b"abc"), id="memoryview"),
     pytest.param(Color.RED, id="enum"),
-    pytest.param([1, [2], "a"], id="list"),
-    pytest.param((1, (2,), "a"), id="tuple"),
-    pytest.param(deque([1, 2]), id="deque"),
-    pytest.param({1, 2}, id="set"),
-    pytest.param(frozenset({1, 2}), id="frozenset"),
-    pytest.param({"a": [1], "b": {"c": 2}}, id="dict"),
     pytest.param(OrderedDict(a=1, b=2), id="ordered_dict"),
-    pytest.param(types.MappingProxyType({"a": 1}), id="mapping_proxy"),
     pytest.param(date(2024, 1, 2), id="date"),
     pytest.param(datetime(2024, 1, 2, 3, 4, 5, tzinfo=UTC), id="datetime"),
     pytest.param(time(3, 4, 5), id="time"),

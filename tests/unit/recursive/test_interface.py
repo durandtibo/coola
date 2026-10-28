@@ -21,6 +21,7 @@ from coola.recursive import (
     register_transformers,
 )
 from coola.registry import AlreadyRegisteredError
+from tests.helpers import CONTAINER_SAMPLES, LEAF_SAMPLES
 
 
 @pytest.fixture(autouse=True)
@@ -341,28 +342,8 @@ def test_register_transformers_exist_ok_is_keyword_only() -> None:
 #     Tests for the default registry     #
 ##########################################
 
-LEAF_SAMPLES = [
-    pytest.param(object(), id="object"),
-    pytest.param("abc", id="str"),
-    pytest.param(UserString("abc"), id="user_string"),
-    pytest.param(1, id="int"),
-    pytest.param(1.5, id="float"),
-    pytest.param(1j, id="complex"),
-    pytest.param(True, id="bool"),
-]
 
-CONTAINER_SAMPLES = [
-    pytest.param([1, 2], id="list"),
-    pytest.param((1, 2), id="tuple"),
-    pytest.param(deque([1, 2], maxlen=3), id="deque"),
-    pytest.param({1, 2}, id="set"),
-    pytest.param(frozenset({1, 2}), id="frozenset"),
-    pytest.param({"a": 1, "b": 2}, id="dict"),
-    pytest.param(MappingProxyType({"a": 1}), id="mapping_proxy"),
-]
-
-
-@pytest.mark.parametrize("data", LEAF_SAMPLES)
+@pytest.mark.parametrize("data", [pytest.param(object(), id="object"), *LEAF_SAMPLES])
 def test_default_registry_leaf_has_no_expansion(data: Any) -> None:
     assert get_default_registry().find_transformer(type(data)).expand(data) is None
 
