@@ -15,10 +15,16 @@ from __future__ import annotations
 __all__ = ["extract_uuid7_timestamp_ms", "generate_uuid7"]
 
 import os
+import re
 import uuid
 
 from coola.identifier.monotonic import MonotonicRandom
-from coola.identifier.validation import validate_timestamp_ms
+from coola.validation import validate_closed_range, validate_int, validate_str
+
+_TIMESTAMP_BITS = 48
+_UUID7_PATTERN = re.compile(
+    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+)
 
 # State of the UUIDv7 generated with the current time: they increase within a millisecond.
 # A UUIDv7 has 74 random bits (12 + 62), the others are the version and the variant.
@@ -61,6 +67,8 @@ def generate_uuid7(timestamp_ms: int | None = None) -> str:
         ``'xxxxxxxx-xxxx-7xxx-yxxx-xxxxxxxxxxxx'``.
 
     Raises:
+        TypeError: If ``timestamp_ms`` is not an ``int`` (a ``bool`` is
+            rejected).
         ValueError: If ``timestamp_ms`` does not fit in 48 bits (i.e.
             is negative or exceeds ``2**48 - 1``).
 
@@ -75,13 +83,14 @@ def generate_uuid7(timestamp_ms: int | None = None) -> str:
     """
     if timestamp_ms is None:
         timestamp_ms, rand_bits = _MONOTONIC.next()
-        validate_timestamp_ms(timestamp_ms)
+        validate_closed_range(timestamp_ms, 0, (1 << _TIMESTAMP_BITS) - 1, name="timestamp_ms")
         # Spread the 74 monotonic random bits around the version and variant bits:
         # 12 bits (rand_a) before the variant, and 62 bits (rand_b) after.
         rand_a, rand_b = rand_bits >> 62, rand_bits & ((1 << 62) - 1)
         value = (timestamp_ms << 80) | (rand_a << 64) | rand_b
     else:
-        validate_timestamp_ms(timestamp_ms)
+        validate_int(timestamp_ms, name="timestamp_ms")
+        validate_closed_range(timestamp_ms, 0, (1 << _TIMESTAMP_BITS) - 1, name="timestamp_ms")
         # 48-bit timestamp, followed by 80 bits of randomness that the
         # version/variant bits below are then stamped onto.
         value = (timestamp_ms << 80) | int.from_bytes(os.urandom(10), byteorder="big")
@@ -115,8 +124,12 @@ def extract_uuid7_timestamp_ms(uuid7: str) -> int:
         ``uuid7``.
 
     Raises:
-        ValueError: If ``uuid7`` is not a valid UUID string, or is not
-            a version 7 UUID (RFC 9562 variant, version nibble ``7``).
+        TypeError: If ``uuid7`` is not a ``str`` (pass ``str(uuid)`` for
+            a ``uuid.UUID``).
+        ValueError: If ``uuid7`` is not a UUID in its canonical
+            36-character form (no braces, no ``urn:uuid:`` prefix, no
+            missing hyphens), or is not a version 7 UUID of the RFC 9562
+            variant. The case is ignored.
 
     Example:
         ```pycon
@@ -126,8 +139,14 @@ def extract_uuid7_timestamp_ms(uuid7: str) -> int:
 
         ```
     """
-    parsed = uuid.UUID(uuid7)
-    if parsed.version != 7:
-        msg = f"uuid7 must be a version 7 UUID, got version {parsed.version} ({uuid7!r})"
+    validate_str(uuid7, name="uuid7")
+    if _UUID7_PATTERN.fullmatch(uuid7) is None:
+        msg = f"uuid7 must be a UUID in its canonical 36-character form, got {uuid7!r}"
         raise ValueError(msg)
-    return int.from_bytes(parsed.bytes, "big") >> 80
+    if uuid7[14] != "7":
+        msg = f"uuid7 must be a version 7 UUID, got version {uuid7[14]!r} ({uuid7!r})"
+        raise ValueError(msg)
+    if uuid7[19] not in "89abAB":
+        msg = f"uuid7 must have the RFC 9562 variant, got variant {uuid7[19]!r} ({uuid7!r})"
+        raise ValueError(msg)
+    return int(uuid7[:8] + uuid7[9:13], 16)

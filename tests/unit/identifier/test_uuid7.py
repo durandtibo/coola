@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import time
+import uuid
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
@@ -76,12 +77,12 @@ def test_generate_uuid7_max_timestamp() -> None:
 
 
 def test_generate_uuid7_negative_timestamp_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp_ms must fit in 48 bits"):
+    with pytest.raises(ValueError, match="timestamp_ms must be in the closed range"):
         generate_uuid7(timestamp_ms=-1)
 
 
 def test_generate_uuid7_timestamp_too_large_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp_ms must fit in 48 bits"):
+    with pytest.raises(ValueError, match="timestamp_ms must be in the closed range"):
         generate_uuid7(timestamp_ms=2**48)
 
 
@@ -134,7 +135,7 @@ def test_extract_uuid7_timestamp_ms_matches_decode_helper() -> None:
 
 
 def test_extract_uuid7_timestamp_ms_invalid_string_raises() -> None:
-    with pytest.raises(ValueError, match="badly formed hexadecimal UUID string"):
+    with pytest.raises(ValueError, match="canonical 36-character form"):
         extract_uuid7_timestamp_ms("not-a-uuid")
 
 
@@ -246,3 +247,49 @@ def test_generate_uuid7_explicit_timestamp_does_not_use_the_monotonic_state() ->
     generate_uuid7(timestamp_ms=1)
     with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
         assert generate_uuid7() > current
+
+
+#####################################################
+#     Tests for the strict inputs and inverse     #
+#####################################################
+
+
+@pytest.mark.parametrize("timestamp_ms", [True, 1.5, "1"])
+def test_generate_uuid7_timestamp_wrong_type_raises(timestamp_ms: object) -> None:
+    with pytest.raises(TypeError, match="timestamp_ms must be an int"):
+        generate_uuid7(timestamp_ms)
+
+
+@pytest.mark.parametrize("uuid7", [None, 123, uuid.UUID(int=7 << 76)])
+def test_extract_uuid7_timestamp_ms_not_a_str_raises(uuid7: object) -> None:
+    with pytest.raises(TypeError, match="uuid7 must be an instance of"):
+        extract_uuid7_timestamp_ms(uuid7)
+
+
+@pytest.mark.parametrize(
+    "uuid7",
+    [
+        "{01234567-89ab-7def-8123-456789abcdef}",
+        "urn:uuid:01234567-89ab-7def-8123-456789abcdef",
+        "0123456789ab7def8123456789abcdef",
+        " 01234567-89ab-7def-8123-456789abcdef",
+        "01234567-89ab-7def-8123-456789abcdef\n",
+    ],
+)
+def test_extract_uuid7_timestamp_ms_not_canonical_raises(uuid7: str) -> None:
+    with pytest.raises(ValueError, match="canonical 36-character form"):
+        extract_uuid7_timestamp_ms(uuid7)
+
+
+def test_extract_uuid7_timestamp_ms_wrong_version_raises() -> None:
+    with pytest.raises(ValueError, match="must be a version 7 UUID, got version '4'"):
+        extract_uuid7_timestamp_ms("01234567-89ab-4def-8123-456789abcdef")
+
+
+def test_extract_uuid7_timestamp_ms_wrong_variant_raises() -> None:
+    with pytest.raises(ValueError, match="RFC 9562 variant, got variant 'c'"):
+        extract_uuid7_timestamp_ms("01234567-89ab-7def-c123-456789abcdef")
+
+
+def test_extract_uuid7_timestamp_ms_accepts_upper_case() -> None:
+    assert extract_uuid7_timestamp_ms("01234567-89AB-7DEF-8123-456789ABCDEF") == 0x0123456789AB

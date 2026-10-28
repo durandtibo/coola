@@ -30,7 +30,7 @@ they mint a fresh, unique value every call, ordered by creation time instead.
 The four time-ordered generators (`generate_ulid`, `generate_uuid7`, `generate_snowflake_id`, and
 `generate_object_id`) each have a matching `extract_*_timestamp*` function
 (`extract_ulid_timestamp_ms`, `extract_uuid7_timestamp_ms`, `extract_snowflake_timestamp_ms`, and
-`extract_object_id_timestamp`) that recovers the timestamp packed into a previously generated
+`extract_object_id_timestamp_s`) that recovers the timestamp packed into a previously generated
 identifier.
 
 ## Stable, content-derived identifiers
@@ -274,13 +274,13 @@ produce the same identifiers:
 
 ```
 
-`extract_object_id_timestamp` recovers the (second-resolution) Unix timestamp encoded in an
+`extract_object_id_timestamp_s` recovers the (second-resolution) Unix timestamp encoded in an
 identifier previously returned by `generate_object_id` or `ObjectIdGenerator.generate`:
 
 ```pycon
->>> from coola.identifier import extract_object_id_timestamp, generate_object_id
+>>> from coola.identifier import extract_object_id_timestamp_s, generate_object_id
 >>> object_id = generate_object_id()
->>> isinstance(extract_object_id_timestamp(object_id), int)
+>>> isinstance(extract_object_id_timestamp_s(object_id), int)
 True
 
 ```

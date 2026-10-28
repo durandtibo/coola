@@ -18,21 +18,23 @@ from __future__ import annotations
 
 __all__ = [
     "ObjectIdGenerator",
-    "extract_object_id_timestamp",
+    "extract_object_id_timestamp_s",
     "generate_object_id",
 ]
 
 import os
+import re
 import threading
 import time
 
-from coola.identifier.validation import validate_bit_range
 from coola.utils.fork import track_fork
 from coola.utils.singleton import LazySingleton
+from coola.validation import validate_closed_range, validate_int, validate_str
 
 _TIMESTAMP_BYTES = 4
 _PROCESS_BYTES = 5
 _COUNTER_BYTES = 3
+_OBJECT_ID_PATTERN = re.compile(r"[0-9a-f]{24}")
 _MAX_COUNTER = (1 << (_COUNTER_BYTES * 8)) - 1
 
 
@@ -110,6 +112,8 @@ class ObjectIdGenerator:
             A 24-character lowercase hex string.
 
         Raises:
+            TypeError: If ``timestamp`` is not an ``int`` (a ``bool`` is
+                rejected).
             ValueError: If ``timestamp`` does not fit in 32 bits (i.e.
                 is negative or exceeds ``2**32 - 1``).
 
@@ -126,7 +130,8 @@ class ObjectIdGenerator:
         with self._lock:
             if timestamp is None:
                 timestamp = int(time.time())
-            validate_bit_range(timestamp, _TIMESTAMP_BYTES * 8, name="timestamp")
+            validate_int(timestamp, name="timestamp")
+            validate_closed_range(timestamp, 0, (1 << (_TIMESTAMP_BYTES * 8)) - 1, name="timestamp")
             self._counter = (self._counter + 1) & _MAX_COUNTER
             counter = self._counter
             payload = (
@@ -172,6 +177,8 @@ def generate_object_id(timestamp: int | None = None) -> str:
         A 24-character lowercase hex string.
 
     Raises:
+        TypeError: If ``timestamp`` is not an ``int`` (a ``bool`` is
+            rejected).
         ValueError: If ``timestamp`` does not fit in 32 bits (i.e. is
             negative or exceeds ``2**32 - 1``).
 
@@ -187,7 +194,7 @@ def generate_object_id(timestamp: int | None = None) -> str:
     return get_default_generator().generate(timestamp=timestamp)
 
 
-def extract_object_id_timestamp(object_id: str) -> int:
+def extract_object_id_timestamp_s(object_id: str) -> int:
     r"""Extract the Unix timestamp encoded in an ObjectId-style
     identifier.
 
@@ -205,23 +212,21 @@ def extract_object_id_timestamp(object_id: str) -> int:
         ``object_id``.
 
     Raises:
-        ValueError: If ``object_id`` is not a 24-character hex string.
+        TypeError: If ``object_id`` is not a ``str``.
+        ValueError: If ``object_id`` is not a 24-character lowercase
+            hex string (no whitespace, no upper case, no ``bytes``).
 
     Example:
         ```pycon
-        >>> from coola.identifier import extract_object_id_timestamp, generate_object_id
+        >>> from coola.identifier import extract_object_id_timestamp_s, generate_object_id
         >>> object_id = generate_object_id()
-        >>> isinstance(extract_object_id_timestamp(object_id), int)
+        >>> isinstance(extract_object_id_timestamp_s(object_id), int)
         True
 
         ```
     """
-    if len(object_id) != 2 * (_TIMESTAMP_BYTES + _PROCESS_BYTES + _COUNTER_BYTES):
-        msg = f"object_id must be a 24-character hex string, got {object_id!r}"
+    validate_str(object_id, name="object_id")
+    if _OBJECT_ID_PATTERN.fullmatch(object_id) is None:
+        msg = f"object_id must be a 24-character lowercase hex string, got {object_id!r}"
         raise ValueError(msg)
-    try:
-        payload = bytes.fromhex(object_id)
-    except ValueError as error:
-        msg = f"object_id must be a 24-character hex string, got {object_id!r}"
-        raise ValueError(msg) from error
-    return int.from_bytes(payload[:_TIMESTAMP_BYTES], byteorder="big")
+    return int(object_id[: 2 * _TIMESTAMP_BYTES], 16)

@@ -66,12 +66,12 @@ def test_snowflake_id_generator_init_resumed_state_blocks_earlier_timestamp() ->
 
 
 def test_snowflake_id_generator_init_last_timestamp_ms_too_small_raises() -> None:
-    with pytest.raises(ValueError, match="last_timestamp_ms - epoch must fit in 41 bits"):
+    with pytest.raises(ValueError, match="last_timestamp_ms must be in the closed range"):
         SnowflakeIdGenerator(last_timestamp_ms=_EPOCH_MS - 1)
 
 
 def test_snowflake_id_generator_init_last_timestamp_ms_too_large_raises() -> None:
-    with pytest.raises(ValueError, match="last_timestamp_ms - epoch must fit in 41 bits"):
+    with pytest.raises(ValueError, match="last_timestamp_ms must be in the closed range"):
         SnowflakeIdGenerator(last_timestamp_ms=_EPOCH_MS + (1 << 41))
 
 
@@ -84,12 +84,12 @@ def test_snowflake_id_generator_init_last_timestamp_ms_max_is_valid() -> None:
 
 
 def test_snowflake_id_generator_init_negative_sequence_raises() -> None:
-    with pytest.raises(ValueError, match="sequence must fit in 12 bits"):
+    with pytest.raises(ValueError, match="sequence must be in the closed range"):
         SnowflakeIdGenerator(sequence=-1)
 
 
 def test_snowflake_id_generator_init_sequence_too_large_raises() -> None:
-    with pytest.raises(ValueError, match="sequence must fit in 12 bits"):
+    with pytest.raises(ValueError, match="sequence must be in the closed range"):
         SnowflakeIdGenerator(sequence=_MAX_SEQUENCE + 1)
 
 
@@ -173,12 +173,12 @@ def test_snowflake_id_generator_generate_different_worker_ids_differ() -> None:
 
 
 def test_snowflake_id_generator_generate_negative_worker_id_raises() -> None:
-    with pytest.raises(ValueError, match="worker_id must fit in 10 bits"):
+    with pytest.raises(ValueError, match="worker_id must be in the closed range"):
         SnowflakeIdGenerator().generate(worker_id=-1)
 
 
 def test_snowflake_id_generator_generate_worker_id_too_large_raises() -> None:
-    with pytest.raises(ValueError, match="worker_id must fit in 10 bits"):
+    with pytest.raises(ValueError, match="worker_id must be in the closed range"):
         SnowflakeIdGenerator().generate(worker_id=1024)
 
 
@@ -347,7 +347,7 @@ def test_generate_snowflake_id_encodes_given_worker_id() -> None:
 
 
 def test_generate_snowflake_id_negative_worker_id_raises() -> None:
-    with pytest.raises(ValueError, match="worker_id must fit in 10 bits"):
+    with pytest.raises(ValueError, match="worker_id must be in the closed range"):
         generate_snowflake_id(worker_id=-1)
 
 
@@ -388,12 +388,12 @@ def test_extract_snowflake_timestamp_ms_matches_decode_helper() -> None:
 
 
 def test_extract_snowflake_timestamp_ms_negative_raises() -> None:
-    with pytest.raises(ValueError, match="snowflake_id must fit in"):
+    with pytest.raises(ValueError, match="snowflake_id must be in the closed range"):
         extract_snowflake_timestamp_ms(-1)
 
 
 def test_extract_snowflake_timestamp_ms_too_large_raises() -> None:
-    with pytest.raises(ValueError, match="snowflake_id must fit in"):
+    with pytest.raises(ValueError, match="snowflake_id must be in the closed range"):
         extract_snowflake_timestamp_ms(1 << 63)
 
 
@@ -493,3 +493,37 @@ def test_snowflake_id_generator_does_not_repeat_an_id_after_a_backward_clock_in_
 def test_snowflake_id_generator_increases_after_a_backward_clock_in_the_busy_wait() -> None:
     ids, new_id = _generate_after_a_backward_clock_in_the_busy_wait()
     assert new_id > max(ids)
+
+
+#####################################################
+#     Tests for the strict inputs and inverse     #
+#####################################################
+
+
+@pytest.mark.parametrize("worker_id", [True, 1.5, "1"])
+def test_snowflake_id_generator_generate_worker_id_wrong_type_raises(worker_id: object) -> None:
+    with pytest.raises(TypeError, match="worker_id must be an int"):
+        SnowflakeIdGenerator().generate(worker_id)
+
+
+@pytest.mark.parametrize("timestamp_ms", [True, 1.5, "1"])
+def test_snowflake_id_generator_generate_timestamp_ms_wrong_type_raises(
+    timestamp_ms: object,
+) -> None:
+    with pytest.raises(TypeError, match="timestamp_ms must be an int"):
+        SnowflakeIdGenerator().generate(timestamp_ms=timestamp_ms)
+
+
+@pytest.mark.parametrize("snowflake_id", [True, 1.5, "1", None])
+def test_extract_snowflake_timestamp_ms_wrong_type_raises(snowflake_id: object) -> None:
+    with pytest.raises(TypeError, match="snowflake_id must be an int"):
+        extract_snowflake_timestamp_ms(snowflake_id)
+
+
+def test_extract_snowflake_timestamp_ms_rejects_a_64_bit_value() -> None:
+    with pytest.raises(ValueError, match="snowflake_id must be in the closed range"):
+        extract_snowflake_timestamp_ms(1 << 63)
+
+
+def test_extract_snowflake_timestamp_ms_accepts_a_63_bit_value() -> None:
+    assert extract_snowflake_timestamp_ms((1 << 63) - 1) == _EPOCH_MS + (1 << 41) - 1

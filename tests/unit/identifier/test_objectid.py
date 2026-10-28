@@ -8,7 +8,7 @@ import pytest
 
 from coola.identifier import (
     ObjectIdGenerator,
-    extract_object_id_timestamp,
+    extract_object_id_timestamp_s,
     generate_object_id,
     objectid as objectid_module,
 )
@@ -137,12 +137,12 @@ def test_object_id_generator_generate_timestamp_does_not_race_counter() -> None:
 
 
 def test_object_id_generator_generate_negative_timestamp_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp must fit in 32 bits"):
+    with pytest.raises(ValueError, match="timestamp must be in the closed range"):
         ObjectIdGenerator().generate(timestamp=-1)
 
 
 def test_object_id_generator_generate_timestamp_too_large_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp must fit in 32 bits"):
+    with pytest.raises(ValueError, match="timestamp must be in the closed range"):
         ObjectIdGenerator().generate(timestamp=2**32)
 
 
@@ -152,28 +152,28 @@ def test_generate_object_id_accepts_explicit_timestamp() -> None:
 
 
 #################################################
-#     Tests for extract_object_id_timestamp     #
+#     Tests for extract_object_id_timestamp_s     #
 #################################################
 
 
-def test_extract_object_id_timestamp_roundtrip() -> None:
+def test_extract_object_id_timestamp_s_roundtrip() -> None:
     with patch("time.time", return_value=1_800_000_000):
         object_id = generate_object_id()
-    assert extract_object_id_timestamp(object_id) == 1_800_000_000
+    assert extract_object_id_timestamp_s(object_id) == 1_800_000_000
 
 
-def test_extract_object_id_timestamp_returns_int() -> None:
-    assert isinstance(extract_object_id_timestamp(generate_object_id()), int)
+def test_extract_object_id_timestamp_s_returns_int() -> None:
+    assert isinstance(extract_object_id_timestamp_s(generate_object_id()), int)
 
 
-def test_extract_object_id_timestamp_wrong_length_raises() -> None:
-    with pytest.raises(ValueError, match="object_id must be a 24-character hex string"):
-        extract_object_id_timestamp("too-short")
+def test_extract_object_id_timestamp_s_wrong_length_raises() -> None:
+    with pytest.raises(ValueError, match="object_id must be a 24-character lowercase hex string"):
+        extract_object_id_timestamp_s("too-short")
 
 
-def test_extract_object_id_timestamp_invalid_hex_raises() -> None:
-    with pytest.raises(ValueError, match="object_id must be a 24-character hex string"):
-        extract_object_id_timestamp("z" * 24)
+def test_extract_object_id_timestamp_s_invalid_hex_raises() -> None:
+    with pytest.raises(ValueError, match="object_id must be a 24-character lowercase hex string"):
+        extract_object_id_timestamp_s("z" * 24)
 
 
 def test_object_id_generator_is_tracked_for_forks() -> None:
@@ -215,3 +215,34 @@ def test_object_id_generator_after_fork_ids_use_the_new_process_value() -> None:
     generator._reset_after_fork()
     after = generator.generate()
     assert before[8:18] != after[8:18]  # the 5-byte process value
+
+
+#####################################################
+#     Tests for the strict inputs and inverse     #
+#####################################################
+
+
+@pytest.mark.parametrize("timestamp", [True, 1.5, "1"])
+def test_object_id_generator_generate_timestamp_wrong_type_raises(timestamp: object) -> None:
+    with pytest.raises(TypeError, match="timestamp must be an int"):
+        ObjectIdGenerator().generate(timestamp)
+
+
+@pytest.mark.parametrize("object_id", [None, 123, b"65920a80aabbccddeeff0011"])
+def test_extract_object_id_timestamp_s_not_a_str_raises(object_id: object) -> None:
+    with pytest.raises(TypeError, match="object_id must be an instance of"):
+        extract_object_id_timestamp_s(object_id)
+
+
+@pytest.mark.parametrize(
+    "object_id",
+    [
+        "65 92 0a 80 aa bb cc dd ee ff 00 11"[:24],
+        "65920A80AABBCCDDEEFF0011",
+        "65920a80aabbccddeeff0011\n",
+        " 65920a80aabbccddeeff001",
+    ],
+)
+def test_extract_object_id_timestamp_s_not_lowercase_hex_raises(object_id: str) -> None:
+    with pytest.raises(ValueError, match="24-character lowercase hex string"):
+        extract_object_id_timestamp_s(object_id)

@@ -14,15 +14,16 @@ __all__ = ["extract_ulid_timestamp_ms", "generate_ulid"]
 
 import os
 
+from coola.identifier import crockford
 from coola.identifier.monotonic import MonotonicRandom
-from coola.identifier.validation import (
-    CROCKFORD_BASE32_ALPHABET as _ENCODING,
-    decode_crockford_base32,
-    validate_timestamp_ms,
-)
+from coola.validation import validate_closed_range, validate_int, validate_str
+
+_TIMESTAMP_BITS = 48
+_RANDOM_BITS = 80
+_LENGTH = 26
 
 # State of the ULIDs generated with the current time: they increase within a millisecond.
-_MONOTONIC = MonotonicRandom(bits=80)
+_MONOTONIC = MonotonicRandom(bits=_RANDOM_BITS)
 
 
 def generate_ulid(timestamp_ms: int | None = None) -> str:
@@ -58,6 +59,8 @@ def generate_ulid(timestamp_ms: int | None = None) -> str:
         A 26-character uppercase Crockford Base32 ULID string.
 
     Raises:
+        TypeError: If ``timestamp_ms`` is not an ``int`` (a ``bool`` is
+            rejected).
         ValueError: If ``timestamp_ms`` does not fit in 48 bits (i.e.
             is negative or exceeds ``2**48 - 1``).
 
@@ -72,14 +75,11 @@ def generate_ulid(timestamp_ms: int | None = None) -> str:
     """
     if timestamp_ms is None:
         timestamp_ms, randomness = _MONOTONIC.next()
-        validate_timestamp_ms(timestamp_ms)
-        payload = timestamp_ms.to_bytes(6, byteorder="big") + randomness.to_bytes(
-            10, byteorder="big"
-        )
     else:
-        validate_timestamp_ms(timestamp_ms)
-        payload = timestamp_ms.to_bytes(6, byteorder="big") + os.urandom(10)
-    return _encode_base32(payload)
+        validate_int(timestamp_ms, name="timestamp_ms")
+        randomness = int.from_bytes(os.urandom(10), byteorder="big")
+    validate_closed_range(timestamp_ms, 0, (1 << _TIMESTAMP_BITS) - 1, name="timestamp_ms")
+    return crockford.encode((timestamp_ms << _RANDOM_BITS) | randomness, length=_LENGTH)
 
 
 def extract_ulid_timestamp_ms(ulid: str) -> int:
@@ -98,10 +98,11 @@ def extract_ulid_timestamp_ms(ulid: str) -> int:
         ``ulid``.
 
     Raises:
+        TypeError: If ``ulid`` is not a ``str``.
         ValueError: If ``ulid`` is not 26 characters long, or contains
-            a character outside the Crockford Base32 alphabet used by
-            ``generate_ulid`` (the case is ignored), or encodes a value
-            larger than 128 bits.
+            a character outside the Crockford Base32 alphabet (the case
+            is ignored, ``O`` is read as ``0`` and ``I``/``L`` as
+            ``1``), or encodes a value larger than 128 bits.
 
     Example:
         ```pycon
@@ -111,29 +112,12 @@ def extract_ulid_timestamp_ms(ulid: str) -> int:
 
         ```
     """
-    if len(ulid) != 26:
-        msg = f"ulid must be 26 characters long, got {len(ulid)}"
+    validate_str(ulid, name="ulid")
+    if len(ulid) != _LENGTH:
+        msg = f"ulid must be {_LENGTH} characters long, got {len(ulid)}"
         raise ValueError(msg)
-    value = decode_crockford_base32(ulid, name="ulid")
-    if value >> 128:
+    value = crockford.decode(ulid, name="ulid")
+    if value >> (_TIMESTAMP_BITS + _RANDOM_BITS):
         msg = f"ulid is larger than 2**128 - 1 (the first character must be at most '7'), got {ulid!r}"
         raise ValueError(msg)
-    return value >> 80
-
-
-def _encode_base32(payload: bytes) -> str:
-    r"""Encode a 16-byte payload as a 26-character Crockford Base32
-    string.
-
-    Args:
-        payload: The 128 bits (16 bytes) to encode.
-
-    Returns:
-        The Crockford Base32 encoding of ``payload``.
-    """
-    value = int.from_bytes(payload, byteorder="big")
-    chars = [""] * 26
-    for i in range(25, -1, -1):
-        chars[i] = _ENCODING[value & 0x1F]
-        value >>= 5
-    return "".join(chars)
+    return value >> _RANDOM_BITS
