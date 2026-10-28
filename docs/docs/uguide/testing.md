@@ -581,12 +581,34 @@ def test_load_data_without_pandas():
 
 ## Properties
 
-| Property        | Statement                                                                                        |
-| --------------- | ------------------------------------------------------------------------------------------------ |
-| Paired markers  | Each dependency has a marker to run a test only if it is installed, and one only if it is not.   |
-| Skip, not fail  | A test whose condition is not met is skipped with a message that names the dependency.           |
-| Standard pytest | The markers are `pytest.mark.skipif` decorators, so they combine with the other pytest features. |
-| Extensible      | `requires` creates the pair of markers for another dependency, like for the built-in ones.       |
+| Property             | Statement                                                                                                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Paired markers       | Each dependency has a marker to run a test only if it is installed, and one only if it is not.                                                                             |
+| Skip, not fail       | A test whose condition is not met is skipped with a message that names the dependency.                                                                                     |
+| Standard pytest      | The markers are `pytest.mark.skipif` decorators, so they combine with the other pytest features.                                                                           |
+| Lazy                 | Importing `coola.testing.fixtures` imports no optional library. The check of a dependency runs once, when its marker is first used, so a suite that uses only `numpy_available` never pays for `torch` or `jax`. |
+| Agrees with the library | A marker calls the `is_<name>_available` function of `coola.utils.imports` that the code under test uses, so a test runs the fallback path exactly when the library does. |
+| Extensible           | `requires` creates the pair of markers for another dependency, like for the built-in ones.                                                                                 |
+| Isolated registries  | The `isolated_default_registries` fixture runs a test on copies of the six default registries and restores the originals when the test ends, even if it fails.            |
+| Opt-in               | Nothing in `coola` outside `coola.testing` imports it, and the fixture is not autouse.                                                                                     |
+
+Not guaranteed:
+
+- **The fixture is not thread-safe.** The default registries are process-wide: do not request the
+  fixture from tests that run in threads of the same process (`pytest-xdist` workers are processes
+  and are fine).
+- **Only the six default registries are isolated** (equality, hashing, iterator, random, recursive,
+  summary). The random seeds, `sys.modules`, the environment and the availability caches are not.
+- **A package that is installed but cannot be imported** is reported as not available, because
+  that is what the library does.
+
+### Two `numpy_available`
+
+`coola.utils.imports.numpy_available` is a **function decorator** for library code: it replaces the
+function by `None` when NumPy is missing. `coola.testing.fixtures.numpy_available` is a **pytest
+marker**. A test decorated with the first one is not skipped, it disappears from the run with no
+skip report, which is the failure the marker exists to prevent. In tests, always import the
+markers from `coola.testing.fixtures`.
 
 ## Design Principles
 
