@@ -50,8 +50,8 @@ class SlowFileSaver(BaseFileSaver[str]):
 def test_base_file_saver_save_concurrent_exist_ok_true_does_not_interleave(
     tmp_path: Path,
 ) -> None:
-    """Test that concurrent overwrites of one path from threads leave one
-    writer's complete content."""
+    """Test that concurrent overwrites of one path from threads leave
+    one writer's complete content."""
     # Each thread writes its own hidden tmp file and commits it atomically, so
     # the result is always exactly one writer's full content, never a mix.
     path = tmp_path.joinpath("data.txt")
@@ -114,7 +114,8 @@ _CONTENT_SIZE = 200_000
 
 
 def _create_file(path: Path, value: str, barrier: Any, queue: Any) -> None:  # pragma: no cover
-    r"""Create ``path`` with ``exist_ok=False`` and report the outcome."""
+    r"""Create ``path`` with ``exist_ok=False`` and report the
+    outcome."""
     barrier.wait()
     try:
         SimpleFileSaver().save(value * _CONTENT_SIZE, path)
@@ -125,7 +126,8 @@ def _create_file(path: Path, value: str, barrier: Any, queue: Any) -> None:  # p
 
 
 def _overwrite_file(path: Path, value: str, barrier: Any, queue: Any) -> None:  # pragma: no cover
-    r"""Overwrite ``path`` with ``exist_ok=True`` and report the outcome."""
+    r"""Overwrite ``path`` with ``exist_ok=True`` and report the
+    outcome."""
     barrier.wait()
     try:
         SimpleFileSaver().save(value * _CONTENT_SIZE, path, exist_ok=True)
@@ -154,7 +156,8 @@ def _run_processes(target: Any, path: Path) -> list[str]:
 @requires_fork
 def test_processes_create_the_same_file_exactly_one_wins(tmp_path: Path) -> None:
     """Test that processes that create the same file at the same time
-    have exactly one winner and that the others see ``FileExistsError``."""
+    have exactly one winner and that the others see
+    ``FileExistsError``."""
     outcomes = _run_processes(_create_file, tmp_path.joinpath("data.txt"))
     assert sorted(outcomes) == ["created"] + ["exists"] * (_NUM_PROCESSES - 1)
 
@@ -196,7 +199,8 @@ def test_processes_overwrite_the_same_file_content_is_complete(tmp_path: Path) -
 
 @requires_fork
 def test_processes_overwrite_the_same_file_leaves_only_the_file(tmp_path: Path) -> None:
-    """Test that overwriting processes leave one file in the directory."""
+    """Test that overwriting processes leave one file in the
+    directory."""
     _run_processes(_overwrite_file, tmp_path.joinpath("data.txt"))
     assert [p.name for p in tmp_path.iterdir()] == ["data.txt"]
 
@@ -255,7 +259,8 @@ def test_save_fsync_with_the_real_fsync_leaves_one_file(tmp_path: Path) -> None:
 
 @pytest.mark.skipif(not hasattr(os, "geteuid") or os.geteuid() == 0, reason="Requires non-root")
 def test_save_in_a_read_only_directory_raises_permission_error(tmp_path: Path) -> None:
-    """Test that a read-only target directory raises ``PermissionError``."""
+    """Test that a read-only target directory raises
+    ``PermissionError``."""
     tmp_path.chmod(0o500)
     try:
         with pytest.raises(PermissionError):
