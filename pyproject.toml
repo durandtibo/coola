@@ -279,6 +279,7 @@ source_modules = [
   "coola.utils",
   "coola.display",
   "coola.validation",
+  "coola.tools",
 ]
 forbidden_modules = [
   "coola.equality",
@@ -295,6 +296,35 @@ forbidden_modules = [
   "coola.identifier",
   "coola.testing",
 ]
+
+[[tool.importlinter.contracts]]
+name = "Utils must import validation only"
+type = "forbidden"
+source_modules = ["coola.utils"]
+forbidden_modules = [
+  "coola.registry",
+  "coola.display",
+  "coola.tools",
+  "coola.equality",
+  "coola.hashing",
+  "coola.summary",
+  "coola.recursive",
+  "coola.iterator",
+  "coola.random",
+  "coola.nested",
+  "coola.reducer",
+  "coola.rounding",
+  "coola.io",
+  "coola.factory",
+  "coola.identifier",
+  "coola.testing",
+]
+
+[[tool.importlinter.contracts]]
+name = "Validation must not import utils"
+type = "forbidden"
+source_modules = ["coola.validation"]
+forbidden_modules = ["coola.utils"]
 
 [[tool.importlinter.contracts]]
 name = "Hashing must not import identifier"

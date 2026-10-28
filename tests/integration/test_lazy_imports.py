@@ -5,11 +5,16 @@ import pkgutil
 import pytest
 
 import coola
+import coola.tools
 from coola.testing.marks import numpy_available, polars_available, torch_available
 from tests.integration.helpers import run_python
 
 OPTIONAL_LIBRARIES = ("jax", "numpy", "pandas", "polars", "pyarrow", "pydantic", "torch", "xarray")
 PACKAGES = ["coola", *(f"coola.{m.name}" for m in pkgutil.iter_modules(coola.__path__) if m.ispkg)]
+
+TOOLS_MODULES = [
+    m.name for m in pkgutil.iter_modules(coola.tools.__path__) if m.name not in {"array", "tensor"}
+]
 
 
 def loaded_libraries(statement: str) -> list[str]:
@@ -32,6 +37,13 @@ def test_importing_a_package_does_not_import_the_optional_libraries(package: str
     """Test that importing a package does not load the optional
     libraries."""
     assert loaded_libraries(f"import {package}") == []
+
+
+@pytest.mark.parametrize("module", TOOLS_MODULES)
+def test_importing_a_tools_module_does_not_import_the_optional_libraries(module: str) -> None:
+    """Test that importing a module of ``coola.tools`` other than
+    ``array`` and ``tensor`` does not load the optional libraries."""
+    assert loaded_libraries(f"import coola.tools.{module}") == []
 
 
 def test_importing_a_lazy_name_imports_its_module() -> None:

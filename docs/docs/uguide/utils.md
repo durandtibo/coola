@@ -1,7 +1,7 @@
 # Utility Functions
 
-:book: This page describes the `coola.utils` package, which provides various utility functions for
-working with imports, formatting, arrays, and more.
+:book: This page describes the `coola.utils` package, which provides the helpers that the other
+`coola` packages are built on: imports, formatting, mappings, paths, and more.
 
 **Prerequisites:** You'll need to know a bit of Python.
 For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
@@ -13,32 +13,17 @@ submodules:
 
 1. **Import utilities** - Check if packages are available and handle optional dependencies
 2. **Formatting utilities** - Format objects, sequences, and mappings for display
-3. **Array utilities** - Utilities for working with arrays
-4. **Other utilities** - Bloom filter, mapping, path, version, environment variable,
-   introspection, string, date, secret, and statistics utilities
+3. **Other utilities** - Mapping, path, version, introspection, string, secret, and statistics
+   utilities
 
-### Core helpers and general helpers
+The standalone helpers (array, tensor, Bloom filter, LRU cache, git, dates, timing, environment
+variables, ...) are in [`coola.tools`](tools.md).
+
+### Core helpers
 
 The modules used by the other `coola` packages are the **core helpers**: `imports`, `fallback`,
 `fork`, `format`, `integer`, `introspection`, `mapping`, `path`, `safe`, `selection`, `singleton`,
-`stats`, `tensor` (only by `coola.testing` and `reducer`), `conversion` and `version`.
-
-The following modules are **general helpers**: standalone utilities that are not used by the other
-`coola` packages (`array`, `env_vars`, `logging`, `lru`, `recursion` and `string` are in this
-group too). They are kept because they are small and tested, but they are not related to
-comparing, summarizing or transforming data, so do not look for `coola`'s core features there:
-
-| Module                     | Content                                                   |
-| -------------------------- | --------------------------------------------------------- |
-| `coola.utils.bloom_filter` | `BloomFilter`, an approximate set for duplicate detection |
-| `coola.utils.date`         | Today's date and conversion of dates                      |
-| `coola.utils.file_size`    | The size of a file or of a directory                      |
-| `coola.utils.git`          | The branch and the commit of a git repository             |
-| `coola.utils.password`     | Read a password from the terminal                         |
-| `coola.utils.secret`       | Mask a secret before displaying it                        |
-| `coola.utils.text_diff`    | Unified diff of two texts                                 |
-| `coola.utils.timing`       | The `timeblock` context manager                           |
-| `coola.utils.batching`     | Split an iterable in batches                              |
+`stats`, `conversion` and `version`.
 
 ## Import Utilities (`coola.utils.imports`)
 
@@ -311,55 +296,6 @@ Use `str_time_human()` to format time durations:
 
 ```
 
-## Array Utilities (`coola.utils.array`)
-
-The `coola.utils.array` module provides utilities for working with array-like objects across
-different backends (NumPy, PyTorch). `to_array()` converts a sequence of numbers, a
-`numpy.ndarray` or a `torch.Tensor` to a `numpy.ndarray`:
-
-```pycon
->>> from coola.utils.array import to_array
->>> to_array([1, 2, 3])
-array([1, 2, 3])
-
-```
-
-## Tensor Utilities (`coola.utils.tensor`)
-
-The `coola.utils.tensor` module provides utilities for working with PyTorch tensors:
-
-- `is_cuda_available()` - Check if CUDA is available with PyTorch
-- `is_mps_available()` - Check if MPS (Apple Silicon) is available with PyTorch
-- `get_available_devices()` - Get the PyTorch devices available on the machine
-- `to_tensor()` - Convert a sequence of numbers, a `numpy.ndarray` or a `torch.Tensor` to a
-  `torch.Tensor`
-
-```pycon
->>> from coola.utils.tensor import is_cuda_available, is_mps_available
->>> is_cuda_available()  # doctest: +SKIP
-False
->>> is_mps_available()  # doctest: +SKIP
-False
-
-```
-
-## Bloom Filter (`coola.utils.bloom_filter`)
-
-The `coola.utils.bloom_filter` module provides `BloomFilter`, a fixed-memory approximate set
-used for duplicate detection. It never reports a false negative, but it can report a false
-positive at a configurable rate. It is a standalone utility and is not used by the other
-`coola` packages.
-
-```pycon
->>> from coola.utils.bloom_filter import BloomFilter
->>> bf = BloomFilter(expected_items=1000, fp_rate=0.01)
->>> bf.add_and_check(b"hello")
-False
->>> bf.add_and_check(b"hello")
-True
-
-```
-
 ## Mapping Utilities (`coola.utils.mapping`)
 
 The `coola.utils.mapping` module provides `sort_by_keys()` and `sort_by_values()`, which return a
@@ -418,31 +354,6 @@ False
 
 ```
 
-## Environment Variable Utilities (`coola.utils.env_vars`)
-
-The `coola.utils.env_vars` module provides utilities for working with environment variables:
-
-- `get_required_env_var()` - Get an environment variable and raise a `ValueError` if it is not set
-  or is empty
-- `check_env_vars()` - Indicate which environment variables are defined, and optionally raise or log
-  at a given level when some are missing
-- `temp_env_vars()` - Context manager that temporarily sets environment variables and restores them
-  on exit
-
-```pycon
->>> from coola.utils.env_vars import check_env_vars, get_required_env_var, temp_env_vars
->>> with temp_env_vars({"COOLA_EXAMPLE": "value"}):
-...     get_required_env_var("COOLA_EXAMPLE")
-...     check_env_vars(["COOLA_EXAMPLE"])
-'value'
-{'COOLA_EXAMPLE': True}
->>> get_required_env_var("COOLA_EXAMPLE")
-Traceback (most recent call last):
-    ...
-ValueError: Environment variable 'COOLA_EXAMPLE' is required but not set or is empty
-
-```
-
 ## Introspection Utilities (`coola.utils.introspection`)
 
 The `coola.utils.introspection` module provides utilities for introspecting Python objects:
@@ -498,20 +409,6 @@ The `coola.utils.string` module provides small helpers to work with strings: `co
 'abcde...'
 >>> char_diff_summary("abc", "abcdef")
 '3 -> 6 chars (+3 chars, +100.0%).'
-
-```
-
-## Date Utilities (`coola.utils.date`)
-
-The `coola.utils.date` module provides `get_today_date()` (today's date in a timezone, as a
-string), `to_date()` and `to_datetime()` (convert a string to a `date` or a `datetime`):
-
-```pycon
->>> from coola.utils.date import to_date, to_datetime
->>> to_date("2024-01-31")
-datetime.date(2024, 1, 31)
->>> to_datetime("2024-01-31T10:00:00")
-datetime.datetime(2024, 1, 31, 10, 0)
 
 ```
 

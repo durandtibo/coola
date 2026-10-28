@@ -1,0 +1,271 @@
+"""Unit tests for git utilities."""
+
+from __future__ import annotations
+
+import subprocess
+from unittest.mock import Mock, patch
+
+import pytest
+
+from coola.tools.git import (
+    get_current_branch,
+    get_current_commit_hash,
+    is_git_repo,
+    run_git_command,
+)
+
+GIT_PATH = "/usr/bin/git"
+
+########################################
+#     Tests for get_current_branch     #
+########################################
+
+
+def _run_get_current_branch_returns_stdout() -> tuple[str, Mock]:
+    completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="main\n")
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch("subprocess.run", return_value=completed) as mock_run,
+    ):
+        result = get_current_branch()
+    return result, mock_run
+
+
+def test_get_current_branch_returns_stdout() -> None:
+    """Test that the branch name is returned from git stdout."""
+    result, _ = _run_get_current_branch_returns_stdout()
+    assert result == "main"
+
+
+def test_get_current_branch_returns_stdout_runs_git() -> None:
+    _, mock_run = _run_get_current_branch_returns_stdout()
+    mock_run.assert_called_once_with(
+        [GIT_PATH, "rev-parse", "--abbrev-ref", "HEAD"],
+        cwd=None,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+
+
+def test_get_current_branch_raises_error_when_not_a_repo() -> None:
+    """Test that an OSError is raised when git command fails."""
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch(
+            "subprocess.run",
+            side_effect=subprocess.CalledProcessError(128, "git"),
+        ),
+        pytest.raises(OSError, match="Failed to run git command"),
+    ):
+        get_current_branch()
+
+
+#############################################
+#     Tests for get_current_commit_hash     #
+#############################################
+
+
+def _run_get_current_commit_hash_returns_stdout() -> tuple[str, Mock]:
+    completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="abc1234\n")
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch("subprocess.run", return_value=completed) as mock_run,
+    ):
+        result = get_current_commit_hash()
+    return result, mock_run
+
+
+def test_get_current_commit_hash_returns_stdout() -> None:
+    """Test that the commit hash is returned from git stdout."""
+    result, _ = _run_get_current_commit_hash_returns_stdout()
+    assert result == "abc1234"
+
+
+def test_get_current_commit_hash_returns_stdout_runs_git() -> None:
+    _, mock_run = _run_get_current_commit_hash_returns_stdout()
+    mock_run.assert_called_once_with(
+        [GIT_PATH, "rev-parse", "HEAD"],
+        cwd=None,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+
+
+def _run_get_current_commit_hash_short() -> tuple[str, Mock]:
+    completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="abc1234\n")
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch("subprocess.run", return_value=completed) as mock_run,
+    ):
+        result = get_current_commit_hash(short=True)
+    return result, mock_run
+
+
+def test_get_current_commit_hash_short() -> None:
+    """Test that the short commit hash is requested when short=True."""
+    result, _ = _run_get_current_commit_hash_short()
+    assert result == "abc1234"
+
+
+def test_get_current_commit_hash_short_runs_git() -> None:
+    _, mock_run = _run_get_current_commit_hash_short()
+    mock_run.assert_called_once_with(
+        [GIT_PATH, "rev-parse", "--short", "HEAD"],
+        cwd=None,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+
+
+def test_get_current_commit_hash_raises_error_when_not_a_repo() -> None:
+    """Test that an OSError is raised when git command fails."""
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch(
+            "subprocess.run",
+            side_effect=subprocess.CalledProcessError(128, "git"),
+        ),
+        pytest.raises(OSError, match="Failed to run git command"),
+    ):
+        get_current_commit_hash()
+
+
+#################################
+#     Tests for is_git_repo     #
+#################################
+
+
+def test_is_git_repo_returns_true() -> None:
+    """Test that True is returned when inside a git repository."""
+    completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="true\n")
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch("subprocess.run", return_value=completed),
+    ):
+        assert is_git_repo() is True
+
+
+def test_is_git_repo_returns_false() -> None:
+    """Test that False is returned when not inside a git repository."""
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch(
+            "subprocess.run",
+            side_effect=subprocess.CalledProcessError(128, "git"),
+        ),
+    ):
+        assert is_git_repo() is False
+
+
+def test_is_git_repo_returns_false_inside_git_directory() -> None:
+    """Test that False is returned when git prints ``false`` (inside a
+    ``.git`` directory)."""
+    completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="false\n")
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch("subprocess.run", return_value=completed),
+    ):
+        assert is_git_repo() is False
+
+
+def test_is_git_repo_returns_false_when_git_not_found() -> None:
+    """Test that False is returned when the git executable is
+    missing."""
+    with patch("shutil.which", return_value=None):
+        assert is_git_repo() is False
+
+
+#####################################
+#     Tests for run_git_command     #
+#####################################
+
+
+def _run_run_git_command_returns_stripped_stdout() -> tuple[str, Mock]:
+    completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="  hello  \n")
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch("subprocess.run", return_value=completed) as mock_run,
+    ):
+        result = run_git_command(["status"])
+    return result, mock_run
+
+
+def test_run_git_command_returns_stripped_stdout() -> None:
+    """Test that the stdout is stripped and returned."""
+    result, _ = _run_run_git_command_returns_stripped_stdout()
+    assert result == "hello"
+
+
+def test_run_git_command_returns_stripped_stdout_runs_git() -> None:
+    _, mock_run = _run_run_git_command_returns_stripped_stdout()
+    mock_run.assert_called_once_with(
+        [GIT_PATH, "status"],
+        cwd=None,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+
+
+def _run_run_git_command_passes_cwd() -> tuple[str, Mock]:
+    completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="ok\n")
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch("subprocess.run", return_value=completed) as mock_run,
+    ):
+        result = run_git_command(["status"], cwd="/path/to/repo")
+    return result, mock_run
+
+
+def test_run_git_command_passes_cwd() -> None:
+    """Test that the cwd argument is forwarded to subprocess.run."""
+    result, _ = _run_run_git_command_passes_cwd()
+    assert result == "ok"
+
+
+def test_run_git_command_passes_cwd_runs_git() -> None:
+    _, mock_run = _run_run_git_command_passes_cwd()
+    mock_run.assert_called_once_with(
+        [GIT_PATH, "status"],
+        cwd="/path/to/repo",
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+
+
+def test_run_git_command_raises_error_on_called_process_error() -> None:
+    """Test that an OSError is raised when the git command fails."""
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch(
+            "subprocess.run",
+            side_effect=subprocess.CalledProcessError(128, "git"),
+        ),
+        pytest.raises(OSError, match="Failed to run git command"),
+    ):
+        run_git_command(["status"])
+
+
+def test_run_git_command_raises_error_when_git_not_found() -> None:
+    """Test that an OSError is raised when the git executable is
+    missing."""
+    with (
+        patch("shutil.which", return_value=None),
+        pytest.raises(OSError, match="git' executable could not be found"),
+    ):
+        run_git_command(["status"])
+
+
+def test_run_git_command_includes_stderr_in_error() -> None:
+    """Test that the stderr of git is part of the error message."""
+    error = subprocess.CalledProcessError(128, "git", stderr="fatal: not a git repository\n")
+    with (
+        patch("shutil.which", return_value=GIT_PATH),
+        patch("subprocess.run", side_effect=error),
+        pytest.raises(OSError, match="fatal: not a git repository"),
+    ):
+        run_git_command(["status"])
