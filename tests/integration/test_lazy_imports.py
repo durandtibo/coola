@@ -39,6 +39,13 @@ def test_importing_a_package_does_not_import_the_optional_libraries(package: str
     assert loaded_libraries(f"import {package}") == []
 
 
+@pytest.mark.parametrize("module", ["structure", "quantity", "text", "secret", "diff"])
+def test_importing_a_formatting_module_does_not_import_the_optional_libraries(module: str) -> None:
+    """Test that importing a module of ``coola.formatting`` does not load
+    the optional libraries."""
+    assert loaded_libraries(f"import coola.formatting.{module}") == []
+
+
 @pytest.mark.parametrize("module", TOOLS_MODULES)
 def test_importing_a_tools_module_does_not_import_the_optional_libraries(module: str) -> None:
     """Test that importing a module of ``coola.tools`` other than

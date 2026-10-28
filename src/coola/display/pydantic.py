@@ -13,7 +13,7 @@ __all__ = [
 import warnings
 from typing import TYPE_CHECKING, Any, cast, get_args, get_origin
 
-from coola.utils.format import repr_mapping_line, str_mapping_line
+from coola.formatting.structure import repr_mapping_line, str_mapping_line
 from coola.utils.imports import is_pydantic_available
 from coola.utils.mapping import sort_by_keys
 

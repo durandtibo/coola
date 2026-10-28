@@ -357,6 +357,7 @@ coola/
 ├── registry/             # Generic registries and type dispatch
 ├── summary/, hashing/, recursive/, iterator/, nested/, random/, reducer/
 ├── io/, factory/, identifier/, display/, validation/, testing/
+├── formatting/           # Turning values into text
 ├── tools/                # General-purpose helpers that coola does not need
 └── utils/                # The helpers that coola is built on
 ```
@@ -642,14 +643,15 @@ Potential areas for enhancement:
 Packages fall into two groups:
 
 - **Core**: `registry` (type-based dispatch), `utils` (generic helpers), `display`,
-  `validation` and `tools` (general-purpose helpers that `coola` itself does not import). These must not import from any feature package.
+  `validation`, `formatting` (turning values into text) and `tools` (general-purpose helpers that `coola` itself does not import). These must not import from any feature package.
 - **Features**: `equality`, `hashing`, `summary`, `recursive`, `iterator`, `random`, `nested`,
   `reducer`, `io`, `factory`, `identifier` and `testing`. Only `equality`, `hashing`, `summary`,
   `recursive` and `iterator` are built on `registry`; `reducer` and `random` are standalone
   helpers. `identifier` depends on `hashing` (the stable identifiers are built on `hash_object`), and
   `hashing` must not import `identifier`.
 
-There is no exception: `coola.registry` imports no feature package. `utils` imports the standard library and `validation` only, `validation` does not import
+There is no exception: `coola.registry` imports no feature package. `utils` imports the standard library and `validation` only, `formatting` imports `utils` and
+`validation` only, `validation` does not import
 `utils`, and `tools` imports no feature package.
 
 The contract is enforced with [import-linter](https://import-linter.readthedocs.io/)

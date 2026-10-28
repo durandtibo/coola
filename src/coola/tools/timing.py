@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
-from coola.utils.format import str_time_human
+from coola.formatting.quantity import str_time_human
 
 if TYPE_CHECKING:
     from collections.abc import Generator

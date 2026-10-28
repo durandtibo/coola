@@ -27,7 +27,7 @@ def mask_secret(secret: str, show_first: int = 3, show_last: int = 4) -> str:
 
     Example:
         ```pycon
-        >>> from coola.utils.secret import mask_secret
+        >>> from coola.formatting.secret import mask_secret
         >>> secret = "abcdefghijklmnopqrstuvwxyz"
         >>> mask_secret(secret)
         'abc*******************wxyz'
