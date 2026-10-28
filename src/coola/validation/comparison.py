@@ -68,6 +68,12 @@ def validate_ge(value: Any, low: Any, *, name: str = "value") -> None:
 
         ```
     """
+    # The success path is a plain comparison; ``_compare`` evaluates it again to build the error.
+    try:
+        if value >= low:
+            return
+    except (TypeError, ValueError):
+        pass  # reported by ``_compare``
     _compare(lambda v: v >= low, value, repr(low), name, f"greater than or equal to {low!r}")
 
 
@@ -91,6 +97,12 @@ def validate_gt(value: Any, low: Any, *, name: str = "value") -> None:
 
         ```
     """
+    # The success path is a plain comparison; ``_compare`` evaluates it again to build the error.
+    try:
+        if value > low:
+            return
+    except (TypeError, ValueError):
+        pass  # reported by ``_compare``
     _compare(lambda v: v > low, value, repr(low), name, f"greater than {low!r}")
 
 
@@ -114,6 +126,12 @@ def validate_le(value: Any, high: Any, *, name: str = "value") -> None:
 
         ```
     """
+    # The success path is a plain comparison; ``_compare`` evaluates it again to build the error.
+    try:
+        if value <= high:
+            return
+    except (TypeError, ValueError):
+        pass  # reported by ``_compare``
     _compare(lambda v: v <= high, value, repr(high), name, f"less than or equal to {high!r}")
 
 
@@ -137,6 +155,12 @@ def validate_lt(value: Any, high: Any, *, name: str = "value") -> None:
 
         ```
     """
+    # The success path is a plain comparison; ``_compare`` evaluates it again to build the error.
+    try:
+        if value < high:
+            return
+    except (TypeError, ValueError):
+        pass  # reported by ``_compare``
     _compare(lambda v: v < high, value, repr(high), name, f"less than {high!r}")
 
 
@@ -178,6 +202,15 @@ def validate_range(
 
         ```
     """
+    # The success path is a plain comparison. A value in the range proves that the range is not
+    # empty, so the bounds are checked only on the failure path.
+    try:
+        if (value >= low if low_inclusive else value > low) and (
+            value <= high if high_inclusive else value < high
+        ):
+            return
+    except (TypeError, ValueError):
+        pass  # reported by ``_compare``
     left = "[" if low_inclusive else "("
     right = "]" if high_inclusive else ")"
     interval = f"{left}{low!r}, {high!r}{right}"
@@ -218,7 +251,10 @@ def validate_finite(value: float, *, name: str = "value") -> None:
 
         ```
     """
-    # An int is always finite, but ``math.isfinite`` overflows for the huge ones.
+    # Fast path for the common cases: a finite float, or an int (always finite, but
+    # ``math.isfinite`` overflows for the huge ones).
+    if type(value) is int or (type(value) is float and math.isfinite(value)):
+        return
     validate_number(value, name=name)
     if not isinstance(value, int) and not math.isfinite(value):
         msg = f"{name} must be finite, got {value!r}"
