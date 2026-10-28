@@ -16,7 +16,7 @@ from __future__ import annotations
 __all__ = [
     "ObjectIdGenerator",
     "SnowflakeIdGenerator",
-    "extract_object_id_timestamp",
+    "extract_object_id_timestamp_s",
     "extract_snowflake_timestamp_ms",
     "extract_ulid_timestamp_ms",
     "extract_uuid7_timestamp_ms",
@@ -34,7 +34,7 @@ from coola.identifier.checksummed import generate_checksummed_id, verify_checksu
 from coola.identifier.content import generate_stable_content_id
 from coola.identifier.objectid import (
     ObjectIdGenerator,
-    extract_object_id_timestamp,
+    extract_object_id_timestamp_s,
     generate_object_id,
 )
 from coola.identifier.snowflake import (

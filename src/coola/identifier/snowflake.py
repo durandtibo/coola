@@ -22,9 +22,9 @@ import secrets
 import threading
 import time
 
-from coola.identifier.validation import validate_bit_range
 from coola.utils.fork import track_fork
 from coola.utils.singleton import LazySingleton
+from coola.validation import validate_closed_range, validate_int
 
 # Sleep briefly between spins while waiting for the next millisecond, to
 # avoid busy-waiting a full CPU core (and holding the lock) at 100%
@@ -42,6 +42,7 @@ _TIMESTAMP_BITS = 41
 _WORKER_ID_BITS = 10
 _SEQUENCE_BITS = 12
 
+_MAX_TIMESTAMP_MS = _EPOCH_MS + (1 << _TIMESTAMP_BITS) - 1
 _MAX_WORKER_ID = (1 << _WORKER_ID_BITS) - 1
 _MAX_SEQUENCE = (1 << _SEQUENCE_BITS) - 1
 
@@ -107,10 +108,12 @@ class SnowflakeIdGenerator:
             # _EPOCH_MS, so it must fit in 41 bits only once the epoch
             # is subtracted back out, matching what `generate` does
             # when packing the returned integer.
-            validate_bit_range(
-                last_timestamp_ms - _EPOCH_MS, _TIMESTAMP_BITS, name="last_timestamp_ms - epoch"
+            validate_int(last_timestamp_ms, name="last_timestamp_ms")
+            validate_closed_range(
+                last_timestamp_ms, _EPOCH_MS, _MAX_TIMESTAMP_MS, name="last_timestamp_ms"
             )
-        validate_bit_range(sequence, _SEQUENCE_BITS, name="sequence")
+        validate_int(sequence, name="sequence")
+        validate_closed_range(sequence, 0, _MAX_SEQUENCE, name="sequence")
         self._lock = threading.Lock()
         self._last_timestamp_ms = last_timestamp_ms
         self._sequence = sequence
@@ -182,7 +185,8 @@ class SnowflakeIdGenerator:
 
             ```
         """
-        validate_bit_range(worker_id, _WORKER_ID_BITS, name="worker_id")
+        validate_int(worker_id, name="worker_id")
+        validate_closed_range(worker_id, 0, _MAX_WORKER_ID, name="worker_id")
 
         with self._lock:
             if timestamp_ms is not None:
@@ -190,8 +194,9 @@ class SnowflakeIdGenerator:
                 # generator (a future value would make every later call
                 # fail with "clock moved backward"), so the sequence is
                 # random, like the random part of ``generate_ulid``.
-                validate_bit_range(
-                    timestamp_ms - _EPOCH_MS, _TIMESTAMP_BITS, name="timestamp_ms - epoch"
+                validate_int(timestamp_ms, name="timestamp_ms")
+                validate_closed_range(
+                    timestamp_ms, _EPOCH_MS, _MAX_TIMESTAMP_MS, name="timestamp_ms"
                 )
                 return (
                     ((timestamp_ms - _EPOCH_MS) << _TIMESTAMP_SHIFT)
@@ -199,9 +204,7 @@ class SnowflakeIdGenerator:
                     | secrets.randbits(_SEQUENCE_BITS)
                 )
             timestamp_ms = time.time_ns() // 1_000_000
-            validate_bit_range(
-                timestamp_ms - _EPOCH_MS, _TIMESTAMP_BITS, name="timestamp_ms - epoch"
-            )
+            validate_closed_range(timestamp_ms, _EPOCH_MS, _MAX_TIMESTAMP_MS, name="timestamp_ms")
             if timestamp_ms < self._last_timestamp_ms:
                 msg = (
                     f"clock moved backward: last timestamp was {self._last_timestamp_ms} ms, "
@@ -328,8 +331,10 @@ def extract_snowflake_timestamp_ms(snowflake_id: int) -> int:
         ``snowflake_id``.
 
     Raises:
+        TypeError: If ``snowflake_id`` is not an ``int`` (a ``bool`` is
+            rejected).
         ValueError: If ``snowflake_id`` is negative or does not fit in
-            64 bits.
+            63 bits.
 
     Example:
         ```pycon
@@ -340,7 +345,11 @@ def extract_snowflake_timestamp_ms(snowflake_id: int) -> int:
 
         ```
     """
-    validate_bit_range(
-        snowflake_id, _TIMESTAMP_BITS + _WORKER_ID_BITS + _SEQUENCE_BITS, name="snowflake_id"
+    validate_int(snowflake_id, name="snowflake_id")
+    validate_closed_range(
+        snowflake_id,
+        0,
+        (1 << (_TIMESTAMP_BITS + _WORKER_ID_BITS + _SEQUENCE_BITS)) - 1,
+        name="snowflake_id",
     )
     return (snowflake_id >> _TIMESTAMP_SHIFT) + _EPOCH_MS

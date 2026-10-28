@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.identifier import ulid as ulid_module
+from coola.identifier import crockford, ulid as ulid_module
 from coola.identifier.ulid import extract_ulid_timestamp_ms, generate_ulid
 
 if TYPE_CHECKING:
@@ -35,7 +35,7 @@ def _decode_timestamp_ms(value: str) -> int:
     """
     payload = 0
     for char in value:
-        payload = (payload << 5) | ulid_module._ENCODING.index(char)
+        payload = (payload << 5) | crockford.ALPHABET.index(char)
     payload &= (1 << 128) - 1
     return payload >> 80
 
@@ -81,12 +81,12 @@ def test_generate_ulid_max_timestamp() -> None:
 
 
 def test_generate_ulid_negative_timestamp_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp_ms must fit in 48 bits"):
+    with pytest.raises(ValueError, match="timestamp_ms must be in the closed range"):
         generate_ulid(timestamp_ms=-1)
 
 
 def test_generate_ulid_timestamp_too_large_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp_ms must fit in 48 bits"):
+    with pytest.raises(ValueError, match="timestamp_ms must be in the closed range"):
         generate_ulid(timestamp_ms=2**48)
 
 
@@ -118,7 +118,7 @@ def test_generate_ulid_uses_full_crockford_alphabet_characters() -> None:
     # A large sample should exercise the randomness bytes broadly
     # enough to see characters beyond the timestamp-derived prefix.
     combined = "".join(generate_ulid() for _ in range(200))
-    assert set(combined) <= set(ulid_module._ENCODING)
+    assert set(combined) <= set(crockford.ALPHABET)
 
 
 ###############################################
@@ -152,7 +152,7 @@ def test_extract_ulid_timestamp_ms_wrong_length_raises() -> None:
 
 def test_extract_ulid_timestamp_ms_invalid_character_raises() -> None:
     with pytest.raises(ValueError, match="ulid contains a character outside"):
-        extract_ulid_timestamp_ms("I" * 26)
+        extract_ulid_timestamp_ms("U" * 26)
 
 
 #########################################
@@ -238,3 +238,40 @@ def test_extract_ulid_timestamp_ms_rejects_a_value_larger_than_128_bits() -> Non
 def test_extract_ulid_timestamp_ms_accepts_lowercase() -> None:
     ulid = generate_ulid(timestamp_ms=1704067200000)
     assert extract_ulid_timestamp_ms(ulid.lower()) == 1704067200000
+
+
+#####################################################
+#     Tests for the strict inputs and inverse     #
+#####################################################
+
+
+@pytest.mark.parametrize("timestamp_ms", [True, 1.5, "1"])
+def test_generate_ulid_timestamp_wrong_type_raises(timestamp_ms: object) -> None:
+    with pytest.raises(TypeError, match="timestamp_ms must be an int"):
+        generate_ulid(timestamp_ms)
+
+
+@pytest.mark.parametrize("ulid", [None, 123, b"0" * 26])
+def test_extract_ulid_timestamp_ms_not_a_str_raises(ulid: object) -> None:
+    with pytest.raises(TypeError, match="ulid must be an instance of"):
+        extract_ulid_timestamp_ms(ulid)
+
+
+def test_extract_ulid_timestamp_ms_reads_o_as_zero() -> None:
+    assert extract_ulid_timestamp_ms("O" * 26) == 0
+
+
+def test_extract_ulid_timestamp_ms_reads_i_and_l_as_one() -> None:
+    assert extract_ulid_timestamp_ms("0000000001" + "I" * 16) == extract_ulid_timestamp_ms(
+        "0000000001" + "L" * 16
+    )
+
+
+def test_extract_ulid_timestamp_ms_whitespace_raises() -> None:
+    with pytest.raises(ValueError, match="ulid contains a character outside"):
+        extract_ulid_timestamp_ms(" " + "0" * 25)
+
+
+def test_extract_ulid_timestamp_ms_first_character_above_seven_raises() -> None:
+    with pytest.raises(ValueError, match="the first character must be at most '7'"):
+        extract_ulid_timestamp_ms("8" + "0" * 25)

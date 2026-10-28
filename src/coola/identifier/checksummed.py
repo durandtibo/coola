@@ -21,8 +21,8 @@ __all__ = ["generate_checksummed_id", "verify_checksummed_id"]
 
 import os
 
-from coola.identifier.validation import CROCKFORD_BASE32_ALPHABET, decode_crockford_base32
-from coola.validation import validate_positive
+from coola.identifier import crockford
+from coola.validation import validate_int, validate_positive
 
 # The 5 extra check symbols from the Crockford spec, extending the
 # alphabet from 32 to the 37 values needed for a mod-37 checksum.
@@ -53,10 +53,10 @@ def _checksum_symbol(payload: str) -> str:
         ValueError: If ``payload`` contains a character outside the
             Crockford Base32 alphabet.
     """
-    value = decode_crockford_base32(payload, name="payload")
+    value = crockford.decode(payload, name="payload")
     remainder = value % 37
     if remainder < 32:
-        return CROCKFORD_BASE32_ALPHABET[remainder]
+        return crockford.ALPHABET[remainder]
     return _CHECK_SYMBOLS[remainder - 32]
 
 
@@ -73,7 +73,7 @@ def _validate_sep(sep: str) -> None:
     if len(sep) > 1:
         msg = f"sep must be empty or a single character, got {sep!r}"
         raise ValueError(msg)
-    alphabet = CROCKFORD_BASE32_ALPHABET + _CHECK_SYMBOLS
+    alphabet = crockford.ALPHABET + _CHECK_SYMBOLS
     if any(char in alphabet for char in sep):
         msg = (
             "sep must not contain a character from the extended Crockford Base32 "
@@ -109,6 +109,8 @@ def generate_checksummed_id(
         symbol, grouped by ``group_size`` and joined by ``sep``.
 
     Raises:
+        TypeError: If ``length`` or ``group_size`` is not an ``int`` (a
+            ``bool`` is rejected).
         ValueError: If ``length`` or ``group_size`` is not positive,
             if ``length`` exceeds 1024, or if ``sep`` contains a character from the extended
             Crockford Base32 alphabet.
@@ -124,13 +126,15 @@ def generate_checksummed_id(
 
         ```
     """
+    validate_int(length, name="length")
     validate_positive(length, name="length")
     if length > _MAX_LENGTH:
         msg = f"length must be at most {_MAX_LENGTH}, got {length}"
         raise ValueError(msg)
+    validate_int(group_size, name="group_size")
     validate_positive(group_size, name="group_size")
     _validate_sep(sep)
-    payload = "".join(CROCKFORD_BASE32_ALPHABET[b % 32] for b in os.urandom(length))
+    payload = "".join(crockford.ALPHABET[b % 32] for b in os.urandom(length))
     full = payload + _checksum_symbol(payload)
     return sep.join(full[i : i + group_size] for i in range(0, len(full), group_size))
 
@@ -174,11 +178,11 @@ def verify_checksummed_id(identifier: str, sep: str = "-") -> bool:
     if not isinstance(identifier, str) or not identifier.isascii():
         # Non-ASCII look-alikes (the dotless i upper-cases to ``'I'``) must not verify.
         return False
-    full = _normalize(identifier.replace(sep, "") if sep else identifier)
+    full = identifier.replace(sep, "") if sep else identifier
     if len(full) < 2:
         return False
-    payload, check = full[:-1], full[-1]
-    if any(char not in CROCKFORD_BASE32_ALPHABET for char in payload):
+    try:
+        expected = _checksum_symbol(full[:-1])
+    except ValueError:
         return False
-    # payload was just validated above, so this cannot raise.
-    return check == _checksum_symbol(payload)
+    return _normalize(full[-1]) == expected

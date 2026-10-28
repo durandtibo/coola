@@ -144,3 +144,25 @@ def test_generate_checksummed_id_length_above_the_maximum_raises() -> None:
 
 def test_generate_checksummed_id_length_at_the_maximum() -> None:
     assert verify_checksummed_id(generate_checksummed_id(length=1024))
+
+
+#########################################
+#     Tests for the strict inputs     #
+#########################################
+
+
+@pytest.mark.parametrize("length", [True, 1.5, "8"])
+def test_generate_checksummed_id_length_wrong_type_raises(length: object) -> None:
+    with pytest.raises(TypeError, match="length must be an int"):
+        generate_checksummed_id(length)
+
+
+@pytest.mark.parametrize("group_size", [True, 1.5, "4"])
+def test_generate_checksummed_id_group_size_wrong_type_raises(group_size: object) -> None:
+    with pytest.raises(TypeError, match="group_size must be an int"):
+        generate_checksummed_id(group_size=group_size)
+
+
+def test_verify_checksummed_id_reads_o_in_the_check_symbol_as_zero() -> None:
+    payload = "1" * 8
+    assert verify_checksummed_id(payload + _checksum_symbol(payload).replace("0", "O"))
