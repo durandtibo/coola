@@ -106,8 +106,8 @@ def test_point() -> None:
 ```
 
 The fixture is not autouse: request it from the tests that register something. Outside of pytest,
-`coola.utils.singleton.temporary_default_registries()` is the context manager behind the fixture,
-and `coola.utils.singleton.reset_default_registries()` forgets the default registries so the next
+`coola.registry.default.temporary_default_registries()` is the context manager behind the fixture,
+and `coola.registry.default.reset_default_registries()` forgets the default registries so the next
 use builds them again with their default entries and plugins. Every registry has a `copy()` method
 to build an independent registry with the same entries.
 

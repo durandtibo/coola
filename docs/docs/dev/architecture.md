@@ -89,7 +89,7 @@ The registry maps types to testers. It is a `TypeRegistry` (`coola.registry`):
 `get_default_registry()` returns the global registry. Testers for optional libraries are only
 registered when the library is installed. `register_equality_testers(mapping, *, exist_ok=False)`
 adds testers to it. A test that registers a tester should not leak it: use
-`coola.utils.singleton.temporary_default_registries()` (see the testing guide), or work on
+`coola.registry.default.temporary_default_registries()` (see the testing guide), or work on
 `get_default_registry().copy()`.
 
 ### 4. Configuration

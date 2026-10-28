@@ -29,12 +29,13 @@ from coola.equality.tester.difference import DifferenceCloseEqualityTester
 from coola.equality.tester.equal import EqualNanEqualityTester
 from coola.equality.tester.registry import EqualityTesterRegistry
 from coola.equality.tester.scalar import ScalarEqualityTester
+from coola.registry.default import make_default_registry_singleton
 from coola.utils.imports import package_available
 from coola.utils.introspection import has_generated_dataclass_eq
-from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
     from coola.equality.tester.base import BaseEqualityTester
+    from coola.utils.singleton import LazySingleton
 
 # (names of the library in the module of the types, module with the testers)
 _LAZY_TESTERS = (

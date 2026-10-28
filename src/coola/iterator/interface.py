@@ -24,12 +24,13 @@ from coola.iterator.engine import breadth_first, depth_first, depth_first_items
 from coola.iterator.iterable import IterableChildFinder
 from coola.iterator.mapping import MappingChildFinder
 from coola.iterator.registry import ChildFinderRegistry
-from coola.utils.singleton import LazySingleton, make_default_registry_singleton
+from coola.registry.default import make_default_registry_singleton
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from coola.iterator.base import BaseChildFinder
+    from coola.utils.singleton import LazySingleton
 
 
 def dfs_iterate(data: object, *, registry: ChildFinderRegistry | None = None) -> Iterator[Any]:

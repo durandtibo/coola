@@ -24,13 +24,14 @@ from typing import TYPE_CHECKING, Any
 
 from coola.random.python import PythonRandomManager
 from coola.random.registry import RandomManagerRegistry
+from coola.registry.default import make_default_registry_singleton
 from coola.utils.imports import is_numpy_available, is_torch_available
-from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
 
     from coola.random.base import BaseRandomManager
+    from coola.utils.singleton import LazySingleton
 
 
 @contextmanager

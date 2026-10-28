@@ -126,7 +126,7 @@ plugin causes a conflict). To find out which plugins were loaded in the process,
 
 ```pycon
 >>> from coola.equality.tester import get_default_registry
->>> from coola.utils.singleton import get_loaded_plugins
+>>> from coola.registry.plugins import get_loaded_plugins
 >>> get_default_registry()  # doctest: +SKIP
 >>> [(plugin.group, plugin.name, plugin.value) for plugin in get_loaded_plugins()]  # doctest: +SKIP
 [('coola.equality.testers', 'mypkg', 'mypkg.coola_plugin:register')]

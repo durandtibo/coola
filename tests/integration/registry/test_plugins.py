@@ -63,7 +63,7 @@ def test_plugin_is_applied_to_the_default_registry(plugin_dir: Path) -> None:
 def test_plugin_is_listed_after_the_registry_is_built(plugin_dir: Path) -> None:
     code = (
         "from coola.equality.tester import get_default_registry; "
-        "from coola.utils.singleton import get_loaded_plugins; "
+        "from coola.registry.plugins import get_loaded_plugins; "
         "get_default_registry(); "
         "print(*[(p.group, p.name, p.value) for p in get_loaded_plugins()])"
     )
@@ -75,7 +75,7 @@ def test_plugin_is_listed_after_the_registry_is_built(plugin_dir: Path) -> None:
 
 
 def test_plugin_is_not_listed_before_the_registry_is_built(plugin_dir: Path) -> None:
-    code = "from coola.utils.singleton import get_loaded_plugins; print(len(get_loaded_plugins()))"
+    code = "from coola.registry.plugins import get_loaded_plugins; print(len(get_loaded_plugins()))"
     assert run_with_plugin(plugin_dir, code) == ["0"]
 
 
@@ -93,7 +93,7 @@ def test_disabled_plugin_is_not_applied(plugin_dir: Path) -> None:
 def test_disabled_plugin_is_not_listed(plugin_dir: Path) -> None:
     code = (
         "from coola.equality.tester import get_default_registry; "
-        "from coola.utils.singleton import get_loaded_plugins; "
+        "from coola.registry.plugins import get_loaded_plugins; "
         "get_default_registry(); "
         "print(len(get_loaded_plugins()))"
     )

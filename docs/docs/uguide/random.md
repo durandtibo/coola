@@ -349,7 +349,7 @@ keyword-only). Use `temporary_default_registries` to scope the registration, for
 
 ```pycon
 >>> from coola.random import PythonRandomManager, get_default_registry, register_managers
->>> from coola.utils.singleton import temporary_default_registries
+>>> from coola.registry.default import temporary_default_registries
 >>> with temporary_default_registries():
 ...     register_managers({"custom": PythonRandomManager()})
 ...     "custom" in get_default_registry()
