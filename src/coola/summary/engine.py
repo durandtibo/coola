@@ -161,7 +161,9 @@ class CompactRepr:
             return empty
         if level <= 0:
             return left + _FILL + right
-        pieces = [self._repr(item, level - 1) for item in smallest_items(data, self._max_items)]
+        pieces = [
+            self._repr(item, level - 1) for item in smallest_items(data, limit=self._max_items)
+        ]
         if len(data) > self._max_items:
             pieces.append(_FILL)
         return left + ", ".join(pieces) + right

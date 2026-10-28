@@ -39,5 +39,5 @@ class SetSummarizer(BaseSummarizer["AbstractSet[Any]"]):
 
     def summarize(self, data: AbstractSet[Any], config: SummaryConfig, *, compact: bool) -> Node:  # noqa: ARG002
         length = len(data)
-        children = enumerate(smallest_items(data, config.max_items))
+        children = enumerate(smallest_items(data, limit=config.max_items))
         return Node(f"{type(data)} (length={length:,})", children, length)

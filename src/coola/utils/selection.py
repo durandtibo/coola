@@ -8,11 +8,13 @@ import heapq
 from itertools import islice
 from typing import TYPE_CHECKING, Any
 
+from coola.validation import validate_ge
+
 if TYPE_CHECKING:
     from collections.abc import Collection
 
 
-def smallest_items(data: Collection[Any], limit: int | None = None) -> list[Any]:
+def smallest_items(data: Collection[Any], *, limit: int | None = None) -> list[Any]:
     r"""Return the smallest items in order.
 
     The items are selected in one pass without sorting all of them. If
@@ -30,6 +32,9 @@ def smallest_items(data: Collection[Any], limit: int | None = None) -> list[Any]
         The ``limit`` smallest items in order, or the first ``limit``
             items in iteration order if they cannot be compared.
 
+    Raises:
+        ValueError: If ``limit`` is negative.
+
     Example:
         ```pycon
         >>> from coola.utils.selection import smallest_items
@@ -42,6 +47,8 @@ def smallest_items(data: Collection[Any], limit: int | None = None) -> list[Any]
 
         ```
     """
+    if limit is not None:
+        validate_ge(limit, 0, name="limit")
     try:
         return sorted(data) if limit is None else heapq.nsmallest(limit, data)
     except TypeError:

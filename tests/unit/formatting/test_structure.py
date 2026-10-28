@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from coola.formatting.structure import (
@@ -14,6 +16,9 @@ from coola.formatting.structure import (
     str_sequence,
     str_sequence_line,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 #################################
 #     Tests for repr_indent     #
@@ -41,7 +46,7 @@ def test_repr_indent_num_spaces_4() -> None:
 
 
 def test_repr_indent_num_spaces_incorrect() -> None:
-    with pytest.raises(ValueError, match="num_spaces"):
+    with pytest.raises(ValueError, match=r"num_spaces must be greater than or equal to 0, got -1"):
         repr_indent("abc\ndef", num_spaces=-1)
 
 
@@ -180,7 +185,7 @@ def test_str_indent_num_spaces_4() -> None:
 
 
 def test_str_indent_num_spaces_incorrect() -> None:
-    with pytest.raises(ValueError, match="num_spaces"):
+    with pytest.raises(ValueError, match=r"num_spaces must be greater than or equal to 0, got -1"):
         str_indent("abc\ndef", num_spaces=-1)
 
 
@@ -294,12 +299,32 @@ def test_str_sequence_line_2_items_separator() -> None:
 
 
 def test_str_indent_skips_trailing_empty_line() -> None:
-    assert str_indent("a\nb\n", 2) == "a\n  b\n"
+    assert str_indent("a\nb\n", num_spaces=2) == "a\n  b\n"
 
 
 def test_str_indent_skips_empty_lines() -> None:
-    assert str_indent("a\n\nb", 2) == "a\n\n  b"
+    assert str_indent("a\n\nb", num_spaces=2) == "a\n\n  b"
 
 
 def test_repr_mapping_sorted_keys_mixed_key_types() -> None:
     assert repr_mapping({"b": 1, 1: 2}, sorted_keys=True) == "(1): 2\n(b): 1"
+
+
+@pytest.mark.parametrize(
+    ("function", "args"),
+    [
+        (repr_indent, ("a", 2)),
+        (str_indent, ("a", 2)),
+        (repr_mapping, ({"a": 1}, True)),
+        (str_mapping, ({"a": 1}, True)),
+        (repr_mapping_line, ({"a": 1}, True)),
+        (str_mapping_line, ({"a": 1}, True)),
+        (repr_sequence, ([1], 2)),
+        (str_sequence, ([1], 2)),
+        (repr_sequence_line, ([1], ", ")),
+        (str_sequence_line, ([1], ", ")),
+    ],
+)
+def test_options_are_keyword_only(function: Callable, args: tuple) -> None:
+    with pytest.raises(TypeError, match="positional argument"):
+        function(*args)

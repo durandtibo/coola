@@ -7,6 +7,8 @@ __all__ = ["quantile"]
 import math
 from typing import TYPE_CHECKING
 
+from coola.validation import validate_range
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -23,7 +25,8 @@ def quantile(values: Sequence[float | int], quantiles: Sequence[float]) -> list[
         The quantiles.
 
     Raises:
-        ValueError: If ``values`` is empty and ``quantiles`` is not.
+        ValueError: If a quantile is not in the range ``[0, 1]``, or if
+            ``values`` is empty and ``quantiles`` is not.
 
     Notes:
         If ``values`` contains a ``NaN``, every quantile is ``NaN``, like
@@ -41,9 +44,7 @@ def quantile(values: Sequence[float | int], quantiles: Sequence[float]) -> list[
         ```
     """
     for q in quantiles:
-        if not 0.0 <= q <= 1.0:
-            msg = f"quantiles must be in [0, 1], got {q}"
-            raise ValueError(msg)
+        validate_range(q, 0.0, 1.0, name="quantiles")
     if len(values) == 0 and len(quantiles) > 0:
         msg = "values must not be empty when quantiles is not empty"
         raise ValueError(msg)
