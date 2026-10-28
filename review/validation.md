@@ -298,15 +298,16 @@ accepted by `validate_finite`, rejected by `validate_number`.
 
 One branch and one pull request per step (`CLAUDE.md`). The order keeps every step releasable.
 
-| Step | Change                                                                                                                                                                                                                                                                                                                                                                            | Breaking                  |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| 1    | **Fix the guide (F15).** Add `validate_number`, the `bool` and NumPy rules, the NaN rule, the **Properties** table of section 1 at the top of the page and in the package docstring; fix "See also". Documentation only.                                                                                                                                                          | no                        |
-| 2    | **One helper, one message format (F3, F4, F6, F7, F11).** Add `_type_error` and `_compare`, rewrite `_check`/`_check_range` on `_compare`, switch the messages to `repr` and type names, wrap the raw exceptions of `validate_finite` (calls `validate_number` first, F5), `validate_not_empty` and `validate_in`, bound the listing (F9). Update the tests that match a message. | yes (messages, `Decimal`) |
-| 3    | **Range (F8).** Add `validate_range`, delete the three range functions, port the 10 call sites and the tests. The empty-range check.                                                                                                                                                                                                                                              | yes                       |
-| 4    | **Delete the synonyms (F1, F2).** Remove the nine type shortcuts and the four sign checks, port every call site (section 5) and the tests, delete `numeric.py` (F14: `validate_number` moves to `type.py`, `validate_finite` to `comparison.py`). One commit per family so that each diff is mechanical.                                                                          | yes                       |
-| 5    | **Use the package where the checks are re-implemented (F12).** `validate_seed`, `validate_hash_length`, `rounding.common.validate_arguments`, `_validate_on_duplicate`, `_validate_sep`. A behaviour change only in messages.                                                                                                                                                     | messages                  |
-| 6    | **Tests and benchmark (F16).** Property tests for the value validators, the message-format test over every validator, the cost gate (section 8). Can be merged into the step that adds the code.                                                                                                                                                                                  | no                        |
-| 7    | **Documentation.** Rewrite `uguide/validation.md` (overview by family, the one-line rule for adding a validator, the migration table), the `validation` lines of `dev/architecture.md`, a migration section in `migration/v0.11_to_v1.0.md` (removed names with the replacement line), and the status table of `review/suggestions.md`.                                           | no                        |
+| Step                              | Change                                                                                                                                                                                                                                                                                                                                                                                    | Breaking                  |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| 1                                 | **Fix the guide (F15).** Add `validate_number`, the `bool` and NumPy rules, the NaN rule, the **Properties** table of section 1 at the top of the page and in the package docstring; fix "See also". Documentation only.                                                                                                                                                                  | no                        |
+| 2                                 | **One helper, one message format (F3, F4, F6, F7, F11).** Add `_type_error` and `_compare`, rewrite `_check`/`_check_range` on `_compare`, switch the messages to `repr` and type names, wrap the raw exceptions of `validate_finite` (calls `validate_number` first, F5), `validate_not_empty` and `validate_in`, bound the listing (F9). Update the tests that match a message.         | yes (messages, `Decimal`) |
+| 3                                 | **Range (F8).** Add `validate_range`, delete the three range functions, port the 10 call sites and the tests. The empty-range check.                                                                                                                                                                                                                                                      | yes                       |
+| 4                                 | **Delete the synonyms (F1, F2).** Remove the nine type shortcuts and the four sign checks, port every call site (section 5) and the tests, delete `numeric.py` (F14: `validate_number` moves to `type.py`, `validate_finite` to `comparison.py`). One commit per family so that each diff is mechanical.                                                                                  | yes                       |
+| 5                                 | **Use the package where the checks are re-implemented (F12).** `validate_seed`, `validate_hash_length`, `rounding.common.validate_arguments`, `_validate_on_duplicate`, `_validate_sep`. A behaviour change only in messages.                                                                                                                                                             | messages                  |
+| 6                                 | **Tests and benchmark (F16).** Property tests for the value validators, the message-format test over every validator, the cost gate (section 8). Can be merged into the step that adds the code.                                                                                                                                                                                          | no                        |
+| 7                                 | **Documentation.** Rewrite `uguide/validation.md` (overview by family, the one-line rule for adding a validator, the migration table), the `validation` lines of `dev/architecture.md`, a migration section in `migration/v0.11_to_v1.0.md` (removed names with the replacement line), the status table of `review/suggestions.md`, and the rule of D6 in the module docstring, the guide |
+| and `CLAUDE.md` ("Code" section). | no                                                                                                                                                                                                                                                                                                                                                                                        |
 
 ## 8. Tests and gates
 
@@ -348,7 +349,10 @@ Unit tests mirror the source tree (`tests/unit/validation/`); the conventions of
   the success path; no row slower than `main` by more than 10 %. A failing gate rejects the step.
 - Coverage: 100 % of `src/coola/validation` (`--cov=coola`), no `# pragma: no cover`.
 
-## 9. Decisions for the maintainers
+## 9. Decisions
+
+All seven decisions are settled: D1 to D6 follow the recommendation, D7 is "no". The design above
+is the decided design; the text of each decision is kept as the reason.
 
 **D1. Delete the synonyms?** _Recommended: yes._ Thirteen of the 26 functions are a one-line wrapper
 and eight have no caller (F1, F2). They are the part of the package that grows (the range functions
@@ -358,8 +362,10 @@ export and tests. The cost for a user is writing `validate_isinstance(x, str)` i
 where the list of names can be read in ten seconds and the rule to add one is written down.
 Alternative: keep `validate_positive` and `validate_non_negative` (the two most used of the sign
 checks, 12 call sites) and drop the symmetric pair; cheaper to migrate, but then `negative` is
-missing and the list needs an explanation. Keep the full set only if the package is meant to be a
-public toolbox for other libraries, which the user guide does not claim.
+missing and the list needs an explanation. The full set is not kept: the package is not a public toolbox for
+other libraries, which the user guide does not claim.
+
+Decision: **adopted**.
 
 **D2. Are `numpy.int64` and `numpy.float32` ints and floats?** _Recommended: no, for the type
 validators; yes through `validate_number`._ A type annotation `int` rejects `numpy.int64` for a type
@@ -368,17 +374,23 @@ checker, `validate_int` follows the annotation, and a caller that accepts NumPy 
 `numbers.Integral` for `validate_int` (accepts NumPy ints, still rejects `bool` by the explicit
 test); it is a one-line change, but it makes the strictness depend on the registration of the ABCs,
 and an `int` argument that is later used as `range(n)` or a shift accepts `numpy.int64` anyway.
-Decide when the first user asks.
+Settled: the strict rule stays; revisit only if a user reports a real case.
+
+Decision: **adopted**.
 
 **D3. Merge "type then bound" into one call?** _Recommended: no._ `validate_int(x, min=0)` would
 remove 8 lines at the call sites (F13) and add options to the most used function, with a second
 message path. Two calls are explicit, and the order of the errors (a `TypeError` for `"a"` before a
 `ValueError` for `-1`) is visible. Revisit if a call site needs three constraints on one argument.
 
+Decision: **adopted**.
+
 **D4. Raise on an empty range (F8)?** _Recommended: yes._ `validate_range(x, 1, 0)` cannot succeed;
 it is a programming error and the current message blames the value. A `ValueError` about the bounds
-costs one comparison. Alternative: leave it and document; rejected, because the failing message sends
+costs one comparison. Alternative (rejected): leave it and document, because the failing message sends
 the reader to the wrong argument.
+
+Decision: **adopted**.
 
 **D5. `validate_in` with an unhashable value: `ValueError` or `TypeError`?** _Recommended:
 `ValueError`._ From the point of view of the caller, `[]` is not one of the valid modes; the fact that
@@ -387,15 +399,21 @@ were not a container, and that case still raises (the bug of the caller). The co
 `valid` that is a string with a non-string value (`1 in "abc"` raises `TypeError`) is reported as a
 value error: acceptable, the message shows both.
 
+Decision: **adopted**.
+
 **D6. Where does the project-wide rule live?** _Recommended: in this package's docstring and the
 guide, plus a sentence in `CLAUDE.md`._ "Validate an argument with `coola.validation`; do not write
 `raise ValueError` for a type, range or membership check, and do not add a validator that is one
 `isinstance` or one comparison." F12 shows what happens without the rule: six private copies with
 their own messages.
 
+Decision: **adopted**.
+
 **D7. Make `validate_*` available as a decorator or an `Annotated` metadata?** _Recommended: no._ A
 schema layer (pydantic, attrs validators, beartype) does it better, and none of the call sites needs
 it. The package stays a set of functions that a constructor calls.
+
+Decision: **no**, the package stays a set of functions.
 
 ## 10. Not covered
 
