@@ -571,10 +571,10 @@ generators it covers.
 | `extract_snowflake_timestamp_ms`    | 10,000 calls                 | 1.55 ms    | 1.51 ms  | 0.15 µs        |                    | 0.94 ms    | 1.65     |
 | `generate_checksummed_id`           | 10,000 calls                 | 38.68 ms   | 37.12 ms | 3.87 µs        |                    |            |          |
 | `verify_checksummed_id`             | 10,000 calls                 | 18.67 ms   | 18.56 ms | 1.87 µs        |                    |            |          |
-| `generate_stable_content_id_small`  | dict of a `str` and an `int` | 5.4 µs     | 5.2 µs   | 5.4 µs         |                    |            |          |
-| `generate_stable_uuid5_small`       | dict of a `str` and an `int` | 7.2 µs     | 6.9 µs   | 7.2 µs         |                    |            |          |
-| `generate_stable_content_id_nested` | 100 floats, 100 small dicts  | 698.4 µs   | 681.4 µs | 698.4 µs       |                    |            |          |
-| `generate_stable_uuid5_nested`      | 100 floats, 100 small dicts  | 692.8 µs   | 683.0 µs | 692.8 µs       |                    |            |          |
+| `generate_stable_content_id_small`  | dict of a `str` and an `int` | 5.4 µs     | 5.2 µs   | 5.4 µs         |                    | 5.3 µs     | 1.02     |
+| `generate_stable_uuid5_small`       | dict of a `str` and an `int` | 7.2 µs     | 6.9 µs   | 7.2 µs         |                    | 7.1 µs     | 1.01     |
+| `generate_stable_content_id_nested` | 100 floats, 100 small dicts  | 698.4 µs   | 681.4 µs | 698.4 µs       |                    | 694.1 µs   | 1.01     |
+| `generate_stable_uuid5_nested`      | 100 floats, 100 small dicts  | 692.8 µs   | 683.0 µs | 692.8 µs       |                    | 695.6 µs   | 1.00     |
 
 Reading the numbers:
 
