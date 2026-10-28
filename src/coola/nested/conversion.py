@@ -6,7 +6,6 @@ __all__ = [
     "convert_to_dict_of_lists",
     "convert_to_jsonable",
     "convert_to_list_of_dicts",
-    "try_sorted_list",
 ]
 
 import dataclasses
@@ -156,25 +155,25 @@ def convert_to_jsonable(data: Any) -> Any:
     registry = get_default_registry().copy()
     # A dataclass is converted whole by ``to_jsonable``, it is not entered.
     registry.register_fallback(dataclasses.is_dataclass, DefaultTransformer(), exist_ok=True)
-    transformer = SetToListTransformer()
+    transformer = _SetToListTransformer()
     registry.register(set, transformer, exist_ok=True)
     registry.register(frozenset, transformer, exist_ok=True)
     return recursive_apply(data, to_jsonable, registry=registry)
 
 
-class SetToListTransformer(InlineDisplayMixin, BaseTransformer["AbstractSet[Any]"]):
+class _SetToListTransformer(InlineDisplayMixin, BaseTransformer["AbstractSet[Any]"]):
     r"""Transformer for sets that rebuilds a list.
 
     The elements are the children, so they are converted like the other
     values, and the converted elements are collected in a list sorted
-    with ``try_sorted_list``.
+    with ``_try_sorted_list``.
     """
 
     def expand(self, data: AbstractSet[Any]) -> Expansion | None:
-        return list(data), try_sorted_list
+        return list(data), _try_sorted_list
 
 
-def try_sorted_list(values: Iterable[Any]) -> list[Any]:
+def _try_sorted_list(values: Iterable[Any]) -> list[Any]:
     r"""Convert an iterable (e.g. a set) to a list, sorted when the
     values are comparable so the output is deterministic.
 
@@ -184,16 +183,6 @@ def try_sorted_list(values: Iterable[Any]) -> list[Any]:
     Returns:
         The values as a sorted list, or in iteration order if they
             cannot be compared.
-
-    Example:
-        ```pycon
-        >>> from coola.nested import try_sorted_list
-        >>> try_sorted_list({3, 1, 2})
-        [1, 2, 3]
-        >>> try_sorted_list({1, "a"}) == [1, "a"] or try_sorted_list({1, "a"}) == ["a", 1]
-        True
-
-        ```
     """
     try:
         return sorted(values)

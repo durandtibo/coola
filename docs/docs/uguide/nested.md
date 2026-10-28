@@ -88,6 +88,34 @@ These conversion functions are inverse operations of each other:
 
 ```
 
+## Mapping Utilities
+
+### Getting the First Value
+
+Use `get_first_value()` of `coola.utils.mapping` to extract the first value from a mapping:
+
+```pycon
+>>> from coola.utils.mapping import get_first_value
+>>> data = {"first": 10, "second": 20, "third": 30}
+>>> get_first_value(data)
+10
+
+```
+
+This is useful when you need to extract a representative value from a dictionary, or when you know
+the mapping should have at least one value but don't know the key.
+
+**Note:** If the mapping is empty, this function raises a `ValueError`.
+
+```pycon
+>>> from coola.utils.mapping import get_first_value
+>>> get_first_value({})
+Traceback (most recent call last):
+    ...
+ValueError: First value cannot be returned because the mapping is empty
+
+```
+
 ## Flat Dictionaries
 
 ### Flattening Nested Dictionaries
@@ -215,153 +243,6 @@ flattened:
 
 This is useful when you want to preserve certain data types as strings in the flattened output.
 
-## Mapping Utilities
-
-### Getting the First Value
-
-Use `get_first_value()` to extract the first value from a mapping:
-
-```pycon
->>> from coola.nested import get_first_value
->>> data = {"first": 10, "second": 20, "third": 30}
->>> get_first_value(data)
-10
-
-```
-
-This is useful when you need to extract a representative value from a dictionary, or when you know
-the mapping should have at least one value but don't know the key.
-
-**Note:** If the mapping is empty, this function raises a `ValueError`.
-
-```pycon
->>> from coola.nested import get_first_value
->>> get_first_value({})
-Traceback (most recent call last):
-    ...
-ValueError: First value cannot be returned because the mapping is empty
-
-```
-
-### Filtering Keys by Prefix
-
-Use `remove_keys_starting_with()` to filter out dictionary keys that start with a specific prefix:
-
-```pycon
->>> from coola.nested import remove_keys_starting_with
->>> data = {
-...     "temp_var1": 100,
-...     "temp_var2": 200,
-...     "result": 42,
-...     "temp_cache": [1, 2, 3],
-...     "final_output": "done",
-... }
->>> remove_keys_starting_with(data, "temp_")
-{'result': 42, 'final_output': 'done'}
-
-```
-
-This is useful for:
-
-- Removing temporary or internal variables
-- Filtering configuration keys
-- Cleaning up data structures
-
-**Note:** Only string keys are checked for the prefix. Non-string keys are preserved:
-
-```pycon
->>> from coola.nested import remove_keys_starting_with
->>> mixed_keys = {
-...     "prefix_str": 1,
-...     123: 2,
-...     ("a", "b"): 3,
-... }
->>> remove_keys_starting_with(mixed_keys, "prefix_")
-{123: 2, ('a', 'b'): 3}
-
-```
-
-### Filtering Keys by Condition
-
-Use `remove_keys_containing()` to recursively remove the keys that contain a substring, and
-`remove_keys_if()` to recursively remove the keys that satisfy any predicate:
-
-```pycon
->>> from coola.nested import remove_keys_containing, remove_keys_if
->>> remove_keys_containing({"a_tmp": 1, "b": {"c_tmp": 2, "d": 3}}, "tmp")
-{'b': {'d': 3}}
->>> remove_keys_if({"a": 1, 2: 2, "b": {"c": 3}}, lambda key: isinstance(key, int))
-{'a': 1, 'b': {'c': 3}}
-
-```
-
-Like `remove_keys_starting_with()`, they return a new mapping and keep the input unchanged.
-
-### Adding a Prefix or a Suffix to the Keys
-
-Use `add_prefix_suffix_to_keys()` to rename the keys of a mapping. By default only the top-level keys
-are renamed. Use `recursive=True` to rename the keys of the nested mappings too:
-
-```pycon
->>> from coola.nested import add_prefix_suffix_to_keys
->>> data = {"a": 1, "b": {"c": 2}}
->>> add_prefix_suffix_to_keys(data, prefix="x_")
-{'x_a': 1, 'x_b': {'c': 2}}
->>> add_prefix_suffix_to_keys(data, prefix="x_", suffix="_y", recursive=True)
-{'x_a_y': 1, 'x_b_y': {'x_c_y': 2}}
-
-```
-
-### Merging Mappings
-
-Use `merge_mappings()` to merge an iterable of mappings into a single dictionary. The
-`on_duplicate` parameter controls what happens when a key appears in several mappings:
-
-| `on_duplicate`      | Behavior                                                                      |
-| ------------------- | ----------------------------------------------------------------------------- |
-| `"raise"` (default) | Raise a `DuplicateKeyError`, unless the values are equal.                     |
-| `"first"`           | Keep the value of the first mapping.                                          |
-| `"last"`            | Keep the value of the last mapping.                                           |
-| `"suffix"`          | Keep all the values, adding a numeric suffix to the keys (`a`, `a_1`, `a_2`). |
-
-```pycon
->>> from coola.nested import merge_mappings
->>> merge_mappings([{"a": 1}, {"b": 2}])
-{'a': 1, 'b': 2}
->>> merge_mappings([{"a": 1}, {"a": 2}], on_duplicate="last")
-{'a': 2}
->>> merge_mappings([{"a": 1}, {"a": 2}], on_duplicate="suffix")
-{'a': 1, 'a_1': 2}
->>> merge_mappings([{"a": 1}, {"a": 2}])
-Traceback (most recent call last):
-    ...
-coola.nested.mapping.DuplicateKeyError: Duplicate key found: 'a'
-
-```
-
-Use `equal_nan=True` to consider two `NaN` values equal when the duplicate keys are compared.
-
-### Flattening a Mapping of Mappings
-
-Use `flatten_mapping()` to flatten a mapping whose values are mappings (for example, the metrics of
-several splits) into a single dictionary. `on_duplicate` takes `"raise"` (default), `"first"`,
-`"last"` or `"prefix"`. With `"prefix"`, all the values are kept and the duplicated keys are renamed
-`<outer key><separator><inner key>`. Use `always_prefix=True` to rename every key:
-
-```pycon
->>> from coola.nested import flatten_mapping
->>> metrics = {"train": {"loss": 1, "acc": 2}, "val": {"loss": 3}}
->>> flatten_mapping(metrics, on_duplicate="prefix")
-{'acc': 2, 'train.loss': 1, 'val.loss': 3}
->>> flatten_mapping(metrics, always_prefix=True, separator="/")
-{'train/loss': 1, 'train/acc': 2, 'val/loss': 3}
->>> flatten_mapping(metrics, on_duplicate="last")
-{'loss': 3, 'acc': 2}
-
-```
-
-With the default `on_duplicate="raise"`, a `DuplicateKeyError` is raised for the key `loss`.
-
 ## JSON Conversion
 
 Use `convert_to_jsonable()` to recursively convert a nested structure to JSON-compatible data.
@@ -377,16 +258,6 @@ converted to sorted lists:
 ...     y: int
 >>> convert_to_jsonable([Point(x=1, y=2), {"key": Point(x=3, y=4)}, {3, 1, 2}])
 [{'x': 1, 'y': 2}, {'key': {'x': 3, 'y': 4}}, [1, 2, 3]]
-
-```
-
-`try_sorted_list()` converts an iterable (e.g. a set) to a list. The list is sorted when the values
-are comparable, so the output is deterministic, otherwise it keeps the iteration order:
-
-```pycon
->>> from coola.nested import try_sorted_list
->>> try_sorted_list({3, 1, 2})
-[1, 2, 3]
 
 ```
 

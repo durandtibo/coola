@@ -5,7 +5,6 @@ from __future__ import annotations
 __all__ = [
     "DuplicateKeyError",
     "flatten_mapping",
-    "get_first_value",
     "merge_mappings",
 ]
 
@@ -36,10 +35,10 @@ T = TypeVar("T")
 
 def flatten_mapping(
     mapping: Mapping[Any, Mapping[Any, Any]],
+    *,
     on_duplicate: Literal["raise", "first", "last", "prefix"] = "raise",
     always_prefix: bool = False,
     separator: str = ".",
-    *,
     equal_nan: bool = False,
 ) -> dict[Any, Any]:
     r"""Flatten a mapping of mappings into a single dict.
@@ -228,36 +227,10 @@ def _free_suffixed_key(out: dict[Any, Any], key: Any, suffix: int) -> str:
     return f"{key}_{suffix}"
 
 
-def get_first_value(data: Mapping[Any, T]) -> T:
-    r"""Get the first value of a mapping.
-
-    Args:
-        data: The input mapping.
-
-    Returns:
-        The first value in the mapping.
-
-    Raises:
-        ValueError: if the mapping is empty.
-
-    Example:
-        ```pycon
-        >>> from coola.nested import get_first_value
-        >>> get_first_value({"key1": 1, "key2": 2})
-        1
-
-        ```
-    """
-    if not data:
-        msg = "First value cannot be returned because the mapping is empty"
-        raise ValueError(msg)
-    return next(iter(data.values()))
-
-
 def merge_mappings(
     mappings: Iterable[Mapping[Any, Any]],
-    on_duplicate: Literal["raise", "first", "last", "suffix"] = "raise",
     *,
+    on_duplicate: Literal["raise", "first", "last", "suffix"] = "raise",
     equal_nan: bool = False,
 ) -> dict[Any, Any]:
     r"""Merge an iterable of mappings into a single dict.

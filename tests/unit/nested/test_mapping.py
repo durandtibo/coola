@@ -7,7 +7,6 @@ import pytest
 from coola.nested import (
     DuplicateKeyError,
     flatten_mapping,
-    get_first_value,
     merge_mappings,
 )
 
@@ -224,22 +223,6 @@ def test_flatten_mapping_always_prefix_separator(separator: str) -> None:
         always_prefix=True,
         separator=separator,
     ) == {f"module1{separator}a": 1, f"module2{separator}b": 2}
-
-
-#####################################
-#     Tests for get_first_value     #
-#####################################
-
-
-def test_get_first_value_empty() -> None:
-    with pytest.raises(
-        ValueError, match=r"First value cannot be returned because the mapping is empty"
-    ):
-        get_first_value({})
-
-
-def test_get_first_value() -> None:
-    assert get_first_value({"key1": 1, "key2": 2}) == 1
 
 
 ####################################
@@ -497,3 +480,13 @@ def test_flatten_mapping_value_that_is_not_a_mapping_names_the_type() -> None:
 def test_flatten_mapping_value_that_is_not_a_mapping_raises_with_always_prefix() -> None:
     with pytest.raises(TypeError, match="must be an instance of"):
         flatten_mapping({"a": None}, always_prefix=True)
+
+
+def test_flatten_mapping_options_are_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional"):
+        flatten_mapping({"a": {"b": 1}}, "raise")
+
+
+def test_merge_mappings_options_are_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional"):
+        merge_mappings([{"a": 1}], "raise")

@@ -2,13 +2,15 @@ r"""Contain utility functions for mappings."""
 
 from __future__ import annotations
 
-__all__ = ["sort_by_keys", "sort_by_values"]
+__all__ = ["get_first_value", "sort_by_keys", "sort_by_values"]
 
 import operator
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+T = TypeVar("T")
 
 
 def sort_by_keys(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
@@ -64,3 +66,29 @@ def sort_by_values(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
         ```
     """
     return dict(sorted(mapping.items(), key=operator.itemgetter(1)))
+
+
+def get_first_value(data: Mapping[Any, T]) -> T:
+    r"""Get the first value of a mapping.
+
+    Args:
+        data: The input mapping.
+
+    Returns:
+        The first value in the mapping.
+
+    Raises:
+        ValueError: if the mapping is empty.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.mapping import get_first_value
+        >>> get_first_value({"key1": 1, "key2": 2})
+        1
+
+        ```
+    """
+    if not data:
+        msg = "First value cannot be returned because the mapping is empty"
+        raise ValueError(msg)
+    return next(iter(data.values()))
