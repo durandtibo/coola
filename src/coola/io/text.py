@@ -4,23 +4,18 @@ from __future__ import annotations
 
 __all__ = ["TextLoader", "TextSaver", "load_text", "save_text"]
 
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
 from coola.io.base import BaseFileSaver, BaseLoader
-from coola.utils.introspection import is_same_type
-from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
     import os
     from pathlib import Path
 
-T = TypeVar("T")
-
 DEFAULT_ENCODING = "utf-8"
 
 
-class TextLoader(InlineDisplayMixin, BaseLoader[str]):
+class TextLoader(BaseLoader[str]):
     r"""Implement a data loader to load data from a text file.
 
     Args:
@@ -54,18 +49,12 @@ class TextLoader(InlineDisplayMixin, BaseLoader[str]):
     def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding}
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        if not is_same_type(other, self):
-            return False
-        return self._encoding == other._encoding
-
-    def load(self, path: str | os.PathLike[str]) -> str:
-        path = sanitize_path(path, resolve=False)
+    def _load(self, path: Path) -> str:
         with path.open(encoding=self._encoding, newline="") as file:
             return file.read()
 
 
-class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
+class TextSaver(BaseFileSaver[str]):
     r"""Implement a file saver to save data to a text file.
 
     Args:
@@ -76,8 +65,9 @@ class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
         The line endings are written as they are in the string (no
         translation of ``\\n``, even on Windows).
 
-        If the data to save is not a string, it is converted to
-            a string before being saved by using ``str``.
+    Raises:
+        TypeError: if the data to save is not a ``str``. Call ``str``
+            on the data to save its text representation.
 
     Example:
         ```pycon
@@ -101,14 +91,15 @@ class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
     def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding}
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        if not is_same_type(other, self):
-            return False
-        return self._encoding == other._encoding
-
     def _save_file(self, to_save: str, path: Path) -> None:
+        if not isinstance(to_save, str):
+            msg = (
+                f"{type(self).__name__} expects a str, got {type(to_save).__name__}; "
+                "call str() on the data to save its text representation"
+            )
+            raise TypeError(msg)
         with path.open(mode="w", encoding=self._encoding, newline="") as file:
-            file.write(str(to_save))
+            file.write(to_save)
 
 
 def load_text(path: str | os.PathLike[str], encoding: str = DEFAULT_ENCODING) -> str:
@@ -141,7 +132,7 @@ def load_text(path: str | os.PathLike[str], encoding: str = DEFAULT_ENCODING) ->
 
 
 def save_text(
-    to_save: Any,
+    to_save: str,
     path: str | os.PathLike[str],
     *,
     encoding: str = DEFAULT_ENCODING,
@@ -151,7 +142,7 @@ def save_text(
     r"""Save the given data to a text file.
 
     Args:
-        to_save: The data to write to the text file.
+        to_save: The string to write to the text file.
         path: The path where to write the text file. A ``str`` or any path-like object is converted to a ``Path``.
         encoding: The file encoding to use when writing the file.
             Defaults to ``"utf-8"``.
@@ -169,10 +160,8 @@ def save_text(
 
     Raises:
         FileExistsError: if the file already exists.
-
-    Note:
-        If the data to save is not a string, it is converted to
-            a string before being saved by using ``str``.
+        TypeError: if the data to save is not a ``str``. Call ``str``
+            on the data to save its text representation.
 
     Example:
         ```pycon

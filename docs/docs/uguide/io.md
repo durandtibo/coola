@@ -18,6 +18,44 @@ The `coola.io` package provides:
 4. **Configuration utilities** - `resolve_loader`/`resolve_saver` to instantiate a loader or
    saver from a configuration, and `is_loader_config`/`is_saver_config` to check configurations
 
+## Properties
+
+`coola.io` reads and writes one value to one file through a small, format-agnostic interface, and a
+write either happens completely or leaves the target as it was. The built-in loaders and savers are
+designed around the following properties.
+
+| Property                 | Statement                                                                                                                                                                                                                                        |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Atomic write             | A file saver writes to a hidden temporary file next to the target and commits it with one atomic operation. A reader sees the old file or the new file, never a partial one, and an interrupted `save` leaves the target as it was.              |
+| No silent overwrite      | `save` raises `FileExistsError` if the target exists, unless `exist_ok=True`. This holds when the file is created concurrently, because the commit is a hard link.                                                                               |
+| No torn file             | Concurrent saves of the same path, in one process or in several, never produce a mix: the file is the complete content of one of them. Which one is unspecified. With `exist_ok=False`, exactly one wins and the others raise `FileExistsError`. |
+| Clean failure            | If writing fails, the temporary file is removed and the original exception is raised, even if the cleanup itself fails. An existing target is left untouched.                                                                                    |
+| Opt-in durability        | By default the data only reaches the operating system cache. `fsync=True` flushes the file before the commit and the directory after it, so the file survives a power failure. It is slower.                                                     |
+| Directory safety         | A path that is a directory raises `IsADirectoryError`, a parent that is a file raises `NotADirectoryError`, missing parents are created. A symbolic link target is overwritten through the link, and the mode of an overwritten file is kept.    |
+| Path-like input          | Every method takes a `str` or any `os.PathLike`; `~` and `file://` URIs are expanded.                                                                                                                                                            |
+| Format-agnostic API      | Every loader has `load(path)` and every saver has `save(data, path, exist_ok=...)`. Formats can be swapped without changing the calling code.                                                                                                    |
+| Comparable               | Two loaders (or two savers) are equal (`equal()`) if they have the same type and the same configuration (encoding, keyword arguments).                                                                                                           |
+| Safe by default for load | `TorchLoader` uses `weights_only=True` unless told otherwise. `PickleLoader` cannot be made safe: only load pickle files that you trust.                                                                                                         |
+| Extensible               | A format is added by subclassing `BaseLoader` or `BaseFileSaver`. The atomic write, `exist_ok` and `fsync` come with the base class. A backend that is not a file subclasses `BaseSaver`.                                                        |
+| Errors propagate         | The `OSError` of the file system and the exceptions of the format library (`JSONDecodeError`, `UnpicklingError`, ...) are raised unchanged. Only the cases listed above (exists, directory, parent is a file) are translated.                    |
+| Lazy optional libraries  | `import coola.io` imports no optional library. `TorchLoader` and `TorchSaver` import torch the first time they are used.                                                                                                                         |
+| Configurable             | `resolve_loader` / `resolve_saver` build an object from a `_target_` configuration, with `allowed_prefixes` for configurations that are not trusted.                                                                                             |
+
+Not guaranteed:
+
+- Round trip beyond the format: JSON turns tuples into lists and non-string keys into strings and
+  writes `NaN` as a non-standard token, and `save_text` writes `str(data)` for non-string data.
+- Durability without `fsync=True`, and which of several concurrent saves wins.
+- A hidden `.<name>-<uuid><ext>` file after a crash: a process killed (SIGKILL, power loss) between
+  the write and the commit leaves its temporary file. It is hidden, never taken for the target, and
+  safe to delete.
+- `exist_ok=False` on a file system without hard links (FAT/exFAT, some network and container
+  volumes): the commit falls back on "check, then rename", so two processes that create the same file
+  at the same instant can both succeed. The last one wins; no file is torn.
+- Replacing a file that another process has open on Windows: `os.replace` raises `PermissionError`,
+  which propagates.
+- Streaming, compression and remote storage: one value per call, local files only.
+
 ## Loading and Saving Data
 
 Each supported format has a loader class, a saver class, and two convenience functions.
@@ -104,8 +142,9 @@ keyword arguments to `pickle.dump`.
 
 ```
 
-`TextLoader`/`TextSaver` accept an `encoding` argument (defaults to `"utf-8"`). If the data
-passed to `save_text` is not a string, it is converted with `str` before being written.
+`TextLoader`/`TextSaver` accept an `encoding` argument (defaults to `"utf-8"`).
+`save_text` and `TextSaver` accept a `str` only and raise a `TypeError` for any other object: call
+`str` on the data to write its text representation.
 
 ### PyTorch
 
@@ -145,20 +184,8 @@ File savers (`BaseFileSaver` subclasses, i.e. all the built-in savers) write to 
 first and then atomically move it into place, so a job interrupted while writing never leaves a
 partially written file at the target path.
 
-### Unique File Names
-
-`add_uuid_suffix()` returns a new path with a unique UUID suffix added to the file name, before the
-extension. It is useful to build a file name that does not collide with an existing file, without
-`exist_ok=True`:
-
-```pycon
->>> from pathlib import Path
->>> from coola.io import add_uuid_suffix
->>> path = add_uuid_suffix(Path("data.json"))
->>> path.name.startswith("data-") and path.suffix == ".json"
-True
-
-```
+To build a file name that does not collide with an existing file, without `exist_ok=True`, see
+`add_uuid_suffix()` in [`coola.utils`](utils.md).
 
 ### Durability
 
@@ -262,17 +289,16 @@ False
 
 ## Implementing a Custom Loader or Saver
 
-Subclass `BaseLoader` to implement a custom loader:
+Subclass `BaseLoader` and implement `_load` to implement a custom loader. `load` is provided by
+the base class: it converts a `str`, a `file://` URI or any `os.PathLike` to a `Path` and calls
+`_load` with it. `equal()`, `repr` and `str` also come with the base class and use the fields
+returned by `_display_fields()` (none by default); override it in a loader that has options:
 
 ```pycon
 >>> from pathlib import Path
->>> from typing import Any
 >>> from coola.io import BaseLoader
 >>> class UpperTextLoader(BaseLoader[str]):
-...     def equal(self, other: Any, equal_nan: bool = False) -> bool:
-...         return type(other) is type(self)
-...
-...     def load(self, path: Path) -> str:
+...     def _load(self, path: Path) -> str:
 ...         return path.read_text().upper()
 
 ```
@@ -282,12 +308,8 @@ of `save` directly - this reuses the atomic write and `exist_ok` handling descri
 
 ```pycon
 >>> from pathlib import Path
->>> from typing import Any
 >>> from coola.io import BaseFileSaver
 >>> class UpperTextSaver(BaseFileSaver[str]):
-...     def equal(self, other: Any, equal_nan: bool = False) -> bool:
-...         return type(other) is type(self)
-...
 ...     def _save_file(self, to_save: str, path: Path) -> None:
 ...         path.write_text(str(to_save).upper())
 
