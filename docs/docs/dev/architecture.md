@@ -596,8 +596,9 @@ Packages fall into two groups:
   `validation`. These must not import from any feature package.
 - **Features**: `equality`, `hashing`, `summary`, `recursive`, `iterator`, `random`, `nested`,
   `reducer`, `io`, `factory`, `identifier` and `testing`. Only `equality`, `hashing`, `summary`,
-  `recursive` and `iterator` are built on `registry`; `identifier`, `reducer` and `random` are
-  standalone helpers.
+  `recursive` and `iterator` are built on `registry`; `reducer` and `random` are standalone
+  helpers. `identifier` depends on `hashing` (the stable identifiers are built on `hash_object`), and
+  `hashing` must not import `identifier`.
 
 There is no exception: `coola.registry` imports no feature package. `display` and `utils` currently import each other, so they are kept in the same
 group.

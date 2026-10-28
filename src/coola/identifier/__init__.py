@@ -1,4 +1,9 @@
-r"""Provide identifiers for nested data.
+r"""Provide identifiers: content-derived, time-ordered and human-friendly.
+
+The stable identifiers (``generate_stable_content_id``,
+``generate_stable_uuid5``) are derived from nested data through
+``coola.hashing``. The others are generated: time-ordered (ULID, UUIDv7,
+Snowflake, ObjectId), random, checksummed, obfuscated or prefixed.
 
 Every generator returns a ``str`` identifier except
 ``generate_snowflake_id``/``SnowflakeIdGenerator.generate``, which
