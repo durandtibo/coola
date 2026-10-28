@@ -505,25 +505,25 @@ One run, nothing else heavy running; the disk and the threads make the multi-thr
 (about ±10 %) than the single-thread ones. The raw result is saved in
 `.benchmarks/Darwin-CPython-3.14-64bit/0017_io_old_b033254e.json` (not committed: the directory is
 ignored). The speed-up of the new implementation is old time / new time: above 1 is faster. The
-"New" columns are to be filled when the steps land.
+"New" columns were filled after step 5 landed (`80bfcf60`, same machine, one run).
 
 | Benchmark (`test_<name>_benchmark`)  | Input                                                   | Old median | Old min  | New median | Speed-up |
 | ------------------------------------ | ------------------------------------------------------- | ---------- | -------- | ---------- | -------- |
-| `load_json_small`                    | `{"key1": [1, 2, 3], "key2": "abc"}`                    | 27.8 µs    | 27.1 µs  |            |          |
-| `load_json_small_class`              | same, `JsonLoader().load`                               | 27.4 µs    | 25.9 µs  |            |          |
-| `load_pickle_1mib`                   | `bytes` of 1 MiB                                        | 68.0 µs    | 65.0 µs  |            |          |
-| `load_text_1mib`                     | `str` of 1 MiB                                          | 177.6 µs   | 155.5 µs |            |          |
-| `load_json_large`                    | list of 100,000 ints (590 KB)                           | 5.49 ms    | 5.30 ms  |            |          |
-| `save_text_small_overwrite`          | `"hello"`, `exist_ok=True`                              | 452.7 µs   | 402.9 µs |            |          |
-| `save_json_small_overwrite`          | the small dict, `exist_ok=True`                         | 477.3 µs   | 413.6 µs |            |          |
-| `save_json_small_fsync`              | the small dict, `exist_ok=True`, `fsync=True`           | 504.1 µs   | 456.5 µs |            |          |
-| `save_json_small_new_file`           | the small dict, a new path each call (`exist_ok=False`) | 819.5 µs   | 701.5 µs |            |          |
-| `save_text_1mib`                     | `str` of 1 MiB, `exist_ok=True`                         | 656.0 µs   | 542.9 µs |            |          |
-| `save_pickle_1mib`                   | `bytes` of 1 MiB, `exist_ok=True`                       | 709.4 µs   | 560.0 µs |            |          |
-| `save_json_large`                    | list of 100,000 ints, `exist_ok=True`                   | 19.11 ms   | 18.66 ms |            |          |
-| `save_json_100_files`                | 100 new files, one thread                               | 84.26 ms   | 79.73 ms |            |          |
-| `save_json_distinct_paths_4_threads` | 4 threads × 25 new files                                | 34.63 ms   | 31.42 ms |            |          |
-| `save_json_same_path_4_threads`      | 4 threads × 25 overwrites of one path                   | 51.69 ms   | 46.12 ms |            |          |
+| `load_json_small`                    | `{"key1": [1, 2, 3], "key2": "abc"}`                    | 27.8 µs    | 27.1 µs  | 29.5 µs    | 0.94x    |
+| `load_json_small_class`              | same, `JsonLoader().load`                               | 27.4 µs    | 25.9 µs  | 28.0 µs    | 0.98x    |
+| `load_pickle_1mib`                   | `bytes` of 1 MiB                                        | 68.0 µs    | 65.0 µs  | 72.6 µs    | 0.94x    |
+| `load_text_1mib`                     | `str` of 1 MiB                                          | 177.6 µs   | 155.5 µs | 164.4 µs   | 1.08x    |
+| `load_json_large`                    | list of 100,000 ints (590 KB)                           | 5.49 ms    | 5.30 ms  | 5.45 ms    | 1.01x    |
+| `save_text_small_overwrite`          | `"hello"`, `exist_ok=True`                              | 452.7 µs   | 402.9 µs | 252.5 µs   | 1.79x    |
+| `save_json_small_overwrite`          | the small dict, `exist_ok=True`                         | 477.3 µs   | 413.6 µs | 262.8 µs   | 1.82x    |
+| `save_json_small_fsync`              | the small dict, `exist_ok=True`, `fsync=True`           | 504.1 µs   | 456.5 µs | 340.9 µs   | 1.48x    |
+| `save_json_small_new_file`           | the small dict, a new path each call (`exist_ok=False`) | 819.5 µs   | 701.5 µs | 535.6 µs   | 1.53x    |
+| `save_text_1mib`                     | `str` of 1 MiB, `exist_ok=True`                         | 656.0 µs   | 542.9 µs | 422.3 µs   | 1.55x    |
+| `save_pickle_1mib`                   | `bytes` of 1 MiB, `exist_ok=True`                       | 709.4 µs   | 560.0 µs | 438.0 µs   | 1.62x    |
+| `save_json_large`                    | list of 100,000 ints, `exist_ok=True`                   | 19.11 ms   | 18.66 ms | 18.82 ms   | 1.02x    |
+| `save_json_100_files`                | 100 new files, one thread                               | 84.26 ms   | 79.73 ms | 58.79 ms   | 1.43x    |
+| `save_json_distinct_paths_4_threads` | 4 threads × 25 new files                                | 34.63 ms   | 31.42 ms | 22.93 ms   | 1.51x    |
+| `save_json_same_path_4_threads`      | 4 threads × 25 overwrites of one path                   | 51.69 ms   | 46.12 ms | 15.15 ms   | 3.41x    |
 
 Reading the numbers:
 
