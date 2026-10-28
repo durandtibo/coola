@@ -184,8 +184,6 @@ def save_json(
             It is slower. Defaults to ``False``: the file is replaced
             atomically, but its content may be lost if the machine
             crashes right after the call.
-        **kwargs: Additional arguments passed to ``json.dump``, e.g.
-            ``indent`` or ``sort_keys``.
         lock: If ``True`` (the default), concurrent saves to the same
             path are serialized with a lock file next to the path (see
             ``BaseFileSaver.save``). If ``False``, no lock is used:
@@ -194,6 +192,8 @@ def save_json(
             concurrent writers of the same path are not serialized
             (the last one wins). It is faster, which matters for
             batch jobs that write many distinct files.
+        **kwargs: Additional arguments passed to ``json.dump``, e.g.
+            ``indent`` or ``sort_keys``.
 
     Raises:
         FileExistsError: if the file already exists.

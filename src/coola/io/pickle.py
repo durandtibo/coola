@@ -152,7 +152,6 @@ def save_pickle(
             It is slower. Defaults to ``False``: the file is replaced
             atomically, but its content may be lost if the machine
             crashes right after the call.
-        **kwargs: Additional arguments passed to ``pickle.dump``.
         lock: If ``True`` (the default), concurrent saves to the same
             path are serialized with a lock file next to the path (see
             ``BaseFileSaver.save``). If ``False``, no lock is used:
@@ -161,6 +160,7 @@ def save_pickle(
             concurrent writers of the same path are not serialized
             (the last one wins). It is faster, which matters for
             batch jobs that write many distinct files.
+        **kwargs: Additional arguments passed to ``pickle.dump``.
 
     Raises:
         FileExistsError: if the file already exists.
