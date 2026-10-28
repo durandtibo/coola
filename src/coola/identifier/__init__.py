@@ -28,7 +28,7 @@ __all__ = [
 ]
 
 from coola.identifier.checksummed import generate_checksummed_id, verify_checksummed_id
-from coola.identifier.content import generate_stable_content_id
+from coola.identifier.content import generate_stable_content_id, generate_stable_uuid5
 from coola.identifier.objectid import (
     extract_object_id_timestamp_s,
     generate_object_id,
@@ -38,5 +38,4 @@ from coola.identifier.snowflake import (
     extract_snowflake_timestamp_ms,
 )
 from coola.identifier.ulid import extract_ulid_timestamp_ms, generate_ulid
-from coola.identifier.uuid5 import generate_stable_uuid5
 from coola.identifier.uuid7 import extract_uuid7_timestamp_ms, generate_uuid7
