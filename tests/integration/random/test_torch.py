@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import pytest
-
 from coola.random import TorchRandomManager
-from coola.testing.marks import torch_available
+from coola.testing.marks import torch_available, torch_cuda_available, torch_mps_available
 from coola.utils.imports import is_torch_available
 
 if is_torch_available():
@@ -31,10 +29,7 @@ def test_torch_random_manager_manual_seed_matches_torch_manual_seed() -> None:
     assert torch.rand(3).equal(first)
 
 
-@torch_available
-@pytest.mark.skipif(
-    not is_torch_available() or not torch.backends.mps.is_available(), reason="requires MPS"
-)
+@torch_mps_available
 def test_torch_random_manager_manual_seed_seeds_mps() -> None:
     manager = TorchRandomManager()
     manager.manual_seed(42)
@@ -44,10 +39,7 @@ def test_torch_random_manager_manual_seed_seeds_mps() -> None:
     assert torch.rand(3, device="mps").equal(first)
 
 
-@torch_available
-@pytest.mark.skipif(
-    not is_torch_available() or not torch.cuda.is_available(), reason="requires CUDA"
-)
+@torch_cuda_available
 def test_torch_random_manager_manual_seed_seeds_cuda() -> None:
     manager = TorchRandomManager()
     manager.manual_seed(42)
