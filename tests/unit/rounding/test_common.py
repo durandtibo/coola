@@ -32,7 +32,9 @@ def test_validate_arguments_valid_mode(mode: str) -> None:
 
 
 def test_validate_arguments_incorrect_mode() -> None:
-    with pytest.raises(ValueError, match=r"Incorrect mode 'trunc'"):
+    with pytest.raises(
+        ValueError, match=r"^mode must be one of \('round', 'floor', 'ceil'\), got 'trunc'$"
+    ):
         validate_arguments("trunc", 0)
 
 

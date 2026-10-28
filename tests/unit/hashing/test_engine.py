@@ -522,15 +522,21 @@ def test_hash_object_length_of_a_leaf_is_the_start_of_the_digest() -> None:
     assert hash_object(1, length=16) == blake2b(b"\x00int\x001")[:16]
 
 
-@pytest.mark.parametrize("length", [0, -2, 130, 3, 63])
-def test_hash_object_invalid_length_raises(length: int) -> None:
+@pytest.mark.parametrize("length", [0, -2, 130])
+def test_hash_object_length_out_of_range_raises(length: int) -> None:
+    with pytest.raises(ValueError, match=r"length must be in the range \[2, 128\]"):
+        hash_object([1], length=length)
+
+
+@pytest.mark.parametrize("length", [3, 63])
+def test_hash_object_odd_length_raises(length: int) -> None:
     with pytest.raises(ValueError, match="length must be an even number"):
         hash_object([1], length=length)
 
 
 @pytest.mark.parametrize("length", [True, 2.0, 64.0, "64", None])
-def test_hash_object_length_that_is_not_an_int_raises_value_error(length: Any) -> None:
-    with pytest.raises(ValueError, match="length must be an even number"):
+def test_hash_object_length_that_is_not_an_int_raises_type_error(length: Any) -> None:
+    with pytest.raises(TypeError, match="length must be an int"):
         hash_object([1], length=length)
 
 
@@ -645,3 +651,16 @@ def test_warning_message_names_the_type() -> None:
 
 def test_ignore_unhashable_has_no_effect_when_all_the_types_are_hashable() -> None:
     assert hash_object([1, "a"], ignore_unhashable=True) == hash_object([1, "a"])
+
+
+class _IntSubclass(int):
+    pass
+
+
+def test_validate_hash_length_accepts_an_int_subclass() -> None:
+    assert validate_hash_length(_IntSubclass(64)) is None
+
+
+def test_validate_hash_length_odd_length_message() -> None:
+    with pytest.raises(ValueError, match=r"^length must be an even number, got 3$"):
+        validate_hash_length(3)

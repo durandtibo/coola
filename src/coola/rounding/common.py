@@ -7,6 +7,8 @@ __all__ = ["MAX_EXACT", "MODES", "RoundMode", "get_scale", "validate_arguments"]
 
 from typing import Literal, get_args
 
+from coola.validation import validate_ge, validate_in, validate_int
+
 RoundMode = Literal["round", "floor", "ceil"]
 
 MODES: tuple[str, ...] = get_args(RoundMode)
@@ -35,15 +37,9 @@ def validate_arguments(mode: str, decimals: int) -> None:
 
         ```
     """
-    if mode not in MODES:
-        msg = f"Incorrect mode {mode!r}. The valid modes are: {', '.join(MODES)}"
-        raise ValueError(msg)
-    if isinstance(decimals, bool) or not isinstance(decimals, int):
-        msg = f"decimals must be an int, got {type(decimals).__qualname__}"
-        raise TypeError(msg)
-    if decimals < 0:
-        msg = f"decimals must be greater than or equal to 0, got {decimals}"
-        raise ValueError(msg)
+    validate_in(mode, MODES, name="mode")
+    validate_int(decimals, name="decimals")
+    validate_ge(decimals, 0, name="decimals")
 
 
 def get_scale(decimals: int) -> float | None:

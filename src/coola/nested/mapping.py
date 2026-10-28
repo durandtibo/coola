@@ -12,7 +12,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, assert_never
 
 from coola.equality import objects_are_equal
-from coola.validation import validate_isinstance
+from coola.validation import validate_in, validate_isinstance
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -105,7 +105,7 @@ def flatten_mapping(
 
         ```
     """
-    _validate_on_duplicate(on_duplicate, {"raise", "first", "last", "prefix"})
+    validate_in(on_duplicate, ("raise", "first", "last", "prefix"), name="on_duplicate")
 
     # The entries are kept in a list so a key can be renamed in place: the output follows the
     # order of the input.
@@ -152,21 +152,6 @@ def flatten_mapping(
             _add_entry(entries, positions, prefixed_key, value)
 
     return dict(entries)
-
-
-def _validate_on_duplicate(on_duplicate: str, strategies: set[str]) -> None:
-    r"""Check that the strategy to handle the duplicate keys is valid.
-
-    Args:
-        on_duplicate: The strategy to check.
-        strategies: The valid strategies.
-
-    Raises:
-        ValueError: if ``on_duplicate`` is not a valid strategy.
-    """
-    if on_duplicate not in strategies:
-        msg = f"Incorrect on_duplicate value: {on_duplicate!r}. Valid values are {strategies}"
-        raise ValueError(msg)
 
 
 def _add_entry(entries: list[list[Any]], positions: dict[Any, int], key: Any, value: Any) -> None:
@@ -312,7 +297,7 @@ def merge_mappings(
 
         ```
     """
-    _validate_on_duplicate(on_duplicate, {"raise", "first", "last", "suffix"})
+    validate_in(on_duplicate, ("raise", "first", "last", "suffix"), name="on_duplicate")
 
     mappings = list(mappings)
     # The keys of the inputs: a generated key never takes the name of one of them, whatever the

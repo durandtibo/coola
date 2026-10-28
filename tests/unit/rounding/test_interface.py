@@ -55,7 +55,7 @@ def test_round_values_modes(mode: str, expected: float) -> None:
 
 
 def test_round_values_incorrect_mode() -> None:
-    with pytest.raises(ValueError, match=r"Incorrect mode"):
+    with pytest.raises(ValueError, match=r"mode must be one of"):
         round_values(1.5, mode="trunc")  # ty: ignore[invalid-argument-type]
 
 

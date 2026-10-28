@@ -20,3 +20,10 @@ def test_validate_seed_out_of_range(seed: int) -> None:
 def test_validate_seed_not_int(seed: object) -> None:
     with pytest.raises(TypeError, match="seed must be an int"):
         validate_seed(seed)
+
+
+def test_validate_seed_out_of_range_message() -> None:
+    with pytest.raises(
+        ValueError, match=r"^seed must be in the range \[0, 9223372036854775808\), got -1$"
+    ):
+        validate_seed(-1)
