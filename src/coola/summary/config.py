@@ -6,7 +6,7 @@ __all__ = ["SummaryConfig"]
 
 from dataclasses import dataclass
 
-from coola.validation import validate_bool, validate_int, validate_non_negative
+from coola.validation import validate_ge, validate_int, validate_isinstance
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,11 +59,11 @@ class SummaryConfig:
         # ``summarize``.
         if type(self.max_depth) is not int or self.max_depth < 0:
             validate_int(self.max_depth, name="max_depth")
-            validate_non_negative(self.max_depth, name="max_depth")
+            validate_ge(self.max_depth, 0, name="max_depth")
         for name in ("max_items", "max_characters"):
             value = getattr(self, name)
             if value is not None and (type(value) is not int or value < 0):
                 validate_int(value, name=name)
-                validate_non_negative(value, name=name)
+                validate_ge(value, 0, name=name)
         if type(self.show_data) is not bool:
-            validate_bool(self.show_data, name="show_data")
+            validate_isinstance(self.show_data, bool, name="show_data")

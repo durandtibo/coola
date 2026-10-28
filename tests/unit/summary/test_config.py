@@ -58,7 +58,7 @@ def test_summary_config_not_int_raises(name: str, value: object) -> None:
 
 @pytest.mark.parametrize("name", ["max_depth", "max_items", "max_characters"])
 def test_summary_config_negative_raises(name: str) -> None:
-    with pytest.raises(ValueError, match=f"{name} must be non-negative"):
+    with pytest.raises(ValueError, match=f"{name} must be greater than or equal to 0"):
         SummaryConfig(**{name: -1})
 
 

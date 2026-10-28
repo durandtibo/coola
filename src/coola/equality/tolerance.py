@@ -6,7 +6,7 @@ __all__ = ["Tolerance"]
 
 from dataclasses import dataclass
 
-from coola.validation import validate_finite, validate_non_negative, validate_number
+from coola.validation import validate_finite, validate_ge, validate_number
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,8 +45,8 @@ class Tolerance:
     def __post_init__(self) -> None:
         validate_number(self.rtol, name="rtol")
         validate_number(self.atol, name="atol")
-        validate_non_negative(self.rtol, name="rtol")
-        validate_non_negative(self.atol, name="atol")
+        validate_ge(self.rtol, 0, name="rtol")
+        validate_ge(self.atol, 0, name="atol")
         validate_finite(self.rtol, name="rtol")
         validate_finite(self.atol, name="atol")
 

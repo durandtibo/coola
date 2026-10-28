@@ -11,16 +11,18 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 
 The `coola.validation` package provides:
 
-1. **Type checks** - `validate_isinstance` to check a value is an instance of a given type, and
-   `validate_bool`, `validate_int`, `validate_float`, `validate_str`, `validate_list`,
-   `validate_tuple`, `validate_dict`, `validate_mapping`, `validate_set` and `validate_frozenset` for the common builtin types
+1. **Type checks** - `validate_isinstance` to check a value is an instance of a given type
+   (`validate_isinstance(x, str)`), `validate_int` to check a value is an `int` and not a `bool`,
+   and `validate_number` to check a value is a real number
 2. **Container checks** - `validate_not_empty` to check a value is not empty, and `validate_in`
    to check a value belongs to a set of valid values
 3. **Comparison checks** - `validate_ge`, `validate_gt`, `validate_le`, and `validate_lt` to
-   check a value against a bound, and `validate_range` to check a value is in a
-   range
-4. **Sign and finiteness checks** - `validate_positive`, `validate_non_negative`,
-   `validate_negative`, `validate_non_positive` and `validate_finite`
+   check a value against a bound, `validate_range` to check a value is in a range, and
+   `validate_finite` to check a value is a finite number
+
+The sign checks are comparisons with zero: `validate_gt(x, 0)` for a positive value and
+`validate_ge(x, 0)` for a non-negative value. A validator exists only if it states a constraint
+that `isinstance` or one comparison cannot state without a special case.
 
 Every function takes the value to validate as its first argument, and an optional `name` keyword
 argument used to identify the value in the error message. On success, the function returns
@@ -99,32 +101,22 @@ ValueError: ratio: the range [1, 0] is empty
 
 ```
 
-## Sign and Finiteness
+## Finiteness
 
-`validate_positive`/`validate_negative` check strict signs, and `validate_non_negative`/
-`validate_non_positive` accept zero. `validate_finite` rejects infinite values and `NaN`:
+`validate_finite` rejects infinite values and `NaN`. It checks the type first, so a value that is
+not a real number is a `TypeError`:
 
 ```pycon
->>> from coola.validation import (
-...     validate_finite,
-...     validate_negative,
-...     validate_non_negative,
-...     validate_non_positive,
-...     validate_positive,
-... )
->>> validate_positive(1)
->>> validate_non_negative(0)
->>> validate_negative(-1)
->>> validate_non_positive(0)
+>>> from coola.validation import validate_finite
 >>> validate_finite(1.5)
->>> validate_positive(0, name="count")
-Traceback (most recent call last):
-    ...
-ValueError: count must be positive, got 0
 >>> validate_finite(float("inf"), name="lr")
 Traceback (most recent call last):
     ...
 ValueError: lr must be finite, got inf
+>>> validate_finite("a", name="lr")
+Traceback (most recent call last):
+    ...
+TypeError: lr must be a real number, got str
 
 ```
 

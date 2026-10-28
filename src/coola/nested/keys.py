@@ -18,7 +18,7 @@ from coola.display import InlineDisplayMixin
 from coola.nested.mapping import DuplicateKeyError
 from coola.recursive import BaseTransformer, get_default_registry, recursive_apply
 from coola.recursive.rebuild import rebuild_mapping
-from coola.validation import validate_mapping
+from coola.validation import validate_isinstance
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -100,7 +100,7 @@ def _apply(mapping: M, transformer: _KeyTransformer) -> M:
     Raises:
         TypeError: If ``mapping`` is not a mapping.
     """
-    validate_mapping(mapping, name="mapping")
+    validate_isinstance(mapping, Mapping, name="mapping")
     registry: TransformerRegistry = get_default_registry().copy()
     # The mapping types of the default registry
     for data_type in (dict, Mapping, MappingProxyType):
@@ -156,7 +156,7 @@ def add_prefix_suffix_to_keys(
 
     if recursive:
         return _apply(mapping, _KeyTransformer(rename=rename))
-    validate_mapping(mapping, name="mapping")
+    validate_isinstance(mapping, Mapping, name="mapping")
     new_keys = [rename(key) for key in mapping]
     _check_no_duplicate(new_keys, mapping)
     return rebuild_mapping(mapping, dict(zip(new_keys, mapping.values(), strict=True)))

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from coola.equality.tolerance import Tolerance
-from coola.validation import validate_int, validate_positive
+from coola.validation import validate_gt, validate_int
 
 if TYPE_CHECKING:
     from coola.equality.tester.registry import EqualityTesterRegistry
@@ -75,7 +75,7 @@ class EqualityConfig:
     def __post_init__(self) -> None:
         """Validate configuration parameters after initialization."""
         validate_int(self.max_depth, name="max_depth")
-        validate_positive(self.max_depth, name="max_depth")
+        validate_gt(self.max_depth, 0, name="max_depth")
 
     @property
     def atol(self) -> float:

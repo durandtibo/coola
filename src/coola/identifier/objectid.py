@@ -16,7 +16,7 @@ import re
 import secrets
 
 from coola.identifier.sequence import TickSequence
-from coola.validation import validate_int, validate_range, validate_str
+from coola.validation import validate_int, validate_isinstance, validate_range
 
 _TIMESTAMP_BITS = 32
 _MAX_TIMESTAMP_S = (1 << _TIMESTAMP_BITS) - 1
@@ -110,7 +110,7 @@ def extract_object_id_timestamp_s(object_id: str) -> int:
 
         ```
     """
-    validate_str(object_id, name="object_id")
+    validate_isinstance(object_id, str, name="object_id")
     if _OBJECT_ID_PATTERN.fullmatch(object_id) is None:
         msg = f"object_id must be a {_LENGTH}-character lowercase hex string, got {object_id!r}"
         raise ValueError(msg)

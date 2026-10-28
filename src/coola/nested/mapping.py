@@ -8,13 +8,14 @@ __all__ = [
     "merge_mappings",
 ]
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, assert_never
 
 from coola.equality import objects_are_equal
-from coola.validation import validate_mapping
+from coola.validation import validate_isinstance
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping
+    from collections.abc import Iterable
 
 
 class DuplicateKeyError(KeyError, ValueError):
@@ -114,7 +115,7 @@ def flatten_mapping(
     seen: dict[Any, Any] = {}  # inner key -> recorded value, to check for real conflicts
 
     for outer_key, inner_mapping in mapping.items():
-        validate_mapping(inner_mapping, name=f"value of the key {outer_key!r}")
+        validate_isinstance(inner_mapping, Mapping, name=f"value of the key {outer_key!r}")
         for inner_key, value in inner_mapping.items():
             prefixed_key = f"{outer_key}{separator}{inner_key}"
 

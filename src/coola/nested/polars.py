@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, cast
 
 from coola.utils.imports import is_polars_available
 from coola.utils.version import compare_version
-from coola.validation import validate_non_negative
+from coola.validation import validate_ge
 
 if TYPE_CHECKING or is_polars_available():
     import polars as pl
@@ -278,7 +278,7 @@ def flatten_frame(
         )
         raise TypeError(msg)
     if depth is not None:
-        validate_non_negative(depth, name="depth")
+        validate_ge(depth, 0, name="depth")
 
     current_depth = 0
     while depth is None or current_depth < depth:

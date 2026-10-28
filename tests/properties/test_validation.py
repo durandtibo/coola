@@ -3,34 +3,24 @@ r"""Property-based tests for the type validators of
 
 from __future__ import annotations
 
+from functools import partial
 from typing import Any
 
 import pytest
 from hypothesis import assume, given, strategies as st
 
-from coola.validation import (
-    validate_bool,
-    validate_dict,
-    validate_float,
-    validate_frozenset,
-    validate_int,
-    validate_isinstance,
-    validate_list,
-    validate_set,
-    validate_str,
-    validate_tuple,
-)
+from coola.validation import validate_int, validate_isinstance
 
 VALIDATORS: dict[type, Any] = {
-    bool: validate_bool,
+    bool: partial(validate_isinstance, cls=bool),
     int: validate_int,
-    float: validate_float,
-    str: validate_str,
-    list: validate_list,
-    tuple: validate_tuple,
-    dict: validate_dict,
-    set: validate_set,
-    frozenset: validate_frozenset,
+    float: partial(validate_isinstance, cls=float),
+    str: partial(validate_isinstance, cls=str),
+    list: partial(validate_isinstance, cls=list),
+    tuple: partial(validate_isinstance, cls=tuple),
+    dict: partial(validate_isinstance, cls=dict),
+    set: partial(validate_isinstance, cls=set),
+    frozenset: partial(validate_isinstance, cls=frozenset),
 }
 
 samples = st.one_of(
@@ -94,19 +84,19 @@ def test_at_most_one_builtin_validator_accepts_a_value(value: object) -> None:
 
 
 @given(items=st.lists(st.integers(), max_size=5))
-def test_validate_list_accepts_list(items: list[int]) -> None:
-    assert not _raises(validate_list, items)
+def test_validate_isinstance_list_accepts_list(items: list[int]) -> None:
+    assert not _raises(VALIDATORS[list], items)
 
 
 @pytest.mark.parametrize(
     ("convert", "validator"),
     [
-        (tuple, validate_list),
-        (set, validate_list),
-        (list, validate_tuple),
-        (list, validate_set),
-        (set, validate_frozenset),
-        (frozenset, validate_set),
+        (tuple, VALIDATORS[list]),
+        (set, VALIDATORS[list]),
+        (list, VALIDATORS[tuple]),
+        (list, VALIDATORS[set]),
+        (set, VALIDATORS[frozenset]),
+        (frozenset, VALIDATORS[set]),
     ],
 )
 @given(items=st.lists(st.integers(), max_size=5))

@@ -6,7 +6,7 @@ __all__ = ["unified_diff"]
 
 import difflib
 
-from coola.validation import validate_non_negative
+from coola.validation import validate_ge
 
 
 def unified_diff(
@@ -52,7 +52,7 @@ def unified_diff(
 
         ```
     """
-    validate_non_negative(context_lines, name="context_lines")
+    validate_ge(context_lines, 0, name="context_lines")
     lines_a = text_a.splitlines(keepends=True)
     lines_b = text_b.splitlines(keepends=True)
     diff = difflib.unified_diff(

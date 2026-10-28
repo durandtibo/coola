@@ -97,12 +97,12 @@ def test_generate_checksummed_id_draws_the_payload_once_when_the_symbol_is_valid
 
 
 def test_generate_checksummed_id_zero_length_raises() -> None:
-    with pytest.raises(ValueError, match="length must be positive"):
+    with pytest.raises(ValueError, match="length must be greater than 0"):
         generate_checksummed_id(length=0)
 
 
 def test_generate_checksummed_id_zero_group_size_raises() -> None:
-    with pytest.raises(ValueError, match="group_size must be positive"):
+    with pytest.raises(ValueError, match="group_size must be greater than 0"):
         generate_checksummed_id(group_size=0)
 
 

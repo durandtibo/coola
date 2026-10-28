@@ -16,7 +16,7 @@ import os
 
 from coola.identifier import crockford
 from coola.identifier.sequence import TickSequence
-from coola.validation import validate_int, validate_range, validate_str
+from coola.validation import validate_int, validate_isinstance, validate_range
 
 _TIMESTAMP_BITS = 48
 _MAX_TIMESTAMP_MS = (1 << _TIMESTAMP_BITS) - 1
@@ -115,7 +115,7 @@ def extract_ulid_timestamp_ms(ulid: str) -> int:
 
         ```
     """
-    validate_str(ulid, name="ulid")
+    validate_isinstance(ulid, str, name="ulid")
     if len(ulid) != _LENGTH:
         msg = f"ulid must be {_LENGTH} characters long, got {len(ulid)}"
         raise ValueError(msg)

@@ -444,7 +444,7 @@ def test_register_default_summarizers_without_optional_package(data_type: type) 
 
 
 def test_summarize_negative_max_depth_raises() -> None:
-    with pytest.raises(ValueError, match="max_depth must be non-negative"):
+    with pytest.raises(ValueError, match="max_depth must be greater than or equal to 0"):
         summarize([1, 2], max_depth=-1)
 
 
@@ -587,7 +587,7 @@ def test_summarize_with_a_custom_registry() -> None:
 
 @pytest.mark.parametrize("name", ["max_items", "max_characters"])
 def test_summarize_negative_limit_raises(name: str) -> None:
-    with pytest.raises(ValueError, match=f"{name} must be non-negative"):
+    with pytest.raises(ValueError, match=f"{name} must be greater than or equal to 0"):
         summarize([1], **{name: -1})
 
 

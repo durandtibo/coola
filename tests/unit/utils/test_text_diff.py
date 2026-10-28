@@ -112,7 +112,7 @@ def test_unified_diff_context_lines_one() -> None:
 
 
 def test_unified_diff_negative_context_lines_raises() -> None:
-    with pytest.raises(ValueError, match="non-negative"):
+    with pytest.raises(ValueError, match="must be greater than or equal to 0"):
         unified_diff(TEXT_A, TEXT_B, context_lines=-1)
 
 
