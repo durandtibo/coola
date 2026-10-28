@@ -1,4 +1,5 @@
-r"""Provide identifiers: content-derived, time-ordered and human-friendly.
+r"""Provide identifiers: content-derived, time-ordered and human-
+friendly.
 
 The stable identifiers (``generate_stable_content_id``,
 ``generate_stable_uuid5``) are derived from nested data through
@@ -6,8 +7,9 @@ The stable identifiers (``generate_stable_content_id``,
 Snowflake, ObjectId) or checksummed.
 
 Every generator returns a ``str`` identifier except
-``SnowflakeIdGenerator.generate``, which returns a plain ``int`` (a Snowflake ID is defined as a 64-bit integer,
-e.g. for use as a database ``BIGINT`` primary key).
+``SnowflakeIdGenerator.generate``, which returns a plain ``int`` (a
+Snowflake ID is defined as a 64-bit integer, e.g. for use as a database
+``BIGINT`` primary key).
 """
 
 from __future__ import annotations
