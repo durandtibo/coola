@@ -337,6 +337,8 @@ apologise for it. The cost is one `sed` over 93 files and two lines in the migra
 major release. Alternative: keep `fixtures` (marks) and `registries` (fixture); no churn, and the
 confusion stays for every new reader.
 
+Decision: yes
+
 **D2. How a suite gets the fixture.** _Recommended: `pytest_plugins = ["coola.testing.fixtures"]`
 in the top-level `conftest.py`, documented._ It is the supported mechanism, needs no `__all__`
 hack and no re-export in each directory. Alternatives: (a) keep the re-export in `conftest.py`
@@ -346,6 +348,8 @@ is loaded in every session where `coola` and `pytest` are installed. (b) is the 
 fixture name to the sessions of projects that did not ask for it. Not recommended. The fixture is
 **not** autouse in any case: isolation costs a copy of six registries per test and most tests do not
 register anything.
+
+Decision: follow recommendation
 
 **D3. Keep the device marks (`torch_cuda_*`, `torch_mps_*`, `torch_numpy_*`)?** _Recommended: keep
 `torch_cuda_*` and `torch_mps_*`, drop `torch_numpy_*`._ The first two have a real use: three tests
@@ -357,11 +361,15 @@ names, and a plural reason. Alternative: keep all three (no behaviour loss, thre
 2: drop all device marks and let the three tests keep their `skipif`, but then the MPS probe (1.2 s
 at first access) is paid at the import of each of those test modules.
 
+Decision: keep
+
 **D4. Keep the `*_not_available` marks?** _Recommended: yes._ They are the property "Paired marks",
 they cost nothing in the table (built by the same call), and a fallback path that is never tested is
 a fallback path that breaks. They are used by few files today, which says that the fallbacks are
 under-tested rather than that the marks are useless. Alternative: generate only the `_available`
 marks and document `requires` for the opposite; saves 14 names and weakens the guide.
+
+Decision: yes
 
 **D5. Rename the marks to remove the clash with `coola.utils.imports` (F7)?** _Recommended: no,
 document and lint instead._ `numpy_available` reads well on a test, and the module that imports it
@@ -371,10 +379,14 @@ document and lint instead._ `numpy_available` reads well on a test, and the modu
 guide. Alternative: rename the marks `requires_numpy` / `without_numpy`, which makes the clash
 impossible but changes 93 files by hand-written names instead of a path.
 
+Decision: no
+
 **D6. Catch the missing `pytest` with a friendly error?** _Recommended: no._ `import pytest` at the
 top of the module raises `ModuleNotFoundError: No module named 'pytest'`, which a test author
 understands at once; the package docstring and the guide name the `testing` extra. A wrapper that
 catches and re-raises is code for a message nobody needs.
+
+Decision: no
 
 **D7. A mark that evaluates at run time (`@pytest.mark.requires("numpy")` with a plugin hook)?**
 _Recommended: no._ It would be the shortest to extend (one dict, no `__getattr__`) and it moves the
@@ -382,6 +394,8 @@ check to the run phase, but it needs a plugin in every suite (the marks work wit
 loses the importable and greppable names, and changes 93 files in a way that is not mechanical for
 `pytestmark = [a, b]` and `pytest.param(marks=...)`. The module `__getattr__` costs 10 lines and
 keeps the property "Standard pytest".
+
+Decision: no
 
 ## 10. Not covered
 
