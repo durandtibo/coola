@@ -7,7 +7,6 @@ __all__ = [
     "availability_cache",
     "check_package",
     "clear_availability_caches",
-    "decorator_package_available",
     "module_available",
     "package_available",
     "raise_package_missing_error",
@@ -16,7 +15,7 @@ __all__ = [
 import importlib
 import logging
 from contextlib import suppress
-from functools import cache, wraps
+from functools import cache
 from importlib.util import find_spec
 from typing import TYPE_CHECKING, Any, Never, Protocol, TypeVar, cast
 
@@ -179,73 +178,35 @@ def module_available(name: str) -> bool:
     return True
 
 
-def check_package(package: str, command: str | None = None) -> None:
-    r"""Check if the given package is installed.
+def check_package(package: str, *, install: str | None = None) -> None:
+    r"""Check if the given package is installed and can be imported.
 
     Args:
         package: The package name.
-        command: The command to install the package.
+        install: The name to give to ``pip install`` when it differs
+            from ``package``. By default, it is ``package``.
 
     Raises:
-        MissingPackageError: if the package is not installed.
+        MissingPackageError: if the package is not available.
 
     Example:
         ```pycon
         >>> from coola.utils.imports import check_package
-        >>> check_package("numpy")
+        >>> check_package("os")
 
         ```
     """
-    if not package_available(package):
-        msg = f"'{package}' package is required but not installed."
-        if command is not None:
-            msg += f" You can install '{package}' package with the command:\n\n{command}"
-        raise MissingPackageError(msg, name=package)
+    if not module_available(package):
+        raise_package_missing_error(package, install=install)
 
 
-def decorator_package_available(fn: F, condition: Callable[[], bool]) -> F:
-    r"""Implement a decorator to execute a function only if a package is
-    installed.
-
-    Args:
-        fn: The function to execute.
-        condition: The condition to
-            check if a package is installed or not.
-
-    Returns:
-        A wrapper around ``fn`` if condition is true,
-            otherwise ``None``.
-
-    Example:
-        ```pycon
-        >>> from functools import partial
-        >>> from coola.utils.imports import decorator_package_available, is_numpy_available
-        >>> decorator = partial(decorator_package_available, condition=is_numpy_available)
-        >>> @decorator
-        ... def my_function(n: int = 0) -> int:
-        ...     return 42 + n
-        ...
-        >>> my_function(2)
-        44
-
-        ```
-    """
-
-    @wraps(fn)
-    def inner(*args: Any, **kwargs: Any) -> Any:
-        if not condition():
-            return None
-        return fn(*args, **kwargs)
-
-    return cast("F", inner)
-
-
-def raise_package_missing_error(package_name: str, install_cmd: str) -> Never:
+def raise_package_missing_error(package: str, *, install: str | None = None) -> Never:
     r"""Raise a ``MissingPackageError`` for a missing package.
 
     Args:
-        package_name: The name of the missing package.
-        install_cmd: The pip install command for the package.
+        package: The name of the missing package.
+        install: The name to give to ``pip install`` when it differs
+            from ``package``. By default, it is ``package``.
 
     Raises:
         MissingPackageError: Always raised to indicate the package is
@@ -254,14 +215,15 @@ def raise_package_missing_error(package_name: str, install_cmd: str) -> Never:
     Example:
         ```pycon
         >>> from coola.utils.imports import raise_package_missing_error
-        >>> raise_package_missing_error("numpy", "numpy")  # doctest: +SKIP
+        >>> raise_package_missing_error("numpy")  # doctest: +SKIP
 
         ```
     """
+    install = package if install is None else install
     msg = (
-        f"'{package_name}' package is required but not installed. "
-        f"You can install '{package_name}' package with the command:\n\n"
-        f"pip install {install_cmd}\n\nor\n\n"
-        f"uv pip install {install_cmd}\n"
+        f"'{package}' package is required but not installed. "
+        f"You can install '{package}' package with the command:\n\n"
+        f"pip install {install}\n\nor\n\n"
+        f"uv pip install {install}\n"
     )
-    raise MissingPackageError(msg, name=package_name)
+    raise MissingPackageError(msg, name=package)

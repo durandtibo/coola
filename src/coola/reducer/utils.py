@@ -4,10 +4,11 @@ from __future__ import annotations
 
 __all__ = ["auto_reducer"]
 
+import pkgutil
 from typing import TYPE_CHECKING
 
 from coola.reducer.native import NativeReducer
-from coola.utils.imports import import_object, is_numpy_available
+from coola.utils.imports import is_numpy_available
 
 if TYPE_CHECKING:
     from coola.reducer.base import BaseReducer
@@ -40,5 +41,5 @@ def auto_reducer() -> BaseReducer:
         ```
     """
     if is_numpy_available():
-        return import_object("coola.reducer.numpy:NumpyReducer")()
+        return pkgutil.resolve_name("coola.reducer.numpy:NumpyReducer")()
     return NativeReducer()

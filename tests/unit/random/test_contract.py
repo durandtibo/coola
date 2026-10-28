@@ -168,7 +168,7 @@ def test_manager_is_not_equal_to_another_type(cls: type[BaseRandomManager]) -> N
 @numpy_available
 def test_numpy_manager_without_numpy_raises_import_error() -> None:
     with (
-        patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
+        patch("coola.utils.imports.optional.is_numpy_available", lambda: False),
         pytest.raises(ImportError, match="numpy"),
     ):
         NumpyRandomManager()
@@ -177,7 +177,7 @@ def test_numpy_manager_without_numpy_raises_import_error() -> None:
 @torch_available
 def test_torch_manager_without_torch_raises_import_error() -> None:
     with (
-        patch("coola.utils.imports.torch.is_torch_available", lambda: False),
+        patch("coola.utils.imports.optional.is_torch_available", lambda: False),
         pytest.raises(ImportError, match="torch"),
     ):
         TorchRandomManager()

@@ -57,14 +57,6 @@ A mark is a standard `pytest.mark.skipif`, so it works on a function, on a class
 is reported with a reason that names the dependency (`Requires NumPy`,
 `Skip if NumPy is available`).
 
-### Two `numpy_available`
-
-`coola.utils.imports.numpy_available` is a **function decorator** for library code: it replaces the
-function by `None` when NumPy is missing. `coola.testing.marks.numpy_available` is a **pytest
-mark**. A test decorated with the first one is not skipped, it disappears from the run with no skip
-report, which is the failure the mark exists to prevent. In tests, import the marks from
-`coola.testing.marks`.
-
 ### Marks for another dependency
 
 `requires` creates the pair for any dependency. It takes a boolean that says whether the dependency

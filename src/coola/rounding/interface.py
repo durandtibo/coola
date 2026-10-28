@@ -4,11 +4,11 @@ from __future__ import annotations
 
 __all__ = ["round_values"]
 
+import pkgutil
 from typing import Any
 
 from coola.recursive.interface import recursive_apply
 from coola.rounding.common import RoundMode, validate_arguments
-from coola.utils.imports import import_object
 
 # (name of the top-level module of the types, function that rounds them)
 _BACKENDS = {
@@ -132,4 +132,4 @@ def _round_object(data: Any, mode: RoundMode, decimals: int) -> Any:
     # The native function is the fallback: it raises the error for the unsupported types.
     modules = (cls.__module__.split(".")[0] for cls in type(data).__mro__)
     target = _BACKENDS[next((name for name in modules if name in _BACKENDS), "builtins")]
-    return import_object(target)(data, mode, decimals)
+    return pkgutil.resolve_name(target)(data, mode, decimals)

@@ -38,7 +38,7 @@ def test_compare_version_false_missing() -> None:
 
 def test_compare_version_missing_packaging() -> None:
     with (
-        patch("coola.utils.imports.packaging.is_packaging_available", lambda: False),
+        patch("coola.utils.imports.optional.is_packaging_available", lambda: False),
         pytest.raises(
             MissingPackageError, match=r"'packaging' package is required but not installed."
         ),
@@ -64,7 +64,7 @@ def test_get_package_version_missing() -> None:
 
 def test_get_package_version_missing_packaging() -> None:
     with (
-        patch("coola.utils.imports.packaging.is_packaging_available", lambda: False),
+        patch("coola.utils.imports.optional.is_packaging_available", lambda: False),
         pytest.raises(
             MissingPackageError, match=r"'packaging' package is required but not installed."
         ),

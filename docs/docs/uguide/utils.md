@@ -75,31 +75,6 @@ Available check functions:
 - `is_colorlog_available()` - Check if colorlog is available
 - `is_torch_numpy_available()` - Check if both PyTorch and NumPy are available
 
-### Decorators for Availability
-
-`numpy_available`, `torch_available`, and the similar names for the other libraries are
-**decorators**, not context managers. The decorated function is only defined if the package is
-available, otherwise the name is bound to `None` (no error is raised):
-
-```pycon
->>> from coola.utils.imports import numpy_available
->>> @numpy_available
-... def total(data):
-...     import numpy as np
-...
-...     return np.array(data).sum()
-...
-
-```
-
-`with numpy_available():` raises a `TypeError`. To branch on availability, use
-`is_numpy_available()` as in [Graceful Degradation](#graceful-degradation).
-
-Available decorators: `numpy_available`, `torch_available`, `pandas_available`,
-`polars_available`, `jax_available`, `xarray_available`, `pyarrow_available`,
-`packaging_available`, `pydantic_available`, `rich_available`, `colorlog_available` and
-`torch_numpy_available` (both PyTorch and NumPy).
-
 ### Raising Errors for Missing Packages
 
 Use check functions to raise informative errors when required packages are missing:
@@ -127,49 +102,22 @@ Available check functions (raise `MissingPackageError` if the package is missing
 - `check_rich()` - Require rich
 - `check_colorlog()` - Require colorlog
 - `check_torch_numpy()` - Require both PyTorch and NumPy
-- `check_package(package, command=None)` - Require any package. `command` is the install command
-  added to the error message (by default, the message has no install command)
+- `check_package(package, *, install=None)` - Require any package. `install` is the name given to
+  `pip install` when it differs from the import name
 
-The `raise_<package>_missing_error()` functions (for example `raise_numpy_missing_error()`) raise the
-same error unconditionally. They are used by the fallback classes and functions of
-`coola.utils.fallback`, and `raise_package_missing_error(package_name, install_cmd)` does it for any
-package.
+`raise_package_missing_error(package, *, install=None)` raises the same error unconditionally. All
+the checks give the same message, which has the `pip install` and `uv pip install` commands. It is
+used by the fallback classes and functions of `coola.utils.fallback`.
 
-### Decorator for Package Availability
-
-Use `decorator_package_available()` to skip function execution if a package is not available:
-
-```pycon
->>> from functools import partial
->>> from coola.utils.imports import decorator_package_available, is_numpy_available
->>> decorator = partial(decorator_package_available, condition=is_numpy_available)
->>> @decorator
-... def process_with_numpy(data):
-...     import numpy as np
-...
-...     return np.array(data).sum()
->>> # Function only executes if NumPy is available
-
-```
+`is_<package>_available()` imports the package the first time it is called (a package that is
+installed but broken is reported as not available) and caches the result. Use
+`package_available(name)` to ask whether a package is installed without importing it.
 
 ### Lazy Imports
 
-Use `lazy_import()` or `LazyModule` to defer imports until they are actually used:
-
-```pycon
->>> from coola.utils.imports import lazy_import
->>> np = lazy_import("numpy")  # doctest: +SKIP
->>> # NumPy is not imported yet
->>> arr = np.array([1, 2, 3])  # doctest: +SKIP
->>> # NumPy is imported when first accessed
-
-```
-
-This is useful for:
-
-- Reducing startup time by deferring expensive imports
-- Making optional dependencies truly optional
-- Avoiding circular import issues
+`lazy_exports()` defers the import of the names that a package exports until they are used, and
+`is_module_imported()` indicates if the module of an object is already imported. To import an
+object from a `"package.module:name"` string, use `pkgutil.resolve_name` of the standard library.
 
 ## Mapping Utilities (`coola.utils.mapping`)
 

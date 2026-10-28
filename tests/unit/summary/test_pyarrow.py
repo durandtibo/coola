@@ -32,7 +32,7 @@ SHOW_DATA = SummaryConfig(show_data=True)
 @pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
 def test_summarizer_missing_package_raises(summarizer_cls: type) -> None:
     with (
-        patch("coola.utils.imports.pyarrow.is_pyarrow_available", lambda: False),
+        patch("coola.utils.imports.optional.is_pyarrow_available", lambda: False),
         pytest.raises(MissingPackageError, match="'pyarrow' package is required"),
     ):
         summarizer_cls()

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pkgutil
 from array import array
 from collections import OrderedDict, deque
 from collections.abc import Generator, Mapping, Sequence
@@ -42,7 +43,6 @@ from coola.io.base import BaseLoader, BaseSaver
 from coola.registry import AlreadyRegisteredError
 from coola.testing.marks import numpy_available
 from coola.utils.imports import (
-    import_object,
     is_jax_available,
     is_numpy_available,
     is_pandas_available,
@@ -288,7 +288,7 @@ def test_get_default_testers_types_come_from_the_library(
     """Test that the lazy group is loaded for each type that it
     registers."""
     pytest.importorskip(names[0])
-    mapping = import_object(f"{module}:get_default_testers")()
+    mapping = pkgutil.resolve_name(f"{module}:get_default_testers")()
     assert {t.__module__.partition(".")[0] for t in mapping} <= set(names)
 
 
@@ -297,14 +297,14 @@ def test_get_default_testers_returns_entries_if_the_library_is_available(
     module: str, names: tuple[str, ...]
 ) -> None:
     pytest.importorskip(names[0])
-    assert len(import_object(f"{module}:get_default_testers")()) > 0
+    assert len(pkgutil.resolve_name(f"{module}:get_default_testers")()) > 0
 
 
 @pytest.mark.parametrize("module", LAZY_MODULE_NAMES)
 def test_get_default_testers_returns_nothing_if_the_library_is_unavailable(module: str) -> None:
     name = module.rpartition(".")[2]
     with patch(f"{module}.is_{name}_available", lambda: False):
-        assert import_object(f"{module}:get_default_testers")() == {}
+        assert pkgutil.resolve_name(f"{module}:get_default_testers")() == {}
 
 
 ######################################################

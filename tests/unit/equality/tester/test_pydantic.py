@@ -216,7 +216,7 @@ def test_pydantic_model_equality_tester_cached_property_read_on_one_model(
 
 def test_pydantic_model_equality_tester_missing_package() -> None:
     with (
-        patch("coola.utils.imports.pydantic.is_pydantic_available", lambda: False),
+        patch("coola.utils.imports.optional.is_pydantic_available", lambda: False),
         pytest.raises(
             MissingPackageError, match=r"'pydantic' package is required but not installed."
         ),

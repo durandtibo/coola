@@ -8,12 +8,11 @@ __all__ = ["BaseModel", "SecretBytes", "SecretStr", "pydantic"]
 from typing import TYPE_CHECKING
 
 from coola.utils.fallback.factory import make_fake_class, make_fake_module
-from coola.utils.imports import raise_pydantic_missing_error
 
 if TYPE_CHECKING:
     from types import ModuleType
 
-FakeClass: type = make_fake_class(raise_pydantic_missing_error)
+FakeClass: type = make_fake_class("pydantic")
 
 BaseModel = FakeClass
 SecretBytes = FakeClass
