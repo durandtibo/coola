@@ -279,7 +279,6 @@ source_modules = [
   "coola.utils",
   "coola.display",
   "coola.validation",
-  "coola.tools",
   "coola.formatting",
 ]
 forbidden_modules = [
@@ -305,7 +304,6 @@ source_modules = ["coola.utils"]
 forbidden_modules = [
   "coola.registry",
   "coola.display",
-  "coola.tools",
   "coola.formatting",
   "coola.equality",
   "coola.hashing",
@@ -329,7 +327,6 @@ source_modules = ["coola.formatting"]
 forbidden_modules = [
   "coola.registry",
   "coola.display",
-  "coola.tools",
   "coola.equality",
   "coola.hashing",
   "coola.summary",
