@@ -29,11 +29,6 @@ if is_numpy_available():
 else:  # pragma: no cover
     np = None
 
-if is_numpy_available():
-    import numpy as np
-else:  # pragma: no cover
-    np = None
-
 
 def test_validate_ge_greater() -> None:
     validate_ge(1, 0)
