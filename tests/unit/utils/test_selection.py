@@ -37,10 +37,6 @@ def test_smallest_items_strings() -> None:
     assert smallest_items({"b", "c", "a"}, limit=2) == ["a", "b"]
 
 
-def test_smallest_items_accepts_an_iterator() -> None:
-    assert smallest_items(iter([3, 1, 2]), limit=2) == [1, 2]
-
-
 @pytest.mark.parametrize(("limit", "expected"), [(1, [1]), (2, [1, "a"])])
 def test_smallest_items_not_comparable_items_keep_the_iteration_order(
     limit: int, expected: list

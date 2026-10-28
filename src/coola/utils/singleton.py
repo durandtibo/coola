@@ -175,7 +175,19 @@ class LazySingleton(Generic[T]):
 
     def reset(self) -> None:
         r"""Forget the cached value, so the next ``get`` call builds a
-        new one."""
+        new one.
+
+        Raises:
+            RuntimeError: If ``reset`` is called by the thread that is
+                building the value (the factory resets the singleton it
+                builds), which would otherwise wait forever.
+        """
+        if self._building_thread == threading.get_ident():
+            msg = (
+                "The singleton is reset while its value is being built, which would wait "
+                "forever. Do not reset the singleton from its own factory."
+            )
+            raise RuntimeError(msg)
         with self._lock:
             self._instance = _UNSET
 
