@@ -8,7 +8,7 @@ __all__ = ["BaseDisplayMixin", "InlineDisplayMixin", "MultilineDisplayMixin"]
 from abc import ABC, abstractmethod
 from typing import Any
 
-from coola.utils.format import (
+from coola.formatting.structure import (
     repr_indent,
     repr_mapping,
     repr_mapping_line,

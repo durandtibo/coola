@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.utils.text_diff import unified_diff
+from coola.formatting.diff import unified_diff
 
 TEXT_A = "Cats are independent animals.\nThey sleep up to 16 hours a day.\nCats are carnivores.\n"
 TEXT_B = (

@@ -37,6 +37,7 @@ nav:
       - uguide/equality_tester.md
       - uguide/extending.md
       - uguide/factory.md
+      - uguide/formatting.md
       - uguide/hashing.md
       - uguide/identifier.md
       - uguide/io.md
@@ -64,6 +65,7 @@ nav:
       - refs/display.md
       - refs/equality.md
       - refs/factory.md
+      - refs/formatting.md
       - refs/hashing.md
       - refs/identifier.md
       - refs/io.md

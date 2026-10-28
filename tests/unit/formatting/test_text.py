@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.utils.string import (
+from coola.formatting.text import (
     char_diff_summary,
     count_lines,
     remove_empty_lines,

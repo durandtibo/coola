@@ -2,17 +2,13 @@
 ::: coola.utils.conversion
 ::: coola.utils.fallback
 ::: coola.utils.fork
-::: coola.utils.format
 ::: coola.utils.imports
 ::: coola.utils.integer
 ::: coola.utils.introspection
 ::: coola.utils.mapping
 ::: coola.utils.path
 ::: coola.utils.safe
-::: coola.utils.secret
 ::: coola.utils.selection
 ::: coola.utils.singleton
 ::: coola.utils.stats
-::: coola.utils.string
-::: coola.utils.text_diff
 ::: coola.utils.version

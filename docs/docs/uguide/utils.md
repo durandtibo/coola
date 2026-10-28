@@ -12,17 +12,15 @@ The `coola.utils` package provides a collection of utility functions organized i
 submodules:
 
 1. **Import utilities** - Check if packages are available and handle optional dependencies
-2. **Formatting utilities** - Format objects, sequences, and mappings for display
-3. **Other utilities** - Mapping, path, version, introspection, string, secret, and statistics
-   utilities
+2. **Other utilities** - Mapping, path, version, introspection, and statistics utilities
 
-The standalone helpers (array, tensor, Bloom filter, LRU cache, git, dates, timing, environment
+The functions that turn values into text are in [`coola.formatting`](formatting.md). The standalone helpers (array, tensor, Bloom filter, LRU cache, git, dates, timing, environment
 variables, ...) are in [`coola.tools`](tools.md).
 
 ### Core helpers
 
 The modules used by the other `coola` packages are the **core helpers**: `imports`, `fallback`,
-`fork`, `format`, `integer`, `introspection`, `mapping`, `path`, `safe`, `selection`, `singleton`,
+`fork`, `integer`, `introspection`, `mapping`, `path`, `safe`, `selection`, `singleton`,
 `stats`, `conversion` and `version`.
 
 ## Import Utilities (`coola.utils.imports`)
@@ -173,129 +171,6 @@ This is useful for:
 - Making optional dependencies truly optional
 - Avoiding circular import issues
 
-## Formatting Utilities (`coola.utils.format`)
-
-### Formatting Sequences
-
-Use `str_sequence()` and `repr_sequence()` to format sequences:
-
-```pycon
->>> from coola.utils.format import str_sequence, repr_sequence
->>> print(str_sequence([1, 2, 3, 4, 5]))
-(0): 1
-(1): 2
-(2): 3
-(3): 4
-(4): 5
->>> print(repr_sequence([1, 2, 3, 4, 5]))
-(0): 1
-(1): 2
-(2): 3
-(3): 4
-(4): 5
-
-```
-
-For single-line formatting, use `str_sequence_line()`:
-
-```pycon
->>> from coola.utils.format import str_sequence_line
->>> str_sequence_line([1, 2, 3, 4, 5])
-'1, 2, 3, 4, 5'
-
-```
-
-### Formatting Mappings
-
-Use `str_mapping()` and `repr_mapping()` to format dictionaries:
-
-```pycon
->>> from coola.utils.format import str_mapping, repr_mapping
->>> data = {"name": "Alice", "age": 30, "city": "NYC"}
->>> print(str_mapping(data))
-(name): Alice
-(age): 30
-(city): NYC
->>> print(repr_mapping(data))
-(name): Alice
-(age): 30
-(city): NYC
-
-```
-
-Sort keys before formatting:
-
-```pycon
->>> from coola.utils.format import str_mapping
->>> data = {"z": 1, "a": 2, "m": 3}
->>> print(str_mapping(data, sorted_keys=True))
-(a): 2
-(m): 3
-(z): 1
-
-```
-
-For single-line formatting, use `str_mapping_line()`:
-
-```pycon
->>> from coola.utils.format import str_mapping_line
->>> str_mapping_line({"a": 1, "b": 2})
-'a=1, b=2'
-
-```
-
-### Adding Indentation
-
-Use `str_indent()` and `repr_indent()` to add indentation to multi-line strings:
-
-```pycon
->>> from coola.utils.format import str_indent
->>> multi_line = "line1\nline2\nline3"
->>> print(str_indent(multi_line, num_spaces=4))
-line1
-    line2
-    line3
-
-```
-
-### Human-Readable Byte Sizes
-
-Use `str_human_byte_size()` to convert byte sizes to human-readable format:
-
-```pycon
->>> from coola.utils.format import str_human_byte_size
->>> str_human_byte_size(512)
-'512.00 B'
->>> str_human_byte_size(23456)
-'22.91 KB'
-
-```
-
-Find the best byte unit for a size:
-
-```pycon
->>> from coola.utils.format import find_best_byte_unit
->>> find_best_byte_unit(100)
-'B'
->>> find_best_byte_unit(2000000)
-'MB'
-
-```
-
-### Human-Readable Time Durations
-
-Use `str_time_human()` to format time durations:
-
-```pycon
->>> from coola.utils.format import str_time_human
->>> import datetime
->>> str_time_human(datetime.timedelta(seconds=90).seconds)
-'0:01:30'
->>> str_time_human(datetime.timedelta(hours=2, minutes=30).seconds)
-'2:30:00'
-
-```
-
 ## Mapping Utilities (`coola.utils.mapping`)
 
 The `coola.utils.mapping` module provides `sort_by_keys()` and `sort_by_values()`, which return a
@@ -386,46 +261,6 @@ True
 
 ```
 
-## String Utilities (`coola.utils.string`)
-
-The `coola.utils.string` module provides small helpers to work with strings: `count_lines()`,
-`remove_empty_lines()`, `slugify()`, `truncate_str()` and `char_diff_summary()`:
-
-```pycon
->>> from coola.utils.string import (
-...     char_diff_summary,
-...     count_lines,
-...     remove_empty_lines,
-...     slugify,
-...     truncate_str,
-... )
->>> count_lines("a\nb\nc")
-3
->>> remove_empty_lines("a\n\nb")
-'a\nb'
->>> slugify("Hello, World! 2024")
-'hello-world-2024'
->>> truncate_str("abcdefghij", max_len=8)
-'abcde...'
->>> char_diff_summary("abc", "abcdef")
-'3 -> 6 chars (+3 chars, +100.0%).'
-
-```
-
-## Secret Utilities (`coola.utils.secret`)
-
-`mask_secret()` masks the content of a secret with `*` before displaying it. Only the first
-`show_first` and the last `show_last` characters are kept, and a short secret is fully masked:
-
-```pycon
->>> from coola.utils.secret import mask_secret
->>> mask_secret("sk-abcdefghijklmnop")
-'sk-************mnop'
->>> mask_secret("short")
-'*****'
-
-```
-
 ## Statistics Utilities (`coola.utils.stats`)
 
 `quantile()` computes quantiles of a sequence of numbers with the linear method (the default of
@@ -464,7 +299,7 @@ Write library code that works with optional dependencies:
 Format complex data structures for debugging:
 
 ```pycon
->>> from coola.utils.format import str_mapping
+>>> from coola.formatting.structure import str_mapping
 >>> config = {
 ...     "model": "transformer",
 ...     "layers": 12,
@@ -484,7 +319,7 @@ Format complex data structures for debugging:
 Show file sizes in human-readable format:
 
 ```pycon
->>> from coola.utils.format import str_human_byte_size
+>>> from coola.formatting.quantity import str_human_byte_size
 >>> import os
 >>> def show_file_size(filepath):  # doctest: +SKIP
 ...     size = os.path.getsize(filepath)
@@ -519,7 +354,7 @@ Provide fallback behavior when optional packages are not available:
 | --------------------- | ----------------------------------------------------------------------------------------- |
 | Optional dependencies | The import helpers report whether a package is available, without failing when it is not. |
 | Cached checks         | The availability of a package is cached, so repeated checks are cheap.                    |
-| Focused submodules    | Each submodule (`imports`, `format`, `mapping`, `path`, ...) has one responsibility.      |
+| Focused submodules    | Each submodule (`imports`, `mapping`, `path`, ...) has one responsibility.      |
 | Informative errors    | Errors and formatted values are written to be read by a person.                           |
 
 ## Design Principles

@@ -40,7 +40,7 @@ def unified_diff(
 
     Example:
         ```pycon
-        >>> from coola.utils.text_diff import unified_diff
+        >>> from coola.formatting.diff import unified_diff
         >>> print(unified_diff("hello\nworld\n", "hello\nearth\n"))
         --- previous
         +++ latest

@@ -1,6 +1,6 @@
 import pytest
 
-from coola.utils.secret import mask_secret
+from coola.formatting.secret import mask_secret
 
 
 @pytest.fixture

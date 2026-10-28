@@ -8,9 +8,9 @@ import copy
 import threading
 from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar, cast
 
+from coola.formatting.structure import repr_indent, repr_mapping, str_indent, str_mapping
 from coola.registry.exceptions import AlreadyRegisteredError, KeyNotRegisteredError
 from coola.utils.fork import track_fork
-from coola.utils.format import repr_indent, repr_mapping, str_indent, str_mapping
 
 if TYPE_CHECKING:
     from collections.abc import (

@@ -31,7 +31,7 @@ def char_diff_summary(before: str, after: str) -> str:
 
     Example:
         ```pycon
-        >>> from coola.utils.string import char_diff_summary
+        >>> from coola.formatting.text import char_diff_summary
         >>> char_diff_summary("<p>Hello</p>", "Hello")
         '12 -> 5 chars (-7 chars, -58.3%).'
         >>> char_diff_summary("", "abc")
@@ -61,7 +61,7 @@ def count_lines(text: str) -> int:
 
     Example:
         ```pycon
-        >>> from coola.utils.string import count_lines
+        >>> from coola.formatting.text import count_lines
         >>> count_lines("Hello\nWorld")
         2
         >>> count_lines("Hello\nWorld\nFoo")
@@ -86,7 +86,7 @@ def remove_empty_lines(text: str) -> str:
 
     Example:
         ```pycon
-        >>> from coola.utils.string import remove_empty_lines
+        >>> from coola.formatting.text import remove_empty_lines
         >>> remove_empty_lines("Hello\n\nWorld\n\n\nFoo")
         'Hello\nWorld\nFoo'
         >>> remove_empty_lines("\n\nOnly empty lines\n\n")
@@ -140,7 +140,7 @@ def slugify(text: str) -> str:
 
     Example:
         ```pycon
-        >>> from coola.utils.string import slugify
+        >>> from coola.formatting.text import slugify
         >>> slugify("Hello, World!")
         'hello-world'
         >>> slugify("Claude Sonnet 4.6")
@@ -185,7 +185,7 @@ def truncate_str(s: str, max_len: int = 100, suffix: str = "...") -> str:
 
     Example:
         ```pycon
-        >>> from coola.utils.string import truncate_str
+        >>> from coola.formatting.text import truncate_str
         >>> truncate_str("hello world")
         'hello world'
         >>> truncate_str("hello world", max_len=8)
