@@ -515,6 +515,24 @@ format that has no configuration defines nothing. `TextSaver` accepts a `str` on
 libraries (torch) are imported lazily. See the [user guide](../uguide/io.md#properties) for the
 properties of the package.
 
+## Design of `coola.identifier`
+
+The package has **two families and one clock rule**. The content-derived identifiers
+(`content.py`) are a function of the data through `coola.hashing`; the time-ordered identifiers
+(`ulid.py`, `uuid7.py`, `objectid.py`, `snowflake.py`) are a **format** (a bit layout and an encoding)
+on top of **one engine**, `TickSequence` (`sequence.py`). A format module has no lock, no clock and no
+fork code: it asks the engine for a `(tick, counter)` pair and packs it. The engine has three cases and
+none of them raises or waits: a new tick restarts the counter (random, or `0` for Snowflake whose
+uniqueness comes from its `worker_id`), the same tick or a clock that went back increments it, and an
+exhausted counter borrows the next tick, so the timestamp of an identifier can run ahead of the clock
+until the clock catches up. The state is per object and protected by a lock, and
+`coola.utils.fork.track_fork` resets it in a forked child; a `SnowflakeIdGenerator`, whose `worker_id`
+the child cannot choose, raises there instead. `crockford.py` is the one Crockford Base32 encoder and
+decoder (ULID and the checksummed identifiers), and the range and type checks come from
+`coola.validation`. The extractors are the strict inverse of the generators: they accept the
+canonical form only. See the [user guide](../uguide/identifier.md#properties) for the properties of
+the package.
+
 ## Design of `coola.hashing`
 
 The package has **one engine, one extension point and one encoding rule**. A hasher only describes

@@ -4,7 +4,13 @@ import os
 
 import pytest
 
-from coola.identifier import SnowflakeIdGenerator, generate_object_id, objectid
+from coola.identifier import (
+    SnowflakeIdGenerator,
+    generate_object_id,
+    generate_ulid,
+    generate_uuid7,
+    objectid,
+)
 from coola.identifier.sequence import TickSequence
 from tests.integration.helpers import run_in_children
 
@@ -74,3 +80,15 @@ def test_snowflake_id_generator_works_in_the_parent_after_a_fork() -> None:
 
 def test_new_snowflake_id_generator_works_in_a_forked_child() -> None:
     assert run_in_children(1, lambda: str(SnowflakeIdGenerator(worker_id=2).generate()))[0] != ""
+
+
+def test_ulids_of_forked_children_do_not_repeat_the_ids_of_the_parent() -> None:
+    parent = generate_ulid()
+    children = run_in_children(4, generate_ulid)
+    assert len({parent, *children}) == 5
+
+
+def test_uuid7s_of_forked_children_do_not_repeat_the_ids_of_the_parent() -> None:
+    parent = generate_uuid7()
+    children = run_in_children(4, generate_uuid7)
+    assert len({parent, *children}) == 5

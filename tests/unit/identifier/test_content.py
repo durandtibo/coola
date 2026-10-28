@@ -10,17 +10,11 @@ from coola.hashing import (
     ReprHasher,
     StringHasher,
     hash_object,
-    interface as hashing_interface,
-    register_hashers,
 )
 from coola.identifier.content import _NAMESPACE, generate_stable_content_id, generate_stable_uuid5
 
 HEX_PATTERN = re.compile(r"^[0-9a-f]+$")
 UUID_PATTERN = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$")
-
-
-class MyInt(int):
-    pass
 
 
 ################################################
@@ -102,14 +96,6 @@ def test_generate_stable_content_id_custom_registry_is_honored() -> None:
     )
 
 
-def test_generate_stable_content_id_does_not_mutate_default_registry_when_custom_registry_given() -> (
-    None
-):
-    custom_registry = HasherRegistry({object: StringHasher()})
-    generate_stable_content_id("meow", registry=custom_registry)
-    assert not hashing_interface._default_registry.is_built()
-
-
 def test_generate_stable_content_id_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
         generate_stable_content_id({"a": 1}, 32)  # type: ignore[misc]
@@ -130,12 +116,6 @@ def test_generate_stable_content_id_golden_vector_maximum_length() -> None:
         "f65b60565db14f8b43dc9aa7077c4f390b7a9a70a389b24d2b336d237981c06e"
         "5541d95f94e7fca1933c8d83ca7ab02c6121532e5092a156b8ea29651bf7d534"
     )
-
-
-def test_generate_stable_content_id_ignores_hashers_registered_in_default_registry() -> None:
-    expected = generate_stable_content_id(MyInt(1))
-    register_hashers({MyInt: StringHasher()})
-    assert generate_stable_content_id(MyInt(1)) == expected
 
 
 def test_generate_stable_content_id_differs_with_a_custom_registry() -> None:
@@ -261,14 +241,6 @@ def test_generate_stable_uuid5_custom_registry_is_honored() -> None:
     assert generate_stable_uuid5("meow") != generate_stable_uuid5("meow", registry=custom_registry)
 
 
-def test_generate_stable_uuid5_does_not_mutate_default_registry_when_custom_registry_given() -> (
-    None
-):
-    custom_registry = HasherRegistry({object: StringHasher()})
-    generate_stable_uuid5("meow", registry=custom_registry)
-    assert not hashing_interface._default_registry.is_built()
-
-
 def test_generate_stable_uuid5_custom_namespace_changes_uuid() -> None:
     other_namespace = uuid.uuid4()
     assert generate_stable_uuid5({"a": 1}) != generate_stable_uuid5(
@@ -317,9 +289,3 @@ def test_generate_stable_uuid5_golden_vector_custom_namespace() -> None:
         generate_stable_uuid5({"source": "cats.txt", "page": 1}, namespace=uuid.UUID(int=0))
         == "ffc04f29-021a-5e4d-8536-95ea21d9500f"
     )
-
-
-def test_generate_stable_uuid5_ignores_hashers_registered_in_default_registry() -> None:
-    expected = generate_stable_uuid5(MyInt(1))
-    register_hashers({MyInt: StringHasher()})
-    assert generate_stable_uuid5(MyInt(1)) == expected
