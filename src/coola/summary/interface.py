@@ -15,6 +15,7 @@ from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
 
+from coola.registry.default import make_default_registry_singleton
 from coola.summary.config import SummaryConfig
 from coola.summary.dataclass import DataclassSummarizer
 from coola.summary.default import DefaultSummarizer
@@ -23,10 +24,10 @@ from coola.summary.registry import SummarizerRegistry
 from coola.summary.sequence import SequenceSummarizer
 from coola.summary.set import SetSummarizer
 from coola.utils.imports import package_available
-from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
     from coola.summary.base import Summarizer
+    from coola.utils.singleton import LazySingleton
 
 _DEFAULT_CONFIG = SummaryConfig()
 _DEFAULT_LIMITS = (

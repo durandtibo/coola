@@ -14,10 +14,10 @@ from coola.hashing import get_default_registry as get_hasher_registry
 from coola.iterator import get_default_registry as get_iterator_registry
 from coola.recursive import get_default_registry as get_transformer_registry
 from coola.registry import TypeNotRegisteredError, TypeRegistry
+from coola.registry.default import reset_default_registries, temporary_default_registries
 from coola.summary import get_default_registry as get_summarizer_registry
 from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
-from coola.utils.singleton import reset_default_registries, temporary_default_registries
 
 if TYPE_CHECKING:
     from collections.abc import Callable

@@ -28,13 +28,14 @@ from coola.hashing.registry import HasherRegistry
 from coola.hashing.scalar import BytesHasher, EnumHasher, ReprHasher, StrHasher, StringHasher
 from coola.hashing.sequence import SequenceHasher
 from coola.hashing.set import SetHasher
+from coola.registry.default import make_default_registry_singleton
 from coola.utils.imports import (
     package_available,
 )
-from coola.utils.singleton import LazySingleton, make_default_registry_singleton
 
 if TYPE_CHECKING:
     from coola.hashing.base import Hasher
+    from coola.utils.singleton import LazySingleton
 
 
 # (names of the library in the module of the types, module with the hashers)

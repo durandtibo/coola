@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from coola.utils.singleton import temporary_default_registries
+from coola.registry.default import temporary_default_registries
 
 if TYPE_CHECKING:
     from collections.abc import Generator

@@ -24,12 +24,13 @@ from coola.recursive.mapping import MappingTransformer
 from coola.recursive.registry import TransformerRegistry
 from coola.recursive.sequence import SequenceTransformer
 from coola.recursive.set import SetTransformer
-from coola.utils.singleton import LazySingleton, make_default_registry_singleton
+from coola.registry.default import make_default_registry_singleton
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from coola.recursive.base import Transformer
+    from coola.utils.singleton import LazySingleton
 
 
 def recursive_apply(
