@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 
 import pytest
 
-from coola.iterator import bfs_iterate, dfs_iterate
+from coola.iterator import bfs_iterate, dfs_items, dfs_iterate
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -161,3 +161,24 @@ def test_iterate_empty_list_benchmark(benchmark: BenchmarkFixture, iterate: Call
 def test_iterate_small_dict_benchmark(benchmark: BenchmarkFixture, iterate: Callable) -> None:
     data = {"a": 1, "b": [2, 3], "c": {"d": 4}}
     assert benchmark(consume, iterate, data) == 4
+
+
+#####################
+#     dfs_items     #
+#####################
+
+
+def test_dfs_items_flat_dict_benchmark(benchmark: BenchmarkFixture) -> None:
+    data = {i: i for i in range(100_000)}
+    assert benchmark(consume, dfs_items, data) == 100_000
+
+
+@pytest.mark.parametrize(("depth", "width"), [(4, 10), (14, 2)])
+def test_dfs_items_tree_benchmark(benchmark: BenchmarkFixture, depth: int, width: int) -> None:
+    data = make_tree(depth, width)
+    assert benchmark(consume, dfs_items, data) == width**depth
+
+
+def test_dfs_items_empty_option_benchmark(benchmark: BenchmarkFixture) -> None:
+    data = make_tree(4, 10)
+    assert benchmark(lambda: sum(1 for _ in dfs_items(data, empty=True))) == 10_000

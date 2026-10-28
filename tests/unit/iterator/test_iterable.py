@@ -55,3 +55,23 @@ def test_iterable_child_finder_find_children_does_not_modify_the_data() -> None:
     data = [1, [2]]
     list(IterableChildFinder().find_children(data))
     assert data == [1, [2]]
+
+
+def test_iterable_child_finder_find_items_list() -> None:
+    assert list(IterableChildFinder().find_items(["a", "b"])) == [(0, "a"), (1, "b")]
+
+
+def test_iterable_child_finder_find_items_tuple() -> None:
+    assert list(IterableChildFinder().find_items((4, 2))) == [(0, 4), (1, 2)]
+
+
+def test_iterable_child_finder_find_items_empty() -> None:
+    assert list(IterableChildFinder().find_items([])) == []
+
+
+def test_iterable_child_finder_find_items_set_labels_are_the_elements() -> None:
+    assert list(IterableChildFinder().find_items({7})) == [(7, 7)]
+
+
+def test_iterable_child_finder_find_items_frozenset_labels_are_the_elements() -> None:
+    assert list(IterableChildFinder().find_items(frozenset({"a"}))) == [("a", "a")]
