@@ -76,8 +76,9 @@ class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
         The line endings are written as they are in the string (no
         translation of ``\\n``, even on Windows).
 
-        If the data to save is not a string, it is converted to
-            a string before being saved by using ``str``.
+    Raises:
+        TypeError: if the data to save is not a ``str``. Call ``str``
+            on the data to save its text representation.
 
     Example:
         ```pycon
@@ -107,8 +108,14 @@ class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
         return self._encoding == other._encoding
 
     def _save_file(self, to_save: str, path: Path) -> None:
+        if not isinstance(to_save, str):
+            msg = (
+                f"{type(self).__name__} expects a str, got {type(to_save).__name__}; "
+                "call str() on the data to save its text representation"
+            )
+            raise TypeError(msg)
         with path.open(mode="w", encoding=self._encoding, newline="") as file:
-            file.write(str(to_save))
+            file.write(to_save)
 
 
 def load_text(path: str | os.PathLike[str], encoding: str = DEFAULT_ENCODING) -> str:
@@ -141,7 +148,7 @@ def load_text(path: str | os.PathLike[str], encoding: str = DEFAULT_ENCODING) ->
 
 
 def save_text(
-    to_save: Any,
+    to_save: str,
     path: str | os.PathLike[str],
     *,
     encoding: str = DEFAULT_ENCODING,
@@ -152,7 +159,7 @@ def save_text(
     r"""Save the given data to a text file.
 
     Args:
-        to_save: The data to write to the text file.
+        to_save: The string to write to the text file.
         path: The path where to write the text file. A ``str`` or any path-like object is converted to a ``Path``.
         encoding: The file encoding to use when writing the file.
             Defaults to ``"utf-8"``.
@@ -178,10 +185,8 @@ def save_text(
 
     Raises:
         FileExistsError: if the file already exists.
-
-    Note:
-        If the data to save is not a string, it is converted to
-            a string before being saved by using ``str``.
+        TypeError: if the data to save is not a ``str``. Call ``str``
+            on the data to save its text representation.
 
     Example:
         ```pycon

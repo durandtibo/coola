@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["PickleLoader", "PickleSaver", "load_pickle", "save_pickle"]
 
 import pickle
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.equality import objects_are_equal
@@ -17,10 +17,8 @@ if TYPE_CHECKING:
     import os
     from pathlib import Path
 
-T = TypeVar("T")
 
-
-class PickleLoader(InlineDisplayMixin, BaseLoader[T]):
+class PickleLoader(InlineDisplayMixin, BaseLoader[Any]):
     r"""Implement a data loader to load data in a pickle file.
 
     Warning:
@@ -49,13 +47,13 @@ class PickleLoader(InlineDisplayMixin, BaseLoader[T]):
     def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
         return is_same_type(other, self)
 
-    def load(self, path: str | os.PathLike[str]) -> T:
+    def load(self, path: str | os.PathLike[str]) -> Any:
         path = sanitize_path(path, resolve=False)
         with path.open(mode="rb") as file:
             return pickle.load(file)  # noqa: S301
 
 
-class PickleSaver(InlineDisplayMixin, BaseFileSaver[T]):
+class PickleSaver(InlineDisplayMixin, BaseFileSaver[Any]):
     r"""Implement a file saver to save data with a pickle file.
 
     Args:
@@ -88,7 +86,7 @@ class PickleSaver(InlineDisplayMixin, BaseFileSaver[T]):
             return False
         return objects_are_equal(self._kwargs, other._kwargs, equal_nan=equal_nan)
 
-    def _save_file(self, to_save: T, path: Path) -> None:
+    def _save_file(self, to_save: Any, path: Path) -> None:
         with path.open(mode="wb") as file:
             pickle.dump(to_save, file, **self._kwargs)
 
@@ -124,7 +122,7 @@ def load_pickle(path: str | os.PathLike[str]) -> Any:
 
         ```
     """
-    return PickleLoader[Any]().load(path)
+    return PickleLoader().load(path)
 
 
 def save_pickle(
@@ -180,4 +178,4 @@ def save_pickle(
 
         ```
     """
-    PickleSaver[Any](**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock)
+    PickleSaver(**kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync, lock=lock)

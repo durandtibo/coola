@@ -130,16 +130,29 @@ def test_text_saver_save(tmp_path: Path) -> None:
     assert path.is_file()
 
 
-def test_text_saver_save_list_is_file(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("tmp/data.txt")
-    TextSaver().save([1, 2, 3], path)
-    assert path.is_file()
+@pytest.mark.parametrize("value", [None, 123, b"hello", [1, 2, 3]])
+def test_text_saver_save_rejects_non_str(tmp_path: Path, value: object) -> None:
+    with pytest.raises(TypeError, match=r"TextSaver expects a str, got"):
+        TextSaver().save(value, tmp_path.joinpath("data.txt"))
 
 
-def test_text_saver_save_list_content(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("tmp/data.txt")
-    TextSaver().save([1, 2, 3], path)
-    assert load_text(path) == "[1, 2, 3]"
+def test_text_saver_save_rejects_non_str_message(tmp_path: Path) -> None:
+    with pytest.raises(TypeError, match=r"got NoneType; call str\(\) on the data"):
+        TextSaver().save(None, tmp_path.joinpath("data.txt"))
+
+
+def test_text_saver_save_rejects_non_str_creates_no_file(tmp_path: Path) -> None:
+    with pytest.raises(TypeError, match=r"expects a str"):
+        TextSaver().save(None, tmp_path.joinpath("data.txt"))
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_text_saver_save_rejects_non_str_keeps_existing_file(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.txt")
+    save_text("hello", path)
+    with pytest.raises(TypeError, match=r"expects a str"):
+        TextSaver().save(123, path, exist_ok=True)
+    assert load_text(path) == "hello"
 
 
 def test_text_saver_save_respects_encoding(tmp_path: Path) -> None:
@@ -204,15 +217,20 @@ def test_save_text(tmp_path: Path) -> None:
     assert path.is_file()
 
 
-def test_save_text_list_is_file(tmp_path: Path) -> None:
-    path = tmp_path.joinpath("tmp/data.txt")
-    save_text([1, 2, 3], path)
-    assert path.is_file()
+def test_save_text_none_raises(tmp_path: Path) -> None:
+    # Regression: None used to be written as the text "None".
+    with pytest.raises(TypeError, match=r"expects a str, got NoneType"):
+        save_text(None, tmp_path.joinpath("data.txt"))
 
 
-def test_save_text_list_content(tmp_path: Path) -> None:
+def test_save_text_int_raises(tmp_path: Path) -> None:
+    with pytest.raises(TypeError, match=r"expects a str, got int"):
+        save_text(123, tmp_path.joinpath("data.txt"))
+
+
+def test_save_text_str_of_list(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.txt")
-    save_text([1, 2, 3], path)
+    save_text(str([1, 2, 3]), path)
     assert load_text(path) == "[1, 2, 3]"
 
 
