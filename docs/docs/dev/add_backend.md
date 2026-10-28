@@ -88,7 +88,7 @@ TorchTensorEqualityTester` works as before, but the module is imported when the 
   the registry if the program already imported it. The entries that are already registered are not
   replaced.
 - **Code that handles the objects of a library only if they exist.** Use
-  `sys.modules.get("numpy")` instead of importing the library (see `coola.utils.conversion`).
+  `sys.modules.get("numpy")` instead of importing the library (see `coola.nested.conversion`).
 
 ## 4. Tests and documentation
 
