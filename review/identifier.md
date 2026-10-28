@@ -564,11 +564,11 @@ generators it covers.
 | ----------------------------------- | ---------------------------- | ---------- | -------- | -------------- | ------------------ | ---------- | -------- |
 | `generate_ulid`                     | 10,000 calls                 | 21.20 ms   | 20.80 ms | 2.12 µs        | 2.06 µs            | 20.34 ms   | 1.04     |
 | `generate_uuid7`                    | 10,000 calls                 | 13.99 ms   | 13.68 ms | 1.40 µs        | 1.27 µs            | 12.32 ms   | 1.14     |
-| `generate_snowflake_id`             | 10,000 calls                 | 5.92 ms    | 5.80 ms  | 0.59 µs        | 0.37 µs            |            |          |
+| `generate_snowflake_id`             | 10,000 calls                 | 5.92 ms    | 5.80 ms  | 0.59 µs        | 0.37 µs            | 3.90 ms    | 1.52     |
 | `generate_object_id`                | 10,000 calls                 | 5.10 ms    | 5.00 ms  | 0.51 µs        | 0.40 µs            | 5.05 ms    | 1.01     |
-| `extract_ulid_timestamp_ms`         | 10,000 calls                 | 25.06 ms   | 24.57 ms | 2.51 µs        |                    |            |          |
-| `extract_uuid7_timestamp_ms`        | 10,000 calls                 | 8.15 ms    | 8.07 ms  | 0.81 µs        |                    |            |          |
-| `extract_snowflake_timestamp_ms`    | 10,000 calls                 | 1.55 ms    | 1.51 ms  | 0.15 µs        |                    |            |          |
+| `extract_ulid_timestamp_ms`         | 10,000 calls                 | 25.06 ms   | 24.57 ms | 2.51 µs        |                    | 15.03 ms   | 1.67     |
+| `extract_uuid7_timestamp_ms`        | 10,000 calls                 | 8.15 ms    | 8.07 ms  | 0.81 µs        |                    | 3.77 ms    | 2.16     |
+| `extract_snowflake_timestamp_ms`    | 10,000 calls                 | 1.55 ms    | 1.51 ms  | 0.15 µs        |                    | 0.94 ms    | 1.65     |
 | `generate_checksummed_id`           | 10,000 calls                 | 38.68 ms   | 37.12 ms | 3.87 µs        |                    |            |          |
 | `verify_checksummed_id`             | 10,000 calls                 | 18.67 ms   | 18.56 ms | 1.87 µs        |                    |            |          |
 | `generate_stable_content_id_small`  | dict of a `str` and an `int` | 5.4 µs     | 5.2 µs   | 5.4 µs         |                    |            |          |
