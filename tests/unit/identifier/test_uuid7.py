@@ -77,12 +77,12 @@ def test_generate_uuid7_max_timestamp() -> None:
 
 
 def test_generate_uuid7_negative_timestamp_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp_ms must be in the closed range"):
+    with pytest.raises(ValueError, match="timestamp_ms must be in the range"):
         generate_uuid7(timestamp_ms=-1)
 
 
 def test_generate_uuid7_timestamp_too_large_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp_ms must be in the closed range"):
+    with pytest.raises(ValueError, match="timestamp_ms must be in the range"):
         generate_uuid7(timestamp_ms=2**48)
 
 
@@ -298,7 +298,7 @@ def test_extract_uuid7_timestamp_ms_accepts_upper_case() -> None:
 def test_generate_uuid7_current_time_beyond_48_bits_raises() -> None:
     with (
         patch("coola.identifier.sequence.time.time_ns", return_value=2**48 * 10**6),
-        pytest.raises(ValueError, match="timestamp_ms must be in the closed range"),
+        pytest.raises(ValueError, match="timestamp_ms must be in the range"),
     ):
         generate_uuid7()
 

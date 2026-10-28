@@ -16,7 +16,7 @@ import os
 
 from coola.identifier import crockford
 from coola.identifier.sequence import TickSequence
-from coola.validation import validate_closed_range, validate_int, validate_str
+from coola.validation import validate_int, validate_range, validate_str
 
 _TIMESTAMP_BITS = 48
 _MAX_TIMESTAMP_MS = (1 << _TIMESTAMP_BITS) - 1
@@ -77,10 +77,10 @@ def generate_ulid(*, timestamp_ms: int | None = None) -> str:
     if timestamp_ms is None:
         timestamp_ms, randomness = _SEQUENCE.next()
         if timestamp_ms > _MAX_TIMESTAMP_MS:  # the tick of the sequence is never negative
-            validate_closed_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
+            validate_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
     else:
         validate_int(timestamp_ms, name="timestamp_ms")
-        validate_closed_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
+        validate_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
         randomness = int.from_bytes(os.urandom(10), byteorder="big")
     return crockford.encode((timestamp_ms << _RANDOM_BITS) | randomness, length=_LENGTH)
 

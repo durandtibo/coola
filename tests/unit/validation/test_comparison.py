@@ -5,17 +5,15 @@ from datetime import date
 import pytest
 
 from coola.validation import (
-    validate_closed_range,
     validate_ge,
     validate_gt,
-    validate_half_open_range,
     validate_le,
     validate_lt,
     validate_negative,
     validate_non_negative,
     validate_non_positive,
-    validate_open_range,
     validate_positive,
+    validate_range,
 )
 
 
@@ -201,103 +199,106 @@ def test_validate_non_negative_nan_raises() -> None:
         validate_non_negative(float("nan"))
 
 
-def test_validate_open_range_inside() -> None:
-    validate_open_range(0.5, 0, 1)
+####################################
+#     Tests for validate_range     #
+####################################
 
 
-def test_validate_open_range_low_invalid() -> None:
-    with pytest.raises(ValueError, match=r"value must be in the open range \(0, 1\), got 0"):
-        validate_open_range(0, 0, 1)
+@pytest.mark.parametrize("value", [0, 0.5, 1])
+def test_validate_range_closed_valid(value: float) -> None:
+    validate_range(value, 0, 1)
 
 
-def test_validate_open_range_high_invalid() -> None:
-    with pytest.raises(ValueError, match=r"value must be in the open range \(0, 1\), got 1"):
-        validate_open_range(1, 0, 1)
+@pytest.mark.parametrize("value", [-1, 2])
+def test_validate_range_closed_invalid(value: float) -> None:
+    with pytest.raises(ValueError, match=r"value must be in the range \[0, 1\], got"):
+        validate_range(value, 0, 1)
 
 
-def test_validate_open_range_custom_name() -> None:
-    with pytest.raises(ValueError, match="count must be in the"):
-        validate_open_range(5, 0, 1, name="count")
+def test_validate_range_open_valid() -> None:
+    validate_range(0.5, 0, 1, low_inclusive=False, high_inclusive=False)
 
 
-def test_validate_open_range_nan() -> None:
-    with pytest.raises(ValueError, match="value must be in the"):
-        validate_open_range(float("nan"), 0, 1)
+@pytest.mark.parametrize("value", [0, 1])
+def test_validate_range_open_invalid(value: float) -> None:
+    with pytest.raises(ValueError, match=r"value must be in the range \(0, 1\), got"):
+        validate_range(value, 0, 1, low_inclusive=False, high_inclusive=False)
 
 
-def test_validate_open_range_none() -> None:
+def test_validate_range_low_exclusive_valid() -> None:
+    validate_range(1, 0, 1, low_inclusive=False)
+
+
+def test_validate_range_low_exclusive_invalid() -> None:
+    with pytest.raises(ValueError, match=r"^value must be in the range \(0, 1\], got 0$"):
+        validate_range(0, 0, 1, low_inclusive=False)
+
+
+def test_validate_range_high_exclusive_valid() -> None:
+    validate_range(0, 0, 1, high_inclusive=False)
+
+
+def test_validate_range_high_exclusive_invalid() -> None:
+    with pytest.raises(ValueError, match=r"^ratio must be in the range \[0, 1\), got 1$"):
+        validate_range(1, 0, 1, high_inclusive=False, name="ratio")
+
+
+def test_validate_range_custom_name() -> None:
+    with pytest.raises(ValueError, match="count must be in the range"):
+        validate_range(5, 0, 1, name="count")
+
+
+def test_validate_range_nan_raises() -> None:
+    with pytest.raises(ValueError, match=r"value must be in the range \[0, 1\], got nan"):
+        validate_range(float("nan"), 0, 1)
+
+
+def test_validate_range_none_raises() -> None:
     with pytest.raises(TypeError, match="value cannot be compared with 0 and 1, got None"):
-        validate_open_range(None, 0, 1)
+        validate_range(None, 0, 1)
 
 
-def test_validate_closed_range_inside() -> None:
-    validate_closed_range(0.5, 0, 1)
+def test_validate_range_single_value_range_valid() -> None:
+    validate_range(1, 1, 1)
 
 
-def test_validate_closed_range_low() -> None:
-    validate_closed_range(0, 0, 1)
+def test_validate_range_empty_range_raises() -> None:
+    with pytest.raises(ValueError, match=r"^value: the range \[1, 0\] is empty$"):
+        validate_range(0.5, 1, 0)
 
 
-def test_validate_closed_range_high() -> None:
-    validate_closed_range(1, 0, 1)
+def test_validate_range_empty_range_names_the_argument() -> None:
+    with pytest.raises(ValueError, match=r"^ratio: the range \[1, 0\] is empty$"):
+        validate_range(0.5, 1, 0, name="ratio")
 
 
-def test_validate_closed_range_below_invalid() -> None:
-    with pytest.raises(ValueError, match=r"value must be in the closed range \[0, 1\], got -1"):
-        validate_closed_range(-1, 0, 1)
+@pytest.mark.parametrize(
+    ("low_inclusive", "high_inclusive"), [(True, False), (False, True), (False, False)]
+)
+def test_validate_range_equal_bounds_with_an_open_side_is_empty(
+    low_inclusive: bool, high_inclusive: bool
+) -> None:
+    with pytest.raises(ValueError, match="is empty"):
+        validate_range(1, 1, 1, low_inclusive=low_inclusive, high_inclusive=high_inclusive)
 
 
-def test_validate_closed_range_above_invalid() -> None:
-    with pytest.raises(ValueError, match=r"value must be in the closed range \[0, 1\], got 2"):
-        validate_closed_range(2, 0, 1)
+def test_validate_range_empty_range_is_checked_before_the_value() -> None:
+    with pytest.raises(ValueError, match="is empty"):
+        validate_range(None, 1, 0)
 
 
-def test_validate_closed_range_custom_name() -> None:
-    with pytest.raises(ValueError, match="count must be in the"):
-        validate_closed_range(5, 0, 1, name="count")
+def test_validate_range_bounds_not_comparable_with_each_other() -> None:
+    with pytest.raises(TypeError, match="value cannot be compared with 0 and 'a', got 1"):
+        validate_range(1, 0, "a")
 
 
-def test_validate_closed_range_nan() -> None:
-    with pytest.raises(ValueError, match="value must be in the"):
-        validate_closed_range(float("nan"), 0, 1)
+def test_validate_range_accepts_dates() -> None:
+    validate_range(date(2024, 1, 1), date(2020, 1, 1), date(2025, 1, 1))
 
 
-def test_validate_closed_range_none() -> None:
-    with pytest.raises(TypeError, match="value cannot be compared with 0 and 1, got None"):
-        validate_closed_range(None, 0, 1)
-
-
-def test_validate_half_open_range_inside() -> None:
-    validate_half_open_range(0.5, 0, 1)
-
-
-def test_validate_half_open_range_low() -> None:
-    validate_half_open_range(0, 0, 1)
-
-
-def test_validate_half_open_range_below_invalid() -> None:
-    with pytest.raises(ValueError, match=r"value must be in the half-open range \[0, 1\), got -1"):
-        validate_half_open_range(-1, 0, 1)
-
-
-def test_validate_half_open_range_high_invalid() -> None:
-    with pytest.raises(ValueError, match=r"value must be in the half-open range \[0, 1\), got 1"):
-        validate_half_open_range(1, 0, 1)
-
-
-def test_validate_half_open_range_custom_name() -> None:
-    with pytest.raises(ValueError, match="count must be in the"):
-        validate_half_open_range(5, 0, 1, name="count")
-
-
-def test_validate_half_open_range_nan() -> None:
-    with pytest.raises(ValueError, match="value must be in the"):
-        validate_half_open_range(float("nan"), 0, 1)
-
-
-def test_validate_half_open_range_none() -> None:
-    with pytest.raises(TypeError, match="value cannot be compared with 0 and 1, got None"):
-        validate_half_open_range(None, 0, 1)
+def test_validate_range_array_with_several_items_raises() -> None:
+    with pytest.raises(TypeError, match="cannot be compared"):
+        validate_range([1, 2], 0, 1)
 
 
 def test_validate_ge_message_shows_the_value_with_repr() -> None:
@@ -325,8 +326,6 @@ def test_validate_ge_nan_raises() -> None:
         validate_ge(float("nan"), 0)
 
 
-def test_validate_closed_range_message_shows_the_bounds_with_repr() -> None:
-    with pytest.raises(
-        ValueError, match=r"^value must be in the closed range \['a', 'c'\], got 'd'$"
-    ):
-        validate_closed_range("d", "a", "c")
+def test_validate_range_message_shows_the_bounds_with_repr() -> None:
+    with pytest.raises(ValueError, match=r"^value must be in the range \['a', 'c'\], got 'd'$"):
+        validate_range("d", "a", "c")

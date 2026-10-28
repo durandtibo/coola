@@ -18,8 +18,8 @@ The `coola.validation` package provides:
 2. **Container checks** - `validate_not_empty` to check a value is not empty, and `validate_in`
    to check a value belongs to a set of valid values
 3. **Comparison checks** - `validate_ge`, `validate_gt`, `validate_le`, and `validate_lt` to
-   check a value against a bound, and `validate_open_range`, `validate_closed_range` and
-   `validate_half_open_range` to check a value is in a range
+   check a value against a bound, and `validate_range` to check a value is in a
+   range
 4. **Sign and finiteness checks** - `validate_positive`, `validate_non_negative`,
    `validate_negative`, `validate_non_positive` and `validate_finite`
 
@@ -109,22 +109,23 @@ The comparisons are duck-typed: they accept any value that supports the comparis
 `date`, ...). A value that cannot be compared raises a `TypeError`. A `NaN` is never valid, since
 every comparison with a `NaN` is false: it raises a `ValueError`.
 
-`validate_open_range` checks `low < value < high`, `validate_closed_range` checks
-`low <= value <= high` and `validate_half_open_range` checks `low <= value < high`:
+`validate_range` checks `low <= value <= high`. The flags `low_inclusive` and `high_inclusive`
+exclude a bound, which gives an open range or a half-open range. A range that no value can satisfy
+(for example `low > high`) is a bug of the caller and raises a `ValueError` about the bounds:
 
 ```pycon
->>> from coola.validation import (
-...     validate_closed_range,
-...     validate_half_open_range,
-...     validate_open_range,
-... )
->>> validate_open_range(0.5, 0, 1)
->>> validate_closed_range(1, 0, 1)
->>> validate_half_open_range(0, 0, 1)
->>> validate_half_open_range(1, 0, 1, name="ratio")
+>>> from coola.validation import validate_range
+>>> validate_range(1, 0, 1)
+>>> validate_range(0.5, 0, 1, low_inclusive=False, high_inclusive=False)
+>>> validate_range(0, 0, 1, high_inclusive=False)
+>>> validate_range(1, 0, 1, high_inclusive=False, name="ratio")
 Traceback (most recent call last):
     ...
-ValueError: ratio must be in the half-open range [0, 1), got 1
+ValueError: ratio must be in the range [0, 1), got 1
+>>> validate_range(0.5, 1, 0, name="ratio")
+Traceback (most recent call last):
+    ...
+ValueError: ratio: the range [1, 0] is empty
 
 ```
 
