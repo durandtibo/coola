@@ -5,8 +5,8 @@ r"""Define some pytest fixtures for testing.
 Each optional dependency has a pair of marks: ``<name>_available`` skips
 the test unless the dependency is available, and
 ``<name>_not_available`` skips it if the dependency is available. They
-are created by ``requires``, so supporting a new dependency takes one
-line, plus the two names in ``__all__``.
+are created by ``requires`` from one row of ``_DEPENDENCIES``, so
+supporting a new dependency takes one line.
 
 Most marks are named after one package. The ``torch_cuda_*``,
 ``torch_mps_*`` and ``torch_numpy_*`` marks are named after a feature of
@@ -17,39 +17,8 @@ version) is usable.
 
 from __future__ import annotations
 
-__all__ = [
-    "colorlog_available",
-    "colorlog_not_available",
-    "jax_available",
-    "jax_not_available",
-    "numpy_available",
-    "numpy_not_available",
-    "packaging_available",
-    "packaging_not_available",
-    "pandas_available",
-    "pandas_not_available",
-    "polars_available",
-    "polars_not_available",
-    "pyarrow_available",
-    "pyarrow_not_available",
-    "pydantic_available",
-    "pydantic_not_available",
-    "requires",
-    "rich_available",
-    "rich_not_available",
-    "torch_available",
-    "torch_cuda_available",
-    "torch_cuda_not_available",
-    "torch_mps_available",
-    "torch_mps_not_available",
-    "torch_not_available",
-    "torch_numpy_available",
-    "torch_numpy_not_available",
-    "xarray_available",
-    "xarray_not_available",
-]
-
-from typing import TYPE_CHECKING
+from importlib import import_module
+from typing import TYPE_CHECKING, NamedTuple
 
 import pytest
 
@@ -72,9 +41,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def requires(
-    is_available: bool, name: str, *, plural: bool = False
-) -> tuple[pytest.MarkDecorator, pytest.MarkDecorator]:
+def requires(is_available: bool, name: str) -> tuple[pytest.MarkDecorator, pytest.MarkDecorator]:
     r"""Create the pair of marks for a dependency.
 
     Use it to support a new optional dependency: the marks are meant to
@@ -84,10 +51,7 @@ def requires(
     Args:
         is_available: Whether the dependency is available.
         name: The name of the dependency in the skip reasons, e.g.
-            ``"PyTorch and CUDA"``.
-        plural: If ``True``, the reason of the second mark uses "are"
-            instead of "is" (for a name that lists several
-            dependencies).
+            ``"PyTorch with CUDA"``.
 
     Returns:
         The ``(available, not_available)`` marks. The first one skips
@@ -105,87 +69,72 @@ def requires(
 
         ```
     """
-    verb = "are" if plural else "is"
     return (
         pytest.mark.skipif(not is_available, reason=f"Requires {name}"),
-        pytest.mark.skipif(is_available, reason=f"Skip if {name} {verb} available"),
+        pytest.mark.skipif(is_available, reason=f"Skip if {name} is available"),
     )
 
 
-colorlog_available: pytest.MarkDecorator
-colorlog_not_available: pytest.MarkDecorator
-jax_available: pytest.MarkDecorator
-jax_not_available: pytest.MarkDecorator
-numpy_available: pytest.MarkDecorator
-numpy_not_available: pytest.MarkDecorator
-packaging_available: pytest.MarkDecorator
-packaging_not_available: pytest.MarkDecorator
-pandas_available: pytest.MarkDecorator
-pandas_not_available: pytest.MarkDecorator
-polars_available: pytest.MarkDecorator
-polars_not_available: pytest.MarkDecorator
-pyarrow_available: pytest.MarkDecorator
-pyarrow_not_available: pytest.MarkDecorator
-pydantic_available: pytest.MarkDecorator
-pydantic_not_available: pytest.MarkDecorator
-rich_available: pytest.MarkDecorator
-rich_not_available: pytest.MarkDecorator
-torch_available: pytest.MarkDecorator
-torch_cuda_available: pytest.MarkDecorator
-torch_cuda_not_available: pytest.MarkDecorator
-torch_mps_available: pytest.MarkDecorator
-torch_mps_not_available: pytest.MarkDecorator
-torch_not_available: pytest.MarkDecorator
-torch_numpy_available: pytest.MarkDecorator
-torch_numpy_not_available: pytest.MarkDecorator
-xarray_available: pytest.MarkDecorator
-xarray_not_available: pytest.MarkDecorator
+class _Dependency(NamedTuple):
+    is_available: Callable[[], bool]  # the check of the library, called on first use
+    name: str  # singular, used in the reasons
 
 
 def _is_cuda_available() -> bool:
-    # Imported here because ``coola.utils.tensor`` imports ``torch`` when it is installed.
-    from coola.utils.tensor import is_cuda_available  # noqa: PLC0415
-
-    return is_cuda_available()
+    # ``coola.utils.tensor`` imports ``torch`` when it is installed: import it on first call.
+    return import_module("coola.utils.tensor").is_cuda_available()
 
 
 def _is_mps_available() -> bool:
-    from coola.utils.tensor import is_mps_available  # noqa: PLC0415
-
-    return is_mps_available()
+    return import_module("coola.utils.tensor").is_mps_available()
 
 
-# The availability of a package is checked when its markers are first accessed, not when this
+# The availability of a package is checked when its marks are first accessed, not when this
 # module is imported: the checks import the packages (``torch``, ``jax``...) and
 # ``is_mps_available`` allocates a tensor on the device, which is slow and initializes a GPU
 # context. A test module that only needs ``numpy_available`` does not pay for them.
-# The markers are still module attributes (``from coola.testing.fixtures import
-# torch_available`` works, and ``pytestmark = [torch_available]``), through PEP 562.
-_REQUIREMENTS: dict[str, tuple[Callable[[], bool], str, bool]] = {
-    "jax": (is_jax_available, "JAX", False),
-    "numpy": (is_numpy_available, "NumPy", False),
-    "packaging": (is_packaging_available, "packaging", False),
-    "pandas": (is_pandas_available, "pandas", False),
-    "polars": (is_polars_available, "polars", False),
-    "pyarrow": (is_pyarrow_available, "pyarrow", False),
-    "pydantic": (is_pydantic_available, "pydantic", False),
-    "torch": (is_torch_available, "PyTorch", False),
-    "torch_cuda": (_is_cuda_available, "PyTorch and CUDA", True),
-    "torch_numpy": (is_torch_numpy_available, "PyTorch and NumPy", True),
-    "torch_mps": (_is_mps_available, "PyTorch and MPS", True),
-    "xarray": (is_xarray_available, "xarray", False),
-    "colorlog": (is_colorlog_available, "colorlog", False),
-    "rich": (is_rich_available, "rich", False),
+# One row per dependency: the only place to edit to support a new one.
+_DEPENDENCIES: dict[str, _Dependency] = {
+    "colorlog": _Dependency(is_colorlog_available, "colorlog"),
+    "jax": _Dependency(is_jax_available, "JAX"),
+    "numpy": _Dependency(is_numpy_available, "NumPy"),
+    "packaging": _Dependency(is_packaging_available, "packaging"),
+    "pandas": _Dependency(is_pandas_available, "pandas"),
+    "polars": _Dependency(is_polars_available, "polars"),
+    "pyarrow": _Dependency(is_pyarrow_available, "pyarrow"),
+    "pydantic": _Dependency(is_pydantic_available, "pydantic"),
+    "rich": _Dependency(is_rich_available, "rich"),
+    "torch": _Dependency(is_torch_available, "PyTorch"),
+    "torch_cuda": _Dependency(_is_cuda_available, "PyTorch with CUDA"),
+    "torch_mps": _Dependency(_is_mps_available, "PyTorch with MPS"),
+    "torch_numpy": _Dependency(is_torch_numpy_available, "PyTorch with NumPy"),
+    "xarray": _Dependency(is_xarray_available, "xarray"),
 }
 
 
+__all__ = ["requires"]
+__all__ += [
+    f"{key}{suffix}" for key in _DEPENDENCIES for suffix in ("_available", "_not_available")
+]
+
+
 def __getattr__(name: str) -> pytest.MarkDecorator:
-    for key, (is_available, label, plural) in _REQUIREMENTS.items():
-        if name in {f"{key}_available", f"{key}_not_available"}:
-            available, not_available = requires(is_available(), label, plural=plural)
+    # The marks are still module attributes (``from coola.testing.fixtures import
+    # torch_available`` works, and ``pytestmark = [torch_available]``), through PEP 562.
+    for suffix in ("_available", "_not_available"):
+        key = name.removesuffix(suffix)
+        if name.endswith(suffix) and key in _DEPENDENCIES:
+            dependency = _DEPENDENCIES[key]
+            available, not_available = requires(dependency.is_available(), dependency.name)
             # Cached: ``__getattr__`` is not called again for these names.
             globals()[f"{key}_available"] = available
             globals()[f"{key}_not_available"] = not_available
             return globals()[name]
-    msg = f"module {__name__!r} has no attribute {name!r}"
+    msg = (
+        f"module {__name__!r} has no attribute {name!r}, the valid names are: {', '.join(__all__)}"
+    )
     raise AttributeError(msg)
+
+
+def __dir__() -> list[str]:
+    return sorted(__all__)
