@@ -11,15 +11,15 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 The `coola.identifier` package provides several identifier generators, covering two different
 problems:
 
-| Function                     |  Same data → same ID?  | Format              | Use case                                                                         |
-| ---------------------------- | :--------------------: | ------------------- | -------------------------------------------------------------------------------- |
-| `generate_stable_uuid5`      |   :white_check_mark:   | UUID string         | Reproducible ID, needs a valid UUID (e.g. UUID DB column)                        |
-| `generate_stable_content_id` |   :white_check_mark:   | hex string          | Reproducible ID, full hash strength (dedup, caching)                             |
-| `generate_ulid`              |          :x:           | 26-char string      | Unique, sortable-by-creation-time ID                                             |
-| `generate_uuid7`             |          :x:           | UUID string         | Unique, sortable-by-creation-time ID, needs a valid UUID                         |
-| `SnowflakeIdGenerator`       |          :x:           | 64-bit integer      | Unique, sortable-by-creation-time ID as a single integer                         |
-| `generate_object_id`         |          :x:           | 24-char hex string  | Unique, sortable-by-creation-time ID, never blocks/raises                        |
-| `generate_checksummed_id`    |          :x:           | grouped string      | Random ID with a check symbol, for identifiers humans retype                     |
+| Function                     | Same data → same ID? | Format             | Use case                                                     |
+| ---------------------------- | :------------------: | ------------------ | ------------------------------------------------------------ |
+| `generate_stable_uuid5`      |  :white_check_mark:  | UUID string        | Reproducible ID, needs a valid UUID (e.g. UUID DB column)    |
+| `generate_stable_content_id` |  :white_check_mark:  | hex string         | Reproducible ID, full hash strength (dedup, caching)         |
+| `generate_ulid`              |         :x:          | 26-char string     | Unique, sortable-by-creation-time ID                         |
+| `generate_uuid7`             |         :x:          | UUID string        | Unique, sortable-by-creation-time ID, needs a valid UUID     |
+| `SnowflakeIdGenerator`       |         :x:          | 64-bit integer     | Unique, sortable-by-creation-time ID as a single integer     |
+| `generate_object_id`         |         :x:          | 24-char hex string | Unique, sortable-by-creation-time ID, never blocks/raises    |
+| `generate_checksummed_id`    |         :x:          | grouped string     | Random ID with a check symbol, for identifiers humans retype |
 
 `generate_stable_uuid5` and `generate_stable_content_id` are content-addressed: they are built on
 top of [`coola.hashing`](../refs/hashing.md)'s `hash_object`, so calling them twice with equal data
@@ -323,23 +323,23 @@ False
 
 ## Properties
 
-| Property                       | Statement                                                                                                                                                                           |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Declared shape                 | Every generator returns a `str`, except `SnowflakeIdGenerator.generate`, which returns an `int` of at most 63 bits.                                      |
-| Random bits are CSPRNG         | The random bits of `generate_ulid`, `generate_uuid7`, `generate_object_id` and `generate_checksummed_id` come from `secrets` or `os.urandom`, never `random`.   |
-| Identifier, not a secret       | An identifier is not an access token. The time-ordered ones are guessable (the next value is the previous one plus one) and the content-derived ones are reproducible. Authorize every access explicitly. |
-| Stable IDs are content-derived | `generate_stable_uuid5` and `generate_stable_content_id` give the same ID for equal data, regardless of the mapping insertion order.                                                |
-| Collision resistance           | `generate_stable_uuid5` is bounded by the 122 random bits of a UUID (birthday bound 2^61), whatever the hash. `generate_stable_content_id` keeps the strength of the underlying hash. |
-| Time-ordered IDs sort          | ULID, UUIDv7, ObjectId and Snowflake IDs sort in creation order. They are strictly increasing within a process when the current time is used (the timestamp may run ahead of the clock after a burst or a backward step). |
-| Not ordered across processes   | Two processes that mint an ID in the same tick (a millisecond, a second for ObjectId) do not give ordered IDs.                                                                      |
-| Snowflake uniqueness           | It holds for the IDs of a generator, and across generators with distinct `worker_id`. Give each concurrent generator its own `worker_id`.                                           |
-| Thread-safe                    | Every generator can be called from several threads without a lock of the caller.                                                                                                    |
-| Fork-safe                      | After a fork, `generate_ulid`, `generate_uuid7` and `generate_object_id` do not repeat the identifiers of the parent. A `SnowflakeIdGenerator` raises `RuntimeError` in the child.      |
-| Strict inputs                  | A parameter of the wrong type raises `TypeError` (`bool` and `float` are not accepted as an `int`), a value out of range raises `ValueError`; both name the parameter. The options are keyword-only. |
+| Property                       | Statement                                                                                                                                                                                                                                                   |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Declared shape                 | Every generator returns a `str`, except `SnowflakeIdGenerator.generate`, which returns an `int` of at most 63 bits.                                                                                                                                         |
+| Random bits are CSPRNG         | The random bits of `generate_ulid`, `generate_uuid7`, `generate_object_id` and `generate_checksummed_id` come from `secrets` or `os.urandom`, never `random`.                                                                                               |
+| Identifier, not a secret       | An identifier is not an access token. The time-ordered ones are guessable (the next value is the previous one plus one) and the content-derived ones are reproducible. Authorize every access explicitly.                                                   |
+| Stable IDs are content-derived | `generate_stable_uuid5` and `generate_stable_content_id` give the same ID for equal data, regardless of the mapping insertion order.                                                                                                                        |
+| Collision resistance           | `generate_stable_uuid5` is bounded by the 122 random bits of a UUID (birthday bound 2^61), whatever the hash. `generate_stable_content_id` keeps the strength of the underlying hash.                                                                       |
+| Time-ordered IDs sort          | ULID, UUIDv7, ObjectId and Snowflake IDs sort in creation order. They are strictly increasing within a process when the current time is used (the timestamp may run ahead of the clock after a burst or a backward step).                                   |
+| Not ordered across processes   | Two processes that mint an ID in the same tick (a millisecond, a second for ObjectId) do not give ordered IDs.                                                                                                                                              |
+| Snowflake uniqueness           | It holds for the IDs of a generator, and across generators with distinct `worker_id`. Give each concurrent generator its own `worker_id`.                                                                                                                   |
+| Thread-safe                    | Every generator can be called from several threads without a lock of the caller.                                                                                                                                                                            |
+| Fork-safe                      | After a fork, `generate_ulid`, `generate_uuid7` and `generate_object_id` do not repeat the identifiers of the parent. A `SnowflakeIdGenerator` raises `RuntimeError` in the child.                                                                          |
+| Strict inputs                  | A parameter of the wrong type raises `TypeError` (`bool` and `float` are not accepted as an `int`), a value out of range raises `ValueError`; both name the parameter. The options are keyword-only.                                                        |
 | Strict inverse                 | `extract_*(generate_*(timestamp=t))` is `t`, and an extractor rejects every string the generator cannot produce (wrong length, alphabet or version, whitespace, wrong type). The case is the only leniency: ULID also reads `O`, `I`, `L` as `0`, `1`, `1`. |
-| Recoverable timestamp          | The four time-ordered generators have a matching `extract_*` function.                                                                                                              |
-| Never raises or blocks         | A time-ordered generator does not raise, sleep or spin when the clock steps backward or when more than one ID is requested in the same tick: the timestamp is kept (or advanced by one tick) and the counter goes on. |
-| Check symbol                   | `verify_checksummed_id` is `True` for every identifier of `generate_checksummed_id` and detects any single wrong character and any swap of two adjacent characters.                  |
+| Recoverable timestamp          | The four time-ordered generators have a matching `extract_*` function.                                                                                                                                                                                      |
+| Never raises or blocks         | A time-ordered generator does not raise, sleep or spin when the clock steps backward or when more than one ID is requested in the same tick: the timestamp is kept (or advanced by one tick) and the counter goes on.                                       |
+| Check symbol                   | `verify_checksummed_id` is `True` for every identifier of `generate_checksummed_id` and detects any single wrong character and any swap of two adjacent characters.                                                                                         |
 
 The stable IDs inherit the [hashing](hashing.md) properties, including the fact that they can change between versions of `coola`.
 
