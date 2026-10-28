@@ -23,12 +23,12 @@ In this page, `<pkg>` is the name of the library, e.g. `pandas`.
    classes that raise `MissingPackageError`, used when the library is not installed. It must have
    every attribute of the library that is used in an annotation or a `class X(Base[pkg.Type])`
    statement, because these are evaluated when the module is imported.
-4. Add the marks for the tests: add one row to `_REQUIREMENTS` in `src/coola/testing/fixtures.py`
-   (the `is_<pkg>_available` function and the name used in the skip reasons), and the two names
-   `<pkg>_available` and `<pkg>_not_available` to `__all__` and to the annotations of the module:
+4. Add the marks for the tests: add one row to `_DEPENDENCIES` in `src/coola/testing/fixtures.py`
+   (the `is_<pkg>_available` function and the name used in the skip reasons). `__all__` is computed
+   from the table and the marks are typed by the module `__getattr__`, so nothing else changes:
 
 ```python
-"<pkg>": (is_<pkg>_available, "<pkg>", False),
+"<pkg>": _Dependency(is_<pkg>_available, "<pkg>"),
 ```
 
    Do not call `requires(is_<pkg>_available(), "<pkg>")` at module level: it runs the check, and

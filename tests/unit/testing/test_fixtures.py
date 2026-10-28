@@ -1,286 +1,152 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+from unittest.mock import Mock
+
 import pytest
 
 from coola.testing import fixtures
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
-@pytest.mark.parametrize(
-    "available_name",
-    [
-        "colorlog",
-        "jax",
-        "numpy",
-        "packaging",
-        "pandas",
-        "polars",
-        "pyarrow",
-        "pydantic",
-        "rich",
-        "torch",
-        "torch_cuda",
-        "torch_mps",
-        "torch_numpy",
-        "xarray",
-    ],
-)
-def test_available_fixture_has_not_available_counterpart_available(available_name: str) -> None:
-    r"""Every ``*_available`` fixture must have a ``*_not_available``
-    counterpart."""
-    available = getattr(fixtures, f"{available_name}_available")
-    getattr(fixtures, f"{available_name}_not_available")
-    assert isinstance(available, pytest.MarkDecorator)
+KEYS = list(fixtures._DEPENDENCIES)
 
 
-@pytest.mark.parametrize(
-    "available_name",
-    [
-        "colorlog",
-        "jax",
-        "numpy",
-        "packaging",
-        "pandas",
-        "polars",
-        "pyarrow",
-        "pydantic",
-        "rich",
-        "torch",
-        "torch_cuda",
-        "torch_mps",
-        "torch_numpy",
-        "xarray",
-    ],
-)
-def test_available_fixture_has_not_available_counterpart_not_available(available_name: str) -> None:
-    getattr(fixtures, f"{available_name}_available")
-    not_available = getattr(fixtures, f"{available_name}_not_available")
-    assert isinstance(not_available, pytest.MarkDecorator)
+@pytest.fixture
+def two_dependencies(monkeypatch: pytest.MonkeyPatch) -> Generator[None]:
+    r"""Replace the table by two cheap rows, and drop the marks that
+    ``__getattr__`` caches in the module."""
+    monkeypatch.setattr(
+        fixtures,
+        "_DEPENDENCIES",
+        {
+            "alpha": fixtures._Dependency(lambda: True, "Alpha"),
+            "beta": fixtures._Dependency(lambda: False, "Beta with B"),
+        },
+    )
+    yield
+    for key in ("alpha", "beta"):
+        vars(fixtures).pop(f"{key}_available", None)
+        vars(fixtures).pop(f"{key}_not_available", None)
 
 
-@pytest.mark.parametrize(
-    "name",
-    [
-        "torch_cuda_not_available",
-        "torch_mps_not_available",
-        "torch_numpy_not_available",
-    ],
-)
-def test_all_exports_new_not_available_fixtures(name: str) -> None:
-    assert name in fixtures.__all__
+#############################
+#     Tests for requires    #
+#############################
 
 
-def test_torch_cuda_not_available_is_opposite_of_torch_cuda_available() -> None:
-    cuda_available = fixtures.torch_cuda_available.args[0]
-    cuda_not_available = fixtures.torch_cuda_not_available.args[0]
-    assert cuda_available != cuda_not_available
+def test_requires_available_does_not_skip_when_available() -> None:
+    available, _ = fixtures.requires(True, "NumPy")
+    assert available.args[0] is False
 
 
-def test_torch_mps_not_available_is_opposite_of_torch_mps_available() -> None:
-    mps_available = fixtures.torch_mps_available.args[0]
-    mps_not_available = fixtures.torch_mps_not_available.args[0]
-    assert mps_available != mps_not_available
+def test_requires_available_skips_when_not_available() -> None:
+    available, _ = fixtures.requires(False, "NumPy")
+    assert available.args[0] is True
 
 
-def test_torch_numpy_not_available_is_opposite_of_torch_numpy_available() -> None:
-    numpy_available = fixtures.torch_numpy_available.args[0]
-    numpy_not_available = fixtures.torch_numpy_not_available.args[0]
-    assert numpy_available != numpy_not_available
+def test_requires_not_available_skips_when_available() -> None:
+    _, not_available = fixtures.requires(True, "NumPy")
+    assert not_available.args[0] is True
 
 
-##############################
-#     Tests for requires     #
-##############################
-
-
-def test_requires_dependency_available_available() -> None:
-    available, _not_available = fixtures.requires(True, "NumPy")
-    assert available.args[0] is False  # not skipped
-
-
-def test_requires_dependency_available_not_available() -> None:
-    _available, not_available = fixtures.requires(True, "NumPy")
-    assert not_available.args[0] is True  # skipped
-
-
-def test_requires_dependency_not_available_available() -> None:
-    available, _not_available = fixtures.requires(False, "NumPy")
-    assert available.args[0] is True  # skipped
-
-
-def test_requires_dependency_not_available_not_available() -> None:
-    _available, not_available = fixtures.requires(False, "NumPy")
-    assert not_available.args[0] is False  # not skipped
+def test_requires_not_available_does_not_skip_when_not_available() -> None:
+    _, not_available = fixtures.requires(False, "NumPy")
+    assert not_available.args[0] is False
 
 
 def test_requires_reasons_available() -> None:
-    available, _not_available = fixtures.requires(True, "NumPy")
+    available, _ = fixtures.requires(True, "NumPy")
     assert available.kwargs["reason"] == "Requires NumPy"
 
 
 def test_requires_reasons_not_available() -> None:
-    _available, not_available = fixtures.requires(True, "NumPy")
+    _, not_available = fixtures.requires(True, "NumPy")
     assert not_available.kwargs["reason"] == "Skip if NumPy is available"
 
 
-def test_requires_reasons_plural_available() -> None:
-    available, _not_available = fixtures.requires(True, "PyTorch and CUDA", plural=True)
-    assert available.kwargs["reason"] == "Requires PyTorch and CUDA"
-
-
-def test_requires_reasons_plural_not_available() -> None:
-    _available, not_available = fixtures.requires(True, "PyTorch and CUDA", plural=True)
-    assert not_available.kwargs["reason"] == "Skip if PyTorch and CUDA are available"
-
-
-def test_requires_returns_skipif_marks_available() -> None:
-    available, _not_available = fixtures.requires(True, "NumPy")
-    assert isinstance(available, pytest.MarkDecorator)
-
-
-def test_requires_returns_skipif_marks_not_available() -> None:
-    _available, not_available = fixtures.requires(True, "NumPy")
-    assert isinstance(not_available, pytest.MarkDecorator)
-
-
-def test_requires_returns_skipif_marks_name() -> None:
+def test_requires_returns_skipif_marks() -> None:
     available, not_available = fixtures.requires(True, "NumPy")
     assert available.name == not_available.name == "skipif"
 
 
-@pytest.mark.parametrize(
-    "available_name",
-    [
-        "colorlog",
-        "jax",
-        "numpy",
-        "packaging",
-        "pandas",
-        "polars",
-        "pyarrow",
-        "pydantic",
-        "rich",
-        "torch",
-        "torch_cuda",
-        "torch_mps",
-        "torch_numpy",
-        "xarray",
-    ],
-)
-def test_available_and_not_available_marks_are_opposite_opposite_args(available_name: str) -> None:
-    available = getattr(fixtures, f"{available_name}_available")
-    not_available = getattr(fixtures, f"{available_name}_not_available")
-    assert available.args[0] != not_available.args[0]
+def test_requires_rejects_plural() -> None:
+    with pytest.raises(TypeError, match="plural"):
+        fixtures.requires(True, "NumPy", plural=True)  # ty: ignore[unknown-argument]
 
 
-@pytest.mark.parametrize(
-    "available_name",
-    [
-        "colorlog",
-        "jax",
-        "numpy",
-        "packaging",
-        "pandas",
-        "polars",
-        "pyarrow",
-        "pydantic",
-        "rich",
-        "torch",
-        "torch_cuda",
-        "torch_mps",
-        "torch_numpy",
-        "xarray",
-    ],
-)
-def test_available_and_not_available_marks_are_opposite_available_reason_prefix(
-    available_name: str,
+######################################
+#     Tests for the table of marks   #
+######################################
+
+
+@pytest.fixture
+def table_marks(
+    monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
+) -> tuple[pytest.MarkDecorator, pytest.MarkDecorator]:
+    r"""Build the pair of a real key from a patched check, so the test
+    does not import the library."""
+    key = request.param
+    monkeypatch.setitem(fixtures._DEPENDENCIES, key, fixtures._Dependency(lambda: True, "X"))
+    for suffix in ("_available", "_not_available"):
+        monkeypatch.delitem(vars(fixtures), f"{key}{suffix}", raising=False)
+    marks = getattr(fixtures, f"{key}_available"), getattr(fixtures, f"{key}_not_available")
+    for suffix in ("_available", "_not_available"):
+        vars(fixtures).pop(f"{key}{suffix}", None)
+    return marks
+
+
+@pytest.mark.parametrize("table_marks", KEYS, indirect=True)
+def test_every_key_gives_two_skipif_marks(
+    table_marks: tuple[pytest.MarkDecorator, pytest.MarkDecorator],
 ) -> None:
-    available = getattr(fixtures, f"{available_name}_available")
-    getattr(fixtures, f"{available_name}_not_available")
-    assert available.kwargs["reason"].startswith("Requires ")
+    assert [mark.name for mark in table_marks] == ["skipif", "skipif"]
+
+
+@pytest.mark.parametrize("table_marks", KEYS, indirect=True)
+def test_every_key_gives_opposite_marks(
+    table_marks: tuple[pytest.MarkDecorator, pytest.MarkDecorator],
+) -> None:
+    assert table_marks[0].args[0] != table_marks[1].args[0]
+
+
+@pytest.mark.parametrize("table_marks", KEYS, indirect=True)
+def test_every_key_available_reason_prefix(
+    table_marks: tuple[pytest.MarkDecorator, pytest.MarkDecorator],
+) -> None:
+    assert table_marks[0].kwargs["reason"].startswith("Requires ")
+
+
+@pytest.mark.parametrize("table_marks", KEYS, indirect=True)
+def test_every_key_not_available_reason_prefix(
+    table_marks: tuple[pytest.MarkDecorator, pytest.MarkDecorator],
+) -> None:
+    assert table_marks[1].kwargs["reason"].startswith("Skip if ")
+
+
+@pytest.mark.parametrize("table_marks", KEYS, indirect=True)
+def test_every_key_not_available_reason_suffix(
+    table_marks: tuple[pytest.MarkDecorator, pytest.MarkDecorator],
+) -> None:
+    assert table_marks[1].kwargs["reason"].endswith(" is available")
 
 
 @pytest.mark.parametrize(
-    "available_name",
+    ("key", "name"),
     [
-        "colorlog",
-        "jax",
-        "numpy",
-        "packaging",
-        "pandas",
-        "polars",
-        "pyarrow",
-        "pydantic",
-        "rich",
-        "torch",
-        "torch_cuda",
-        "torch_mps",
-        "torch_numpy",
-        "xarray",
+        ("torch_cuda", "PyTorch with CUDA"),
+        ("torch_mps", "PyTorch with MPS"),
+        ("torch_numpy", "PyTorch with NumPy"),
     ],
 )
-def test_available_and_not_available_marks_are_opposite_not_available_reason_prefix(
-    available_name: str,
-) -> None:
-    getattr(fixtures, f"{available_name}_available")
-    not_available = getattr(fixtures, f"{available_name}_not_available")
-    assert not_available.kwargs["reason"].startswith("Skip if ")
+def test_composite_names_are_singular(key: str, name: str) -> None:
+    assert fixtures._DEPENDENCIES[key].name == name
 
 
-@pytest.mark.parametrize(
-    "available_name",
-    [
-        "colorlog",
-        "jax",
-        "numpy",
-        "packaging",
-        "pandas",
-        "polars",
-        "pyarrow",
-        "pydantic",
-        "rich",
-        "torch",
-        "torch_cuda",
-        "torch_mps",
-        "torch_numpy",
-        "xarray",
-    ],
-)
-def test_available_and_not_available_marks_are_opposite_not_available_reason_suffix(
-    available_name: str,
-) -> None:
-    getattr(fixtures, f"{available_name}_available")
-    not_available = getattr(fixtures, f"{available_name}_not_available")
-    assert not_available.kwargs["reason"].endswith(" available")
-
-
-def test_requires_is_in_all() -> None:
-    assert "requires" in fixtures.__all__
-
-
-def test_requires_is_callable() -> None:
-    assert callable(fixtures.requires)
-
-
-MARK_NAMES = [name for name in fixtures.__all__ if name != "requires"]
-
-
-def test_all_names_are_requires_and_the_available_and_not_available_marks() -> None:
-    assert len(MARK_NAMES) == 28
-
-
-@pytest.mark.parametrize("name", MARK_NAMES)
-def test_all_marks_are_available_or_not_available(name: str) -> None:
-    assert name.endswith(("_available", "_not_available"))
-
-
-@pytest.mark.parametrize("name", MARK_NAMES)
-def test_all_marks_are_mark_decorators(name: str) -> None:
-    assert isinstance(getattr(fixtures, name), pytest.MarkDecorator)
-
-
-##########################################
-#     Tests for the lazy attributes      #
-##########################################
+##################################
+#     Tests for the attributes   #
+##################################
 
 
 def test_unknown_attribute_raises_attribute_error() -> None:
@@ -288,29 +154,54 @@ def test_unknown_attribute_raises_attribute_error() -> None:
         _ = fixtures.unknown_available
 
 
-def test_unknown_attribute_close_to_a_marker_raises_attribute_error() -> None:
-    with pytest.raises(AttributeError, match="numpy_availabl"):
-        _ = fixtures.numpy_availabl
+def test_unknown_attribute_lists_the_valid_names() -> None:
+    with pytest.raises(AttributeError, match="the valid names are: requires, colorlog_available"):
+        _ = fixtures.unknown_available
 
 
-def test_available_marker_is_cached() -> None:
-    assert fixtures.pandas_available is fixtures.pandas_available
+def test_unknown_key_with_a_valid_suffix_raises_attribute_error() -> None:
+    with pytest.raises(AttributeError, match="numpyy_available"):
+        _ = fixtures.numpyy_available
 
 
-def test_not_available_marker_is_cached() -> None:
-    assert fixtures.pandas_not_available is fixtures.pandas_not_available
+def test_suffix_alone_raises_attribute_error() -> None:
+    with pytest.raises(AttributeError, match="has no attribute '_available'"):
+        _ = fixtures._available
 
 
-def test_available_marker_is_created_with_the_not_available_marker() -> None:
-    fixtures.polars_not_available  # noqa: B018
-    assert "polars_available" in vars(fixtures)
+@pytest.mark.usefixtures("two_dependencies")
+def test_available_mark_is_cached() -> None:
+    assert fixtures.alpha_available is fixtures.alpha_available
 
 
-def test_available_and_not_available_markers_are_created_together() -> None:
-    available = fixtures.polars_not_available
-    assert vars(fixtures)["polars_not_available"] is available
+@pytest.mark.usefixtures("two_dependencies")
+def test_marks_are_created_together() -> None:
+    fixtures.alpha_not_available  # noqa: B018
+    assert "alpha_available" in vars(fixtures)
 
 
-@pytest.mark.parametrize("name", MARK_NAMES)
-def test_all_names_are_markers(name: str) -> None:
-    assert isinstance(getattr(fixtures, name), pytest.MarkDecorator)
+@pytest.mark.usefixtures("two_dependencies")
+def test_check_runs_on_first_access() -> None:
+    assert fixtures.beta_available.args[0] is True
+
+
+def test_all_starts_with_requires_and_the_first_pair() -> None:
+    assert fixtures.__all__[:3] == ["requires", "colorlog_available", "colorlog_not_available"]
+
+
+def test_all_has_two_names_per_row_and_requires() -> None:
+    assert len(fixtures.__all__) == 2 * len(fixtures._DEPENDENCIES) + 1
+
+
+def test_dir_is_sorted_all() -> None:
+    assert dir(fixtures) == sorted(fixtures.__all__)
+
+
+def test_cuda_check_uses_coola_utils_tensor(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(fixtures, "import_module", lambda _: Mock(is_cuda_available=lambda: True))
+    assert fixtures._is_cuda_available() is True
+
+
+def test_mps_check_uses_coola_utils_tensor(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(fixtures, "import_module", lambda _: Mock(is_mps_available=lambda: False))
+    assert fixtures._is_mps_available() is False

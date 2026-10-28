@@ -385,8 +385,8 @@ def test_with_dask() -> None: ...
 ```
 
 The first marker skips the test if the dependency is not available, the second one skips it if the
-dependency is available. Pass `plural=True` when the name lists several dependencies (for example
-`"PyTorch and CUDA"`), so the reason reads "are available".
+dependency is available. Use a singular name (for example `"PyTorch with CUDA"`), so the reasons
+read "Requires PyTorch with CUDA" and "Skip if PyTorch with CUDA is available".
 
 ## Isolating the Default Registries
 
