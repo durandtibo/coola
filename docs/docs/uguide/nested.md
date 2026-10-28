@@ -91,10 +91,10 @@ These conversion functions are inverse operations of each other:
 
 ### Getting the First Value
 
-Use `get_first_value()` to extract the first value from a mapping:
+Use `get_first_value()` of `coola.utils.mapping` to extract the first value from a mapping:
 
 ```pycon
->>> from coola.nested import get_first_value
+>>> from coola.utils.mapping import get_first_value
 >>> data = {"first": 10, "second": 20, "third": 30}
 >>> get_first_value(data)
 10
@@ -107,7 +107,7 @@ the mapping should have at least one value but don't know the key.
 **Note:** If the mapping is empty, this function raises a `ValueError`.
 
 ```pycon
->>> from coola.nested import get_first_value
+>>> from coola.utils.mapping import get_first_value
 >>> get_first_value({})
 Traceback (most recent call last):
     ...
@@ -358,16 +358,6 @@ converted to sorted lists:
 ...     y: int
 >>> convert_to_jsonable([Point(x=1, y=2), {"key": Point(x=3, y=4)}, {3, 1, 2}])
 [{'x': 1, 'y': 2}, {'key': {'x': 3, 'y': 4}}, [1, 2, 3]]
-
-```
-
-`try_sorted_list()` converts an iterable (e.g. a set) to a list. The list is sorted when the values
-are comparable, so the output is deterministic, otherwise it keeps the iteration order:
-
-```pycon
->>> from coola.nested import try_sorted_list
->>> try_sorted_list({3, 1, 2})
-[1, 2, 3]
 
 ```
 

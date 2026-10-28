@@ -9,9 +9,8 @@ from coola.nested import (
     convert_to_dict_of_lists,
     convert_to_jsonable,
     convert_to_list_of_dicts,
-    try_sorted_list,
 )
-from coola.nested.conversion import SetToListTransformer
+from coola.nested.conversion import _SetToListTransformer, _try_sorted_list
 from coola.recursive import recursive_apply
 from coola.testing.marks import numpy_available, pydantic_available, torch_available
 from coola.utils.imports import (
@@ -229,15 +228,15 @@ def test_convert_to_jsonable_set_and_range() -> None:
 
 
 def test_try_sorted_list_set() -> None:
-    assert try_sorted_list({3, 1, 2}) == [1, 2, 3]
+    assert _try_sorted_list({3, 1, 2}) == [1, 2, 3]
 
 
 def test_try_sorted_list_frozenset() -> None:
-    assert try_sorted_list(frozenset({"b", "a"})) == ["a", "b"]
+    assert _try_sorted_list(frozenset({"b", "a"})) == ["a", "b"]
 
 
 def test_try_sorted_list_not_comparable() -> None:
-    assert sorted(try_sorted_list({1, "a"}), key=str) == [1, "a"]
+    assert sorted(_try_sorted_list({1, "a"}), key=str) == [1, "a"]
 
 
 @pytest.mark.parametrize("value", ["ab", b"ab", bytearray(b"ab")])
@@ -261,17 +260,17 @@ def test_convert_to_jsonable_list_that_contains_itself() -> None:
 
 
 def test_set_to_list_transformer_expand_children() -> None:
-    children, _ = SetToListTransformer().expand({1})
+    children, _ = _SetToListTransformer().expand({1})
     assert children == [1]
 
 
 def test_set_to_list_transformer_expand_rebuild_sorts_the_items() -> None:
-    _, rebuild = SetToListTransformer().expand({3, 1, 2})
+    _, rebuild = _SetToListTransformer().expand({3, 1, 2})
     assert rebuild([3, 1, 2]) == [1, 2, 3]
 
 
 def test_set_to_list_transformer_repr() -> None:
-    assert repr(SetToListTransformer()) == "SetToListTransformer()"
+    assert repr(_SetToListTransformer()) == "_SetToListTransformer()"
 
 
 def test_convert_to_jsonable_set_in_a_set_of_frozensets() -> None:

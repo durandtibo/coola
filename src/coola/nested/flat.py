@@ -207,10 +207,10 @@ def _set_nested(
 
 def to_flat_dict(
     data: object,
+    *,
     prefix: str | None = None,
     separator: str = ".",
     to_str: type | tuple[type, ...] | None = None,
-    *,
     escape: bool = False,
 ) -> dict[str, Any]:
     r"""Return a flat representation of a nested structure as a dict

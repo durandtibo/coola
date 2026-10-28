@@ -684,3 +684,8 @@ def test_from_flat_dict_separator_is_keyword_only() -> None:
 def test_from_flat_dict_restore_lists_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional argument"):
         from_flat_dict({"a.0": 1}, ".", True)
+
+
+def test_to_flat_dict_options_are_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional"):
+        to_flat_dict({"a": 1}, "p")
