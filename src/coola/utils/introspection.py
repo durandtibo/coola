@@ -11,7 +11,6 @@ from __future__ import annotations
 __all__ = [
     "check_not_lambda_function",
     "get_all_child_classes",
-    "get_fully_qualified_name",
     "get_qualified_class_name",
     "get_type_constructor",
     "has_generated_dataclass_eq",
@@ -89,56 +88,13 @@ def get_all_child_classes(cls: type) -> set[type]:
     )
 
 
-def get_fully_qualified_name(obj: Any) -> str:
-    r"""Return the fully qualified name of a Python object.
-
-    This function computes the fully qualified name (module path +
-    object name) for various Python objects including functions,
-    classes, methods, and instances. For instances, it returns the
-    fully qualified name of their class. The format is
-    "module.path.ObjectName" (e.g., "collections.Counter").
-
-    Args:
-        obj: The object whose fully qualified name is to be computed.
-            Can be a class, function, method, or instance.
-
-    Returns:
-        The fully qualified name.
-
-    Example:
-        ```pycon
-        >>> from coola.utils.introspection import get_fully_qualified_name
-        >>> import collections
-        >>> get_fully_qualified_name(collections.Counter)
-        'collections.Counter'
-        >>> get_fully_qualified_name(collections.Counter())
-        'collections.Counter'
-        >>> get_fully_qualified_name(map)
-        'builtins.map'
-
-        ```
-    """
-    module = getattr(obj, "__module__", None)
-    qualname = getattr(obj, "__qualname__", None)
-
-    # If not a function/class/method, fall back to the class
-    if qualname is None:
-        cls = obj.__class__
-        module = getattr(cls, "__module__", None)
-        qualname = cls.__qualname__
-
-    if module and module != "__main__":
-        return f"{module}.{qualname}"
-    return qualname
-
-
 def get_qualified_class_name(cls: type) -> str:
     r"""Return the qualified name of a class, with its module unless it
     is a builtin.
 
-    Unlike ``get_fully_qualified_name``, the module is also kept for
-    ``__main__``, so the name identifies the class in a namespace shared
-    with the names of the builtins and of other modules.
+    The module is also kept for ``__main__``, so the name identifies the
+    class in a namespace shared with the names of the builtins and of
+    other modules.
 
     Args:
         cls: The class whose name is to be computed.

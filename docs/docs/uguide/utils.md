@@ -175,7 +175,7 @@ False
 
 The `coola.utils.introspection` module provides utilities for introspecting Python objects:
 
-- `get_fully_qualified_name()` - Fully qualified name of an object
+- `get_qualified_class_name()` - Qualified name of a class, with its module unless it is a builtin
 - `get_type_constructor()` - Type of an object as a callable
 - `get_all_child_classes()` - All the subclasses of a class, recursively
 - `is_same_type()` - Indicate if an object has exactly the type of a reference (no subclass)
@@ -186,11 +186,11 @@ The `coola.utils.introspection` module provides utilities for introspecting Pyth
 >>> from pathlib import Path
 >>> from coola.utils.introspection import (
 ...     get_all_child_classes,
-...     get_fully_qualified_name,
+...     get_qualified_class_name,
 ...     is_same_type,
 ...     supports_methods,
 ... )
->>> get_fully_qualified_name(Path)
+>>> get_qualified_class_name(Path)
 'pathlib.Path'
 >>> is_same_type(True, 1)
 False
