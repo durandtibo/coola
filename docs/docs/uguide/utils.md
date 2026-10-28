@@ -19,12 +19,13 @@ submodules:
 
 ### Core helpers and general helpers
 
-Most of the modules are **core helpers**, used by the other `coola` packages and part of the
-supported API: `imports`, `format`, `introspection`, `singleton`, `lru`, `array`, `tensor`,
-`conversion`, `mapping`, `stats`, `logging`, `string`, `env_vars` and `fallback`.
+The modules used by the other `coola` packages are the **core helpers**: `imports`, `fallback`,
+`fork`, `format`, `integer`, `introspection`, `mapping`, `path`, `safe`, `selection`, `singleton`,
+`stats`, `tensor` (only by `coola.testing` and `reducer`), `conversion` and `version`.
 
 The following modules are **general helpers**: standalone utilities that are not used by the other
-`coola` packages. They are kept because they are small and tested, but they are not related to
+`coola` packages (`array`, `env_vars`, `logging`, `lru`, `recursion` and `string` are in this
+group too). They are kept because they are small and tested, but they are not related to
 comparing, summarizing or transforming data, so do not look for `coola`'s core features there:
 
 | Module                     | Content                                                   |
@@ -37,8 +38,6 @@ comparing, summarizing or transforming data, so do not look for `coola`'s core f
 | `coola.utils.secret`       | Mask a secret before displaying it                        |
 | `coola.utils.text_diff`    | Unified diff of two texts                                 |
 | `coola.utils.timing`       | The `timeblock` context manager                           |
-| `coola.utils.path`         | Path sanitization, unique file names, working directory   |
-| `coola.utils.version`      | Version of an installed package                           |
 | `coola.utils.batching`     | Split an iterable in batches                              |
 
 ## Import Utilities (`coola.utils.imports`)
@@ -93,36 +92,30 @@ Available check functions:
 - `is_colorlog_available()` - Check if colorlog is available
 - `is_torch_numpy_available()` - Check if both PyTorch and NumPy are available
 
-### Context Managers for Availability
+### Decorators for Availability
 
-Use context managers to conditionally execute code based on package availability:
+`numpy_available`, `torch_available`, and the similar names for the other libraries are
+**decorators**, not context managers. The decorated function is only defined if the package is
+available, otherwise the name is bound to `None` (no error is raised):
 
 ```pycon
 >>> from coola.utils.imports import numpy_available
->>> with numpy_available():  # doctest: +SKIP
+>>> @numpy_available
+... def total(data):
 ...     import numpy as np
 ...
-...     arr = np.array([1, 2, 3])
-...     print(arr)
+...     return np.array(data).sum()
+...
 
 ```
 
-If the package is not available, the code block is skipped without raising an error.
+`with numpy_available():` raises a `TypeError`. To branch on availability, use
+`is_numpy_available()` as in [Graceful Degradation](#graceful-degradation).
 
-Available context managers:
-
-- `numpy_available()` - Execute block if NumPy is available
-- `torch_available()` - Execute block if PyTorch is available
-- `pandas_available()` - Execute block if pandas is available
-- `polars_available()` - Execute block if polars is available
-- `jax_available()` - Execute block if JAX is available
-- `xarray_available()` - Execute block if xarray is available
-- `pyarrow_available()` - Execute block if PyArrow is available
-- `packaging_available()` - Execute block if packaging is available
-- `pydantic_available()` - Execute block if pydantic is available
-- `rich_available()` - Execute block if rich is available
-- `colorlog_available()` - Execute block if colorlog is available
-- `torch_numpy_available()` - Execute block if both PyTorch and NumPy are available
+Available decorators: `numpy_available`, `torch_available`, `pandas_available`,
+`polars_available`, `jax_available`, `xarray_available`, `pyarrow_available`,
+`packaging_available`, `pydantic_available`, `rich_available`, `colorlog_available` and
+`torch_numpy_available` (both PyTorch and NumPy).
 
 ### Raising Errors for Missing Packages
 
@@ -607,9 +600,9 @@ Show file sizes in human-readable format:
 Provide fallback behavior when optional packages are not available:
 
 ```pycon
->>> from coola.utils.imports import numpy_available
+>>> from coola.utils.imports import is_numpy_available
 >>> def compute_stats(data):
-...     with numpy_available():  # doctest: +SKIP
+...     if is_numpy_available():
 ...         # Use NumPy if available (faster)
 ...         import numpy as np
 ...
@@ -619,6 +612,7 @@ Provide fallback behavior when optional packages are not available:
 ...     mean = sum(data) / len(data)
 ...     variance = sum((x - mean) ** 2 for x in data) / len(data)
 ...     return {"mean": mean, "std": variance**0.5}
+...
 
 ```
 
