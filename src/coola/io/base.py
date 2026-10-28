@@ -27,9 +27,12 @@ from abc import ABC, abstractmethod
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
+from coola.display import InlineDisplayMixin
+from coola.equality import objects_are_equal
 from coola.factory import is_object_config, resolve_object
 from coola.io.utils import add_uuid_suffix
 from coola.utils.fork import track_fork
+from coola.utils.introspection import is_same_type
 from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
@@ -321,7 +324,7 @@ def _save_lock(path: Path, stale_after: float = _FILE_LOCK_STALE_AFTER) -> Gener
             _release_file_lock(lock_path, token)
 
 
-class BaseLoader(ABC, Generic[T]):
+class BaseLoader(InlineDisplayMixin, ABC, Generic[T]):
     r"""Define the base class to implement a data loader.
 
     Example:
@@ -340,9 +343,13 @@ class BaseLoader(ABC, Generic[T]):
         ```
     """
 
-    @abstractmethod
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
         r"""Indicate if two objects are equal or not.
+
+        Two objects are equal if they have the same type and the same
+        configuration, i.e. the fields returned by ``_display_fields``
+        (the fields shown by ``repr``) are equal. A format does not
+        override this method.
 
         Args:
             other: The object to compare with.
@@ -362,10 +369,18 @@ class BaseLoader(ABC, Generic[T]):
 
             ```
         """
+        if not is_same_type(other, self):
+            return False
+        return objects_are_equal(
+            self._display_fields(), other._display_fields(), equal_nan=equal_nan
+        )
 
-    @abstractmethod
     def load(self, path: str | os.PathLike[str]) -> T:
         r"""Load the data from the given path.
+
+        The path is converted to a ``Path`` (``~`` and ``file://``
+        URIs are expanded) before ``_load`` is called, so a format
+        always receives a ``Path``.
 
         Args:
             path: The path with the data to load. A ``str`` or any path-like object is converted to a ``Path``.
@@ -388,9 +403,21 @@ class BaseLoader(ABC, Generic[T]):
 
             ```
         """
+        return self._load(sanitize_path(path, resolve=False))
+
+    @abstractmethod
+    def _load(self, path: Path) -> T:
+        r"""Load the data from the given path.
+
+        Args:
+            path: The path with the data to load.
+
+        Returns:
+            The data.
+        """
 
 
-class BaseSaver(ABC, Generic[T]):
+class BaseSaver(InlineDisplayMixin, ABC, Generic[T]):
     r"""Define the base class to implement a data saver.
 
     Example:
@@ -409,9 +436,13 @@ class BaseSaver(ABC, Generic[T]):
         ```
     """
 
-    @abstractmethod
     def equal(self, other: Any, equal_nan: bool = False) -> bool:
         r"""Indicate if two objects are equal or not.
+
+        Two objects are equal if they have the same type and the same
+        configuration, i.e. the fields returned by ``_display_fields``
+        (the fields shown by ``repr``) are equal. A format does not
+        override this method.
 
         Args:
             other: The object to compare with.
@@ -431,6 +462,11 @@ class BaseSaver(ABC, Generic[T]):
 
             ```
         """
+        if not is_same_type(other, self):
+            return False
+        return objects_are_equal(
+            self._display_fields(), other._display_fields(), equal_nan=equal_nan
+        )
 
     @abstractmethod
     def save(self, to_save: T, path: str | os.PathLike[str], *, exist_ok: bool = False) -> None:

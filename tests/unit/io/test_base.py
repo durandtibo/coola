@@ -143,9 +143,6 @@ class FailingFileSaver(BaseFileSaver[Any]):
         self.delete_tmp_file = delete_tmp_file
         self.tmp_path: Path | None = None
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        return type(other) is type(self)
-
     def _save_file(self, to_save: Any, path: Path) -> None:  # noqa: ARG002
         self.tmp_path = path
         path.touch()
@@ -238,9 +235,6 @@ def test_base_file_saver_save_missing_tmp_file_on_failure_state_directory_is_emp
 class SimpleFileSaver(BaseFileSaver[str]):
     r"""A file saver that writes the string representation of the data
     to save."""
-
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        return type(other) is type(self)
 
     def _save_file(self, to_save: Any, path: Path) -> None:
         path.write_text(str(to_save))
@@ -1208,9 +1202,6 @@ def test_save_does_not_write_a_visible_file_while_saving_no_visible_file(tmp_pat
     seen: list[list[str]] = []
 
     class Saver(BaseFileSaver[str]):
-        def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-            return True
-
         def _save_file(self, to_save: str, path: Path) -> None:
             path.write_text(to_save)
             seen.append(
@@ -1229,9 +1220,6 @@ def test_save_does_not_write_a_visible_file_while_saving_content(tmp_path: Path)
     seen: list[list[str]] = []
 
     class Saver(BaseFileSaver[str]):
-        def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-            return True
-
         def _save_file(self, to_save: str, path: Path) -> None:
             path.write_text(to_save)
             seen.append(
@@ -1442,3 +1430,137 @@ def test_resolve_saver_wrong_class_target_message() -> None:
 def test_resolve_loader_wrong_class_target_message() -> None:
     with pytest.raises(TypeError, match="it was not called"):
         resolve_loader({OBJECT_TARGET: "coola.io.JsonSaver"})
+
+
+####################################################
+#     Tests for BaseLoader, BaseSaver (shared)     #
+####################################################
+
+
+class PathTypeLoader(BaseLoader[type]):
+    r"""A loader that returns the type of the path given to ``_load``."""
+
+    def _load(self, path: Path) -> type:
+        return type(path)
+
+
+class ConfigurableLoader(BaseLoader[Any]):
+    def __init__(self, encoding: str = "utf-8", scale: float = 1.0) -> None:
+        self._encoding = encoding
+        self._scale = scale
+
+    def _display_fields(self) -> dict[str, Any]:
+        return {"encoding": self._encoding, "scale": self._scale}
+
+    def _load(self, path: Path) -> Any:  # noqa: ARG002
+        return None
+
+
+class ConfigurableSaver(BaseFileSaver[Any]):
+    def __init__(self, indent: int = 2) -> None:
+        self._indent = indent
+
+    def _display_fields(self) -> dict[str, Any]:
+        return {"indent": self._indent}
+
+    def _save_file(self, to_save: Any, path: Path) -> None:
+        path.write_text(str(to_save))
+
+
+def test_base_loader_load_passes_a_path_for_a_path(tmp_path: Path) -> None:
+    assert PathTypeLoader().load(tmp_path) is type(tmp_path)
+
+
+def test_base_loader_load_passes_a_path_for_a_str(tmp_path: Path) -> None:
+    # Regression: a ``load`` that calls ``Path`` methods failed for a ``str``.
+    assert issubclass(PathTypeLoader().load(str(tmp_path)), Path)
+
+
+def test_base_loader_load_passes_a_path_for_a_file_uri(tmp_path: Path) -> None:
+    assert issubclass(PathTypeLoader().load(tmp_path.as_uri()), Path)
+
+
+def test_base_loader_load_expands_a_file_uri(tmp_path: Path) -> None:
+    class Loader(BaseLoader[Path]):
+        def _load(self, path: Path) -> Path:
+            return path
+
+    assert Loader().load(tmp_path.joinpath("data.txt").as_uri()) == tmp_path.joinpath("data.txt")
+
+
+def test_base_loader_equal_same_configuration() -> None:
+    assert ConfigurableLoader(scale=2.0).equal(ConfigurableLoader(scale=2.0))
+
+
+def test_base_loader_equal_different_field() -> None:
+    assert not ConfigurableLoader(scale=2.0).equal(ConfigurableLoader(scale=3.0))
+
+
+def test_base_loader_equal_different_type() -> None:
+    assert not ConfigurableLoader().equal(PathTypeLoader())
+
+
+def test_base_loader_equal_subclass_is_not_equal_to_base() -> None:
+    class Child(ConfigurableLoader): ...
+
+    assert not ConfigurableLoader().equal(Child())
+
+
+def test_base_loader_equal_not_a_loader() -> None:
+    assert not ConfigurableLoader().equal("abc")
+
+
+def test_base_loader_equal_no_fields() -> None:
+    assert PathTypeLoader().equal(PathTypeLoader())
+
+
+def test_base_loader_equal_nan_false() -> None:
+    assert not ConfigurableLoader(scale=float("nan")).equal(ConfigurableLoader(scale=float("nan")))
+
+
+def test_base_loader_equal_nan_true() -> None:
+    assert ConfigurableLoader(scale=float("nan")).equal(
+        ConfigurableLoader(scale=float("nan")), equal_nan=True
+    )
+
+
+def test_base_loader_repr() -> None:
+    assert repr(ConfigurableLoader(scale=2.0)) == "ConfigurableLoader(encoding='utf-8', scale=2.0)"
+
+
+def test_base_loader_repr_no_fields() -> None:
+    assert repr(PathTypeLoader()) == "PathTypeLoader()"
+
+
+def test_base_loader_str() -> None:
+    assert str(ConfigurableLoader(scale=2.0)) == "ConfigurableLoader(encoding=utf-8, scale=2.0)"
+
+
+def test_base_saver_equal_same_configuration() -> None:
+    assert ConfigurableSaver(indent=4).equal(ConfigurableSaver(indent=4))
+
+
+def test_base_saver_equal_different_field() -> None:
+    assert not ConfigurableSaver(indent=4).equal(ConfigurableSaver(indent=2))
+
+
+def test_base_saver_equal_different_type() -> None:
+    assert not ConfigurableSaver().equal(SimpleFileSaver())
+
+
+def test_base_saver_equal_subclass_is_not_equal_to_base() -> None:
+    class Child(ConfigurableSaver): ...
+
+    assert not ConfigurableSaver().equal(Child())
+
+
+def test_base_saver_repr() -> None:
+    assert repr(ConfigurableSaver(indent=4)) == "ConfigurableSaver(indent=4)"
+
+
+def test_base_saver_repr_no_fields() -> None:
+    assert repr(SimpleFileSaver()) == "SimpleFileSaver()"
+
+
+def test_base_saver_str() -> None:
+    assert str(ConfigurableSaver(indent=4)) == "ConfigurableSaver(indent=4)"

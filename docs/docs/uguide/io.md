@@ -257,17 +257,16 @@ False
 
 ## Implementing a Custom Loader or Saver
 
-Subclass `BaseLoader` to implement a custom loader:
+Subclass `BaseLoader` and implement `_load` to implement a custom loader. `load` is provided by
+the base class: it converts a `str`, a `file://` URI or any `os.PathLike` to a `Path` and calls
+`_load` with it. `equal()`, `repr` and `str` also come with the base class and use the fields
+returned by `_display_fields()` (none by default); override it in a loader that has options:
 
 ```pycon
 >>> from pathlib import Path
->>> from typing import Any
 >>> from coola.io import BaseLoader
 >>> class UpperTextLoader(BaseLoader[str]):
-...     def equal(self, other: Any, equal_nan: bool = False) -> bool:
-...         return type(other) is type(self)
-...
-...     def load(self, path: Path) -> str:
+...     def _load(self, path: Path) -> str:
 ...         return path.read_text().upper()
 
 ```
@@ -277,12 +276,8 @@ of `save` directly - this reuses the atomic write and `exist_ok` handling descri
 
 ```pycon
 >>> from pathlib import Path
->>> from typing import Any
 >>> from coola.io import BaseFileSaver
 >>> class UpperTextSaver(BaseFileSaver[str]):
-...     def equal(self, other: Any, equal_nan: bool = False) -> bool:
-...         return type(other) is type(self)
-...
 ...     def _save_file(self, to_save: str, path: Path) -> None:
 ...         path.write_text(str(to_save).upper())
 

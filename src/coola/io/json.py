@@ -7,11 +7,7 @@ __all__ = ["JsonLoader", "JsonSaver", "load_json", "save_json"]
 import json
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from coola.display import InlineDisplayMixin
-from coola.equality import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
-from coola.utils.introspection import is_same_type
-from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
     import os
@@ -22,7 +18,7 @@ T = TypeVar("T")
 DEFAULT_ENCODING = "utf-8"
 
 
-class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
+class JsonLoader(BaseLoader[T]):
     r"""Implement a data loader to load data in a JSON file.
 
     Args:
@@ -53,13 +49,7 @@ class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
     def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding}
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        if not is_same_type(other, self):
-            return False
-        return self._encoding == other._encoding
-
-    def load(self, path: str | os.PathLike[str]) -> T:
-        path = sanitize_path(path, resolve=False)
+    def _load(self, path: Path) -> T:
         if self._encoding is None:
             with path.open(mode="rb") as file:
                 return json.load(file)
@@ -67,7 +57,7 @@ class JsonLoader(InlineDisplayMixin, BaseLoader[T]):
             return json.load(file)
 
 
-class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
+class JsonSaver(BaseFileSaver[T]):
     r"""Implement a file saver to save data with a JSON file.
 
     Args:
@@ -104,13 +94,6 @@ class JsonSaver(InlineDisplayMixin, BaseFileSaver[T]):
 
     def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding, **self._kwargs}
-
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:
-        if not is_same_type(other, self):
-            return False
-        return self._encoding == other._encoding and objects_are_equal(
-            self._kwargs, other._kwargs, equal_nan=equal_nan
-        )
 
     def _save_file(self, to_save: T, path: Path) -> None:
         with path.open(mode="w", encoding=self._encoding) as file:

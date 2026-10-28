@@ -34,9 +34,6 @@ class SimpleFileSaver(BaseFileSaver[str]):
     r"""A file saver that writes the string representation of the data
     to save."""
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        return type(other) is type(self)
-
     def _save_file(self, to_save: Any, path: Path) -> None:
         path.write_text(str(to_save))
 
@@ -45,9 +42,6 @@ class SlowFileSaver(BaseFileSaver[str]):
     r"""A file saver like ``SimpleFileSaver`` but that sleeps while
     writing, to widen the window during which a concurrent ``save`` call
     could interleave with this one."""
-
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        return type(other) is type(self)
 
     def _save_file(self, to_save: Any, path: Path) -> None:
         path.write_text(str(to_save))
