@@ -562,10 +562,10 @@ generators it covers.
 
 | Benchmark (`test_<name>_benchmark`) | Input                        | Old median | Old min  | Per call (old) | Prototype per call | New median | Speed-up |
 | ----------------------------------- | ---------------------------- | ---------- | -------- | -------------- | ------------------ | ---------- | -------- |
-| `generate_ulid`                     | 10,000 calls                 | 21.20 ms   | 20.80 ms | 2.12 µs        | 2.06 µs            |            |          |
-| `generate_uuid7`                    | 10,000 calls                 | 13.99 ms   | 13.68 ms | 1.40 µs        | 1.27 µs            |            |          |
+| `generate_ulid`                     | 10,000 calls                 | 21.20 ms   | 20.80 ms | 2.12 µs        | 2.06 µs            | 20.34 ms   | 1.04     |
+| `generate_uuid7`                    | 10,000 calls                 | 13.99 ms   | 13.68 ms | 1.40 µs        | 1.27 µs            | 12.32 ms   | 1.14     |
 | `generate_snowflake_id`             | 10,000 calls                 | 5.92 ms    | 5.80 ms  | 0.59 µs        | 0.37 µs            |            |          |
-| `generate_object_id`                | 10,000 calls                 | 5.10 ms    | 5.00 ms  | 0.51 µs        | 0.40 µs            |            |          |
+| `generate_object_id`                | 10,000 calls                 | 5.10 ms    | 5.00 ms  | 0.51 µs        | 0.40 µs            | 5.05 ms    | 1.01     |
 | `extract_ulid_timestamp_ms`         | 10,000 calls                 | 25.06 ms   | 24.57 ms | 2.51 µs        |                    |            |          |
 | `extract_uuid7_timestamp_ms`        | 10,000 calls                 | 8.15 ms    | 8.07 ms  | 0.81 µs        |                    |            |          |
 | `extract_snowflake_timestamp_ms`    | 10,000 calls                 | 1.55 ms    | 1.51 ms  | 0.15 µs        |                    |            |          |

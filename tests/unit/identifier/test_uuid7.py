@@ -18,13 +18,13 @@ UUID7_PATTERN = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f
 
 
 @pytest.fixture(autouse=True)
-def _reset_monotonic_state() -> Generator[None]:
-    """Reset the state of the monotonic generator, which is shared by
+def _reset_sequence_state() -> Generator[None]:
+    """Reset the state of the sequence, which is shared by
     the tests of the process and depends on the time (a test with a fake
     clock must start from scratch)."""
-    uuid7_module._MONOTONIC._reset_after_fork()
+    uuid7_module._SEQUENCE._reset_after_fork()
     yield
-    uuid7_module._MONOTONIC._reset_after_fork()
+    uuid7_module._SEQUENCE._reset_after_fork()
 
 
 def _decode_timestamp_ms(value: str) -> int:
@@ -151,7 +151,7 @@ def test_extract_uuid7_timestamp_ms_rejects_non_v7_uuid() -> None:
 
 
 def _generate_uuid7_in_the_same_millisecond() -> list[str]:
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=1_700_000_000_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=1_700_000_000_000 * 10**6):
         return [generate_uuid7() for _ in range(1000)]
 
 
@@ -190,9 +190,9 @@ def test_generate_uuid7_monotonic_with_the_real_clock_pattern() -> None:
 
 
 def _generate_uuid7_with_a_backward_clock() -> tuple[str, str]:
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=2_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=2_000 * 10**6):
         first = generate_uuid7()
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=1_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=1_000 * 10**6):
         second = generate_uuid7()
     return first, second
 
@@ -210,8 +210,8 @@ def test_generate_uuid7_keeps_the_timestamp_if_the_clock_moves_backward() -> Non
 def _generate_uuid7_with_a_large_counter() -> list[str]:
     # Start with a random part that is all ones in the 12 bits before the variant bits.
     with (
-        patch("coola.identifier.monotonic.time.time_ns", return_value=1_000 * 10**6),
-        patch.object(uuid7_module._MONOTONIC, "_fresh_random", return_value=2**74 - 3),
+        patch("coola.identifier.sequence.time.time_ns", return_value=1_000 * 10**6),
+        patch.object(uuid7_module._SEQUENCE, "_start", return_value=2**74 - 3),
     ):
         return [generate_uuid7() for _ in range(5)]
 
@@ -236,16 +236,16 @@ def test_generate_uuid7_explicit_timestamp_is_used() -> None:
 
 
 def test_generate_uuid7_explicit_timestamp_is_before_the_current_time() -> None:
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=5_000 * 10**6):
         current = generate_uuid7()
     assert generate_uuid7(timestamp_ms=1) < current
 
 
 def test_generate_uuid7_explicit_timestamp_does_not_use_the_monotonic_state() -> None:
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=5_000 * 10**6):
         current = generate_uuid7()
     generate_uuid7(timestamp_ms=1)
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=5_000 * 10**6):
         assert generate_uuid7() > current
 
 
@@ -257,7 +257,7 @@ def test_generate_uuid7_explicit_timestamp_does_not_use_the_monotonic_state() ->
 @pytest.mark.parametrize("timestamp_ms", [True, 1.5, "1"])
 def test_generate_uuid7_timestamp_wrong_type_raises(timestamp_ms: object) -> None:
     with pytest.raises(TypeError, match="timestamp_ms must be an int"):
-        generate_uuid7(timestamp_ms)
+        generate_uuid7(timestamp_ms=timestamp_ms)
 
 
 @pytest.mark.parametrize("uuid7", [None, 123, uuid.UUID(int=7 << 76)])
@@ -293,3 +293,16 @@ def test_extract_uuid7_timestamp_ms_wrong_variant_raises() -> None:
 
 def test_extract_uuid7_timestamp_ms_accepts_upper_case() -> None:
     assert extract_uuid7_timestamp_ms("01234567-89AB-7DEF-8123-456789ABCDEF") == 0x0123456789AB
+
+
+def test_generate_uuid7_current_time_beyond_48_bits_raises() -> None:
+    with (
+        patch("coola.identifier.sequence.time.time_ns", return_value=2**48 * 10**6),
+        pytest.raises(ValueError, match="timestamp_ms must be in the closed range"),
+    ):
+        generate_uuid7()
+
+
+def test_generate_uuid7_timestamp_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional argument"):
+        generate_uuid7(1704067200000)

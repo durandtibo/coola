@@ -1,185 +1,64 @@
 r"""Provide a MongoDB ObjectId style identifier.
 
-Like ``SnowflakeIdGenerator``, this packs a timestamp, a fixed per-
-process value, and a per-process counter into a compact identifier, so
-that IDs minted later sort after IDs minted earlier. It differs from
-``SnowflakeIdGenerator`` in the failure mode when the counter wraps
-within a second: instead of raising or busy-waiting, the counter simply
-wraps around, trading strict monotonicity guarantees for a generator
-that never blocks or raises. It also does not require assigning a
-distinct ``worker_id`` per process: the per-process random value below
-plays that role automatically, making it convenient when there is no
-existing worker/shard numbering scheme to reuse. Prefer
-``SnowflakeIdGenerator`` when a numeric (rather than hex string) ID or
-explicit ``worker_id`` control is needed instead.
+Like ``generate_ulid``, an ObjectId packs a timestamp followed by random
+bits into a compact identifier, so that identifiers minted later sort
+after identifiers minted earlier. The timestamp has a resolution of one
+second, and the 24-character lowercase hex string is not a UUID or a
+Base32 string. It never blocks or raises, whatever the clock does: use
+it when a hex string of 12 bytes that sorts by creation time is needed.
 """
 
 from __future__ import annotations
 
-__all__ = [
-    "ObjectIdGenerator",
-    "extract_object_id_timestamp_s",
-    "generate_object_id",
-]
+__all__ = ["extract_object_id_timestamp_s", "generate_object_id"]
 
-import os
 import re
-import threading
-import time
+import secrets
 
-from coola.utils.fork import track_fork
-from coola.utils.singleton import LazySingleton
+from coola.identifier.sequence import TickSequence
 from coola.validation import validate_closed_range, validate_int, validate_str
 
-_TIMESTAMP_BYTES = 4
-_PROCESS_BYTES = 5
-_COUNTER_BYTES = 3
+_TIMESTAMP_BITS = 32
+_MAX_TIMESTAMP_S = (1 << _TIMESTAMP_BITS) - 1
+_RANDOM_BITS = 64
+_LENGTH = 24
 _OBJECT_ID_PATTERN = re.compile(r"[0-9a-f]{24}")
-_MAX_COUNTER = (1 << (_COUNTER_BYTES * 8)) - 1
+
+# State of the ObjectIds generated with the current time: they increase within a second.
+_SEQUENCE = TickSequence(bits=_RANDOM_BITS, tick_ns=1_000_000_000)
 
 
-class ObjectIdGenerator:
-    r"""Generate MongoDB ObjectId style 12-byte identifiers.
-
-    All the state needed to mint IDs (the per-instance random value
-    and the counter) lives on the instance rather than at module
-    scope, so each generator is independent: create one per
-    process/test instead of sharing mutable global state. Use
-    ``generate_object_id`` for the common case of a single, shared,
-    process-wide generator.
-
-    Note:
-        After a fork (``os.fork``, or ``multiprocessing`` with the
-        ``fork`` start method), the child process receives a copy of
-        the generator. To prevent the parent and its children from
-        producing the same identifiers, the random per-process value
-        and the counter are regenerated in the child process, and its
-        lock is recreated.
-
-    Example:
-        ```pycon
-        >>> from coola.identifier import ObjectIdGenerator
-        >>> generator = ObjectIdGenerator()
-        >>> object_id = generator.generate()
-        >>> len(object_id)
-        24
-
-        ```
-    """
-
-    def __init__(self) -> None:
-        # A random 5-byte value fixed for the lifetime of this
-        # generator, playing the role a machine/process identifier
-        # plays in the original MongoDB ObjectId format, without
-        # requiring the caller to configure one.
-        self._process_value = os.urandom(_PROCESS_BYTES)
-        self._lock = threading.Lock()
-        self._counter = int.from_bytes(os.urandom(_COUNTER_BYTES), byteorder="big")
-        track_fork(self)
-
-    def _reset_after_fork(self) -> None:
-        r"""Regenerate the random state in a forked child process."""
-        self._process_value = os.urandom(_PROCESS_BYTES)
-        # The lock may have been held by a thread that does not exist in the child.
-        self._lock = threading.Lock()
-        self._counter = int.from_bytes(os.urandom(_COUNTER_BYTES), byteorder="big")
-
-    def generate(self, timestamp: int | None = None) -> str:
-        r"""Generate a MongoDB ObjectId style 12-byte identifier.
-
-        The returned value packs a 4-byte Unix timestamp (seconds), a
-        5-byte value fixed once per generator instance, and a 3-byte
-        counter that increments (and silently wraps modulo ``2**24``)
-        on every call, into a 24-character lowercase hex string.
-        Because the timestamp is the most significant part, IDs
-        generated in a later second sort (as plain strings) after IDs
-        generated in an earlier one.
-
-        Note:
-            Unlike ``SnowflakeIdGenerator.generate``, this never
-            raises or blocks: if more than ``2**24`` IDs are requested
-            within the same second, the counter wraps around silently,
-            at the cost of no longer guaranteeing strict ordering (or,
-            in the extreme, uniqueness) for IDs minted within that
-            second.
-
-        Args:
-            timestamp: The Unix timestamp in seconds to encode. If
-                ``None`` (default), the current time is used. Exposed
-                mainly for deterministic testing.
-
-        Returns:
-            A 24-character lowercase hex string.
-
-        Raises:
-            TypeError: If ``timestamp`` is not an ``int`` (a ``bool`` is
-                rejected).
-            ValueError: If ``timestamp`` does not fit in 32 bits (i.e.
-                is negative or exceeds ``2**32 - 1``).
-
-        Example:
-            ```pycon
-            >>> from coola.identifier import ObjectIdGenerator
-            >>> generator = ObjectIdGenerator()
-            >>> object_id = generator.generate()
-            >>> len(object_id)
-            24
-
-            ```
-        """
-        with self._lock:
-            if timestamp is None:
-                timestamp = int(time.time())
-            validate_int(timestamp, name="timestamp")
-            validate_closed_range(timestamp, 0, (1 << (_TIMESTAMP_BYTES * 8)) - 1, name="timestamp")
-            self._counter = (self._counter + 1) & _MAX_COUNTER
-            counter = self._counter
-            payload = (
-                timestamp.to_bytes(_TIMESTAMP_BYTES, byteorder="big")
-                + self._process_value
-                + counter.to_bytes(_COUNTER_BYTES, byteorder="big")
-            )
-        return payload.hex()
-
-
-_default_generator: LazySingleton[ObjectIdGenerator] = LazySingleton(ObjectIdGenerator)
-
-
-def get_default_generator() -> ObjectIdGenerator:
-    r"""Get or create the default, process-wide generator backing
-    ``generate_object_id``.
-
-    Returns a singleton ``ObjectIdGenerator`` instance shared by every
-    call to ``generate_object_id``. Uses the same lazy,
-    ``LazySingleton`` pattern, so concurrent first calls
-    build a single generator.
-
-    Returns:
-        The shared, process-wide ``ObjectIdGenerator`` instance.
-    """
-    return _default_generator.get()
-
-
-def generate_object_id(timestamp: int | None = None) -> str:
+def generate_object_id(*, timestamp_s: int | None = None) -> str:
     r"""Generate a MongoDB ObjectId style 12-byte identifier.
 
-    Convenience wrapper around a shared, process-wide
-    ``ObjectIdGenerator`` instance. Use ``ObjectIdGenerator`` directly
-    if you need multiple independent generators (e.g. one per test) or
-    want to avoid sharing state through a module-level singleton.
+    An ObjectId packs a 32-bit timestamp in seconds followed by 64 random
+    bits into a 24-character lowercase hex string. Because the
+    timestamp is the most significant part, ObjectIds generated later
+    sort (as plain strings) after ObjectIds generated earlier.
+
+    Note:
+        When the current time is used (``timestamp_s=None``), ObjectIds
+        are strictly increasing within a process: ObjectIds generated
+        in the same second (or after the clock moved backward) keep the
+        timestamp and increment the random part by one. The state is
+        per process, protected by a lock, and reset in the child
+        process of a fork. Across processes, ObjectIds generated in the
+        same second are not ordered. When ``timestamp_s`` is given, the
+        random part is always random and the state is not touched: two
+        ObjectIds with the same timestamp are not ordered.
 
     Args:
-        timestamp: The Unix timestamp in seconds to encode. If
+        timestamp_s: The Unix timestamp in seconds to encode. If
             ``None`` (default), the current time is used. Exposed
-            mainly for deterministic testing.
+            mainly for deterministic testing and for backfilling.
 
     Returns:
         A 24-character lowercase hex string.
 
     Raises:
-        TypeError: If ``timestamp`` is not an ``int`` (a ``bool`` is
+        TypeError: If ``timestamp_s`` is not an ``int`` (a ``bool`` is
             rejected).
-        ValueError: If ``timestamp`` does not fit in 32 bits (i.e. is
+        ValueError: If ``timestamp_s`` does not fit in 32 bits (i.e. is
             negative or exceeds ``2**32 - 1``).
 
     Example:
@@ -191,21 +70,28 @@ def generate_object_id(timestamp: int | None = None) -> str:
 
         ```
     """
-    return get_default_generator().generate(timestamp=timestamp)
+    if timestamp_s is None:
+        timestamp_s, randomness = _SEQUENCE.next()
+        if timestamp_s > _MAX_TIMESTAMP_S:  # the tick of the sequence is never negative
+            validate_closed_range(timestamp_s, 0, _MAX_TIMESTAMP_S, name="timestamp_s")
+    else:
+        validate_int(timestamp_s, name="timestamp_s")
+        validate_closed_range(timestamp_s, 0, _MAX_TIMESTAMP_S, name="timestamp_s")
+        randomness = secrets.randbits(_RANDOM_BITS)
+    return f"{(timestamp_s << _RANDOM_BITS) | randomness:0{_LENGTH}x}"
 
 
 def extract_object_id_timestamp_s(object_id: str) -> int:
     r"""Extract the Unix timestamp encoded in an ObjectId-style
     identifier.
 
-    Inverse of the encoding done by ``ObjectIdGenerator.generate``
-    (and ``generate_object_id``): decodes the leading 4 bytes of the
-    24-character hex string back to the Unix timestamp (in seconds)
-    it was created from.
+    Inverse of the encoding done by ``generate_object_id``: decodes the
+    leading 4 bytes of the 24-character hex string back to the Unix
+    timestamp (in seconds) it was created from.
 
     Args:
         object_id: The identifier string previously returned by
-            ``ObjectIdGenerator.generate`` or ``generate_object_id``.
+            ``generate_object_id``.
 
     Returns:
         The Unix timestamp, in seconds, that was encoded in
@@ -219,14 +105,13 @@ def extract_object_id_timestamp_s(object_id: str) -> int:
     Example:
         ```pycon
         >>> from coola.identifier import extract_object_id_timestamp_s, generate_object_id
-        >>> object_id = generate_object_id()
-        >>> isinstance(extract_object_id_timestamp_s(object_id), int)
-        True
+        >>> extract_object_id_timestamp_s(generate_object_id(timestamp_s=1704067200))
+        1704067200
 
         ```
     """
     validate_str(object_id, name="object_id")
     if _OBJECT_ID_PATTERN.fullmatch(object_id) is None:
-        msg = f"object_id must be a 24-character lowercase hex string, got {object_id!r}"
+        msg = f"object_id must be a {_LENGTH}-character lowercase hex string, got {object_id!r}"
         raise ValueError(msg)
-    return int(object_id[: 2 * _TIMESTAMP_BYTES], 16)
+    return int(object_id[: _TIMESTAMP_BITS // 4], 16)

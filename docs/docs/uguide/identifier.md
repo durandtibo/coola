@@ -261,11 +261,12 @@ True
 ### `generate_object_id`
 
 `generate_object_id` generates a MongoDB `ObjectId` style 24-character hex string: a 4-byte
-timestamp, a 5-byte per-process value, and a 3-byte counter. Like `SnowflakeIdGenerator`, later IDs
-sort after earlier ones, but the counter silently wraps instead of raising or blocking when
-exhausted within a second, and no `worker_id` needs to be configured. After a fork, the child
-process gets its own random per-process value and counter, so the parent and its children do not
-produce the same identifiers:
+timestamp in seconds followed by 64 random bits. Like ULIDs, ObjectIds generated with the current
+time are **strictly increasing within a process** (an ObjectId minted in the same second, or after
+the clock moved backward, keeps the timestamp and increments the random part), and the generator
+never blocks or raises. After a fork, the child process continues from a fresh random part, so the
+parent and its children do not produce the same identifiers. Pass `timestamp_s` (keyword-only) for a
+deterministic test or a backfill; its random part is random and the state is not touched:
 
 ```pycon
 >>> from coola.identifier import generate_object_id
@@ -275,7 +276,7 @@ produce the same identifiers:
 ```
 
 `extract_object_id_timestamp_s` recovers the (second-resolution) Unix timestamp encoded in an
-identifier previously returned by `generate_object_id` or `ObjectIdGenerator.generate`:
+identifier previously returned by `generate_object_id`:
 
 ```pycon
 >>> from coola.identifier import extract_object_id_timestamp_s, generate_object_id
@@ -319,7 +320,7 @@ True
 | Identifier, not a secret       | An identifier is not an access token. The time-ordered ones are guessable (the next value is the previous one plus one) and the content-derived ones are reproducible. Authorize every access explicitly. |
 | Stable IDs are content-derived | `generate_stable_uuid5` and `generate_stable_content_id` give the same ID for equal data, regardless of the mapping insertion order.                                                |
 | Collision resistance           | `generate_stable_uuid5` is bounded by the 122 random bits of a UUID (birthday bound 2^61), whatever the hash. `generate_stable_content_id` keeps the strength of the underlying hash. |
-| Time-ordered IDs sort          | ULID, UUIDv7 and Snowflake IDs sort in creation order. They are monotonic within a process when the current time is used. `generate_object_id` sorts by second only.               |
+| Time-ordered IDs sort          | ULID, UUIDv7, ObjectId and Snowflake IDs sort in creation order. They are strictly increasing within a process when the current time is used (the timestamp may run ahead of the clock after a burst or a backward step). |
 | Not ordered across processes   | Two processes that mint an ID in the same tick (a millisecond, a second for ObjectId) do not give ordered IDs.                                                                      |
 | Snowflake uniqueness           | It holds for the calls that share a generator. Give each concurrent generator, including each fork, its own `worker_id`.                                                            |
 | Thread-safe                    | Every generator can be called from several threads without a lock of the caller.                                                                                                    |

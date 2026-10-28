@@ -15,18 +15,19 @@ __all__ = ["extract_ulid_timestamp_ms", "generate_ulid"]
 import os
 
 from coola.identifier import crockford
-from coola.identifier.monotonic import MonotonicRandom
+from coola.identifier.sequence import TickSequence
 from coola.validation import validate_closed_range, validate_int, validate_str
 
 _TIMESTAMP_BITS = 48
+_MAX_TIMESTAMP_MS = (1 << _TIMESTAMP_BITS) - 1
 _RANDOM_BITS = 80
 _LENGTH = 26
 
 # State of the ULIDs generated with the current time: they increase within a millisecond.
-_MONOTONIC = MonotonicRandom(bits=_RANDOM_BITS)
+_SEQUENCE = TickSequence(bits=_RANDOM_BITS)
 
 
-def generate_ulid(timestamp_ms: int | None = None) -> str:
+def generate_ulid(*, timestamp_ms: int | None = None) -> str:
     r"""Generate a ULID (Universally Unique Lexicographically Sortable
     Identifier).
 
@@ -74,11 +75,13 @@ def generate_ulid(timestamp_ms: int | None = None) -> str:
         ```
     """
     if timestamp_ms is None:
-        timestamp_ms, randomness = _MONOTONIC.next()
+        timestamp_ms, randomness = _SEQUENCE.next()
+        if timestamp_ms > _MAX_TIMESTAMP_MS:  # the tick of the sequence is never negative
+            validate_closed_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
     else:
         validate_int(timestamp_ms, name="timestamp_ms")
+        validate_closed_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
         randomness = int.from_bytes(os.urandom(10), byteorder="big")
-    validate_closed_range(timestamp_ms, 0, (1 << _TIMESTAMP_BITS) - 1, name="timestamp_ms")
     return crockford.encode((timestamp_ms << _RANDOM_BITS) | randomness, length=_LENGTH)
 
 

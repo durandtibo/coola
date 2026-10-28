@@ -18,20 +18,21 @@ import os
 import re
 import uuid
 
-from coola.identifier.monotonic import MonotonicRandom
+from coola.identifier.sequence import TickSequence
 from coola.validation import validate_closed_range, validate_int, validate_str
 
 _TIMESTAMP_BITS = 48
+_MAX_TIMESTAMP_MS = (1 << _TIMESTAMP_BITS) - 1
 _UUID7_PATTERN = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 )
 
 # State of the UUIDv7 generated with the current time: they increase within a millisecond.
 # A UUIDv7 has 74 random bits (12 + 62), the others are the version and the variant.
-_MONOTONIC = MonotonicRandom(bits=74)
+_SEQUENCE = TickSequence(bits=74)
 
 
-def generate_uuid7(timestamp_ms: int | None = None) -> str:
+def generate_uuid7(*, timestamp_ms: int | None = None) -> str:
     r"""Generate a UUIDv7 (RFC 9562) identifier.
 
     A UUIDv7 packs a 48-bit millisecond timestamp, followed by the
@@ -82,15 +83,16 @@ def generate_uuid7(timestamp_ms: int | None = None) -> str:
         ```
     """
     if timestamp_ms is None:
-        timestamp_ms, rand_bits = _MONOTONIC.next()
-        validate_closed_range(timestamp_ms, 0, (1 << _TIMESTAMP_BITS) - 1, name="timestamp_ms")
+        timestamp_ms, rand_bits = _SEQUENCE.next()
+        if timestamp_ms > _MAX_TIMESTAMP_MS:  # the tick of the sequence is never negative
+            validate_closed_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
         # Spread the 74 monotonic random bits around the version and variant bits:
         # 12 bits (rand_a) before the variant, and 62 bits (rand_b) after.
         rand_a, rand_b = rand_bits >> 62, rand_bits & ((1 << 62) - 1)
         value = (timestamp_ms << 80) | (rand_a << 64) | rand_b
     else:
         validate_int(timestamp_ms, name="timestamp_ms")
-        validate_closed_range(timestamp_ms, 0, (1 << _TIMESTAMP_BITS) - 1, name="timestamp_ms")
+        validate_closed_range(timestamp_ms, 0, _MAX_TIMESTAMP_MS, name="timestamp_ms")
         # 48-bit timestamp, followed by 80 bits of randomness that the
         # version/variant bits below are then stamped onto.
         value = (timestamp_ms << 80) | int.from_bytes(os.urandom(10), byteorder="big")
