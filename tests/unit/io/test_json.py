@@ -266,3 +266,28 @@ def test_json_loader_without_encoding_cannot_read_latin1(tmp_path: Path) -> None
     save_json({"key": "\u00e9t\u00e9"}, path, encoding="latin-1", ensure_ascii=False)
     with pytest.raises(UnicodeDecodeError):
         load_json(path)
+
+
+###########################################
+#     Tests for the str paths of json     #
+###########################################
+
+
+@pytest.fixture
+def str_path(tmp_path: Path) -> str:
+    return str(tmp_path.joinpath("out", "data.bin"))
+
+
+def test_save_json_str_path(str_path: str) -> None:
+    save_json({"a": 1}, str_path)
+    assert load_json(str_path) == {"a": 1}
+
+
+def test_json_loader_str_path(str_path: str) -> None:
+    JsonSaver().save([1, 2], str_path)
+    assert JsonLoader().load(str_path) == [1, 2]
+
+
+def test_json_loader_str_path_with_encoding(str_path: str) -> None:
+    JsonSaver(encoding="utf-8").save(["é"], str_path)
+    assert JsonLoader(encoding="utf-8").load(str_path) == ["é"]

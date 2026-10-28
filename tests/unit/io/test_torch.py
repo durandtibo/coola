@@ -299,3 +299,25 @@ def test_load_torch_weights_only_default_weights_only_false(tmp_path: Path) -> N
     path = tmp_path.joinpath("obj.pt")
     torch.save(PurePosixPath("a"), path)
     assert load_torch(path, weights_only=False) == PurePosixPath("a")
+
+
+############################################
+#     Tests for the str paths of torch     #
+############################################
+
+
+@pytest.fixture
+def str_path(tmp_path: Path) -> str:
+    return str(tmp_path.joinpath("out", "data.bin"))
+
+
+@torch_available
+def test_save_torch_str_path(str_path: str) -> None:
+    save_torch({"a": 1}, str_path)
+    assert load_torch(str_path, weights_only=True) == {"a": 1}
+
+
+@torch_available
+def test_torch_loader_str_path(str_path: str) -> None:
+    TorchSaver().save([1, 2], str_path)
+    assert TorchLoader().load(str_path) == [1, 2]
