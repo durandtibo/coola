@@ -98,3 +98,35 @@ class BaseChildFinder(ABC, Generic[T]):
 
             ```
         """
+
+    def find_items(self, data: T) -> Iterable[tuple[Any, Any]] | None:
+        r"""Find the labelled children of the data.
+
+        The label of a child is what ``dfs_items`` puts in the path of
+        the leaves below it. The default implementation numbers the
+        children returned by ``find_children`` (``enumerate``), so a
+        child finder that only implements ``find_children`` works with
+        ``dfs_items`` and gets integer labels. Override it to give the
+        raw key, index or name of each child.
+
+        Args:
+            data: The data whose children should be found.
+
+        Returns:
+            ``None`` if ``data`` is a leaf, otherwise the pairs
+                ``(label, child)`` in the order they are visited.
+
+        Example:
+            ```pycon
+            >>> from coola.iterator import DefaultChildFinder, MappingChildFinder
+            >>> print(DefaultChildFinder().find_items(42))
+            None
+            >>> list(MappingChildFinder().find_items({"a": 1, "b": 2}))
+            [('a', 1), ('b', 2)]
+
+            ```
+        """
+        children = self.find_children(data)
+        if children is None:
+            return None
+        return enumerate(children)

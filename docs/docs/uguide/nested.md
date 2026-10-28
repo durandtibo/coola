@@ -11,10 +11,11 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 The `coola.nested` package provides utilities for working with nested data structures. It offers:
 
 1. **Data conversion functions** - Convert between list-of-dicts and dict-of-lists formats
-2. **Mapping utilities** - Flatten nested dictionaries, extract values, filter keys, rename keys,
-   merge mappings and flatten a mapping of mappings
-3. **JSON conversion** - Convert a nested structure to JSON-compatible data
-4. **Clean and simple API** - Easy-to-use functions for common data transformation tasks
+2. **Flat dictionaries** - Flatten a nested structure to dot-separated keys and rebuild it
+3. **Mapping utilities** - Extract values, filter keys, rename keys, merge mappings and flatten a
+   mapping of mappings
+4. **JSON conversion** - Convert a nested structure to JSON-compatible data
+5. **Frame flattening** - Flatten the struct and list columns of a polars `DataFrame`
 
 This is particularly useful when working with tabular data, configuration files, or any nested data
 structures that need to be transformed or manipulated.
@@ -89,33 +90,7 @@ These conversion functions are inverse operations of each other:
 
 ```
 
-## Mapping Utilities
-
-### Getting the First Value
-
-Use `get_first_value()` to extract the first value from a mapping:
-
-```pycon
->>> from coola.nested import get_first_value
->>> data = {"first": 10, "second": 20, "third": 30}
->>> get_first_value(data)
-10
-
-```
-
-This is useful when you need to extract a representative value from a dictionary, or when you know
-the mapping should have at least one value but don't know the key.
-
-**Note:** If the mapping is empty, this function raises a `ValueError`.
-
-```pycon
->>> from coola.nested import get_first_value
->>> get_first_value({})
-Traceback (most recent call last):
-    ...
-ValueError: First value cannot be returned because the mapping is empty
-
-```
+## Flat Dictionaries
 
 ### Flattening Nested Dictionaries
 
@@ -146,7 +121,7 @@ This is particularly useful for:
 - Creating command-line arguments from nested configurations
 - Storing nested data in flat storage systems
 
-#### Customizing the Separator
+### Customizing the Separator
 
 You can change the separator used to join keys:
 
@@ -158,7 +133,7 @@ You can change the separator used to join keys:
 
 ```
 
-#### Handling Lists and Tuples
+### Handling Lists and Tuples
 
 The function also handles lists and tuples by using numeric indices:
 
@@ -173,7 +148,7 @@ The function also handles lists and tuples by using numeric indices:
 
 ```
 
-#### Mixed Nested Structures
+### Mixed Nested Structures
 
 The function works with any combination of dicts, lists, and tuples:
 
@@ -192,7 +167,23 @@ The function works with any combination of dicts, lists, and tuples:
 
 `str`, `bytes` and `bytearray` values are leaves: they are never split into characters or bytes.
 
-#### Restoring Lists
+`to_flat_dict()` enters the containers of `coola.iterator` (mappings, sequences, `deque`, named
+tuples, dataclasses). Text, bytes, iterators, `range` and the unknown types are leaves. The sets are
+leaves too, because a set has no index. A dataclass is entered field by field:
+
+```pycon
+>>> from dataclasses import dataclass
+>>> from coola.nested import to_flat_dict
+>>> @dataclass
+... class Point:
+...     x: int
+...     y: int
+>>> to_flat_dict({"p": Point(1, 2), "tags": {"a"}})
+{'p.x': 1, 'p.y': 2, 'tags': {'a'}}
+
+```
+
+### Restoring Lists
 
 `from_flat_dict()` keeps the integer segments as dictionary keys by default, so a list does not come
 back as a list. Use `restore_lists=True` to rebuild the lists. A dictionary whose keys are exactly
@@ -208,7 +199,7 @@ back as a list. Use `restore_lists=True` to rebuild the lists. A dictionary whos
 
 ```
 
-#### Converting Types to Strings
+### Converting Types to Strings
 
 Use the `to_str` parameter to specify types that should be converted to strings instead of being
 flattened:
@@ -225,6 +216,34 @@ flattened:
 ```
 
 This is useful when you want to preserve certain data types as strings in the flattened output.
+
+## Mapping Utilities
+
+### Getting the First Value
+
+Use `get_first_value()` to extract the first value from a mapping:
+
+```pycon
+>>> from coola.nested import get_first_value
+>>> data = {"first": 10, "second": 20, "third": 30}
+>>> get_first_value(data)
+10
+
+```
+
+This is useful when you need to extract a representative value from a dictionary, or when you know
+the mapping should have at least one value but don't know the key.
+
+**Note:** If the mapping is empty, this function raises a `ValueError`.
+
+```pycon
+>>> from coola.nested import get_first_value
+>>> get_first_value({})
+Traceback (most recent call last):
+    ...
+ValueError: First value cannot be returned because the mapping is empty
+
+```
 
 ### Filtering Keys by Prefix
 
@@ -384,6 +403,21 @@ are comparable, so the output is deterministic, otherwise it keeps the iteration
 
 ```
 
+## Flattening a polars DataFrame
+
+Use `flatten_frame()` to unnest the struct columns of a polars `DataFrame` (and, with
+`expand_lists=True`, to expand the list columns into one column per index). The new columns are named
+`<parent><separator><field>`. It requires `polars`, which is imported on first use:
+
+```pycon
+>>> import polars as pl
+>>> from coola.nested.polars import flatten_frame
+>>> frame = pl.DataFrame({"id": [1, 2], "coords": [{"x": 10, "y": 20}, {"x": 30, "y": 40}]})
+>>> flatten_frame(frame).columns
+['id', 'coords.x', 'coords.y']
+
+```
+
 ## Common Use Cases
 
 ### Working with API Responses
@@ -468,23 +502,43 @@ Processing ID 3 with value 30
 
 ```
 
-## Design Principles
-
-The `coola.nested` package follows these design principles:
-
-1. **Simple and focused**: Each function does one thing well
-2. **Type-agnostic**: Works with generic Python types (dict, list, tuple)
-3. **Non-destructive**: All functions return new data structures; original data is unchanged
-4. **Predictable**: Consistent behavior across different data structures
-
 ## Properties
 
-| Property         | Statement                                                                                                |
-| ---------------- | -------------------------------------------------------------------------------------------------------- |
-| Non-destructive  | The functions return new data structures. The input is not modified.                                     |
-| Type-agnostic    | They work with the generic Python types (`dict`, `list`, `tuple`), not with a specific library.          |
-| Predictable      | The same operation behaves the same way on every supported structure.                                    |
-| Explicit failure | An operation without a defined result raises, e.g. `ValueError` for the first value of an empty mapping. |
+The functions fall into five groups: `flat` (`to_flat_dict`, `from_flat_dict`, `flatten_frame`),
+`keys` (`remove_keys_if`, `remove_keys_containing`, `remove_keys_starting_with`,
+`add_prefix_suffix_to_keys`), `mappings` (`merge_mappings`, `flatten_mapping`, `DuplicateKeyError`),
+`records` (`convert_to_dict_of_lists`, `convert_to_list_of_dicts`) and `json`
+(`convert_to_jsonable`). The table says which group each property covers. A statement marked
+"(from step N)" is the target of the [`coola.nested` design](https://github.com/durandtibo/coola/blob/main/review/nested.md)
+and is true when that step lands.
+
+| Property                | Statement                                                                                                                                                                                                                                        | Groups                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------- |
+| Pure                    | The input is never modified. A function that rebuilds containers returns new ones (the leaves and the values are shared, never copied). No function keeps state between calls.                                                                   | all                    |
+| One notion of container | A function that looks inside the values enters the containers of the other packages (sequences, mappings, sets, dataclasses) and treats text, bytes, iterators and unknown types as leaves. `to_flat_dict` does not enter sets (from steps 3, 6). | `flat`, `keys`, `json` |
+| Structure-preserving    | A function that rebuilds a structure keeps the type of every container, the top one included, and the order of the entries (from step 3).                                                                                                        | `keys`, `json`         |
+| Any depth               | No `RecursionError`, whatever the nesting (from steps 3 to 6).                                                                                                                                                                                   | `flat`, `keys`, `json` |
+| Cycle-safe              | A container that contains itself raises `ValueError`, never `RecursionError` (from steps 3 to 6).                                                                                                                                                | `flat`, `keys`, `json` |
+| Keys are labels         | Only the `flat` and `keys` functions read or change keys. `add_prefix_suffix_to_keys` renames the `str` keys and keeps the others; `to_flat_dict` writes every key with `str()`.                                                                 | `flat`, `keys`         |
+| No silent loss          | Two entries are never merged into one without a decision of the caller: a key collision raises (`DuplicateKeyError` or `ValueError`). A wrong input type raises `TypeError` naming the type (from step 3).                                       | all                    |
+| Deterministic           | The same input gives the same output in every process: the entries keep the order of the input; a set becomes a sorted list (from steps 5, 7).                                                                                                   | all                    |
+| Documented round trips  | `from_flat_dict(to_flat_dict(x)) == x` for `dict`/`str` keys that do not contain the separator (or with `escape=True`); with `restore_lists=True`, also for lists. `convert_to_list_of_dicts(convert_to_dict_of_lists(r)) == r` for non-empty records. | `flat`, `records`      |
+| Explicit options        | Options are keyword-only. An invalid option raises `ValueError` before any work is done (from step 2).                                                                                                                                           | all                    |
+| Lazy                    | `import coola.nested` imports no optional library (polars is loaded by the first use of `flatten_frame`).                                                                                                                                        | all                    |
+| Thread-safe             | The state of a call is local to the call. There is no module-level mutable state.                                                                                                                                                                | all                    |
+| Fast                    | The cost is linear in the number of nodes.                                                                                                                                                                                                       | all                    |
+
+Not guaranteed:
+
+- **Shared references.** A container reachable by several paths is visited once per path, so
+  `to_flat_dict` of `[x, x]` has the entries of `x` twice.
+- **Dataclasses do not come back.** `from_flat_dict` gives dictionaries: the round trip is for dicts
+  and lists only.
+- **The type of a list-like.** `to_flat_dict` gives the same entries for a list and a tuple, so
+  `from_flat_dict(..., restore_lists=True)` returns lists.
+- **Non-`str` keys of `to_flat_dict`.** They are written with `str()` and cannot be restored.
+- **Strict JSON.** `convert_to_jsonable` follows the Python `json` module: `NaN` is kept, the keys are
+  not converted, tuples stay tuples.
 
 ## See Also
 
