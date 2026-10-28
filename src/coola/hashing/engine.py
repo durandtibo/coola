@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any
 from coola.hashing.base import PERSON, Node, digest, tagged
 from coola.registry import TypeNotRegisteredError
 from coola.utils.introspection import get_qualified_class_name
+from coola.validation import validate_int, validate_range
 
 if TYPE_CHECKING:
     from coola.hashing.base import Hasher
@@ -47,7 +48,9 @@ def validate_hash_length(length: int) -> None:
         length: The length of the hex digest to validate.
 
     Raises:
-        ValueError: If ``length`` is not an even ``int`` between 2 and
+        TypeError: If ``length`` is not an ``int`` (``bool`` is
+            rejected too).
+        ValueError: If ``length`` is not an even number between 2 and
             128.
 
     Example:
@@ -57,10 +60,13 @@ def validate_hash_length(length: int) -> None:
 
         ```
     """
-    # The first test is the fast path; a ``bool`` is an ``int`` but is not a valid length.
-    is_int = type(length) is int or (isinstance(length, int) and not isinstance(length, bool))
-    if not is_int or length % 2 or not 2 <= length <= 128:
-        msg = f"length must be an even number between 2 and 128, got {length!r}."
+    # The first test is the fast path (hot path of ``hash_object``); the validators give the error.
+    if type(length) is int and length % 2 == 0 and 2 <= length <= 128:
+        return
+    validate_int(length, name="length")
+    validate_range(length, 2, 128, name="length")
+    if length % 2:
+        msg = f"length must be an even number, got {length!r}"
         raise ValueError(msg)
 
 

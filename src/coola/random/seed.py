@@ -4,6 +4,8 @@ from __future__ import annotations
 
 __all__ = ["validate_seed"]
 
+from coola.validation import validate_int, validate_range
+
 MAX_SEED = 2**63
 
 
@@ -28,9 +30,5 @@ def validate_seed(seed: int) -> None:
 
         ```
     """
-    if not isinstance(seed, int) or isinstance(seed, bool):
-        msg = f"seed must be an int, got {type(seed)}"
-        raise TypeError(msg)
-    if not 0 <= seed < MAX_SEED:
-        msg = f"seed must be in the range [0, 2**63), got {seed}"
-        raise ValueError(msg)
+    validate_int(seed, name="seed")
+    validate_range(seed, 0, MAX_SEED, high_inclusive=False, name="seed")
