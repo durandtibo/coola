@@ -8,17 +8,27 @@ import copy
 from typing import TYPE_CHECKING, Any
 
 import pytest
-from hypothesis import assume, given, strategies as st
+from hypothesis import assume, given, settings, strategies as st
 
 from coola.equality import objects_are_equal
 from coola.nested import (
     DuplicateKeyError,
+    add_prefix_suffix_to_keys,
+    convert_to_jsonable,
     flatten_mapping,
     from_flat_dict,
     merge_mappings,
+    remove_keys_if,
     to_flat_dict,
 )
-from tests.properties.strategies import flat_leaves, int_mappings, keys, nested_dicts
+from tests.properties.strategies import (
+    flat_leaves,
+    int_mappings,
+    keys,
+    nested_dicts,
+    rebuild,
+    values,
+)
 
 if TYPE_CHECKING:
     import random
@@ -264,8 +274,14 @@ def test_merge_suffix_loses_no_value(first: dict[str, int], second: dict[str, in
 def test_merge_is_associative_for_the_keys(
     on_duplicate: str, first: dict[str, int], second: dict[str, int], third: dict[str, int]
 ) -> None:
-    left = merge_mappings([merge_mappings([first, second], on_duplicate), third], on_duplicate)
-    right = merge_mappings([first, merge_mappings([second, third], on_duplicate)], on_duplicate)
+    left = merge_mappings(
+        [merge_mappings([first, second], on_duplicate=on_duplicate), third],
+        on_duplicate=on_duplicate,
+    )
+    right = merge_mappings(
+        [first, merge_mappings([second, third], on_duplicate=on_duplicate)],
+        on_duplicate=on_duplicate,
+    )
     assert left == right
 
 
@@ -333,3 +349,72 @@ def test_flatten_raise_flattens_if_no_inner_key_has_two_values(
     assume(all(len(found) == 1 for found in seen.values()))
     flat = flatten_mapping(mapping, on_duplicate="raise")
     assert objects_are_equal(flat, {key: next(iter(found)) for key, found in seen.items()})
+
+
+#######################################
+#     Cycles, depth, types, purity    #
+#######################################
+
+
+def make_cycle(value: Any) -> dict[str, Any]:
+    r"""Create a dictionary that contains itself."""
+    data: dict[str, Any] = {"value": value}
+    data["self"] = data
+    return data
+
+
+def nest_dicts(depth: int) -> dict[str, Any]:
+    r"""Create dictionaries nested ``depth`` times."""
+    data: Any = 1
+    for _ in range(depth):
+        data = {"a": data}
+    return data
+
+
+KEY_FUNCTIONS = [
+    lambda data: remove_keys_if(data, lambda key: key == "never"),
+    lambda data: add_prefix_suffix_to_keys(data, "x_", recursive=True),
+    convert_to_jsonable,
+    to_flat_dict,
+]
+
+
+@pytest.mark.parametrize("function", KEY_FUNCTIONS)
+@given(value=values)
+def test_a_container_that_contains_itself_raises_a_value_error(function: Any, value: Any) -> None:
+    with pytest.raises(ValueError, match="Cycle detected"):
+        function(make_cycle(value))
+
+
+@pytest.mark.parametrize("function", KEY_FUNCTIONS)
+@settings(max_examples=5, deadline=None)
+@given(depth=st.integers(min_value=1_000, max_value=5_000))
+def test_the_depth_is_not_limited(function: Any, depth: int) -> None:
+    function(nest_dicts(depth))
+
+
+@given(value=values)
+def test_remove_keys_if_with_a_predicate_that_never_matches_is_the_identity(value: Any) -> None:
+    data = {"root": value}
+    assert objects_are_equal(remove_keys_if(data, lambda key: False), data)  # noqa: ARG005
+
+
+@given(value=values)
+def test_add_prefix_suffix_to_keys_with_no_prefix_and_suffix_is_the_identity(value: Any) -> None:
+    data = {"root": value}
+    assert objects_are_equal(add_prefix_suffix_to_keys(data, recursive=True), data)
+
+
+@pytest.mark.parametrize("function", KEY_FUNCTIONS[:3])
+@given(value=values)
+def test_the_functions_do_not_modify_the_input(function: Any, value: Any) -> None:
+    data = {"root": value}
+    expected = copy.deepcopy(data)
+    function(data)
+    assert objects_are_equal(data, expected)
+
+
+@given(value=values)
+def test_convert_to_jsonable_does_not_depend_on_the_order_of_the_input(value: Any) -> None:
+    data = {"root": value}
+    assert objects_are_equal(convert_to_jsonable(data), convert_to_jsonable(rebuild(data)))
