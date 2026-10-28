@@ -11,11 +11,11 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 
 The package has eleven functions in three families:
 
-| Family     | Functions                                                        | Checks what a value...                    |
-| ---------- | ---------------------------------------------------------------- | ----------------------------------------- |
-| Type       | `validate_isinstance`, `validate_int`, `validate_number`         | **is**                                    |
+| Family     | Functions                                                                                       | Checks what a value...                    |
+| ---------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Type       | `validate_isinstance`, `validate_int`, `validate_number`                                        | **is**                                    |
 | Comparison | `validate_ge`, `validate_gt`, `validate_le`, `validate_lt`, `validate_range`, `validate_finite` | **compares** to (a bound, a range, `inf`) |
-| Container  | `validate_not_empty`, `validate_in`                              | **holds**, or belongs to                  |
+| Container  | `validate_not_empty`, `validate_in`                                                             | **holds**, or belongs to                  |
 
 The [Properties](#properties) section lists the rules that every function follows.
 
@@ -207,15 +207,15 @@ TypeError: lr must be a real number, got str
 The package had 26 functions. The 16 functions that were synonyms of another one are removed, with
 no alias (`validate_range` is new):
 
-| Removed                                                                                        | Replacement                               |
-| ---------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| `validate_bool`, `validate_float`, `validate_str`, `validate_list`, `validate_tuple`, `validate_dict`, `validate_set`, `validate_frozenset` | `validate_isinstance(x, bool)`, `validate_isinstance(x, float)`, ... |
-| `validate_mapping(x)`                                                                          | `validate_isinstance(x, Mapping)`         |
-| `validate_positive(x)`, `validate_non_negative(x)`                                             | `validate_gt(x, 0)`, `validate_ge(x, 0)`  |
-| `validate_negative(x)`, `validate_non_positive(x)`                                             | `validate_lt(x, 0)`, `validate_le(x, 0)`  |
-| `validate_closed_range(x, low, high)`                                                          | `validate_range(x, low, high)`            |
-| `validate_open_range(x, low, high)`                                                            | `validate_range(x, low, high, low_inclusive=False, high_inclusive=False)` |
-| `validate_half_open_range(x, low, high)`                                                       | `validate_range(x, low, high, high_inclusive=False)` |
+| Removed                                                                                                                                     | Replacement                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `validate_bool`, `validate_float`, `validate_str`, `validate_list`, `validate_tuple`, `validate_dict`, `validate_set`, `validate_frozenset` | `validate_isinstance(x, bool)`, `validate_isinstance(x, float)`, ...      |
+| `validate_mapping(x)`                                                                                                                       | `validate_isinstance(x, Mapping)`                                         |
+| `validate_positive(x)`, `validate_non_negative(x)`                                                                                          | `validate_gt(x, 0)`, `validate_ge(x, 0)`                                  |
+| `validate_negative(x)`, `validate_non_positive(x)`                                                                                          | `validate_lt(x, 0)`, `validate_le(x, 0)`                                  |
+| `validate_closed_range(x, low, high)`                                                                                                       | `validate_range(x, low, high)`                                            |
+| `validate_open_range(x, low, high)`                                                                                                         | `validate_range(x, low, high, low_inclusive=False, high_inclusive=False)` |
+| `validate_half_open_range(x, low, high)`                                                                                                    | `validate_range(x, low, high, high_inclusive=False)`                      |
 
 ## See Also
 
