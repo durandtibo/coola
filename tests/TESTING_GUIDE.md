@@ -400,6 +400,11 @@ def test_function(data: object, expected: object) -> None:
     assert process(data) == expected
 ```
 
+`tests/helpers.py` holds the samples of the native types shared by the tests of the default
+registries: `LEAF_SAMPLES` (no children, hashable) and `CONTAINER_SAMPLES` (children). Spread them
+in a package's own list (`SAMPLES = [*LEAF_SAMPLES, *CONTAINER_SAMPLES, pytest.param(...)]`) and add
+the samples that only that package needs.
+
 ## Markers
 
 ### Parametrize Marker
