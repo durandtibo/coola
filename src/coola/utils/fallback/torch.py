@@ -8,14 +8,13 @@ __all__ = ["cuda", "nn", "torch"]
 from typing import TYPE_CHECKING, Never
 
 from coola.utils.fallback.factory import make_fake_class, make_fake_function, make_fake_module
-from coola.utils.imports import raise_torch_missing_error
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from types import ModuleType
 
-FakeClass: type = make_fake_class(raise_torch_missing_error)
-fake_function: Callable[..., Never] = make_fake_function(raise_torch_missing_error)
+FakeClass: type = make_fake_class("torch")
+fake_function: Callable[..., Never] = make_fake_function("torch")
 
 cuda: ModuleType = make_fake_module(
     "torch.cuda", is_available=fake_function, synchronize=fake_function

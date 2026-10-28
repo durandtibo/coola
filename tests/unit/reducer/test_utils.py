@@ -23,7 +23,7 @@ def _auto_reducer_with_numpy() -> tuple[Any, Mock]:
     import_object = Mock()
     with (
         patch("coola.reducer.utils.is_numpy_available", lambda: True),
-        patch("coola.reducer.utils.import_object", import_object),
+        patch("coola.reducer.utils.pkgutil.resolve_name", import_object),
     ):
         reducer = auto_reducer()
     return reducer, import_object

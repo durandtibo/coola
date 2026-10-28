@@ -18,9 +18,9 @@ from coola.utils.imports import (
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-from coola.utils.imports.universal import _CACHED_FUNCTIONS
+from coola.utils.imports.package import _CACHED_FUNCTIONS
 
-MODULE = "coola.utils.imports.universal"
+MODULE = "coola.utils.imports.package"
 logger = logging.getLogger(__name__)
 
 

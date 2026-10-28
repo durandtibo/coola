@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from functools import partial
 from unittest.mock import patch
 
 import pytest
@@ -9,7 +8,6 @@ import pytest
 from coola.utils.imports import (
     MissingPackageError,
     check_package,
-    decorator_package_available,
     module_available,
     package_available,
     raise_package_missing_error,
@@ -18,11 +16,7 @@ from coola.utils.imports import (
 logger = logging.getLogger(__name__)
 
 
-MODULE = "coola.utils.imports.universal"
-
-
-def my_function(n: int = 0) -> int:
-    return 42 + n
+MODULE = "coola.utils.imports.package"
 
 
 #######################################
@@ -74,80 +68,59 @@ def test_module_available_false_submodule() -> None:
 
 
 def test_check_package_exist() -> None:
-    with patch(f"{MODULE}.package_available", lambda name: name != "missing"):
-        check_package("exist")
+    check_package("os")
 
 
 def test_check_package_missing() -> None:
-    with (
-        patch(f"{MODULE}.package_available", lambda name: name != "missing"),
-        pytest.raises(
-            MissingPackageError, match=r"'missing' package is required but not installed."
-        ),
+    with pytest.raises(
+        MissingPackageError, match=r"'missing_package' package is required but not installed."
     ):
-        check_package("missing")
+        check_package("missing_package")
 
 
-def test_check_package_missing_with_command() -> None:
+def test_check_package_missing_message() -> None:
     msg = (
-        "'missing' package is required but not installed. "
-        "You can install 'missing' package with the command:\n\npip install missing"
+        "'missing_package' package is required but not installed. "
+        "You can install 'missing_package' package with the command:\n\n"
+        "pip install missing_package\n\nor\n\n"
+        "uv pip install missing_package\n"
     )
+    with pytest.raises(MissingPackageError) as info:
+        check_package("missing_package")
+    assert str(info.value) == msg
+
+
+def test_check_package_missing_message_with_install() -> None:
+    msg = (
+        "'missing_package' package is required but not installed. "
+        "You can install 'missing_package' package with the command:\n\n"
+        "pip install my-package\n\nor\n\n"
+        "uv pip install my-package\n"
+    )
+    with pytest.raises(MissingPackageError) as info:
+        check_package("missing_package", install="my-package")
+    assert str(info.value) == msg
+
+
+def test_check_package_message_is_the_one_of_raise_package_missing_error() -> None:
+    with pytest.raises(MissingPackageError) as check_info:
+        check_package("missing_package")
+    with pytest.raises(MissingPackageError) as raise_info:
+        raise_package_missing_error("missing_package")
+    assert str(check_info.value) == str(raise_info.value)
+
+
+def test_check_package_install_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional argument"):
+        check_package("os", "pip install os")  # type: ignore[misc]
+
+
+def test_check_package_imports_the_package() -> None:
     with (
-        patch(f"{MODULE}.package_available", lambda name: name != "missing"),
-        pytest.raises(RuntimeError, match=msg),
+        patch(f"{MODULE}.importlib.import_module", side_effect=OSError("broken")),
+        pytest.raises(MissingPackageError, match="'broken_package' package is required"),
     ):
-        check_package("missing", command="pip install missing")
-
-
-#################################################
-#     Tests for decorator_package_available     #
-#################################################
-
-
-def test_decorator_package_available_condition_true() -> None:
-    fn = decorator_package_available(my_function, condition=lambda: True)
-    assert fn() == 42
-
-
-def test_decorator_package_available_condition_true_args() -> None:
-    fn = decorator_package_available(my_function, condition=lambda: True)
-    assert fn(2) == 44
-
-
-def test_decorator_package_available_condition_false() -> None:
-    fn = decorator_package_available(my_function, condition=lambda: False)
-    assert fn(2) is None
-
-
-def test_decorator_package_available_decorator_condition_true() -> None:
-    decorator = partial(decorator_package_available, condition=lambda: True)
-
-    @decorator
-    def fn(n: int = 0) -> int:
-        return 42 + n
-
-    assert fn() == 42
-
-
-def test_decorator_package_available_decorator_condition_true_args() -> None:
-    decorator = partial(decorator_package_available, condition=lambda: True)
-
-    @decorator
-    def fn(n: int = 0) -> int:
-        return 42 + n
-
-    assert fn(2) == 44
-
-
-def test_decorator_package_available_decorator_condition_false() -> None:
-    decorator = partial(decorator_package_available, condition=lambda: False)
-
-    @decorator
-    def fn(n: int = 0) -> int:
-        return 42 + n
-
-    assert fn(2) is None
+        check_package("broken_package")
 
 
 #################################################
@@ -159,23 +132,31 @@ def test_raise_package_missing_error_basic() -> None:
     with pytest.raises(
         MissingPackageError, match=r"'mypackage' package is required but not installed."
     ):
-        raise_package_missing_error("mypackage", "mypackage")
+        raise_package_missing_error("mypackage")
 
 
-def test_raise_package_missing_error_different_install_cmd() -> None:
-    with pytest.raises(MissingPackageError, match=r"'git' package is required but not installed."):
-        raise_package_missing_error("git", "gitpython")
+def test_raise_package_missing_error_default_install() -> None:
+    msg = (
+        "'testpkg' package is required but not installed. "
+        "You can install 'testpkg' package with the command:\n\n"
+        "pip install testpkg\n\nor\n\n"
+        "uv pip install testpkg\n"
+    )
+    with pytest.raises(MissingPackageError) as info:
+        raise_package_missing_error("testpkg")
+    assert str(info.value) == msg
 
 
-def test_raise_package_missing_error_message_format() -> None:
+def test_raise_package_missing_error_install() -> None:
     msg = (
         "'testpkg' package is required but not installed. "
         "You can install 'testpkg' package with the command:\n\n"
         "pip install test-package\n\nor\n\n"
         "uv pip install test-package\n"
     )
-    with pytest.raises(RuntimeError, match=msg):
-        raise_package_missing_error("testpkg", "test-package")
+    with pytest.raises(MissingPackageError) as info:
+        raise_package_missing_error("testpkg", install="test-package")
+    assert str(info.value) == msg
 
 
 #########################################
@@ -208,12 +189,12 @@ def test_check_package_missing_error_name() -> None:
 
 def test_raise_package_missing_error_raises_missing_package_error() -> None:
     with pytest.raises(MissingPackageError, match="'my_package' package is required"):
-        raise_package_missing_error("my_package", "my-package")
+        raise_package_missing_error("my_package", install="my-package")
 
 
 def test_raise_package_missing_error_name() -> None:
     with pytest.raises(MissingPackageError) as info:
-        raise_package_missing_error("my_package", "my-package")
+        raise_package_missing_error("my_package", install="my-package")
     assert info.value.name == "my_package"
 
 

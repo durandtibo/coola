@@ -12,7 +12,7 @@ def test_is_torch_numpy_available_does_not_import_torch_if_numpy_is_missing() ->
     code = (
         "import sys; "
         "from unittest.mock import patch; "
-        "import coola.utils.imports.torch_numpy as m; "
+        "import coola.utils.imports.optional as m; "
         "p = patch.object(m, 'is_torch_available', lambda: True); "
         "q = patch.object(m, 'is_numpy_available', lambda: False); "
         "p.start(); q.start(); "

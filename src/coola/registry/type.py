@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["TypeRegistry"]
 
+import pkgutil
 from collections import Counter
 from dataclasses import dataclass
 from types import MappingProxyType
@@ -15,7 +16,6 @@ from coola.registry.exceptions import (
     TypeNotRegisteredError,
 )
 from coola.registry.registry import Registry
-from coola.utils.imports import import_object
 
 if TYPE_CHECKING:
     from collections.abc import Callable, ItemsView, Mapping, Sequence
@@ -41,7 +41,9 @@ class _LazyGroup(Generic[T]):
 
     def load(self) -> Mapping[type, T]:
         r"""Build the entries."""
-        factory = import_object(self.factory) if isinstance(self.factory, str) else self.factory
+        factory = (
+            pkgutil.resolve_name(self.factory) if isinstance(self.factory, str) else self.factory
+        )
         return factory()
 
 

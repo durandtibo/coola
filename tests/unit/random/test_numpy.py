@@ -109,7 +109,7 @@ def test_numpy_random_manager_set_rng_state_different_values() -> None:
 
 def test_numpy_random_manager_no_numpy() -> None:
     with (
-        patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
+        patch("coola.utils.imports.optional.is_numpy_available", lambda: False),
         pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyRandomManager()

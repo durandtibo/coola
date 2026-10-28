@@ -396,7 +396,7 @@ def test_numpy_array_equality_tester_objects_are_equal_true_tolerance(
 
 def test_numpy_array_equality_tester_no_numpy() -> None:
     with (
-        patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
+        patch("coola.utils.imports.optional.is_numpy_available", lambda: False),
         pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyArrayEqualityTester()
@@ -549,7 +549,7 @@ def test_numpy_masked_array_equality_tester_objects_are_equal_nan(
 
 def test_numpy_masked_array_equality_tester_no_numpy() -> None:
     with (
-        patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
+        patch("coola.utils.imports.optional.is_numpy_available", lambda: False),
         pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyMaskedArrayEqualityTester()
@@ -583,7 +583,7 @@ def test_numpy_time_scalar_equality_tester_different_type(config: EqualityConfig
 
 def test_numpy_time_scalar_equality_tester_no_numpy() -> None:
     with (
-        patch("coola.utils.imports.numpy.is_numpy_available", lambda: False),
+        patch("coola.utils.imports.optional.is_numpy_available", lambda: False),
         pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
     ):
         NumpyTimeScalarEqualityTester()

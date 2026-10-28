@@ -16,18 +16,19 @@ __all__ = ["make_fake_class", "make_fake_function", "make_fake_module"]
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Never
 
+from coola.utils.imports import raise_package_missing_error
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def make_fake_class(raise_error: Callable[[], Never]) -> type:
-    r"""Create a fake class whose constructor raises the given "missing
-    dependency" error.
+def make_fake_class(package: str) -> type:
+    r"""Create a fake class whose constructor raises the "missing
+    dependency" error of a package.
 
     Args:
-        raise_error: A no-argument callable that raises the
-            ``MissingPackageError`` for the missing optional dependency, e.g.
-            ``coola.utils.imports.raise_numpy_missing_error``.
+        package: The name of the missing optional dependency, e.g.
+            ``"numpy"``.
 
     Returns:
         A class that can be used as a stand-in for a real backend type
@@ -36,7 +37,7 @@ def make_fake_class(raise_error: Callable[[], Never]) -> type:
     """
 
     def init(self: Any, *args: Any, **kwargs: Any) -> None:  # noqa: ARG001
-        raise_error()
+        raise_package_missing_error(package)
 
     return type(
         "FakeClass",
@@ -50,13 +51,13 @@ def make_fake_class(raise_error: Callable[[], Never]) -> type:
     )
 
 
-def make_fake_function(raise_error: Callable[[], Never]) -> Callable[..., Never]:
-    r"""Create a fake function that raises the given "missing dependency"
-    error when called.
+def make_fake_function(package: str) -> Callable[..., Never]:
+    r"""Create a fake function that raises the "missing dependency" error
+    of a package when called.
 
     Args:
-        raise_error: A no-argument callable that raises the
-            ``MissingPackageError`` for the missing optional dependency.
+        package: The name of the missing optional dependency, e.g.
+            ``"torch"``.
 
     Returns:
         A function that can be used as a stand-in for a real backend
@@ -65,7 +66,7 @@ def make_fake_function(raise_error: Callable[[], Never]) -> Callable[..., Never]
     """
 
     def fake_function(*args: Any, **kwargs: Any) -> Never:  # noqa: ARG001
-        raise_error()
+        raise_package_missing_error(package)
 
     return fake_function
 

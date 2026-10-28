@@ -42,7 +42,7 @@ def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None
             its own ``ModuleNotFoundError``.
 
     Note:
-        ``coola.utils.imports.import_object`` is a different function:
+        ``pkgutil.resolve_name`` is a different function:
         it takes a path with a colon (``"package.module:name"``) and is
         used by the lazy registries. This function takes a dotted path
         (``"package.module.name"``), checks ``allowed_prefixes`` and

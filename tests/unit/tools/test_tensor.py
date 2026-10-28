@@ -177,7 +177,7 @@ def test_to_tensor_numpy_negative_strides() -> None:
     assert out.tolist() == [3, 2, 1]
 
 
-@patch("coola.utils.imports.torch.is_torch_available", lambda: False)
+@patch("coola.utils.imports.optional.is_torch_available", lambda: False)
 def test_to_tensor_no_torch() -> None:
     with pytest.raises(MissingPackageError, match=r"'torch' package is required"):
         to_tensor([1, 2, 3])

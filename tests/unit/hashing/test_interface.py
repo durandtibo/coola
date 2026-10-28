@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pkgutil
 import uuid
 import warnings
 from collections import UserString
@@ -39,7 +40,7 @@ from coola.hashing.interface import _register_default_hashers
 from coola.hashing.pydantic import PydanticModelHasher
 from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError
 from coola.testing.marks import numpy_available, pydantic_available
-from coola.utils.imports import import_object, is_numpy_available, is_pydantic_available
+from coola.utils.imports import is_numpy_available, is_pydantic_available
 from tests.unit.hashing.helpers import Unhashable, leaf_hash
 
 if is_numpy_available():
@@ -772,7 +773,7 @@ def test_get_default_hashers_types_come_from_the_library(
     """Test that the lazy group is loaded for each type that it
     registers."""
     pytest.importorskip(names[0])
-    mapping = import_object(f"{module}:get_default_hashers")()
+    mapping = pkgutil.resolve_name(f"{module}:get_default_hashers")()
     assert {t.__module__.partition(".")[0] for t in mapping} <= set(names)
 
 
@@ -781,14 +782,14 @@ def test_get_default_hashers_returns_entries_if_the_library_is_available(
     module: str, names: tuple[str, ...]
 ) -> None:
     pytest.importorskip(names[0])
-    assert len(import_object(f"{module}:get_default_hashers")()) > 0
+    assert len(pkgutil.resolve_name(f"{module}:get_default_hashers")()) > 0
 
 
 @pytest.mark.parametrize("module", LAZY_MODULE_NAMES)
 def test_get_default_hashers_returns_nothing_if_the_library_is_unavailable(module: str) -> None:
     name = module.rpartition(".")[2]
     with patch(f"{module}.is_{name}_available", lambda: False):
-        assert import_object(f"{module}:get_default_hashers")() == {}
+        assert pkgutil.resolve_name(f"{module}:get_default_hashers")() == {}
 
 
 ##########################################

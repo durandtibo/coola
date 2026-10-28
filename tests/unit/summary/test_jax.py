@@ -28,7 +28,7 @@ SHOW_DATA = SummaryConfig(show_data=True)
 @pytest.mark.parametrize("summarizer_cls", SUMMARIZERS)
 def test_summarizer_missing_package_raises(summarizer_cls: type) -> None:
     with (
-        patch("coola.utils.imports.jax.is_jax_available", lambda: False),
+        patch("coola.utils.imports.optional.is_jax_available", lambda: False),
         pytest.raises(MissingPackageError, match="'jax' package is required"),
     ):
         summarizer_cls()
