@@ -4,31 +4,18 @@ from __future__ import annotations
 
 __all__ = [
     "DuplicateKeyError",
-    "add_prefix_suffix_to_keys",
     "flatten_mapping",
     "get_first_value",
     "merge_mappings",
-    "remove_keys_containing",
-    "remove_keys_if",
-    "remove_keys_starting_with",
 ]
 
-from collections.abc import Mapping, Sequence, Set as AbstractSet
-from typing import TYPE_CHECKING, Any, Literal, TypeVar, assert_never, cast
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, assert_never
 
 from coola.equality import objects_are_equal
-from coola.recursive import (
-    IdentityTransformer,
-    KeyFilterTransformer,
-    SequenceTransformer,
-    SetTransformer,
-    TransformerRegistry,
-)
-from coola.recursive.rebuild import rebuild_sequence
 from coola.validation import validate_mapping
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Iterable, Mapping
 
 
 class DuplicateKeyError(KeyError, ValueError):
@@ -241,76 +228,6 @@ def _free_suffixed_key(out: dict[Any, Any], key: Any, suffix: int) -> str:
     return f"{key}_{suffix}"
 
 
-def add_prefix_suffix_to_keys(
-    mapping: Mapping[Any, Any],
-    prefix: str = "",
-    suffix: str = "",
-    recursive: bool = False,
-) -> dict[Any, Any]:
-    r"""Add a prefix and/or a suffix to the keys of a mapping.
-
-    Only keys of type ``str`` are renamed; every other key is kept
-    as-is because a prefix/suffix cannot be concatenated to it.
-
-    Args:
-        mapping: The input mapping.
-        prefix: The prefix to prepend to the keys.
-        suffix: The suffix to append to the keys.
-        recursive: If ``True``, the prefix and suffix are also added
-            to the keys of every nested mapping, including the mappings
-            in the lists and the tuples. If ``False``, only
-            the keys of the top-level mapping are renamed.
-
-    Returns:
-        A new dict with the renamed keys.
-
-    Example:
-        ```pycon
-        >>> from coola.nested import add_prefix_suffix_to_keys
-        >>> add_prefix_suffix_to_keys({"key1": 1, "key2": 2}, prefix="prefix_")
-        {'prefix_key1': 1, 'prefix_key2': 2}
-        >>> add_prefix_suffix_to_keys(
-        ...     {"key1": 1, "key2": {"key3": 3}}, suffix="_suffix", recursive=True
-        ... )
-        {'key1_suffix': 1, 'key2_suffix': {'key3_suffix': 3}}
-
-        ```
-    """
-    return {
-        (f"{prefix}{key}{suffix}" if isinstance(key, str) else key): (
-            _rename_nested_keys(value, prefix, suffix) if recursive else value
-        )
-        for key, value in mapping.items()
-    }
-
-
-def _rename_nested_keys(data: Any, prefix: str, suffix: str) -> Any:
-    r"""Add a prefix and a suffix to the keys of the mappings in a value.
-
-    The mappings are found in the value itself and in the sequences
-    (``list``, ``tuple``, ...) it contains. Any other value is returned
-    as-is.
-
-    Args:
-        data: The value to process.
-        prefix: The prefix to prepend to the keys.
-        suffix: The suffix to append to the keys.
-
-    Returns:
-        The value with the renamed keys.
-    """
-    if isinstance(data, Mapping):
-        return add_prefix_suffix_to_keys(
-            cast("Mapping[Any, Any]", data), prefix=prefix, suffix=suffix, recursive=True
-        )
-    if isinstance(data, Sequence) and not isinstance(data, (str, bytes, bytearray)):
-        return rebuild_sequence(
-            data,
-            [_rename_nested_keys(item, prefix, suffix) for item in cast("Sequence[Any]", data)],
-        )
-    return data
-
-
 def get_first_value(data: Mapping[Any, T]) -> T:
     r"""Get the first value of a mapping.
 
@@ -430,133 +347,3 @@ def merge_mappings(
                 assert_never(on_duplicate)
 
     return out
-
-
-def _make_key_filter_registry(key_predicate: Callable[[Any], bool]) -> TransformerRegistry:
-    """Build the registry used by ``remove_keys_if`` to recurse through
-    arbitrary nested containers.
-
-    Reuses the same type-dispatch machinery as ``coola.recursive`` so
-    any registered ``Mapping``, ``Sequence`` (list, tuple, namedtuple,
-    custom subclasses, ...) or ``Set``/``frozenset`` is traversed and
-    rebuilt with its original type, while every other value (including
-    ``str``) is left untouched.
-
-    The registry is built for each call because the key predicate is
-    stored in the transformer of the mappings (building it takes about
-    a microsecond).
-
-    Args:
-        key_predicate: The function that selects the keys to remove.
-
-    Returns:
-        A registry mapping container types to the transformers used
-        to recurse into them.
-    """
-    identity = IdentityTransformer()
-    sequence = SequenceTransformer()
-    key_filter = KeyFilterTransformer(key_predicate=key_predicate)
-    return TransformerRegistry(
-        {
-            object: identity,
-            str: identity,
-            list: sequence,
-            tuple: sequence,
-            Sequence: sequence,
-            set: SetTransformer(),
-            frozenset: SetTransformer(),
-            AbstractSet: SetTransformer(),
-            dict: key_filter,
-            Mapping: key_filter,
-        }
-    )
-
-
-def remove_keys_if(mapping: Mapping[Any, Any], predicate: Callable[[Any], bool]) -> dict[Any, Any]:
-    r"""Recursively remove the keys that satisfy a given predicate.
-
-    The mapping is traversed recursively using the same type-dispatch
-    machinery as ``coola.recursive.recursive_apply``, so it works
-    on arbitrary nested combinations of mappings (``dict``,
-    ``OrderedDict``, ...), sequences (``list``, ``tuple``, named
-    tuples, ...), and sets/frozensets, not just plain ``dict``/
-    ``list``/``tuple``. Every other value is kept as-is.
-
-    Args:
-        mapping: The original mapping.
-        predicate: A function that takes a key and returns ``True``
-            if the key (and its value) should be removed.
-
-    Returns:
-        A new dict without the removed keys.
-
-    Example:
-        ```pycon
-        >>> from coola.nested import remove_keys_if
-        >>> remove_keys_if(
-        ...     {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6},
-        ...     lambda key: isinstance(key, str) and "key" in key,
-        ... )
-        {'abc': 3, 1: 5, (2, 3): 6}
-        >>> remove_keys_if(
-        ...     {"abc": {"key": 1, "abc": 2}, "list": [{"key": 1, "abc": 2}]},
-        ...     lambda key: isinstance(key, str) and "key" in key,
-        ... )
-        {'abc': {'abc': 2}, 'list': [{'abc': 2}]}
-
-        ```
-    """
-    return _make_key_filter_registry(predicate).transform(mapping, lambda value: value)
-
-
-def remove_keys_containing(mapping: Mapping[Any, Any], substring: str) -> dict[Any, Any]:
-    r"""Recursively remove the keys that contain a given substring.
-
-    Args:
-        mapping: The original mapping.
-        substring: The substring used to filter the keys.
-
-    Returns:
-        A new dict without the removed keys.
-
-    Example:
-        ```pycon
-        >>> from coola.nested import remove_keys_containing
-        >>> remove_keys_containing(
-        ...     {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6},
-        ...     "key",
-        ... )
-        {'abc': 3, 1: 5, (2, 3): 6}
-        >>> remove_keys_containing(
-        ...     {"abc": {"key": 1, "abc": 2}, "list": [{"key": 1, "abc": 2}]},
-        ...     "key",
-        ... )
-        {'abc': {'abc': 2}, 'list': [{'abc': 2}]}
-
-        ```
-    """
-    return remove_keys_if(mapping, lambda key: isinstance(key, str) and substring in key)
-
-
-def remove_keys_starting_with(mapping: Mapping[Any, Any], prefix: str) -> dict[Any, Any]:
-    r"""Recursively remove the keys that start with a given prefix.
-
-    Args:
-        mapping: The original mapping.
-        prefix: The prefix used to filter the keys.
-
-    Returns:
-        A new dict without the removed keys.
-
-    Example:
-        ```pycon
-        >>> from coola.nested import remove_keys_starting_with
-        >>> remove_keys_starting_with(
-        ...     {"key": 1, "key.abc": 2, "abc": 3, "abc.key": 4, 1: 5, (2, 3): 6},
-        ...     "key",
-        ... )
-        {'abc': 3, 'abc.key': 4, 1: 5, (2, 3): 6}
-
-        ```
-    """
-    return remove_keys_if(mapping, lambda key: isinstance(key, str) and key.startswith(prefix))

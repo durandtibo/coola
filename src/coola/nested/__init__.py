@@ -26,13 +26,15 @@ from coola.nested.conversion import (
     try_sorted_list,
 )
 from coola.nested.flat import from_flat_dict, to_flat_dict
-from coola.nested.mapping import (
-    DuplicateKeyError,
+from coola.nested.keys import (
     add_prefix_suffix_to_keys,
-    flatten_mapping,
-    get_first_value,
-    merge_mappings,
     remove_keys_containing,
     remove_keys_if,
     remove_keys_starting_with,
+)
+from coola.nested.mapping import (
+    DuplicateKeyError,
+    flatten_mapping,
+    get_first_value,
+    merge_mappings,
 )
