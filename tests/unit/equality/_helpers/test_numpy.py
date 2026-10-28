@@ -13,7 +13,7 @@ from coola.equality._helpers.numpy import (
 )
 from coola.equality.config import EqualityConfig
 from coola.equality.tolerance import Tolerance
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
 
 if is_numpy_available():

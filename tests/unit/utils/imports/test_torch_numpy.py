@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from coola.testing.fixtures import torch_available
+from coola.testing.marks import torch_available
 from coola.utils.imports import (
     MissingPackageError,
     check_torch_numpy,

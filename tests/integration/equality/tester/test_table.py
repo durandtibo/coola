@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality import assert_objects_equal, compare, objects_are_allclose, objects_are_equal
-from coola.testing.fixtures import pandas_available, polars_available, pyarrow_available
+from coola.testing.marks import pandas_available, polars_available, pyarrow_available
 from coola.utils.imports import is_pandas_available, is_polars_available, is_pyarrow_available
 
 if is_pandas_available():

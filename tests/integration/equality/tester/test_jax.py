@@ -4,7 +4,7 @@ import pytest
 
 from coola.equality.config import EqualityConfig
 from coola.equality.tester import JaxArrayEqualityTester
-from coola.testing.fixtures import jax_available, jax_not_available
+from coola.testing.marks import jax_available, jax_not_available
 from coola.utils.imports import MissingPackageError, is_jax_available
 from tests.unit.equality.utils import run_tester
 

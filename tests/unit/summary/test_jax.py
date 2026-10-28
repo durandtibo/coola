@@ -8,7 +8,7 @@ from coola.summary import (
     JaxArraySummarizer,
     SummaryConfig,
 )
-from coola.testing.fixtures import jax_available
+from coola.testing.marks import jax_available
 from coola.utils.imports import MissingPackageError, is_jax_available
 
 if is_jax_available():

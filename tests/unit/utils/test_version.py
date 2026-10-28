@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from coola.testing.fixtures import packaging_available
+from coola.testing.marks import packaging_available
 from coola.utils.imports import (
     MissingPackageError,
     clear_availability_caches,

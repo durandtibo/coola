@@ -49,7 +49,7 @@
   behaviour goes in `tests/integration/`, using `run_threads` from `tests/integration/helpers.py`,
   a lock around the shared list, and a docstring starting with "Test that ...".
 - Do not use local imports inside tests (for example `import polars as pl` in a test body). Import
-  at the top of the module; use the `*_available` fixtures from `coola.testing.fixtures` for
+  at the top of the module; use the `*_available` fixtures from `coola.testing.marks` for
   optional libraries.
 - One behaviour per test: a test has one `assert` or one `pytest.raises`. Split a test that checks
   several things (equal, different, negative, ...) into several tests. Thread-safety tests may

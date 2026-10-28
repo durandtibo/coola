@@ -12,7 +12,7 @@ from coola.equality.tester import (
     DefaultEqualityTester,
     EqualityTesterRegistry,
 )
-from coola.testing.fixtures import numpy_available, torch_available
+from coola.testing.marks import numpy_available, torch_available
 from tests.helpers import nest
 
 if TYPE_CHECKING:

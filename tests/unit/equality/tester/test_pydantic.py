@@ -9,7 +9,7 @@ from coola.equality.config import EqualityConfig
 from coola.equality.tester import PydanticModelEqualityTester
 from coola.equality.tester.pydantic import get_default_testers
 from coola.equality.tolerance import Tolerance
-from coola.testing.fixtures import numpy_available, pydantic_available
+from coola.testing.marks import numpy_available, pydantic_available
 from coola.utils.imports import MissingPackageError, is_numpy_available, is_pydantic_available
 from tests.unit.equality.utils import explaining, messages, run_tester
 

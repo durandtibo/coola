@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from coola.testing.fixtures import torch_available
+from coola.testing.marks import torch_available
 from tests.integration.helpers import run_python
 
 ################################################

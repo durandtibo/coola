@@ -5,7 +5,7 @@ import math
 import pytest
 
 from coola.rounding.torch import round_torch
-from coola.testing.fixtures import torch_available
+from coola.testing.marks import torch_available
 from coola.utils.imports import is_torch_available
 
 if is_torch_available():

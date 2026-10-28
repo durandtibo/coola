@@ -13,7 +13,7 @@ import pytest
 
 import coola
 from coola.summary import Node, SummaryConfig, get_default_registry, summarize
-from coola.testing.fixtures import (
+from coola.testing.marks import (
     jax_available,
     numpy_available,
     pandas_available,

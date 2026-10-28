@@ -10,7 +10,7 @@ from coola.summary import (
     PolarsSeriesSummarizer,
     SummaryConfig,
 )
-from coola.testing.fixtures import polars_available
+from coola.testing.marks import polars_available
 from coola.utils.imports import MissingPackageError, is_polars_available
 
 if is_polars_available():

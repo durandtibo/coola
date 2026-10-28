@@ -6,7 +6,7 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.random import TorchRandomManager, get_random_seed, get_torch_generator, validate_seed
-from coola.testing.fixtures import torch_available
+from coola.testing.marks import torch_available
 from coola.utils.imports import MissingPackageError, is_torch_available
 
 if is_torch_available():

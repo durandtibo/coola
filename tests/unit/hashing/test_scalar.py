@@ -21,7 +21,7 @@ from coola.hashing import (
     tagged,
 )
 from coola.hashing.scalar import _numpy_scalar_to_builtin
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
 from tests.unit.hashing.helpers import hash_with, leaf_hash
 

@@ -11,7 +11,7 @@ from coola.summary import (
     summarize,
 )
 from coola.summary.pyarrow import get_default_summarizers
-from coola.testing.fixtures import pyarrow_available
+from coola.testing.marks import pyarrow_available
 from coola.utils.imports import MissingPackageError, is_pyarrow_available
 
 if is_pyarrow_available():

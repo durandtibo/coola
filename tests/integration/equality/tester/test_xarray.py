@@ -10,7 +10,7 @@ from coola.equality.tester import (
     XarrayDatasetEqualityTester,
     XarrayVariableEqualityTester,
 )
-from coola.testing.fixtures import xarray_available, xarray_not_available
+from coola.testing.marks import xarray_available, xarray_not_available
 from coola.utils.imports import MissingPackageError, is_numpy_available, is_xarray_available
 from tests.unit.equality.utils import ExamplePair, run_tester
 

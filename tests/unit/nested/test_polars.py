@@ -12,7 +12,7 @@ from coola.nested.polars import (
     unnest_one_level,
     unnest_with_separator,
 )
-from coola.testing.fixtures import polars_available
+from coola.testing.marks import polars_available
 from coola.utils.imports import is_polars_available
 
 if TYPE_CHECKING or is_polars_available():

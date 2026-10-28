@@ -411,7 +411,7 @@ The `@pytest.mark.parametrize` marker is used extensively (see [Parametrization]
 Use custom markers for tests requiring optional dependencies:
 
 ```python
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 
 
 @numpy_available

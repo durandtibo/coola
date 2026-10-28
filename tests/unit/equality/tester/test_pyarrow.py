@@ -13,7 +13,7 @@ from coola.equality.tester.pyarrow import (
     PyarrowTableTable,
     get_default_testers,
 )
-from coola.testing.fixtures import numpy_available, pyarrow_available
+from coola.testing.marks import numpy_available, pyarrow_available
 from coola.utils.imports import is_pyarrow_available
 from tests.unit.equality.utils import ExamplePair
 

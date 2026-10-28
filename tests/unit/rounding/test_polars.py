@@ -5,7 +5,7 @@ import math
 import pytest
 
 from coola.rounding.polars import round_polars
-from coola.testing.fixtures import polars_available
+from coola.testing.marks import polars_available
 from coola.utils.imports import is_polars_available
 
 if is_polars_available():

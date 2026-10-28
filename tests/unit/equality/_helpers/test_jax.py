@@ -7,7 +7,7 @@ import pytest
 from coola.equality._helpers.jax import array_close, array_equal
 from coola.equality.config import EqualityConfig
 from coola.equality.tolerance import Tolerance
-from coola.testing.fixtures import jax_available
+from coola.testing.marks import jax_available
 from coola.utils.imports import is_jax_available
 
 if is_jax_available():

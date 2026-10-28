@@ -20,7 +20,7 @@ from uuid import UUID
 import pytest
 
 from coola.hashing import hash_object
-from coola.testing.fixtures import (
+from coola.testing.marks import (
     numpy_available,
     pandas_available,
     polars_available,

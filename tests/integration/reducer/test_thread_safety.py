@@ -5,7 +5,7 @@ import threading
 import pytest
 
 from coola.reducer import BaseReducer, NativeReducer, NumpyReducer, TorchReducer
-from coola.testing.fixtures import numpy_available, torch_available
+from coola.testing.marks import numpy_available, torch_available
 from tests.integration.helpers import run_python, run_threads
 
 NUM_THREADS = 8

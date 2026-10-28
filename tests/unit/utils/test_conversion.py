@@ -10,7 +10,7 @@ from enum import Enum
 from pathlib import Path
 from uuid import UUID
 
-from coola.testing.fixtures import numpy_available, pydantic_available, torch_available
+from coola.testing.marks import numpy_available, pydantic_available, torch_available
 from coola.utils.conversion import _is_instance_of_loaded, to_jsonable
 from coola.utils.imports import (
     is_numpy_available,

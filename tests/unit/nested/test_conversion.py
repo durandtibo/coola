@@ -13,7 +13,7 @@ from coola.nested import (
 )
 from coola.nested.conversion import SetToListTransformer
 from coola.recursive import recursive_apply
-from coola.testing.fixtures import numpy_available, pydantic_available, torch_available
+from coola.testing.marks import numpy_available, pydantic_available, torch_available
 from coola.utils.imports import (
     is_numpy_available,
     is_pydantic_available,

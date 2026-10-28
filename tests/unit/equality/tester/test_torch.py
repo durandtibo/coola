@@ -12,7 +12,7 @@ from coola.equality.tester import (
     TorchTensorEqualityTester,
 )
 from coola.equality.tolerance import Tolerance
-from coola.testing.fixtures import (
+from coola.testing.marks import (
     torch_available,
     torch_cuda_available,
     torch_mps_available,

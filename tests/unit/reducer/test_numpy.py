@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.reducer import EmptySequenceError, NumpyReducer
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 from coola.utils.imports import MissingPackageError, is_numpy_available
 
 if is_numpy_available():

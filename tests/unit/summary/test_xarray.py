@@ -10,7 +10,7 @@ from coola.summary import (
     XarrayDatasetSummarizer,
     XarrayVariableSummarizer,
 )
-from coola.testing.fixtures import xarray_available
+from coola.testing.marks import xarray_available
 from coola.utils.imports import MissingPackageError, is_xarray_available
 
 if is_xarray_available():

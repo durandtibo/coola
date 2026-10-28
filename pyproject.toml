@@ -70,7 +70,7 @@ torch = [
 ]
 xarray = ["xarray>=2024.1"]
 
-# Testing: ``coola.testing`` (the pytest fixtures and markers) imports pytest
+# Testing: ``coola.testing`` (the pytest marks and fixtures) imports pytest
 testing = ["pytest>=8.0"]
 
 # Logging

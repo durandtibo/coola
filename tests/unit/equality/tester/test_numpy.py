@@ -13,7 +13,7 @@ from coola.equality.tester import (
     NumpyTimeScalarEqualityTester,
 )
 from coola.equality.tolerance import Tolerance
-from coola.testing.fixtures import numpy_available
+from coola.testing.marks import numpy_available
 from coola.utils.imports import MissingPackageError, is_numpy_available
 from tests.unit.equality.utils import ExamplePair, explaining, messages, run_tester
 

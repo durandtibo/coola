@@ -23,7 +23,7 @@ from coola.random.interface import (
     set_rng_state,
 )
 from coola.registry import AlreadyRegisteredError
-from coola.testing.fixtures import (
+from coola.testing.marks import (
     numpy_available,
     numpy_not_available,
     torch_available,

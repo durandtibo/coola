@@ -10,7 +10,7 @@ import pytest
 from hypothesis import assume, given, strategies as st
 
 from coola.reducer import BaseReducer, NativeReducer, NumpyReducer, TorchReducer
-from coola.testing.fixtures import numpy_available, torch_available
+from coola.testing.marks import numpy_available, torch_available
 from tests.properties.strategies import float_lists, quantile_lists
 
 if TYPE_CHECKING:

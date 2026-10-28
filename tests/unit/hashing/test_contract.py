@@ -18,7 +18,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from coola.hashing import Node, get_default_registry, hash_object
-from coola.testing.fixtures import (
+from coola.testing.marks import (
     numpy_available,
     pandas_available,
     polars_available,

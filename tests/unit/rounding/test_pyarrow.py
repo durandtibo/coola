@@ -5,7 +5,7 @@ import math
 import pytest
 
 from coola.rounding.pyarrow import round_pyarrow
-from coola.testing.fixtures import pyarrow_available
+from coola.testing.marks import pyarrow_available
 from coola.utils.imports import is_pyarrow_available
 
 if is_pyarrow_available():

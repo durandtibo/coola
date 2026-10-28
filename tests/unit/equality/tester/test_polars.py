@@ -13,7 +13,7 @@ from coola.equality.tester.polars import (
     PolarsSeriesTable,
     get_default_testers,
 )
-from coola.testing.fixtures import polars_available
+from coola.testing.marks import polars_available
 from coola.utils.imports import is_polars_available
 from tests.unit.equality.utils import ExamplePair
 

@@ -7,7 +7,7 @@ import pytest
 
 from coola.display import repr_pydantic_model, str_pydantic_model
 from coola.display.pydantic import is_secret_annotation, secret_field_names
-from coola.testing.fixtures import pydantic_available
+from coola.testing.marks import pydantic_available
 from coola.utils.imports import is_pydantic_available
 
 if is_pydantic_available():

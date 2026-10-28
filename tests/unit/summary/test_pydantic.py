@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from coola.summary import SummaryConfig, summarize
 from coola.summary.pydantic import PydanticModelSummarizer, get_default_summarizers
-from coola.testing.fixtures import pydantic_available
+from coola.testing.marks import pydantic_available
 from coola.utils.imports import is_pydantic_available
 
 if is_pydantic_available():

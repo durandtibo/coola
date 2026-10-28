@@ -7,7 +7,7 @@ import pytest
 
 from coola.hashing import hash_object
 from coola.identifier import generate_stable_content_id, generate_stable_uuid5
-from coola.testing.fixtures import (
+from coola.testing.marks import (
     numpy_available,
     pandas_available,
     polars_available,

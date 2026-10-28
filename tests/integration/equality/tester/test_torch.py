@@ -7,7 +7,7 @@ from coola.equality.tester import (
     TorchPackedSequenceEqualityTester,
     TorchTensorEqualityTester,
 )
-from coola.testing.fixtures import torch_available, torch_not_available
+from coola.testing.marks import torch_available, torch_not_available
 from coola.utils.imports import MissingPackageError, is_torch_available
 from tests.unit.equality.utils import run_tester
 
