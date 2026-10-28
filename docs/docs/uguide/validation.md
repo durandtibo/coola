@@ -13,7 +13,8 @@ The `coola.validation` package provides:
 
 1. **Type checks** - `validate_isinstance` to check a value is an instance of a given type, and
    `validate_bool`, `validate_int`, `validate_float`, `validate_str`, `validate_list`,
-   `validate_tuple`, `validate_dict`, `validate_mapping`, `validate_set` and `validate_frozenset` for the common builtin types
+   `validate_tuple`, `validate_dict`, `validate_mapping`, `validate_set` and `validate_frozenset`
+   for the common builtin types, and `validate_number` to check a value is a real number
 2. **Container checks** - `validate_not_empty` to check a value is not empty, and `validate_in`
    to check a value belongs to a set of valid values
 3. **Comparison checks** - `validate_ge`, `validate_gt`, `validate_le`, and `validate_lt` to
@@ -21,6 +22,8 @@ The `coola.validation` package provides:
    range
 4. **Sign and finiteness checks** - `validate_positive`, `validate_non_negative`,
    `validate_negative`, `validate_non_positive` and `validate_finite`
+
+The [Properties](#properties) section lists the rules that every function follows.
 
 Every function takes the value to validate as its first argument, and an optional `name` keyword
 argument used to identify the value in the error message. On success, the function returns
@@ -38,6 +41,29 @@ Traceback (most recent call last):
 TypeError: count must be an instance of int, got str
 
 ```
+
+`validate_number` checks that a value is a real number (a `numbers.Real`). It accepts `int`,
+`float`, `fractions.Fraction` and the NumPy scalars, and rejects `bool`, `decimal.Decimal`,
+`None` and `str`:
+
+```pycon
+>>> from coola.validation import validate_number
+>>> validate_number(1)
+>>> validate_number(0.5)
+>>> validate_number("abc", name="rtol")
+Traceback (most recent call last):
+    ...
+TypeError: rtol must be a real number, got <class 'str'>
+
+```
+
+The type checks are strict, they do not convert the value:
+
+- `bool` is rejected by `validate_int` and `validate_number`, but it is accepted by
+  `validate_isinstance(x, int)` and by the comparisons (`validate_ge(True, 0)` is valid).
+- NumPy scalars are accepted by `validate_number`. `validate_int` rejects `numpy.int64`, and
+  `validate_float` rejects `numpy.float32` but accepts `numpy.float64`, which subclasses `float`.
+  Use `validate_isinstance(x, numpy.integer)` or `validate_number` to accept them.
 
 ## Container
 
@@ -78,6 +104,10 @@ Traceback (most recent call last):
 ValueError: count must be greater than 1, got 1
 
 ```
+
+The comparisons are duck-typed: they accept any value that supports the comparison (`Decimal`,
+`date`, ...). A value that cannot be compared raises a `TypeError`. A `NaN` is never valid, since
+every comparison with a `NaN` is false: it raises a `ValueError`.
 
 `validate_range` checks `low <= value <= high`. The flags `low_inclusive` and `high_inclusive`
 exclude a bound, which gives an open range or a half-open range. A range that no value can satisfy
@@ -130,15 +160,18 @@ ValueError: lr must be finite, got inf
 
 ## Properties
 
-| Property            | Statement                                                                                                  |
-| ------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Silent on success   | Every function returns `None` when the value is valid.                                                     |
-| Standard exceptions | A wrong type raises `TypeError`. A wrong value raises `ValueError`. No custom exception class is involved. |
-| Informative message | The message names the argument (`name`, default `"value"`), the constraint and the value received.         |
-| Pure                | Validators do not modify the value and have no side effect.                                                |
-| Keyword-only `name` | `name` can only be passed by keyword, so a call cannot mix it up with a bound.                             |
+| Property                   | Statement                                                                                                                                                      |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Silent on success          | Every function returns `None` when the value is valid. It never returns or converts the value.                                                                  |
+| Standard exceptions        | A wrong type raises `TypeError`. A wrong value raises `ValueError`. No custom exception class is involved.                                                     |
+| Informative message        | The message names the argument (`name`, default `"value"`), the constraint and the value received.                                                             |
+| Pure                       | Validators do not modify the value and have no side effect.                                                                                                    |
+| Keyword-only `name`        | `name` can only be passed by keyword, so a call cannot mix it up with a bound.                                                                                 |
+| Strict types, duck compare | The type checks are strict (no conversion, `bool` is not accepted by `validate_int` and `validate_number`). The comparisons accept whatever supports `<`, `>`. |
+| NaN is never valid         | A comparison with a `NaN` is false, so the bound and range checks raise `ValueError` on a `NaN`, and `validate_finite` rejects it.                             |
+| Core only                  | The package imports the standard library only. NumPy scalars are supported through the `numbers` ABCs.                                                         |
 
 ## See Also
 
-- [`coola.identifier`](identifier.md): Uses a similar internal validation helper module for its
+- [`coola.identifier`](identifier.md): Uses these validators to check the options of its
   generators.
