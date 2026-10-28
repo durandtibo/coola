@@ -499,6 +499,22 @@ refused, the `_init_` rule, the target's keywords never shadowed by a parameter 
 allow-list is a filter on a path and always comes from the caller's code, never from the data. See
 the [user guide](../uguide/factory.md#properties) for the properties of the package.
 
+## Design of `coola.io`
+
+The package reads and writes one value to one file, and a write either happens completely or leaves
+the target as it was. The base classes own the invariants and a format only describes how to turn a
+value into a file and back. `BaseLoader.load` is a template method: it converts the path (`str`,
+`file://` URI or `os.PathLike`) and calls the `_load(Path)` of the format, so a format cannot forget
+the conversion. `BaseFileSaver.save` writes to a hidden temporary file next to the target and
+commits it with one atomic operation (`os.link` for `exist_ok=False`, `os.replace` for
+`exist_ok=True`), then removes the temporary file, so a reader sees the old file or the new one and
+two concurrent saves never mix. There is no lock, no lock file and no thread: the commit already
+decides every race, and a caller that needs mutual exclusion around a read-modify-write uses its own
+lock. `equal()`, `repr` and `str` are written once in the base classes from `_display_fields()`; a
+format that has no configuration defines nothing. `TextSaver` accepts a `str` only. Optional
+libraries (torch) are imported lazily. See the [user guide](../uguide/io.md#properties) for the
+properties of the package.
+
 ## Design of `coola.hashing`
 
 The package has **one engine, one extension point and one encoding rule**. A hasher only describes
