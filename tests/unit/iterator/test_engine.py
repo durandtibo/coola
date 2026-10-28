@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from collections import OrderedDict, deque
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from types import MappingProxyType
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 import pytest
 
@@ -253,6 +255,11 @@ class Item:
     b: list
 
 
+class Pt(NamedTuple):
+    x: int
+    y: int
+
+
 class ProtocolChildFinder:
     r"""A child finder that follows the protocol: no ``find_items``."""
 
@@ -372,3 +379,145 @@ def test_depth_first_items_failing_child_finder_raises(registry: ChildFinderRegi
     registry.register(Node, FailingChildFinder())
     with pytest.raises(RuntimeError, match="failing finder"):
         list(depth_first_items(Node(1), registry))
+
+
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        pytest.param("abc", [((), "abc")], id="str root"),
+        pytest.param(b"ab", [((), b"ab")], id="bytes root"),
+        pytest.param(None, [((), None)], id="None root"),
+        pytest.param(["abc"], [((0,), "abc")], id="str in a list"),
+    ],
+)
+def test_depth_first_items_leaves(data: Any, expected: list, registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items(data, registry)) == expected
+
+
+def test_depth_first_items_iterator_is_not_consumed(registry: ChildFinderRegistry) -> None:
+    iterator = iter([1, 2])
+    list(depth_first_items([iterator], registry))
+    assert list(iterator) == [1, 2]
+
+
+def test_depth_first_items_single_element(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items([1], registry)) == [((0,), 1)]
+
+
+def test_depth_first_items_duplicate_values(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items({"a": 1, "b": 1}, registry)) == [(("a",), 1), (("b",), 1)]
+
+
+def test_depth_first_items_tuple(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items((1, (2,)), registry)) == [((0,), 1), ((1, 0), 2)]
+
+
+def test_depth_first_items_deque(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items(deque([1, 2]), registry)) == [((0,), 1), ((1,), 2)]
+
+
+def test_depth_first_items_named_tuple(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items(Pt(1, 2), registry)) == [((0,), 1), ((1,), 2)]
+
+
+def test_depth_first_items_range_is_a_leaf(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items(range(2), registry)) == [((), range(2))]
+
+
+def test_depth_first_items_mapping_proxy(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items(MappingProxyType({"a": [1]}), registry)) == [(("a", 0), 1)]
+
+
+def test_depth_first_items_ordered_dict_keeps_the_order(registry: ChildFinderRegistry) -> None:
+    data = OrderedDict([("b", 1), ("a", 2)])
+    assert list(depth_first_items(data, registry)) == [(("b",), 1), (("a",), 2)]
+
+
+def test_depth_first_items_frozenset_label_is_the_element(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items(frozenset({"x"}), registry)) == [(("x",), "x")]
+
+
+def test_depth_first_items_nested_dataclasses(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items(Item(Item(1, []), [2]), registry)) == [
+        (("a", "a"), 1),
+        (("b", 0), 2),
+    ]
+
+
+def test_depth_first_items_dataclass_class_is_a_leaf(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items([Item], registry)) == [((0,), Item)]
+
+
+def test_depth_first_items_mixed_label_types(registry: ChildFinderRegistry) -> None:
+    data = {1: [{"k": (2.5,)}], (1, 2): {True}}
+    assert [path for path, _ in depth_first_items(data, registry)] == [
+        (1, 0, "k", 0),
+        ((1, 2), True),
+    ]
+
+
+def test_depth_first_items_path_is_a_tuple(registry: ChildFinderRegistry) -> None:
+    assert isinstance(next(depth_first_items([[1]], registry))[0], tuple)
+
+
+def test_depth_first_items_paths_are_independent(registry: ChildFinderRegistry) -> None:
+    paths = [path for path, _ in depth_first_items([[1], [2]], registry)]
+    assert paths == [(0, 0), (1, 0)]
+
+
+def test_depth_first_items_is_deterministic(registry: ChildFinderRegistry) -> None:
+    data = {"a": [1, {"b": 2}], "c": Item(3, [4])}
+    assert list(depth_first_items(data, registry)) == list(depth_first_items(data, registry))
+
+
+def test_depth_first_items_cycle_through_a_dict_raises(registry: ChildFinderRegistry) -> None:
+    data: dict = {"a": 1}
+    data["self"] = data
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(depth_first_items(data, registry))
+
+
+def test_depth_first_items_cycle_through_a_dataclass_raises(
+    registry: ChildFinderRegistry,
+) -> None:
+    item = Item(1, [])
+    item.b.append(item)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        list(depth_first_items(item, registry))
+
+
+def test_depth_first_items_empty_with_empty_nested_levels(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items([[[]]], registry, empty=True)) == [((0, 0), [])]
+
+
+def test_depth_first_items_empty_false_is_the_default(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items([[], 1], registry)) == list(
+        depth_first_items([[], 1], registry, empty=False)
+    )
+
+
+def test_depth_first_items_empty_does_not_change_the_non_empty_leaves(
+    registry: ChildFinderRegistry,
+) -> None:
+    data = {"a": [1, {}], "b": (2,)}
+    leaves = [item for item in depth_first_items(data, registry, empty=True) if item[1] != {}]
+    assert leaves == list(depth_first_items({"a": [1], "b": (2,)}, registry))
+
+
+def test_depth_first_items_empty_string_is_a_leaf(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items([""], registry)) == [((0,), "")]
+
+
+def test_depth_first_items_empty_root_leaf_with_empty(registry: ChildFinderRegistry) -> None:
+    assert list(depth_first_items(1, registry, empty=True)) == [((), 1)]
+
+
+def test_depth_first_items_empty_deep_structure_does_not_raise(
+    registry: ChildFinderRegistry,
+) -> None:
+    assert list(depth_first_items(nest([], 50_000), registry, empty=True)) == [((0,) * 50_000, [])]
+
+
+def test_depth_first_items_registered_leaf_type(registry: ChildFinderRegistry) -> None:
+    registry.register(list, DefaultChildFinder(), exist_ok=True)
+    assert list(depth_first_items({"a": [1]}, registry)) == [(("a",), [1])]
