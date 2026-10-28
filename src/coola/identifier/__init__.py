@@ -14,7 +14,6 @@ e.g. for use as a database ``BIGINT`` primary key).
 from __future__ import annotations
 
 __all__ = [
-    "ObjectIdGenerator",
     "SnowflakeIdGenerator",
     "extract_object_id_timestamp_s",
     "extract_snowflake_timestamp_ms",
@@ -33,7 +32,6 @@ __all__ = [
 from coola.identifier.checksummed import generate_checksummed_id, verify_checksummed_id
 from coola.identifier.content import generate_stable_content_id
 from coola.identifier.objectid import (
-    ObjectIdGenerator,
     extract_object_id_timestamp_s,
     generate_object_id,
 )

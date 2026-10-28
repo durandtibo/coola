@@ -17,13 +17,13 @@ ULID_PATTERN = re.compile(r"^[0-9A-HJKMNP-TV-Z]{26}$")
 
 
 @pytest.fixture(autouse=True)
-def _reset_monotonic_state() -> Generator[None]:
-    """Reset the state of the monotonic generator, which is shared by
+def _reset_sequence_state() -> Generator[None]:
+    """Reset the state of the sequence, which is shared by
     the tests of the process and depends on the time (a test with a fake
     clock must start from scratch)."""
-    ulid_module._MONOTONIC._reset_after_fork()
+    ulid_module._SEQUENCE._reset_after_fork()
     yield
-    ulid_module._MONOTONIC._reset_after_fork()
+    ulid_module._SEQUENCE._reset_after_fork()
 
 
 def _decode_timestamp_ms(value: str) -> int:
@@ -161,7 +161,7 @@ def test_extract_ulid_timestamp_ms_invalid_character_raises() -> None:
 
 
 def _generate_ulids_in_the_same_millisecond() -> list[str]:
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=1_700_000_000_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=1_700_000_000_000 * 10**6):
         return [generate_ulid() for _ in range(1000)]
 
 
@@ -190,9 +190,9 @@ def test_generate_ulid_monotonic_with_the_real_clock_unique() -> None:
 
 
 def _generate_ulids_with_a_backward_clock() -> tuple[str, str]:
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=2_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=2_000 * 10**6):
         first = generate_ulid()
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=1_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=1_000 * 10**6):
         second = generate_ulid()
     return first, second
 
@@ -212,17 +212,17 @@ def test_generate_ulid_explicit_timestamp_is_used() -> None:
 
 
 def test_generate_ulid_explicit_timestamp_is_before_the_current_time() -> None:
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=5_000 * 10**6):
         current = generate_ulid()
     assert generate_ulid(timestamp_ms=1) < current
 
 
 def test_generate_ulid_explicit_timestamp_does_not_use_the_monotonic_state() -> None:
     # the explicit timestamps do not consume the sequence of the current time
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=5_000 * 10**6):
         current = generate_ulid()
     generate_ulid(timestamp_ms=1)
-    with patch("coola.identifier.monotonic.time.time_ns", return_value=5_000 * 10**6):
+    with patch("coola.identifier.sequence.time.time_ns", return_value=5_000 * 10**6):
         assert generate_ulid() > current
 
 
@@ -248,7 +248,7 @@ def test_extract_ulid_timestamp_ms_accepts_lowercase() -> None:
 @pytest.mark.parametrize("timestamp_ms", [True, 1.5, "1"])
 def test_generate_ulid_timestamp_wrong_type_raises(timestamp_ms: object) -> None:
     with pytest.raises(TypeError, match="timestamp_ms must be an int"):
-        generate_ulid(timestamp_ms)
+        generate_ulid(timestamp_ms=timestamp_ms)
 
 
 @pytest.mark.parametrize("ulid", [None, 123, b"0" * 26])
@@ -275,3 +275,16 @@ def test_extract_ulid_timestamp_ms_whitespace_raises() -> None:
 def test_extract_ulid_timestamp_ms_first_character_above_seven_raises() -> None:
     with pytest.raises(ValueError, match="the first character must be at most '7'"):
         extract_ulid_timestamp_ms("8" + "0" * 25)
+
+
+def test_generate_ulid_current_time_beyond_48_bits_raises() -> None:
+    with (
+        patch("coola.identifier.sequence.time.time_ns", return_value=2**48 * 10**6),
+        pytest.raises(ValueError, match="timestamp_ms must be in the closed range"),
+    ):
+        generate_ulid()
+
+
+def test_generate_ulid_timestamp_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional argument"):
+        generate_ulid(1704067200000)

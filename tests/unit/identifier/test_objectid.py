@@ -1,20 +1,37 @@
 from __future__ import annotations
 
 import re
-import time
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 
 from coola.identifier import (
-    ObjectIdGenerator,
     extract_object_id_timestamp_s,
     generate_object_id,
     objectid as objectid_module,
 )
-from coola.utils import fork
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 OBJECT_ID_PATTERN = re.compile(r"^[0-9a-f]{24}$")
+TIME_NS = "coola.identifier.sequence.time.time_ns"
+
+
+@pytest.fixture(autouse=True)
+def _reset_sequence_state() -> Generator[None]:
+    """Reset the state of the sequence, which is shared by the tests of
+    the process and depends on the time (a test with a fake clock must
+    start from scratch)."""
+    objectid_module._SEQUENCE._reset_after_fork()
+    yield
+    objectid_module._SEQUENCE._reset_after_fork()
+
+
+########################################
+#     Tests for generate_object_id     #
+########################################
 
 
 def test_generate_object_id_returns_str() -> None:
@@ -33,133 +50,115 @@ def test_generate_object_id_is_unique() -> None:
     assert generate_object_id() != generate_object_id()
 
 
-def test_generate_object_id_many_calls_are_unique() -> None:
-    values = {generate_object_id() for _ in range(1000)}
-    assert len(values) == 1000
+def test_generate_object_id_encodes_the_current_time() -> None:
+    with patch(TIME_NS, return_value=1_700_000_000 * 10**9):
+        object_id = generate_object_id()
+    assert object_id[:8] == "6553f100"
 
 
-def test_generate_object_id_sorts_by_creation_time() -> None:
-    with patch("time.time", return_value=1_800_000_000):
+def test_generate_object_id_increases_in_the_same_second() -> None:
+    with patch(TIME_NS, return_value=1_700_000_000 * 10**9):
         first = generate_object_id()
-    with patch("time.time", return_value=1_800_000_001):
         second = generate_object_id()
     assert first < second
 
 
-def test_generate_object_id_encodes_current_timestamp() -> None:
-    before = int(time.time())
-    object_id = generate_object_id()
-    after = int(time.time())
-    timestamp = int(object_id[:8], 16)
-    assert before <= timestamp <= after
+def test_generate_object_id_increments_the_random_part_in_the_same_second() -> None:
+    with patch(TIME_NS, return_value=1_700_000_000 * 10**9):
+        first = generate_object_id()
+        second = generate_object_id()
+    assert int(second, 16) == int(first, 16) + 1
 
 
-#######################################
-#     Tests for ObjectIdGenerator     #
-#######################################
-
-
-def test_object_id_generator_generate_returns_str() -> None:
-    assert isinstance(ObjectIdGenerator().generate(), str)
-
-
-def test_object_id_generator_generate_length() -> None:
-    assert len(ObjectIdGenerator().generate()) == 24
-
-
-def test_object_id_generator_generate_matches_pattern() -> None:
-    assert OBJECT_ID_PATTERN.match(ObjectIdGenerator().generate())
-
-
-def test_object_id_generator_generate_is_unique() -> None:
-    generator = ObjectIdGenerator()
-    assert generator.generate() != generator.generate()
-
-
-def test_object_id_generator_instances_use_independent_process_values() -> None:
-    first = ObjectIdGenerator().generate()
-    second = ObjectIdGenerator().generate()
-    # The process-value segment (bytes 4-9, i.e. hex chars 8-18) is
-    # independently randomized per instance, so it almost certainly
-    # differs between two freshly created generators.
-    assert first[8:18] != second[8:18]
-
-
-def test_object_id_generator_generate_counter_wraps_last_value() -> None:
-    generator = ObjectIdGenerator()
-    generator._counter = (1 << 24) - 2
-    first = generator.generate()
-    generator.generate()
-    assert int(first[18:], 16) == (1 << 24) - 1
-
-
-def test_object_id_generator_generate_counter_wraps_wrapped_value() -> None:
-    generator = ObjectIdGenerator()
-    generator._counter = (1 << 24) - 2
-    generator.generate()
-    second = generator.generate()
-    assert int(second[18:], 16) == 0
-
-
-def test_object_id_generator_generate_encodes_current_timestamp() -> None:
-    with patch("time.time", return_value=1_800_000_000):
-        object_id = ObjectIdGenerator().generate()
-    assert int(object_id[:8], 16) == 1_800_000_000
-
-
-def test_object_id_generator_generate_sorts_by_creation_time() -> None:
-    generator = ObjectIdGenerator()
-    with patch("time.time", return_value=1_800_000_000):
-        first = generator.generate()
-    with patch("time.time", return_value=1_800_000_001):
-        second = generator.generate()
+def test_generate_object_id_increases_in_a_new_second() -> None:
+    with patch(TIME_NS, return_value=1_700_000_000 * 10**9):
+        first = generate_object_id()
+    with patch(TIME_NS, return_value=1_700_000_001 * 10**9):
+        second = generate_object_id()
     assert first < second
 
 
-def test_generate_object_id_uses_shared_default_generator() -> None:
-    process_value = objectid_module.get_default_generator()._process_value.hex()
-    assert generate_object_id()[8:18] == process_value
+def test_generate_object_id_keeps_increasing_if_the_clock_moves_backward() -> None:
+    with patch(TIME_NS, return_value=1_700_000_000 * 10**9):
+        first = generate_object_id()
+    with patch(TIME_NS, return_value=1_699_999_990 * 10**9):
+        second = generate_object_id()
+    assert int(second, 16) == int(first, 16) + 1
 
 
-def test_object_id_generator_generate_accepts_explicit_timestamp() -> None:
-    object_id = ObjectIdGenerator().generate(timestamp=1_800_000_000)
-    assert int(object_id[:8], 16) == 1_800_000_000
+def test_generate_object_id_borrows_the_next_second_when_the_counter_is_exhausted() -> None:
+    with (
+        patch(TIME_NS, return_value=1_700_000_000 * 10**9),
+        patch.object(objectid_module._SEQUENCE, "_start", return_value=2**64 - 1),
+    ):
+        generate_object_id()
+        object_id = generate_object_id()
+    assert object_id[:8] == "6553f101"
 
 
-def test_object_id_generator_generate_timestamp_does_not_race_counter() -> None:
-    # The timestamp and counter must be captured together under the
-    # same lock acquisition, otherwise concurrent callers could pair a
-    # later counter with an earlier timestamp (see generate()).
-    generator = ObjectIdGenerator()
-    with patch("time.time", return_value=1_800_000_000):
-        first = generator.generate()
-    assert int(first[:8], 16) == 1_800_000_000
+def test_generate_object_id_explicit_timestamp() -> None:
+    assert generate_object_id(timestamp_s=1_700_000_000)[:8] == "6553f100"
 
 
-def test_object_id_generator_generate_negative_timestamp_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp must be in the closed range"):
-        ObjectIdGenerator().generate(timestamp=-1)
+def test_generate_object_id_explicit_timestamp_zero() -> None:
+    assert generate_object_id(timestamp_s=0)[:8] == "00000000"
 
 
-def test_object_id_generator_generate_timestamp_too_large_raises() -> None:
-    with pytest.raises(ValueError, match="timestamp must be in the closed range"):
-        ObjectIdGenerator().generate(timestamp=2**32)
+def test_generate_object_id_explicit_timestamp_maximum() -> None:
+    assert generate_object_id(timestamp_s=2**32 - 1)[:8] == "ffffffff"
 
 
-def test_generate_object_id_accepts_explicit_timestamp() -> None:
-    object_id = generate_object_id(timestamp=1_800_000_000)
-    assert int(object_id[:8], 16) == 1_800_000_000
+def test_generate_object_id_explicit_timestamp_random_part_is_random() -> None:
+    assert generate_object_id(timestamp_s=42) != generate_object_id(timestamp_s=42)
 
 
-#################################################
+def test_generate_object_id_explicit_timestamp_does_not_use_the_sequence() -> None:
+    with patch(TIME_NS, return_value=1_700_000_000 * 10**9):
+        first = generate_object_id()
+    generate_object_id(timestamp_s=1)
+    with patch(TIME_NS, return_value=1_700_000_000 * 10**9):
+        second = generate_object_id()
+    assert int(second, 16) == int(first, 16) + 1
+
+
+def test_generate_object_id_negative_timestamp_raises() -> None:
+    with pytest.raises(ValueError, match="timestamp_s must be in the closed range"):
+        generate_object_id(timestamp_s=-1)
+
+
+def test_generate_object_id_timestamp_too_large_raises() -> None:
+    with pytest.raises(ValueError, match="timestamp_s must be in the closed range"):
+        generate_object_id(timestamp_s=2**32)
+
+
+@pytest.mark.parametrize("timestamp_s", [True, 1.5, "1"])
+def test_generate_object_id_timestamp_wrong_type_raises(timestamp_s: object) -> None:
+    with pytest.raises(TypeError, match="timestamp_s must be an int"):
+        generate_object_id(timestamp_s=timestamp_s)
+
+
+def test_generate_object_id_timestamp_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match="positional argument"):
+        generate_object_id(1_700_000_000)
+
+
+def test_generate_object_id_current_time_beyond_32_bits_raises() -> None:
+    with (
+        patch(TIME_NS, return_value=2**32 * 10**9),
+        pytest.raises(ValueError, match="timestamp_s must be in the closed range"),
+    ):
+        generate_object_id()
+
+
+###################################################
 #     Tests for extract_object_id_timestamp_s     #
-#################################################
+###################################################
 
 
 def test_extract_object_id_timestamp_s_roundtrip() -> None:
-    with patch("time.time", return_value=1_800_000_000):
-        object_id = generate_object_id()
-    assert extract_object_id_timestamp_s(object_id) == 1_800_000_000
+    assert extract_object_id_timestamp_s(generate_object_id(timestamp_s=1_800_000_000)) == (
+        1_800_000_000
+    )
 
 
 def test_extract_object_id_timestamp_s_returns_int() -> None:
@@ -167,65 +166,18 @@ def test_extract_object_id_timestamp_s_returns_int() -> None:
 
 
 def test_extract_object_id_timestamp_s_wrong_length_raises() -> None:
-    with pytest.raises(ValueError, match="object_id must be a 24-character lowercase hex string"):
+    with pytest.raises(ValueError, match="24-character lowercase hex string"):
         extract_object_id_timestamp_s("too-short")
 
 
 def test_extract_object_id_timestamp_s_invalid_hex_raises() -> None:
-    with pytest.raises(ValueError, match="object_id must be a 24-character lowercase hex string"):
+    with pytest.raises(ValueError, match="24-character lowercase hex string"):
         extract_object_id_timestamp_s("z" * 24)
 
 
-def test_object_id_generator_is_tracked_for_forks() -> None:
-    generator = ObjectIdGenerator()
-    assert generator in fork._TRACKED
-
-
-def test_object_id_generator_reset_after_fork_regenerates_the_random_state_process_value() -> None:
-    generator = ObjectIdGenerator()
-    process_value, _counter, _lock = generator._process_value, generator._counter, generator._lock
-    generator._reset_after_fork()
-    assert generator._process_value != process_value  # 2**-40 chance of a false failure
-
-
-def test_object_id_generator_reset_after_fork_regenerates_the_random_state_counter() -> None:
-    generator = ObjectIdGenerator()
-    _process_value, counter, _lock = generator._process_value, generator._counter, generator._lock
-    generator._reset_after_fork()
-    assert generator._counter != counter  # 2**-24 chance of a false failure
-
-
-def test_object_id_generator_reset_after_fork_regenerates_the_random_state_lock() -> None:
-    generator = ObjectIdGenerator()
-    _process_value, _counter, lock = generator._process_value, generator._counter, generator._lock
-    generator._reset_after_fork()
-    assert generator._lock is not lock
-
-
-def test_object_id_generator_reset_after_fork_does_not_block_if_the_lock_was_held() -> None:
-    generator = ObjectIdGenerator()
-    generator._lock.acquire()  # held by a thread that does not exist in the child
-    generator._reset_after_fork()
-    assert len(generator.generate()) == 24
-
-
-def test_object_id_generator_after_fork_ids_use_the_new_process_value() -> None:
-    generator = ObjectIdGenerator()
-    before = generator.generate()
-    generator._reset_after_fork()
-    after = generator.generate()
-    assert before[8:18] != after[8:18]  # the 5-byte process value
-
-
-#####################################################
+###################################################
 #     Tests for the strict inputs and inverse     #
-#####################################################
-
-
-@pytest.mark.parametrize("timestamp", [True, 1.5, "1"])
-def test_object_id_generator_generate_timestamp_wrong_type_raises(timestamp: object) -> None:
-    with pytest.raises(TypeError, match="timestamp must be an int"):
-        ObjectIdGenerator().generate(timestamp)
+###################################################
 
 
 @pytest.mark.parametrize("object_id", [None, 123, b"65920a80aabbccddeeff0011"])
