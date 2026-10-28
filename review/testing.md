@@ -87,7 +87,7 @@ Not guaranteed, and documented as such:
 | F10 | **The laziness is a property that is not tested.** The module is lazy so that `import coola.testing.fixtures` does not import `torch` (**[verified]**: after the import `torch`, `jax` and `numpy` are not in `sys.modules`; the first access to `torch_mps_available` takes 1.2 s and imports `torch`). No test would fail if a future edit made the checks eager, and `tests/integration/test_lazy_imports.py` does not cover this module.                                                                                                                               | **[verified]** |
 | F11 | **The user guide is long and repeats itself.** 605 lines: ten near-identical sections (`### NumPy Markers`, `#### numpy_available`, `#### numpy_not_available`, ...) that differ only by the library name, then "Usage Examples" and "Common Use Cases" that repeat them, and a "Design Principles" list that duplicates the **Properties** table. It does not say that the marks are lazy, that the fixture is not thread-safe, that only six registries are isolated, or how the two `numpy_available` differ (F7).                                                      | **[reading]**  |
 | F12 | **The fixture docstring has no example that runs.** The doctest of `isolated_default_registries` only imports the fixture. The behaviour (the copy, the restore on error, the six registries) is in the docstring of `temporary_default_registries` and in a test file in `tests/integration/test_default_registries.py`; the fixture is tested by one unit test and two integration tests.                                                                                                                                                                                | **[reading]**  |
-| F13 | **Two `noqa: PLC0415`** (`_is_cuda_available`, `_is_mps_available`) exist because `coola.utils.tensor` imports `torch` at module level when it is installed, so importing it eagerly would defeat the laziness. They disappear if the table stores the probe as a lazy callable that imports the function (see section 3.1) or if the device marks are dropped (decision D3).                                                                                                                                                                                              | **[reading]**  |
+| F13 | **Two `noqa: PLC0415`** (`_is_cuda_available`, `_is_mps_available`) exist because `coola.utils.tensor` imports `torch` at module level when it is installed, so importing it eagerly would defeat the laziness. They disappear because the table stores the probe as a lazy callable that imports the function on first call (section 3.1); the device marks are kept (decision D3).                                                                                                                                                                                              | **[reading]**  |
 
 What is already right and must not regress: the lazy creation of the marks through a module
 `__getattr__` (PEP 562) with a cache; the pair built by one call (`requires`); the reasons that name
@@ -146,7 +146,9 @@ _DEPENDENCIES: dict[str, _Dependency] = {
     "colorlog": _Dependency(is_colorlog_available, "colorlog"),
     "jax": _Dependency(is_jax_available, "JAX"),
     ...
-    "torch_cuda": _Dependency(lambda: is_cuda_available(), "PyTorch with CUDA"),  # decision D3
+    "torch_cuda": _Dependency(lambda: is_cuda_available(), "PyTorch with CUDA"),  # device marks are kept (D3)
+    "torch_mps": _Dependency(lambda: is_mps_available(), "PyTorch with MPS"),
+    "torch_numpy": _Dependency(is_torch_numpy_available, "PyTorch with NumPy"),
 }
 
 
@@ -220,7 +222,7 @@ from coola.testing.marks import (
     numpy_available,
     numpy_not_available,  # one pair per dependency of the table
     # colorlog, jax, numpy, packaging, pandas, polars, pyarrow, pydantic, rich, torch,
-    # torch_cuda, torch_mps, torch_numpy (decision D3), xarray
+    # torch_cuda, torch_mps, torch_numpy, xarray
 )
 
 # in tests/conftest.py
@@ -267,7 +269,7 @@ One branch and one pull request per step (`CLAUDE.md`). The order keeps every st
 | 1    | **Fix the guides (F3, F11 first part).** `add_backend.md` step 4 describes the lazy table instead of the eager `requires(...)` line; the user guide gains the **Properties** of section 1 (lazy, agrees with the library, not thread-safe, six registries) and the note on the two `numpy_available` (F7). Documentation only.                                                                      | no                 |
 | 2    | **Simplify the marks (F3, F4, F5, F13).** One table, computed `__all__` and `__dir__`, the module `__getattr__` with the typed return, no annotations, no `plural`, singular names, no `PLC0415` helpers, an `AttributeError` that lists the valid names. Behaviour of every existing mark is unchanged (same skip conditions, reasons for the two-word names change). Tests rewritten (section 8). | `plural=` removed  |
 | 3    | **Rename the modules and load the fixture as a plugin (F1, F2).** `fixtures.py` becomes `marks.py`, `registries.py` becomes `fixtures.py`, the 93 imports are updated, the two `conftest.py` files become one `tests/conftest.py` with `pytest_plugins`, the docs directives and the status table are updated. No logic change: a pure move, reviewable with `git diff -M`.                         | yes (import paths) |
-| 4    | **Use the marks everywhere (F6).** Replace the three hand-written CUDA/MPS conditions by the marks; remove the `Mock` fallback if it becomes unused. Decision D3 settles which device marks remain.                                                                                                                                                                                                 | no                 |
+| 4    | **Use the marks everywhere (F6).** Replace the three hand-written CUDA/MPS conditions by the marks; remove the `Mock` fallback if it becomes unused. All three device marks (`torch_cuda_*`, `torch_mps_*`, `torch_numpy_*`) are kept (decision D3).                                                                                                                                                                                                 | no                 |
 | 5    | **Tests (F8, F9, F10, F12).** Replace the structural tests by the table-driven ones of section 8; add the `pytester` tests that run a test and check the outcome, the subprocess test of the laziness, and the integration test of the fixture through a real pytest run.                                                                                                                           | no                 |
 | 6    | **Documentation (F11).** Rewrite `uguide/testing.md` (about 150 lines: the table of marks, three short examples, the extension with `requires`, the fixture and `pytest_plugins`, the Properties), the package docstring, `refs/testing.md`, the migration page (`migration/v0.11_to_v1.0.md`: the two renamed modules, `plural`), and the status table of `review/suggestions.md`.                 | no                 |
 
@@ -331,11 +333,16 @@ _Dependency(lambda: True, "X"))`) instead of importing `torch`, `jax` and `panda
 
 ## 9. Decisions for the maintainers
 
+All seven decisions are settled (the answer is in bold under each one) and the sections above
+reflect them.
+
 **D1. Rename the two modules?** _Recommended: yes._ `marks.py` for the marks and `fixtures.py` for
 the fixture say what they contain; today the names are swapped (F1), and the user guide has to
 apologise for it. The cost is one `sed` over 93 files and two lines in the migration page, in a
 major release. Alternative: keep `fixtures` (marks) and `registries` (fixture); no churn, and the
 confusion stays for every new reader.
+
+**Decision: yes.** Rename `fixtures.py` to `marks.py` and `registries.py` to `fixtures.py` (step 3).
 
 **D2. How a suite gets the fixture.** _Recommended: `pytest_plugins = ["coola.testing.fixtures"]`
 in the top-level `conftest.py`, documented._ It is the supported mechanism, needs no `__all__`
@@ -347,21 +354,23 @@ fixture name to the sessions of projects that did not ask for it. Not recommende
 **not** autouse in any case: isolation costs a copy of six registries per test and most tests do not
 register anything.
 
-**D3. Keep the device marks (`torch_cuda_*`, `torch_mps_*`, `torch_numpy_*`)?** _Recommended: keep
-`torch_cuda_*` and `torch_mps_*`, drop `torch_numpy_*`._ The first two have a real use: three tests
-rebuild the condition by hand (F6) and the marks fix it (lazy, with the same probe as the library).
-`torch_numpy_*` has no user in the repository and its condition ("PyTorch can exchange data with
-the installed NumPy") is rare; a downstream suite that needs it writes
-`requires(is_torch_numpy_available(), "PyTorch and NumPy")`. Dropping it removes a table row, two
-names, and a plural reason. Alternative: keep all three (no behaviour loss, three rows). Alternative
-2: drop all device marks and let the three tests keep their `skipif`, but then the MPS probe (1.2 s
-at first access) is paid at the import of each of those test modules.
+**Decision: follow the recommendation.** `pytest_plugins` in the top-level `conftest.py`; no entry point, not autouse.
+
+**D3. Keep the device marks (`torch_cuda_*`, `torch_mps_*`, `torch_numpy_*`)?** Three options were
+considered: keep all three, keep `torch_cuda_*` and `torch_mps_*` and drop `torch_numpy_*` (no user
+in the repository; a downstream suite could write `requires(is_torch_numpy_available(), "PyTorch
+and NumPy")`), or drop all of them (the MPS probe, 1.2 s, would then be paid at the import of each
+test module that rebuilds the condition by hand).
+
+**Decision: keep all three.** `torch_numpy_*` stays in the table (one row, singular name "PyTorch with NumPy"); the three hand-written CUDA/MPS conditions are replaced by the marks (step 4).
 
 **D4. Keep the `*_not_available` marks?** _Recommended: yes._ They are the property "Paired marks",
 they cost nothing in the table (built by the same call), and a fallback path that is never tested is
 a fallback path that breaks. They are used by few files today, which says that the fallbacks are
 under-tested rather than that the marks are useless. Alternative: generate only the `_available`
 marks and document `requires` for the opposite; saves 14 names and weakens the guide.
+
+**Decision: yes.** Keep the `*_not_available` marks.
 
 **D5. Rename the marks to remove the clash with `coola.utils.imports` (F7)?** _Recommended: no,
 document and lint instead._ `numpy_available` reads well on a test, and the module that imports it
@@ -371,10 +380,14 @@ document and lint instead._ `numpy_available` reads well on a test, and the modu
 guide. Alternative: rename the marks `requires_numpy` / `without_numpy`, which makes the clash
 impossible but changes 93 files by hand-written names instead of a path.
 
+**Decision: no.** Keep the names; the clash is handled by the guide and the `banned-api` lint rule, as recommended.
+
 **D6. Catch the missing `pytest` with a friendly error?** _Recommended: no._ `import pytest` at the
 top of the module raises `ModuleNotFoundError: No module named 'pytest'`, which a test author
 understands at once; the package docstring and the guide name the `testing` extra. A wrapper that
 catches and re-raises is code for a message nobody needs.
+
+**Decision: no.** No friendly error for a missing `pytest`.
 
 **D7. A mark that evaluates at run time (`@pytest.mark.requires("numpy")` with a plugin hook)?**
 _Recommended: no._ It would be the shortest to extend (one dict, no `__getattr__`) and it moves the
@@ -382,6 +395,8 @@ check to the run phase, but it needs a plugin in every suite (the marks work wit
 loses the importable and greppable names, and changes 93 files in a way that is not mechanical for
 `pytestmark = [a, b]` and `pytest.param(marks=...)`. The module `__getattr__` costs 10 lines and
 keeps the property "Standard pytest".
+
+**Decision: no.** Keep the importable marks and the module `__getattr__`.
 
 ## 10. Not covered
 
