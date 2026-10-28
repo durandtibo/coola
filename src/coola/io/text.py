@@ -4,23 +4,18 @@ from __future__ import annotations
 
 __all__ = ["TextLoader", "TextSaver", "load_text", "save_text"]
 
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
 from coola.io.base import BaseFileSaver, BaseLoader
-from coola.utils.introspection import is_same_type
-from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
     import os
     from pathlib import Path
 
-T = TypeVar("T")
-
 DEFAULT_ENCODING = "utf-8"
 
 
-class TextLoader(InlineDisplayMixin, BaseLoader[str]):
+class TextLoader(BaseLoader[str]):
     r"""Implement a data loader to load data from a text file.
 
     Args:
@@ -54,18 +49,12 @@ class TextLoader(InlineDisplayMixin, BaseLoader[str]):
     def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding}
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        if not is_same_type(other, self):
-            return False
-        return self._encoding == other._encoding
-
-    def load(self, path: str | os.PathLike[str]) -> str:
-        path = sanitize_path(path, resolve=False)
+    def _load(self, path: Path) -> str:
         with path.open(encoding=self._encoding, newline="") as file:
             return file.read()
 
 
-class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
+class TextSaver(BaseFileSaver[str]):
     r"""Implement a file saver to save data to a text file.
 
     Args:
@@ -101,11 +90,6 @@ class TextSaver(InlineDisplayMixin, BaseFileSaver[str]):
 
     def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding}
-
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        if not is_same_type(other, self):
-            return False
-        return self._encoding == other._encoding
 
     def _save_file(self, to_save: str, path: Path) -> None:
         if not isinstance(to_save, str):

@@ -7,11 +7,7 @@ __all__ = ["JsonLoader", "JsonSaver", "load_json", "save_json"]
 import json
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
-from coola.equality import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
-from coola.utils.introspection import is_same_type
-from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
     import os
@@ -21,7 +17,7 @@ if TYPE_CHECKING:
 DEFAULT_ENCODING = "utf-8"
 
 
-class JsonLoader(InlineDisplayMixin, BaseLoader[Any]):
+class JsonLoader(BaseLoader[Any]):
     r"""Implement a data loader to load data in a JSON file.
 
     Args:
@@ -52,13 +48,7 @@ class JsonLoader(InlineDisplayMixin, BaseLoader[Any]):
     def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding}
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:  # noqa: ARG002
-        if not is_same_type(other, self):
-            return False
-        return self._encoding == other._encoding
-
-    def load(self, path: str | os.PathLike[str]) -> Any:
-        path = sanitize_path(path, resolve=False)
+    def _load(self, path: Path) -> Any:
         if self._encoding is None:
             with path.open(mode="rb") as file:
                 return json.load(file)
@@ -66,7 +56,7 @@ class JsonLoader(InlineDisplayMixin, BaseLoader[Any]):
             return json.load(file)
 
 
-class JsonSaver(InlineDisplayMixin, BaseFileSaver[Any]):
+class JsonSaver(BaseFileSaver[Any]):
     r"""Implement a file saver to save data with a JSON file.
 
     Args:
@@ -103,13 +93,6 @@ class JsonSaver(InlineDisplayMixin, BaseFileSaver[Any]):
 
     def _display_fields(self) -> dict[str, Any]:
         return {"encoding": self._encoding, **self._kwargs}
-
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:
-        if not is_same_type(other, self):
-            return False
-        return self._encoding == other._encoding and objects_are_equal(
-            self._kwargs, other._kwargs, equal_nan=equal_nan
-        )
 
     def _save_file(self, to_save: Any, path: Path) -> None:
         with path.open(mode="w", encoding=self._encoding) as file:
@@ -168,7 +151,7 @@ def save_json(
     ``json`` does not support.
 
     Args:
-        to_save: The data to write in a JSON file.
+        to_save: Anyhe data to write in a JSON file.
         path: The path where to write the JSON file. A ``str`` or any path-like object is converted to a ``Path``.
         encoding: The file encoding to use when writing the file.
             Defaults to ``"utf-8"``.

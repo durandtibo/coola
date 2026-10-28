@@ -39,7 +39,7 @@ def test_torch_loader_no_torch() -> None:
 
 @torch_available
 def test_torch_loader_repr() -> None:
-    assert repr(TorchLoader()) == "TorchLoader()"
+    assert repr(TorchLoader()) == "TorchLoader(weights_only=True)"
 
 
 @torch_available
@@ -49,7 +49,7 @@ def test_torch_loader_repr_with_kwargs() -> None:
 
 @torch_available
 def test_torch_loader_str() -> None:
-    assert str(TorchLoader()) == "TorchLoader()"
+    assert str(TorchLoader()) == "TorchLoader(weights_only=True)"
 
 
 @torch_available
@@ -283,7 +283,7 @@ def test_torch_loader_weights_only_explicit_true(tmp_path: Path) -> None:
 @torch_available
 def test_torch_loader_does_not_mutate_kwargs() -> None:
     loader = TorchLoader()
-    assert repr(loader) == "TorchLoader()"
+    assert repr(loader) == "TorchLoader(weights_only=True)"
 
 
 @torch_available

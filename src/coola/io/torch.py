@@ -6,12 +6,8 @@ __all__ = ["TorchLoader", "TorchSaver", "load_torch", "save_torch"]
 
 from typing import TYPE_CHECKING, Any
 
-from coola.display import InlineDisplayMixin
-from coola.equality import objects_are_equal
 from coola.io.base import BaseFileSaver, BaseLoader
 from coola.utils.imports import check_torch, is_torch_available
-from coola.utils.introspection import is_same_type
-from coola.utils.path import sanitize_path
 
 if TYPE_CHECKING:
     import os
@@ -21,13 +17,14 @@ if TYPE_CHECKING or is_torch_available():  # pragma: no cover
     import torch
 
 
-class TorchLoader(InlineDisplayMixin, BaseLoader[Any]):
+class TorchLoader(BaseLoader[Any]):
     r"""Implement a data loader to load data in a PyTorch file.
 
     Args:
+        weights_only: If ``True`` (the default), only tensors and
+            simple containers are loaded. Pass ``False`` only for
+            trusted files.
         **kwargs: Additional arguments passed to ``torch.load``.
-            ``weights_only`` defaults to ``True``; pass
-            ``weights_only=False`` only for trusted files.
 
     Security:
         Loading with ``weights_only=False`` can execute arbitrary code
@@ -49,29 +46,19 @@ class TorchLoader(InlineDisplayMixin, BaseLoader[Any]):
         ```
     """
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, *, weights_only: bool = True, **kwargs: Any) -> None:
         check_torch()
+        self._weights_only = weights_only
         self._kwargs = kwargs
 
     def _display_fields(self) -> dict[str, Any]:
-        return self._kwargs
+        return {"weights_only": self._weights_only, **self._kwargs}
 
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:
-        if not is_same_type(other, self):
-            return False
-        # Compare the arguments that ``load`` uses, so the default is not
-        # different from an explicit ``weights_only=True``.
-        return objects_are_equal(self._load_kwargs(), other._load_kwargs(), equal_nan=equal_nan)
-
-    def _load_kwargs(self) -> dict[str, Any]:
-        return {"weights_only": True, **self._kwargs}
-
-    def load(self, path: str | os.PathLike[str]) -> Any:
-        path = sanitize_path(path, resolve=False)
-        return torch.load(path, **self._load_kwargs())
+    def _load(self, path: Path) -> Any:
+        return torch.load(path, weights_only=self._weights_only, **self._kwargs)
 
 
-class TorchSaver(InlineDisplayMixin, BaseFileSaver[Any]):
+class TorchSaver(BaseFileSaver[Any]):
     r"""Implement a file saver to save data with a PyTorch file.
 
     Args:
@@ -99,11 +86,6 @@ class TorchSaver(InlineDisplayMixin, BaseFileSaver[Any]):
 
     def _display_fields(self) -> dict[str, Any]:
         return self._kwargs
-
-    def equal(self, other: Any, equal_nan: bool = False) -> bool:
-        if not is_same_type(other, self):
-            return False
-        return objects_are_equal(self._kwargs, other._kwargs, equal_nan=equal_nan)
 
     def _save_file(self, to_save: Any, path: Path) -> None:
         torch.save(to_save, path, **self._kwargs)
@@ -155,7 +137,7 @@ def save_torch(
     r"""Save the given data in a PyTorch file.
 
     Args:
-        to_save: The data to write in a PyTorch file.
+        to_save: Anyhe data to write in a PyTorch file.
         path: The path where to write the PyTorch file. A ``str`` or any path-like object is converted to a ``Path``.
         exist_ok: If ``exist_ok`` is ``False`` (the default),
             ``FileExistsError`` is raised if the target file
