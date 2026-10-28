@@ -249,7 +249,9 @@ This is useful when you want to preserve certain data types as strings in the fl
 
 Use `convert_to_jsonable()` to recursively convert a nested structure to JSON-compatible data.
 Dataclasses and pydantic models found at any depth are converted to dictionaries, and sets are
-converted to sorted lists:
+converted to sorted lists (the order does not depend on the iteration order of the set, so it is the
+same in every process). A dataclass is converted by the engine, field by field, like any other
+container, and a tuple stays a tuple:
 
 ```pycon
 >>> from dataclasses import dataclass
