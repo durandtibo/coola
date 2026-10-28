@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import contextlib
 from collections import OrderedDict, deque
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Any
 from unittest.mock import Mock
 
@@ -686,6 +689,182 @@ def test_from_flat_dict_restore_lists_is_keyword_only() -> None:
         from_flat_dict({"a.0": 1}, ".", True)
 
 
+@dataclass
+class Node:
+    name: str
+    children: list
+
+
+@dataclass
+class Empty:
+    pass
+
+
+def test_to_flat_dict_enters_the_dataclass() -> None:
+    assert to_flat_dict({"x": Node("n", [1, {"k": 2}])}) == {
+        "x.name": "n",
+        "x.children.0": 1,
+        "x.children.1.k": 2,
+    }
+
+
+def test_to_flat_dict_root_dataclass() -> None:
+    assert to_flat_dict(Node("n", [1])) == {"name": "n", "children.0": 1}
+
+
+def test_to_flat_dict_empty_dataclass_is_kept() -> None:
+    assert to_flat_dict({"x": Empty()}) == {"x": Empty()}
+
+
+def test_to_flat_dict_dataclass_class_is_a_leaf() -> None:
+    assert to_flat_dict({"x": Node}) == {"x": Node}
+
+
+def test_to_flat_dict_dataclass_in_to_str() -> None:
+    assert to_flat_dict({"x": Empty()}, to_str=Empty) == {"x": str(Empty())}
+
+
+def test_to_flat_dict_dataclass_in_a_cycle_raises() -> None:
+    node = Node("n", [])
+    node.children.append(node)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        to_flat_dict(node)
+
+
+def test_to_flat_dict_set_is_a_leaf() -> None:
+    assert to_flat_dict({"a": {1, 2}}) == {"a": {1, 2}}
+
+
+def test_to_flat_dict_frozenset_is_a_leaf() -> None:
+    assert to_flat_dict({"a": frozenset({1})}) == {"a": frozenset({1})}
+
+
+def test_to_flat_dict_set_in_a_dataclass_is_a_leaf() -> None:
+    assert to_flat_dict(Node("n", [{1}])) == {"name": "n", "children.0": {1}}
+
+
+def test_to_flat_dict_shared_container_has_its_entries_twice() -> None:
+    shared = [1]
+    assert to_flat_dict([shared, shared]) == {"0.0": 1, "1.0": 1}
+
+
+def test_to_flat_dict_empty_containers_whole_output() -> None:
+    assert to_flat_dict({"a": {}, "b": [], "c": (), "d": [1, {}]}) == {
+        "a": {},
+        "b": [],
+        "c": (),
+        "d.0": 1,
+        "d.1": {},
+    }
+
+
+def test_to_flat_dict_empty_root_is_empty() -> None:
+    assert to_flat_dict({}) == {}
+
+
+def test_to_flat_dict_empty_root_with_prefix() -> None:
+    assert to_flat_dict([], prefix="p") == {"p": []}
+
+
+def test_to_flat_dict_root_leaf_with_prefix() -> None:
+    assert to_flat_dict(42, prefix="p") == {"p": 42}
+
+
+def test_to_flat_dict_root_leaf_without_prefix_raises() -> None:
+    with pytest.raises(ValueError, match="Provide a non-None prefix"):
+        to_flat_dict(42)
+
+
+def test_to_flat_dict_root_to_str_without_prefix_raises() -> None:
+    with pytest.raises(ValueError, match="matched by to_str"):
+        to_flat_dict([1], to_str=list)
+
+
+def test_to_flat_dict_root_to_str_with_prefix() -> None:
+    assert to_flat_dict([1], prefix="p", to_str=list) == {"p": "[1]"}
+
+
+def test_to_flat_dict_prefix_is_used_as_it_is() -> None:
+    assert to_flat_dict({"a": 1}, prefix="") == {".a": 1}
+
+
+def test_to_flat_dict_range_is_a_leaf() -> None:
+    assert to_flat_dict({"a": range(2)}) == {"a": range(2)}
+
+
+def test_to_flat_dict_iterator_is_a_leaf() -> None:
+    iterator = iter([1])
+    assert to_flat_dict({"a": iterator}) == {"a": iterator}
+
+
+def test_to_flat_dict_str_bytes_are_leaves() -> None:
+    assert to_flat_dict({"a": "xy", "b": b"xy"}) == {"a": "xy", "b": b"xy"}
+
+
+def test_to_flat_dict_mapping_proxy() -> None:
+    assert to_flat_dict(MappingProxyType({"a": [1]})) == {"a.0": 1}
+
+
+def test_to_flat_dict_named_tuple_and_deque() -> None:
+    assert to_flat_dict({"a": deque([1, 2])}) == {"a.0": 1, "a.1": 2}
+
+
+def test_to_flat_dict_to_str_abstract_type_covers_the_registered_subclasses() -> None:
+    assert to_flat_dict([{"b": 1}, [1]], to_str=Mapping) == {"0": "{'b': 1}", "1.0": 1}
+
+
+def test_to_flat_dict_to_str_abstract_sequence_type() -> None:
+    assert to_flat_dict({"a": (1, 2), "b": [3]}, to_str=Sequence) == {"a": "(1, 2)", "b": "[3]"}
+
+
+def test_to_flat_dict_to_str_subclass_of_a_registered_type() -> None:
+    assert to_flat_dict([OrderedDict(b=1)], to_str=dict) == {"0": "OrderedDict({'b': 1})"}
+
+
+def test_to_flat_dict_to_str_scalar_type() -> None:
+    assert to_flat_dict({"a": 1, "b": "x"}, to_str=int) == {"a": "1", "b": "x"}
+
+
+def test_to_flat_dict_to_str_tuple_of_types() -> None:
+    assert to_flat_dict({"a": [1], "b": (2,)}, to_str=(list, tuple)) == {"a": "[1]", "b": "(2,)"}
+
+
+def test_to_flat_dict_to_str_does_not_change_the_default_registry() -> None:
+    to_flat_dict({"a": [1]}, to_str=list)
+    assert to_flat_dict({"a": [1]}) == {"a.0": 1}
+
+
+def test_to_flat_dict_non_str_keys_are_written_with_str() -> None:
+    assert to_flat_dict({1: {(2, 3): "x"}}) == {"1.(2, 3)": "x"}
+
+
+def test_to_flat_dict_escape_applies_to_the_dataclass_fields_and_keys() -> None:
+    assert to_flat_dict({"a.b": Node("n", [])}, escape=True) == {
+        "a\\.b.name": "n",
+        "a\\.b.children": [],
+    }
+
+
 def test_to_flat_dict_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
         to_flat_dict({"a": 1}, "p")
+
+
+def test_to_flat_dict_deep_structure_does_not_raise() -> None:
+    data: Any = 1
+    for _ in range(20_000):
+        data = {"a": data}
+    assert to_flat_dict(data) == {".".join(["a"] * 20_000): 1}
+
+
+def test_to_flat_dict_deep_list_structure_does_not_raise() -> None:
+    data: Any = 1
+    for _ in range(20_000):
+        data = [data]
+    assert to_flat_dict(data) == {".".join(["0"] * 20_000): 1}
+
+
+def test_to_flat_dict_does_not_modify_the_input() -> None:
+    data = {"a": [1, {"b": 2}], "c": Node("n", [3])}
+    to_flat_dict(data)
+    assert data == {"a": [1, {"b": 2}], "c": Node("n", [3])}

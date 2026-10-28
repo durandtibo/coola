@@ -38,3 +38,19 @@ def test_mapping_child_finder_find_children_does_not_modify_the_data() -> None:
     data = {"a": [1]}
     list(MappingChildFinder().find_children(data))
     assert data == {"a": [1]}
+
+
+def test_mapping_child_finder_find_items() -> None:
+    assert list(MappingChildFinder().find_items({"a": 1, "b": 2})) == [("a", 1), ("b", 2)]
+
+
+def test_mapping_child_finder_find_items_keeps_non_str_keys() -> None:
+    assert list(MappingChildFinder().find_items({1: "a", (2, 3): "b"})) == [(1, "a"), ((2, 3), "b")]
+
+
+def test_mapping_child_finder_find_items_empty() -> None:
+    assert list(MappingChildFinder().find_items({})) == []
+
+
+def test_mapping_child_finder_find_items_mapping_proxy() -> None:
+    assert list(MappingChildFinder().find_items(MappingProxyType({"a": 1}))) == [("a", 1)]

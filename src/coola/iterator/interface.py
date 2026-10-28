@@ -5,6 +5,7 @@ from __future__ import annotations
 
 __all__ = [
     "bfs_iterate",
+    "dfs_items",
     "dfs_iterate",
     "get_default_child_finder_registry",
     "get_default_registry",
@@ -19,7 +20,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.iterator.dataclass import DataclassChildFinder
 from coola.iterator.default import DefaultChildFinder
-from coola.iterator.engine import breadth_first, depth_first
+from coola.iterator.engine import breadth_first, depth_first, depth_first_items
 from coola.iterator.iterable import IterableChildFinder
 from coola.iterator.mapping import MappingChildFinder
 from coola.iterator.registry import ChildFinderRegistry
@@ -69,6 +70,55 @@ def dfs_iterate(data: object, *, registry: ChildFinderRegistry | None = None) ->
     if registry is None:
         registry = get_default_registry()
     return depth_first(data, registry)
+
+
+def dfs_items(
+    data: object, *, registry: ChildFinderRegistry | None = None, empty: bool = False
+) -> Iterator[tuple[tuple[Any, ...], Any]]:
+    """Iterate over the leaves of nested data with their path, in depth-
+    first order.
+
+    It yields the leaves of ``dfs_iterate`` in the same order, each
+    with its path: the tuple of the labels of the containers crossed
+    to reach it. The label of a child is given by the ``find_items``
+    method of its container's child finder: the key of a mapping, the
+    index of a sequence, the name of the field of a dataclass, the
+    element itself for a set. The labels are raw (a key is not
+    converted to ``str``). The root being a leaf gives the empty path.
+
+    The function is a generator and uses an explicit stack, so there
+    is no limit on the depth of the data.
+
+    Args:
+        data: The nested data to traverse.
+        registry: The registry used to resolve the child finders. If
+            ``None``, the default registry is used.
+        empty: If ``True``, an empty container is also yielded, as a
+            leaf (``(path, container)``). By default an empty
+            container yields nothing.
+
+    Yields:
+        The pairs ``(path, leaf)`` of ``data`` in depth-first order.
+
+    Raises:
+        ValueError: If a container contains itself, when the traversal
+            reaches it (the leaves before it are already yielded).
+
+    Example:
+        ```pycon
+        >>> from coola.iterator import dfs_items
+        >>> list(dfs_items({"a": 1, "b": [2, {"c": 3}]}))
+        [(('a',), 1), (('b', 0), 2), (('b', 1, 'c'), 3)]
+        >>> list(dfs_items({"a": {}}))
+        []
+        >>> list(dfs_items({"a": {}}, empty=True))
+        [(('a',), {})]
+
+        ```
+    """
+    if registry is None:
+        registry = get_default_registry()
+    return depth_first_items(data, registry, empty=empty)
 
 
 def bfs_iterate(data: object, *, registry: ChildFinderRegistry | None = None) -> Iterator[Any]:
