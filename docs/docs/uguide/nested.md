@@ -69,7 +69,9 @@ dictionaries (rows):
 This is useful when you have columnar data and need to process it row-by-row, or when interfacing
 with APIs that expect row-oriented data.
 
-**Important:** All sequences in the dictionary should have the same length.
+**Important:** All sequences in the dictionary should have the same length. A value must be a `Sequence`: a `str`, a set
+(its elements have no position) or a generator raises a `TypeError` that names the type.
+`convert_to_dict_of_lists()` accepts any iterable of mappings, a generator included.
 
 ### Round-Trip Conversion
 
@@ -322,18 +324,29 @@ coola.nested.mapping.DuplicateKeyError: Duplicate key found: 'a'
 
 Use `equal_nan=True` to consider two `NaN` values equal when the duplicate keys are compared.
 
+With `"suffix"`, a generated key never takes the name of a key of an input mapping, whatever the
+position of its mapping, so the result does not depend on the order of the mappings:
+
+```pycon
+>>> from coola.nested import merge_mappings
+>>> merge_mappings([{"a": 1}, {"a": 2}, {"a_1": 3}], on_duplicate="suffix")
+{'a': 1, 'a_2': 2, 'a_1': 3}
+
+```
+
 ### Flattening a Mapping of Mappings
 
 Use `flatten_mapping()` to flatten a mapping whose values are mappings (for example, the metrics of
 several splits) into a single dictionary. `on_duplicate` takes `"raise"` (default), `"first"`,
 `"last"` or `"prefix"`. With `"prefix"`, all the values are kept and the duplicated keys are renamed
-`<outer key><separator><inner key>`. Use `always_prefix=True` to rename every key:
+`<outer key><separator><inner key>`, in place: the output follows the order of the input. Use
+`always_prefix=True` to rename every key:
 
 ```pycon
 >>> from coola.nested import flatten_mapping
 >>> metrics = {"train": {"loss": 1, "acc": 2}, "val": {"loss": 3}}
 >>> flatten_mapping(metrics, on_duplicate="prefix")
-{'acc': 2, 'train.loss': 1, 'val.loss': 3}
+{'train.loss': 1, 'acc': 2, 'val.loss': 3}
 >>> flatten_mapping(metrics, always_prefix=True, separator="/")
 {'train/loss': 1, 'train/acc': 2, 'val/loss': 3}
 >>> flatten_mapping(metrics, on_duplicate="last")
