@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import threading
+from collections import deque
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import PurePosixPath
@@ -293,6 +294,60 @@ def test_convert_to_jsonable_set_in_a_set_of_frozensets() -> None:
 def test_convert_to_jsonable_does_not_modify_the_default_registry() -> None:
     convert_to_jsonable({1})
     assert recursive_apply({1}, str) == {"1"}
+
+
+def test_convert_to_list_of_dicts_set_value_raises() -> None:
+    with pytest.raises(TypeError, match="must be a sequence of items, not a set"):
+        convert_to_list_of_dicts({"a": {1, 2}})
+
+
+def test_convert_to_list_of_dicts_frozenset_value_raises() -> None:
+    with pytest.raises(TypeError, match="not a frozenset"):
+        convert_to_list_of_dicts({"a": frozenset({1})})
+
+
+def test_convert_to_list_of_dicts_generator_value_raises_a_type_error_with_the_type() -> None:
+    with pytest.raises(TypeError, match="not a generator"):
+        convert_to_list_of_dicts({"a": (i for i in range(2))})
+
+
+def test_convert_to_list_of_dicts_iterator_value_raises() -> None:
+    with pytest.raises(TypeError, match="not a list_iterator"):
+        convert_to_list_of_dicts({"a": iter([1])})
+
+
+def test_convert_to_list_of_dicts_names_the_key() -> None:
+    with pytest.raises(TypeError, match="value of 'b'"):
+        convert_to_list_of_dicts({"a": [1], "b": {1}})
+
+
+@pytest.mark.parametrize("value", [(1, 2), range(2), deque([1, 2])])
+def test_convert_to_list_of_dicts_accepts_a_sequence(value: object) -> None:
+    assert convert_to_list_of_dicts({"a": value}) == [{"a": value[0]}, {"a": value[1]}]
+
+
+def test_convert_to_dict_of_lists_accepts_a_generator() -> None:
+    assert convert_to_dict_of_lists({"a": i, "b": i * 2} for i in range(3)) == {
+        "a": [0, 1, 2],
+        "b": [0, 2, 4],
+    }
+
+
+def test_convert_to_dict_of_lists_accepts_an_iterator() -> None:
+    assert convert_to_dict_of_lists(iter([{"a": 1}, {"a": 2}])) == {"a": [1, 2]}
+
+
+def test_convert_to_dict_of_lists_empty_generator() -> None:
+    assert convert_to_dict_of_lists(x for x in []) == {}
+
+
+def test_convert_to_dict_of_lists_generator_with_different_keys_raises() -> None:
+    with pytest.raises(ValueError, match="same keys"):
+        convert_to_dict_of_lists(d for d in [{"a": 1}, {"b": 2}])
+
+
+def test_convert_to_dict_of_lists_keeps_the_order_of_the_first_mapping() -> None:
+    assert list(convert_to_dict_of_lists([{"b": 1, "a": 2}, {"a": 3, "b": 4}])) == ["b", "a"]
 
 
 #######################################################

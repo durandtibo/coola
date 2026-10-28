@@ -9,6 +9,7 @@ __all__ = [
 ]
 
 import dataclasses
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
@@ -20,21 +21,23 @@ from coola.recursive import (
 from coola.utils.conversion import to_jsonable
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence, Set as AbstractSet
+    from collections.abc import Iterable, Mapping, Set as AbstractSet
 
     from coola.recursive.base import Expansion
 
 
 def convert_to_dict_of_lists(
-    seq_of_mappings: Sequence[Mapping[Any, Any]],
+    seq_of_mappings: Iterable[Mapping[Any, Any]],
 ) -> dict[Any, list[Any]]:
-    r"""Convert a sequence of mappings to a dictionary of lists.
+    r"""Convert an iterable of mappings to a dictionary of lists.
 
-    All the mappings must have the same keys as the first mapping in
-    the sequence, which is used to find the keys.
+    All the mappings must have the same keys as the first mapping,
+    which is used to find the keys. The order of the keys is the one of
+    the first mapping. An iterable that is not a sequence (a generator)
+    is consumed once.
 
     Args:
-        seq_of_mappings: The sequence of mappings to convert.
+        seq_of_mappings: The iterable of mappings to convert.
 
     Returns:
         A dictionary of lists.
@@ -53,6 +56,7 @@ def convert_to_dict_of_lists(
 
         ```
     """
+    seq_of_mappings = list(seq_of_mappings)
     if not seq_of_mappings:
         return {}
     keys = set(seq_of_mappings[0])
@@ -73,7 +77,10 @@ def convert_to_list_of_dicts(
     r"""Convert a mapping of sequences to a list of dictionaries.
 
     All the sequences must have the same length. A string (or bytes) is
-    not accepted as a sequence, because it would be split per character.
+    not accepted as a sequence, because it would be split per character,
+    and a set is not accepted either, because its elements have no
+    position (the rows of several sets would be paired in an arbitrary
+    order). A value must be a ``Sequence`` (a generator is not one).
     An empty mapping gives an empty list, so a list of empty
     dictionaries (``[{}, {}]``) does not round trip with
     ``convert_to_dict_of_lists``.
@@ -85,7 +92,8 @@ def convert_to_list_of_dicts(
         A list of dictionaries.
 
     Raises:
-        TypeError: If a value is a ``str``, ``bytes`` or ``bytearray``.
+        TypeError: If a value is a ``str``, ``bytes`` or ``bytearray``,
+            a set, or is not a ``Sequence``.
         ValueError: If the sequences do not all have the same length.
 
     Example:
@@ -97,7 +105,7 @@ def convert_to_list_of_dicts(
         ```
     """
     for key, seq in mapping_of_seqs.items():
-        if isinstance(seq, (str, bytes, bytearray)):
+        if isinstance(seq, (str, bytes, bytearray)) or not isinstance(seq, Sequence):
             msg = f"The value of {key!r} must be a sequence of items, not a {type(seq).__name__}"
             raise TypeError(msg)
     lengths = {key: len(seq) for key, seq in mapping_of_seqs.items()}

@@ -408,10 +408,13 @@ def test_merge_mappings_suffix_does_not_overwrite_existing_key() -> None:
     assert result == {"a": 1, "a_1": 10, "a_2": 2}
 
 
-def test_merge_mappings_suffix_key_colliding_with_later_key_raises() -> None:
-    # The suffixed duplicate "a_1" collides with the original key "a_1" of the third mapping.
-    with pytest.raises(DuplicateKeyError, match="collides"):
-        merge_mappings([{"a": 1}, {"a": 2}, {"a_1": 3}], on_duplicate="suffix")
+def test_merge_mappings_suffix_input_key_equal_to_a_generated_key_is_kept() -> None:
+    # The suffixed duplicate "a_1" would collide with the input key "a_1" of the third mapping.
+    assert merge_mappings([{"a": 1}, {"a": 2}, {"a_1": 3}], on_duplicate="suffix") == {
+        "a": 1,
+        "a_2": 2,
+        "a_1": 3,
+    }
 
 
 def test_merge_mappings_suffix_compares_with_all_kept_values() -> None:
@@ -480,6 +483,80 @@ def test_flatten_mapping_value_that_is_not_a_mapping_names_the_type() -> None:
 def test_flatten_mapping_value_that_is_not_a_mapping_raises_with_always_prefix() -> None:
     with pytest.raises(TypeError, match="must be an instance of"):
         flatten_mapping({"a": None}, always_prefix=True)
+
+
+@pytest.mark.parametrize(
+    "mappings",
+    [
+        [{"a": 1}, {"a": 2}, {"a_1": 3}],
+        [{"a": 1}, {"a_1": 3}, {"a": 2}],
+        [{"a_1": 3}, {"a": 1}, {"a": 2}],
+    ],
+)
+def test_merge_mappings_suffix_has_the_same_entries_for_every_order(mappings: list) -> None:
+    result = merge_mappings(mappings, on_duplicate="suffix")
+    assert sorted(result.items()) == [("a", 1), ("a_1", 3), ("a_2", 2)]
+
+
+def test_merge_mappings_suffix_input_key_first_whole_output() -> None:
+    assert merge_mappings([{"a_1": 3}, {"a": 1}, {"a": 2}], on_duplicate="suffix") == {
+        "a_1": 3,
+        "a": 1,
+        "a_2": 2,
+    }
+
+
+def test_merge_mappings_suffix_skips_several_input_keys() -> None:
+    mappings = [{"a": 1}, {"a": 2}, {"a": 3}, {"a_1": 4, "a_2": 5}]
+    assert merge_mappings(mappings, on_duplicate="suffix") == {
+        "a": 1,
+        "a_3": 2,
+        "a_4": 3,
+        "a_1": 4,
+        "a_2": 5,
+    }
+
+
+def test_merge_mappings_accepts_a_generator() -> None:
+    assert merge_mappings(({"a": i} for i in range(1)), on_duplicate="suffix") == {"a": 0}
+
+
+def test_merge_mappings_generator_with_suffix_sees_the_later_keys() -> None:
+    mappings = ({k: v} for k, v in [("a", 1), ("a", 2), ("a_1", 3)])
+    assert merge_mappings(mappings, on_duplicate="suffix") == {"a": 1, "a_2": 2, "a_1": 3}
+
+
+def test_merge_mappings_keeps_the_order_of_the_input() -> None:
+    assert list(merge_mappings([{"c": 1, "a": 2}, {"b": 3}])) == ["c", "a", "b"]
+
+
+def test_flatten_mapping_prefix_keeps_the_order_of_the_input() -> None:
+    metrics = {"train": {"loss": 1}, "val": {"acc": 2, "loss": 3}}
+    assert list(flatten_mapping(metrics, on_duplicate="prefix")) == [
+        "train.loss",
+        "acc",
+        "val.loss",
+    ]
+
+
+def test_flatten_mapping_prefix_whole_output_of_the_guide_example() -> None:
+    metrics = {"train": {"loss": 1, "acc": 2}, "val": {"loss": 3}}
+    assert flatten_mapping(metrics, on_duplicate="prefix") == {
+        "train.loss": 1,
+        "acc": 2,
+        "val.loss": 3,
+    }
+
+
+def test_flatten_mapping_prefix_renamed_key_collides_with_an_existing_key() -> None:
+    mapping = {"a": {"x": 1}, "c": {"a.x": 5}, "b": {"x": 2}}
+    with pytest.raises(DuplicateKeyError, match="collides"):
+        flatten_mapping(mapping, on_duplicate="prefix")
+
+
+def test_flatten_mapping_last_keeps_the_position_of_the_first_occurrence() -> None:
+    mapping = {"a": {"x": 1, "y": 2}, "b": {"x": 3}}
+    assert list(flatten_mapping(mapping, on_duplicate="last").items()) == [("x", 3), ("y", 2)]
 
 
 def test_flatten_mapping_options_are_keyword_only() -> None:
