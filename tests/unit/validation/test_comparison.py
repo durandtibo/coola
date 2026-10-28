@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date
+
 import pytest
 
 from coola.validation import (
@@ -185,12 +187,12 @@ def test_validate_comparison_rejects_nan(validate: object) -> None:
 
 @pytest.mark.parametrize("value", [None, "a"])
 def test_validate_non_negative_not_a_number_raises(value: object) -> None:
-    with pytest.raises(TypeError, match="can be compared"):
+    with pytest.raises(TypeError, match="value cannot be compared with 0, got"):
         validate_non_negative(value)
 
 
 def test_validate_non_negative_list_raises() -> None:
-    with pytest.raises(TypeError, match="can be compared"):
+    with pytest.raises(TypeError, match="value cannot be compared with 0, got"):
         validate_non_negative([1, 2])
 
 
@@ -224,7 +226,7 @@ def test_validate_open_range_nan() -> None:
 
 
 def test_validate_open_range_none() -> None:
-    with pytest.raises(TypeError, match="value must be a number that can be compared"):
+    with pytest.raises(TypeError, match="value cannot be compared with 0 and 1, got None"):
         validate_open_range(None, 0, 1)
 
 
@@ -261,7 +263,7 @@ def test_validate_closed_range_nan() -> None:
 
 
 def test_validate_closed_range_none() -> None:
-    with pytest.raises(TypeError, match="value must be a number that can be compared"):
+    with pytest.raises(TypeError, match="value cannot be compared with 0 and 1, got None"):
         validate_closed_range(None, 0, 1)
 
 
@@ -294,5 +296,37 @@ def test_validate_half_open_range_nan() -> None:
 
 
 def test_validate_half_open_range_none() -> None:
-    with pytest.raises(TypeError, match="value must be a number that can be compared"):
+    with pytest.raises(TypeError, match="value cannot be compared with 0 and 1, got None"):
         validate_half_open_range(None, 0, 1)
+
+
+def test_validate_ge_message_shows_the_value_with_repr() -> None:
+    with pytest.raises(ValueError, match=r"^value must be greater than or equal to 'b', got 'a'$"):
+        validate_ge("a", "b")
+
+
+def test_validate_ge_incomparable_message() -> None:
+    with pytest.raises(TypeError, match=r"^value cannot be compared with 0, got None$"):
+        validate_ge(None, 0)
+
+
+def test_validate_ge_incomparable_keeps_the_cause() -> None:
+    with pytest.raises(TypeError) as exc_info:
+        validate_ge(None, 0)
+    assert isinstance(exc_info.value.__cause__, TypeError)
+
+
+def test_validate_ge_accepts_dates() -> None:
+    validate_ge(date(2024, 1, 1), date(2020, 1, 1))
+
+
+def test_validate_ge_nan_raises() -> None:
+    with pytest.raises(ValueError, match=r"^value must be greater than or equal to 0, got nan$"):
+        validate_ge(float("nan"), 0)
+
+
+def test_validate_closed_range_message_shows_the_bounds_with_repr() -> None:
+    with pytest.raises(
+        ValueError, match=r"^value must be in the closed range \['a', 'c'\], got 'd'$"
+    ):
+        validate_closed_range("d", "a", "c")

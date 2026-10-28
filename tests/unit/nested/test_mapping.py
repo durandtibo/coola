@@ -476,7 +476,7 @@ def test_flatten_mapping_value_that_is_not_a_mapping_raises() -> None:
 
 
 def test_flatten_mapping_value_that_is_not_a_mapping_names_the_type() -> None:
-    with pytest.raises(TypeError, match=r"got <class 'list'>"):
+    with pytest.raises(TypeError, match=r"got list"):
         flatten_mapping({"a": {"x": 1}, "b": [1, 2]})
 
 
