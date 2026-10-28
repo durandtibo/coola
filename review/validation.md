@@ -454,7 +454,7 @@ behaviour (sections 1 and 8), not the size.
 | 4    | Delete the synonyms, delete `numeric.py` | #2558 |
 | 5    | Use the package where checks were copied | #2559 |
 | 6    | Tests and benchmark, fast success path   | #2560 |
-| 7    | Documentation                            | this PR |
+| 7    | Documentation                            | #2561 |
 
 Differences from the design that the implementation found: the package has 11 functions, not 14
 (the design counted 14 in its text, its table lists 11); the migration section is in
