@@ -46,8 +46,8 @@ def _short_name(name: str) -> str:
     r"""Return ``name``, or a short stable name if ``name`` is too long.
 
     The short name is a hash of ``name`` followed by its extension, so
-    the names derived from it (temporary file) stay below the
-    filesystem limit for any legal target name.
+    the names derived from it (temporary file) stay below the filesystem
+    limit for any legal target name.
     """
     if len(name.encode()) <= _MAX_DERIVED_NAME_BYTES:
         return name

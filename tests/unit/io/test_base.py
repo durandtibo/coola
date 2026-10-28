@@ -229,7 +229,8 @@ def test_resolve_saver_not_allowed_prefixes() -> None:
 
 
 class PathTypeLoader(BaseLoader[type]):
-    r"""A loader that returns the type of the path given to ``_load``."""
+    r"""A loader that returns the type of the path given to
+    ``_load``."""
 
     def _load(self, path: Path) -> type:
         return type(path)

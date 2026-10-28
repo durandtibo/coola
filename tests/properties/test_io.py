@@ -1,5 +1,5 @@
-r"""Property-based tests of ``coola.io``: the round trips of the formats,
-and a failed save leaves the directory as it was."""
+r"""Property-based tests of ``coola.io``: the round trips of the
+formats, and a failed save leaves the directory as it was."""
 
 from __future__ import annotations
 
