@@ -264,6 +264,17 @@ invariants: the transformer lookup (by MRO, cached for the call), the call of `f
 the cycle check and the depth (an explicit stack, so there is no `RecursionError`). This is the same
 split as the equality engine, where a tester returns the child pairs.
 
+### Nested
+
+`coola.nested` has no traversal of its own: a function that goes inside the values uses the engine of
+`recursive` (or the path iterator `dfs_items` of `iterator`) and describes one type, and a function
+that works on the top level only is a plain loop. The key functions (`remove_keys_*`,
+`add_prefix_suffix_to_keys`) use one private transformer for the mappings, registered in a copy of
+the default registry; `convert_to_jsonable` adds a transformer for the sets (a sorted list) and one
+for the dataclasses (a `dict`); `to_flat_dict` joins the paths of `dfs_items`; `from_flat_dict`
+builds its result with a private `dict` subclass and one final `recursive_apply`. The containers,
+the cycle check and the depth are therefore the ones of the other packages.
+
 ### Summary
 
 `summarize` uses one engine (`coola.summary.engine`), one extension point and one option object
