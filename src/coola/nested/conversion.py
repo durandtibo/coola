@@ -6,7 +6,6 @@ __all__ = [
     "convert_to_dict_of_lists",
     "convert_to_jsonable",
     "convert_to_list_of_dicts",
-    "try_sorted_list",
 ]
 
 import dataclasses
@@ -15,7 +14,6 @@ from typing import TYPE_CHECKING, Any
 from coola.display import InlineDisplayMixin
 from coola.recursive import (
     BaseTransformer,
-    DefaultTransformer,
     get_default_registry,
     recursive_apply,
 )
@@ -117,12 +115,17 @@ def convert_to_jsonable(data: Any) -> Any:
     representation.
 
     This function walks through nested containers (e.g. ``list``,
-    ``tuple``, ``dict``) and applies ``coola.utils.conversion.to_jsonable``
-    to every object, converting ``pydantic.BaseModel`` and dataclass
-    objects found at any depth (see ``to_jsonable`` for the supported
-    types and the limits: keys are not converted, ``NaN`` is kept).
-    Sets are converted to sorted lists. Use ``to_jsonable`` directly if
-    the data is a single, non-nested object.
+    ``tuple``, ``dict``) with the engine of ``coola.recursive`` and
+    applies ``coola.utils.conversion.to_jsonable`` to every leaf,
+    converting ``pydantic.BaseModel`` objects found at any depth (see
+    ``to_jsonable`` for the supported types and the limits: keys are
+    not converted, ``NaN`` is kept). A dataclass is converted to a
+    ``dict`` field by field, like any other container, so its fields
+    get the same treatment as everything else. A tuple stays a tuple.
+    Sets are converted to sorted lists; the sort does not depend on the
+    iteration order of the set, so the output is the same in every
+    process. Use ``to_jsonable`` directly if the data is a single,
+    non-nested object.
 
     The contract is "accepted by the Python ``json`` module", not
     "strict JSON": the keys of the dictionaries are not converted
@@ -139,6 +142,9 @@ def convert_to_jsonable(data: Any) -> Any:
     Returns:
         The converted data, with the same structure as the input.
 
+    Raises:
+        ValueError: If a container contains itself.
+
     Example:
         ```pycon
         >>> from dataclasses import dataclass
@@ -154,48 +160,64 @@ def convert_to_jsonable(data: Any) -> Any:
         ```
     """
     registry = get_default_registry().copy()
-    # A dataclass is converted whole by ``to_jsonable``, it is not entered.
-    registry.register_fallback(dataclasses.is_dataclass, DefaultTransformer(), exist_ok=True)
-    transformer = SetToListTransformer()
+    registry.register_fallback(
+        dataclasses.is_dataclass, _DataclassToDictTransformer(), exist_ok=True
+    )
+    transformer = _SetToListTransformer()
     registry.register(set, transformer, exist_ok=True)
     registry.register(frozenset, transformer, exist_ok=True)
     return recursive_apply(data, to_jsonable, registry=registry)
 
 
-class SetToListTransformer(InlineDisplayMixin, BaseTransformer["AbstractSet[Any]"]):
+class _DataclassToDictTransformer(InlineDisplayMixin, BaseTransformer[Any]):
+    r"""Transformer for dataclass instances that rebuilds a ``dict``.
+
+    The values of the fields are the children, so they are converted
+    like the other values, and the converted values are collected in a
+    ``dict`` that maps the names of the fields to them.
+    """
+
+    def expand(self, data: Any) -> Expansion | None:
+        names = [field.name for field in dataclasses.fields(data)]
+        return [getattr(data, name) for name in names], lambda items: dict(
+            zip(names, items, strict=True)
+        )
+
+
+class _SetToListTransformer(InlineDisplayMixin, BaseTransformer["AbstractSet[Any]"]):
     r"""Transformer for sets that rebuilds a list.
 
     The elements are the children, so they are converted like the other
     values, and the converted elements are collected in a list sorted
-    with ``try_sorted_list``.
+    with ``_sorted_elements``.
     """
 
     def expand(self, data: AbstractSet[Any]) -> Expansion | None:
-        return list(data), try_sorted_list
+        return list(data), _sorted_elements
 
 
-def try_sorted_list(values: Iterable[Any]) -> list[Any]:
-    r"""Convert an iterable (e.g. a set) to a list, sorted when the
-    values are comparable so the output is deterministic.
+def _sort_key(value: Any) -> tuple[str, str]:
+    return type(value).__name__, repr(value)
+
+
+def _sorted_elements(values: Iterable[Any]) -> list[Any]:
+    r"""Convert the elements of a set to a sorted list.
+
+    The sort never depends on the iteration order of the set: the
+    elements are sorted by value when they can be compared, otherwise
+    (elements of different types, ``NaN``) by ``(type name, repr)``.
 
     Args:
-        values: The values to convert.
+        values: The elements to sort.
 
     Returns:
-        The values as a sorted list, or in iteration order if they
-            cannot be compared.
-
-    Example:
-        ```pycon
-        >>> from coola.nested import try_sorted_list
-        >>> try_sorted_list({3, 1, 2})
-        [1, 2, 3]
-        >>> try_sorted_list({1, "a"}) == [1, "a"] or try_sorted_list({1, "a"}) == ["a", 1]
-        True
-
-        ```
+        The elements as a sorted list.
     """
-    try:
-        return sorted(values)
-    except TypeError:
-        return list(values)
+    elements = list(values)
+    # The comparisons with NaN are always false, so a sort by value depends on the input order.
+    if not any(value != value for value in elements):  # noqa: PLR0124
+        try:
+            return sorted(elements)
+        except TypeError:
+            pass
+    return sorted(elements, key=_sort_key)

@@ -347,7 +347,9 @@ With the default `on_duplicate="raise"`, a `DuplicateKeyError` is raised for the
 
 Use `convert_to_jsonable()` to recursively convert a nested structure to JSON-compatible data.
 Dataclasses and pydantic models found at any depth are converted to dictionaries, and sets are
-converted to sorted lists:
+converted to sorted lists (the order does not depend on the iteration order of the set, so it is the
+same in every process). A dataclass is converted by the engine, field by field, like any other
+container, and a tuple stays a tuple:
 
 ```pycon
 >>> from dataclasses import dataclass
@@ -358,16 +360,6 @@ converted to sorted lists:
 ...     y: int
 >>> convert_to_jsonable([Point(x=1, y=2), {"key": Point(x=3, y=4)}, {3, 1, 2}])
 [{'x': 1, 'y': 2}, {'key': {'x': 3, 'y': 4}}, [1, 2, 3]]
-
-```
-
-`try_sorted_list()` converts an iterable (e.g. a set) to a list. The list is sorted when the values
-are comparable, so the output is deterministic, otherwise it keeps the iteration order:
-
-```pycon
->>> from coola.nested import try_sorted_list
->>> try_sorted_list({3, 1, 2})
-[1, 2, 3]
 
 ```
 
