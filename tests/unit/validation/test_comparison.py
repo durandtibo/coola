@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 from fractions import Fraction
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -18,6 +18,9 @@ from coola.validation import (
     validate_range,
 )
 from coola.validation.comparison import _compare
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class _Float(float):
@@ -111,7 +114,7 @@ def test_validate_lt_custom_name() -> None:
         pytest.param(lambda v: validate_lt(v, 0), id="lt"),
     ],
 )
-def test_validate_comparison_rejects_nan(validate: Any) -> None:
+def test_validate_comparison_rejects_nan(validate: Callable[[Any], None]) -> None:
     with pytest.raises(ValueError, match="nan"):
         validate(float("nan"))
 
