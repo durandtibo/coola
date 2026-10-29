@@ -60,14 +60,14 @@ def test_validate_arguments_returns_decimals() -> None:
 
 @numpy_available
 def test_validate_arguments_numpy_integer_returns_int() -> None:
-    result = validate_arguments("round", np.int64(2))
+    result = validate_arguments("round", np.int64(2))  # ty: ignore[invalid-argument-type]
     assert type(result) is int
 
 
 @numpy_available
 def test_validate_arguments_numpy_integer_negative() -> None:
     with pytest.raises(ValueError, match=r"decimals must be greater than or equal to 0"):
-        validate_arguments("round", np.int64(-1))
+        validate_arguments("round", np.int64(-1))  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize("policy", MISSING_PACKAGE_POLICIES)

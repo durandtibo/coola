@@ -4,7 +4,7 @@ oracle, with exact comparisons."""
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -18,6 +18,9 @@ from coola.utils.imports import (
     is_torch_available,
 )
 from tests.unit.rounding.helpers import HARD_VALUES, oracle_many
+
+if TYPE_CHECKING:
+    from coola.rounding.common import RoundMode
 
 if is_numpy_available():
     import numpy as np
@@ -53,7 +56,7 @@ if is_pyarrow_available():
 CASES_BY_BACKEND = [(backend, mode, decimals) for backend in BACKENDS for mode, decimals in CASES]
 
 
-def _round(backend: str, values: list[float], mode: str, decimals: int) -> list[float]:
+def _round(backend: str, values: list[float], mode: RoundMode, decimals: int) -> list[float]:
     wrap, unwrap = BACKENDS[backend]
     if backend == "native":
         return [round_values(v, mode=mode, decimals=decimals) for v in values]
@@ -66,14 +69,16 @@ def _bits(values: list[float]) -> list[tuple[float, float]]:
 
 
 @pytest.mark.parametrize(("backend", "mode", "decimals"), CASES_BY_BACKEND)
-def test_round_values_hard_values_match_oracle(backend: str, mode: str, decimals: int) -> None:
+def test_round_values_hard_values_match_oracle(
+    backend: str, mode: RoundMode, decimals: int
+) -> None:
     result = _round(backend, list(HARD_VALUES), mode, decimals)
     assert _bits(result) == _bits(oracle_many(list(HARD_VALUES), mode, decimals))
 
 
 @numpy_available
 @pytest.mark.parametrize(("backend", "mode", "decimals"), CASES_BY_BACKEND)
-def test_round_values_backend_matches_numpy(backend: str, mode: str, decimals: int) -> None:
+def test_round_values_backend_matches_numpy(backend: str, mode: RoundMode, decimals: int) -> None:
     expected = _round("numpy", list(HARD_VALUES), mode, decimals)
     assert _bits(_round(backend, list(HARD_VALUES), mode, decimals)) == _bits(expected)
 
