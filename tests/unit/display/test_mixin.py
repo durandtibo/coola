@@ -122,7 +122,7 @@ def test_base_display_mixin_custom_layout() -> None:
 
 def test_base_display_mixin_abstract_raises() -> None:
     with pytest.raises(TypeError, match="Can't instantiate abstract class BaseDisplayMixin"):
-        BaseDisplayMixin()
+        BaseDisplayMixin()  # ty: ignore[call-non-callable]
 
 
 ####################################
