@@ -16,13 +16,13 @@ from tests.unit.equality.tester.test_pyarrow import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Generator
 
     from tests.unit.equality.utils import ExamplePair
 
 
 @pytest.fixture(autouse=True)
-def _filter_warning() -> None:
+def _filter_warning() -> Generator[None]:
     warnings.filterwarnings(
         action="ignore",
         category=RuntimeWarning,

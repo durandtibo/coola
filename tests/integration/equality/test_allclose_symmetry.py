@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from coola.equality import objects_are_allclose
@@ -37,7 +39,7 @@ if is_pyarrow_available():
 if is_xarray_available():
     import xarray as xr
 
-KWARGS = {"rtol": 0.01, "atol": 0.0}
+KWARGS: dict[str, Any] = {"rtol": 0.01, "atol": 0.0}
 
 
 def test_objects_are_allclose_scalar_is_symmetric() -> None:
