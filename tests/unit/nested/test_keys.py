@@ -375,7 +375,7 @@ def test_remove_keys_if_keeps_the_type_at_depth() -> None:
 
 
 def test_remove_keys_if_keeps_the_default_factory() -> None:
-    result = remove_keys_if({"p": defaultdict(list, {"a": 1, "b": 2})}, is_a)
+    result = remove_keys_if({"p": defaultdict[str, Any](list, {"a": 1, "b": 2})}, is_a)
     assert result["p"].default_factory is list
 
 
@@ -421,12 +421,12 @@ def test_remove_keys_if_non_mapping_raises(data: Any) -> None:
 
 def test_remove_keys_containing_non_mapping_raises() -> None:
     with pytest.raises(TypeError, match="mapping"):
-        remove_keys_containing([1], "a")
+        remove_keys_containing([1], "a")  # ty: ignore[invalid-argument-type]
 
 
 def test_remove_keys_starting_with_non_mapping_raises() -> None:
     with pytest.raises(TypeError, match="mapping"):
-        remove_keys_starting_with([1], "a")
+        remove_keys_starting_with([1], "a")  # ty: ignore[invalid-argument-type]
 
 
 def test_remove_keys_if_cycle_raises() -> None:
@@ -482,7 +482,7 @@ def test_add_prefix_suffix_to_keys_keeps_the_top_level_type() -> None:
 def test_add_prefix_suffix_to_keys_not_recursive_keeps_the_top_level_type_of_a_defaultdict() -> (
     None
 ):
-    result = add_prefix_suffix_to_keys(defaultdict(list, {"a": 1}), "x_")
+    result = add_prefix_suffix_to_keys(defaultdict[str, Any](list, {"a": 1}), "x_")
     assert result.default_factory is list
 
 
@@ -493,12 +493,12 @@ def test_add_prefix_suffix_to_keys_recursive_enters_the_dataclass() -> None:
 
 def test_add_prefix_suffix_to_keys_recursive_non_mapping_raises() -> None:
     with pytest.raises(TypeError, match="mapping"):
-        add_prefix_suffix_to_keys([1], "x_", recursive=True)
+        add_prefix_suffix_to_keys([1], "x_", recursive=True)  # ty: ignore[invalid-argument-type]
 
 
 def test_add_prefix_suffix_to_keys_non_mapping_raises() -> None:
     with pytest.raises(TypeError, match="mapping"):
-        add_prefix_suffix_to_keys([1], "x_")
+        add_prefix_suffix_to_keys([1], "x_")  # ty: ignore[invalid-argument-type]
 
 
 def test_add_prefix_suffix_to_keys_recursive_cycle_raises() -> None:
@@ -523,7 +523,7 @@ def test_add_prefix_suffix_to_keys_does_not_modify_the_input() -> None:
 
 def test_add_prefix_suffix_to_keys_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
-        add_prefix_suffix_to_keys({"a": 1}, "x_", "_y", True)
+        add_prefix_suffix_to_keys({"a": 1}, "x_", "_y", True)  # ty: ignore[too-many-positional-arguments]
 
 
 ####################################
@@ -537,14 +537,18 @@ def test_key_transformer_expand_rename_collision_raises() -> None:
 
 
 def test_key_transformer_expand_drop_and_rename() -> None:
-    children, rebuild = _KeyTransformer(rename=str.upper, drop=is_a).expand({"a": 1, "b": 2})
-    assert rebuild(children) == {"B": 2}
+    expanded = _KeyTransformer(rename=str.upper, drop=is_a).expand({"a": 1, "b": 2})
+    assert expanded is not None
+    children, rebuild = expanded
+    assert rebuild(list(children)) == {"B": 2}
 
 
 def test_key_transformer_expand_drop_before_rename_avoids_a_collision() -> None:
     transformer = _KeyTransformer(rename=lambda key: "k", drop=is_a)  # noqa: ARG005
-    children, rebuild = transformer.expand({"a": 1, "b": 2})
-    assert rebuild(children) == {"k": 2}
+    expanded = transformer.expand({"a": 1, "b": 2})
+    assert expanded is not None
+    children, rebuild = expanded
+    assert rebuild(list(children)) == {"k": 2}
 
 
 def test_key_transformer_repr() -> None:
