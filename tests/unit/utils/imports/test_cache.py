@@ -129,7 +129,7 @@ def test_availability_cache_caches() -> None:
         is_my_package_available()
         assert len(calls) == 1
     finally:
-        _CACHED_FUNCTIONS.remove(is_my_package_available)
+        _CACHED_FUNCTIONS.remove(is_my_package_available)  # ty: ignore[invalid-argument-type]
 
 
 def test_availability_cache_returns_the_value() -> None:
@@ -140,7 +140,7 @@ def test_availability_cache_returns_the_value() -> None:
     try:
         assert is_my_package_available()
     finally:
-        _CACHED_FUNCTIONS.remove(is_my_package_available)
+        _CACHED_FUNCTIONS.remove(is_my_package_available)  # ty: ignore[invalid-argument-type]
 
 
 def test_availability_cache_registers() -> None:
@@ -151,7 +151,7 @@ def test_availability_cache_registers() -> None:
     try:
         assert is_my_package_available in _CACHED_FUNCTIONS
     finally:
-        _CACHED_FUNCTIONS.remove(is_my_package_available)
+        _CACHED_FUNCTIONS.remove(is_my_package_available)  # ty: ignore[invalid-argument-type]
 
 
 def test_availability_cache_is_cleared_by_clear_availability_caches() -> None:
@@ -168,4 +168,4 @@ def test_availability_cache_is_cleared_by_clear_availability_caches() -> None:
         is_my_package_available()
         assert len(calls) == 2
     finally:
-        _CACHED_FUNCTIONS.remove(is_my_package_available)
+        _CACHED_FUNCTIONS.remove(is_my_package_available)  # ty: ignore[invalid-argument-type]

@@ -41,12 +41,12 @@ def test_safe_repr_failing_repr() -> None:
 
 class NonStrStr:
     def __str__(self) -> str:
-        return 1  # type: ignore[return-value]
+        return 1  # ty: ignore[invalid-return-type]
 
 
 class NonStrRepr:
     def __repr__(self) -> str:
-        return 1  # type: ignore[return-value]
+        return 1  # ty: ignore[invalid-return-type]
 
 
 class Interrupt:

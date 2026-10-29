@@ -116,7 +116,7 @@ def test_capture_handler_keeps_extra_attributes(logger: logging.Logger) -> None:
         logger.info("msg", extra={"custom": (1, 2)})
     finally:
         logger.removeHandler(handler)
-    assert handler.records[0].custom == (1, 2)
+    assert handler.records[0].custom == (1, 2)  # ty: ignore[unresolved-attribute]
 
 
 def test_capture_handler_thread_id_is_current_thread() -> None:
