@@ -308,3 +308,18 @@ def test_configure_colorlog_logging_stream_without_isatty_falls_back_to_basic_co
     with patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig:
         configure_colorlog_logging(stream=object())  # ty: ignore[invalid-argument-type]
     mock_basicconfig.assert_called_once()
+
+
+def test_configure_colorlog_logging_force_positional_raises() -> None:
+    with pytest.raises(TypeError, match=r"positional argument"):
+        configure_colorlog_logging(logging.INFO, True)  # ty: ignore[too-many-positional-arguments]
+
+
+def test_configure_colorlog_logging_handlers_and_stream_raises() -> None:
+    with pytest.raises(ValueError, match=r"should not be specified together with 'handlers'"):
+        configure_colorlog_logging(force=True, handlers=[], stream=io.StringIO())
+
+
+def test_configure_colorlog_logging_unknown_option_raises() -> None:
+    with pytest.raises(ValueError, match=r"Unrecognised argument"):
+        configure_colorlog_logging(force=True, unknown=1)

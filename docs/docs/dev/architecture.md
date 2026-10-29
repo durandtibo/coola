@@ -337,6 +337,9 @@ The `coola` codebase uses:
 - **xarray**: xarray support
 - **jax**: JAX array support
 - **pyarrow**: PyArrow table support
+- **pydantic**: pydantic model support, and the formatting of models in `coola.display`
+- **rich**: terminal output of `coola.display.rich`
+- **colorlog**: colored logging of `coola.display.colorlog`
 
 Each optional dependency is only imported when used (lazy loading): `import coola` and the
 import of its subpackages do not import any of them. The `__init__.py` files expose the names that

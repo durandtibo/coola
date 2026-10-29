@@ -11,14 +11,14 @@ __all__ = [
 ]
 
 import warnings
-from typing import TYPE_CHECKING, Any, cast, get_args, get_origin
+from typing import TYPE_CHECKING, Any, TypedDict, get_args, get_origin
 
 from coola.formatting.structure import repr_mapping_line, str_mapping_line
 from coola.utils.imports import is_pydantic_available
 from coola.utils.mapping import sort_by_keys
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable
 
 if TYPE_CHECKING or is_pydantic_available():  # pragma: no cover
     import pydantic
@@ -95,72 +95,123 @@ def secret_field_names(model: BaseModel) -> set[str]:
     }
 
 
-def _mask_secret_fields(model: BaseModel, dumped: dict[str, Any]) -> dict[str, Any]:
-    """Recursively remove ``SecretStr`` fields from a ``model_dump()``
-    result, including fields nested inside child ``BaseModel``
-    values."""
-    secret_fields = secret_field_names(model)
-    config = {k: v for k, v in dumped.items() if k not in secret_fields}
-    for name in type(model).model_fields:
-        if name in config:
-            config[name] = _mask_nested_secret_fields(getattr(model, name), config[name])
-    return config
+class _Options(TypedDict):
+    """The options of the root model that apply to the nested models."""
+
+    sort: bool
+    exclude_none: bool
+    exclude_secret: bool
 
 
-def _mask_nested_secret_fields(value: object, dumped: object) -> Any:
-    """Apply ``_mask_secret_fields`` to ``value``/``dumped`` pairs
-    nested in ``BaseModel``, list/tuple, or dict containers."""
-    if isinstance(value, BaseModel) and isinstance(dumped, dict):
-        return _mask_secret_fields(value, cast("dict[str, Any]", dumped))
-    if isinstance(value, (list, tuple)) and isinstance(dumped, (list, tuple)):
-        values = cast("Sequence[object]", value)
-        dumped_values = cast("Sequence[object]", dumped)
-        items = [
-            _mask_nested_secret_fields(v, d) for v, d in zip(values, dumped_values, strict=False)
-        ]
-        return tuple(items) if isinstance(dumped, tuple) else items
-    if isinstance(value, dict) and isinstance(dumped, dict):
-        value_map = cast("dict[Any, object]", value)
-        dumped_map = cast("dict[Any, object]", dumped)
-        return {
-            k: _mask_nested_secret_fields(v, dumped_map[k])
-            for k, v in value_map.items()
-            if k in dumped_map
-        }
-    return dumped
+class _NestedModel:
+    """Wrap a nested pydantic model so that its ``str`` and ``repr`` are
+    the formatted strings of :func:`str_pydantic_model` and
+    :func:`repr_pydantic_model`, with the options of the root model.
+
+    The generic ``str_mapping_line`` and ``repr_mapping_line`` can then
+    format the values of a model without knowing about pydantic.
+
+    Args:
+        model: The nested pydantic model.
+        options: The options ``sort``, ``exclude_none`` and
+            ``exclude_secret`` of the root model.
+    """
+
+    def __init__(self, model: BaseModel, options: _Options) -> None:
+        self.model = model
+        self.options = options
+
+    def __repr__(self) -> str:
+        return _format_model(self.model, line_fn=repr_mapping_line, **self.options)
+
+    def __str__(self) -> str:
+        return _format_model(self.model, line_fn=str_mapping_line, **self.options)
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, _NestedModel) and self.model == other.model
+
+    def __hash__(self) -> int:
+        return hash(self.model)
 
 
-def _format_pydantic_model(
+def _shown(value: object, options: _Options) -> object:
+    """Prepare a field value to be formatted.
+
+    A pydantic model is replaced by a :class:`_NestedModel`, so it
+    keeps its name and the options of the root model. The lists,
+    tuples, sets, frozensets and dicts (exactly these types) are rebuilt
+    with their values prepared. Any other value is returned unchanged.
+
+    Args:
+        value: The value of a field.
+        options: The options ``sort``, ``exclude_none`` and
+            ``exclude_secret`` of the root model.
+
+    Returns:
+        The value to format.
+
+    Example:
+        ```pycon
+        >>> from coola.display.pydantic import _shown
+        >>> _shown([1, 2], {})
+        [1, 2]
+
+        ```
+    """
+    if isinstance(value, BaseModel):
+        return _NestedModel(value, options)
+    if isinstance(value, (list, tuple, set, frozenset)) and type(value) in {
+        list,
+        tuple,
+        set,
+        frozenset,
+    }:
+        return type(value)(_shown(v, options) for v in value)
+    if type(value) is dict:
+        return {k: _shown(v, options) for k, v in value.items()}
+    return value
+
+
+def _format_model(
     model: BaseModel,
     *,
-    mapping_line_fn: Callable[[dict[str, Any]], str],
-    sort: bool = True,
-    exclude_none: bool = False,
-    exclude_secret: bool = True,
+    line_fn: Callable[[dict[str, Any]], str],
+    sort: bool,
+    exclude_none: bool,
+    exclude_secret: bool,
     exclude_fields: list[str] | None = None,
 ) -> str:
     """Shared implementation for ``str_pydantic_model`` and
-    ``repr_pydantic_model``."""
-    config: dict[str, Any] = model.model_dump()
-    known_fields = set(type(model).model_fields)
+    ``repr_pydantic_model``.
+
+    The fields are read from the model (no serializer runs), the fields
+    declared with ``Field(repr=False)`` are hidden, and the values of
+    ``extra="allow"`` are shown.
+    """
+    fields: dict[str, Any] = {
+        name: getattr(model, name) for name, info in type(model).model_fields.items() if info.repr
+    }
+    fields |= model.model_extra or {}
     if exclude_secret:
-        config = _mask_secret_fields(model, config)
+        for name in secret_field_names(model):
+            fields.pop(name, None)
     if exclude_none:
-        config = {k: v for k, v in config.items() if v is not None}
+        fields = {k: v for k, v in fields.items() if v is not None}
     if exclude_fields:
         excluded = set(exclude_fields)
-        unknown = excluded - known_fields
+        unknown = excluded - set(type(model).model_fields) - set(model.model_extra or {})
         if unknown:
             msg = (
                 f"'exclude_fields' contains field names that do not exist on "
                 f"{type(model).__qualname__}: {sorted(unknown)}"
             )
             warnings.warn(msg, RuntimeWarning, stacklevel=3)
-        config = {k: v for k, v in config.items() if k not in excluded}
+        fields = {k: v for k, v in fields.items() if k not in excluded}
     if sort:
-        config = sort_by_keys(config)
-    cls = type(model).__qualname__
-    return f"{cls}({mapping_line_fn(config)})"
+        fields = sort_by_keys(fields)
+    options = _Options(sort=sort, exclude_none=exclude_none, exclude_secret=exclude_secret)
+    shown = {k: _shown(v, options) for k, v in fields.items()}
+    return f"{type(model).__qualname__}({line_fn(shown)})"
 
 
 def str_pydantic_model(
@@ -174,6 +225,16 @@ def str_pydantic_model(
     """Return a formatted, single-line string representation of a
     pydantic model.
 
+    The fields are read from the model: no serializer runs, a field
+    declared with ``Field(repr=False)`` is hidden (as in the ``repr`` of
+    pydantic), the values of ``extra="allow"`` are shown, and a
+    ``computed_field`` is not shown because it is not a field. A nested
+    model keeps its name and is formatted with ``sort``,
+    ``exclude_none`` and ``exclude_secret`` (also inside lists, tuples,
+    sets, frozensets and dicts). The nested secrets are never shown:
+    they are omitted, or masked by pydantic if ``exclude_secret`` is
+    ``False``.
+
     Args:
         model: The pydantic model to format.
         sort: If ``True``, sort fields by name.
@@ -184,7 +245,8 @@ def str_pydantic_model(
         exclude_fields: Optional list of field names to omit. A
             ``RuntimeWarning`` is emitted for names that are not fields
             of the model; a field already omitted by ``exclude_none`` or
-            ``exclude_secret`` is not reported.
+            ``exclude_secret`` is not reported. The names apply to the
+            root model only.
 
     Returns:
         A string like ``"ClassName(field1=value1, field2=value2)"``.
@@ -193,18 +255,22 @@ def str_pydantic_model(
         ```pycon
         >>> from pydantic import BaseModel
         >>> from coola.display.pydantic import str_pydantic_model
+        >>> class Child(BaseModel):
+        ...     name: str
+        ...
         >>> class Config(BaseModel):
         ...     name: str
         ...     count: int
+        ...     child: Child
         ...
-        >>> str_pydantic_model(Config(name="my-app", count=3))
-        'Config(count=3, name=my-app)'
+        >>> str_pydantic_model(Config(name="my-app", count=3, child=Child(name="a")))
+        'Config(child=Child(name=a), count=3, name=my-app)'
 
         ```
     """
-    return _format_pydantic_model(
+    return _format_model(
         model,
-        mapping_line_fn=str_mapping_line,
+        line_fn=str_mapping_line,
         sort=sort,
         exclude_none=exclude_none,
         exclude_secret=exclude_secret,
@@ -223,17 +289,15 @@ def repr_pydantic_model(
     """Return a formatted, single-line ``repr``-style representation of
     a pydantic model.
 
+    It has the same options and behaviour as
+    :func:`str_pydantic_model`, but it uses ``repr`` for each value.
+
     Args:
         model: The pydantic model to format.
-        sort: If ``True``, sort fields by name.
-        exclude_none: If ``True``, omit fields whose value is ``None``.
-        exclude_secret: If ``True``, omit fields typed as a secret type
-            (``SecretStr``, ``SecretBytes``, ``Secret``)
-            entirely, rather than showing the masked value.
-        exclude_fields: Optional list of field names to omit. A
-            ``RuntimeWarning`` is emitted for names that are not fields
-            of the model; a field already omitted by ``exclude_none`` or
-            ``exclude_secret`` is not reported.
+        sort: See :func:`str_pydantic_model`.
+        exclude_none: See :func:`str_pydantic_model`.
+        exclude_secret: See :func:`str_pydantic_model`.
+        exclude_fields: See :func:`str_pydantic_model`.
 
     Returns:
         A string like ``"ClassName(field1=value1, field2=value2)"``
@@ -252,9 +316,9 @@ def repr_pydantic_model(
 
         ```
     """
-    return _format_pydantic_model(
+    return _format_model(
         model,
-        mapping_line_fn=repr_mapping_line,
+        line_fn=repr_mapping_line,
         sort=sort,
         exclude_none=exclude_none,
         exclude_secret=exclude_secret,
