@@ -31,7 +31,7 @@ def _is_tty(stream: object) -> bool:
 
 
 def configure_colorlog_logging(
-    level: int = logging.INFO, force: bool = False, **kwargs: Any
+    level: int = logging.INFO, *, force: bool = False, **kwargs: Any
 ) -> None:
     r"""Configure the root logger, using a coloured formatter when
     available.
@@ -52,6 +52,11 @@ def configure_colorlog_logging(
     forwarded to ``logging.basicConfig`` without a coloured
     handler. ``datefmt`` is used by the coloured formatter.
 
+    ``colorlog`` is optional, unlike ``rich`` for
+    :func:`~coola.display.rich.configure_rich_logging`: without it the
+    output has no colour, which is a correct result for a logging
+    helper, so no error is raised.
+
     Note:
         ``logging.basicConfig`` is a **no-op** if the root logger
         already has handlers configured.  Pass ``force=True`` to remove
@@ -68,11 +73,20 @@ def configure_colorlog_logging(
             ``logging.basicConfig`` (e.g. ``stream``, ``filename``,
             ``datefmt``).
 
+    Raises:
+        TypeError: If ``kwargs`` contains an option that
+            ``logging.basicConfig`` does not accept.
+        ValueError: If ``kwargs`` contains incompatible options (for
+            example ``handlers`` with ``stream``), or if ``level`` is
+            not a valid level.
+
     Example:
         ```pycon
         >>> import logging
         >>> from coola.display.colorlog import configure_colorlog_logging
-        >>> configure_colorlog_logging(level=logging.DEBUG)
+        >>> configure_colorlog_logging(level=logging.DEBUG, force=True)
+        >>> logging.getLogger().level
+        10
 
         ```
     """
