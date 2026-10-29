@@ -5,6 +5,7 @@ from collections import UserString, deque
 from collections.abc import Generator, Mapping, Sequence
 from dataclasses import dataclass
 from types import MappingProxyType
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -587,8 +588,9 @@ def test_summarize_with_a_custom_registry() -> None:
 
 @pytest.mark.parametrize("name", ["max_items", "max_characters"])
 def test_summarize_negative_limit_raises(name: str) -> None:
+    kwargs: dict[str, Any] = {name: -1}
     with pytest.raises(ValueError, match=f"{name} must be greater than or equal to 0"):
-        summarize([1], **{name: -1})
+        summarize([1], **kwargs)
 
 
 def test_summarize_show_data_not_bool_raises() -> None:

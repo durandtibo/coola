@@ -8,37 +8,30 @@ from coola.summary.pydantic import PydanticModelSummarizer, get_default_summariz
 from coola.testing.marks import pydantic_available
 from coola.utils.imports import is_pydantic_available
 
-if is_pydantic_available():
-    from pydantic import BaseModel, ConfigDict, SecretStr
-else:
-    BaseModel, ConfigDict, SecretStr = object, dict, object
-
 CONFIG = SummaryConfig()
 
+if is_pydantic_available():
+    from pydantic import BaseModel, ConfigDict, SecretStr
 
-class Point(BaseModel):
-    x: float
-    y: float
+    class Point(BaseModel):
+        x: float
+        y: float
 
+    class User(BaseModel):
+        name: str
+        password: SecretStr
+        token: Optional[SecretStr] = None  # noqa: UP045
 
-class User(BaseModel):
-    name: str
-    password: SecretStr
-    token: Optional[SecretStr] = None  # noqa: UP045
+    class Open(BaseModel):
+        model_config = ConfigDict(extra="allow")
 
+        x: int
 
-class Open(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    class Outer(BaseModel):
+        point: Point
 
-    x: int
-
-
-class Outer(BaseModel):
-    point: Point
-
-
-class Empty(BaseModel):
-    pass
+    class Empty(BaseModel):
+        pass
 
 
 #############################################

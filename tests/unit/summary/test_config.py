@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+from typing import Any
 
 import pytest
 
@@ -41,7 +42,8 @@ def test_summary_config_max_depth_valid(max_depth: int) -> None:
 @pytest.mark.parametrize("name", ["max_items", "max_characters"])
 @pytest.mark.parametrize("value", [0, 1, 100, None])
 def test_summary_config_limit_valid(name: str, value: int | None) -> None:
-    assert getattr(SummaryConfig(**{name: value}), name) == value
+    kwargs: dict[str, Any] = {name: value}
+    assert getattr(SummaryConfig(**kwargs), name) == value
 
 
 def test_summary_config_max_depth_none_raises() -> None:
@@ -52,14 +54,16 @@ def test_summary_config_max_depth_none_raises() -> None:
 @pytest.mark.parametrize("name", ["max_depth", "max_items", "max_characters"])
 @pytest.mark.parametrize("value", [True, False, 1.5, "1"])
 def test_summary_config_not_int_raises(name: str, value: object) -> None:
+    kwargs: dict[str, Any] = {name: value}
     with pytest.raises(TypeError, match=name):
-        SummaryConfig(**{name: value})
+        SummaryConfig(**kwargs)
 
 
 @pytest.mark.parametrize("name", ["max_depth", "max_items", "max_characters"])
 def test_summary_config_negative_raises(name: str) -> None:
+    kwargs: dict[str, Any] = {name: -1}
     with pytest.raises(ValueError, match=f"{name} must be greater than or equal to 0"):
-        SummaryConfig(**{name: -1})
+        SummaryConfig(**kwargs)
 
 
 @pytest.mark.parametrize("value", [0, 1, "True", None])
