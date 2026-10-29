@@ -55,7 +55,7 @@ jobs:
 
           set -euo pipefail
           echo "🔍 Running package checks..."
-          python tests/package/check_package.py --extra "$PACKAGE_EXTRA"
+          python tests/package/checks.py --extra "$PACKAGE_EXTRA"
 
           echo "✅ Package checks passed"
 
@@ -91,6 +91,6 @@ jobs:
 
           set -euo pipefail
           echo "🔍 Running package checks..."
-          python tests/package/check_package.py --extra all
+          python tests/package/checks.py --extra all
 
           echo "✅ Package checks passed"
