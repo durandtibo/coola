@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from coola.reducer import BaseReducer
 
 
-def _reducer_factories() -> list[pytest.mark.ParameterSet]:
+def _reducer_factories() -> list[Any]:
     r"""Return one ``pytest.param`` per ``BaseReducer`` implementation.
 
     Each param wraps a zero-argument factory that creates a fresh
@@ -479,7 +479,7 @@ def test_reducers_quantile_empty_quantiles_returns_empty_list(reducer: BaseReduc
 
 def test_reducers_sort_descending_is_keyword_only(reducer: BaseReducer) -> None:
     with pytest.raises(TypeError, match=r"positional argument"):
-        reducer.sort([1, 2, 3], True)
+        reducer.sort([1, 2, 3], True)  # ty: ignore[too-many-positional-arguments]
 
 
 @pytest.mark.parametrize("method", ["max", "mean", "median", "min", "std"])

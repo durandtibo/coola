@@ -127,13 +127,13 @@ def test_base_reducer_quantile_accepts_the_bounds(reducer: RecordingReducer) -> 
 
 def test_base_reducer_sort_iterator_is_rejected_before_prepare(reducer: RecordingReducer) -> None:
     with pytest.raises(TypeError, match=r"of an iterator, convert it to a list first"):
-        reducer.sort(iter([1, 2]))
+        reducer.sort(iter([1, 2]))  # ty: ignore[invalid-argument-type]
     assert reducer.calls == []
 
 
 def test_base_reducer_set_is_rejected_before_prepare(reducer: RecordingReducer) -> None:
     with pytest.raises(TypeError, match=r"of a set, pass a sequence of numbers"):
-        reducer.max({1, 2})
+        reducer.max({1, 2})  # ty: ignore[invalid-argument-type]
     assert reducer.calls == []
 
 

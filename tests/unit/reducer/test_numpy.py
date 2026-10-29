@@ -386,7 +386,7 @@ def test_numpy_reducer_median_infinite_values() -> None:
 @numpy_available
 def test_numpy_reducer_max_generator_raises() -> None:
     with pytest.raises(TypeError, match="iterator"):
-        NumpyReducer().max(i for i in range(3))
+        NumpyReducer().max(i for i in range(3))  # ty: ignore[invalid-argument-type]
 
 
 @numpy_available
@@ -408,20 +408,20 @@ def test_numpy_reducer_unsupported_values_raise(values: list) -> None:
 @numpy_available
 def test_numpy_reducer_ragged_sequences_raise() -> None:
     with pytest.raises(TypeError, match=r"NumpyReducer does not support nested sequences"):
-        NumpyReducer().max([[1, 2], [3]])
+        NumpyReducer().max([[1, 2], [3]])  # ty: ignore[invalid-argument-type]
 
 
 @numpy_available
 @pytest.mark.parametrize("values", [[[1, 2], [3, 4]], np.array(1), np.ones((2, 0))])
 def test_numpy_reducer_not_1d_raises(values: object) -> None:
     with pytest.raises(ValueError, match=r"NumpyReducer takes a 1-D input"):
-        NumpyReducer().max(values)
+        NumpyReducer().max(values)  # ty: ignore[invalid-argument-type]
 
 
 @numpy_available
 def test_numpy_reducer_sort_2d_raises() -> None:
     with pytest.raises(ValueError, match=r"NumpyReducer takes a 1-D input, got 2 dimension"):
-        NumpyReducer().sort([[2, 1], [4, 3]])
+        NumpyReducer().sort([[2, 1], [4, 3]])  # ty: ignore[invalid-argument-type]
 
 
 @numpy_available
