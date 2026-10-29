@@ -115,8 +115,10 @@ def test_type_registry_concurrent_register_same_key_with_exist_ok() -> None:
     )
 
     # The key should exist with one of the values
+    value = registry.get(int)
     assert registry.has(int)
-    assert 0 <= registry.get(int) < num_threads
+    assert value is not None
+    assert 0 <= value < num_threads
 
 
 def test_type_registry_concurrent_register_same_key_without_exist_ok() -> None:
@@ -144,8 +146,10 @@ def test_type_registry_concurrent_register_same_key_without_exist_ok() -> None:
     # Exactly one thread should succeed, others should fail
     assert len(successes) == 1
     assert len(errors) == num_threads - 1
+    value = registry.get(int)
     assert registry.has(int)
-    assert 0 <= registry.get(int) < num_threads
+    assert value is not None
+    assert 0 <= value < num_threads
 
 
 def test_type_registry_concurrent_get() -> None:
@@ -266,7 +270,7 @@ def test_type_registry_concurrent_register_many() -> None:
 
         class C: ...
 
-        batch = {A: "a", B: "b", C: "c"}
+        batch: dict[type, str] = {A: "a", B: "b", C: "c"}
         registry.register_many(batch)
 
     run_threads([threading.Thread(target=register_batch) for _ in range(num_threads)])
@@ -469,7 +473,7 @@ def test_type_registry_concurrent_items_access() -> None:
     """Test that concurrent items() calls don't interfere."""
     num_threads = 10
     mapping = dict(zip(create_classes(num_classes=50), range(50), strict=True))
-    registry = TypeRegistry[str](mapping)
+    registry = TypeRegistry[int](mapping)
     results = []
 
     def access_items() -> None:
@@ -487,7 +491,7 @@ def test_type_registry_concurrent_keys_access() -> None:
     """Test that concurrent keys() calls don't interfere."""
     num_threads = 10
     classes = create_classes(num_classes=50)
-    registry = TypeRegistry[str](dict(zip(classes, range(len(classes)), strict=True)))
+    registry = TypeRegistry[int](dict(zip(classes, range(len(classes)), strict=True)))
     results = []
 
     def access_keys() -> None:
@@ -504,7 +508,7 @@ def test_type_registry_concurrent_keys_access() -> None:
 def test_type_registry_concurrent_values_access() -> None:
     """Test that concurrent values() calls don't interfere."""
     num_threads = 10
-    registry = TypeRegistry[str](dict(zip(create_classes(num_classes=50), range(50), strict=True)))
+    registry = TypeRegistry[int](dict(zip(create_classes(num_classes=50), range(50), strict=True)))
     results = []
 
     def access_values() -> None:
@@ -523,7 +527,7 @@ def test_type_registry_concurrent_iteration() -> None:
     """Test that concurrent iteration doesn't cause errors."""
     num_threads = 10
     classes = create_classes(num_classes=50)
-    registry = TypeRegistry[str](dict(zip(classes, range(len(classes)), strict=True)))
+    registry = TypeRegistry[int](dict(zip(classes, range(len(classes)), strict=True)))
     results = []
 
     def iterate_registry() -> None:
@@ -677,13 +681,13 @@ def test_type_registry_resolve_cache_is_reset_at_the_default_size() -> None:
 
 
 def test_default_registry_contains_non_type_is_false() -> None:
-    assert "abc" not in get_default_registry()
+    assert "abc" not in get_default_registry()  # ty: ignore[unsupported-operator]
 
 
 def test_default_registry_has_non_type_is_false() -> None:
-    assert not get_default_registry().has(None)
+    assert not get_default_registry().has(None)  # ty: ignore[invalid-argument-type]
 
 
 def test_default_registry_resolve_non_type_raises() -> None:
     with pytest.raises(TypeError, match="Expected a type as key"):
-        get_default_registry().resolve("abc")
+        get_default_registry().resolve("abc")  # ty: ignore[invalid-argument-type]

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import multiprocessing
+from typing import Any
 
 import pytest
 
@@ -10,7 +11,7 @@ from coola.hashing import StrHasher, get_default_registry as get_hasher_registry
 from coola.iterator import get_default_registry as get_iterator_registry
 from coola.random import get_default_registry as get_random_registry
 from coola.recursive import get_default_registry as get_transformer_registry
-from coola.registry import Registry, TypeRegistry
+from coola.registry import Registry
 from coola.summary import get_default_registry as get_summarizer_registry
 
 TYPE_REGISTRIES = [
@@ -27,7 +28,7 @@ def count_entries(registry: Registry) -> int:
     return len(registry)
 
 
-def hash_in_worker(registry: TypeRegistry) -> str:
+def hash_in_worker(registry: Any) -> str:
     return registry.hash("abc", length=8)
 
 
@@ -37,19 +38,19 @@ def hash_in_worker(registry: TypeRegistry) -> str:
 
 
 @pytest.mark.parametrize("get_registry", DEFAULT_REGISTRIES)
-def test_default_registry_deepcopy_has_the_same_keys(get_registry: object) -> None:
+def test_default_registry_deepcopy_has_the_same_keys(get_registry: Any) -> None:
     registry = get_registry()
     assert list(copy.deepcopy(registry).keys()) == list(registry.keys())
 
 
 @pytest.mark.parametrize("get_registry", TYPE_REGISTRIES)
-def test_default_registry_deepcopy_has_the_same_fallbacks(get_registry: object) -> None:
+def test_default_registry_deepcopy_has_the_same_fallbacks(get_registry: Any) -> None:
     registry = get_registry()
     assert len(copy.deepcopy(registry).fallbacks()) == len(registry.fallbacks())
 
 
 @pytest.mark.parametrize("get_registry", DEFAULT_REGISTRIES)
-def test_default_registry_deepcopy_is_independent(get_registry: object) -> None:
+def test_default_registry_deepcopy_is_independent(get_registry: Any) -> None:
     registry = get_registry()
     clone = copy.deepcopy(registry)
     clone.clear()
