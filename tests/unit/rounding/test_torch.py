@@ -4,7 +4,8 @@ import math
 
 import pytest
 
-from coola.rounding.torch import round_torch
+from coola.rounding.common import UnsupportedTypeError
+from coola.rounding.torch import get_default_rounders, round_torch
 from coola.testing.marks import torch_available
 from coola.utils.imports import is_torch_available
 
@@ -162,3 +163,26 @@ def test_round_torch_round_halfway_decimal_goes_to_even() -> None:
 def test_round_torch_negative_zero_result_keeps_sign() -> None:
     result = round_torch(torch.tensor([-0.4], dtype=torch.float64), "ceil", 0)
     assert math.copysign(1.0, result.item()) == -1.0
+
+
+#############################################
+#     Tests for get_default_rounders        #
+#############################################
+
+
+@torch_available
+def test_get_default_rounders_torch() -> None:
+    assert get_default_rounders() == {torch.Tensor: round_torch}
+
+
+@torch_available
+def test_get_default_rounders_torch_not_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("coola.rounding.torch.is_torch_available", lambda: False)
+    assert get_default_rounders() == {}
+
+
+@torch_available
+def test_round_torch_sparse_tensor_raises_unsupported_type_error() -> None:
+    """Regression test: torch raised a ``NotImplementedError``."""
+    with pytest.raises(UnsupportedTypeError, match=r"Unsupported layout"):
+        round_torch(torch.tensor([[1.5, 0.0]]).to_sparse(), "round", 0)

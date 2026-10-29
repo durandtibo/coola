@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.rounding.pandas import round_pandas
+from coola.rounding.pandas import get_default_rounders, round_pandas
 from coola.testing.marks import pandas_available
 from coola.utils.imports import is_pandas_available
 
@@ -139,3 +139,19 @@ def test_round_pandas_dataframe_no_numerical_column() -> None:
 def test_round_pandas_unsupported_type() -> None:
     with pytest.raises(TypeError, match=r"Unsupported type"):
         round_pandas([1.5], "round", 0)
+
+
+#############################################
+#     Tests for get_default_rounders        #
+#############################################
+
+
+@pandas_available
+def test_get_default_rounders_pandas() -> None:
+    assert get_default_rounders() == {pd.Series: round_pandas, pd.DataFrame: round_pandas}
+
+
+@pandas_available
+def test_get_default_rounders_pandas_not_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("coola.rounding.pandas.is_pandas_available", lambda: False)
+    assert get_default_rounders() == {}

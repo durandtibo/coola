@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from coola.rounding.numpy import round_numpy
+from coola.rounding.numpy import get_default_rounders, round_numpy
 from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
 
@@ -239,3 +239,19 @@ def test_round_numpy_empty_float_keeps_dtype() -> None:
 @numpy_available
 def test_round_numpy_floor_value_just_below_grid_point() -> None:
     assert round_numpy(np.array([0.8999999999999999]), "floor", 1).tolist() == [0.8]
+
+
+#############################################
+#     Tests for get_default_rounders        #
+#############################################
+
+
+@numpy_available
+def test_get_default_rounders_numpy() -> None:
+    assert get_default_rounders() == {np.ndarray: round_numpy, np.generic: round_numpy}
+
+
+@numpy_available
+def test_get_default_rounders_numpy_not_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("coola.rounding.numpy.is_numpy_available", lambda: False)
+    assert get_default_rounders() == {}

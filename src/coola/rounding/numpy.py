@@ -2,11 +2,11 @@ r"""Implement the rounding of the NumPy arrays and scalars."""
 
 from __future__ import annotations
 
-__all__ = ["round_numpy"]
+__all__ = ["get_default_rounders", "round_numpy"]
 
 from typing import Any
 
-from coola.rounding.common import MAX_EXACT, RoundMode, get_scale
+from coola.rounding.common import MAX_EXACT, Rounder, RoundMode, UnsupportedTypeError, get_scale
 from coola.utils.imports import is_numpy_available
 
 if is_numpy_available():
@@ -33,7 +33,7 @@ def round_numpy(data: Any, mode: RoundMode, decimals: int) -> Any:
             ``data``.
 
     Raises:
-        TypeError: If ``data`` is not an array or a scalar of NumPy, or
+        UnsupportedTypeError: If ``data`` is not an array or a scalar of NumPy, or
             if its dtype is not an integer, boolean or floating-point
             type.
 
@@ -50,7 +50,7 @@ def round_numpy(data: Any, mode: RoundMode, decimals: int) -> Any:
         return _round_array(np.asarray(data), mode, decimals)[()]
     if not isinstance(data, np.ndarray):
         msg = f"Unsupported type: {type(data).__qualname__}"
-        raise TypeError(msg)
+        raise UnsupportedTypeError(msg)
     return _round_array(data, mode, decimals)
 
 
@@ -60,7 +60,7 @@ def _round_array(data: np.ndarray, mode: RoundMode, decimals: int) -> np.ndarray
         return data.copy()
     if kind != "f":
         msg = f"Unsupported dtype: {data.dtype}"
-        raise TypeError(msg)
+        raise UnsupportedTypeError(msg)
     # ``copy`` keeps the type of the array (``matrix``, subclasses, mask and fill value of a
     # ``MaskedArray``): the rounded values are assigned to the copy.
     result = data.copy()
@@ -97,3 +97,19 @@ def _round_float_array(data: np.ndarray, mode: RoundMode, scale: float) -> np.nd
     # ``NaN``, the infinite values and the values past the grid are not changed.
     result = np.where(np.abs(scaled) < MAX_EXACT, index / scale, x)
     return np.copysign(result, x).astype(data.dtype)
+
+
+def get_default_rounders() -> dict[type, Rounder]:
+    r"""Get the default rounders of the NumPy arrays and scalars.
+
+    Returns:
+        The rounder of the NumPy arrays and scalars and their
+            associated types.
+
+    Notes:
+        This function is called by the default registry the first time
+        it needs the rounders of NumPy.
+    """
+    if not is_numpy_available():
+        return {}
+    return {np.ndarray: round_numpy, np.generic: round_numpy}

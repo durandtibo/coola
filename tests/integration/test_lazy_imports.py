@@ -179,3 +179,12 @@ def test_flatten_frame_is_in_the_dir_of_nested() -> None:
     imported."""
     code = "import coola.nested; print('flatten_frame' in dir(coola.nested))"
     assert run_python(code) == ["True"]
+
+
+def test_rounding_a_float_does_not_import_the_optional_libraries() -> None:
+    """Test that rounding a native float does not load the optional
+    libraries."""
+    assert (
+        loaded_libraries("from coola.rounding import round_values; round_values(1.5, decimals=1)")
+        == []
+    )
