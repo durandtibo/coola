@@ -230,13 +230,13 @@ The rules for a package that uses an optional library:
 
 A new package ships these pages:
 
-| Page                            | Content                                                                      |
-| ------------------------------- | ---------------------------------------------------------------------------- |
-| `uguide/<package>.md`           | Overview, **Properties**, **Not guaranteed**, examples, extension, non-goals |
-| `refs/<package>.md`             | `::: coola.<package>` directives                                             |
-| `dev/<package>.md` | Constraints, architecture, contracts, public API, dependents, decisions      |
-| `migration/<version>.md`        | Breaking changes with a before/after table                                   |
-| `mkdocs.yml` navigation         | The three pages above                                                        |
+| Page                     | Content                                                                      |
+| ------------------------ | ---------------------------------------------------------------------------- |
+| `uguide/<package>.md`    | Overview, **Properties**, **Not guaranteed**, examples, extension, non-goals |
+| `refs/<package>.md`      | `::: coola.<package>` directives                                             |
+| `dev/<package>.md`       | Constraints, architecture, contracts, public API, dependents, decisions      |
+| `migration/<version>.md` | Breaking changes with a before/after table                                   |
+| `mkdocs.yml` navigation  | The three pages above                                                        |
 
 Write down **what the package does not do** and the decisions with the alternatives that were
 rejected; a later reader needs the reason, not only the choice.
@@ -276,8 +276,8 @@ rejected; a later reader needs the reason, not only the choice.
 Each sub-package of `coola` has its own page with the invariants, the contracts between the parts,
 the public API, the dependents and the decisions behind the design.
 
-| Package            | Page                                                                            |
-| ------------------ | ------------------------------------------------------------------------------- |
+| Package            | Page                                                               |
+| ------------------ | ------------------------------------------------------------------ |
 | `coola.display`    | [Display mixins, pydantic formatting, terminal output](display.md) |
 | `coola.equality`   | [Equality engine, testers, numeric kernel, tables](equality.md)    |
 | `coola.factory`    | [Objects from configurations, allow-list](factory.md)              |
