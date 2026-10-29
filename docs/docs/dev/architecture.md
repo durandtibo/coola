@@ -653,7 +653,7 @@ Packages fall into two groups:
   `hashing` must not import `identifier`.
 
 There is no exception: `coola.registry` imports no feature package. `utils` imports the standard library and `validation` only, `formatting` imports `utils` and
-`validation` only, `validation` does not import
+`validation` only, `display` imports `utils`, `validation` and `formatting` only, `validation` does not import
 `utils`, and `tools` imports no feature package.
 
 The contract is enforced with [import-linter](https://import-linter.readthedocs.io/)
