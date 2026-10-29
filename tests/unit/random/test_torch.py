@@ -362,19 +362,19 @@ def test_torch_random_manager_manual_seed_invalid_value_raises(seed: int) -> Non
 @pytest.mark.parametrize("seed", ["a", 1.5, True])
 def test_torch_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
     with pytest.raises(TypeError, match=r"seed must be an int"):
-        TorchRandomManager().manual_seed(seed)  # type: ignore[arg-type]
+        TorchRandomManager().manual_seed(seed)  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
 def test_get_torch_generator_seed_is_required() -> None:
     with pytest.raises(TypeError, match="seed"):
-        get_torch_generator()  # type: ignore[call-arg]
+        get_torch_generator()  # ty: ignore[missing-argument]
 
 
 @torch_available
 def test_get_torch_generator_device_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
-        get_torch_generator(42, "cpu")  # type: ignore[misc]
+        get_torch_generator(42, "cpu")  # ty: ignore[too-many-positional-arguments]
 
 
 @torch_available
@@ -387,7 +387,7 @@ def test_get_torch_generator_invalid_value_raises(seed: int) -> None:
 @torch_available
 def test_get_torch_generator_invalid_type_raises() -> None:
     with pytest.raises(TypeError, match="seed must be an int"):
-        get_torch_generator(1.5)  # type: ignore[arg-type]
+        get_torch_generator(1.5)  # ty: ignore[invalid-argument-type]
 
 
 @torch_available

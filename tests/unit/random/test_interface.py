@@ -362,12 +362,12 @@ def test_random_seed_uses_an_empty_registry() -> None:
 
 def test_random_seed_registry_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
-        random_seed(42, RandomManagerRegistry())  # type: ignore[misc]
+        random_seed(42, RandomManagerRegistry())  # ty: ignore[too-many-positional-arguments]
 
 
 def test_register_managers_exist_ok_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
-        register_managers({}, True)  # type: ignore[misc]
+        register_managers({}, True)  # ty: ignore[too-many-positional-arguments]
 
 
 ####################################################

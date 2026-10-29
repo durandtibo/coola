@@ -35,7 +35,7 @@ class CounterRandomManager(BaseRandomManager):
 
 def test_base_random_manager_is_abstract() -> None:
     with pytest.raises(TypeError, match="abstract"):
-        BaseRandomManager()  # type: ignore[abstract]
+        BaseRandomManager()  # ty: ignore[call-non-callable]
 
 
 def test_base_random_manager_seed_sets_the_seed_inside_the_context() -> None:
@@ -131,7 +131,7 @@ def test_base_random_manager_seed_invalid_type_raises(seed: object) -> None:
     with (
         pytest.raises(TypeError, match=r"seed must be an int"),
         CounterRandomManager().seed(
-            seed  # type: ignore[arg-type]
+            seed  # ty: ignore[invalid-argument-type]
         ),
     ):
         pass

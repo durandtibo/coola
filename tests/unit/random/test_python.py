@@ -124,4 +124,4 @@ def test_python_random_manager_manual_seed_invalid_value_raises(seed: int) -> No
 @pytest.mark.parametrize("seed", ["a", 1.5, True])
 def test_python_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
     with pytest.raises(TypeError, match=r"seed must be an int"):
-        PythonRandomManager().manual_seed(seed)  # type: ignore[arg-type]
+        PythonRandomManager().manual_seed(seed)  # ty: ignore[invalid-argument-type]

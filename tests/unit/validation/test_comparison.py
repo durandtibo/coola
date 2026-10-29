@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from coola.utils.imports import is_numpy_available
 from coola.validation import (
     validate_finite,
     validate_ge,
@@ -23,10 +22,6 @@ if TYPE_CHECKING:
 
 
 class _Float(float):
-    pass
-
-
-if is_numpy_available():
     pass
 
 
