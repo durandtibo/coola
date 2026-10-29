@@ -4,17 +4,34 @@ from __future__ import annotations
 
 __all__ = ["make_progressbar", "make_spinner"]
 
-from rich import get_console
-from rich.progress import (
-    BarColumn,
-    MofNCompleteColumn,
-    Progress,
-    SpinnerColumn,
-    TaskProgressColumn,
-    TextColumn,
-    TimeElapsedColumn,
-    TimeRemainingColumn,
-)
+from typing import TYPE_CHECKING
+
+from coola.utils.imports import is_rich_available
+
+if TYPE_CHECKING or is_rich_available():  # pragma: no cover
+    from rich import get_console
+    from rich.progress import (
+        BarColumn,
+        MofNCompleteColumn,
+        Progress,
+        SpinnerColumn,
+        TaskProgressColumn,
+        TextColumn,
+        TimeElapsedColumn,
+        TimeRemainingColumn,
+    )
+else:  # pragma: no cover
+    from coola.utils.fallback.rich import (
+        BarColumn,
+        MofNCompleteColumn,
+        Progress,
+        SpinnerColumn,
+        TaskProgressColumn,
+        TextColumn,
+        TimeElapsedColumn,
+        TimeRemainingColumn,
+        get_console,
+    )
 
 
 def make_progressbar(*, transient: bool = False) -> Progress:
@@ -41,6 +58,9 @@ def make_progressbar(*, transient: bool = False) -> Progress:
 
     Returns:
         A configured `Progress` instance, ready to use as a context manager.
+
+    Raises:
+        MissingPackageError: If ``rich`` is not installed.
 
     Example:
         ```pycon
@@ -90,6 +110,9 @@ def make_spinner(*, transient: bool = True) -> Progress:
     Returns:
         A configured :class:`~rich.progress.Progress` instance ready to
         use as a context manager.
+
+    Raises:
+        MissingPackageError: If ``rich`` is not installed.
 
     Example:
         ```pycon

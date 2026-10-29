@@ -5,10 +5,15 @@ from __future__ import annotations
 __all__ = ["configure_rich_logging"]
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from rich import get_console
-from rich.logging import RichHandler
+from coola.utils.imports import is_rich_available
+
+if TYPE_CHECKING or is_rich_available():  # pragma: no cover
+    from rich import get_console
+    from rich.logging import RichHandler
+else:  # pragma: no cover
+    from coola.utils.fallback.rich import RichHandler, get_console
 
 
 def configure_rich_logging(
@@ -80,6 +85,7 @@ def configure_rich_logging(
             full list of supported parameters.
 
     Raises:
+        MissingPackageError: If ``rich`` is not installed.
         TypeError: If an unrecognised keyword argument is passed that
             :class:`~rich.logging.RichHandler` does not accept.
 
@@ -93,14 +99,8 @@ def configure_rich_logging(
 
         ```
     """
-    logging.basicConfig(
-        level=level,
-        format=fmt,
-        datefmt=datefmt,
-        handlers=[
-            RichHandler(
-                console=get_console(), rich_tracebacks=rich_tracebacks, markup=markup, **kwargs
-            )
-        ],
-        force=force,
+    # The handler is created first: a missing ``rich`` raises before the root logger is changed.
+    handler = RichHandler(
+        console=get_console(), rich_tracebacks=rich_tracebacks, markup=markup, **kwargs
     )
+    logging.basicConfig(level=level, format=fmt, datefmt=datefmt, handlers=[handler], force=force)
