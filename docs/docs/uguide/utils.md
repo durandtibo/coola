@@ -21,7 +21,7 @@ The functions that turn values into text are in [`coola.formatting`](formatting.
 The modules used by the other `coola` packages are the **core helpers**: `imports`, `fallback`,
 `fork`, `integer`, `introspection`, `mapping`, `path`, `safe`, `selection`, `singleton`,
 `stats` and `version`. The other modules are standalone helpers that `coola` itself does not
-need (`array`, `tensor`, `batching`, `bloom_filter`, `date`, `deprecation`, `env_vars`, `file_size`,
+need (`array`, `tensor`, `batching`, `bloom_filter`, `date`, `env_vars`, `file_size`,
 `git`, `logging`, `lru`, `password`, `recursion`, `timing`); they are public and tested like the rest:
 
 | Module                     | Content                                                    |
@@ -31,7 +31,6 @@ need (`array`, `tensor`, `batching`, `bloom_filter`, `date`, `deprecation`, `env
 | `coola.utils.batching`     | Split an iterable in batches                               |
 | `coola.utils.bloom_filter` | `BloomFilter`, an approximate set for duplicate detection  |
 | `coola.utils.date`         | Today's date and conversion of dates                       |
-| `coola.utils.deprecation`  | Deprecate the positional use of options                    |
 | `coola.utils.env_vars`     | Read, check and temporarily set environment variables      |
 | `coola.utils.file_size`    | The size of a file or of a directory                       |
 | `coola.utils.git`          | The branch and the commit of a git repository              |
