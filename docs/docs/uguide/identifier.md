@@ -368,3 +368,15 @@ Not guaranteed:
   `secrets.token_urlsafe(16)`, `f"cus_{generate_ulid()}"`, or a library such as `sqids`.
 - Need an unpredictable token (session, API key, password reset link)? None of these: use
   `secrets.token_urlsafe`.
+
+## What the package does not do
+
+- **Other formats**: UUIDv6 and v8, KSUID, TypeID and Sqids are not provided.
+- **Datetime helpers**: the `extract_*` functions return an `int` (milliseconds or seconds since the
+  Unix epoch). Convert it with `datetime.fromtimestamp`, which leaves the time zone to you.
+- **A pluggable clock**: the generators read the wall clock. Pass the explicit `timestamp_ms` or
+  `timestamp_s` in a test.
+- **Windows and `fork`**: `os.register_at_fork` does not exist on Windows, so the fork rules above
+  do not apply there.
+- **`uuid.uuid7`**: Python 3.14 has `uuid.uuid7()`. `generate_uuid7` is kept because the minimum
+  version of `coola` is Python 3.11, and its values are strictly increasing within a process.

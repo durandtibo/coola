@@ -188,3 +188,16 @@ the MRO is used.
 `coola.rounding.rounders`: the entry point is a callable that receives the registry. A rounder that
 needs an optional package can raise `MissingPackageError` and `on_missing_package` is applied to it.
 See [How to Add Support for a New Library](../dev/add_backend.md) for a library.
+
+## What `round_values` does not do
+
+- **`pandas.Index`, `polars.LazyFrame` and Arrow scalars** raise `UnsupportedTypeError`. Call
+  `collect()` on a `LazyFrame` first.
+- **`Decimal`, `Fraction`, complex numbers, dates, times and durations** are not numerical in the
+  sense of the package. `Decimal` is the typical type to register a rounder for.
+- **JAX, xarray and CuPy** have no default rounder. A rounder is a function of about 20 lines on the
+  pattern of the one for PyTorch: register it, or ship it in a plugin.
+- **Sparse, nested and quantized tensors** raise `UnsupportedTypeError`.
+- **Rounding to significant digits**, and the `"trunc"` and `"half_up"` modes: the modes are
+  `"floor"`, `"ceil"` and `"round"`.
+- **In-place rounding** (`out=`): the input is never modified, the package is pure.

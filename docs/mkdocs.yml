@@ -56,6 +56,24 @@ nav:
   - Developer Guide:
       - dev/development.md
       - dev/architecture.md
+      - dev/display.md
+      - dev/equality.md
+      - dev/factory.md
+      - dev/formatting.md
+      - dev/hashing.md
+      - dev/identifier.md
+      - dev/io.md
+      - dev/iterator.md
+      - dev/nested.md
+      - dev/random.md
+      - dev/recursive.md
+      - dev/reducer.md
+      - dev/registry.md
+      - dev/rounding.md
+      - dev/summary.md
+      - dev/testing.md
+      - dev/utils.md
+      - dev/validation.md
       - dev/add_backend.md
   - Migration:
       - migration/v0.11_to_v1.0.md

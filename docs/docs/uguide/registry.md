@@ -184,6 +184,12 @@ False
 
 ```
 
+`equal` is `False` for two registries of different classes. Otherwise it compares the entries and the
+fallbacks (after loading the pending lazy groups) with `==`. The handlers are compared with `==` too:
+a handler without `__eq__` is equal to itself only, so a `copy()` is equal to its source (the
+handlers are shared), and two registries built separately with handlers of the same class are equal
+only if the handlers define `__eq__`.
+
 ## TypeRegistry (Type-Based)
 
 ### Basic Usage
@@ -626,6 +632,20 @@ Not guaranteed:
 - **The handlers** are stored as given: not copied, not checked against a protocol.
 - **A registration made while another thread resolves** is seen by the lookups that start after the
   registration returns. A traversal that already holds a handler keeps it until the end of the call.
+
+`AlreadyRegisteredError` is a `ValueError`, and `KeyNotRegisteredError` is a `KeyError`.
+
+What the package does not do:
+
+- **`issubclass` lookup.** It would send `str` to the handler of `Sequence`. The fallbacks are the
+  opt-in way.
+- **List or disable the plugins.** The entry-point plugins are loaded by the packages that own the
+  registries (see [Default Registries and Plugins](#default-registries-and-plugins)).
+- **Check a handler against a protocol at registration.** The registry is generic; a domain registry
+  can validate its handlers.
+- **Share a registry between processes.** A copy per process is the model.
+- **Replace the per-call caches** of the engines (`recursive`, `iterator`, `equality`): they keep
+  the handlers they resolved until the end of the call.
 
 ## Comparison: Registry vs TypeRegistry
 

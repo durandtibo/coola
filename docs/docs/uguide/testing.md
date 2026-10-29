@@ -57,6 +57,12 @@ A mark is a standard `pytest.mark.skipif`, so it works on a function, on a class
 is reported with a reason that names the dependency (`Requires NumPy`,
 `Skip if NumPy is available`).
 
+!!! warning "Do not confuse a mark with `coola.utils.imports`"
+
+    `coola.utils.imports` has functions with a similar name (`is_numpy_available()`). The marks of
+    `coola.testing.marks` are `pytest.mark.skipif` decorators. A name imported from the wrong module
+    does not fail: a test can silently never run. Import the marks from `coola.testing.marks` only.
+
 ### Marks for another dependency
 
 `requires` creates the pair for any dependency. It takes a boolean that says whether the dependency
@@ -123,6 +129,7 @@ to build an independent registry with the same entries.
 | Extensible              | `requires` creates the pair of marks for another dependency, like for the built-in ones.                                                                                                                    |
 | Isolated registries     | The `isolated_default_registries` fixture runs a test on copies of the six default registries and restores the originals when the test ends, even if it fails.                                              |
 | Opt-in                  | Nothing in `coola` outside `coola.testing` imports it, and the fixture is not autouse.                                                                                                                      |
+| No state of its own     | The module has no global state besides the cache of the marks it built. It changes no environment variable and no registry at import.                                                                       |
 
 Not guaranteed:
 
@@ -135,6 +142,23 @@ Not guaranteed:
   that is what the library does.
 - **A typo in a mark name** raises an `AttributeError` that lists the valid names when the test
   module is imported; the type checker does not catch it.
+
+What the package does not provide:
+
+- **Other fixtures.** There is no fixture that seeds the random generators, clears the availability
+  caches (`clear_availability_caches` of `coola.utils.imports` does it) or provides a temporary
+  registry for one package.
+- **Parametrisation helpers**, such as a list of `(numpy_array, torch_tensor)` pairs: they are test
+  data and live next to the tests.
+- **Thread-safe isolation.** The fixture is for the main thread of a test.
+- **Python version or OS marks.** Use `pytest.mark.skipif(sys.platform == ...)` in the test.
+- **A strict mode** that makes the suite fail, instead of skip, when a dependency is missing. Check
+  in CI that the dependencies are installed, so that a broken environment cannot turn a suite into
+  skips.
+- **A friendly error for a missing `pytest`.** `import pytest` raises `ModuleNotFoundError`; install
+  the `testing` extra.
+- **A run-time mark** (`@pytest.mark.requires("numpy")`). The marks are importable names, and they
+  need no pytest plugin.
 
 ## See Also
 

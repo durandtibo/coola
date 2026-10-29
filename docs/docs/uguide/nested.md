@@ -405,12 +405,28 @@ Use `flatten_frame()` to unnest the struct columns of a polars `DataFrame` (and,
 
 ```pycon
 >>> import polars as pl
->>> from coola.nested.polars import flatten_frame
+>>> from coola.nested import flatten_frame
 >>> frame = pl.DataFrame({"id": [1, 2], "coords": [{"x": 10, "y": 20}, {"x": 30, "y": 40}]})
 >>> flatten_frame(frame).columns
 ['id', 'coords.x', 'coords.y']
 
 ```
+
+A `LazyFrame` is not accepted by `flatten_frame`: it raises a `TypeError` that asks you to call
+`collect()` first, because a lazy frame has no cheap schema and the number of rows of an exploded list
+is only known after the evaluation. The supported range of polars is `polars>=1.0,<3.0`.
+
+## What `coola.nested` does not do
+
+- **Keys of `convert_to_jsonable`.** The output is accepted by the Python `json` module, not by a
+  strict JSON parser: the keys are not converted to strings, and `NaN` and the infinities are kept.
+- **Dataclasses and pydantic models from `from_flat_dict`.** The function builds dicts and lists:
+  rebuilding a typed object needs a schema.
+- **A deep merge.** `merge_mappings` merges the top level with a duplicate strategy; it does not
+  merge nested mappings.
+- **A rename function other than a prefix and a suffix.** `add_prefix_suffix_to_keys` is the only
+  public rename.
+- **Lazy or parallel application.** The outputs are built whole, as in `coola.recursive`.
 
 ## Common Use Cases
 
@@ -502,22 +518,20 @@ The functions fall into five groups: `flat` (`to_flat_dict`, `from_flat_dict`, `
 `keys` (`remove_keys_if`, `remove_keys_containing`, `remove_keys_starting_with`,
 `add_prefix_suffix_to_keys`), `mappings` (`merge_mappings`, `flatten_mapping`, `DuplicateKeyError`),
 `records` (`convert_to_dict_of_lists`, `convert_to_list_of_dicts`) and `json`
-(`convert_to_jsonable`). The table says which group each property covers. A statement marked
-"(from step N)" is the target of the [`coola.nested` design](https://github.com/durandtibo/coola/blob/main/review/nested.md)
-and is true when that step lands.
+(`convert_to_jsonable`). The table says which group each property covers.
 
 | Property                | Statement                                                                                                                                                                                                                                              | Groups                 |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------- |
 | Pure                    | The input is never modified. A function that rebuilds containers returns new ones (the leaves and the values are shared, never copied). No function keeps state between calls.                                                                         | all                    |
-| One notion of container | A function that looks inside the values enters the containers of the other packages (sequences, mappings, sets, dataclasses) and treats text, bytes, iterators and unknown types as leaves. `to_flat_dict` does not enter sets (from steps 3, 6).      | `flat`, `keys`, `json` |
-| Structure-preserving    | A function that rebuilds a structure keeps the type of every container, the top one included, and the order of the entries (from step 3).                                                                                                              | `keys`, `json`         |
-| Any depth               | No `RecursionError`, whatever the nesting (from steps 3 to 6).                                                                                                                                                                                         | `flat`, `keys`, `json` |
-| Cycle-safe              | A container that contains itself raises `ValueError`, never `RecursionError` (from steps 3 to 6).                                                                                                                                                      | `flat`, `keys`, `json` |
+| One notion of container | A function that looks inside the values enters the containers of the other packages (sequences, mappings, sets, dataclasses) and treats text, bytes, iterators and unknown types as leaves. `to_flat_dict` does not enter sets.                        | `flat`, `keys`, `json` |
+| Structure-preserving    | A function that rebuilds a structure keeps the type of every container, the top one included, and the order of the entries.                                                                                                                            | `keys`, `json`         |
+| Any depth               | No `RecursionError`, whatever the nesting.                                                                                                                                                                                                             | `flat`, `keys`, `json` |
+| Cycle-safe              | A container that contains itself raises `ValueError`, never `RecursionError`.                                                                                                                                                                          | `flat`, `keys`, `json` |
 | Keys are labels         | Only the `flat` and `keys` functions read or change keys. `add_prefix_suffix_to_keys` renames the `str` keys and keeps the others; `to_flat_dict` writes every key with `str()`.                                                                       | `flat`, `keys`         |
-| No silent loss          | Two entries are never merged into one without a decision of the caller: a key collision raises (`DuplicateKeyError` or `ValueError`). A wrong input type raises `TypeError` naming the type (from step 3).                                             | all                    |
-| Deterministic           | The same input gives the same output in every process: the entries keep the order of the input; a set becomes a sorted list (from steps 5, 7).                                                                                                         | all                    |
+| No silent loss          | Two entries are never merged into one without a decision of the caller: a key collision raises (`DuplicateKeyError` or `ValueError`). A wrong input type raises `TypeError` naming the type.                                                           | all                    |
+| Deterministic           | The same input gives the same output in every process: the entries keep the order of the input; a set becomes a sorted list.                                                                                                                           | all                    |
 | Documented round trips  | `from_flat_dict(to_flat_dict(x)) == x` for `dict`/`str` keys that do not contain the separator (or with `escape=True`); with `restore_lists=True`, also for lists. `convert_to_list_of_dicts(convert_to_dict_of_lists(r)) == r` for non-empty records. | `flat`, `records`      |
-| Explicit options        | Options are keyword-only. An invalid option raises `ValueError` before any work is done (from step 2).                                                                                                                                                 | all                    |
+| Explicit options        | Options are keyword-only. An invalid option raises `ValueError` before any work is done.                                                                                                                                                               | all                    |
 | Lazy                    | `import coola.nested` imports no optional library (polars is loaded by the first use of `flatten_frame`).                                                                                                                                              | all                    |
 | Thread-safe             | The state of a call is local to the call. There is no module-level mutable state.                                                                                                                                                                      | all                    |
 | Fast                    | The cost is linear in the number of nodes.                                                                                                                                                                                                             | all                    |

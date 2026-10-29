@@ -91,11 +91,11 @@ validate a seed without seeding: it accepts an `int` in the range `[0, 2**63)`, 
 >>> validate_seed(-1)
 Traceback (most recent call last):
     ...
-ValueError: seed must be in the range [0, 2**63), got -1
+ValueError: seed must be in the range [0, 9223372036854775808), got -1
 >>> validate_seed("42")
 Traceback (most recent call last):
     ...
-TypeError: seed must be an int, got <class 'str'>
+TypeError: seed must be an int, got str
 
 ```
 
@@ -482,6 +482,19 @@ code draws from the same generators. In threads, use independent generators
 
 The CUDA state is read only if CUDA is already initialized, so `get_rng_state` can be called in a
 forked worker. A child process restores a state with `set_rng_state`.
+
+## What `coola.random` does not do
+
+- **It does not manage `Generator` objects.** `random.Random`, `numpy.random.default_rng` and
+  `torch.Generator` objects are not tracked: the package manages the global generators only. Seed an
+  independent generator yourself, with `default_rng(seed)` or `get_torch_generator(seed)`.
+- **It does not seed other libraries automatically.** JAX uses explicit keys. A manager for
+  TensorFlow or another library can be added as a plugin through `coola.random.managers`.
+- **It does not lock the generators**, and it does not make them thread-local (see
+  [Threads and Processes](#threads-and-processes)).
+- The keys of the default registry, and of a saved state, are `"random"`, `"numpy"` and `"torch"`
+  (the torch state also holds `"torch.cuda"` and `"torch.mps"` when they are available). The
+  seed range is `[0, 2**63)`.
 
 ## Best Practices
 

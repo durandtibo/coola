@@ -1075,6 +1075,11 @@ The columns are compared one by one, and the comparison stops at the first colum
 The numeric and duration columns follow the numeric rule (tolerance and `equal_nan`); the other
 columns, including the nested and `object` columns, are compared by the `equals` of pandas.
 
+The time resolution is part of the dtype, as in NumPy: `timedelta64[s]` and `timedelta64[ns]` (or
+`datetime64[s]` and `datetime64[ns]`) are different dtypes, so two frames that hold the same instants
+with different resolutions are different. pandas 3 infers the resolution from how the values are
+built, so cast both sides with `astype` to the resolution you want before the comparison.
+
 ```pycon
 >>> import pandas as pd
 >>> from coola.equality import objects_are_equal
@@ -1650,7 +1655,7 @@ is `.x`, an element of a set is `{2}`, and an array reports its index (`[1][2]`)
 PyArrow table is reported as a whole, with the first differing column in the reason (for example
 `tables have different values: column 'a' differs`); use the library (`DataFrame.compare`,
 `polars.testing`, `Table.equals`) to find the row. The design behind this is described in
-[Architecture](../dev/architecture.md#design-of-coolaequality).
+[Architecture](../dev/equality.md).
 
 - `compare` and the assert functions do not log and do not change the logging configuration, so they
   can be called from several threads at the same time.

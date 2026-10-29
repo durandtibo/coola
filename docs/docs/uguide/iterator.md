@@ -33,9 +33,26 @@ collections.
 | Iterators are leaves         | The default registries never consume an iterator or a generator, so an infinite iterator cannot hang the traversal.                                                                                                                           |
 | Depth                        | Both functions use an explicit stack or queue: there is no `RecursionError`, whatever the nesting. The depth is bounded by memory only.                                                                                                       |
 | Extensible                   | Support for a new container type is added with one child finder (`find_children`) registered for the type. It serves both orders.                                                                                                             |
+| Errors propagate             | An exception of a child finder, or of the data (for example a failing property), propagates unchanged.                                                                                                                                        |
+| Thread-safe                  | The state of a traversal (stack or queue, cache, ancestors) is local to the call, so a registry and a child finder can be shared by threads. A running traversal must not be shared.                                                          |
+| Consistent with siblings     | The containers entered are the ones of `recursive_apply`; dataclasses are entered as in `objects_are_equal`, `hash_object` and `summarize`; the options are keyword-only; the DFS order is the order of the calls of `recursive_apply`.       |
 
-Not guaranteed: the order of a `ChainMap` (its values follow the lookup order of the maps), a
-container that is changed during the traversal, and a registry that is modified during a traversal.
+Not guaranteed:
+
+- **Shared references.** A container reachable by several paths (a DAG) gives its leaves once per
+  path, so the cost is proportional to the number of paths, not to the number of objects.
+- **The order inside a set**, and the order of a `ChainMap` (its values follow the lookup order of
+  the maps, last map first).
+- **Mutation during the traversal.** Changing a container while it is walked is the caller's
+  problem, as for any Python iteration.
+- **A registry modified during a traversal.** The traversal keeps the child finders it already
+  resolved.
+
+What the package does not do: pydantic models, attrs classes and plain objects with `__dict__` are
+leaves, and so are NumPy arrays, tensors and data frames (the function receives the whole array;
+element-wise iteration is the job of the caller). There is no `max_depth` or `max_leaves` option:
+`itertools.islice` stops a traversal after `n` leaves, because the functions are lazy. The cycle is
+reported when the traversal reaches it, so the leaves before it have already been yielded.
 
 ## Depth-First Search (DFS) Iteration
 
@@ -442,29 +459,6 @@ same leaves in both packages:
 `range`, and a user class that only inherits `Collection` or `collections.abc.Set`, are leaves
 until a child finder is registered for them (see [Writing a Child Finder](#writing-a-child-finder)).
 An empty container has no leaf and yields nothing.
-
-## Properties
-
-| Property                     | Statement                                                                                                                               |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Lazy                         | Both `dfs_iterate` and `bfs_iterate` are generators: leaves are produced one at a time.                                                 |
-| Every leaf is returned       | A container that appears several times, without containing itself, gives its leaves each time.                                          |
-| Cycle-safe                   | A container that contains itself raises `ValueError` instead of looping forever or hitting the recursion limit.                         |
-| Iterators are leaves         | The default registries never consume an iterator or a generator, so an infinite iterator cannot hang the traversal.                     |
-| Depth                        | Both functions use an explicit stack or queue: there is no `RecursionError`, whatever the nesting. The depth is bounded by memory only. |
-| Same leaves, different order | DFS and BFS visit the same leaves. Only the order differs.                                                                              |
-| Extensible                   | Support for a new type is added with one child finder (`find_children`) registered for the type. It serves both orders.                 |
-
-Not guaranteed:
-
-- **Shared references.** A container reachable by several paths (a DAG) gives its leaves once per
-  path, so the cost is proportional to the number of paths, not to the number of objects.
-- **The order inside a set**, and the order of a `ChainMap` (its values follow the lookup order of
-  the maps, last map first).
-- **Mutation during the traversal.** Changing a container while it is walked is the caller's
-  problem, as for any Python iteration.
-- **A registry modified during a traversal.** The traversal keeps the child finders it already
-  resolved.
 
 ## Design Principles
 

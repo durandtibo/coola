@@ -226,6 +226,12 @@ The default registry hashes **only** the following types (and their subclasses):
 | `pyarrow` arrays and tables                  | The names, the types and the values; the chunk layout is ignored                                                     |
 | `xarray` `DataArray`, `Dataset`, `Variable`  | The dimensions, the values, the coordinates, the attributes and the name                                             |
 
+Some types that `objects_are_equal` compares are not hashed yet: `array.array`, `dict_keys`,
+`dict_values`, `dict_items`, `slice`, `Ellipsis`, `re.Pattern`, `torch.dtype`, `torch.device`, the
+NumPy `datetime64` and `timedelta64` scalars, and the pandas `Index` and `Categorical` as values.
+Functions, classes and other callables are not hashed either, and the content of a file is not
+hashed (see `Path` below). Each of them is one hasher and one registration if you need it.
+
 The array libraries are only imported if they are installed. A NumPy array and a PyTorch tensor with
 the same content hash differently. Your own classes still need a registered hasher (a class with a
 `__coola_hash__()` method and a dataclass work without registration, see below). Otherwise `hash_object`

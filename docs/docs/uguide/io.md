@@ -34,6 +34,7 @@ designed around the following properties.
 | Directory safety         | A path that is a directory raises `IsADirectoryError`, a parent that is a file raises `NotADirectoryError`, missing parents are created. A symbolic link target is overwritten through the link, and the mode of an overwritten file is kept.    |
 | Path-like input          | Every method takes a `str` or any `os.PathLike`; `~` and `file://` URIs are expanded.                                                                                                                                                            |
 | Format-agnostic API      | Every loader has `load(path)` and every saver has `save(data, path, exist_ok=...)`. Formats can be swapped without changing the calling code.                                                                                                    |
+| Strict input             | A saver rejects the data it cannot save with a `TypeError` or the error of the library, before it touches the target. `TextSaver` accepts a `str` only; it does not call `str()` on other objects.                                               |
 | Comparable               | Two loaders (or two savers) are equal (`equal()`) if they have the same type and the same configuration (encoding, keyword arguments).                                                                                                           |
 | Safe by default for load | `TorchLoader` uses `weights_only=True` unless told otherwise. `PickleLoader` cannot be made safe: only load pickle files that you trust.                                                                                                         |
 | Extensible               | A format is added by subclassing `BaseLoader` or `BaseFileSaver`. The atomic write, `exist_ok` and `fsync` come with the base class. A backend that is not a file subclasses `BaseSaver`.                                                        |
@@ -44,7 +45,7 @@ designed around the following properties.
 Not guaranteed:
 
 - Round trip beyond the format: JSON turns tuples into lists and non-string keys into strings and
-  writes `NaN` as a non-standard token, and `save_text` writes `str(data)` for non-string data.
+  writes `NaN` as a non-standard token, and a text file stores a `str`.
 - Durability without `fsync=True`, and which of several concurrent saves wins.
 - A hidden `.<name>-<uuid><ext>` file after a crash: a process killed (SIGKILL, power loss) between
   the write and the commit leaves its temporary file. It is hidden, never taken for the target, and
@@ -219,32 +220,6 @@ overwritten. On filesystems without hard link support (FAT/exFAT, some network a
 volumes), `save` falls back to checking that the target does not exist and renaming the temporary
 file.
 
-## Properties
-
-The built-in loaders and savers are designed around the following properties.
-
-| Property                 | Statement                                                                                                                                                                                                                                        |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Atomic write             | A file saver writes to a temporary file next to the target and then moves it into place, so a reader never sees a partially written file, and an interrupted `save` leaves no partial file.                                                      |
-| No silent overwrite      | `save` raises `FileExistsError` if the target exists, unless `exist_ok=True`. This also holds if the file is created concurrently, because the commit uses a hard link.                                                                          |
-| No torn file             | Concurrent saves of the same path, in one process or in several, never produce a mix: the file is the complete content of one of them. Which one is unspecified. With `exist_ok=False`, exactly one wins and the others raise `FileExistsError`. |
-| Opt-in durability        | By default the data only reaches the operating system cache. `fsync=True` flushes the file and the directory, so the file survives a power failure. It is slower.                                                                                |
-| Clean failure            | If writing fails, the temporary file is removed and the original exception is raised, even if the cleanup itself fails. An existing target file is left untouched.                                                                               |
-| Directory safety         | A path that is a directory raises `IsADirectoryError`. Missing parent directories are created.                                                                                                                                                   |
-| Format-agnostic API      | Every loader has `load(path)` and every saver has `save(data, path, exist_ok=...)`, so formats can be swapped without changing the calling code.                                                                                                 |
-| Comparable               | Loaders and savers implement `equal()`: two of them are equal if they have the same type and the same configuration (e.g. encoding or keyword arguments).                                                                                        |
-| Safe by default for load | `TorchLoader` uses `weights_only=True` unless told otherwise. `PickleLoader` cannot be made safe: only load pickle files that you trust.                                                                                                         |
-| Extensible               | A loader or saver for another format is added by subclassing `BaseLoader` or `BaseFileSaver`, which reuses the atomic write and `exist_ok` handling.                                                                                             |
-
-Not guaranteed:
-
-- Round trip beyond the format: JSON turns tuples into lists and non-string keys into strings,
-  and text files store `str(data)` for non-string data.
-- Durability without `fsync=True`.
-- Which of several concurrent saves wins.
-- `exist_ok=False` on a file system without hard links: two processes that create the same file at
-  the same instant can both succeed (the last one wins, no file is torn).
-
 ## Comparing Loaders and Savers
 
 Loaders and savers implement `equal()` so they can be compared, including with
@@ -314,6 +289,38 @@ of `save` directly - this reuses the atomic write and `exist_ok` handling descri
 ...         path.write_text(str(to_save).upper())
 
 ```
+
+## What `coola.io` does not do
+
+- **Selection of the loader by the file suffix.** There is no `load("data.json")`: the loader is
+  explicit, so the format is visible at the call site. A suffix registry would also mean that
+  `load("x.pkl")` unpickles a file because of its name.
+- **Async.** There is no `aload` or `asave`. A save blocks the thread that calls it. In a coroutine,
+  call it with `await asyncio.to_thread(saver.save, data, path)`. The loaders and savers hold their
+  configuration only, so they are safe to call from a worker thread. Cancelling the wait does not
+  cancel the save: the file still appears when the thread finishes.
+- **Remote and virtual file systems** (S3, GCS, `fsspec`): `path` is a local path. A saver for an
+  object store is a `BaseSaver` subclass that overrides `save`; the atomic write is then the job of
+  the store.
+- **Streaming and large values.** One value is read or written per call, fully in memory.
+- **Compression** (`.json.gz`), **checksums** and **file locking for the caller.**
+- **Other formats** (`yaml`, `.npy`, `safetensors`, `bytes`). Each one is a `_load` and a
+  `_save_file`, and an optional dependency imported lazily. For example, a NumPy `.npy` format:
+
+```python
+class NumpySaver(BaseFileSaver["np.ndarray"]):
+    def _save_file(self, to_save, path):
+        with path.open("wb") as file:  # np.save adds ".npy" to a name that has no extension
+            np.save(file, to_save)
+
+
+class NumpyLoader(BaseLoader["np.ndarray"]):
+    def _load(self, path):
+        return np.load(path)
+```
+
+- **Cleaning the temporary files** left by killed processes. They are hidden and have a
+  recognisable name, and a cleaner would need a lock to know that the owner is dead.
 
 ## See Also
 

@@ -16,6 +16,22 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 | `coola.formatting.secret`    | `mask_secret`                                                                       |
 | `coola.formatting.diff`      | `unified_diff`                                                                      |
 
+`coola.formatting` is a core package: it imports `coola.utils` and `coola.validation` only, and the
+packages that print values (`coola.display`, `coola.registry`, the error messages of the feature
+packages) are built on it.
+
+## Properties
+
+| Property               | Statement                                                                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pure                   | A function has no side effect and keeps no state: the same input gives the same string. It does not touch the logger, the environment or files.      |
+| `str` and `repr` pairs | `str_mapping` / `repr_mapping` and `str_sequence` / `repr_sequence` (and the `*_line` variants) format the values with `str` or with `repr`.         |
+| One layout             | A mapping is `(key): value` per line, a sequence is `(index): value` per line, and a multi-line value is indented under its key.                     |
+| Strict options         | Options are keyword-only and checked before any work (`num_spaces` must be at least 0): a wrong type is a `TypeError`, a wrong value a `ValueError`. |
+| No optional library    | Nothing here imports NumPy, torch or another optional package.                                                                                       |
+
+The exact layout of a bar or a diff is meant to be read, not parsed.
+
 ## Formatting Utilities (`coola.formatting`)
 
 ### Formatting Sequences
@@ -139,6 +155,19 @@ Use `str_time_human()` to format time durations:
 
 ```
 
+### Progress Bars
+
+`make_bar()` draws a bar for a fraction between 0 and 1:
+
+```pycon
+>>> from coola.formatting.quantity import make_bar
+>>> make_bar(0.5)
+'[█████░░░░░]'
+>>> make_bar(0.25, length=8)
+'[██░░░░░░]'
+
+```
+
 ## String Utilities (`coola.formatting.text`)
 
 The `coola.formatting.text` module provides small helpers to work with strings: `count_lines()`,
@@ -179,7 +208,25 @@ The `coola.formatting.text` module provides small helpers to work with strings: 
 
 ```
 
+## Diff Utilities (`coola.formatting.diff`)
+
+`unified_diff()` returns the unified diff of two texts:
+
+```pycon
+>>> from coola.formatting.diff import unified_diff
+>>> print(unified_diff("a\nb\n", "a\nc\n"), end="")
+--- previous
++++ latest
+@@ -1,2 +1,2 @@
+ a
+-b
++c
+
+```
+
 ## See Also
 
 - [Utility Functions](utils.md)
+- [Display Utilities](display.md): the mixins that build `repr` and `str` with these functions
+- [Architecture of `coola.formatting`](../dev/formatting.md)
 - [API reference](../refs/formatting.md)
