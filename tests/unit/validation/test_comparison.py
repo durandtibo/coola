@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
 from coola.validation import (
     validate_finite,
@@ -28,7 +27,7 @@ class _Float(float):
 
 
 if is_numpy_available():
-    import numpy as np
+    pass
 
 
 def test_validate_ge_greater() -> None:
@@ -283,10 +282,9 @@ def test_validate_finite_not_a_real_number_raises(value: Any) -> None:
         validate_finite(value)
 
 
-@numpy_available
 def test_validate_finite_array_raises_a_named_type_error() -> None:
-    with pytest.raises(TypeError, match=r"^value must be a real number, got ndarray$"):
-        validate_finite(np.array([1.0, 2.0]))  # ty: ignore[invalid-argument-type]
+    with pytest.raises(TypeError, match=r"^value must be a real number, got list$"):
+        validate_finite([1.0, 2.0])  # ty: ignore[invalid-argument-type]
 
 
 def test_validate_finite_message_shows_the_value_with_repr() -> None:
