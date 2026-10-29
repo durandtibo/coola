@@ -40,12 +40,14 @@
 - Keep new options keyword-only (`*`), as `hash_object` does.
 - Optional libraries (numpy, torch, pandas, polars, ...) are imported lazily; do not import them
   at module level in `src`.
+- Every function, public or private (leading underscore), needs a docstring and its own unit
+  tests. Private functions are not exempt.
 - Keep docstrings and documentation up to date and comprehensive: update them whenever the
   behaviour, signature or options of the code change.
 
 ## Tests
 
-- Always write tests for the code in `src/`. Unit tests must be fast and efficient; move big or
+- Always write tests for the code in `src/`, including every private function. Unit tests must be fast and efficient; move big or
   slow tests to `tests/integration/` if needed.
 - Unit tests mirror the source tree (`tests/unit/<package>/test_<module>.py`). Cross-thread
   behaviour goes in `tests/integration/`, using `run_threads` from `tests/integration/helpers.py`,
