@@ -4,7 +4,7 @@ import functools
 import math
 from abc import ABC, abstractmethod
 from collections import Counter
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -369,11 +369,10 @@ def test_instantiate_object_function_kwargs_arg2(arg1: int, arg2: str) -> None:
 
 
 def test_instantiate_object_incorrect_type() -> None:
-    obj: Any = Fake(12)
     with pytest.raises(
         TypeError, match=r"Incorrect type: .*. The valid types are class and callable"
     ):
-        instantiate_object(obj)
+        instantiate_object(Fake(12))  # ty: ignore[invalid-argument-type]
 
 
 def test_instantiate_object_builtin_function() -> None:
@@ -507,9 +506,8 @@ def test_instantiate_object_init_starting_with_underscore_is_refused(init: str) 
 
 
 def test_instantiate_object_init_not_a_string_is_refused() -> None:
-    init: Any = 5
     with pytest.raises(TypeError, match=r"`_init_` must be '__init__' or the name of a public"):
-        instantiate_object(Fake, _init_=init)
+        instantiate_object(Fake, _init_=5)  # ty: ignore[invalid-argument-type]
 
 
 def test_instantiate_object_init_underscore_is_refused_before_the_attribute_is_read() -> None:
