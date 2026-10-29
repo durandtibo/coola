@@ -6,6 +6,7 @@ The properties are documented in ``docs/docs/uguide/rounding.md``.
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -13,6 +14,9 @@ from coola.rounding import round_values
 from coola.testing.marks import numpy_available, polars_available, pyarrow_available
 from coola.utils.imports import is_numpy_available, is_polars_available, is_pyarrow_available
 from tests.unit.rounding.helpers import EXACT_BOUND, oracle
+
+if TYPE_CHECKING:
+    from coola.rounding.common import RoundMode
 
 hypothesis = pytest.importorskip("hypothesis")
 
@@ -65,7 +69,7 @@ def _is_exact(x: float, decimals: int) -> bool:
 @given(case=floats_near_grid(), mode=modes)
 @example(case=(2.675, 2), mode="round")
 @example(case=(5.5200000000000005, 2), mode="ceil")
-def test_round_values_float_matches_oracle(case: tuple[float, int], mode: str) -> None:
+def test_round_values_float_matches_oracle(case: tuple[float, int], mode: RoundMode) -> None:
     x, decimals = case
     if _is_exact(x, decimals):
         assert _bits(round_values(x, mode=mode, decimals=decimals)) == _bits(
@@ -76,7 +80,7 @@ def test_round_values_float_matches_oracle(case: tuple[float, int], mode: str) -
 @numpy_available
 @given(case=floats_near_grid(), mode=modes)
 @example(case=(5.5200000000000005, 2), mode="ceil")
-def test_round_values_numpy_matches_oracle(case: tuple[float, int], mode: str) -> None:
+def test_round_values_numpy_matches_oracle(case: tuple[float, int], mode: RoundMode) -> None:
     x, decimals = case
     if _is_exact(x, decimals):
         result = round_values(np.array([x]), mode=mode, decimals=decimals)
@@ -99,14 +103,16 @@ def test_round_values_floor_is_below_and_ceil_is_above(case: tuple[float, int]) 
 
 
 @given(case=floats_near_grid(), mode=modes)
-def test_round_values_float_is_idempotent(case: tuple[float, int], mode: str) -> None:
+def test_round_values_float_is_idempotent(case: tuple[float, int], mode: RoundMode) -> None:
     x, decimals = case
     once = round_values(x, mode=mode, decimals=decimals)
     assert _bits(round_values(once, mode=mode, decimals=decimals)) == _bits(once)
 
 
 @given(case=floats_near_grid(), mode=modes, other=st.floats(min_value=0, max_value=1e-3))
-def test_round_values_float_is_monotone(case: tuple[float, int], mode: str, other: float) -> None:
+def test_round_values_float_is_monotone(
+    case: tuple[float, int], mode: RoundMode, other: float
+) -> None:
     x, decimals = case
     assert round_values(x, mode=mode, decimals=decimals) <= round_values(
         x + other, mode=mode, decimals=decimals
@@ -123,13 +129,13 @@ def test_round_values_round_is_at_most_half_a_step_away(case: tuple[float, int])
 
 @given(x=st.floats(min_value=-0.49, max_value=-0.0, allow_nan=False), mode=modes)
 @example(x=-0.4, mode="ceil")
-def test_round_values_float_keeps_the_sign_of_a_zero_result(x: float, mode: str) -> None:
+def test_round_values_float_keeps_the_sign_of_a_zero_result(x: float, mode: RoundMode) -> None:
     result = round_values(x, mode=mode)
     assert math.copysign(1.0, result) == -1.0 or result != 0.0
 
 
 @given(x=st.floats(allow_nan=True), mode=modes)
-def test_round_values_integer_valued_float_stays_a_float(x: float, mode: str) -> None:
+def test_round_values_integer_valued_float_stays_a_float(x: float, mode: RoundMode) -> None:
     assert isinstance(round_values(x, mode=mode, decimals=2), float)
 
 
@@ -142,7 +148,7 @@ def test_round_values_integer_valued_float_stays_a_float(x: float, mode: str) ->
 @given(case=floats_near_grid(), mode=modes)
 @example(case=(2.675, 2), mode="round")
 def test_round_values_float_and_numpy_give_the_same_bits(
-    case: tuple[float, int], mode: str
+    case: tuple[float, int], mode: RoundMode
 ) -> None:
     x, decimals = case
     scalar = round_values(x, mode=mode, decimals=decimals)
@@ -155,7 +161,7 @@ def test_round_values_float_and_numpy_give_the_same_bits(
 @given(case=floats_near_grid(), mode=modes)
 @example(case=(-4.822, 1), mode="round")
 def test_round_values_polars_and_numpy_give_the_same_bits(
-    case: tuple[float, int], mode: str
+    case: tuple[float, int], mode: RoundMode
 ) -> None:
     x, decimals = case
     column = round_values(pl.Series([x, 12.0]), mode=mode, decimals=decimals).to_list()[0]
@@ -168,7 +174,7 @@ def test_round_values_polars_and_numpy_give_the_same_bits(
 @given(case=floats_near_grid(), mode=modes)
 @example(case=(0.225, 2), mode="round")
 def test_round_values_pyarrow_and_numpy_give_the_same_bits(
-    case: tuple[float, int], mode: str
+    case: tuple[float, int], mode: RoundMode
 ) -> None:
     x, decimals = case
     column = round_values(pa.array([x]), mode=mode, decimals=decimals).to_pylist()[0]

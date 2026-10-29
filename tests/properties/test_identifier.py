@@ -3,6 +3,7 @@ r"""Property-based tests for ``coola.identifier``."""
 from __future__ import annotations
 
 import re
+from typing import Any
 
 from hypothesis import assume, given, strategies as st
 
@@ -199,5 +200,5 @@ def test_checksummed_id_detects_a_swap_of_adjacent_characters(
 
 
 @given(identifier=st.one_of(st.none(), st.integers(), st.binary(), st.text()))
-def test_verify_checksummed_id_never_raises(identifier: object) -> None:
+def test_verify_checksummed_id_never_raises(identifier: Any) -> None:
     assert verify_checksummed_id(identifier) in {True, False}

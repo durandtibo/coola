@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import contextlib
 import copy
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import pytest
 from hypothesis import assume, given, settings, strategies as st
@@ -32,6 +32,9 @@ from tests.properties.strategies import (
 
 if TYPE_CHECKING:
     import random
+
+MergeMode = Literal["first", "last", "suffix"]
+FlattenMode = Literal["first", "last", "prefix"]
 
 separators = st.sampled_from([".", "/", "::", "->"])
 strategies = st.sampled_from(["first", "last", "suffix"])
@@ -202,18 +205,20 @@ def test_to_flat_dict_accepts_a_container_shared_in_two_places(value: Any, key: 
 
 
 @given(mapping=int_mappings, on_duplicate=strategies)
-def test_merge_single_mapping_is_unchanged(mapping: dict[str, int], on_duplicate: str) -> None:
+def test_merge_single_mapping_is_unchanged(
+    mapping: dict[str, int], on_duplicate: MergeMode
+) -> None:
     assert merge_mappings([mapping], on_duplicate=on_duplicate) == mapping
 
 
 @given(mapping=int_mappings, on_duplicate=strategies)
-def test_merge_is_idempotent(mapping: dict[str, int], on_duplicate: str) -> None:
+def test_merge_is_idempotent(mapping: dict[str, int], on_duplicate: MergeMode) -> None:
     assert merge_mappings([mapping, mapping], on_duplicate=on_duplicate) == mapping
 
 
 @given(first=int_mappings, second=int_mappings, on_duplicate=strategies)
 def test_merge_of_a_merged_mapping_is_unchanged(
-    first: dict[str, int], second: dict[str, int], on_duplicate: str
+    first: dict[str, int], second: dict[str, int], on_duplicate: MergeMode
 ) -> None:
     merged = merge_mappings([first, second], on_duplicate=on_duplicate)
     assert merge_mappings([merged, merged], on_duplicate=on_duplicate) == merged
@@ -222,7 +227,7 @@ def test_merge_of_a_merged_mapping_is_unchanged(
 @pytest.mark.parametrize("on_duplicate", ["first", "last"])
 @given(first=int_mappings, second=int_mappings)
 def test_merge_keeps_every_key(
-    on_duplicate: str, first: dict[str, int], second: dict[str, int]
+    on_duplicate: MergeMode, first: dict[str, int], second: dict[str, int]
 ) -> None:
     merged = merge_mappings([first, second], on_duplicate=on_duplicate)
     assert set(merged) == set(first) | set(second)
@@ -272,7 +277,7 @@ def test_merge_suffix_loses_no_value(first: dict[str, int], second: dict[str, in
 @pytest.mark.parametrize("on_duplicate", ["first", "last"])
 @given(first=int_mappings, second=int_mappings, third=int_mappings)
 def test_merge_is_associative_for_the_keys(
-    on_duplicate: str, first: dict[str, int], second: dict[str, int], third: dict[str, int]
+    on_duplicate: MergeMode, first: dict[str, int], second: dict[str, int], third: dict[str, int]
 ) -> None:
     left = merge_mappings(
         [merge_mappings([first, second], on_duplicate=on_duplicate), third],
@@ -316,7 +321,7 @@ def test_flatten_always_prefix_keeps_every_value(
 
 @given(mapping=nested_mappings, on_duplicate=st.sampled_from(["first", "last", "prefix"]))
 def test_flatten_is_idempotent_on_a_flat_mapping(
-    mapping: dict[str, dict[str, int]], on_duplicate: str
+    mapping: dict[str, dict[str, int]], on_duplicate: FlattenMode
 ) -> None:
     flat = flatten_mapping(mapping, on_duplicate=on_duplicate)
     assert flatten_mapping({"all": flat}, on_duplicate=on_duplicate) == flat
