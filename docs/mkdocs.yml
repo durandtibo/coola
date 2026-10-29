@@ -56,6 +56,24 @@ nav:
   - Developer Guide:
       - dev/development.md
       - dev/architecture.md
+      - dev/architecture/display.md
+      - dev/architecture/equality.md
+      - dev/architecture/factory.md
+      - dev/architecture/formatting.md
+      - dev/architecture/hashing.md
+      - dev/architecture/identifier.md
+      - dev/architecture/io.md
+      - dev/architecture/iterator.md
+      - dev/architecture/nested.md
+      - dev/architecture/random.md
+      - dev/architecture/recursive.md
+      - dev/architecture/reducer.md
+      - dev/architecture/registry.md
+      - dev/architecture/rounding.md
+      - dev/architecture/summary.md
+      - dev/architecture/testing.md
+      - dev/architecture/utils.md
+      - dev/architecture/validation.md
       - dev/add_backend.md
   - Migration:
       - migration/v0.11_to_v1.0.md
