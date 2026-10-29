@@ -36,9 +36,12 @@ def create_list_union2() -> list | tuple:
     return [1, 2, 3, 4]
 
 
-def create_undefined_return_type() -> UndefinedType:  # noqa: F821
+def create_undefined_return_type() -> list:
     """Helper function whose return type hint cannot be resolved."""
     return []
+
+
+create_undefined_return_type.__annotations__["return"] = "UndefinedType"
 
 
 class Interface(ABC):  # noqa: B024

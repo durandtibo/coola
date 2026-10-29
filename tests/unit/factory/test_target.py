@@ -53,12 +53,18 @@ def make_without_hint():  # noqa: ANN201
     return Dog()
 
 
-def make_unresolvable() -> UndefinedName:  # noqa: F821
+def make_unresolvable() -> Dog:
     return Dog()
 
 
-def make_literal() -> 1:
+make_unresolvable.__annotations__["return"] = "UndefinedName"
+
+
+def make_literal() -> int:
     return 1
+
+
+make_literal.__annotations__["return"] = 1
 
 
 ############################
