@@ -49,29 +49,15 @@ jobs:
           dist-type: ${{ matrix.dist-type }}
       - name: Run package checks
         shell: bash
+        env:
+          PACKAGE_EXTRA: ${{ matrix.package-extra }}
         run: |2
 
           set -euo pipefail
           echo "🔍 Running package checks..."
-          python tests/package_checks.py
+          python tests/package/check_package.py --extra "$PACKAGE_EXTRA"
 
           echo "✅ Package checks passed"
-      - name: Check optional packages installation
-        if: ${{ matrix.package-extra != '' }}
-        shell: bash
-        env:
-          PACKAGE_EXTRA: ${{ matrix.package-extra }}
-        run: |
-          set -euo pipefail
-          echo "🔍 Verifying if $PACKAGE_EXTRA is installed..."
-
-          if ! uv pip list | grep -qE "^${PACKAGE_EXTRA}\s"; then
-            echo "❌ Error: Package '$PACKAGE_EXTRA' not found in installed packages"
-            echo "Installed packages:"
-            uv pip list
-            exit 1
-          fi
-          echo "✅ Package '$PACKAGE_EXTRA' is installed"
 
   build-all:
     runs-on: ubuntu-latest
@@ -105,6 +91,6 @@ jobs:
 
           set -euo pipefail
           echo "🔍 Running package checks..."
-          python tests/package_checks.py
+          python tests/package/check_package.py --extra all
 
           echo "✅ Package checks passed"

@@ -5,10 +5,15 @@
 # package-level sanity checks (imports, version, ...) used everywhere else, so
 # the three callers can't drift on what "verify the package" means.
 # Requires uv and the package to already be installed, and the repository to
-# already be checked out (tests/package_checks.py must be present).
+# already be checked out (tests/package/check_package.py must be present).
 
 name: Verify installed package
-description: Show the dependency tree and run tests/package_checks.py against an installed package
+description: Show the dependency tree and run tests/package/check_package.py against an installed package
+inputs:
+  extra:
+    description: Extra installed with the package (its library must be importable); empty for none
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -20,5 +25,7 @@ runs:
 
     - name: Run some checks
       shell: bash
+      env:
+        PACKAGE_EXTRA: ${{ inputs.extra }}
       run: |
-        python tests/package_checks.py
+        python tests/package/check_package.py --extra "$PACKAGE_EXTRA"

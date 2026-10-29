@@ -53,3 +53,5 @@ jobs:
       # Display dependency tree and run basic package checks
       - name: Verify installed package
         uses: ./.github/actions/verify-installed-package
+        with:
+          extra: ${{ matrix.extra }}
