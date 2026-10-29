@@ -21,9 +21,6 @@ from coola.validation import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-NOT_A_NUMBER: Any = "a"
-NOT_SIZED: Any = 5
-
 # One failing call per validator: the call, the exception type and the text that the message
 # must contain (the received value, or the name of the received type).
 FAILING_CALLS: list[tuple[Callable[[], None], type[Exception], str]] = [
@@ -36,9 +33,17 @@ FAILING_CALLS: list[tuple[Callable[[], None], type[Exception], str]] = [
     (lambda: validate_lt(2, 0, name="x"), ValueError, "got 2"),
     (lambda: validate_range(2, 0, 1, name="x"), ValueError, "got 2"),
     (lambda: validate_finite(float("inf"), name="x"), ValueError, "got inf"),
-    (lambda: validate_finite(NOT_A_NUMBER, name="x"), TypeError, "got str"),
+    (
+        lambda: validate_finite("a", name="x"),  # ty: ignore[invalid-argument-type]
+        TypeError,
+        "got str",
+    ),
     (lambda: validate_not_empty([], name="x"), ValueError, "x must not be empty"),
-    (lambda: validate_not_empty(NOT_SIZED, name="x"), TypeError, "got int"),
+    (
+        lambda: validate_not_empty(5, name="x"),  # ty: ignore[invalid-argument-type]
+        TypeError,
+        "got int",
+    ),
     (lambda: validate_in(5, (1, 2), name="x"), ValueError, "got 5"),
     (lambda: validate_ge(None, 0, name="x"), TypeError, "got None"),
 ]
