@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -361,23 +360,21 @@ def test_torch_random_manager_manual_seed_invalid_value_raises(seed: int) -> Non
 
 @torch_available
 @pytest.mark.parametrize("seed", ["a", 1.5, True])
-def test_torch_random_manager_manual_seed_invalid_type_raises(seed: Any) -> None:
+def test_torch_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
     with pytest.raises(TypeError, match=r"seed must be an int"):
-        TorchRandomManager().manual_seed(seed)
+        TorchRandomManager().manual_seed(seed)  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
 def test_get_torch_generator_seed_is_required() -> None:
-    generator_fn: Any = get_torch_generator
     with pytest.raises(TypeError, match="seed"):
-        generator_fn()
+        get_torch_generator()  # ty: ignore[missing-argument]
 
 
 @torch_available
 def test_get_torch_generator_device_is_keyword_only() -> None:
-    generator_fn: Any = get_torch_generator
     with pytest.raises(TypeError, match="positional"):
-        generator_fn(42, "cpu")
+        get_torch_generator(42, "cpu")  # ty: ignore[too-many-positional-arguments]
 
 
 @torch_available
@@ -389,9 +386,8 @@ def test_get_torch_generator_invalid_value_raises(seed: int) -> None:
 
 @torch_available
 def test_get_torch_generator_invalid_type_raises() -> None:
-    seed: Any = 1.5
     with pytest.raises(TypeError, match="seed must be an int"):
-        get_torch_generator(seed)
+        get_torch_generator(1.5)  # ty: ignore[invalid-argument-type]
 
 
 @torch_available

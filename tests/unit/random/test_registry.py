@@ -161,10 +161,10 @@ def test_random_manager_registry_manual_seed_out_of_range_does_not_seed(seed: in
 
 
 @pytest.mark.parametrize("seed", [1.5, "1", True, None])
-def test_random_manager_registry_manual_seed_not_int(seed: Any) -> None:
+def test_random_manager_registry_manual_seed_not_int(seed: object) -> None:
     registry = RandomManagerRegistry({"random": PythonRandomManager()})
     with pytest.raises(TypeError, match="seed must be an int"):
-        registry.manual_seed(seed)
+        registry.manual_seed(seed)  # ty: ignore[invalid-argument-type]
 
 
 def test_random_manager_registry_unregistered_manager_is_not_seeded() -> None:

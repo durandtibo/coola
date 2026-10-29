@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -216,6 +215,6 @@ def test_numpy_random_manager_manual_seed_invalid_value_raises(seed: int) -> Non
 
 @numpy_available
 @pytest.mark.parametrize("seed", ["a", 1.5, True])
-def test_numpy_random_manager_manual_seed_invalid_type_raises(seed: Any) -> None:
+def test_numpy_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
     with pytest.raises(TypeError, match=r"seed must be an int"):
-        NumpyRandomManager().manual_seed(seed)
+        NumpyRandomManager().manual_seed(seed)  # ty: ignore[invalid-argument-type]

@@ -34,9 +34,8 @@ class CounterRandomManager(BaseRandomManager):
 
 
 def test_base_random_manager_is_abstract() -> None:
-    manager_cls: Any = BaseRandomManager
     with pytest.raises(TypeError, match="abstract"):
-        manager_cls()
+        BaseRandomManager()  # ty: ignore[call-non-callable]
 
 
 def test_base_random_manager_seed_sets_the_seed_inside_the_context() -> None:
@@ -128,10 +127,12 @@ def test_base_random_manager_seed_invalid_value_raises(seed: int) -> None:
 
 
 @pytest.mark.parametrize("seed", ["a", 1.5, True])
-def test_base_random_manager_seed_invalid_type_raises(seed: Any) -> None:
+def test_base_random_manager_seed_invalid_type_raises(seed: object) -> None:
     with (
         pytest.raises(TypeError, match=r"seed must be an int"),
-        CounterRandomManager().seed(seed),
+        CounterRandomManager().seed(
+            seed  # ty: ignore[invalid-argument-type]
+        ),
     ):
         pass
 

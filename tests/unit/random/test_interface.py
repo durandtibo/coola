@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 import random
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
 import pytest
@@ -361,15 +361,13 @@ def test_random_seed_uses_an_empty_registry() -> None:
 
 
 def test_random_seed_registry_is_keyword_only() -> None:
-    seed_fn: Any = random_seed
     with pytest.raises(TypeError, match="positional"):
-        seed_fn(42, RandomManagerRegistry())
+        random_seed(42, RandomManagerRegistry())  # ty: ignore[too-many-positional-arguments]
 
 
 def test_register_managers_exist_ok_is_keyword_only() -> None:
-    register_fn: Any = register_managers
     with pytest.raises(TypeError, match="positional"):
-        register_fn({}, True)
+        register_managers({}, True)  # ty: ignore[too-many-positional-arguments]
 
 
 ####################################################
