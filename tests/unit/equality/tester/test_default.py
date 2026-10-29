@@ -288,6 +288,9 @@ class RaisingEq:
         msg = "cannot compare"
         raise ValueError(msg)
 
+    def __hash__(self) -> int:
+        return 0
+
 
 def test_default_equality_tester_objects_are_equal_eq_raises_a_type_error(
     config: EqualityConfig,

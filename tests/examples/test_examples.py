@@ -4,8 +4,8 @@ import logging
 from pathlib import Path
 
 import pytest
-
 from examples import hashing, nested, summary
+
 from tests.integration.helpers import run_python
 
 EXAMPLES = sorted(

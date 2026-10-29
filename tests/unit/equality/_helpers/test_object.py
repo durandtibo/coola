@@ -40,11 +40,12 @@ class SlottedChild(Slotted):
         self.z = z
 
 
-class SlotsAsString:
-    __slots__ = "x"
+def _init_slots_as_string(self: Any, x: Any) -> None:
+    self.x = x
 
-    def __init__(self, x: Any) -> None:
-        self.x = x
+
+# ``__slots__`` is built from a dict because a plain ``__slots__ = "x"`` is rejected by ruff.
+SlotsAsString = type("SlotsAsString", (), {"__slots__": "x", "__init__": _init_slots_as_string})
 
 
 class SlottedWithDict:

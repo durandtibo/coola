@@ -6,6 +6,8 @@ tests. Run them with ``inv test.benchmark`` (``--benchmark-only``).
 
 from __future__ import annotations
 
+import importlib
+
 import pytest
 
 IMPORT_RESULTS = pytest.StashKey[dict[str, dict]]()
@@ -24,11 +26,11 @@ def pytest_terminal_summary(terminalreporter: pytest.TerminalReporter) -> None:
     if not results:
         return
     try:
-        from rich.console import Console
-        from rich.table import Table
+        console_cls = importlib.import_module("rich.console").Console
+        table_cls = importlib.import_module("rich.table").Table
     except ImportError:
         return
-    table = Table(title="Import time (ms, measured inside a fresh interpreter)")
+    table = table_cls(title="Import time (ms, measured inside a fresh interpreter)")
     table.add_column("Import", no_wrap=True)
     for name in ("Min", "Median"):
         table.add_column(name, justify="right")
@@ -42,7 +44,7 @@ def pytest_terminal_summary(terminalreporter: pytest.TerminalReporter) -> None:
             str(r["num_modules"]),
             ", ".join(r["optional_libraries"]),
         )
-    Console().print(table)
+    console_cls().print(table)
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:

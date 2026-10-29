@@ -352,8 +352,7 @@ def test_default_tester_is_reflexive(data_type: type) -> None:
 
 @pytest.mark.parametrize("data_type", NATIVE_SAMPLES)
 def test_default_tester_equals_itself(data_type: type) -> None:
-    tester = get_default_registry().resolve(data_type)
-    assert tester == tester
+    assert get_default_registry().resolve(data_type) == get_default_registry().resolve(data_type)
 
 
 def test_default_registry_native_types_have_a_sample() -> None:

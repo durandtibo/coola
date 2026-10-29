@@ -70,6 +70,9 @@ def test_compare_does_not_drop_logs_of_other_threads(caplog: pytest.LogCaptureFi
             release.wait(timeout=5)
             return True
 
+        def __hash__(self) -> int:
+            return 0
+
     thread = threading.Thread(target=compare, args=(Blocking(), Blocking()))
     with caplog.at_level(logging.INFO, logger=LOGGER_NAME):
         thread.start()

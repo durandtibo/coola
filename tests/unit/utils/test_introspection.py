@@ -381,6 +381,9 @@ class CustomEq:
     def __eq__(self, other: object) -> bool:
         return isinstance(other, CustomEq)
 
+    def __hash__(self) -> int:
+        return 0
+
 
 class NotDataclass:
     pass

@@ -253,13 +253,21 @@ def test_lazy_singleton_reset_rebuilds_the_value() -> None:
 
 
 def test_lazy_singleton_reset_from_the_factory_raises() -> None:
-    singleton = LazySingleton(lambda: singleton.reset())
+    def build() -> int:
+        singleton.reset()
+        return 1
+
+    singleton = LazySingleton(build)
     with pytest.raises(RuntimeError, match="reset while its value is being built"):
         singleton.get()
 
 
 def test_lazy_singleton_reset_from_the_factory_does_not_build_the_value() -> None:
-    singleton = LazySingleton(lambda: singleton.reset())
+    def build() -> int:
+        singleton.reset()
+        return 1
+
+    singleton = LazySingleton(build)
     with contextlib.suppress(RuntimeError):
         singleton.get()
     assert not singleton.is_built()
