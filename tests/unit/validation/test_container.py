@@ -47,17 +47,19 @@ def test_validate_in_custom_name() -> None:
 
 
 def test_validate_not_empty_without_length_raises() -> None:
+    value: Any = 5
     with pytest.raises(TypeError, match=r"^value must have a length, got int$"):
-        validate_not_empty(5)
+        validate_not_empty(value)
 
 
 def test_validate_not_empty_without_length_custom_name() -> None:
+    value: Any = 5
     with pytest.raises(TypeError, match=r"^items must have a length, got int$"):
-        validate_not_empty(5, name="items")
+        validate_not_empty(value, name="items")
 
 
 def test_validate_not_empty_does_not_consume_a_generator() -> None:
-    gen = (i for i in range(3))
+    gen: Any = (i for i in range(3))
     with pytest.raises(TypeError, match="must have a length, got generator"):
         validate_not_empty(gen)
     assert next(gen) == 0
@@ -84,8 +86,9 @@ def test_validate_in_long_container_message_listing() -> None:
 
 
 def test_validate_in_not_a_container_raises_type_error() -> None:
+    container: Any = 5
     with pytest.raises(TypeError, match="not a container or iterable"):
-        validate_in(1, 5)
+        validate_in(1, container)
 
 
 def test_validate_not_empty_does_not_modify_the_list() -> None:
