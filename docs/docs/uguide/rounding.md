@@ -15,7 +15,7 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 - PyTorch tensors
 - pandas Series and DataFrames
 - polars Series and DataFrames
-- pyarrow Arrays, ChunkedArrays and Tables
+- pyarrow Arrays, ChunkedArrays, Tables and RecordBatches
 
 The libraries are imported only when a value of that library is rounded.
 
@@ -58,6 +58,8 @@ tensor([1.3000, 5.7000])
 - **Tables are heterogeneous**: only the floating-point columns of a pandas, polars or pyarrow
   table are rounded. The other columns (integers, strings, booleans, dates, ...) are left as they
   are. A Series, an array or a tensor must be numerical, otherwise a `TypeError` is raised.
+- **polars and pyarrow need NumPy.** Their floating-point columns are rounded by the NumPy kernel,
+  so the results are the same as for NumPy. Without NumPy, a `MissingPackageError` is raised.
 - **Not supported**: date and time types, complex numbers, `Decimal` and `Fraction`.
 
 ### One decimal rule

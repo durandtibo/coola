@@ -33,7 +33,7 @@ def round_values(
     - the PyTorch tensors;
     - the pandas Series and DataFrames;
     - the polars Series and DataFrames;
-    - the pyarrow Arrays, ChunkedArrays and Tables.
+    - the pyarrow Arrays, ChunkedArrays, Tables and RecordBatches.
 
     The integer values are never changed, whatever the mode and the
     number of decimals. A floating-point value stays a floating-point

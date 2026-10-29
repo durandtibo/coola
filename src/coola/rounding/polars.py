@@ -4,10 +4,13 @@ from __future__ import annotations
 
 __all__ = ["round_polars"]
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from coola.rounding.common import MAX_EXACT, RoundMode, get_scale
-from coola.utils.imports import is_polars_available
+from coola.rounding.numpy import round_numpy
+from coola.utils.imports import check_numpy, is_polars_available
+
+if TYPE_CHECKING:
+    from coola.rounding.common import RoundMode
 
 if is_polars_available():
     import polars as pl
@@ -21,7 +24,8 @@ def round_polars(data: Any, mode: RoundMode, decimals: int) -> Any:
     Only the floating-point columns are rounded. The integer columns
     are not changed, and neither are the columns that are not numerical
     (strings, booleans, dates, decimals, ...). The null values are
-    kept. The computation is made in ``Float64``.
+    kept. The values go through the NumPy kernel of
+    ``coola.rounding.numpy``, so NumPy is required.
 
     Args:
         data: The ``polars.Series`` or ``polars.DataFrame`` to round.
@@ -32,6 +36,7 @@ def round_polars(data: Any, mode: RoundMode, decimals: int) -> Any:
         The rounded Series or DataFrame.
 
     Raises:
+        MissingPackageError: If ``numpy`` is not installed.
         TypeError: If ``data`` is not a Series or a DataFrame, or if
             ``data`` is a Series that is not numerical.
 
@@ -52,6 +57,7 @@ def round_polars(data: Any, mode: RoundMode, decimals: int) -> Any:
 
         ```
     """
+    check_numpy()
     if isinstance(data, pl.DataFrame):
         return data.with_columns(
             _round_series(series, mode, decimals) for series in data if series.dtype.is_float()
@@ -66,24 +72,12 @@ def round_polars(data: Any, mode: RoundMode, decimals: int) -> Any:
 
 
 def _round_series(series: pl.Series, mode: RoundMode, decimals: int) -> pl.Series:
-    scale = get_scale(decimals)
-    if not series.dtype.is_float() or scale is None:
+    if not series.dtype.is_float():
         return series.clone()
-    # The computation uses an expression: ``Series / scalar`` multiplies by the reciprocal of
-    # the scalar, which changes the last digit (``12 / 10`` is ``1.2000000000000002``).
-    value = pl.col("value")
-    scaled = value * scale
-    if mode == "round":
-        result = scaled.round(0, mode="half_to_even") / scale
-    else:
-        step = 1 if mode == "floor" else -1
-        index = scaled.floor() if mode == "floor" else scaled.ceil()
-        # ``0.29 * 100`` is below 29: take the grid point if it is not above the value. The grid
-        # point is compared in the dtype of the series, as the value is.
-        grid = ((index + step) / scale).cast(series.dtype).cast(pl.Float64)
-        in_grid = grid <= value if mode == "floor" else grid >= value
-        result = pl.when(in_grid).then(index + step).otherwise(index) / scale
-    # A null value stays null, and ``NaN`` and the infinite values are kept.
-    rounded = pl.when(scaled.abs() < MAX_EXACT).then(result).otherwise(value).cast(series.dtype)
-    frame = series.cast(pl.Float64).alias("value").to_frame()
-    return frame.select(rounded.alias(series.name)).to_series()
+    # ``to_numpy`` converts a null value to ``NaN``: the null values are restored below.
+    result = pl.Series(
+        series.name, round_numpy(series.to_numpy(), mode, decimals), dtype=series.dtype
+    )
+    if series.null_count():
+        return result.zip_with(series.is_not_null(), series)
+    return result
