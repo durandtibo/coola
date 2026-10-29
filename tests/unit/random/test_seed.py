@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from coola.random import validate_seed
@@ -17,7 +19,7 @@ def test_validate_seed_out_of_range(seed: int) -> None:
 
 
 @pytest.mark.parametrize("seed", [1.5, "1", True, None])
-def test_validate_seed_not_int(seed: object) -> None:
+def test_validate_seed_not_int(seed: Any) -> None:
     with pytest.raises(TypeError, match="seed must be an int"):
         validate_seed(seed)
 

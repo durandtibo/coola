@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+from typing import Any
 
 import pytest
 
@@ -122,6 +123,6 @@ def test_python_random_manager_manual_seed_invalid_value_raises(seed: int) -> No
 
 
 @pytest.mark.parametrize("seed", ["a", 1.5, True])
-def test_python_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
+def test_python_random_manager_manual_seed_invalid_type_raises(seed: Any) -> None:
     with pytest.raises(TypeError, match=r"seed must be an int"):
-        PythonRandomManager().manual_seed(seed)  # type: ignore[arg-type]
+        PythonRandomManager().manual_seed(seed)

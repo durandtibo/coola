@@ -128,9 +128,10 @@ def test_random_manager_registry_get_rng_state_nested_registry() -> None:
 
 
 def test_random_manager_registry_manual_seed_seeds_every_manager() -> None:
-    managers = {"a": CounterRandomManager(), "b": CounterRandomManager()}
+    first, second = CounterRandomManager(), CounterRandomManager()
+    managers: dict[str, BaseRandomManager] = {"a": first, "b": second}
     RandomManagerRegistry(managers).manual_seed(42)
-    assert [m.value for m in managers.values()] == [42, 42]
+    assert [first.value, second.value] == [42, 42]
 
 
 def test_random_manager_registry_manual_seed_same_seed_same_values() -> None:
@@ -160,10 +161,10 @@ def test_random_manager_registry_manual_seed_out_of_range_does_not_seed(seed: in
 
 
 @pytest.mark.parametrize("seed", [1.5, "1", True, None])
-def test_random_manager_registry_manual_seed_not_int(seed: object) -> None:
+def test_random_manager_registry_manual_seed_not_int(seed: Any) -> None:
     registry = RandomManagerRegistry({"random": PythonRandomManager()})
     with pytest.raises(TypeError, match="seed must be an int"):
-        registry.manual_seed(seed)  # type: ignore[arg-type]
+        registry.manual_seed(seed)
 
 
 def test_random_manager_registry_unregistered_manager_is_not_seeded() -> None:
@@ -175,12 +176,13 @@ def test_random_manager_registry_unregistered_manager_is_not_seeded() -> None:
 
 
 def test_random_manager_registry_set_rng_state_restores_every_manager() -> None:
-    managers = {"a": CounterRandomManager(1), "b": CounterRandomManager(2)}
+    first, second = CounterRandomManager(1), CounterRandomManager(2)
+    managers: dict[str, BaseRandomManager] = {"a": first, "b": second}
     registry = RandomManagerRegistry(managers)
     state = registry.get_rng_state()
     registry.manual_seed(42)
     registry.set_rng_state(state)
-    assert [m.value for m in managers.values()] == [1, 2]
+    assert [first.value, second.value] == [1, 2]
 
 
 def test_random_manager_registry_set_rng_state_restored_values() -> None:
@@ -223,11 +225,12 @@ def test_random_manager_registry_set_rng_state_empty_state_raises() -> None:
 
 
 def test_random_manager_registry_set_rng_state_wrong_keys_restores_nothing() -> None:
-    managers = {"a": CounterRandomManager(), "b": CounterRandomManager()}
+    first, second = CounterRandomManager(), CounterRandomManager()
+    managers: dict[str, BaseRandomManager] = {"a": first, "b": second}
     registry = RandomManagerRegistry(managers)
     with contextlib.suppress(ValueError):
         registry.set_rng_state({"a": 1})
-    assert [m.value for m in managers.values()] == [0, 0]
+    assert [first.value, second.value] == [0, 0]
 
 
 def test_random_manager_registry_set_rng_state_nested_wrong_keys_raises() -> None:
