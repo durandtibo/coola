@@ -281,8 +281,8 @@ def test_instantiate_object_init_wrong_return_type() -> None:
         instantiate_object(Fake, _init_="class_method_wrong_type")
 
 
-def test_instantiate_object_init_not_method() -> None:
-    Fake.not_a_method = None
+def test_instantiate_object_init_not_method(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(Fake, "not_a_method", None, raising=False)
     with pytest.raises(TypeError, match=r".* does not have a callable `not_a_method` attribute"):
         # Should fail because the attribute not_a_method is not a method.
         instantiate_object(Fake, _init_="not_a_method")
@@ -372,7 +372,7 @@ def test_instantiate_object_incorrect_type() -> None:
     with pytest.raises(
         TypeError, match=r"Incorrect type: .*. The valid types are class and callable"
     ):
-        instantiate_object(Fake(12))
+        instantiate_object(Fake(12))  # ty: ignore[invalid-argument-type]
 
 
 def test_instantiate_object_builtin_function() -> None:
@@ -507,7 +507,7 @@ def test_instantiate_object_init_starting_with_underscore_is_refused(init: str) 
 
 def test_instantiate_object_init_not_a_string_is_refused() -> None:
     with pytest.raises(TypeError, match=r"`_init_` must be '__init__' or the name of a public"):
-        instantiate_object(Fake, _init_=5)
+        instantiate_object(Fake, _init_=5)  # ty: ignore[invalid-argument-type]
 
 
 def test_instantiate_object_init_underscore_is_refused_before_the_attribute_is_read() -> None:

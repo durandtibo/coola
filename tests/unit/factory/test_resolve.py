@@ -703,7 +703,7 @@ def make_tracked_unannotated():  # noqa: ANN201
     return Tracked()
 
 
-def make_unresolvable() -> UndefinedName:  # noqa: F821
+def make_unresolvable() -> UndefinedName:  # noqa: F821  # ty: ignore[unresolved-reference]
     CALLS.append("make_unresolvable")
     return Tracked()
 
