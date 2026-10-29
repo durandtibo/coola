@@ -251,7 +251,7 @@ def test_engine_finder_with_only_find_children_is_accepted(
 
 @dataclass
 class Item:
-    a: int
+    a: Any
     b: list
 
 
@@ -363,7 +363,8 @@ def test_depth_first_items_does_not_modify_the_data(registry: ChildFinderRegistr
 def test_depth_first_items_protocol_child_finder_is_numbered(
     registry: ChildFinderRegistry,
 ) -> None:
-    registry.register(Node, ProtocolChildFinder())
+    finder: Any = ProtocolChildFinder()
+    registry.register(Node, finder)
     assert list(depth_first_items({"n": Node(3)}, registry)) == [(("n", 0), 3), (("n", 1), 4)]
 
 

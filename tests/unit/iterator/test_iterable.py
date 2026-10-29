@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import pytest
 
@@ -42,7 +42,7 @@ def test_iterable_child_finder_repr() -> None:
         pytest.param(CustomList([1, 2]), [1, 2], id="list subclass"),
     ],
 )
-def test_iterable_child_finder_find_children(data: object, expected: list) -> None:
+def test_iterable_child_finder_find_children(data: Any, expected: list) -> None:
     assert list(IterableChildFinder().find_children(data)) == expected
 
 
