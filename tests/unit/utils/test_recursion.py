@@ -10,12 +10,12 @@ from coola.utils.recursion import raise_recursion_limit_error
 
 
 def test_raise_recursion_limit_error_raises_a_recursion_error() -> None:
-    with pytest.raises(RecursionError):
+    with pytest.raises(RecursionError, match="recursion limit was exceeded"):
         raise_recursion_limit_error("comparing", RecursionError())
 
 
 def test_raise_recursion_limit_error_message() -> None:
-    with pytest.raises(RecursionError) as exc_info:
+    with pytest.raises(RecursionError, match="recursion limit was exceeded") as exc_info:
         raise_recursion_limit_error("comparing", RecursionError())
     assert str(exc_info.value) == (
         "The Python recursion limit was exceeded while comparing deeply nested objects. "
@@ -32,6 +32,6 @@ def test_raise_recursion_limit_error_names_the_action(action: str) -> None:
 
 def test_raise_recursion_limit_error_sets_the_cause() -> None:
     cause = RecursionError("original")
-    with pytest.raises(RecursionError) as exc_info:
+    with pytest.raises(RecursionError, match="recursion limit was exceeded") as exc_info:
         raise_recursion_limit_error("comparing", cause)
     assert exc_info.value.__cause__ is cause

@@ -251,7 +251,7 @@ def test_merge_raise_raises_if_a_key_has_two_values(
 ) -> None:
     assume(first)
     key = next(iter(first))
-    with pytest.raises(DuplicateKeyError):
+    with pytest.raises(DuplicateKeyError, match="Duplicate key found"):
         merge_mappings([first, {**second, key: first[key] + 1}], on_duplicate="raise")
 
 
@@ -342,7 +342,7 @@ def test_flatten_raise_raises_if_an_inner_key_has_two_values(
     mapping: dict[str, dict[str, int]],
 ) -> None:
     assume(any(len(found) > 1 for found in inner_values(mapping).values()))
-    with pytest.raises(DuplicateKeyError):
+    with pytest.raises(DuplicateKeyError, match="Duplicate key found"):
         flatten_mapping(mapping, on_duplicate="raise")
 
 

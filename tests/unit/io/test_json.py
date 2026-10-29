@@ -154,7 +154,7 @@ def test_json_saver_save_respects_encoding_loaded_content(tmp_path: Path) -> Non
 def test_json_saver_save_not_serializable_no_leftover_tmp_file_raises(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tmp/data.json")
     saver = JsonSaver()
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="not JSON serializable"):
         saver.save({"key1": object()}, path)
 
 
@@ -264,7 +264,7 @@ def test_load_json_without_encoding_detects_utf16(tmp_path: Path) -> None:
 def test_json_loader_without_encoding_cannot_read_latin1(tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.json")
     save_json({"key": "\u00e9t\u00e9"}, path, encoding="latin-1", ensure_ascii=False)
-    with pytest.raises(UnicodeDecodeError):
+    with pytest.raises(UnicodeDecodeError, match="invalid continuation byte"):
         load_json(path)
 
 

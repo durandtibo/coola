@@ -65,6 +65,10 @@
   (`.venv/bin/pytest <tests> --cov=coola --cov-report=term-missing`). Do not use
   `# pragma: no cover` to skip a line that can be tested.
 - Use `pytest.mark.parametrize` for the same check on several values.
+- Every `pytest.raises` (and `pytest.warns`) must define `match` with a regular expression for the
+  message (raw string if it has metacharacters), so a test does not pass on an unrelated error of
+  the same type. An exception raised by a patched stand-in needs an explicit message for the same
+  reason (`side_effect=KeyboardInterrupt("interrupted")`, not `side_effect=KeyboardInterrupt`).
 - Add a regression test for every bug fixed, and check that it fails without the fix (revert the
   `src` change with `git stash push src` and run it).
 - Do not add tests for the exports of `__all__` or other trivial structure.

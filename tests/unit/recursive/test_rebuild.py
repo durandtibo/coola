@@ -164,7 +164,7 @@ def test_rebuild_mapping_error_tells_how_to_register_a_transformer() -> None:
 
 
 def test_rebuild_mapping_error_cause() -> None:
-    with pytest.raises(TypeError) as exc_info:
+    with pytest.raises(TypeError, match="Cannot rebuild an object of type") as exc_info:
         rebuild_mapping(WithExtraDict({"a": 1}, 0), {"b": 2})
     assert "missing 1 required positional argument" in str(exc_info.value.__cause__)
 
@@ -183,7 +183,7 @@ def test_rebuild_sequence_error_names_the_type() -> None:
 
 
 def test_rebuild_sequence_error_cause() -> None:
-    with pytest.raises(TypeError) as exc_info:
+    with pytest.raises(TypeError, match="Cannot rebuild an object of type") as exc_info:
         rebuild_sequence(WithExtra([1], 0), [2])
     assert "missing 1 required positional argument" in str(exc_info.value.__cause__)
 

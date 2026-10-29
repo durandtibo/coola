@@ -66,7 +66,7 @@ def test_temporary_default_registries_cleared_registry_is_empty_inside_the_scope
 def test_temporary_default_registries_inside_the_scope_the_cleared_registry_raises() -> None:
     with temporary_default_registries():
         get_equality_registry().clear()
-        with pytest.raises(TypeNotRegisteredError):
+        with pytest.raises(TypeNotRegisteredError, match="is not registered"):
             objects_are_equal(Point(), Point())
 
 

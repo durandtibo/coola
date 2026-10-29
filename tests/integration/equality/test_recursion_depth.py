@@ -86,7 +86,7 @@ def test_objects_are_equal_default_max_depth_is_reached_before_the_interpreter_l
 ) -> None:
     """Test that the default ``max_depth`` of 100 is below the
     interpreter limit, from a caller that is 100 frames deep."""
-    with pytest.raises(MaxDepthExceededError):
+    with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(100\) exceeded"):
         call_from_a_deep_caller(CALLER_FRAMES, lambda: objects_are_equal(nest(102), nest(102)))
 
 

@@ -61,7 +61,7 @@ def test_flatten_mapping_no_duplicate_keys() -> None:
 
 
 def test_flatten_mapping_unhandled_on_duplicate() -> None:
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match="Expected code to be unreachable"):
         flatten_mapping(
             {"x": {"a": 1}, "y": {"a": 2}},
             on_duplicate=_PassesValidationOnly("prefix"),  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
@@ -254,7 +254,7 @@ def test_merge_mappings_incorrect_on_duplicate() -> None:
 
 
 def test_merge_mappings_unhandled_on_duplicate() -> None:
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match="Expected code to be unreachable"):
         merge_mappings([{"a": 1}, {"a": 2}], on_duplicate=_PassesValidationOnly("first"))  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
 
 

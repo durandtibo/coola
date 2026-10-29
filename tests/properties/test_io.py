@@ -128,6 +128,6 @@ def test_json_save_of_a_rejected_object_leaves_the_directory_empty(value: Any) -
 @given(value=st.sampled_from([lambda: 1, (x for x in [1])]))
 def test_pickle_save_of_a_rejected_object_leaves_the_directory_empty(value: Any) -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
-        with pytest.raises((pickle.PicklingError, AttributeError, TypeError)):
+        with pytest.raises((pickle.PicklingError, AttributeError, TypeError), match="pickle"):
             save_pickle(value, Path(tmpdir).joinpath("data.pkl"))
         assert list(Path(tmpdir).iterdir()) == []

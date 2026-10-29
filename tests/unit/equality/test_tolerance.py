@@ -21,7 +21,7 @@ def test_tolerance_repr() -> None:
 
 
 def test_tolerance_is_frozen() -> None:
-    with pytest.raises(dataclasses.FrozenInstanceError):
+    with pytest.raises(dataclasses.FrozenInstanceError, match="cannot assign to field 'rtol'"):
         Tolerance().rtol = 1.0  # ty: ignore[invalid-assignment]
 
 

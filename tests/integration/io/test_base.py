@@ -263,7 +263,7 @@ def test_save_in_a_read_only_directory_raises_permission_error(tmp_path: Path) -
     ``PermissionError``."""
     tmp_path.chmod(0o500)
     try:
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionError, match="Permission denied"):
             SimpleFileSaver().save("hello", tmp_path.joinpath("data.txt"))
     finally:
         tmp_path.chmod(0o700)

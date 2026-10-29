@@ -100,13 +100,13 @@ def test_import_object_incorrect_invalid_package() -> None:
 
 
 def test_import_object_incorrect_package_does_not_exist_name() -> None:
-    with pytest.raises(ImportError) as info:
+    with pytest.raises(ImportError, match="The target object does not exist") as info:
         import_object("missing_package_bjbskfs.my_object")
     assert info.value.name == "missing_package_bjbskfs"
 
 
 def test_import_object_incorrect_object_does_not_exist_name() -> None:
-    with pytest.raises(ImportError) as info:
+    with pytest.raises(ImportError, match="The target object does not exist") as info:
         import_object("collections.NotACounter")
     assert info.value.name == "collections.NotACounter"
 

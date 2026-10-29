@@ -140,7 +140,7 @@ def test_transform_works_after_an_exception_of_func(registry: TransformerRegistr
     def failing(x: Any) -> Any:
         raise RuntimeError(x)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match="1"):
         transform([1, [2]], failing, registry)
     assert transform([1, [2]], str, registry) == ["1", ["2"]]
 
@@ -170,7 +170,7 @@ def test_transform_transformer_registered_during_a_call_is_not_used() -> None:
 
 
 def test_transform_empty_registry_raises() -> None:
-    with pytest.raises(TypeNotRegisteredError):
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
         transform(1, str, TransformerRegistry())
 
 

@@ -58,7 +58,7 @@ def test_resolve_raises_if_no_class_of_the_mro_is_registered(
     registered: dict[type, int], cls: type
 ) -> None:
     assume(model_resolve(registered, cls) is None)
-    with pytest.raises(TypeNotRegisteredError):
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
         TypeRegistry[int](registered).resolve(cls)
 
 
@@ -82,7 +82,7 @@ def test_resolve_error_is_stable(registered: dict[type, int], cls: type) -> None
     registry = TypeRegistry[int](registered)
     with contextlib.suppress(TypeNotRegisteredError):
         registry.resolve(cls)
-    with pytest.raises(TypeNotRegisteredError):
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
         registry.resolve(cls)
 
 
@@ -108,7 +108,7 @@ def test_resolve_does_not_use_the_virtual_subclasses(registered: dict[type, int]
 def test_resolve_raises_for_the_virtual_subclasses(registered: dict[type, int]) -> None:
     registry = TypeRegistry[int]({**registered, Sequence: -1})
     assume(model_resolve(registered, str) is None)
-    with pytest.raises(TypeNotRegisteredError):
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
         registry.resolve(str)
 
 
@@ -143,7 +143,7 @@ class RegistryMachine(RuleBasedStateMachine):
     @precondition(lambda self: bool(self.model))
     @rule(data=st.data(), value=values)
     def register_duplicate(self, data: st.DataObject, value: int) -> None:
-        with pytest.raises(AlreadyRegisteredError):
+        with pytest.raises(AlreadyRegisteredError, match="already registered"):
             self.registry.register(self.registered_key(data), value)
 
     @rule(key=keys, value=values)
@@ -167,7 +167,7 @@ class RegistryMachine(RuleBasedStateMachine):
     @precondition(lambda self: bool(self.model))
     @rule(data=st.data(), value=values)
     def register_many_duplicate(self, data: st.DataObject, value: int) -> None:
-        with pytest.raises(AlreadyRegisteredError):
+        with pytest.raises(AlreadyRegisteredError, match="already registered"):
             self.registry.register_many({self.registered_key(data): value})
 
     @precondition(lambda self: bool(self.model))
@@ -178,7 +178,7 @@ class RegistryMachine(RuleBasedStateMachine):
 
     @rule(data=st.data())
     def unregister_missing(self, data: st.DataObject) -> None:
-        with pytest.raises(KeyNotRegisteredError):
+        with pytest.raises(KeyNotRegisteredError, match="is not registered"):
             self.registry.unregister(self.new_key(data))
 
     @rule(key=keys)
@@ -201,7 +201,7 @@ class RegistryMachine(RuleBasedStateMachine):
 
     @rule(data=st.data())
     def getitem_missing(self, data: st.DataObject) -> None:
-        with pytest.raises(KeyNotRegisteredError):
+        with pytest.raises(KeyNotRegisteredError, match="is not registered"):
             self.registry[self.new_key(data)]
 
     @rule()
@@ -265,7 +265,7 @@ class TypeRegistryMachine(RuleBasedStateMachine):
     @rule(data=st.data())
     def unregister_missing(self, data: st.DataObject) -> None:
         cls = data.draw(st.sampled_from([c for c in CLASSES if c not in self.model]))
-        with pytest.raises(TypeNotRegisteredError):
+        with pytest.raises(TypeNotRegisteredError, match="is not registered"):
             self.registry.unregister(cls)
 
     @rule(items=st.dictionaries(classes, values, max_size=3))
@@ -288,7 +288,7 @@ class TypeRegistryMachine(RuleBasedStateMachine):
     @rule(data=st.data())
     def resolve_missing(self, data: st.DataObject) -> None:
         cls = data.draw(st.sampled_from(self.unresolvable_classes()))
-        with pytest.raises(TypeNotRegisteredError):
+        with pytest.raises(TypeNotRegisteredError, match="is not registered"):
             self.registry.resolve(cls)
 
     @invariant()
@@ -302,7 +302,7 @@ class TypeRegistryMachine(RuleBasedStateMachine):
     @invariant()
     def resolve_error_for_every_unresolvable_class(self) -> None:
         for cls in self.unresolvable_classes():
-            with pytest.raises(TypeNotRegisteredError):
+            with pytest.raises(TypeNotRegisteredError, match="is not registered"):
                 self.registry.resolve(cls)
 
 

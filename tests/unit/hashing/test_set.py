@@ -73,7 +73,7 @@ def test_set_hasher_hash_items_are_not_required_to_be_orderable() -> None:
 
 
 def test_set_hasher_hash_unhashable_item_raises() -> None:
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="is not registered"):
         hash_with(SetHasher(), {1}, HasherRegistry())
 
 

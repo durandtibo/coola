@@ -36,7 +36,7 @@ def test_lru_cache_setitem_adds_an_item() -> None:
 
 def test_lru_cache_getitem_missing_key_raises_keyerror() -> None:
     cache = LRUCache[str, int](maxsize=3)
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="missing"):
         _ = cache["missing"]
 
 
@@ -194,7 +194,7 @@ def test_lru_cache_delitem_reduces_the_length() -> None:
 
 def test_lru_cache_delitem_missing_key_raises_keyerror() -> None:
     cache = LRUCache[str, int](maxsize=3)
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="missing"):
         del cache["missing"]
 
 
@@ -213,7 +213,7 @@ def test_lru_cache_pop_existing_key_removes_the_key() -> None:
 
 def test_lru_cache_pop_missing_key_raises_keyerror() -> None:
     cache = LRUCache[str, int](maxsize=3)
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="missing"):
         cache.pop("missing")
 
 

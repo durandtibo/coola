@@ -287,7 +287,7 @@ def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_crea
         target_path.write_text("concurrent")
 
     monkeypatch.setattr(saver, "_save_file", save_file_then_create_target)
-    with pytest.raises(FileExistsError):
+    with pytest.raises(FileExistsError, match="File exists"):
         saver.save("hello", target_path)
 
 
@@ -416,10 +416,11 @@ def test_base_file_saver_save_link_file_exists_error_is_not_swallowed_raises(
     path = tmp_path.joinpath("data.txt")
 
     def exists_link(src: str, dst: str) -> None:  # noqa: ARG001
-        raise FileExistsError
+        msg = "exists"
+        raise FileExistsError(msg)
 
     monkeypatch.setattr(os, "link", exists_link)
-    with pytest.raises(FileExistsError):
+    with pytest.raises(FileExistsError, match="exists"):
         SimpleFileSaver().save("hello", path)
 
 
@@ -665,8 +666,8 @@ def test_short_name_long_suffix_is_dropped() -> None:
 
 def test_make_parent_dir_reraises_if_the_parent_is_a_directory(tmp_path: Path) -> None:
     with (
-        patch.object(Path, "mkdir", side_effect=FileExistsError),
-        pytest.raises(FileExistsError),
+        patch.object(Path, "mkdir", side_effect=FileExistsError("exists")),
+        pytest.raises(FileExistsError, match="exists"),
     ):
         _make_parent_dir(tmp_path.joinpath("data.txt"))
 

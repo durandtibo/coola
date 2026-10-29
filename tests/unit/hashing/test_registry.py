@@ -515,13 +515,13 @@ def test_hasher_registry_repr_shows_the_fallback_hashers() -> None:
 )
 def test_hasher_registry_unhashable_error_names_the_remedies(text: str) -> None:
     registry = HasherRegistry()
-    with pytest.raises(KeyError) as exc_info:
+    with pytest.raises(KeyError, match="is not registered") as exc_info:
         registry.hash(Unhashable())
     assert text in str(exc_info.value)
 
 
 def test_hasher_registry_unhashable_error_is_a_type_not_registered_error() -> None:
-    with pytest.raises(TypeNotRegisteredError):
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
         HasherRegistry().hash(Unhashable())
 
 

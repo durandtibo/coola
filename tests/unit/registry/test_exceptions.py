@@ -86,7 +86,7 @@ def test_registry_getitem_missing_raises_key_not_registered_error() -> None:
 
 
 def test_registry_getitem_missing_does_not_raise_type_not_registered_error() -> None:
-    with pytest.raises(KeyNotRegisteredError) as info:
+    with pytest.raises(KeyNotRegisteredError, match="Key 'missing' is not registered") as info:
         Registry[str, int]()["missing"]
     assert not isinstance(info.value, TypeNotRegisteredError)
 
@@ -97,7 +97,7 @@ def test_registry_unregister_missing_raises_key_not_registered_error() -> None:
 
 
 def test_registry_unregister_missing_does_not_raise_type_not_registered_error() -> None:
-    with pytest.raises(KeyNotRegisteredError) as info:
+    with pytest.raises(KeyNotRegisteredError, match="Key 'missing' is not registered") as info:
         Registry[str, int]().unregister("missing")
     assert not isinstance(info.value, TypeNotRegisteredError)
 

@@ -64,7 +64,7 @@ def test_engine_compares_nested_dicts_from_a_deep_caller(
 
 def test_engine_depth_limit_with_a_deep_structure(engine_registry: EqualityTesterRegistry) -> None:
     config = EqualityConfig(registry=engine_registry, max_depth=99)
-    with pytest.raises(MaxDepthExceededError):
+    with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(99\) exceeded"):
         Engine(config).run(_nested(100), _nested(100))
 
 

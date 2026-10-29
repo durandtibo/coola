@@ -64,7 +64,7 @@ def test_comparison_result_bool(equal: bool) -> None:
 
 
 def test_comparison_result_is_frozen() -> None:
-    with pytest.raises(dataclasses.FrozenInstanceError):
+    with pytest.raises(dataclasses.FrozenInstanceError, match="cannot assign to field 'equal'"):
         ComparisonResult(True).equal = False  # ty: ignore[invalid-assignment]
 
 
@@ -285,7 +285,7 @@ def test_compare_explicit_registry_different() -> None:
 
 def test_compare_custom_registry_is_used() -> None:
     registry = EqualityTesterRegistry()
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="is not registered"):
         compare(1, 2, registry=registry)
 
 
@@ -302,7 +302,7 @@ def test_compare_restores_logger(logger_state: tuple) -> None:
 
 
 def test_compare_raises_the_error_of_the_registry() -> None:
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="is not registered"):
         compare(1, 2, registry=EqualityTesterRegistry())
 
 
@@ -369,17 +369,17 @@ def test_assert_objects_equal_message_contains_reason() -> None:
 
 def test_assert_objects_equal_equal_nan() -> None:
     assert_objects_equal([float("nan")], [float("nan")], equal_nan=True)
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match="numbers are different"):
         assert_objects_equal([float("nan")], [float("nan")])
 
 
 def test_assert_objects_equal_rejects_tolerance() -> None:
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="unexpected keyword argument 'atol'"):
         assert_objects_equal(1, 1, atol=0.1)  # ty: ignore[unknown-argument]
 
 
 def test_assert_objects_equal_is_exact() -> None:
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match="numbers are different"):
         assert_objects_equal([1.0], [1.0 + 1e-9])
 
 
@@ -398,7 +398,7 @@ def test_assert_objects_allclose_returns_none() -> None:
 
 def test_assert_objects_allclose_default_tolerances() -> None:
     assert_objects_allclose([1.0], [1.0 + 1e-9])
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match="numbers are different"):
         assert_objects_allclose([1.0], [1.001])
 
 
@@ -419,7 +419,7 @@ def test_assert_objects_allclose_default_root() -> None:
 
 def test_assert_objects_allclose_equal_nan() -> None:
     assert_objects_allclose([float("nan")], [float("nan")], equal_nan=True)
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match="numbers are different"):
         assert_objects_allclose([float("nan")], [float("nan")])
 
 

@@ -206,12 +206,12 @@ def test_datetime_hasher_hash_aware_datetime_near_limits(
 
 def test_datetime_min_cannot_be_converted_to_utc() -> None:
     # Guards the premise of the tests below: converting to UTC overflows.
-    with pytest.raises(OverflowError):
+    with pytest.raises(OverflowError, match="date value out of range"):
         datetime.min.replace(tzinfo=timezone(timedelta(hours=1))).astimezone(UTC)
 
 
 def test_datetime_max_cannot_be_converted_to_utc() -> None:
-    with pytest.raises(OverflowError):
+    with pytest.raises(OverflowError, match="date value out of range"):
         datetime.max.replace(tzinfo=timezone(timedelta(hours=-1))).astimezone(UTC)
 
 

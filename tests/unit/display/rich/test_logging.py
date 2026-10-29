@@ -221,5 +221,5 @@ def test_force_forwarded_to_basic_config() -> None:
 
 
 def test_unknown_kwarg_raises_type_error() -> None:
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="unexpected keyword argument 'this_does_not_exist'"):
         configure_rich_logging(this_does_not_exist=True)

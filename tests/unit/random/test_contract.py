@@ -132,7 +132,7 @@ def test_manager_manual_seed_invalid_seed_does_not_touch_the_generator(
     manager.manual_seed(0)
     expected = draw()
     manager.manual_seed(0)
-    with pytest.raises((TypeError, ValueError)):
+    with pytest.raises((TypeError, ValueError), match="seed must be"):
         manager.manual_seed(seed)
     assert objects_are_equal(draw(), expected)
 
