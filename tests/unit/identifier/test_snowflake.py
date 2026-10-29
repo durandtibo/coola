@@ -133,8 +133,9 @@ def test_snowflake_id_generator_generate_does_not_sleep_when_exhausted() -> None
         patch(TIME_NS, return_value=at(NOW_MS)),
         patch("time.sleep") as sleep,
     ):
-        for _ in range(_MAX_SEQUENCE + 2):
-            generator.generate()
+        generator.generate()
+        generator._sequence._counter = _MAX_SEQUENCE  # skip the calls that fill the millisecond
+        generator.generate()
     sleep.assert_not_called()
 
 

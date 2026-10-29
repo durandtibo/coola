@@ -17,7 +17,7 @@ from coola.iterator import (
 )
 from coola.iterator.engine import breadth_first, depth_first, depth_first_items
 from coola.registry import TypeNotRegisteredError
-from tests.helpers import nest
+from tests.helpers import DEEP_NESTING_DEPTH, nest
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -77,7 +77,7 @@ def test_depth_first_order_dict_tuple_set(registry: ChildFinderRegistry) -> None
 
 
 def test_depth_first_deep_structure_does_not_raise(registry: ChildFinderRegistry) -> None:
-    assert list(depth_first(nest(1, 100_000), registry)) == [1]
+    assert list(depth_first(nest(1, DEEP_NESTING_DEPTH), registry)) == [1]
 
 
 ###################################
@@ -94,7 +94,7 @@ def test_breadth_first_order_dict(registry: ChildFinderRegistry) -> None:
 
 
 def test_breadth_first_deep_structure_does_not_raise(registry: ChildFinderRegistry) -> None:
-    assert list(breadth_first(nest(1, 100_000), registry)) == [1]
+    assert list(breadth_first(nest(1, DEEP_NESTING_DEPTH), registry)) == [1]
 
 
 def test_breadth_first_chain_of_temporary_nodes_is_not_a_cycle(
@@ -327,7 +327,9 @@ def test_depth_first_items_same_leaves_as_depth_first(registry: ChildFinderRegis
 
 
 def test_depth_first_items_deep_structure_does_not_raise(registry: ChildFinderRegistry) -> None:
-    assert list(depth_first_items(nest(1, 100_000), registry)) == [((0,) * 100_000, 1)]
+    assert list(depth_first_items(nest(1, DEEP_NESTING_DEPTH), registry)) == [
+        ((0,) * DEEP_NESTING_DEPTH, 1)
+    ]
 
 
 def test_depth_first_items_cycle_raises(registry: ChildFinderRegistry) -> None:
@@ -515,7 +517,9 @@ def test_depth_first_items_empty_root_leaf_with_empty(registry: ChildFinderRegis
 def test_depth_first_items_empty_deep_structure_does_not_raise(
     registry: ChildFinderRegistry,
 ) -> None:
-    assert list(depth_first_items(nest([], 50_000), registry, empty=True)) == [((0,) * 50_000, [])]
+    assert list(depth_first_items(nest([], DEEP_NESTING_DEPTH), registry, empty=True)) == [
+        ((0,) * DEEP_NESTING_DEPTH, [])
+    ]
 
 
 def test_depth_first_items_registered_leaf_type(registry: ChildFinderRegistry) -> None:

@@ -8,7 +8,10 @@ from typing import Any
 
 import pytest
 
-__all__ = ["CONTAINER_SAMPLES", "LEAF_SAMPLES", "nest"]
+__all__ = ["CONTAINER_SAMPLES", "DEEP_NESTING_DEPTH", "LEAF_SAMPLES", "nest"]
+
+# Deeper than the default recursion limit (1000), so a recursive implementation fails.
+DEEP_NESTING_DEPTH = 5_000
 
 # Samples of the native types, shared by the tests that check a property of every default entry
 # of a registry. A leaf has no children, a container has some. ``pytest.param`` ids name the type.

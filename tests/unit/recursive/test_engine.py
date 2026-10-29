@@ -15,6 +15,7 @@ from coola.recursive import (
 )
 from coola.recursive.engine import transform
 from coola.registry import TypeNotRegisteredError
+from tests.helpers import DEEP_NESTING_DEPTH
 
 if TYPE_CHECKING:
     from coola.recursive.base import Expansion
@@ -120,8 +121,8 @@ def test_transform_works_after_a_cycle(registry: TransformerRegistry) -> None:
 
 
 def test_transform_deep_structure(registry: TransformerRegistry) -> None:
-    result = transform(nest(1, 100_000), str, registry)
-    for _ in range(100_000):
+    result = transform(nest(1, DEEP_NESTING_DEPTH), str, registry)
+    for _ in range(DEEP_NESTING_DEPTH):
         result = result[0]
     assert result == "1"
 
@@ -174,7 +175,7 @@ def test_transform_empty_registry_raises() -> None:
 
 
 def test_recursive_apply_deep_structure() -> None:
-    result = recursive_apply(nest(1, 10_000), str)
-    for _ in range(10_000):
+    result = recursive_apply(nest(1, DEEP_NESTING_DEPTH), str)
+    for _ in range(DEEP_NESTING_DEPTH):
         result = result[0]
     assert result == "1"

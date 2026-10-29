@@ -14,6 +14,7 @@ from coola.equality import objects_are_equal
 from coola.nested import from_flat_dict, to_flat_dict
 from coola.testing.marks import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
+from tests.helpers import DEEP_NESTING_DEPTH
 
 if is_numpy_available():
     import numpy as np
@@ -732,15 +733,15 @@ def test_from_flat_dict_does_not_modify_the_input() -> None:
 
 
 def test_from_flat_dict_deep_structure_does_not_raise() -> None:
-    result = from_flat_dict({".".join(["0"] * 20_000): 1}, restore_lists=True)
-    for _ in range(20_000):
+    result = from_flat_dict({".".join(["0"] * DEEP_NESTING_DEPTH): 1}, restore_lists=True)
+    for _ in range(DEEP_NESTING_DEPTH):
         result = result["0"] if isinstance(result, dict) else result[0]
     assert result == 1
 
 
 def test_from_flat_dict_deep_structure_without_restore_lists_does_not_raise() -> None:
-    result = from_flat_dict({".".join(["a"] * 20_000): 1})
-    for _ in range(20_000):
+    result = from_flat_dict({".".join(["a"] * DEEP_NESTING_DEPTH): 1})
+    for _ in range(DEEP_NESTING_DEPTH):
         result = result["a"]
     assert result == 1
 
@@ -908,16 +909,16 @@ def test_to_flat_dict_options_are_keyword_only() -> None:
 
 def test_to_flat_dict_deep_structure_does_not_raise() -> None:
     data: Any = 1
-    for _ in range(20_000):
+    for _ in range(DEEP_NESTING_DEPTH):
         data = {"a": data}
-    assert to_flat_dict(data) == {".".join(["a"] * 20_000): 1}
+    assert to_flat_dict(data) == {".".join(["a"] * DEEP_NESTING_DEPTH): 1}
 
 
 def test_to_flat_dict_deep_list_structure_does_not_raise() -> None:
     data: Any = 1
-    for _ in range(20_000):
+    for _ in range(DEEP_NESTING_DEPTH):
         data = [data]
-    assert to_flat_dict(data) == {".".join(["0"] * 20_000): 1}
+    assert to_flat_dict(data) == {".".join(["0"] * DEEP_NESTING_DEPTH): 1}
 
 
 def test_to_flat_dict_does_not_modify_the_input() -> None:
