@@ -33,9 +33,17 @@ FAILING_CALLS: list[tuple[Callable[[], None], type[Exception], str]] = [
     (lambda: validate_lt(2, 0, name="x"), ValueError, "got 2"),
     (lambda: validate_range(2, 0, 1, name="x"), ValueError, "got 2"),
     (lambda: validate_finite(float("inf"), name="x"), ValueError, "got inf"),
-    (lambda: validate_finite("a", name="x"), TypeError, "got str"),
+    (
+        lambda: validate_finite("a", name="x"),  # ty: ignore[invalid-argument-type]
+        TypeError,
+        "got str",
+    ),
     (lambda: validate_not_empty([], name="x"), ValueError, "x must not be empty"),
-    (lambda: validate_not_empty(5, name="x"), TypeError, "got int"),
+    (
+        lambda: validate_not_empty(5, name="x"),  # ty: ignore[invalid-argument-type]
+        TypeError,
+        "got int",
+    ),
     (lambda: validate_in(5, (1, 2), name="x"), ValueError, "got 5"),
     (lambda: validate_ge(None, 0, name="x"), TypeError, "got None"),
 ]

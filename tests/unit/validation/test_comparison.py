@@ -3,11 +3,10 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 from fractions import Fraction
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
 from coola.validation import (
     validate_finite,
@@ -19,15 +18,16 @@ from coola.validation import (
 )
 from coola.validation.comparison import _compare
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 class _Float(float):
     pass
 
 
 if is_numpy_available():
-    import numpy as np
-else:  # pragma: no cover
-    np = None
+    pass
 
 
 def test_validate_ge_greater() -> None:
@@ -113,9 +113,9 @@ def test_validate_lt_custom_name() -> None:
         pytest.param(lambda v: validate_lt(v, 0), id="lt"),
     ],
 )
-def test_validate_comparison_rejects_nan(validate: object) -> None:
+def test_validate_comparison_rejects_nan(validate: Callable[[Any], None]) -> None:
     with pytest.raises(ValueError, match="nan"):
-        validate(float("nan"))  # type: ignore[operator]
+        validate(float("nan"))
 
 
 ####################################
@@ -282,10 +282,9 @@ def test_validate_finite_not_a_real_number_raises(value: Any) -> None:
         validate_finite(value)
 
 
-@numpy_available
 def test_validate_finite_array_raises_a_named_type_error() -> None:
-    with pytest.raises(TypeError, match=r"^value must be a real number, got ndarray$"):
-        validate_finite(np.array([1.0, 2.0]))
+    with pytest.raises(TypeError, match=r"^value must be a real number, got list$"):
+        validate_finite([1.0, 2.0])  # ty: ignore[invalid-argument-type]
 
 
 def test_validate_finite_message_shows_the_value_with_repr() -> None:
@@ -306,7 +305,7 @@ def test_validate_range_incomparable_value_keeps_the_cause() -> None:
 
 
 def test_validate_finite_accepts_a_fraction() -> None:
-    validate_finite(Fraction(1, 2))
+    validate_finite(Fraction(1, 2))  # ty: ignore[invalid-argument-type]
 
 
 def test_validate_finite_rejects_a_non_finite_float_subclass() -> None:
