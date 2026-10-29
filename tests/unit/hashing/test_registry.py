@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
 import pytest
@@ -22,6 +22,9 @@ from coola.registry import AlreadyRegisteredError, TypeNotRegisteredError, TypeR
 from coola.utils import fork
 from tests.helpers import nest
 from tests.unit.hashing.helpers import Unhashable, hash_with, leaf_hash
+
+if TYPE_CHECKING:
+    from coola.hashing import Hasher
 
 
 class CustomList(list):
@@ -51,7 +54,7 @@ def test_hasher_registry_init_with_state_keeps_the_hasher() -> None:
 
 def test_hasher_registry_init_with_state_copies_the_state() -> None:
     # Verify it's a copy — mutations to the source dict don't affect the registry.
-    initial_state: dict[type, BaseHasher[Any]] = {list: SequenceHasher()}
+    initial_state: dict[type, Hasher[Any]] = {list: SequenceHasher()}
     registry = HasherRegistry(initial_state)
     initial_state[tuple] = ReprHasher()
     assert tuple not in registry._state

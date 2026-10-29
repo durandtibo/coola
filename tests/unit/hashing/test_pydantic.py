@@ -15,48 +15,39 @@ from coola.hashing import (
 from coola.hashing.pydantic import PydanticModelHasher
 from coola.testing.marks import pydantic_available
 from coola.utils.imports import is_pydantic_available
-from tests.unit.hashing.helpers import hash_with
+from tests.unit.hashing.helpers import encode_node, hash_with
 
 if is_pydantic_available():
     from pydantic import BaseModel, ConfigDict, SecretBytes, SecretStr
-else:
-    BaseModel, ConfigDict, SecretBytes, SecretStr = object, dict, object, object
 
+    class Point(BaseModel):
+        x: int
+        y: int
 
-class Point(BaseModel):
-    x: int
-    y: int
+    class Creds(BaseModel):
+        username: str
+        password: SecretStr
 
+    class CredsWithToken(BaseModel):
+        username: str
+        password: SecretStr
+        token: SecretBytes
 
-class Creds(BaseModel):
-    username: str
-    password: SecretStr
+    class Point3(BaseModel):
+        x: int
+        y: int
 
+    class AnyValue(BaseModel):
+        value: Any
 
-class CredsWithToken(BaseModel):
-    username: str
-    password: SecretStr
-    token: SecretBytes
+    class Open(BaseModel):
+        model_config = ConfigDict(extra="allow")
 
+        x: int
 
-class Point3(BaseModel):
-    x: int
-    y: int
-
-
-class AnyValue(BaseModel):
-    value: Any
-
-
-class Open(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-    x: int
-
-
-class Nested(BaseModel):
-    name: str
-    creds: Creds
+    class Nested(BaseModel):
+        name: str
+        creds: Creds
 
 
 @pytest.fixture
@@ -255,7 +246,7 @@ def test_pydantic_model_hasher_hash_extra_fields_are_included(registry: HasherRe
 
 @pydantic_available
 def test_pydantic_model_hasher_encode_node_is_unordered_with_pairs() -> None:
-    node = PydanticModelHasher().encode(Point(x=1, y=2))
+    node = encode_node(PydanticModelHasher(), Point(x=1, y=2))
     assert (node.ordered, node.group) == (False, 2)
 
 
@@ -341,12 +332,16 @@ def test_get_secret_hashers_keys() -> None:
 
 @pydantic_available
 def test_get_secret_hashers_policy() -> None:
-    assert get_secret_hashers("reveal")[SecretStr]._on_secret == "reveal"  # noqa: S105
+    hasher = get_secret_hashers("reveal")[SecretStr]
+    assert isinstance(hasher, SecretHasher)
+    assert hasher._on_secret == "reveal"  # noqa: S105
 
 
 @pydantic_available
 def test_get_secret_hashers_default_policy_is_error() -> None:
-    assert get_secret_hashers()[SecretBytes]._on_secret == "error"  # noqa: S105
+    hasher = get_secret_hashers()[SecretBytes]
+    assert isinstance(hasher, SecretHasher)
+    assert hasher._on_secret == "error"  # noqa: S105
 
 
 @pydantic_available

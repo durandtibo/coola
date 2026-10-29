@@ -12,7 +12,7 @@ from coola.hashing import (
     SupportsCoolaHash,
     get_default_registry,
 )
-from tests.unit.hashing.helpers import FixedHasher, hash_with
+from tests.unit.hashing.helpers import FixedHasher, encode_node, hash_with
 
 
 @pytest.fixture
@@ -199,17 +199,17 @@ def test_content_hasher_encode_returns_a_node() -> None:
 
 
 def test_content_hasher_encode_tag_is_the_qualified_class_name() -> None:
-    node = ContentHasher().encode(ContentPoint(1, 2))
+    node = encode_node(ContentHasher(), ContentPoint(1, 2))
     assert node.tag == f"custom:{ContentPoint.__module__}.ContentPoint"
 
 
 def test_content_hasher_encode_child_is_the_content() -> None:
-    node = ContentHasher().encode(ContentPoint(1, 2))
+    node = encode_node(ContentHasher(), ContentPoint(1, 2))
     assert list(node.children) == [(1, 2)]
 
 
 def test_content_hasher_encode_node_is_ordered() -> None:
-    assert ContentHasher().encode(ContentPoint(1, 2)).ordered
+    assert encode_node(ContentHasher(), ContentPoint(1, 2)).ordered
 
 
 def test_content_hasher_encode_calls_the_method_once() -> None:
