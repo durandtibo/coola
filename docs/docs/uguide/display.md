@@ -11,29 +11,29 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 
 The `coola.display` package has three kinds of content, with one rule each:
 
-| Kind                | Names                                                                                                                    | Dependency         | Rule                                                                                                |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------ | --------------------------------------------------------------------------------------------------- |
-| Mixins              | `InlineDisplayMixin`, `MultilineDisplayMixin`, `BaseDisplayMixin`                                                        | none               | Imported eagerly; a class only overrides `_display_fields`.                                         |
-| Pydantic formatting | `str_pydantic_model`, `repr_pydantic_model`                                                                              | `pydantic`         | Exported lazily from `coola.display`; a missing library raises `MissingPackageError` when called.   |
-| Terminal output     | `configure_colorlog_logging`; `configure_rich_logging`, `make_progressbar`, `make_spinner`, `print_markdown`, `print_pretty` | `colorlog`, `rich` | `coola.display.rich` exports lazily; a function never runs without its library (see below).         |
+| Kind                | Names                                                                                                                        | Dependency         | Rule                                                                                              |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------- |
+| Mixins              | `InlineDisplayMixin`, `MultilineDisplayMixin`, `BaseDisplayMixin`                                                            | none               | Imported eagerly; a class only overrides `_display_fields`.                                       |
+| Pydantic formatting | `str_pydantic_model`, `repr_pydantic_model`                                                                                  | `pydantic`         | Exported lazily from `coola.display`; a missing library raises `MissingPackageError` when called. |
+| Terminal output     | `configure_colorlog_logging`; `configure_rich_logging`, `make_progressbar`, `make_spinner`, `print_markdown`, `print_pretty` | `colorlog`, `rich` | `coola.display.rich` exports lazily; a function never runs without its library (see below).       |
 
 ## Properties
 
 These are the guarantees of the package. Each one is enforced by the code, not by the discipline of
 the callers.
 
-| Property             | Statement                                                                                                                                                                                                                               |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| One hook             | A class that uses a mixin only overrides `_display_fields`. `__repr__` and `__str__` come from the mixin; a class with no field overrides nothing.                                                                                      |
-| Consistent format    | All the objects that use a mixin share the same layout: `Name(key=value)` inline, or one `(key): value` per line. `__repr__` shows the `repr` of the values and `__str__` their `str`. The name is the `__qualname__` of the class.     |
-| Pure                 | Formatting never modifies the object and has no side effect (no logging, no I/O, no global state). Two calls on the same object give the same string.                                                                                   |
-| Secrets never leak   | A pydantic field typed as a secret (`SecretStr`, `SecretBytes`, `Secret`, or a type that contains one) is omitted by default, at any depth. With `exclude_secret=False` the masked value of pydantic is shown, never the secret.       |
-| Honest options       | An option that names a field that does not exist (`exclude_fields`) warns, at the line of the caller. An option out of its range raises `ValueError`.                                                                                   |
-| Optional libraries   | `pydantic`, `rich` and `colorlog` are imported when they are used, never when `coola` or `coola.display` is imported. A missing library raises `MissingPackageError` when a function that needs it is called, never at import time.     |
-| Safe terminal output | Colour is used only if the library is installed **and** the output is a terminal (`colorlog`), or the library decides (`rich` strips the styles of a file). Otherwise the output is plain.                                              |
-| Respects the logger  | `logging.basicConfig` does nothing if the root logger already has handlers, unless `force=True`. Both `configure_*_logging` functions have the same options for this: `level`, `force` and `**kwargs` forwarded.                         |
-| One console          | The `rich` helpers (`print_*`, progress bars, logging) write to the console of `rich` (`rich.get_console()`) unless a `console` is passed, so their output does not interleave.                                                         |
-| Keyword-only options | Every option after the first required arguments (and `level` for the logging functions) is keyword-only.                                                                                                                                |
+| Property             | Statement                                                                                                                                                                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| One hook             | A class that uses a mixin only overrides `_display_fields`. `__repr__` and `__str__` come from the mixin; a class with no field overrides nothing.                                                                                  |
+| Consistent format    | All the objects that use a mixin share the same layout: `Name(key=value)` inline, or one `(key): value` per line. `__repr__` shows the `repr` of the values and `__str__` their `str`. The name is the `__qualname__` of the class. |
+| Pure                 | Formatting never modifies the object and has no side effect (no logging, no I/O, no global state). Two calls on the same object give the same string.                                                                               |
+| Secrets never leak   | A pydantic field typed as a secret (`SecretStr`, `SecretBytes`, `Secret`, or a type that contains one) is omitted by default, at any depth. With `exclude_secret=False` the masked value of pydantic is shown, never the secret.    |
+| Honest options       | An option that names a field that does not exist (`exclude_fields`) warns, at the line of the caller. An option out of its range raises `ValueError`.                                                                               |
+| Optional libraries   | `pydantic`, `rich` and `colorlog` are imported when they are used, never when `coola` or `coola.display` is imported. A missing library raises `MissingPackageError` when a function that needs it is called, never at import time. |
+| Safe terminal output | Colour is used only if the library is installed **and** the output is a terminal (`colorlog`), or the library decides (`rich` strips the styles of a file). Otherwise the output is plain.                                          |
+| Respects the logger  | `logging.basicConfig` does nothing if the root logger already has handlers, unless `force=True`. Both `configure_*_logging` functions have the same options for this: `level`, `force` and `**kwargs` forwarded.                    |
+| One console          | The `rich` helpers (`print_*`, progress bars, logging) write to the console of `rich` (`rich.get_console()`) unless a `console` is passed, so their output does not interleave.                                                     |
+| Keyword-only options | Every option after the first required arguments (and `level` for the logging functions) is keyword-only.                                                                                                                            |
 
 Not guaranteed:
 
