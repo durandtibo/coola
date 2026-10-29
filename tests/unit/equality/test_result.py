@@ -507,6 +507,9 @@ class Spy:
         self._seen.append((logger.level, logger.propagate, list(logger.handlers)))
         return False
 
+    def __hash__(self) -> int:
+        return 0
+
 
 def test_compare_calls_the_spy() -> None:
     seen: list[tuple[int, bool, list[logging.Handler]]] = []

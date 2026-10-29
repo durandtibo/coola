@@ -39,9 +39,8 @@ def test_safe_repr_failing_repr() -> None:
     assert safe_repr(BadRepr()).startswith("<BadRepr object at 0x")
 
 
-class NonStrStr:
-    def __str__(self) -> str:
-        return 1  # ty: ignore[invalid-return-type]
+# ``__str__`` is set from a dict because a ``__str__`` that returns an int is rejected by ruff.
+NonStrStr = type("NonStrStr", (), {"__str__": lambda _: 1})
 
 
 class NonStrRepr:

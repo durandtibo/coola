@@ -26,6 +26,9 @@ class Raising:
         msg = "ambiguous"
         raise ValueError(msg)
 
+    def __hash__(self) -> int:
+        return 0
+
 
 @pydantic_available
 @numpy_available

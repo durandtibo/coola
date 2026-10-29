@@ -153,7 +153,7 @@ def pyarrow_types() -> dict[str, Callable[[], Any]]:
         "pa.Array": lambda: pa.array([1]),
         "pa.Table": lambda: pa.table({"a": [1]}),
         "pa.Schema": lambda: pa.schema([("a", pa.int64())]),
-        "pa.DataType": lambda: pa.int64(),
+        "pa.DataType": pa.int64,
         "pa.Scalar": lambda: pa.scalar(1),
     }
 

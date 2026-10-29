@@ -34,6 +34,16 @@ from copy import deepcopy
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import coola
+from coola.equality import objects_are_allclose, objects_are_equal
+from coola.iterator import bfs_iterate, dfs_iterate
+from coola.nested import to_flat_dict
+from coola.random import manual_seed
+from coola.recursive import recursive_apply
+from coola.reducer import NativeReducer
+from coola.registry import Registry
+from coola.summary import summarize
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from types import FunctionType
@@ -122,8 +132,6 @@ def check_install_location() -> None:
     An editable install is imported from the source tree by design, so
     the check is skipped.
     """
-    import coola
-
     if is_editable_install():
         msg = "editable install"
         raise SkipCheckError(msg)
@@ -137,8 +145,6 @@ def check_install_location() -> None:
 
 def check_metadata() -> None:
     r"""Check the metadata of the installed distribution."""
-    import coola
-
     metadata = importlib.metadata.metadata(PACKAGE)
     assert metadata["Name"] == PACKAGE
     assert metadata["Requires-Python"], "Requires-Python is missing"
@@ -150,8 +156,6 @@ def check_metadata() -> None:
 
 def check_distribution_files() -> None:
     r"""Check that the typing marker and the license are shipped."""
-    import coola
-
     assert (Path(coola.__file__).parent / "py.typed").is_file(), "py.typed is missing"
     files = {str(f) for f in importlib.metadata.files(PACKAGE) or []}
     assert any(f.endswith("LICENSE") for f in files), "LICENSE is missing"
@@ -245,8 +249,6 @@ def check_imports() -> None:
 
 def check_equality_native() -> None:
     r"""Check equality operations for native Python types."""
-    from coola.equality import objects_are_allclose, objects_are_equal
-
     for func in (objects_are_allclose, objects_are_equal):
         assert func("cat", "cat")
         assert func(4.2, 4.2)
@@ -258,9 +260,7 @@ def check_equality_native() -> None:
 def check_equality_jax() -> None:
     r"""Check equality operations for JAX arrays."""
     require("jax")
-    import jax.numpy as jnp
-
-    from coola.equality import objects_are_allclose, objects_are_equal
+    jnp = importlib.import_module("jax.numpy")
 
     assert objects_are_allclose(jnp.ones((2, 3)), jnp.ones((2, 3)))
     assert objects_are_equal(jnp.ones((2, 3)), jnp.ones((2, 3)))
@@ -270,9 +270,7 @@ def check_equality_jax() -> None:
 def check_equality_numpy() -> None:
     r"""Check equality operations for NumPy arrays."""
     require("numpy")
-    import numpy as np
-
-    from coola.equality import objects_are_allclose, objects_are_equal
+    np = importlib.import_module("numpy")
 
     assert objects_are_allclose(np.ones((2, 3)), np.ones((2, 3)))
     assert objects_are_equal(np.ones((2, 3)), np.ones((2, 3)))
@@ -282,9 +280,7 @@ def check_equality_numpy() -> None:
 def check_equality_pandas() -> None:
     r"""Check equality operations for pandas DataFrames."""
     require("pandas")
-    import pandas as pd
-
-    from coola.equality import objects_are_allclose, objects_are_equal
+    pd = importlib.import_module("pandas")
 
     df = pd.DataFrame(
         {
@@ -301,9 +297,7 @@ def check_equality_pandas() -> None:
 def check_equality_polars() -> None:
     r"""Check equality operations for Polars DataFrames."""
     require("polars")
-    import polars as pl
-
-    from coola.equality import objects_are_allclose, objects_are_equal
+    pl = importlib.import_module("polars")
 
     df = pl.DataFrame(
         {
@@ -320,9 +314,7 @@ def check_equality_polars() -> None:
 def check_equality_pyarrow() -> None:
     r"""Check equality operations for PyArrow arrays and tables."""
     require("pyarrow")
-    import pyarrow as pa
-
-    from coola.equality import objects_are_equal
+    pa = importlib.import_module("pyarrow")
 
     table = pa.table({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
     assert objects_are_equal(table, deepcopy(table))
@@ -333,9 +325,7 @@ def check_equality_pyarrow() -> None:
 def check_equality_torch() -> None:
     r"""Check equality operations for PyTorch tensors and structures."""
     require("torch")
-    import torch
-
-    from coola.equality import objects_are_allclose, objects_are_equal
+    torch = importlib.import_module("torch")
 
     assert objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3))
     assert objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))
@@ -355,10 +345,8 @@ def check_equality_xarray() -> None:
     Variables."""
     require("xarray")
     require("numpy")
-    import numpy as np
-    import xarray as xr
-
-    from coola.equality import objects_are_allclose, objects_are_equal
+    np = importlib.import_module("numpy")
+    xr = importlib.import_module("xarray")
 
     data = xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
     assert objects_are_allclose(data, deepcopy(data))
@@ -382,9 +370,6 @@ def check_equality_xarray() -> None:
 
 def check_iterator_bfs() -> None:
     r"""Check breadth-first search iteration over nested structures."""
-    from coola.equality import objects_are_equal
-    from coola.iterator import bfs_iterate
-
     assert objects_are_equal(
         list(bfs_iterate({"a": {"b": 2, "c": {"d": 1, "e": 4}}, "d": 3})), [3, 2, 1, 4]
     )
@@ -392,23 +377,16 @@ def check_iterator_bfs() -> None:
 
 def check_iterator_dfs() -> None:
     r"""Check depth-first search iteration over nested structures."""
-    from coola.equality import objects_are_equal
-    from coola.iterator import dfs_iterate
-
     assert objects_are_equal(list(dfs_iterate({"a": {"b": [1, 2], "c": 3}, "d": 4})), [1, 2, 3, 4])
 
 
 def check_nested() -> None:
     r"""Check flattening of nested structures."""
-    from coola.nested import to_flat_dict
-
     assert to_flat_dict({"a": {"b": 1}, "c": 2}) == {"a.b": 1, "c": 2}
 
 
 def check_random() -> None:
     r"""Check random seed management functionality."""
-    from coola.random import manual_seed
-
     manual_seed(42)
     x1 = random.uniform(0, 1)  # noqa: S311
     x2 = random.uniform(0, 1)  # noqa: S311
@@ -420,16 +398,11 @@ def check_random() -> None:
 
 def check_recursive() -> None:
     r"""Check recursive application of transformations."""
-    from coola.equality import objects_are_equal
-    from coola.recursive import recursive_apply
-
     assert objects_are_equal(recursive_apply([1, 2, 3], lambda x: x * 2), [2, 4, 6])
 
 
 def check_reducer() -> None:
     r"""Check reducer operations for native sequences."""
-    from coola.reducer import NativeReducer
-
     reducer = NativeReducer()
     assert reducer.max([-2, -1, 0, 1, 2]) == 2
     assert reducer.median([-2, -1, 0, 1, 2]) == 0
@@ -438,8 +411,6 @@ def check_reducer() -> None:
 
 def check_registry() -> None:
     r"""Check registry functionality."""
-    from coola.registry import Registry
-
     registry = Registry[str, int]()
     registry.register("a", 1)
     registry.register("b", 2)
@@ -449,8 +420,6 @@ def check_registry() -> None:
 
 def check_summary() -> None:
     r"""Check object summarization functionality."""
-    from coola.summary import summarize
-
     assert summarize({"a": 1, "b": 2}) == "<class 'dict'> (length=2)\n  (a): 1\n  (b): 2"
 
 

@@ -229,6 +229,9 @@ class _CustomEq:
     def __eq__(self, other: object) -> bool:
         return isinstance(other, _CustomEq)
 
+    def __hash__(self) -> int:
+        return 0
+
 
 def _make_registry() -> EqualityTesterRegistry:
     registry = EqualityTesterRegistry({object: DefaultEqualityTester()})
