@@ -282,9 +282,8 @@ def test_validate_finite_not_a_real_number_raises(value: Any) -> None:
 
 @numpy_available
 def test_validate_finite_array_raises_a_named_type_error() -> None:
-    value: Any = np.array([1.0, 2.0])
     with pytest.raises(TypeError, match=r"^value must be a real number, got ndarray$"):
-        validate_finite(value)
+        validate_finite(np.array([1.0, 2.0]))  # ty: ignore[invalid-argument-type]
 
 
 def test_validate_finite_message_shows_the_value_with_repr() -> None:
@@ -305,8 +304,7 @@ def test_validate_range_incomparable_value_keeps_the_cause() -> None:
 
 
 def test_validate_finite_accepts_a_fraction() -> None:
-    value: Any = Fraction(1, 2)
-    validate_finite(value)
+    validate_finite(Fraction(1, 2))  # ty: ignore[invalid-argument-type]
 
 
 def test_validate_finite_rejects_a_non_finite_float_subclass() -> None:
