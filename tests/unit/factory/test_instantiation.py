@@ -369,11 +369,10 @@ def test_instantiate_object_function_kwargs_arg2(arg1: int, arg2: str) -> None:
 
 
 def test_instantiate_object_incorrect_type() -> None:
-    obj: Any = Fake(12)
     with pytest.raises(
         TypeError, match=r"Incorrect type: .*. The valid types are class and callable"
     ):
-        instantiate_object(obj)
+        instantiate_object(Fake(12))  # ty: ignore[invalid-argument-type]
 
 
 def test_instantiate_object_builtin_function() -> None:
