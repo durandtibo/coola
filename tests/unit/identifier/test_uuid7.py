@@ -257,13 +257,13 @@ def test_generate_uuid7_explicit_timestamp_does_not_use_the_monotonic_state() ->
 @pytest.mark.parametrize("timestamp_ms", [True, 1.5, "1"])
 def test_generate_uuid7_timestamp_wrong_type_raises(timestamp_ms: object) -> None:
     with pytest.raises(TypeError, match="timestamp_ms must be an int"):
-        generate_uuid7(timestamp_ms=timestamp_ms)
+        generate_uuid7(timestamp_ms=timestamp_ms)  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize("uuid7", [None, 123, uuid.UUID(int=7 << 76)])
 def test_extract_uuid7_timestamp_ms_not_a_str_raises(uuid7: object) -> None:
     with pytest.raises(TypeError, match="uuid7 must be an instance of"):
-        extract_uuid7_timestamp_ms(uuid7)
+        extract_uuid7_timestamp_ms(uuid7)  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize(
@@ -305,4 +305,4 @@ def test_generate_uuid7_current_time_beyond_48_bits_raises() -> None:
 
 def test_generate_uuid7_timestamp_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional argument"):
-        generate_uuid7(1704067200000)
+        generate_uuid7(1704067200000)  # ty: ignore[too-many-positional-arguments]
