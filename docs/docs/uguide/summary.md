@@ -48,7 +48,21 @@ Not guaranteed:
 - **Shared references.** A container reachable by several paths is shown once per path.
 - **The time of a foreign `str` or `repr`.** The package bounds what it iterates, not what a user
   class does inside `__str__` or `__repr__`.
+- **The bound on a chain.** Each level is indented, so a chain of `n` levels costs `O(n²)`
+  characters. `max_depth` is what bounds the output: a user who asks for a huge depth gets a huge
+  text.
 - **A stable format** between releases (see "For humans").
+
+What the package does not do:
+
+- **Plain objects with `__dict__`, `attrs` classes and `__slots__`** are leaves. Register a
+  summarizer to show their attributes.
+- **A machine-readable form** (JSON, a tree of nodes): the package produces text for humans.
+- **Width-aware or colored output**, a template for the format, and options per type. To show 3 items
+  for a list and 10 for a dict, register your own summarizer.
+- **Summaries of the elements of an array** (min, max, mean, number of NaN): the default is the shape
+  and the dtype, which is cheap and needs no copy and no device transfer. A metadata summarizer can
+  compute more for the types that want it.
 
 ## Basic Usage
 

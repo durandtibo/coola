@@ -202,6 +202,40 @@ TypeError: lr must be a real number, got str
 | Order of the checks        | A validator checks the type first, then the value.                                                                                                             |
 | Core only                  | The package imports the standard library only.                                                                                                                 |
 
+Not guaranteed:
+
+- **Validators are not a schema library.** One value, one constraint. Combine constraints by
+  composing calls (`validate_int(x)` then `validate_gt(x, 0)`): there is no `validate_all`, no
+  decorator and no error aggregation.
+- **The order of the values in a message built from a `set`** (the listing of the valid values of
+  `validate_in`). Pass a `tuple` for a stable message.
+- **`float` subclasses are accepted** by `validate_isinstance(x, float)`, hence a `numpy.float64` too
+  (it subclasses `float`) while a `numpy.float32` is not. Use `validate_number` to accept both.
+
+### Adding a validator
+
+A validator exists only if it states a constraint that `isinstance` or one comparison cannot state
+without a special case. `validate_int` exists for the `bool` case, `validate_number` for the
+`numbers.Real` plus `bool` case, and `validate_finite` for the overflow of `math.isfinite` and the
+`NaN`. There is no `validate_str`: `validate_isinstance(x, str)` is the same line. Validate an
+argument with `coola.validation`; do not write `raise ValueError` for a type, range or membership
+check.
+
+### Not Covered
+
+- **Aggregated errors** (all the invalid fields of a config in one exception): the call sites raise
+  on the first error, as the standard library does.
+- **Custom exception classes** and error codes: the two builtin types are the contract.
+- **Validation of nested structures and of array shapes or dtypes.** `validate_isinstance(x,
+  np.ndarray)` works; a dtype check belongs to the package that owns the array library.
+- **Coercion** (`ensure_int`, `to_float`): validators never convert.
+- **Decorators and `Annotated` metadata**: use a schema library (pydantic, attrs validators,
+  beartype). The package is a set of functions that a constructor calls.
+- **`validate_int(x, min=0)`**: the type and the bound are two calls, so the order of the errors
+  (a `TypeError` for `"a"` before a `ValueError` for `-1`) is visible.
+- **A `validate_callable`, `validate_path` or `validate_enum`**: each is
+  `validate_isinstance(x, Callable)` or `validate_in(x, tuple(Enum))`.
+
 ## Migration
 
 The package had 26 functions. The 16 functions that were synonyms of another one are removed, with

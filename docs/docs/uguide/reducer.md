@@ -371,6 +371,24 @@ The `coola.reducer` package follows these design principles:
 3. **Automatic selection**: Use `auto_reducer()` to automatically select the best backend
 4. **Clear error handling**: Explicit `EmptySequenceError` for operations on empty sequences
 
+## What `coola.reducer` does not do
+
+- **More statistics.** The six methods and `sort` are the contract (no `variance`, `mode`, `sum`,
+  `argmax`, `percentile` or `histogram`). `std` is the sample standard deviation (`ddof=1`) in the
+  three backends.
+- **Axis or multi-dimensional reductions, weights and `skipna`.** A reducer reduces one sequence.
+- **A registry of reducers.** There are three classes and the backend is chosen by the instance that
+  you create or by `auto_reducer()`. `auto_reducer()` does not look at the values: for a tensor
+  that lives on a device, build `TorchReducer()`. For a CPU tensor without gradient, `NumpyReducer`
+  also works.
+- **Lazy or streaming input.** An iterator is rejected on purpose, because the reducers go over the
+  values several times: convert it to a list.
+- **Precision beyond `float64`.** `NativeReducer` happens to work with `Decimal` and `Fraction`,
+  but this is not a property.
+- **Equality of reducers.** Two reducers of the same class are not equal (`==` is the identity).
+  `NativeReducer.mean` uses `statistics.fmean`, which is fast and can differ from the exact mean
+  in the last bit.
+
 ## Advanced Usage
 
 ### Creating a Custom Reducer

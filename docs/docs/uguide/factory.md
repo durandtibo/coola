@@ -134,6 +134,36 @@ A `dict` that has the key `_target_` is always a configuration, whatever `cls` i
 reserved, so such a `dict` cannot be passed through `resolve_object` as data. Any other object,
 including a `dict` without `_target_`, is returned as is if it is an instance of `cls`.
 
+### Checking the type of the result
+
+When `cls` is given (a class or a tuple of classes), `resolve_object` checks the type of what the
+target builds **before** it calls the target, from the types only: a class must be a subclass of
+`cls`, and a function is checked with its return type hint. A hint that is a union (`Dog | None`) or
+a generic (`list[int]`) is read member by member, and the target is accepted if one of the members
+is a subclass of `cls`. A target is refused before the call, with a `TypeError`, when none of them is:
+
+```pycon
+
+>>> from collections import OrderedDict
+>>> from coola.factory import resolve_object
+>>> resolve_object({"_target_": "collections.OrderedDict"}, cls=OrderedDict)
+OrderedDict()
+>>> resolve_object({"_target_": "collections.OrderedDict"}, cls=list)
+Traceback (most recent call last):
+    ...
+TypeError: Received object is not a list instance (the target 'collections.OrderedDict' does not build one: it was not called)
+
+```
+
+The type of the result is unknown beforehand for a built-in function, for a function without a
+return hint, and for a hint that cannot be resolved (a forward reference to a missing name, `Any`,
+a union with a member that is not a class). Such a target is called, and its result is checked
+afterwards. With `strict=True`, it is refused before the call instead. The result is always checked
+again after the call, so a function that returns the wrong type is detected, but its side effects
+have already happened. Calling a target is calling user code.
+
+An abstract class is refused with a `TypeError`, and so is a target that is not callable.
+
 ## Nested configurations
 
 `_target_` is resolved at the top level only. A nested dictionary that has a `_target_` key is
@@ -241,5 +271,22 @@ configuration for the class:
 True
 
 ```
+
+## Limits
+
+- **An allow-list is a filter on a path, not a sandbox.** It limits what is called, not the
+  arguments, and not what an allowed function does.
+- **Configurations are `dict`.** JSON and YAML load into `dict`. Convert any other mapping (for
+  example a `DictConfig`) before the call.
+- **No attribute paths.** `_target_` is `module.object`: `collections.OrderedDict.fromkeys` does not
+  exist as a target. Use `_init_` to call a class method, and a module-level alias for a nested class.
+- **No recursion, positional arguments, partial application or interpolation.** There is no
+  Hydra-style `_recursive_`, `_args_`, `_partial_` or `${...}`: a configuration is keyword-only
+  (`factory` accepts `*args` for code that has them), a nested object is resolved by the caller, and
+  `functools.partial` can be applied to the result.
+- **No registry of aliases.** To look up a class by a short key, use [`coola.registry`](registry.md).
+- **Two `import_object`.** `coola.factory.import_object("collections.Counter")` is the user-facing
+  function (dotted path, allow-list). `coola.utils.imports.import_object("collections:Counter")`
+  (colon path) is the internal function of the lazy registries.
 
 See the [reference](../refs/factory.md) for the complete API.

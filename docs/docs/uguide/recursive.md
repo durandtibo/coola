@@ -251,6 +251,22 @@ You can extend the default registry to support custom types:
 
 ```
 
+## What `coola.recursive` does not do
+
+- **It does not transform the keys of a mapping.** To rename or remove keys, use
+  [`coola.nested`](nested.md) (`add_prefix_suffix_to_keys`, `remove_keys_if`).
+- **It does not enter pydantic models, attrs classes or plain objects with `__dict__`.** They are
+  leaves, like NumPy arrays, tensors and data frames: `func` receives the whole object, and
+  applying a function element by element is the job of `func`. Register a transformer to enter a
+  type.
+- **It does not report the path of a failure.** An exception raised by `func` propagates unchanged,
+  without the position of the leaf in the structure.
+- **It does not memoize shared containers.** A container reachable by several paths is transformed
+  once per path, so an impure `func` (a counter, a random draw, a call that logs) is called once per
+  occurrence and the output has no aliasing.
+- **A plugin that implements `transform(data, func, registry)`** has to be ported to `expand`; the
+  entry-point group is `coola.recursive.transformers`.
+
 ## Design Principles
 
 The `coola.recursive` package design is inspired by the DFS pattern and provides:

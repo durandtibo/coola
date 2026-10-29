@@ -410,6 +410,8 @@ of the package layering. The functions that turn values into text are in
 | Strict contracts                 | An argument is checked by `coola.validation`, and options are keyword-only. A helper does not hide an error (`safe_str` and `safe_repr` report the error as a value, it is their job).                               |
 | Stateless, with named exceptions | The exceptions are the availability caches, the registry of the objects that reset after a fork (`track_fork`) and the `LazySingleton` instances. No helper changes `os.environ`, the working directory or a logger. |
 | Thread-safe, fork-safe           | A `LazySingleton` builds its value once under a lock, detects a request from its own factory, and rebuilds its lock in a forked child.                                                                               |
+| Generic                          | A helper knows nothing of the domain of a package: not what a registry is, not what a plugin group is, not what a JSON document of `nested` is. Domain code lives with its domain.                                  |
+| Placed by role                   | A helper used by two or more packages of `coola` goes to `coola.utils`. A general-purpose helper that `coola` does not use is also in `coola.utils` (the standalone helpers listed above), and a helper that is a step of one feature lives in that feature. |
 | Explicit modules                 | There is no re-export at `coola.utils`: import a name from the module that defines it (`coola.utils.mapping`). `coola.utils.imports` re-exports its public names.                                                    |
 
 ### Not Guaranteed
@@ -423,6 +425,21 @@ of the package layering. The functions that turn values into text are in
   obtained before is not changed.
 - **The order of `smallest_items` when the items cannot be compared** is the iteration order of the
   collection.
+
+### Not Covered
+
+- **The `fallback` idiom** (`if TYPE_CHECKING or is_numpy_available(): import numpy as np`, else
+  `from coola.utils.fallback.numpy import numpy as np`) makes `isinstance(x, np.ndarray)` false when
+  NumPy is missing. It keeps the annotations working; it does not make the library usable.
+- **Windows**: `os.register_at_fork` is absent there, so `track_fork` does nothing and the fork
+  behaviour does not apply.
+- **Performance**: no helper is on a hot path except `track_fork` (called once per object) and
+  `is_<pkg>_available` (cached), so there is no benchmark.
+- **`temp_env_vars` is not thread-safe**: it changes `os.environ` for the whole process, and says
+  so. Outside pytest there is no other tool for it, and `monkeypatch` is not available there.
+- **Huge integers**: `int_repr` gives the decimal `repr` of an integer, and the hexadecimal form
+  (`0x…`, or `-0x…` for a negative integer, like `hex(value)`) above 4,300 decimal digits, whatever
+  `sys.set_int_max_str_digits` is.
 
 ## See Also
 

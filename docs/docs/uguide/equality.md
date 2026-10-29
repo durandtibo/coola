@@ -1075,6 +1075,11 @@ The columns are compared one by one, and the comparison stops at the first colum
 The numeric and duration columns follow the numeric rule (tolerance and `equal_nan`); the other
 columns, including the nested and `object` columns, are compared by the `equals` of pandas.
 
+The time resolution is part of the dtype, as in NumPy: `timedelta64[s]` and `timedelta64[ns]` (or
+`datetime64[s]` and `datetime64[ns]`) are different dtypes, so two frames that hold the same instants
+with different resolutions are different. pandas 3 infers the resolution from how the values are
+built, so cast both sides with `astype` to the resolution you want before the comparison.
+
 ```pycon
 >>> import pandas as pd
 >>> from coola.equality import objects_are_equal

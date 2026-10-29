@@ -346,6 +346,10 @@ The numbers (integers, floats, durations) go through the numeric kernel: the tol
 strings, categories, instants, decimals, nested values and `object` columns) are compared by the
 library (`equals`), which never sees the tolerance or `equal_nan`.
 
+Without NumPy, the PyArrow columns are compared by Arrow alone: the tolerance and `equal_nan` cannot
+be applied, so a `RuntimeWarning` says that they are ignored (once per comparison, through
+`ctx.warn_once`).
+
 A table is one leaf for the engine: `compare` reports it as different, with the name of the first
 column that differs and no row. Use the tools of the library to find the row.
 
