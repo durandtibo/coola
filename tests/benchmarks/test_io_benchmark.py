@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import itertools
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from coola.io import (
     JsonLoader,
@@ -75,7 +75,7 @@ def test_load_json_small_benchmark(benchmark: BenchmarkFixture, tmp_path: Path) 
 def test_load_json_small_class_benchmark(benchmark: BenchmarkFixture, tmp_path: Path) -> None:
     path = tmp_path.joinpath("data.json")
     save_json(SMALL, path)
-    loader: JsonLoader[Any] = JsonLoader()
+    loader = JsonLoader()
     assert benchmark(loader.load, path) == SMALL
 
 

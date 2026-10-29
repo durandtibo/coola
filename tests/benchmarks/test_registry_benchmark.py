@@ -100,7 +100,7 @@ def test_type_registry_resolve_cold_types_benchmark(benchmark: BenchmarkFixture)
     r"""Resolve 5,000 distinct types once each, in a new registry."""
 
     def setup() -> tuple[tuple[TypeRegistry[int], list[type]], dict[str, Any]]:
-        types = [type(f"C{i}", (), {}) for i in range(5000)]
+        types: list[type] = [type(f"C{i}", (), {}) for i in range(5000)]
         return (TypeRegistry[int]({object: 0}), types), {}
 
     def resolve_all(registry: TypeRegistry[int], types: list[type]) -> int:
