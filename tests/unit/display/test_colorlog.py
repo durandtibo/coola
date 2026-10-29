@@ -306,7 +306,7 @@ def test_configure_colorlog_logging_stderr_none_falls_back_to_basic_config() -> 
 
 def test_configure_colorlog_logging_stream_without_isatty_falls_back_to_basic_config() -> None:
     with patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig:
-        configure_colorlog_logging(stream=object())  # ty: ignore[invalid-argument-type]
+        configure_colorlog_logging(stream=object())
     mock_basicconfig.assert_called_once()
 
 
