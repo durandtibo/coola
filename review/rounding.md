@@ -43,7 +43,7 @@ instead of by more per-backend patches.
 5. **Optional libraries stay lazy.** `import coola.rounding` imports no optional library (verified:
    `numpy`, `torch`, `pandas`, `polars` and `pyarrow` are all absent from `sys.modules` after it) and
    `coola` still has zero hard dependencies. New: rounding a polars or a pyarrow object needs NumPy
-   (decision D3).
+   (decision D3); without it `on_missing_package` decides: raise (default), warn or ignore (D9).
 
 ## 1. Properties of the sub-package
 
@@ -52,21 +52,21 @@ the answer is the same whatever the library that holds the numbers. These are th
 package. Every design choice below exists to make one of them true **by construction** (in the
 kernel and in the interface) instead of by the discipline of each backend.
 
-| Property                 | Statement                                                                                                                                                                                                                                                                                                                     | Enforced by                               |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| One decimal rule         | A float is read as the decimal that `repr` shows (the shortest string that round-trips in its dtype). `"floor"`, `"ceil"` and `"round"` (halfway cases to the even digit) act on that decimal, and the result is the float of the dtype that is nearest to the grid point. So `0.29` floored to 2 decimals is `0.29`.         | the kernels                               |
-| Exact                    | The result equals `Decimal(repr(x)).quantize(10**-decimals, mode)` while `abs(x) * 10**decimals < 1e13`. Above, the result is within one grid step of it. From `2**53` the value is already on the grid and is returned as it is.                                                                                             | the kernels, the oracle test              |
-| Mode contract            | `floor(x) <= x <= ceil(x)`, `abs(round(x) - x)` is at most half a step, the result is a grid point, rounding is idempotent (`round_values(round_values(x)) == round_values(x)`) and monotone (`x <= y` implies `f(x) <= f(y)`).                                                                                               | the kernels, property tests               |
-| Same everywhere          | A value gives the same result, bit for bit, in the native scalar, a NumPy array, a torch tensor and a pandas, polars or pyarrow column of the same dtype. The backends differ in structure, never in arithmetic.                                                                                                              | one formula, the conformance test         |
-| Values preserved         | Integers and booleans are never changed. A float stays a float of the same type (`round_values(2.5)` is `2.0`). `NaN`, the infinite values and the missing values are kept. A result that is zero has the sign of the input (`ceil(-0.4)` is `-0.0`, like `numpy.ceil`).                                                      | the kernels                               |
-| Type-preserving          | The result has the type, dtype, shape, device, index, columns, names and mask of the input; a subclass keeps its type (`MaskedArray` with its mask and fill value, `np.matrix`, a `Series` subclass). Two exceptions, documented: a subclass of `float` becomes a `float`, and a `Parameter` becomes a `Tensor` without grad. | `copy` then assignment; one test per type |
-| Tables are heterogeneous | Only the floating-point columns of a pandas, polars or pyarrow table are rounded. The other columns (integers, strings, booleans, dates, decimals, nested lists and structs) are left as they are. A Series, an array or a tensor must be numerical.                                                                          | the table adapters                        |
-| Strict contract          | An invalid `mode` or `decimals` raises before any work. An unsupported type or dtype raises `UnsupportedTypeError` (a `TypeError`) that names the type and how to register a rounder. With `recursive=True` a leaf that raises it is kept; any other exception propagates unchanged.                                          | `validate_arguments`, one exception class |
-| Pure                     | The input is never modified. The result of a mutable container (array, tensor, pandas object) owns its memory; the immutable Arrow buffers of polars and pyarrow can be shared. No state, no lock, no thread-local: a registry and a rounder can be shared by threads.                                                        | stateless rounders                        |
-| Registry-extensible      | A new type is supported by registering one function `(data, mode, decimals) -> result`, without changing another one. The most specific registered type along the MRO wins. A plugin group registers rounders at import.                                                                                                      | `TypeRegistry`, `register_rounders`       |
-| Lazy                     | `import coola.rounding` imports no optional library. The rounders of a library are loaded the first time a value of that library is rounded.                                                                                                                                                                                  | `register_lazy`                           |
-| Consistent with siblings | Options are keyword-only (`mode`, `decimals`, `recursive`, `registry`). With `recursive=True` the structure is walked by `recursive_apply` and dataclasses are entered like in `equality`, `hashing` and `summary`.                                                                                                           | the interface                             |
-| Fast                     | Arrays and columns are processed by vectorised operations, with no Python loop per element; a Python float costs well under a microsecond; the dispatch of the recursive path is a cached lookup.                                                                                                                             | the kernels, the registry                 |
+| Property                 | Statement                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Enforced by                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| One decimal rule         | A float is read as the decimal that `repr` shows (the shortest string that round-trips in its dtype). `"floor"`, `"ceil"` and `"round"` (halfway cases to the even digit) act on that decimal, and the result is the float of the dtype that is nearest to the grid point. So `0.29` floored to 2 decimals is `0.29`.                                                                                                                                               | the kernels                               |
+| Exact                    | The result equals `Decimal(repr(x)).quantize(10**-decimals, mode)` while `abs(x) * 10**decimals < 1e13`. Above, the result is within one grid step of it. From `2**53` the value is already on the grid and is returned as it is.                                                                                                                                                                                                                                   | the kernels, the oracle test              |
+| Mode contract            | `floor(x) <= x <= ceil(x)`, `abs(round(x) - x)` is at most half a step, the result is a grid point, rounding is idempotent (`round_values(round_values(x)) == round_values(x)`) and monotone (`x <= y` implies `f(x) <= f(y)`).                                                                                                                                                                                                                                     | the kernels, property tests               |
+| Same everywhere          | A value gives the same result, bit for bit, in the native scalar, a NumPy array, a torch tensor and a pandas, polars or pyarrow column of the same dtype. The backends differ in structure, never in arithmetic.                                                                                                                                                                                                                                                    | one formula, the conformance test         |
+| Values preserved         | Integers and booleans are never changed. A float stays a float of the same type (`round_values(2.5)` is `2.0`). `NaN`, the infinite values and the missing values are kept. A result that is zero has the sign of the input (`ceil(-0.4)` is `-0.0`, like `numpy.ceil`).                                                                                                                                                                                            | the kernels                               |
+| Type-preserving          | The result has the type, dtype, shape, device, index, columns, names and mask of the input; a subclass keeps its type (`MaskedArray` with its mask and fill value, `np.matrix`, a `Series` subclass). Two exceptions, documented: a subclass of `float` becomes a `float`, and a `Parameter` becomes a `Tensor` without grad.                                                                                                                                       | `copy` then assignment; one test per type |
+| Tables are heterogeneous | Only the floating-point columns of a pandas, polars or pyarrow table are rounded. The other columns (integers, strings, booleans, dates, decimals, nested lists and structs) are left as they are. A Series, an array or a tensor must be numerical.                                                                                                                                                                                                                | the table adapters                        |
+| Strict contract          | An invalid `mode` or `decimals` raises before any work. An unsupported type or dtype raises `UnsupportedTypeError` (a `TypeError`) that names the type and how to register a rounder. With `recursive=True` a leaf that raises it is kept; any other exception propagates unchanged. A rounder whose package is missing (NumPy for polars and pyarrow) follows `on_missing_package`: raise (default), warn and return the object unchanged, or return it unchanged. | `validate_arguments`, one exception class |
+| Pure                     | The input is never modified. The result of a mutable container (array, tensor, pandas object) owns its memory; the immutable Arrow buffers of polars and pyarrow can be shared. No state, no lock, no thread-local: a registry and a rounder can be shared by threads.                                                                                                                                                                                              | stateless rounders                        |
+| Registry-extensible      | A new type is supported by registering one function `(data, mode, decimals) -> result`, without changing another one. The most specific registered type along the MRO wins. A plugin group registers rounders at import.                                                                                                                                                                                                                                            | `TypeRegistry`, `register_rounders`       |
+| Lazy                     | `import coola.rounding` imports no optional library. The rounders of a library are loaded the first time a value of that library is rounded.                                                                                                                                                                                                                                                                                                                        | `register_lazy`                           |
+| Consistent with siblings | Options are keyword-only (`mode`, `decimals`, `recursive`, `on_missing_package`, `registry`). With `recursive=True` the structure is walked by `recursive_apply` and dataclasses are entered like in `equality`, `hashing` and `summary`.                                                                                                                                                                                                                           | the interface                             |
+| Fast                     | Arrays and columns are processed by vectorised operations, with no Python loop per element; a Python float costs well under a microsecond; the dispatch of the recursive path is a cached lookup.                                                                                                                                                                                                                                                                   | the kernels, the registry                 |
 
 Not guaranteed, and documented as such:
 
@@ -80,24 +80,26 @@ mode="floor", decimals=2)` is `0.29`, not `0.28`.
   hold (`bfloat16(1.2345)` rounded to 2 decimals is `1.2266`); it is idempotent.
 - **Anything but the listed types.** `pandas.Index`, `polars.LazyFrame`, `Decimal`, complex numbers,
   dates and times, sparse and nested tensors raise `UnsupportedTypeError` (section 10).
+- **Polars and pyarrow without NumPy.** They cannot be rounded; `on_missing_package` says what
+  happens (D9).
 
 ## 2. What differs today
 
-| #   | Finding                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Status         |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| F1  | **polars returns wrong values.** On 20,000 random values with 3 decimals, `round_values(pl.Series(x), decimals=1)` differs from the NumPy result for 6,968 values (`-4.822` gives `-4.800000000000001`) and 2,610 values at 2 decimals; `floor` and `ceil` the same. Cause: polars divides a column by a scalar as a multiplication by the reciprocal, `pl.Series([-48.0, 12.0]) / 10.0` is `[-4.800000000000001, 1.2000000000000002]`, also column by column. The comment in `_round_series` knows the problem and works around it with an expression, which only works for one row (constant folding). pyarrow, torch and pandas agree with NumPy (0 differences). | **[verified]** |
-| F2  | **`floor` and `ceil` return a value on the wrong side of the input.** The fix-up looks at one neighbour of the grid point only. `ceil(5.5200000000000005, 2)` is `5.52` (smaller than the input) and `ceil(3.3000000000000003, 1)` is `3.3`; 2,857 of 40,000 values one ulp away from a grid point break `floor(x) <= x <= ceil(x)`. Against the decimal oracle the NumPy kernel is wrong on about 1.5 % of such values (66 to 426 of 24,000 for the numbers of decimals tried, 1 to 8).                                                                                                                                                                             | **[verified]** |
-| F3  | **`round` has three definitions.** The native scalar uses Python's `round` (the exact binary value), the arrays scale and `rint` (inexact), and `floor`/`ceil` use the decimal value. `round_values(6.55, decimals=1)` is `6.5` for a float and `6.6` for a NumPy array; 66 of 20,000 values differ at 1 decimal and 830 at 2 decimals (`0.225` gives `0.23` and `0.22`). Against the decimal oracle, the scalar is wrong for 66 and 962 values and NumPy, torch and pyarrow for 0 and 133 (`8.995` gives `8.99`, the decimal is a tie and goes to `9.0`). The guide presents it as a library quirk.                                                                 | **[verified]** |
-| F4  | **No extension point.** The dispatch is a hard-coded dict `_BACKENDS` keyed by the top-level module of the classes in the MRO, with a string that is imported (`import_object`) for every value. `Decimal`, `Fraction`, JAX, xarray or a user type cannot be added without changing `coola`, although every sibling is registry-based (`TypeRegistry`, `register_lazy`, a plugin group) and the guides promise "Registry-extensible".                                                                                                                                                                                                                                | **[reading]**  |
-| F5  | **`recursive=True` swallows every `TypeError`.** `_round_leaf` returns the leaf unchanged on any `TypeError`, including one raised inside a library by a bug, and a leaf that fails with another error (a sparse tensor raises `NotImplementedError: Could not run 'aten::lt.Scalar' ...`) escapes in a different way.                                                                                                                                                                                                                                                                                                                                               | **[verified]** |
-| F6  | **One formula, five copies.** `native`, `numpy`, `torch`, `polars` and `pyarrow` each repeat the scale, the `MAX_EXACT` guard, the grid check in the dtype and the special values. F1 to F3 are consequences: a fix has to be made five times and nothing compares the five. The only cross-backend test checks NumPy against torch on six values.                                                                                                                                                                                                                                                                                                                   | **[reading]**  |
-| F7  | **The type is not preserved**, although the docstring promises "the same type, dtype and shape". `np.matrix` and any `ndarray` subclass become `ndarray`, a `float` subclass becomes `float`, a `Parameter` becomes a `Tensor`. A masked array has its own branch (6 lines). `data.copy()` followed by an assignment keeps a `matrix`, a subclass and a `MaskedArray` with its mask and fill value.                                                                                                                                                                                                                                                                  | **[verified]** |
-| F8  | **`decimals` rejects NumPy integers.** `round_values(1.26, decimals=np.int64(1))` raises `TypeError: decimals must be an int, got int64`, although `decimals` often comes from a config or an array.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | **[verified]** |
-| F9  | **A common Arrow type is missing.** `pa.RecordBatch` raises `Unsupported type` while `pa.Table` is supported, because the table branch uses `set_column`, which a record batch does not have. `from_arrays(columns, schema=...)` builds both **[verified]**.                                                                                                                                                                                                                                                                                                                                                                                                         | **[verified]** |
-| F10 | **The sign of zero is not consistent.** `round_values(-0.4, mode="ceil")` is `0.0` for a float (`math.ceil` returns an `int`) and `-0.0` for a NumPy array, a torch tensor and the `Decimal` quantisation.                                                                                                                                                                                                                                                                                                                                                                                                                                                           | **[verified]** |
-| F11 | **The tests cannot see F1 to F3.** 239 tests pass with 100 % line and branch coverage. The polars and pandas tests compare with `assert_series_equal`, whose default is a relative tolerance of `1e-5`, on inputs of two to four values; there is no oracle, no property test, no large input, no thread test, and no benchmark. The only integration test is the dataclass one.                                                                                                                                                                                                                                                                                     | **[verified]** |
-| F12 | **Per-value cost of the recursive path.** Each leaf goes through `import_object` and a scan of the MRO by module name: 1.4 µs per float, 141 ms for a list of 100,000 floats with `recursive=True`, five times the cost of the builtin `round` (28 ms).                                                                                                                                                                                                                                                                                                                                                                                                              | **[verified]** |
-| F13 | **Documentation.** The guide has no **Properties** table (`recursive.md` and `hashing.md` have one), states that Python rounds the exact binary value as if it were a library detail, and does not say what happens to a subclass or to a nested column. `dev/add_backend.md` has no row for `coola.rounding`.                                                                                                                                                                                                                                                                                                                                                       | **[reading]**  |
+| #   | Finding                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Status         |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| F1  | **polars returns wrong values.** On 20,000 random values with 3 decimals, `round_values(pl.Series(x), decimals=1)` differs from the NumPy result for 6,968 values (`-4.822` gives `-4.800000000000001`) and 2,610 values at 2 decimals; `floor` and `ceil` the same. Cause: polars divides a column by a scalar as a multiplication by the reciprocal, `pl.Series([-48.0, 12.0]) / 10.0` is `[-4.800000000000001, 1.2000000000000002]`, also column by column. The comment in `_round_series` knows the problem and works around it with an expression, which only works for one row (constant folding). pyarrow, torch and pandas agree with NumPy (0 differences). Resolved by rounding polars through NumPy (D3). | **[verified]** |
+| F2  | **`floor` and `ceil` return a value on the wrong side of the input.** The fix-up looks at one neighbour of the grid point only. `ceil(5.5200000000000005, 2)` is `5.52` (smaller than the input) and `ceil(3.3000000000000003, 1)` is `3.3`; 2,857 of 40,000 values one ulp away from a grid point break `floor(x) <= x <= ceil(x)`. Against the decimal oracle the NumPy kernel is wrong on about 1.5 % of such values (66 to 426 of 24,000 for the numbers of decimals tried, 1 to 8).                                                                                                                                                                                                                             | **[verified]** |
+| F3  | **`round` has three definitions.** The native scalar uses Python's `round` (the exact binary value), the arrays scale and `rint` (inexact), and `floor`/`ceil` use the decimal value. `round_values(6.55, decimals=1)` is `6.5` for a float and `6.6` for a NumPy array; 66 of 20,000 values differ at 1 decimal and 830 at 2 decimals (`0.225` gives `0.23` and `0.22`). Against the decimal oracle, the scalar is wrong for 66 and 962 values and NumPy, torch and pyarrow for 0 and 133 (`8.995` gives `8.99`, the decimal is a tie and goes to `9.0`). The guide presents it as a library quirk.                                                                                                                 | **[verified]** |
+| F4  | **No extension point.** The dispatch is a hard-coded dict `_BACKENDS` keyed by the top-level module of the classes in the MRO, with a string that is imported (`import_object`) for every value. `Decimal`, `Fraction`, JAX, xarray or a user type cannot be added without changing `coola`, although every sibling is registry-based (`TypeRegistry`, `register_lazy`, a plugin group) and the guides promise "Registry-extensible".                                                                                                                                                                                                                                                                                | **[reading]**  |
+| F5  | **`recursive=True` swallows every `TypeError`.** `_round_leaf` returns the leaf unchanged on any `TypeError`, including one raised inside a library by a bug, and a leaf that fails with another error (a sparse tensor raises `NotImplementedError: Could not run 'aten::lt.Scalar' ...`) escapes in a different way.                                                                                                                                                                                                                                                                                                                                                                                               | **[verified]** |
+| F6  | **One formula, five copies.** `native`, `numpy`, `torch`, `polars` and `pyarrow` each repeat the scale, the `MAX_EXACT` guard, the grid check in the dtype and the special values. F1 to F3 are consequences: a fix has to be made five times and nothing compares the five. The only cross-backend test checks NumPy against torch on six values.                                                                                                                                                                                                                                                                                                                                                                   | **[reading]**  |
+| F7  | **The type is not preserved**, although the docstring promises "the same type, dtype and shape". `np.matrix` and any `ndarray` subclass become `ndarray`, a `float` subclass becomes `float`, a `Parameter` becomes a `Tensor`. A masked array has its own branch (6 lines). `data.copy()` followed by an assignment keeps a `matrix`, a subclass and a `MaskedArray` with its mask and fill value.                                                                                                                                                                                                                                                                                                                  | **[verified]** |
+| F8  | **`decimals` rejects NumPy integers.** `round_values(1.26, decimals=np.int64(1))` raises `TypeError: decimals must be an int, got int64`, although `decimals` often comes from a config or an array.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | **[verified]** |
+| F9  | **A common Arrow type is missing.** `pa.RecordBatch` raises `Unsupported type` while `pa.Table` is supported, because the table branch uses `set_column`, which a record batch does not have. `from_arrays(columns, schema=...)` builds both **[verified]**.                                                                                                                                                                                                                                                                                                                                                                                                                                                         | **[verified]** |
+| F10 | **The sign of zero is not consistent.** `round_values(-0.4, mode="ceil")` is `0.0` for a float (`math.ceil` returns an `int`) and `-0.0` for a NumPy array, a torch tensor and the `Decimal` quantisation.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | **[verified]** |
+| F11 | **The tests cannot see F1 to F3.** 239 tests pass with 100 % line and branch coverage. The polars and pandas tests compare with `assert_series_equal`, whose default is a relative tolerance of `1e-5`, on inputs of two to four values; there is no oracle, no property test, no large input, no thread test, and no benchmark. The only integration test is the dataclass one.                                                                                                                                                                                                                                                                                                                                     | **[verified]** |
+| F12 | **Per-value cost of the recursive path.** Each leaf goes through `import_object` and a scan of the MRO by module name: 1.4 µs per float, 141 ms for a list of 100,000 floats with `recursive=True`, five times the cost of the builtin `round` (28 ms).                                                                                                                                                                                                                                                                                                                                                                                                                                                              | **[verified]** |
+| F13 | **Documentation.** The guide has no **Properties** table (`recursive.md` and `hashing.md` have one), states that Python rounds the exact binary value as if it were a library detail, and does not say what happens to a subclass or to a nested column. `dev/add_backend.md` has no row for `coola.rounding`.                                                                                                                                                                                                                                                                                                                                                                                                       | **[reading]**  |
 
 What is already right and must not regress: nothing optional is imported with `coola.rounding`;
 options are keyword-only; `mode` and `decimals` are validated before any work; the input is never
@@ -108,8 +110,8 @@ compared in the dtype of the data (float32 results are float32 values); the `MAX
 ## 3. Architecture
 
 ```
-round_values(data, *, mode="round", decimals=0, recursive=False, registry=None)
-        |   validate mode and decimals once; one registry (default: the singleton)
+round_values(data, *, mode="round", decimals=0, recursive=False, on_missing_package="raise", registry=None)
+        |   validate mode, decimals and on_missing_package once; one registry (default: the singleton)
         |   recursive ? recursive_apply(data, leaf) : leaf(data)
         v
 leaf(x): rounder = registry.resolve(type(x))                  MRO, lazy libraries
@@ -206,6 +208,9 @@ s.is_not_null(), s)` when there are nulls. 20 lines instead of 40, no expression
     `RecordBatch` (F9). **[verified]** equal to the kernel, `float32` kept, nulls kept.
   - A column that is not floating point is returned as it is (an integer column is not copied for
     polars and pyarrow: their buffers are immutable).
+  - NumPy is imported when the adapter runs, not when it is registered. If it is missing the adapter
+    raises `MissingPackageError` before any work, and `round_values` applies `on_missing_package`
+    (section 3.4, D9).
 
 ### 3.3 The rounder contract and the registry
 
@@ -233,7 +238,8 @@ not support. The default registry is a `TypeRegistry[Rounder]` built by
 | `pa.Array`, `pa.ChunkedArray`, `pa.Table`, `pa.RecordBatch`            | `round_pyarrow`                       | lazily                           |
 
 Each library module has a `get_default_rounders()` returning its `{type: rounder}` mapping (and `{}`
-when the library is missing), and `interface.py` has a `_LAZY_ROUNDERS` table, as `hashing` does. The
+when the library is missing), and `interface.py` has a `_LAZY_ROUNDERS` table, as `hashing` does. The rounders of polars and pyarrow are registered when their library is installed
+and import NumPy when they run (D9). The
 plugin group is `coola.rounding.rounders` (a callable that receives the registry). A type with no
 rounder makes `resolve` raise `TypeNotRegisteredError`; `round_values` turns it into
 `UnsupportedTypeError("Cannot round an object of type X; register a rounder with register_rounders")`,
@@ -253,25 +259,39 @@ register_rounders(
 ### 3.4 The interface
 
 ```python
-def round_values(data, *, mode="round", decimals=0, recursive=False, registry=None):
-    validate_arguments(mode, decimals)
+def round_values(
+    data, *, mode="round", decimals=0, recursive=False, on_missing_package="raise", registry=None
+):
+    validate_arguments(mode, decimals, on_missing_package)
     registry = get_default_registry() if registry is None else registry
     if recursive:
-        return recursive_apply(data, lambda x: _round_leaf(x, registry, mode, decimals))
-    return _round_object(data, registry, mode, decimals)
+        return recursive_apply(
+            data, lambda x: _round_leaf(x, registry, mode, decimals, on_missing_package)
+        )
+    return _round_object(data, registry, mode, decimals, on_missing_package)
 ```
 
-- `_round_object` does the lookup and the call; it is the only place that converts the registry error.
+- `_round_object` does the lookup and the call; it is the only place that converts the registry error
+  and that applies `on_missing_package`. When a rounder raises `MissingPackageError`: `"raise"`
+  raises `UnsupportedTypeError` naming the package, with the `MissingPackageError` as the cause;
+  `"warn"` emits a `UserWarning` naming the type and the package and returns `data` unchanged;
+  `"ignore"` returns `data` unchanged. The policy covers any rounder (a user rounder that needs a
+  missing package gets it too). A type with **no** rounder is not concerned: it raises
+  `UnsupportedTypeError` (kept by `recursive=True`), whatever the option.
+- With `recursive=True` the policy applies to each leaf, so `"raise"` stops the walk at the first
+  polars or pyarrow leaf and `"warn"` warns once per leaf (the default warning filter shows one per
+  location).
 - `_round_leaf` calls it and catches **only** `UnsupportedTypeError` (F5). A string, `None` or a date
   inside a nested structure is kept; a bug in a rounder is not hidden.
-- `validate_arguments` accepts any integer (`operator.index`), so `np.int64(2)` works (F8), and still
+- `validate_arguments` also checks `on_missing_package` (`"raise"`, `"warn"` or `"ignore"`) before
+  any work. It accepts any integer (`operator.index`), so `np.int64(2)` works (F8), and still
   rejects `bool` and `float`. The messages do not change.
 
 ## 4. Public API after the change
 
 ```python
 from coola.rounding import (
-    round_values,  # (data, *, mode="round", decimals=0, recursive=False, registry=None)
+    round_values,  # (data, *, mode="round", decimals=0, recursive=False, on_missing_package="raise", registry=None)
     RoundMode,  # Literal["round", "floor", "ceil"]
     Rounder,  # Callable[[Any, RoundMode, int], Any]
     UnsupportedTypeError,  # TypeError
@@ -340,14 +360,14 @@ gate, not a claim.
 
 One branch and one pull request per step (`CLAUDE.md`). The order keeps every step releasable.
 
-| Step | Change                                                                                                                                                                                                                                                                                                                                                                                                                         | Breaking                              |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
-| 1    | **Oracle and conformance tests first (F11).** `tests/unit/rounding/helpers.py` with the `Decimal` oracle, `tests/properties/test_rounding.py` (oracle, mode contract, idempotent, monotone, backends agree), exact comparisons in the table tests. The tests that fail on `main` are marked `xfail(strict=True)` with the finding number, and each following step removes its marks.                                           | no                                    |
-| 2    | **The rule (F2, F3, F7, F8, F10).** The kernel of section 3.1 in `numpy.py`, `torch.py` and the scalar in `native.py`; `copy` + `copyto` (no masked branch); `copysign`; `decimals` accepts integers. Docstrings, the guide and the "Notes" of `round_values` rewritten around the one rule.                                                                                                                                   | yes (results at ties and near a grid) |
-| 3    | **Tables through NumPy (F1, F9).** `polars.py` and `pyarrow.py` call `round_numpy` per float column; `pa.RecordBatch`; pandas unchanged apart from the exact tests. Delete the polars expression and the pyarrow compute kernel.                                                                                                                                                                                               | yes (needs NumPy; polars results)     |
-| 4    | **Registry, error class, plugin group (F4, F5, F6, F12).** `UnsupportedTypeError`, `Rounder`, `register_rounders`, `get_default_registry`, `registry=`, `_LAZY_ROUNDERS`, `get_default_rounders` in each library module, delete `_BACKENDS` and `import_object` dispatch. `_round_leaf` catches `UnsupportedTypeError` only; a non-strided tensor raises it. Integration tests for a user rounder (`Decimal`) and for threads. | yes (rounder signature for plugins)   |
-| 5    | **Documentation.** Rewrite `uguide/rounding.md` (**Properties** table of section 1, the rule, the extension example, the exactness bound, a table of the behaviour by type), the package docstring, `dev/add_backend.md`, the "Rounding" paragraph of `dev/architecture.md`, the migration page (results change, `UnsupportedTypeError`, NumPy for polars and pyarrow), and the status table of `review/suggestions.md`.       | no                                    |
-| 6    | **Benchmarks and gate.** `tests/benchmarks/test_rounding_benchmark.py` (section 8).                                                                                                                                                                                                                                                                                                                                            | no                                    |
+| Step | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Breaking                              |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 1    | **Oracle and conformance tests first (F11).** `tests/unit/rounding/helpers.py` with the `Decimal` oracle, `tests/properties/test_rounding.py` (oracle, mode contract, idempotent, monotone, backends agree), exact comparisons in the table tests. The tests that fail on `main` are marked `xfail(strict=True)` with the finding number, and each following step removes its marks.                                                                       | no                                    |
+| 2    | **The rule (F2, F3, F7, F8, F10).** The kernel of section 3.1 in `numpy.py`, `torch.py` and the scalar in `native.py`; `copy` + `copyto` (no masked branch); `copysign`; `decimals` accepts integers. Docstrings, the guide and the "Notes" of `round_values` rewritten around the one rule.                                                                                                                                                               | yes (results at ties and near a grid) |
+| 3    | **Tables through NumPy (F1, F9).** `polars.py` and `pyarrow.py` call `round_numpy` per float column; `pa.RecordBatch`; pandas unchanged apart from the exact tests. Delete the polars expression and the pyarrow compute kernel. NumPy is imported when the adapter runs (a missing NumPy raises `MissingPackageError`; step 4 adds the policy).                                                                                                           | yes (needs NumPy; polars results)     |
+| 4    | **Registry, error class, plugin group (F4, F5, F6, F12).** `UnsupportedTypeError`, `Rounder`, `register_rounders`, `get_default_registry`, `registry=`, `on_missing_package=` (D9), `_LAZY_ROUNDERS`, `get_default_rounders` in each library module, delete `_BACKENDS` and `import_object` dispatch. `_round_leaf` catches `UnsupportedTypeError` only; a non-strided tensor raises it. Integration tests for a user rounder (`Decimal`) and for threads. | yes (rounder signature for plugins)   |
+| 5    | **Documentation.** Rewrite `uguide/rounding.md` (**Properties** table of section 1, the rule, the extension example, the exactness bound, a table of the behaviour by type), the package docstring, `dev/add_backend.md`, the "Rounding" paragraph of `dev/architecture.md`, the migration page (results change, `UnsupportedTypeError`, NumPy for polars and pyarrow, `on_missing_package`), and the status table of `review/suggestions.md`.             | no                                    |
+| 6    | **Benchmarks and gate.** `tests/benchmarks/test_rounding_benchmark.py` (section 8).                                                                                                                                                                                                                                                                                                                                                                        | no                                    |
 
 Steps 2 and 3 are independent of 4; step 1 must come first so that every fix has a failing test
 before it (`git stash push src`, as `CLAUDE.md` asks).
@@ -375,12 +395,17 @@ imports, the whole composite output asserted against a literal at least once).
   `Float32` and nullable `Float64` dtypes are kept; duplicate column names (pandas), chunked arrays
   and `RecordBatch` (pyarrow); the index and the column names are kept; a Series of strings raises.
   **Every comparison is exact** (`check_exact=True`, or `to_list()` against a literal) and at least
-  one test uses more than 1 row (the polars bug needs 2).
+  one test uses more than 1 row (the polars bug needs 2). Without NumPy (patched out of
+  `sys.modules`) the adapter raises `MissingPackageError`.
 - **Interface** (`test_interface.py`): validation order (mode, then decimals, before any rounder
   runs); `np.int64` accepted, `True` and `1.0` rejected; `registry=` is used; a registry miss gives
   `UnsupportedTypeError` with the registry error as the cause; `recursive=True` keeps an unsupported
   leaf and propagates a `ValueError` raised by a rounder (a regression test for F5); the whole
-  nested output asserted against a literal.
+  nested output asserted against a literal; `on_missing_package` with a rounder that raises
+  `MissingPackageError`: `"raise"` gives `UnsupportedTypeError` with the cause, `"warn"` warns and
+  returns the same object, `"ignore"` returns it silently, an invalid value raises before any work, a
+  type with no rounder raises in all three, and with `recursive=True` the policy applies per leaf.
+  These are patched unit tests; the integration test below exercises the real case.
 - **Properties** (`tests/properties/test_rounding.py`, hypothesis, floats with 1 to 17 significant
   digits and the neighbours of grid points): result equals the oracle while `abs(x) * 10**d <
 1e13`; `floor <= x <= ceil`; `abs(round - x)` at most half a step; idempotent; monotone; **the
@@ -389,7 +414,8 @@ imports, the whole composite output asserted against a literal at least once).
 - **Integration** (`tests/integration/rounding/`): the default registry end to end for every
   installed library with no patching; a user type registered with `register_rounders`; a plugin
   group entry (as the other packages test theirs); `round_values(recursive=True)` on a dataclass
-  holding an array, a Series and a float; threads running `round_values` on the default registry
+  holding an array, a Series and a float; a subprocess without NumPy rounding a polars or a pyarrow
+  object with the three values of `on_missing_package` (no patching); threads running `round_values` on the default registry
   with a lock around the shared list (`run_threads`, docstring "Test that ..."); lazy imports.
 - **Doctests** run as part of the docstrings; the guide examples are doctests.
 - **Benchmark gate** (`tests/benchmarks/test_rounding_benchmark.py`, new): a Python float; 1,000,000
@@ -410,11 +436,15 @@ exact binary value like Python (`round(2.675, 2)` is `2.67`, but then `floor(0.2
 scale and `rint` (inexact, F3). Consequence: `round_values` no longer agrees with `round()` on
 the halfway cases of a decimal literal, which the guide says in one sentence.
 
+Decision: follow recommendation
+
 **D2. The native scalar: the float formula or `Decimal`?** _Recommended: the float formula._
 `Decimal(repr(x)).quantize(...)` is simple and exact, but it costs about 1.2 µs and needs a context
 for huge exponents (it raises `InvalidOperation` for `decimals=400`). The float formula costs 0.30 µs, is bit-identical to the arrays by
 construction, and the `Decimal` version stays in the tests as the independent oracle: a kernel
 checked against a copy of itself proves nothing.
+
+Decision: follow recommendation
 
 **D3. Tables through NumPy, or one kernel per table library?** _Recommended: through NumPy._ polars
 cannot do the exact division (F1), and a second and a third copy of the formula is how the package
@@ -424,6 +454,10 @@ already needs it). The error is the usual `MissingPackageError` for NumPy. Alter
 polars and pyarrow kernels and make the conformance test the only guard; rejected because polars
 has no exact operation to build it from.
 
+Decision: polars and pyarrow go through NumPy when it is available. When it is not, the user
+chooses what happens with `on_missing_package` (D9): raise an error (default), warn, or ignore the
+object.
+
 **D4. A function or a class as the extension point?** _Recommended: a function (`Rounder`)._ A
 rounder has no state, no children and one job; `Hasher`/`BaseHasher` exist because a hasher has a
 protocol with several members. A plain `TypeRegistry[Rounder]` with `register_rounders` and
@@ -431,11 +465,15 @@ protocol with several members. A plain `TypeRegistry[Rounder]` with `register_ro
 the family convention (`Rounder` protocol, `BaseRounder`, `RounderRegistry` with `find_rounder`);
 reconsider if a rounder ever needs more than one method.
 
+Decision: follow recommendation
+
 **D5. Keep `recursive=False` as the default?** _Recommended: yes._ Strict by default (a string or
 a `Decimal` raises) is what a user rounding one object wants; `recursive=True` is the explicit
 opt-in to the lenient walk where unsupported leaves are kept. Alternatives: always recursive (a
 `list` of floats would work, an error for `"abc"` would be lost) or a separate function (two names
 for one concept, and `nested` already has the walk).
+
+Decision: follow recommendation
 
 **D6. Negative `decimals` (round to tens, hundreds)?** _Recommended: not now._ Python, NumPy and
 pandas accept it, but `x * 10**-2` is not exact, so the kernel needs a second path (divide by
@@ -443,14 +481,43 @@ pandas accept it, but `x * 10**-2` is not exact, so the kernel needs a second pa
 message already names the rule. Revisit with the request; the rule of section 3.1 extends to it
 (`step = 10**n`).
 
+Decision: follow recommendation
+
 **D7. Nested columns of a table (`list<float>`, struct).** _Recommended: left unchanged, documented._
 Entering them needs a second walk (Arrow lists, polars `List`) in two libraries and is a different
 feature (rounding the values inside the cells). The property "only floating-point columns" states it.
+
+Decision: follow recommendation
 
 **D8. Where the guarantee stops.** _Recommended: document `1e13`, do not widen it._ The first
 mismatch measured is at `9.9e13`, and the error is one step, but a proof is out of reach with floats.
 Past the bound the answer is still a grid point within one step; a user who needs exactness at 15
 digits uses `Decimal` with a registered rounder.
+
+Decision: follow recommendation
+
+**D9. What happens when NumPy is missing for polars and pyarrow?** _Decision: an option,
+`on_missing_package`, with three values; the default raises._
+
+| Value               | Behaviour                                                                              |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| `"raise"` (default) | `UnsupportedTypeError` naming the missing package, `MissingPackageError` as the cause. |
+| `"warn"`            | `UserWarning` naming the type and the package; the object is returned unchanged.       |
+| `"ignore"`          | The object is returned unchanged, silently.                                            |
+
+Refinements, so that the option stays small and predictable:
+
+- The option is about a **missing package**, not about every unsupported type. It applies to any
+  rounder that raises `MissingPackageError` (NumPy for polars and pyarrow today, and a user rounder
+  that needs another package). A type with no rounder (a `str`, a `Decimal`, a sparse tensor) is not
+  affected: `UnsupportedTypeError`, kept by `recursive=True`. This avoids a default of `"raise"`
+  that would change the lenient walk of `recursive=True`.
+- The rounders are registered when the library is installed and check NumPy when they run, so the
+  registry, the lazy loading and `import coola.rounding` do not change.
+- `"warn"` and `"ignore"` can hide an unrounded column; they are opt-in. `"warn"` is the compromise
+  for a pipeline that must not fail on an optional step.
+- The name is `on_missing_package` (not `on_missing_numpy`) because the mechanism is general; the
+  keyword is keyword-only and last before `registry`.
 
 ## 10. Not covered
 
@@ -467,19 +534,19 @@ digits uses `Decimal` with a registered rounder.
 
 ## Appendix: effect on the size of the package
 
-| Module         | Lines today | Expected after | Why                                                                                         |
-| -------------- | ----------- | -------------- | ------------------------------------------------------------------------------------------- |
-| `common.py`    | 73          | about 110      | `UnsupportedTypeError`, `Rounder`, `validate_arguments` accepts integers                    |
-| `interface.py` | 135         | about 230      | registry, `register_rounders`, `get_default_registry`, `registry=`, lazy table, docstrings  |
-| `native.py`    | 63          | about 70       | the corrected formula, `round_int`, `get_default_rounders`                                  |
-| `numpy.py`     | 89          | about 85       | the corrected formula; the masked-array branch is gone; a longer docstring                  |
-| `torch.py`     | 74          | about 85       | the corrected formula, the layout check                                                     |
-| `pandas.py`    | 81          | about 75       | the `_is_supported` helper and the registration                                             |
-| `polars.py`    | 89          | about 50       | no expression, no kernel                                                                    |
-| `pyarrow.py`   | 88          | about 65       | no compute kernel, `RecordBatch`                                                            |
-| `__init__.py`  | 12          | about 25       | the new names                                                                               |
-| **Total**      | **704**     | **about 800**  | the registry is the one real addition; two kernels and the masked branch pay for part of it |
+| Module         | Lines today | Expected after | Why                                                                                                              |
+| -------------- | ----------- | -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `common.py`    | 73          | about 110      | `UnsupportedTypeError`, `Rounder`, `validate_arguments` accepts integers                                         |
+| `interface.py` | 135         | about 250      | registry, `register_rounders`, `get_default_registry`, `registry=`, `on_missing_package`, lazy table, docstrings |
+| `native.py`    | 63          | about 70       | the corrected formula, `round_int`, `get_default_rounders`                                                       |
+| `numpy.py`     | 89          | about 85       | the corrected formula; the masked-array branch is gone; a longer docstring                                       |
+| `torch.py`     | 74          | about 85       | the corrected formula, the layout check                                                                          |
+| `pandas.py`    | 81          | about 75       | the `_is_supported` helper and the registration                                                                  |
+| `polars.py`    | 89          | about 50       | no expression, no kernel                                                                                         |
+| `pyarrow.py`   | 88          | about 65       | no compute kernel, `RecordBatch`                                                                                 |
+| `__init__.py`  | 12          | about 25       | the new names                                                                                                    |
+| **Total**      | **704**     | **about 820**  | the registry is the one real addition; two kernels and the masked branch pay for part of it                      |
 
-The size grows by about 100 lines, all in the interface and its docstrings; the _logic_ shrinks
+The size grows by about 120 lines, all in the interface and its docstrings; the _logic_ shrinks
 (five copies of the formula become two kernels and a scalar). The line counts are estimates from
 the prototypes; the gate is the behaviour (sections 1 and 8), not the size.
