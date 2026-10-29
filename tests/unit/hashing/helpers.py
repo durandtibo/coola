@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from coola.hashing import BaseHasher, digest, get_default_registry
+from coola.hashing import BaseHasher, Node, digest, get_default_registry
 
 if TYPE_CHECKING:
     from coola.hashing import Encoding, Hasher, HasherRegistry
 
-__all__ = ["FixedHasher", "Unhashable", "hash_with", "leaf_hash"]
+__all__ = ["FixedHasher", "Unhashable", "encode_leaf", "encode_node", "hash_with", "leaf_hash"]
 
 
 class Unhashable:
@@ -38,6 +38,28 @@ def hash_with(
 def leaf_hash(encoding: bytes, length: int = 64) -> str:
     r"""Return the hash of a leaf: the hex digest of its encoding."""
     return digest(b"\x00" + encoding).hex()[:length]
+
+
+def encode_leaf(hasher: Hasher[Any], data: object) -> bytes:
+    r"""Return the encoding of ``data``, which must be a leaf.
+
+    Raises:
+        AssertionError: If the hasher describes ``data`` as a node.
+    """
+    encoding = hasher.encode(data)
+    assert isinstance(encoding, bytes), f"{hasher!r} encodes {data!r} as a node"
+    return encoding
+
+
+def encode_node(hasher: Hasher[Any], data: object) -> Node:
+    r"""Return the encoding of ``data``, which must be a node.
+
+    Raises:
+        AssertionError: If the hasher describes ``data`` as a leaf.
+    """
+    encoding = hasher.encode(data)
+    assert isinstance(encoding, Node), f"{hasher!r} encodes {data!r} as a leaf"
+    return encoding
 
 
 class FixedHasher(BaseHasher[Any]):

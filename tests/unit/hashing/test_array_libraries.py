@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from coola.hashing import Node, PyarrowArrayHasher, hash_object
@@ -286,7 +288,7 @@ def test_hash_torch_tensor_bfloat16_nan_sign() -> None:
         pytest.param(lambda: torch.arange(6.0).reshape(2, 3).T, id="non contiguous"),
     ],
 )
-def test_hash_torch_tensor_dtypes(tensor: object) -> None:
+def test_hash_torch_tensor_dtypes(tensor: Any) -> None:
     assert hash_object(tensor()) == hash_object(tensor())
 
 
@@ -574,7 +576,7 @@ def test_hash_xarray_variable_equal() -> None:
 @xarray_available
 def test_hash_xarray_variable_differs_by_data() -> None:
     array = xr.DataArray([1, 2], dims=["x"], coords={"x": [0, 1]}, name="n")
-    assert hash_object(array.variable) != hash_object(array.variable.copy(data=[1, 3]))
+    assert hash_object(array.variable) != hash_object(array.variable.copy(data=np.array([1, 3])))
 
 
 @pyarrow_available

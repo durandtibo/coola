@@ -120,7 +120,7 @@ LIBRARY_SAMPLES = [
         lambda: xr.Dataset({"a": ("x", [1, 2])}), marks=xarray_available, id="xarray_dataset"
     ),
     pytest.param(
-        lambda: pydantic.create_model("Model", x=(int, ...))(x=1),
+        lambda: pydantic.create_model("Model", x=(int, ...)).model_validate({"x": 1}),
         marks=pydantic_available,
         id="pydantic",
     ),
