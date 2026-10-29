@@ -411,7 +411,7 @@ def test_to_flat_dict_separator_list(separator: str) -> None:
     ],
 )
 def test_to_flat_dict_to_str(data: object, to_str: object, expected: dict) -> None:
-    assert to_flat_dict(data, to_str=to_str) == expected
+    assert to_flat_dict(data, to_str=to_str) == expected  # ty: ignore[invalid-argument-type]
 
 
 def test_to_flat_dict_to_str_with_prefix() -> None:
@@ -478,7 +478,7 @@ def test_from_flat_dict_none_leaf_then_nested_raises() -> None:
 
 def test_from_flat_dict_non_string_key_raises() -> None:
     with pytest.raises(TypeError, match="must be strings"):
-        from_flat_dict({1: "x"})
+        from_flat_dict({1: "x"})  # ty: ignore[invalid-argument-type]
 
 
 def test_to_flat_dict_empty_containers_are_kept() -> None:
@@ -682,12 +682,12 @@ def test_escape_round_trip(data: dict[str, Any]) -> None:
 
 def test_from_flat_dict_separator_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional argument"):
-        from_flat_dict({"a/b": 1}, "/")
+        from_flat_dict({"a/b": 1}, "/")  # ty: ignore[too-many-positional-arguments]
 
 
 def test_from_flat_dict_restore_lists_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional argument"):
-        from_flat_dict({"a.0": 1}, ".", True)
+        from_flat_dict({"a.0": 1}, ".", True)  # ty: ignore[too-many-positional-arguments]
 
 
 def test_from_flat_dict_dict_value_is_the_object_of_the_caller() -> None:
@@ -904,7 +904,7 @@ def test_to_flat_dict_escape_applies_to_the_dataclass_fields_and_keys() -> None:
 
 def test_to_flat_dict_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
-        to_flat_dict({"a": 1}, "p")
+        to_flat_dict({"a": 1}, "p")  # ty: ignore[too-many-positional-arguments]
 
 
 def test_to_flat_dict_deep_structure_does_not_raise() -> None:

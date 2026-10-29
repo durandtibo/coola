@@ -19,6 +19,8 @@ class _PassesValidationOnly(str):
     afterwards, to exercise the defensive ``assert_never`` branches.
     """
 
+    _remaining: int
+
     def __new__(cls, value: str) -> Self:
         obj = super().__new__(cls, value)
         obj._remaining = 1
@@ -62,13 +64,13 @@ def test_flatten_mapping_unhandled_on_duplicate() -> None:
     with pytest.raises(AssertionError):
         flatten_mapping(
             {"x": {"a": 1}, "y": {"a": 2}},
-            on_duplicate=_PassesValidationOnly("prefix"),  # type: ignore[arg-type]
+            on_duplicate=_PassesValidationOnly("prefix"),  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
         )
 
 
 def test_flatten_mapping_incorrect_on_duplicate() -> None:
     with pytest.raises(ValueError, match=r"^on_duplicate must be one of \(.*\), got 'incorrect'$"):
-        flatten_mapping({"module": {"a": 1}}, on_duplicate="incorrect")
+        flatten_mapping({"module": {"a": 1}}, on_duplicate="incorrect")  # ty: ignore[invalid-argument-type]
 
 
 def test_flatten_mapping_same_value_duplicate_not_triggered() -> None:
@@ -148,7 +150,7 @@ def test_flatten_mapping_same_value_multiple_outer_keys() -> None:
     ],
 )
 def test_flatten_mapping(mapping: dict, on_duplicate: str, expected: dict) -> None:
-    assert flatten_mapping(mapping, on_duplicate=on_duplicate) == expected
+    assert flatten_mapping(mapping, on_duplicate=on_duplicate) == expected  # ty: ignore[invalid-argument-type]
 
 
 def test_flatten_mapping_default_on_duplicate_is_raise() -> None:
@@ -248,12 +250,12 @@ def test_merge_mappings_no_duplicate_keys() -> None:
 
 def test_merge_mappings_incorrect_on_duplicate() -> None:
     with pytest.raises(ValueError, match=r"^on_duplicate must be one of \(.*\), got 'incorrect'$"):
-        merge_mappings([{"a": 1}], on_duplicate="incorrect")
+        merge_mappings([{"a": 1}], on_duplicate="incorrect")  # ty: ignore[invalid-argument-type]
 
 
 def test_merge_mappings_unhandled_on_duplicate() -> None:
     with pytest.raises(AssertionError):
-        merge_mappings([{"a": 1}, {"a": 2}], on_duplicate=_PassesValidationOnly("first"))  # type: ignore[arg-type]
+        merge_mappings([{"a": 1}, {"a": 2}], on_duplicate=_PassesValidationOnly("first"))  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
 
 
 def test_merge_mappings_same_value_duplicate_not_triggered() -> None:
@@ -334,7 +336,7 @@ def test_merge_mappings_same_value_multiple_mappings() -> None:
     ],
 )
 def test_merge_mappings(mappings: list[dict], on_duplicate: str, expected: dict) -> None:
-    assert merge_mappings(mappings, on_duplicate=on_duplicate) == expected
+    assert merge_mappings(mappings, on_duplicate=on_duplicate) == expected  # ty: ignore[invalid-argument-type]
 
 
 def test_merge_mappings_first_occurrence_keeps_the_plain_key() -> None:
@@ -472,17 +474,17 @@ def test_flatten_mapping_prefix_colliding_with_prefixed_key_raises() -> None:
 
 def test_flatten_mapping_value_that_is_not_a_mapping_raises() -> None:
     with pytest.raises(TypeError, match=r"value of the key 'a' must be an instance of"):
-        flatten_mapping({"a": 1})
+        flatten_mapping({"a": 1})  # ty: ignore[invalid-argument-type]
 
 
 def test_flatten_mapping_value_that_is_not_a_mapping_names_the_type() -> None:
     with pytest.raises(TypeError, match=r"got list"):
-        flatten_mapping({"a": {"x": 1}, "b": [1, 2]})
+        flatten_mapping({"a": {"x": 1}, "b": [1, 2]})  # ty: ignore[invalid-argument-type]
 
 
 def test_flatten_mapping_value_that_is_not_a_mapping_raises_with_always_prefix() -> None:
     with pytest.raises(TypeError, match="must be an instance of"):
-        flatten_mapping({"a": None}, always_prefix=True)
+        flatten_mapping({"a": None}, always_prefix=True)  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize(
@@ -561,9 +563,9 @@ def test_flatten_mapping_last_keeps_the_position_of_the_first_occurrence() -> No
 
 def test_flatten_mapping_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
-        flatten_mapping({"a": {"b": 1}}, "raise")
+        flatten_mapping({"a": {"b": 1}}, "raise")  # ty: ignore[too-many-positional-arguments]
 
 
 def test_merge_mappings_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
-        merge_mappings([{"a": 1}], "raise")
+        merge_mappings([{"a": 1}], "raise")  # ty: ignore[too-many-positional-arguments]
