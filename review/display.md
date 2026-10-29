@@ -336,16 +336,22 @@ the error is raised by the same mechanism for every library. Alternative: `check
 `from rich import ...` inside each of the five functions; no new file, no fake names to keep in sync
 with the names imported, but a second convention and imports hidden in function bodies.
 
+Decision: follow recommendation
+
 **D2. Remove `print_markdown(max_length)`?** _Recommended: yes._ It was added in the last release, it
 cuts a Markdown string at a character count (it can drop the closing `**` or a code fence, F4),
 `truncate_str` already exists in `formatting`, and no other helper of the package truncates. Alternative:
 keep it, call `truncate_str(msg, max_length, suffix=...)` and validate `max_length >= 1` with
 `validate_ge`; this keeps the feature and the mid-syntax cut.
 
+Decision: keep it, but improve it
+
 **D3. Should the pydantic formatter show computed fields and run serializers?** _Recommended: no._
 The function is documented as a safe formatter for logs, whose value is that it cannot raise or leak
 through user code. Alternative: keep `model_dump()` and fix F7 by walking the dump; it keeps
 `computed_field` but keeps the parallel walk (F8) and the serializers.
+
+Decision: follow recommendation
 
 **D4. Where do `secret_field_names` and `is_secret_annotation` live?** _Recommended: stay in
 `coola.display.pydantic`._ `summary` imports them (feature → core is allowed) and nobody else needs
@@ -353,9 +359,13 @@ them. Alternative: a `coola.pydantic` helper module for the pydantic knowledge s
 `summary`, `hashing` and `equality`; a new top-level package for two functions is not justified
 until a third use exists.
 
+Decision: follow recommendation
+
 **D5. One generic `format_pydantic_model(model, *, use_repr)` instead of the pair?** _Recommended: no,
 keep the pair._ It mirrors `str`/`repr` and the existing exports; the pair is two wrappers of 5 lines
 over the private function. Only the documentation is deduplicated.
+
+Decision: follow recommendation
 
 **D6. Guard the mixins against self-reference?** _Recommended: no._ A `reprlib.recursive_repr`-style
 guard needs a per-call set of ids on every `__repr__`, for a case that does not occur in the objects
@@ -363,9 +373,13 @@ that use the mixins (configurations, loaders, transformers, registries). Alterna
 `__repr__` with `reprlib.recursive_repr()` (3 lines, returns `...` for the inner call); cheap, but it
 changes `__str__` too and hides the bug in the caller's `_display_fields`.
 
+Decision: follow recommendation
+
 **D7. One `configure_logging(*, backend=...)` instead of two functions?** _Recommended: no._ The two
 functions have different options (`rich_tracebacks`, `markup` against the colour of the formatter),
 and a dispatcher adds a name and a string option for two lines of caller code.
+
+Decision: follow recommendation
 
 ## 9. Not covered
 
