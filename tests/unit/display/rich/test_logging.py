@@ -15,9 +15,11 @@ if TYPE_CHECKING:
 
 
 if is_rich_available():
+    from rich import get_console
+    from rich.console import Console
     from rich.logging import RichHandler
 else:
-    RichHandler = object
+    Console = RichHandler = get_console = object
 
 pytestmark = rich_available
 
@@ -140,6 +142,22 @@ def test_extra_kwargs_forwarded_to_rich_handler() -> None:
         configure_rich_logging(show_path=False, force=True)
     _, kwargs = mock_handler.call_args
     assert kwargs.get("show_path") is False
+
+
+# ---------------------------------------------------------------------------
+# console
+# ---------------------------------------------------------------------------
+
+
+def test_console_is_used_by_rich_handler() -> None:
+    console = Console()
+    configure_rich_logging(console=console, force=True)
+    assert _rich_handler().console is console
+
+
+def test_default_console_is_shared_console() -> None:
+    configure_rich_logging(force=True)
+    assert _rich_handler().console is get_console()
 
 
 # ---------------------------------------------------------------------------
