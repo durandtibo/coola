@@ -364,6 +364,30 @@ forbidden_modules = [
 ]
 
 [[tool.importlinter.contracts]]
+name = "Library code must not import the testing helpers"
+type = "forbidden"
+source_modules = [
+  "coola.registry",
+  "coola.utils",
+  "coola.display",
+  "coola.validation",
+  "coola.formatting",
+  "coola.equality",
+  "coola.hashing",
+  "coola.summary",
+  "coola.recursive",
+  "coola.iterator",
+  "coola.random",
+  "coola.nested",
+  "coola.reducer",
+  "coola.rounding",
+  "coola.io",
+  "coola.factory",
+  "coola.identifier",
+]
+forbidden_modules = ["coola.testing"]
+
+[[tool.importlinter.contracts]]
 name = "Validation must not import utils"
 type = "forbidden"
 source_modules = ["coola.validation"]
