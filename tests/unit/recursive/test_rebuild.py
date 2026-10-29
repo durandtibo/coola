@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import ChainMap, OrderedDict, defaultdict, deque
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import pytest
 
@@ -134,7 +134,7 @@ class MyDeque(deque):
 
 
 class WithExtra(list):
-    def __init__(self, items: object, extra: object) -> None:
+    def __init__(self, items: Any, extra: object) -> None:
         super().__init__(items)
         self.extra = extra
 
@@ -144,7 +144,7 @@ class MySet(set):
 
 
 class WithExtraDict(dict):
-    def __init__(self, items: object, extra: object) -> None:
+    def __init__(self, items: Any, extra: object) -> None:
         super().__init__(items)
         self.extra = extra
 

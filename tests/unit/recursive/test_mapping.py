@@ -8,6 +8,7 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.recursive import DefaultTransformer, MappingTransformer, TransformerRegistry
+from tests.unit.recursive.helpers import expand_not_none
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -141,54 +142,54 @@ def test_mapping_transformer_transform_with_closure(registry: TransformerRegistr
 
 
 def test_mapping_transformer_transform_defaultdict_type(registry: TransformerRegistry) -> None:
-    result = registry.transform(defaultdict(list, {"a": 1}), lambda x: x + 1)
+    result = registry.transform(defaultdict[str, Any](list, {"a": 1}), lambda x: x + 1)
     assert type(result) is defaultdict
 
 
 def test_mapping_transformer_transform_defaultdict_default_factory(
     registry: TransformerRegistry,
 ) -> None:
-    result = registry.transform(defaultdict(list, {"a": 1}), lambda x: x + 1)
+    result = registry.transform(defaultdict[str, Any](list, {"a": 1}), lambda x: x + 1)
     assert result.default_factory is list
 
 
 def test_mapping_transformer_transform_defaultdict_values(registry: TransformerRegistry) -> None:
-    result = registry.transform(defaultdict(list, {"a": 1}), lambda x: x + 1)
+    result = registry.transform(defaultdict[str, Any](list, {"a": 1}), lambda x: x + 1)
     assert result == {"a": 2}
 
 
 def test_mapping_transformer_expand_children() -> None:
-    children, _ = MappingTransformer().expand({"a": 1, "b": 2})
+    children, _ = expand_not_none(MappingTransformer(), {"a": 1, "b": 2})
     assert children == [1, 2]
 
 
 def test_mapping_transformer_expand_rebuild() -> None:
-    _, rebuild = MappingTransformer().expand({"a": 1, "b": 2})
+    _, rebuild = expand_not_none(MappingTransformer(), {"a": 1, "b": 2})
     assert rebuild(["x", "y"]) == {"a": "x", "b": "y"}
 
 
 def test_mapping_transformer_expand_rebuild_keeps_the_order_of_the_keys() -> None:
-    _, rebuild = MappingTransformer().expand({"b": 1, "a": 2})
+    _, rebuild = expand_not_none(MappingTransformer(), {"b": 1, "a": 2})
     assert list(rebuild([3, 4])) == ["b", "a"]
 
 
 def test_mapping_transformer_expand_rebuild_ordered_dict() -> None:
-    _, rebuild = MappingTransformer().expand(OrderedDict(a=1))
+    _, rebuild = expand_not_none(MappingTransformer(), OrderedDict(a=1))
     assert type(rebuild([2])) is OrderedDict
 
 
 def test_mapping_transformer_expand_rebuild_defaultdict_keeps_the_factory() -> None:
-    _, rebuild = MappingTransformer().expand(defaultdict(int, {"a": 1}))
+    _, rebuild = expand_not_none(MappingTransformer(), defaultdict(int, {"a": 1}))
     assert rebuild([2]).default_factory is int
 
 
 def test_mapping_transformer_expand_rebuild_mapping_proxy() -> None:
-    _, rebuild = MappingTransformer().expand(MappingProxyType({"a": 1}))
+    _, rebuild = expand_not_none(MappingTransformer(), MappingProxyType({"a": 1}))
     assert rebuild([2]) == MappingProxyType({"a": 2})
 
 
 def test_mapping_transformer_expand_empty() -> None:
-    children, rebuild = MappingTransformer().expand({})
+    children, rebuild = expand_not_none(MappingTransformer(), {})
     assert (children, rebuild([])) == ([], {})
 
 

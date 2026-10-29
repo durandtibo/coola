@@ -22,6 +22,7 @@ from coola.recursive import (
 )
 from coola.registry import AlreadyRegisteredError
 from tests.helpers import CONTAINER_SAMPLES, LEAF_SAMPLES
+from tests.unit.recursive.helpers import expand_not_none
 
 
 @pytest.fixture(autouse=True)
@@ -300,12 +301,12 @@ def test_recursive_apply_keyword_registry() -> None:
 
 def test_recursive_apply_positional_registry_raises() -> None:
     with pytest.raises(TypeError, match="takes 2 positional arguments but 3 were given"):
-        recursive_apply([1], str, get_default_registry())  # type: ignore[misc]
+        recursive_apply([1], str, get_default_registry())  # ty: ignore[too-many-positional-arguments]
 
 
 @dataclass
 class Config:
-    lr: float
+    lr: Any
     layers: list
 
 
@@ -335,7 +336,7 @@ def test_default_registry_dataclass_uses_the_fallback() -> None:
 
 def test_register_transformers_exist_ok_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="takes 1 positional argument but 2 were given"):
-        register_transformers({CustomList: SequenceTransformer()}, True)  # type: ignore[misc]
+        register_transformers({CustomList: SequenceTransformer()}, True)  # ty: ignore[too-many-positional-arguments]
 
 
 ##########################################
@@ -350,5 +351,5 @@ def test_default_registry_leaf_has_no_expansion(data: Any) -> None:
 
 @pytest.mark.parametrize("data", CONTAINER_SAMPLES)
 def test_default_registry_rebuild_of_the_unchanged_children_is_equal(data: Any) -> None:
-    children, rebuild = get_default_registry().find_transformer(type(data)).expand(data)
+    children, rebuild = expand_not_none(get_default_registry().find_transformer(type(data)), data)
     assert rebuild(list(children)) == data
