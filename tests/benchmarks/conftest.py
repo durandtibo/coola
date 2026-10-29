@@ -6,9 +6,13 @@ tests. Run them with ``inv test.benchmark`` (``--benchmark-only``).
 
 from __future__ import annotations
 
-import importlib
-
 import pytest
+
+from coola.utils.imports import is_rich_available
+
+if is_rich_available():
+    from rich.console import Console
+    from rich.table import Table
 
 IMPORT_RESULTS = pytest.StashKey[dict[str, dict]]()
 
@@ -25,12 +29,9 @@ def pytest_terminal_summary(terminalreporter: pytest.TerminalReporter) -> None:
     results = terminalreporter.config.stash.get(IMPORT_RESULTS, {})
     if not results:
         return
-    try:
-        console_cls = importlib.import_module("rich.console").Console
-        table_cls = importlib.import_module("rich.table").Table
-    except ImportError:
+    if not is_rich_available():
         return
-    table = table_cls(title="Import time (ms, measured inside a fresh interpreter)")
+    table = Table(title="Import time (ms, measured inside a fresh interpreter)")
     table.add_column("Import", no_wrap=True)
     for name in ("Min", "Median"):
         table.add_column(name, justify="right")
@@ -44,7 +45,7 @@ def pytest_terminal_summary(terminalreporter: pytest.TerminalReporter) -> None:
             str(r["num_modules"]),
             ", ".join(r["optional_libraries"]),
         )
-    console_cls().print(table)
+    Console().print(table)
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
