@@ -11,7 +11,8 @@ __all__ = ["expand_not_none"]
 
 
 def expand_not_none(transformer: Transformer[Any], data: Any) -> Expansion:
-    r"""Expand ``data`` with a transformer that must describe its children.
+    r"""Expand ``data`` with a transformer that must describe its
+    children.
 
     Args:
         transformer: The transformer to use.
