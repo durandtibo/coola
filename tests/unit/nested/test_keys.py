@@ -16,6 +16,7 @@ from coola.nested import (
 )
 from coola.nested.keys import _KeyTransformer
 from coola.recursive import get_default_registry
+from tests.helpers import DEEP_NESTING_DEPTH
 
 
 @dataclass
@@ -434,8 +435,8 @@ def test_remove_keys_if_cycle_raises() -> None:
 
 
 def test_remove_keys_if_deep_structure_does_not_raise() -> None:
-    result = remove_keys_if(nest_dicts({"a": 1, "b": 2}, 20_000), is_a)
-    for _ in range(20_000):
+    result = remove_keys_if(nest_dicts({"a": 1, "b": 2}, DEEP_NESTING_DEPTH), is_a)
+    for _ in range(DEEP_NESTING_DEPTH):
         result = result["k"]
     assert result == {"b": 2}
 
@@ -506,8 +507,10 @@ def test_add_prefix_suffix_to_keys_recursive_cycle_raises() -> None:
 
 
 def test_add_prefix_suffix_to_keys_recursive_deep_structure_does_not_raise() -> None:
-    result = add_prefix_suffix_to_keys(nest_dicts({"a": 1}, 20_000), "x_", recursive=True)
-    for _ in range(20_000):
+    result = add_prefix_suffix_to_keys(
+        nest_dicts({"a": 1}, DEEP_NESTING_DEPTH), "x_", recursive=True
+    )
+    for _ in range(DEEP_NESTING_DEPTH):
         result = result["x_k"]
     assert result == {"x_a": 1}
 
