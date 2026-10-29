@@ -23,7 +23,7 @@ from coola.hashing import (
 from coola.hashing.scalar import _numpy_scalar_to_builtin
 from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
-from tests.unit.hashing.helpers import hash_with, leaf_hash
+from tests.unit.hashing.helpers import encode_leaf, hash_with, leaf_hash
 
 
 @pytest.fixture
@@ -391,7 +391,9 @@ def test_enum_hasher_str() -> None:
 
 
 def test_enum_hasher_hash_is_the_hash_of_the_leaf(registry: HasherRegistry) -> None:
-    assert hash_with(EnumHasher(), Color.RED, registry) == leaf_hash(EnumHasher().encode(Color.RED))
+    assert hash_with(EnumHasher(), Color.RED, registry) == leaf_hash(
+        encode_leaf(EnumHasher(), Color.RED)
+    )
 
 
 @pytest.mark.parametrize("length", [2, 16, 64, 128])
@@ -411,7 +413,7 @@ def test_enum_hasher_hash_invalid_length_raises(registry: HasherRegistry) -> Non
 
 @pytest.mark.parametrize("member", [Color.RED, Number.ONE, Label.A, MixedStr.A, MixedInt.ONE])
 def test_default_registry_hashes_enum_members_as_enum(member: Enum) -> None:
-    assert get_default_registry().hash(member) == leaf_hash(EnumHasher().encode(member))
+    assert get_default_registry().hash(member) == leaf_hash(encode_leaf(EnumHasher(), member))
 
 
 def test_default_registry_enum_is_not_collapsed_into_value_int_enum() -> None:
@@ -444,7 +446,7 @@ class MixedTuple(tuple, Enum):
 
 @pytest.mark.parametrize("member", [MixedBytes.A, MixedTuple.A])
 def test_default_registry_hashes_enum_mixins_as_enum(member: Enum) -> None:
-    assert get_default_registry().hash(member) == leaf_hash(EnumHasher().encode(member))
+    assert get_default_registry().hash(member) == leaf_hash(encode_leaf(EnumHasher(), member))
 
 
 @pytest.mark.parametrize("member", [MixedBytes.A, MixedTuple.A])
