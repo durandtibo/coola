@@ -52,23 +52,34 @@ def round_torch(data: Any, mode: RoundMode, decimals: int) -> Any:
     scale = get_scale(decimals)
     if not data.dtype.is_floating_point or scale is None:
         return data.detach().clone()
-    values = data.detach().to(torch.float32 if data.device.type == "mps" else torch.float64)
-    scaled = values * scale
-    if mode == "round":
-        result = torch.round(scaled) / scale
-    elif mode == "floor":
-        index = torch.floor(scaled)
-        # ``0.29 * 100`` is below 29: take the grid point if it is not above the value. The grid
-        # point is compared in the dtype of the tensor, as the value is.
-        index = torch.where(_grid(index + 1, scale, data.dtype) <= values, index + 1, index)
-        result = index / scale
-    else:
-        index = torch.ceil(scaled)
-        index = torch.where(_grid(index - 1, scale, data.dtype) >= values, index - 1, index)
-        result = index / scale
-    result = torch.where(scaled.abs() < MAX_EXACT, result, values)
-    return result.to(data.dtype)
+    return _round_float_tensor(data, mode, scale)
 
 
-def _grid(index: torch.Tensor, scale: float, dtype: torch.dtype) -> torch.Tensor:
-    return (index / scale).to(dtype).to(index.dtype)
+def _round_float_tensor(data: torch.Tensor, mode: RoundMode, scale: float) -> torch.Tensor:
+    # The computation is made in float64 (float32 on mps). The grid points are compared with the
+    # value after a cast to the dtype of the tensor, as the value is.
+    x = data.detach().to(torch.float32 if data.device.type == "mps" else torch.float64)
+    low = data.dtype != x.dtype
+
+    def grid(index: torch.Tensor) -> torch.Tensor:
+        point = index / scale
+        return point.to(data.dtype).to(x.dtype) if low else point
+
+    scaled = x * scale
+    index = torch.floor(scaled)
+    # ``scaled`` is rounded, so the index is wrong by at most one in either direction.
+    index = index + (grid(index + 1) <= x).to(x.dtype)
+    index = index - (grid(index) > x).to(x.dtype)
+    if mode == "ceil":
+        index = index + (grid(index) < x).to(x.dtype)
+    elif mode == "round":
+        middle = (2 * index + 1) / (2 * scale)
+        if low:
+            middle = middle.to(data.dtype).to(x.dtype)
+        # ``torch.round`` sends a halfway case to the even index.
+        index = torch.where(
+            x > middle, index + 1, torch.where(x == middle, torch.round(index + 0.5), index)
+        )
+    # ``NaN``, the infinite values and the values past the grid are not changed.
+    result = torch.where(scaled.abs() < MAX_EXACT, index / scale, x)
+    return torch.copysign(result, x).to(data.dtype)

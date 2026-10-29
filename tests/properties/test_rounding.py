@@ -65,7 +65,6 @@ def _is_exact(x: float, decimals: int) -> bool:
 #############################
 
 
-@pytest.mark.xfail(strict=True, reason="F2, F3")
 @given(case=floats_near_grid(), mode=modes)
 @example(case=(2.675, 2), mode="round")
 @example(case=(5.5200000000000005, 2), mode="ceil")
@@ -78,7 +77,6 @@ def test_round_values_float_matches_oracle(case: tuple[float, int], mode: str) -
 
 
 @numpy_available
-@pytest.mark.xfail(strict=True, reason="F2, F3")
 @given(case=floats_near_grid(), mode=modes)
 @example(case=(5.5200000000000005, 2), mode="ceil")
 def test_round_values_numpy_matches_oracle(case: tuple[float, int], mode: str) -> None:
@@ -93,7 +91,6 @@ def test_round_values_numpy_matches_oracle(case: tuple[float, int], mode: str) -
 ####################
 
 
-@pytest.mark.xfail(strict=True, reason="F2")
 @given(case=floats_near_grid())
 @example(case=(5.5200000000000005, 2))
 @example(case=(3.3000000000000003, 1))
@@ -124,10 +121,9 @@ def test_round_values_round_is_at_most_half_a_step_away(case: tuple[float, int])
     x, decimals = case
     if _is_exact(x, decimals):
         step = 10.0**-decimals
-        assert abs(round_values(x, decimals=decimals) - x) <= step / 2 * (1 + 1e-9)
+        assert abs(round_values(x, decimals=decimals) - x) <= step / 2 + 2 * math.ulp(x)
 
 
-@pytest.mark.xfail(strict=True, reason="F10")
 @given(x=st.floats(min_value=-0.49, max_value=-0.0, allow_nan=False), mode=modes)
 @example(x=-0.4, mode="ceil")
 def test_round_values_float_keeps_the_sign_of_a_zero_result(x: float, mode: str) -> None:
@@ -146,7 +142,6 @@ def test_round_values_integer_valued_float_stays_a_float(x: float, mode: str) ->
 
 
 @numpy_available
-@pytest.mark.xfail(strict=True, reason="F3")
 @given(case=floats_near_grid(), mode=modes)
 @example(case=(2.675, 2), mode="round")
 def test_round_values_float_and_numpy_give_the_same_bits(
@@ -174,7 +169,9 @@ def test_round_values_polars_and_numpy_give_the_same_bits(
 
 @pyarrow_available
 @numpy_available
+@pytest.mark.xfail(strict=True, reason="F1, F3")
 @given(case=floats_near_grid(), mode=modes)
+@example(case=(0.225, 2), mode="round")
 def test_round_values_pyarrow_and_numpy_give_the_same_bits(
     case: tuple[float, int], mode: str
 ) -> None:

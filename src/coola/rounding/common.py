@@ -5,6 +5,7 @@ from __future__ import annotations
 
 __all__ = ["MAX_EXACT", "MODES", "RoundMode", "get_scale", "validate_arguments"]
 
+import numbers
 from typing import Literal, get_args
 
 from coola.validation import validate_ge, validate_in, validate_int
@@ -18,28 +19,36 @@ MODES: tuple[str, ...] = get_args(RoundMode)
 MAX_EXACT = 2.0**53
 
 
-def validate_arguments(mode: str, decimals: int) -> None:
+def validate_arguments(mode: str, decimals: int) -> int:
     r"""Validate the arguments of ``round_values``.
 
     Args:
         mode: The rounding mode.
-        decimals: The number of decimals.
+        decimals: The number of decimals. Any integer type is
+            accepted (``int``, NumPy integers, ...), but not a ``bool``.
+
+    Returns:
+        The number of decimals as a Python ``int``.
 
     Raises:
         ValueError: If ``mode`` is not one of ``"round"``, ``"floor"``
             and ``"ceil"``, or if ``decimals`` is negative.
-        TypeError: If ``decimals`` is not an ``int``.
+        TypeError: If ``decimals`` is not an integer.
 
     Example:
         ```pycon
         >>> from coola.rounding.common import validate_arguments
         >>> validate_arguments("floor", 2)
+        2
 
         ```
     """
     validate_in(mode, MODES, name="mode")
+    if isinstance(decimals, numbers.Integral) and not isinstance(decimals, bool):
+        decimals = int(decimals)
     validate_int(decimals, name="decimals")
     validate_ge(decimals, 0, name="decimals")
+    return decimals
 
 
 def get_scale(decimals: int) -> float | None:

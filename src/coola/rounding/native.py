@@ -43,21 +43,25 @@ def round_native(data: Any, mode: RoundMode, decimals: int) -> int | float:
 
 
 def _round_float(value: float, mode: RoundMode, decimals: int) -> float:
-    if mode == "round":
-        return round(value, decimals)
     scale = get_scale(decimals)
     if scale is None:
         return value
     scaled = value * scale
     if not abs(scaled) < MAX_EXACT:  # also true for NaN and infinite values
         return value
-    if mode == "floor":
-        index = math.floor(scaled)
-        # ``0.29 * 100`` is below 29: take the grid point if it is not above the value
-        if (index + 1) / scale <= value:
+    index = math.floor(scaled)
+    # ``scaled`` is rounded, so the index is wrong by at most one in either direction.
+    if (index + 1) / scale <= value:
+        index += 1
+    if index / scale > value:
+        index -= 1
+    if mode == "ceil":
+        if index / scale < value:
             index += 1
-    else:
-        index = math.ceil(scaled)
-        if (index - 1) / scale >= value:
-            index -= 1
-    return index / scale
+    elif mode == "round":
+        middle = (2 * index + 1) / (2 * scale)
+        if value > middle:
+            index += 1
+        elif value == middle:
+            index += index & 1  # a halfway case goes to the even index
+    return math.copysign(index / scale, value)

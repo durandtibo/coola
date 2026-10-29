@@ -75,8 +75,8 @@ def test_round_native_ceil_value_on_the_grid(value: float) -> None:
     assert round_native(value, "ceil", 2) == value
 
 
-def test_round_native_round_halfway_exact_binary() -> None:
-    assert round_native(2.675, "round", 2) == 2.67
+def test_round_native_round_halfway_decimal_goes_to_even() -> None:
+    assert round_native(2.675, "round", 2) == 2.68
 
 
 @pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
@@ -109,3 +109,43 @@ def test_round_native_too_many_decimals_unchanged(mode: str) -> None:
 def test_round_native_unsupported(value: object) -> None:
     with pytest.raises(TypeError, match=r"Unsupported type"):
         round_native(value, "round", 0)
+
+
+##########################################
+#     Tests for the one decimal rule     #
+##########################################
+
+
+@pytest.mark.parametrize(
+    ("value", "mode", "decimals", "expected"),
+    [
+        (6.55, "round", 1, 6.6),
+        (0.225, "round", 2, 0.22),
+        (8.995, "round", 2, 9.0),
+        (0.125, "round", 2, 0.12),
+        (5.5200000000000005, "ceil", 2, 5.53),
+        (3.3000000000000003, "ceil", 1, 3.4),
+        (0.29, "floor", 2, 0.29),
+    ],
+)
+def test_round_native_decimal_rule(value: float, mode: str, decimals: int, expected: float) -> None:
+    assert round_native(value, mode, decimals) == expected
+
+
+@pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
+def test_round_native_negative_zero_kept(mode: str) -> None:
+    assert math.copysign(1.0, round_native(-0.0, mode, 1)) == -1.0
+
+
+@pytest.mark.parametrize("mode", ["round", "ceil"])
+def test_round_native_ceil_of_small_negative_is_negative_zero(mode: str) -> None:
+    assert math.copysign(1.0, round_native(-0.4, mode, 0)) == -1.0
+
+
+def test_round_native_ceil_keeps_float_type() -> None:
+    assert isinstance(round_native(-0.4, "ceil", 0), float)
+
+
+def test_round_native_floor_value_just_below_grid_point() -> None:
+    # 0.8999999999999999 * 10 is 9.0 after rounding, but the value is below the grid point 0.9
+    assert round_native(0.8999999999999999, "floor", 1) == 0.8

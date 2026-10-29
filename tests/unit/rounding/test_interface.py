@@ -160,3 +160,8 @@ def test_round_values_numpy_and_torch_agree(mode: str) -> None:
         round_values(torch.tensor(values, dtype=torch.float64), mode=mode, decimals=2).tolist()
         == expected
     )  # ty: ignore[invalid-argument-type]
+
+
+@numpy_available
+def test_round_values_numpy_integer_decimals() -> None:
+    assert round_values(1.26, mode="floor", decimals=np.int64(1)) == 1.2

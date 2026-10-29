@@ -139,3 +139,26 @@ def test_round_torch_complex_unsupported() -> None:
 def test_round_torch_unsupported_type() -> None:
     with pytest.raises(TypeError, match=r"Unsupported type"):
         round_torch([1.5], "round", 0)
+
+
+##########################################
+#     Tests for the one decimal rule     #
+##########################################
+
+
+@torch_available
+def test_round_torch_ceil_one_ulp_above_grid_point() -> None:
+    result = round_torch(torch.tensor([5.5200000000000005], dtype=torch.float64), "ceil", 2)
+    assert result.tolist() == [5.53]
+
+
+@torch_available
+def test_round_torch_round_halfway_decimal_goes_to_even() -> None:
+    result = round_torch(torch.tensor([2.675, 0.125, 8.995], dtype=torch.float64), "round", 2)
+    assert result.tolist() == [2.68, 0.12, 9.0]
+
+
+@torch_available
+def test_round_torch_negative_zero_result_keeps_sign() -> None:
+    result = round_torch(torch.tensor([-0.4], dtype=torch.float64), "ceil", 0)
+    assert math.copysign(1.0, result.item()) == -1.0

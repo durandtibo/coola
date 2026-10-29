@@ -175,3 +175,67 @@ def test_round_numpy_unsupported_dtype(data: np.ndarray) -> None:
 def test_round_numpy_unsupported_type() -> None:
     with pytest.raises(TypeError, match=r"Unsupported type"):
         round_numpy([1.5], "round", 0)
+
+
+##########################################
+#     Tests for the one decimal rule     #
+##########################################
+
+
+@numpy_available
+def test_round_numpy_ceil_one_ulp_above_grid_point() -> None:
+    assert round_numpy(np.array([5.5200000000000005]), "ceil", 2).tolist() == [5.53]
+
+
+@numpy_available
+def test_round_numpy_round_halfway_decimal_goes_to_even() -> None:
+    assert round_numpy(np.array([2.675, 0.125, 8.995]), "round", 2).tolist() == [2.68, 0.12, 9.0]
+
+
+@numpy_available
+def test_round_numpy_negative_zero_result_keeps_sign() -> None:
+    assert math.copysign(1.0, round_numpy(np.array([-0.4]), "ceil", 0).item()) == -1.0
+
+
+@numpy_available
+def test_round_numpy_float16_idempotent() -> None:
+    data = np.array([1.2345], dtype="float16")
+    once = round_numpy(data, "round", 2)
+    assert round_numpy(once, "round", 2).tolist() == once.tolist()
+
+
+@numpy_available
+def test_round_numpy_float32_round_halfway_decimal() -> None:
+    assert round_numpy(np.array([2.675], dtype="float32"), "round", 2).tolist() == [
+        np.float32(2.68).item()
+    ]
+
+
+@numpy_available
+@pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
+def test_round_numpy_matrix_type_kept() -> None:
+    assert isinstance(round_numpy(np.matrix([[1.26, 2.34]]), "floor", 1), np.matrix)
+
+
+@numpy_available
+def test_round_numpy_ndarray_subclass_type_kept() -> None:
+    class MyArray(np.ndarray):
+        pass
+
+    assert isinstance(round_numpy(np.array([1.26]).view(MyArray), "floor", 1), MyArray)
+
+
+@numpy_available
+def test_round_numpy_masked_array_fill_value_kept() -> None:
+    data = np.ma.array([1.26, 2.34], mask=[False, True], fill_value=-1.0)
+    assert round_numpy(data, "floor", 1).fill_value == -1.0
+
+
+@numpy_available
+def test_round_numpy_empty_float_keeps_dtype() -> None:
+    assert round_numpy(np.array([], dtype="float32"), "round", 1).dtype == np.float32
+
+
+@numpy_available
+def test_round_numpy_floor_value_just_below_grid_point() -> None:
+    assert round_numpy(np.array([0.8999999999999999]), "floor", 1).tolist() == [0.8]
