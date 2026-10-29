@@ -369,6 +369,9 @@ One branch and one pull request per step (`CLAUDE.md`). The order keeps every st
 | 5    | **Documentation.** Rewrite `uguide/rounding.md` (**Properties** table of section 1, the rule, the extension example, the exactness bound, a table of the behaviour by type), the package docstring, `dev/add_backend.md`, the "Rounding" paragraph of `dev/architecture.md`, the migration page (results change, `UnsupportedTypeError`, NumPy for polars and pyarrow, `on_missing_package`), and the status table of `review/suggestions.md`.             | no                                    |
 | 6    | **Benchmarks and gate.** `tests/benchmarks/test_rounding_benchmark.py` (section 8).                                                                                                                                                                                                                                                                                                                                                                        | no                                    |
 
+Status of the steps (stacked pull requests): step 1 #2596, step 2 #2597, step 3 #2599, step 4
+#2600, step 5 this documentation pull request; step 6 (benchmarks) follows it.
+
 Steps 2 and 3 are independent of 4; step 1 must come first so that every fix has a failing test
 before it (`git stash push src`, as `CLAUDE.md` asks).
 
