@@ -50,33 +50,7 @@ if is_pyarrow_available():
     BACKENDS["pyarrow"] = (pa.array, pa.Array.to_pylist)
 
 
-# The cases that fail on ``main``, with the finding of ``review/rounding.md`` that explains them.
-# Each step of the review removes its entries.
-_ORACLE_FAILURES: dict[tuple[str, str, int], str] = {
-    ("pyarrow", "round", 2): "F3",
-    **{("pyarrow", "ceil", d): "F2" for d in (1, 2, 5)},
-    **{("polars", m, d): "F1" for m in MODES for d in (1, 2, 5)},
-}
-_NUMPY_FAILURES: dict[tuple[str, str, int], str] = {
-    **_ORACLE_FAILURES,
-}
-
-
-def _cases(failures: dict[tuple[str, str, int], str]) -> list:
-    return [
-        pytest.param(
-            backend,
-            mode,
-            decimals,
-            marks=(
-                [pytest.mark.xfail(strict=True, reason=failures[backend, mode, decimals])]
-                if (backend, mode, decimals) in failures
-                else []
-            ),
-        )
-        for backend in BACKENDS
-        for mode, decimals in CASES
-    ]
+CASES_BY_BACKEND = [(backend, mode, decimals) for backend in BACKENDS for mode, decimals in CASES]
 
 
 def _round(backend: str, values: list[float], mode: str, decimals: int) -> list[float]:
@@ -91,21 +65,20 @@ def _bits(values: list[float]) -> list[tuple[float, float]]:
     return [(v, math.copysign(1.0, v)) for v in values]
 
 
-@pytest.mark.parametrize(("backend", "mode", "decimals"), _cases(_ORACLE_FAILURES))
+@pytest.mark.parametrize(("backend", "mode", "decimals"), CASES_BY_BACKEND)
 def test_round_values_hard_values_match_oracle(backend: str, mode: str, decimals: int) -> None:
     result = _round(backend, list(HARD_VALUES), mode, decimals)
     assert _bits(result) == _bits(oracle_many(list(HARD_VALUES), mode, decimals))
 
 
 @numpy_available
-@pytest.mark.parametrize(("backend", "mode", "decimals"), _cases(_NUMPY_FAILURES))
+@pytest.mark.parametrize(("backend", "mode", "decimals"), CASES_BY_BACKEND)
 def test_round_values_backend_matches_numpy(backend: str, mode: str, decimals: int) -> None:
     expected = _round("numpy", list(HARD_VALUES), mode, decimals)
     assert _bits(_round(backend, list(HARD_VALUES), mode, decimals)) == _bits(expected)
 
 
 @polars_available
-@pytest.mark.xfail(strict=True, reason="F1")
 def test_round_values_polars_column_matches_oracle() -> None:
     values = [-4.822, 1.2, 4.8, 0.225, -0.4]
     result = round_values(pl.Series(values), mode="round", decimals=1).to_list()

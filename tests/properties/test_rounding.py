@@ -1,9 +1,6 @@
 r"""Property-based tests for the properties of ``round_values``.
 
-The properties are documented in ``docs/docs/uguide/rounding.md``. The
-tests that fail on ``main`` are marked ``xfail(strict=True)`` with the
-finding of ``review/rounding.md``; each step of the review removes its
-marks.
+The properties are documented in ``docs/docs/uguide/rounding.md``.
 """
 
 from __future__ import annotations
@@ -155,7 +152,6 @@ def test_round_values_float_and_numpy_give_the_same_bits(
 
 @polars_available
 @numpy_available
-@pytest.mark.xfail(strict=True, reason="F1")
 @given(case=floats_near_grid(), mode=modes)
 @example(case=(-4.822, 1), mode="round")
 def test_round_values_polars_and_numpy_give_the_same_bits(
@@ -169,7 +165,6 @@ def test_round_values_polars_and_numpy_give_the_same_bits(
 
 @pyarrow_available
 @numpy_available
-@pytest.mark.xfail(strict=True, reason="F1, F3")
 @given(case=floats_near_grid(), mode=modes)
 @example(case=(0.225, 2), mode="round")
 def test_round_values_pyarrow_and_numpy_give_the_same_bits(

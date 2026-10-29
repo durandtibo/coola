@@ -6,7 +6,7 @@ import pytest
 
 from coola.rounding.polars import round_polars
 from coola.testing.marks import polars_available
-from coola.utils.imports import is_polars_available
+from coola.utils.imports import MissingPackageError, is_polars_available
 
 if is_polars_available():
     import polars as pl
@@ -113,3 +113,69 @@ def test_round_polars_dataframe_no_numerical_column() -> None:
 def test_round_polars_unsupported_type() -> None:
     with pytest.raises(TypeError, match=r"Unsupported type"):
         round_polars([1.5], "round", 0)
+
+
+#######################################
+#     Tests for the exact results     #
+#######################################
+
+
+@polars_available
+def test_round_polars_series_round_is_exact() -> None:
+    result = round_polars(pl.Series([-4.822, 1.2, 4.8, 12.0]), "round", 1)
+    assert result.to_list() == [-4.8, 1.2, 4.8, 12.0]
+
+
+@polars_available
+@pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
+def test_round_polars_series_second_row_not_affected_by_reciprocal(mode: str) -> None:
+    # polars divides by a scalar as a multiplication by its reciprocal: 12 / 10 is 1.2000000000000002
+    assert round_polars(pl.Series([-4.822, 12.0]), mode, 1).to_list()[1] == 12.0
+
+
+@polars_available
+def test_round_polars_series_float32_kept() -> None:
+    assert round_polars(pl.Series([1.26], dtype=pl.Float32), "floor", 1).dtype == pl.Float32
+
+
+@polars_available
+def test_round_polars_series_null_and_nan_kept() -> None:
+    result = round_polars(pl.Series([1.26, None, math.nan]), "floor", 1)
+    assert result.is_null().to_list() == [False, True, False]
+
+
+@polars_available
+def test_round_polars_series_nan_stays_nan() -> None:
+    assert round_polars(pl.Series([1.26, None, math.nan]), "floor", 1).is_nan().to_list() == [
+        False,
+        None,
+        True,
+    ]
+
+
+@polars_available
+def test_round_polars_series_integer_returned_equal() -> None:
+    assert round_polars(pl.Series([1, 2]), "floor", 1).to_list() == [1, 2]
+
+
+@polars_available
+def test_round_polars_dataframe_exact_output() -> None:
+    frame = pl.DataFrame({"a": [2.675, 0.125], "b": [1, 2], "c": ["x", "y"], "d": [True, False]})
+    assert round_polars(frame, "round", 2).to_dict(as_series=False) == {
+        "a": [2.68, 0.12],
+        "b": [1, 2],
+        "c": ["x", "y"],
+        "d": [True, False],
+    }
+
+
+@polars_available
+def test_round_polars_requires_numpy(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("coola.rounding.polars.check_numpy", _raise_missing_numpy)
+    with pytest.raises(MissingPackageError, match=r"numpy"):
+        round_polars(pl.Series([1.26]), "floor", 1)
+
+
+def _raise_missing_numpy() -> None:
+    msg = "'numpy' package is required but not installed."
+    raise MissingPackageError(msg)
