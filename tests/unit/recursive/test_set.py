@@ -6,6 +6,7 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.recursive import DefaultTransformer, SetTransformer, TransformerRegistry
+from tests.unit.recursive.helpers import expand_not_none
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -130,32 +131,32 @@ def test_set_transformer_transform_with_closure(registry: TransformerRegistry) -
 
 
 def test_set_transformer_expand_children() -> None:
-    children, _ = SetTransformer().expand({1})
+    children, _ = expand_not_none(SetTransformer(), {1})
     assert children == [1]
 
 
 def test_set_transformer_expand_rebuild_set() -> None:
-    _, rebuild = SetTransformer().expand({1, 2})
+    _, rebuild = expand_not_none(SetTransformer(), {1, 2})
     assert rebuild(["a", "b"]) == {"a", "b"}
 
 
 def test_set_transformer_expand_rebuild_frozenset() -> None:
-    _, rebuild = SetTransformer().expand(frozenset({1, 2}))
+    _, rebuild = expand_not_none(SetTransformer(), frozenset({1, 2}))
     assert rebuild(["a", "b"]) == frozenset({"a", "b"})
 
 
 def test_set_transformer_expand_rebuild_deduplicates() -> None:
-    _, rebuild = SetTransformer().expand({1, 2, 3})
+    _, rebuild = expand_not_none(SetTransformer(), {1, 2, 3})
     assert rebuild([0, 0, 0]) == {0}
 
 
 def test_set_transformer_expand_empty() -> None:
-    children, rebuild = SetTransformer().expand(set())
+    children, rebuild = expand_not_none(SetTransformer(), set())
     assert (children, rebuild([])) == ([], set())
 
 
 def test_set_transformer_expand_rebuild_unhashable_raises() -> None:
-    _, rebuild = SetTransformer().expand({1})
+    _, rebuild = expand_not_none(SetTransformer(), {1})
     with pytest.raises(TypeError, match="unhashable type"):
         rebuild([[1]])
 

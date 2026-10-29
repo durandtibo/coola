@@ -6,6 +6,7 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.recursive import IdentityTransformer, TransformerRegistry
+from tests.unit.recursive.helpers import expand_not_none
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -44,11 +45,11 @@ def test_identity_transformer_transform_ignores_predicate(registry: TransformerR
 
 
 def test_identity_transformer_expand_has_no_children() -> None:
-    children, _ = IdentityTransformer().expand([1, 2])
+    children, _ = expand_not_none(IdentityTransformer(), [1, 2])
     assert children == ()
 
 
 def test_identity_transformer_expand_rebuild_returns_the_data() -> None:
     data = [1, 2]
-    _, rebuild = IdentityTransformer().expand(data)
+    _, rebuild = expand_not_none(IdentityTransformer(), data)
     assert rebuild([]) is data

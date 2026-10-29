@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, is_dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from coola.equality import objects_are_equal
 from coola.recursive import (
-    BaseTransformer,
     DataclassTransformer,
     DefaultTransformer,
     MappingTransformer,
@@ -18,6 +17,9 @@ from coola.recursive import (
 )
 from coola.registry import AlreadyRegisteredError
 from tests.helpers import nest
+
+if TYPE_CHECKING:
+    from coola.recursive.base import Transformer
 
 
 class CustomList(list):
@@ -46,7 +48,7 @@ def test_transformer_registry_init_with_registry_keeps_the_transformer() -> None
 
 
 def test_transformer_registry_init_with_registry_copies_the_registry() -> None:
-    initial_registry: dict[type, BaseTransformer[Any]] = {list: SequenceTransformer()}
+    initial_registry: dict[type, Transformer[Any]] = {list: SequenceTransformer()}
     registry = TransformerRegistry(initial_registry)
     initial_registry[tuple] = SetTransformer()
     assert tuple not in registry._state
@@ -132,7 +134,7 @@ def test_transformer_registry_register_many_set() -> None:
 
 def test_transformer_registry_register_many_with_existing_type() -> None:
     registry = TransformerRegistry({list: SequenceTransformer()})
-    transformers = {
+    transformers: dict[type, Transformer[Any]] = {
         list: MappingTransformer(),
         dict: MappingTransformer(),
     }
@@ -145,7 +147,7 @@ def test_transformer_registry_register_many_with_exist_ok() -> None:
     registry.register(list, SequenceTransformer())
 
     transformer = MappingTransformer()
-    transformers = {
+    transformers: dict[type, Transformer[Any]] = {
         list: transformer,
         dict: MappingTransformer(),
     }
