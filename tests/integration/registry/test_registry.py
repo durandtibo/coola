@@ -81,8 +81,10 @@ def test_registry_concurrent_register_same_key_with_exist_ok() -> None:
     )
 
     # The key should exist with one of the values
+    value = registry.get("key")
     assert registry.has("key")
-    assert 0 <= registry.get("key") < num_threads
+    assert value is not None
+    assert 0 <= value < num_threads
 
 
 def test_registry_concurrent_register_same_key_without_exist_ok() -> None:
@@ -110,8 +112,10 @@ def test_registry_concurrent_register_same_key_without_exist_ok() -> None:
     # Exactly one thread should succeed, others should fail
     assert len(successes) == 1
     assert len(errors) == num_threads - 1
+    value = registry.get("key")
     assert registry.has("key")
-    assert 0 <= registry.get("key") < num_threads
+    assert value is not None
+    assert 0 <= value < num_threads
 
 
 def test_registry_concurrent_get() -> None:
