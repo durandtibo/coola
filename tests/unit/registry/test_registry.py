@@ -308,7 +308,7 @@ def test_registry_getitem_operator() -> None:
 def test_registry_getitem_missing_raises_error() -> None:
     """Test that bracket access on missing key raises KeyError."""
     registry = Registry[str, int]()
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="Key 'missing' is not registered"):
         _ = registry["missing"]
 
 
@@ -337,7 +337,7 @@ def test_registry_delitem_operator() -> None:
 def test_registry_delitem_missing_raises_error() -> None:
     """Test that del on missing key raises KeyError."""
     registry = Registry[str, int]()
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="Key 'missing' is not registered"):
         del registry["missing"]
 
 

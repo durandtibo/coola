@@ -232,7 +232,9 @@ def test_round_values_registry_miss_message_names_the_remedy() -> None:
 
 
 def test_round_values_registry_miss_cause() -> None:
-    with pytest.raises(UnsupportedTypeError) as exc_info:
+    with pytest.raises(
+        UnsupportedTypeError, match="Cannot round an object of type str"
+    ) as exc_info:
         round_values("abc")
     assert isinstance(exc_info.value.__cause__, TypeNotRegisteredError)
 
@@ -335,7 +337,7 @@ def test_round_values_missing_package_raise_is_the_default_and_names_the_type() 
 
 
 def test_round_values_missing_package_raise_cause() -> None:
-    with pytest.raises(UnsupportedTypeError) as exc_info:
+    with pytest.raises(UnsupportedTypeError, match="fake_package") as exc_info:
         round_values(Meters(1.5), registry=make_registry(raise_missing_package))
     assert isinstance(exc_info.value.__cause__, MissingPackageError)
 
@@ -474,7 +476,7 @@ def test_register_default_rounders_skips_missing_packages(
     monkeypatch.setattr("coola.rounding.interface.package_available", lambda _: False)
     registry = TypeRegistry()
     _register_default_rounders(registry)
-    with pytest.raises(TypeNotRegisteredError):
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
         registry.resolve(np.ndarray)
 
 

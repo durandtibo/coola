@@ -365,13 +365,13 @@ def test_factory_invalid_init_method() -> None:
 
 def test_factory_empty_target() -> None:
     """Test that factory raises error for empty target string."""
-    with pytest.raises((ImportError, ValueError)):
+    with pytest.raises((ImportError, ValueError), match="empty module name"):
         factory("")
 
 
 def test_factory_malformed_target() -> None:
     """Test that factory raises error for malformed target."""
-    with pytest.raises(ImportError):
+    with pytest.raises(ImportError, match="The target object does not exist"):
         factory("collections.")
 
 
@@ -580,7 +580,7 @@ def test_factory_not_allowed_prefixes() -> None:
 
 
 def test_factory_allowed_prefixes_violation_is_not_reported_as_missing() -> None:
-    with pytest.raises(ImportError) as info:
+    with pytest.raises(ImportError, match="is not allowed") as info:
         factory("os.getcwd", _allowed_prefixes_=["collections"])
     assert "does not exist" not in str(info.value)
 

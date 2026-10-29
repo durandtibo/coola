@@ -51,10 +51,12 @@ class NonStrRepr:
 
 class Interrupt:
     def __str__(self) -> str:
-        raise KeyboardInterrupt
+        msg = "interrupted"
+        raise KeyboardInterrupt(msg)
 
     def __repr__(self) -> str:
-        raise KeyboardInterrupt
+        msg = "interrupted"
+        raise KeyboardInterrupt(msg)
 
 
 class Outer:
@@ -109,12 +111,12 @@ def test_safe_repr_big_int() -> None:
 
 
 def test_safe_str_does_not_swallow_keyboard_interrupt() -> None:
-    with pytest.raises(KeyboardInterrupt):
+    with pytest.raises(KeyboardInterrupt, match="interrupted"):
         safe_str(Interrupt())
 
 
 def test_safe_repr_does_not_swallow_keyboard_interrupt() -> None:
-    with pytest.raises(KeyboardInterrupt):
+    with pytest.raises(KeyboardInterrupt, match="interrupted"):
         safe_repr(Interrupt())
 
 

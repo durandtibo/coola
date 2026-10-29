@@ -105,7 +105,7 @@ def test_dataclass_hasher_hash_unregistered_field_raises(registry: HasherRegistr
     class Holder:
         value: object
 
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="is not registered"):
         hash_with(DataclassHasher(), Holder(object()), registry)
 
 
@@ -267,7 +267,7 @@ def test_content_hasher_hash_length(length: int, registry: HasherRegistry) -> No
 
 
 def test_content_hasher_hash_content_with_a_missing_hasher_raises() -> None:
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="is not registered"):
         hash_with(ContentHasher(), ContentPoint(1, 2), HasherRegistry())
 
 

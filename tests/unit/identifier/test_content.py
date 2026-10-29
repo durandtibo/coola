@@ -68,7 +68,7 @@ def test_generate_stable_content_id_tuple_and_list_different_id() -> None:
 
 
 def test_generate_stable_content_id_unhashable_type_raises_by_default() -> None:
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="is not registered"):
         generate_stable_content_id(object())
 
 
@@ -204,7 +204,7 @@ def test_generate_stable_uuid5_matches_uuid5_of_hash_object() -> None:
 
 
 def test_generate_stable_uuid5_unhashable_type_raises_by_default() -> None:
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="is not registered"):
         generate_stable_uuid5(object())
 
 

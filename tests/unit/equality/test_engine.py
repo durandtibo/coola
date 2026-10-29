@@ -378,16 +378,16 @@ def test_warn_once_emits_a_warning(registry: EqualityTesterRegistry) -> None:
 
 def test_warn_once_emits_once(registry: EqualityTesterRegistry) -> None:
     engine = _engine(registry)
-    with pytest.warns(RuntimeWarning):
+    with pytest.warns(RuntimeWarning, match="meow"):
         engine.warn_once("key", "meow")
     assert not engine.warn_once("key", "meow")
 
 
 def test_warn_once_different_keys(registry: EqualityTesterRegistry) -> None:
     engine = _engine(registry)
-    with pytest.warns(RuntimeWarning):
+    with pytest.warns(RuntimeWarning, match="meow"):
         engine.warn_once("a", "meow")
-    with pytest.warns(RuntimeWarning):
+    with pytest.warns(RuntimeWarning, match="meow"):
         assert engine.warn_once("b", "meow")
 
 

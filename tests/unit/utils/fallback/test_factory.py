@@ -23,7 +23,7 @@ def test_make_fake_class_name() -> None:
 
 def test_make_fake_class_instantiation_raises_error() -> None:
     fake_class = make_fake_class("missing_pkg")
-    with pytest.raises(MissingPackageError) as info:
+    with pytest.raises(MissingPackageError, match="'missing_pkg' package is required") as info:
         fake_class()
     assert str(info.value) == MESSAGE
 
@@ -36,7 +36,7 @@ def test_make_fake_class_instantiation_raises_error_with_args() -> None:
 
 def test_make_fake_class_error_name() -> None:
     fake_class = make_fake_class("missing_pkg")
-    with pytest.raises(MissingPackageError) as info:
+    with pytest.raises(MissingPackageError, match="'missing_pkg' package is required") as info:
         fake_class()
     assert info.value.name == "missing_pkg"
 
@@ -53,7 +53,7 @@ def test_make_fake_function_returns_callable() -> None:
 
 def test_make_fake_function_call_raises_error() -> None:
     fake_function = make_fake_function("missing_pkg")
-    with pytest.raises(MissingPackageError) as info:
+    with pytest.raises(MissingPackageError, match="'missing_pkg' package is required") as info:
         fake_function()
     assert str(info.value) == MESSAGE
 

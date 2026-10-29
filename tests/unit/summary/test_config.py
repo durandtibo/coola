@@ -73,7 +73,7 @@ def test_summary_config_show_data_not_bool_raises(value: object) -> None:
 
 
 def test_summary_config_is_frozen() -> None:
-    with pytest.raises(dataclasses.FrozenInstanceError):
+    with pytest.raises(dataclasses.FrozenInstanceError, match="cannot assign to field 'max_depth'"):
         SummaryConfig().max_depth = 2  # ty: ignore[invalid-assignment]
 
 

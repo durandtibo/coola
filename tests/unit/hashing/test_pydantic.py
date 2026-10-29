@@ -159,7 +159,7 @@ def test_pydantic_model_hasher_hash_ignore_unhashable_has_no_effect(
 @pydantic_available
 def test_pydantic_model_hasher_hash_unhashable_field_raises(registry: HasherRegistry) -> None:
     model = AnyValue(value=object())
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="is not registered"):
         hash_with(PydanticModelHasher(), model, registry)
 
 
@@ -186,7 +186,7 @@ def test_pydantic_model_hasher_hash_unhashable_field_ignored_returns_str(
 def test_pydantic_model_hasher_hash_uses_registry() -> None:
     # Field values are hashed through the registry, so a registry that
     # cannot hash ints cannot hash a model with int fields.
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="is not registered"):
         hash_with(PydanticModelHasher(), Point(x=1, y=2), HasherRegistry())
 
 

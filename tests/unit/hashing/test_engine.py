@@ -427,7 +427,7 @@ def test_key_error_of_the_registry_that_is_not_a_missing_type_propagates() -> No
         def find_hasher(self, data_type: type) -> Any:
             raise _BoomError(data_type)
 
-    with pytest.raises(_BoomError):
+    with pytest.raises(_BoomError, match="class 'int'"):
         BrokenRegistry().hash(1)
 
 

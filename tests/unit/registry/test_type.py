@@ -353,9 +353,9 @@ def test_type_registry_not_registered_message_of_getitem_is_the_one_of_resolve()
     """``resolve`` and ``__getitem__`` must raise ``KeyError`` with
     identical wording for the same "not registered" condition."""
     registry = TypeRegistry[str]()
-    with pytest.raises(KeyError) as resolve_exc_info:
+    with pytest.raises(KeyError, match="is not registered") as resolve_exc_info:
         registry.resolve(int)
-    with pytest.raises(KeyError) as getitem_exc_info:
+    with pytest.raises(KeyError, match="is not registered") as getitem_exc_info:
         _ = registry[int]
     assert str(resolve_exc_info.value) == str(getitem_exc_info.value)
 
@@ -364,9 +364,9 @@ def test_type_registry_not_registered_message_of_unregister_is_the_one_of_resolv
     """``resolve`` and ``unregister`` must raise ``KeyError`` with
     identical wording for the same "not registered" condition."""
     registry = TypeRegistry[str]()
-    with pytest.raises(KeyError) as resolve_exc_info:
+    with pytest.raises(KeyError, match="is not registered") as resolve_exc_info:
         registry.resolve(int)
-    with pytest.raises(KeyError) as unregister_exc_info:
+    with pytest.raises(KeyError, match="is not registered") as unregister_exc_info:
         registry.unregister(int)
     assert str(resolve_exc_info.value) == str(unregister_exc_info.value)
 
@@ -419,7 +419,7 @@ def test_type_registry_resolve_cache_holds_every_resolved_type() -> None:
 
 def test_type_registry_resolve_miss_is_not_cached() -> None:
     registry = TypeRegistry[str]()
-    with pytest.raises(TypeNotRegisteredError):
+    with pytest.raises(TypeNotRegisteredError, match="is not registered"):
         registry.resolve(int)
     assert registry._cache == {}
 
@@ -643,7 +643,7 @@ def test_type_registry_delitem_operator_resets_the_cache() -> None:
 def test_type_registry_delitem_missing_raises_error() -> None:
     """Test that del on missing key raises KeyError."""
     registry = TypeRegistry[str]()
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="is not registered"):
         del registry[int]
 
 
@@ -777,14 +777,14 @@ def test_type_registry_resolve_raises_type_not_registered_error() -> None:
 
 def test_type_registry_resolve_raises_a_key_error() -> None:
     registry = TypeRegistry[str]({str: "string"})
-    with pytest.raises(TypeNotRegisteredError) as exc_info:
+    with pytest.raises(TypeNotRegisteredError, match="is not registered") as exc_info:
         registry.resolve(int)
     assert isinstance(exc_info.value, KeyError)
 
 
 def test_type_registry_resolve_error_lists_the_registered_types() -> None:
     registry = TypeRegistry[str]({str: "string"})
-    with pytest.raises(TypeNotRegisteredError) as exc_info:
+    with pytest.raises(TypeNotRegisteredError, match="is not registered") as exc_info:
         registry.resolve(int)
     assert "Registered types: str" in str(exc_info.value)
 
@@ -1024,7 +1024,7 @@ def test_type_registry_register_lazy_get_non_type_returns_default() -> None:
 def test_type_registry_register_lazy_getitem_non_type_raises() -> None:
     registry = TypeRegistry[str]()
     registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="is not registered"):
         registry["abc"]  # ty: ignore[invalid-argument-type]
 
 
@@ -1273,7 +1273,7 @@ def test_type_registry_unregister_fallback_unknown_raises() -> None:
 
 def test_type_registry_unregister_fallback_unknown_is_a_key_error() -> None:
     registry = TypeRegistry[str]()
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError, match="No fallback is registered"):
         registry.unregister_fallback(is_dataclass)
 
 
@@ -1692,5 +1692,5 @@ def test_type_registry_deepcopy_has_its_own_lock() -> None:
 def test_type_registry_pickle_unpicklable_predicate_raises() -> None:
     registry = TypeRegistry[str]()
     registry.register_fallback(lambda dtype: dtype is int, "int")
-    with pytest.raises((pickle.PicklingError, AttributeError)):
+    with pytest.raises((pickle.PicklingError, AttributeError), match="pickle"):
         pickle.dumps(registry)

@@ -263,7 +263,7 @@ def test_random_manager_registry_set_rng_state_several_errors_raise_an_exception
             "b": FailingRandomManager(ValueError("second")),
         }
     )
-    with pytest.raises(ExceptionGroup) as exc_info:
+    with pytest.raises(ExceptionGroup, match="Failed to restore the RNG state") as exc_info:
         registry.set_rng_state({"a": 0, "b": 0})
     assert [str(e) for e in exc_info.value.exceptions] == ["first", "second"]
 

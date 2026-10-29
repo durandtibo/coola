@@ -47,7 +47,7 @@ def test_equality_config_negative_rtol() -> None:
 
 
 def test_equality_config_is_frozen() -> None:
-    with pytest.raises(AttributeError):
+    with pytest.raises(AttributeError, match="cannot assign to field 'equal_nan'"):
         EqualityConfig().equal_nan = True  # ty: ignore[invalid-assignment]
 
 

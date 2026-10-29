@@ -184,8 +184,8 @@ def test_get_password_stderr_not_tty() -> None:
 def test_get_password_keyboard_interrupt() -> None:
     """Test that KeyboardInterrupt is propagated."""
     with (
-        patch("getpass.getpass", side_effect=KeyboardInterrupt),
-        pytest.raises(KeyboardInterrupt),
+        patch("getpass.getpass", side_effect=KeyboardInterrupt("interrupted")),
+        pytest.raises(KeyboardInterrupt, match="interrupted"),
     ):
         get_password()
 
@@ -193,7 +193,10 @@ def test_get_password_keyboard_interrupt() -> None:
 @pytest.mark.usefixtures("mock_interactive_terminal")
 def test_get_password_eof_error() -> None:
     """Test that EOFError is propagated."""
-    with patch("getpass.getpass", side_effect=EOFError), pytest.raises(EOFError):
+    with (
+        patch("getpass.getpass", side_effect=EOFError("end of file")),
+        pytest.raises(EOFError, match="end of file"),
+    ):
         get_password()
 
 

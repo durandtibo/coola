@@ -86,7 +86,7 @@ def test_check_package_missing_message() -> None:
         "pip install missing_package\n\nor\n\n"
         "uv pip install missing_package\n"
     )
-    with pytest.raises(MissingPackageError) as info:
+    with pytest.raises(MissingPackageError, match="'missing_package' package is required") as info:
         check_package("missing_package")
     assert str(info.value) == msg
 
@@ -98,15 +98,19 @@ def test_check_package_missing_message_with_install() -> None:
         "pip install my-package\n\nor\n\n"
         "uv pip install my-package\n"
     )
-    with pytest.raises(MissingPackageError) as info:
+    with pytest.raises(MissingPackageError, match="'missing_package' package is required") as info:
         check_package("missing_package", install="my-package")
     assert str(info.value) == msg
 
 
 def test_check_package_message_is_the_one_of_raise_package_missing_error() -> None:
-    with pytest.raises(MissingPackageError) as check_info:
+    with pytest.raises(
+        MissingPackageError, match="'missing_package' package is required"
+    ) as check_info:
         check_package("missing_package")
-    with pytest.raises(MissingPackageError) as raise_info:
+    with pytest.raises(
+        MissingPackageError, match="'missing_package' package is required"
+    ) as raise_info:
         raise_package_missing_error("missing_package")
     assert str(check_info.value) == str(raise_info.value)
 
@@ -144,7 +148,7 @@ def test_raise_package_missing_error_default_install() -> None:
         "pip install testpkg\n\nor\n\n"
         "uv pip install testpkg\n"
     )
-    with pytest.raises(MissingPackageError) as info:
+    with pytest.raises(MissingPackageError, match="'testpkg' package is required") as info:
         raise_package_missing_error("testpkg")
     assert str(info.value) == msg
 
@@ -156,7 +160,7 @@ def test_raise_package_missing_error_install() -> None:
         "pip install test-package\n\nor\n\n"
         "uv pip install test-package\n"
     )
-    with pytest.raises(MissingPackageError) as info:
+    with pytest.raises(MissingPackageError, match="'testpkg' package is required") as info:
         raise_package_missing_error("testpkg", install="test-package")
     assert str(info.value) == msg
 
@@ -184,7 +188,7 @@ def test_check_package_missing_raises_missing_package_error() -> None:
 
 
 def test_check_package_missing_error_name() -> None:
-    with pytest.raises(MissingPackageError) as info:
+    with pytest.raises(MissingPackageError, match="'not_a_package' package is required") as info:
         check_package("not_a_package")
     assert info.value.name == "not_a_package"
 
@@ -195,7 +199,7 @@ def test_raise_package_missing_error_raises_missing_package_error() -> None:
 
 
 def test_raise_package_missing_error_name() -> None:
-    with pytest.raises(MissingPackageError) as info:
+    with pytest.raises(MissingPackageError, match="'my_package' package is required") as info:
         raise_package_missing_error("my_package", install="my-package")
     assert info.value.name == "my_package"
 

@@ -226,7 +226,7 @@ def test_validate_ge_incomparable_message() -> None:
 
 
 def test_validate_ge_incomparable_keeps_the_cause() -> None:
-    with pytest.raises(TypeError) as exc_info:
+    with pytest.raises(TypeError, match="value cannot be compared with 0, got None") as exc_info:
         validate_ge(None, 0)
     assert isinstance(exc_info.value.__cause__, TypeError)
 
@@ -294,7 +294,9 @@ def test_validate_bound_incomparable_value_raises_type_error(validate: Any) -> N
 
 
 def test_validate_range_incomparable_value_keeps_the_cause() -> None:
-    with pytest.raises(TypeError) as exc_info:
+    with pytest.raises(
+        TypeError, match="value cannot be compared with 0 and 1, got None"
+    ) as exc_info:
         validate_range(None, 0, 1)
     assert isinstance(exc_info.value.__cause__, TypeError)
 

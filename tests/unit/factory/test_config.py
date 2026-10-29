@@ -191,7 +191,7 @@ def test_is_object_config_int_not_str() -> None:
 def test_is_object_config_with_invalid_target() -> None:
     """Test is_object_config with non-existent target raises ImportError
     if the module is imported."""
-    with pytest.raises(ImportError):
+    with pytest.raises(ImportError, match="The target object does not exist"):
         is_object_config(
             {OBJECT_TARGET: "non_existent_module.NonExistentClass"}, object, import_target=True
         )
@@ -210,7 +210,7 @@ def test_is_object_config_with_missing_attribute_in_an_imported_module() -> None
 
 def test_is_object_config_with_malformed_target() -> None:
     """Test is_object_config with malformed target string."""
-    with pytest.raises(ImportError):
+    with pytest.raises(ImportError, match="The target object does not exist"):
         is_object_config({OBJECT_TARGET: "collections."}, object)
 
 

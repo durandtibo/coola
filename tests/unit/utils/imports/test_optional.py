@@ -101,7 +101,7 @@ def test_check_package_missing_message(package: str) -> None:
     )
     with (
         patch("coola.utils.imports.package.importlib.import_module", side_effect=ImportError),
-        pytest.raises(MissingPackageError) as info,
+        pytest.raises(MissingPackageError, match="package is required but not installed") as info,
     ):
         getattr(optional, f"check_{package}")()
     assert str(info.value) == msg
@@ -111,7 +111,7 @@ def test_check_package_missing_message(package: str) -> None:
 def test_check_package_missing_name(package: str) -> None:
     with (
         patch("coola.utils.imports.package.importlib.import_module", side_effect=ImportError),
-        pytest.raises(MissingPackageError) as info,
+        pytest.raises(MissingPackageError, match="package is required but not installed") as info,
     ):
         getattr(optional, f"check_{package}")()
     assert info.value.name == package
@@ -139,7 +139,7 @@ def test_check_torch_numpy_missing_error_name() -> None:
     with (
         patch(f"{MODULE}.is_torch_numpy_available", lambda: False),
         patch(f"{MODULE}.is_torch_available", lambda: False),
-        pytest.raises(MissingPackageError) as exc_info,
+        pytest.raises(MissingPackageError, match="packages are required") as exc_info,
     ):
         check_torch_numpy()
     assert exc_info.value.name == "torch"
@@ -150,7 +150,7 @@ def test_check_torch_numpy_missing_numpy_error_name() -> None:
         patch(f"{MODULE}.is_torch_numpy_available", lambda: False),
         patch(f"{MODULE}.is_torch_available", lambda: True),
         patch(f"{MODULE}.is_numpy_available", lambda: False),
-        pytest.raises(MissingPackageError) as exc_info,
+        pytest.raises(MissingPackageError, match="packages are required") as exc_info,
     ):
         check_torch_numpy()
     assert exc_info.value.name == "numpy"
@@ -159,7 +159,7 @@ def test_check_torch_numpy_missing_numpy_error_name() -> None:
 def test_check_torch_numpy_message_has_no_trailing_space() -> None:
     with (
         patch(f"{MODULE}.is_torch_numpy_available", lambda: False),
-        pytest.raises(MissingPackageError) as exc_info,
+        pytest.raises(MissingPackageError, match="packages are required") as exc_info,
     ):
         check_torch_numpy()
     assert not str(exc_info.value).endswith(" ")

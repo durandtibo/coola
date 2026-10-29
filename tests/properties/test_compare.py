@@ -211,7 +211,7 @@ def test_assert_objects_allclose_raises_if_not_close(
 def test_assert_message_is_the_message_of_compare(data: Any, other: Any) -> None:
     result = compare(data, other)
     assume(not result.equal)
-    with pytest.raises(AssertionError) as info:
+    with pytest.raises(AssertionError, match="objects are not equal") as info:
         assert_objects_equal(data, other)
     assert str(info.value) == result.format_message("actual")
 

@@ -68,7 +68,7 @@ def test_message_contains_the_value_received(
 
 @pytest.mark.parametrize(("call", "error"), CALLS_AND_ERRORS)
 def test_message_is_bounded(call: Callable[[], None], error: type[Exception]) -> None:
-    with pytest.raises(error) as exc_info:
+    with pytest.raises(error, match=r"^x ") as exc_info:
         call()
     assert len(str(exc_info.value)) < 200
 
