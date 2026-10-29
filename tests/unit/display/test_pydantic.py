@@ -1,17 +1,33 @@
 from __future__ import annotations
 
 import warnings
+from collections import OrderedDict
 from typing import Annotated, Optional
 
 import pytest
 
 from coola.display import repr_pydantic_model, str_pydantic_model
-from coola.display.pydantic import is_secret_annotation, secret_field_names
+from coola.display.pydantic import (
+    _NestedModel,
+    _Options,
+    _shown,
+    is_secret_annotation,
+    secret_field_names,
+)
 from coola.testing.marks import pydantic_available
 from coola.utils.imports import is_pydantic_available
 
 if is_pydantic_available():
-    from pydantic import BaseModel, Secret, SecretBytes, SecretStr
+    from pydantic import (
+        BaseModel,
+        ConfigDict,
+        Field,
+        Secret,
+        SecretBytes,
+        SecretStr,
+        computed_field,
+        field_serializer,
+    )
 else:
     BaseModel, Secret, SecretBytes, SecretStr = object, object, object, object
 
@@ -58,6 +74,65 @@ class ParentWithChildListModel(BaseModel):
 class ParentWithChildDictModel(BaseModel):
     name: str
     children: dict[str, ChildModel]
+
+
+class ParentWithChildTupleModel(BaseModel):
+    children: tuple[ChildModel, ...]
+
+
+class LeafModel(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    note: str | None = None
+
+
+class ParentWithLeafCollectionsModel(BaseModel):
+    leaves_set: set[LeafModel]
+    leaves_frozenset: frozenset[LeafModel]
+
+
+class UnsortedLeafModel(BaseModel):
+    z: int
+    a: int
+
+
+class ParentWithUnsortedLeafModel(BaseModel):
+    leaf: UnsortedLeafModel
+
+
+class ParentWithLeafModel(BaseModel):
+    leaf: LeafModel
+    note: str | None = None
+
+
+class HiddenFieldModel(BaseModel):
+    shown: int
+    hidden: int = Field(default=1, repr=False)
+
+
+class ExtraModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    a: int
+
+
+class SerializerModel(BaseModel):
+    value: int
+
+    @field_serializer("value")
+    def serialize_value(self, value: int) -> int:
+        msg = f"the serializer must not run: {value}"
+        raise RuntimeError(msg)
+
+
+class ComputedModel(BaseModel):
+    value: int
+
+    @computed_field
+    @property
+    def double(self) -> int:
+        return self.value * 2
 
 
 ##########################################
@@ -340,7 +415,7 @@ def test_str_pydantic_model_nested_secret_excluded_by_default_output() -> None:
         name="alice", child=ChildModel(api_key=SecretStr("s3cr3t"), host="example.com")
     )
     out = str_pydantic_model(model)
-    assert out == "ParentModel(child={'host': 'example.com'}, name=alice)"
+    assert out == "ParentModel(child=ChildModel(host=example.com), name=alice)"
 
 
 @pydantic_available
@@ -412,7 +487,7 @@ def test_str_pydantic_model_nested_secret_in_list_excluded_first_child() -> None
         ],
     )
     out = str_pydantic_model(model)
-    assert "'host': 'a.example.com'" in out
+    assert "ChildModel(host='a.example.com')" in out
 
 
 @pydantic_available
@@ -425,7 +500,7 @@ def test_str_pydantic_model_nested_secret_in_list_excluded_second_child() -> Non
         ],
     )
     out = str_pydantic_model(model)
-    assert "'host': 'b.example.com'" in out
+    assert "ChildModel(host='b.example.com')" in out
 
 
 @pydantic_available
@@ -482,7 +557,7 @@ def test_str_pydantic_model_nested_secret_in_dict_excluded_first_child() -> None
         },
     )
     out = str_pydantic_model(model)
-    assert "'host': 'a.example.com'" in out
+    assert "ChildModel(host='a.example.com')" in out
 
 
 @pydantic_available
@@ -495,4 +570,234 @@ def test_str_pydantic_model_nested_secret_in_dict_excluded_second_child() -> Non
         },
     )
     out = str_pydantic_model(model)
-    assert "'host': 'b.example.com'" in out
+    assert "ChildModel(host='b.example.com')" in out
+
+
+#####################################################
+#     Tests for nested models (str and repr)        #
+#####################################################
+
+
+def _child(host: str = "example.com") -> ChildModel:
+    return ChildModel(api_key=SecretStr("s3cr3t"), host=host)
+
+
+@pydantic_available
+def test_repr_pydantic_model_nested_model_keeps_its_name() -> None:
+    model = ParentModel(name="alice", child=_child())
+    assert (
+        repr_pydantic_model(model)
+        == "ParentModel(child=ChildModel(host='example.com'), name='alice')"
+    )
+
+
+@pydantic_available
+def test_str_pydantic_model_nested_model_in_tuple() -> None:
+    model = ParentWithChildTupleModel(children=(_child("a"), _child("b")))
+    assert str_pydantic_model(model) == (
+        "ParentWithChildTupleModel(children=(ChildModel(host='a'), ChildModel(host='b')))"
+    )
+
+
+@pydantic_available
+def test_str_pydantic_model_nested_model_in_set() -> None:
+    model = ParentWithLeafCollectionsModel(leaves_set={LeafModel(name="a")}, leaves_frozenset=set())
+    assert str_pydantic_model(model) == (
+        "ParentWithLeafCollectionsModel(leaves_frozenset=frozenset(), "
+        "leaves_set={LeafModel(name='a', note=None)})"
+    )
+
+
+@pydantic_available
+def test_str_pydantic_model_nested_model_in_frozenset() -> None:
+    model = ParentWithLeafCollectionsModel(leaves_set=set(), leaves_frozenset={LeafModel(name="a")})
+    assert str_pydantic_model(model) == (
+        "ParentWithLeafCollectionsModel(leaves_frozenset=frozenset({LeafModel(name='a', note=None)}), "
+        "leaves_set=set())"
+    )
+
+
+@pydantic_available
+def test_str_pydantic_model_nested_model_sort_true() -> None:
+    model = ParentWithUnsortedLeafModel(leaf=UnsortedLeafModel(z=1, a=2))
+    assert (
+        str_pydantic_model(model) == "ParentWithUnsortedLeafModel(leaf=UnsortedLeafModel(a=2, z=1))"
+    )
+
+
+@pydantic_available
+def test_str_pydantic_model_nested_model_sort_false() -> None:
+    model = ParentWithUnsortedLeafModel(leaf=UnsortedLeafModel(z=1, a=2))
+    assert (
+        str_pydantic_model(model, sort=False)
+        == "ParentWithUnsortedLeafModel(leaf=UnsortedLeafModel(z=1, a=2))"
+    )
+
+
+@pydantic_available
+def test_str_pydantic_model_nested_model_exclude_none_false() -> None:
+    model = ParentWithLeafModel(leaf=LeafModel(name="a"))
+    assert (
+        str_pydantic_model(model)
+        == "ParentWithLeafModel(leaf=LeafModel(name=a, note=None), note=None)"
+    )
+
+
+@pydantic_available
+def test_str_pydantic_model_nested_model_exclude_none_true() -> None:
+    model = ParentWithLeafModel(leaf=LeafModel(name="a"))
+    assert (
+        str_pydantic_model(model, exclude_none=True)
+        == "ParentWithLeafModel(leaf=LeafModel(name=a))"
+    )
+
+
+@pydantic_available
+def test_str_pydantic_model_exclude_fields_does_not_apply_to_nested_model() -> None:
+    model = ParentWithLeafModel(leaf=LeafModel(name="a"))
+    assert (
+        str_pydantic_model(model, exclude_fields=["note"])
+        == "ParentWithLeafModel(leaf=LeafModel(name=a, note=None))"
+    )
+
+
+@pydantic_available
+def test_str_pydantic_model_whole_output_with_nested_secrets() -> None:
+    model = ParentWithChildListModel(name="alice", children=[_child("a"), _child("b")])
+    assert str_pydantic_model(model, exclude_secret=False) == (
+        "ParentWithChildListModel(children=[ChildModel(api_key=SecretStr('**********'), host='a'), "
+        "ChildModel(api_key=SecretStr('**********'), host='b')], name=alice)"
+    )
+
+
+@pydantic_available
+def test_str_pydantic_model_whole_output_with_nested_secrets_excluded() -> None:
+    model = ParentWithChildDictModel(name="alice", children={"a": _child("a"), "b": _child("b")})
+    assert str_pydantic_model(model) == (
+        "ParentWithChildDictModel(children={'a': ChildModel(host='a'), 'b': ChildModel(host='b')}, "
+        "name=alice)"
+    )
+
+
+@pydantic_available
+def test_str_pydantic_model_does_not_modify_the_model() -> None:
+    model = ParentModel(name="alice", child=_child())
+    str_pydantic_model(model)
+    assert model == ParentModel(name="alice", child=_child())
+
+
+@pydantic_available
+def test_str_pydantic_model_is_deterministic() -> None:
+    model = ParentModel(name="alice", child=_child())
+    assert str_pydantic_model(model) == str_pydantic_model(model)
+
+
+#####################################################
+#     Tests for the fields shown by the formatters  #
+#####################################################
+
+
+@pydantic_available
+def test_str_pydantic_model_field_with_repr_false_is_hidden() -> None:
+    assert str_pydantic_model(HiddenFieldModel(shown=1)) == "HiddenFieldModel(shown=1)"
+
+
+@pydantic_available
+def test_str_pydantic_model_extra_values_are_shown() -> None:
+    assert str_pydantic_model(ExtraModel(a=1, b=2)) == "ExtraModel(a=1, b=2)"
+
+
+@pydantic_available
+def test_str_pydantic_model_exclude_extra_field_no_warning() -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        out = str_pydantic_model(ExtraModel(a=1, b=2), exclude_fields=["b"])
+    assert out == "ExtraModel(a=1)"
+
+
+@pydantic_available
+def test_str_pydantic_model_does_not_run_field_serializer() -> None:
+    assert str_pydantic_model(SerializerModel(value=3)) == "SerializerModel(value=3)"
+
+
+@pydantic_available
+def test_str_pydantic_model_computed_field_is_not_shown() -> None:
+    assert str_pydantic_model(ComputedModel(value=3)) == "ComputedModel(value=3)"
+
+
+############################
+#     Tests for _shown     #
+############################
+
+OPTIONS = _Options(sort=True, exclude_none=False, exclude_secret=True)
+
+
+@pydantic_available
+@pytest.mark.parametrize("value", [1, "abc", None, 2.5, object])
+def test_shown_plain_value_is_unchanged(value: object) -> None:
+    assert _shown(value, OPTIONS) is value
+
+
+@pydantic_available
+def test_shown_model_is_nested_model() -> None:
+    assert isinstance(_shown(LeafModel(name="a"), OPTIONS), _NestedModel)
+
+
+@pydantic_available
+@pytest.mark.parametrize("value", [[1, 2], (1, 2), {1, 2}, frozenset({1, 2}), {"a": 1}])
+def test_shown_container_without_model_is_equal(value: object) -> None:
+    assert _shown(value, OPTIONS) == value
+
+
+@pydantic_available
+@pytest.mark.parametrize("value", [[1], (1,), {1}, frozenset({1}), {"a": 1}])
+def test_shown_container_keeps_its_type(value: object) -> None:
+    assert type(_shown(value, OPTIONS)) is type(value)
+
+
+@pydantic_available
+def test_shown_list_of_lists_of_models() -> None:
+    assert repr(_shown([[LeafModel(name="a")]], OPTIONS)) == "[[LeafModel(name='a', note=None)]]"
+
+
+@pydantic_available
+def test_shown_dict_subclass_is_unchanged() -> None:
+    value = OrderedDict(a=1)
+    assert _shown(value, OPTIONS) is value
+
+
+##################################
+#     Tests for _NestedModel     #
+##################################
+
+
+@pydantic_available
+def test_nested_model_str() -> None:
+    assert str(_NestedModel(LeafModel(name="a"), OPTIONS)) == "LeafModel(name=a, note=None)"
+
+
+@pydantic_available
+def test_nested_model_repr() -> None:
+    assert repr(_NestedModel(LeafModel(name="a"), OPTIONS)) == "LeafModel(name='a', note=None)"
+
+
+@pydantic_available
+def test_nested_model_equal() -> None:
+    assert _NestedModel(LeafModel(name="a"), OPTIONS) == _NestedModel(LeafModel(name="a"), OPTIONS)
+
+
+@pydantic_available
+def test_nested_model_different_model_is_not_equal() -> None:
+    assert _NestedModel(LeafModel(name="a"), OPTIONS) != _NestedModel(LeafModel(name="b"), OPTIONS)
+
+
+@pydantic_available
+def test_nested_model_not_equal_to_a_model() -> None:
+    assert _NestedModel(LeafModel(name="a"), OPTIONS) != LeafModel(name="a")
+
+
+@pydantic_available
+def test_nested_model_hash_of_equal_models_is_equal() -> None:
+    assert hash(_NestedModel(LeafModel(name="a"), OPTIONS)) == hash(
+        _NestedModel(LeafModel(name="a"), OPTIONS)
+    )
