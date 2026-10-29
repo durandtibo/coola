@@ -12,12 +12,13 @@ from coola.recursive import (
     SequenceTransformer,
     TransformerRegistry,
 )
+from tests.unit.recursive.helpers import expand_not_none
 
 
 @dataclass
 class Point:
-    x: float
-    y: float = 0.0
+    x: Any
+    y: Any = 0.0
 
 
 @dataclass(frozen=True)
@@ -43,7 +44,7 @@ class WithDerived:
 
 @dataclass(slots=True)
 class Slotted:
-    x: float
+    x: Any
 
 
 @dataclass(frozen=True, slots=True)
@@ -222,10 +223,10 @@ def test_dataclass_transformer_transform_dataclass_in_a_list(registry: Transform
 
 
 def test_dataclass_transformer_expand_children() -> None:
-    children, _ = DataclassTransformer().expand(Point(1.0, 2.0))
+    children, _ = expand_not_none(DataclassTransformer(), Point(1.0, 2.0))
     assert children == [1.0, 2.0]
 
 
 def test_dataclass_transformer_expand_rebuild() -> None:
-    _, rebuild = DataclassTransformer().expand(Point(1.0, 2.0))
+    _, rebuild = expand_not_none(DataclassTransformer(), Point(1.0, 2.0))
     assert rebuild(["a", "b"]) == Point("a", "b")

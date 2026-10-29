@@ -7,6 +7,7 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.recursive import DefaultTransformer, SequenceTransformer, TransformerRegistry
+from tests.unit.recursive.helpers import expand_not_none
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -158,37 +159,37 @@ def test_sequence_transformer_transform_deque_maxlen(registry: TransformerRegist
 
 
 def test_sequence_transformer_expand_children() -> None:
-    children, _ = SequenceTransformer().expand((1, 2, 3))
+    children, _ = expand_not_none(SequenceTransformer(), (1, 2, 3))
     assert children == [1, 2, 3]
 
 
 def test_sequence_transformer_expand_rebuild_list() -> None:
-    _, rebuild = SequenceTransformer().expand([1, 2, 3])
+    _, rebuild = expand_not_none(SequenceTransformer(), [1, 2, 3])
     assert rebuild(["a", "b", "c"]) == ["a", "b", "c"]
 
 
 def test_sequence_transformer_expand_rebuild_tuple() -> None:
-    _, rebuild = SequenceTransformer().expand((1, 2))
+    _, rebuild = expand_not_none(SequenceTransformer(), (1, 2))
     assert rebuild(["a", "b"]) == ("a", "b")
 
 
 def test_sequence_transformer_expand_rebuild_deque_keeps_maxlen() -> None:
-    _, rebuild = SequenceTransformer().expand(deque([1, 2], maxlen=3))
+    _, rebuild = expand_not_none(SequenceTransformer(), deque([1, 2], maxlen=3))
     assert rebuild([3, 4]) == deque([3, 4], maxlen=3)
 
 
 def test_sequence_transformer_expand_empty() -> None:
-    children, rebuild = SequenceTransformer().expand([])
+    children, rebuild = expand_not_none(SequenceTransformer(), [])
     assert (children, rebuild([])) == ([], [])
 
 
 def test_sequence_transformer_expand_single_element() -> None:
-    children, rebuild = SequenceTransformer().expand([1])
+    children, rebuild = expand_not_none(SequenceTransformer(), [1])
     assert (children, rebuild(["a"])) == ([1], ["a"])
 
 
 def test_sequence_transformer_expand_duplicates() -> None:
-    children, _ = SequenceTransformer().expand([1, 1, 1])
+    children, _ = expand_not_none(SequenceTransformer(), [1, 1, 1])
     assert children == [1, 1, 1]
 
 
@@ -200,5 +201,5 @@ def test_sequence_transformer_expand_does_not_modify_the_input() -> None:
 
 def test_sequence_transformer_expand_rebuild_returns_a_new_container() -> None:
     data = [1, 2, 3]
-    _, rebuild = SequenceTransformer().expand(data)
+    _, rebuild = expand_not_none(SequenceTransformer(), data)
     assert rebuild([1, 2, 3]) is not data
