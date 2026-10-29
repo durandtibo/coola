@@ -262,7 +262,7 @@ Rules (the examples are the output of the prototype):
   An empty container is its header alone: `<class 'list'> (length=0)`.
 - A child is `(label): text`. The label of a sequence or a set is the position, of a mapping the `str`
   of the key, of a dataclass or a pydantic model the field name, of a named tuple the field name
- .
+  .
 - **The type is shown for the nodes that are expanded and for their leaves; the boundary shows
   values.** A leaf shows `<class 'int'> 1` when `compact` is `False` and `1` when it is `True`. This
   is the previous rule, kept: `summarize(42)` is `<class 'int'> 42`, and the items of
@@ -286,7 +286,7 @@ its `repr`, and `num_spaces` is gone.
 | `MappingSummarizer`                                                                                        | `Node("<type> (length=n)", data.items(), n)`                                                      | `dict`, `Mapping`, `MappingProxyType` |
 | `DataclassSummarizer`                                                                                      | `Node("<type> (fields=n)", ((f.name, getattr(data, f.name)) for f in fields(data) if f.repr), n)` | `DataclassMarker`                     |
 | `PydanticModelSummarizer`                                                                                  | the same with `model_fields` without the secrets, plus `model_extra`                              | `pydantic.BaseModel` (lazy)           |
-| `NDArraySummarizer`, `TensorSummarizer`, `JaxArraySummarizer`, `Pandas*`, `Polars*`, `Pyarrow*`, `Xarray*` | `" \| ".join([type, *self._describe(data, config)])`, or `safe_repr(data)` if `config.show_data`  | by library (lazy), as before           |
+| `NDArraySummarizer`, `TensorSummarizer`, `JaxArraySummarizer`, `Pandas*`, `Polars*`, `Pyarrow*`, `Xarray*` | `" \| ".join([type, *self._describe(data, config)])`, or `safe_repr(data)` if `config.show_data`  | by library (lazy), as before          |
 
 Container summarizers are three one-line classes on a common helper; the dataclass and pydantic
 summarizers share `BaseObjectFieldsSummarizer` (one abstract method `_get_fields`). All of them are
@@ -316,7 +316,7 @@ class NodeSummarizer(BaseSummarizer[Tree]):
             f"{type(data)} (children={len(data.children)})",
             enumerate(data.children),
             len(data.children),
-)
+        )
 
 
 register_summarizers({Point: PointSummarizer(), Tree: NodeSummarizer()})
@@ -364,12 +364,12 @@ registry-level entry point, as `registry.objects_are_equal` is for `equality`.
 Nothing in `src` imports `coola.summary` (the mentions in `equality` and `utils.singleton` are
 docstrings). The package is a leaf, which is why the contract can change in one step.
 
-| Dependent                                                                                        | Change                                                                                                                                                                     |
-| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tests/properties/test_summary_random.py`, `test_cross_module`, `test_library_types`             | Keep, add the properties of. They use only `summarize(data, max_depth=...)`.                                                                                     |
-| `tests/integration/test_lazy_imports.py`, `test_support_matrix.py`, `test_default_registries.py` | Keep (lazy loading, the support matrix). Update the expected registered types (`UserString`, `MappingProxyType`).                                                          |
-| `pyproject.toml` import-linter contracts                                                         | Unchanged: `coola.summary` still imports only `coola.registry`, `coola.utils`, `coola.validation`.                                                                         |
-| Plugins of `coola.summary.summarizers`                                                           | Must be ported to the new `summarize(data, config, *, compact)` (migration page). A plugin that returned a string only needs the new signature.                            |
+| Dependent                                                                                        | Change                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/properties/test_summary_random.py`, `test_cross_module`, `test_library_types`             | Keep, add the properties of. They use only `summarize(data, max_depth=...)`.                                                                    |
+| `tests/integration/test_lazy_imports.py`, `test_support_matrix.py`, `test_default_registries.py` | Keep (lazy loading, the support matrix). Update the expected registered types (`UserString`, `MappingProxyType`).                               |
+| `pyproject.toml` import-linter contracts                                                         | Unchanged: `coola.summary` still imports only `coola.registry`, `coola.utils`, `coola.validation`.                                              |
+| Plugins of `coola.summary.summarizers`                                                           | Must be ported to the new `summarize(data, config, *, compact)` (migration page). A plugin that returned a string only needs the new signature. |
 
 `SummarizerRegistry.find_summarizer` copies the `DataclassMarker` fallback that `EqualityTesterRegistry`,
 `HasherRegistry`, `TransformerRegistry` and `ChildFinderRegistry` also copy. Moving it to

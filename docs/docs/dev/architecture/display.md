@@ -211,13 +211,13 @@ The behaviour changes to put in the release notes:
 
 ## Dependents
 
-| Package                                           | Change                                                                                                                                                                                                                                                                                                                             |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `io`, `recursive`, `hashing`, `registry`, `tools` | None: they use `InlineDisplayMixin` / `_display_fields`, unchanged.                                                                                                                                                                                                                                                                |
-| `summary.pydantic`                                | None: `secret_field_names` keeps its name and its module.                                                                                                                                                                                                                                                                          |
-| `coola.utils.fallback`                            | New `rich.py` with the fakes; added to the test of the fallback modules if there is a generic one.                                                                                                                                                                                                                                 |
-| `coola.testing.marks`                             | None: `rich_available` and `colorlog_available` exist. The `rich` tests use them.                                                                                                                                                                                                                                                  |
-| `pyproject.toml` (`lint-imports`)                 | None: `display` already is in the core group. A contract "`display` imports `utils`, `validation`, `formatting` only" is added by the `utils` review; no new rule here.                                                                                                                                             |
+| Package                                           | Change                                                                                                                                                                  |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `io`, `recursive`, `hashing`, `registry`, `tools` | None: they use `InlineDisplayMixin` / `_display_fields`, unchanged.                                                                                                     |
+| `summary.pydantic`                                | None: `secret_field_names` keeps its name and its module.                                                                                                               |
+| `coola.utils.fallback`                            | New `rich.py` with the fakes; added to the test of the fallback modules if there is a generic one.                                                                      |
+| `coola.testing.marks`                             | None: `rich_available` and `colorlog_available` exist. The `rich` tests use them.                                                                                       |
+| `pyproject.toml` (`lint-imports`)                 | None: `display` already is in the core group. A contract "`display` imports `utils`, `validation`, `formatting` only" is added by the `utils` review; no new rule here. |
 
 ## Decisions for the maintainers
 
@@ -241,7 +241,7 @@ paragraph and line breaks, close an open code fence, keep the notice; `_truncate
 
 **D3. Should the pydantic formatter show computed fields and run serializers?** _Recommended: no._
 The function is documented as a safe formatter for logs, whose value is that it cannot raise or leak
-through user code. Alternative: keep `model_dump()` and fix  by walking the dump; it keeps
+through user code. Alternative: keep `model_dump()` and fix by walking the dump; it keeps
 `computed_field` but keeps the parallel walk and the serializers.
 
 Decision: follow recommendation

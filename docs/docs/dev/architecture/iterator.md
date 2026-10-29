@@ -118,7 +118,7 @@ def breadth_first(data, registry):
                 if node[0] is item:
                     raise ValueError(
                         f"Cycle detected: an object of type {type(item)} contains itself"
-)
+                    )
                 node = node[1]
         expanded.add(id(item))
         chain = (item, chain)
@@ -148,12 +148,12 @@ Design points:
 
 ### Built-in child finders
 
-| Child finder           | `find_children(data)`                                       | Default registration                                                                            |
-| ---------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `DefaultChildFinder`   | `None` (leaf)                                               | `object`, `str`, `bytes`, `int`, `float`, `complex`, `bool`, `UserString`                       |
-| `IterableChildFinder`  | `data` (the container is its own iterable of children)      | `list`, `tuple`, `deque`, `Sequence`, `set`, `frozenset` |
-| `MappingChildFinder`   | `data.values()`                                             | `dict`, `Mapping`, `MappingProxyType`                                                           |
-| `DataclassChildFinder` | `(getattr(data, f.name) for f in dataclasses.fields(data))` | `DataclassMarker`                                                                               |
+| Child finder           | `find_children(data)`                                       | Default registration                                                      |
+| ---------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `DefaultChildFinder`   | `None` (leaf)                                               | `object`, `str`, `bytes`, `int`, `float`, `complex`, `bool`, `UserString` |
+| `IterableChildFinder`  | `data` (the container is its own iterable of children)      | `list`, `tuple`, `deque`, `Sequence`, `set`, `frozenset`                  |
+| `MappingChildFinder`   | `data.values()`                                             | `dict`, `Mapping`, `MappingProxyType`                                     |
+| `DataclassChildFinder` | `(getattr(data, f.name) for f in dataclasses.fields(data))` | `DataclassMarker`                                                         |
 
 `DefaultChildFinder` keeps the explicit `str`, `bytes` and `UserString` registrations: `object` would
 be enough through the MRO, but `str` and `bytes` are `Sequence`s and `UserString` would never end,
@@ -244,7 +244,7 @@ group, `coola.iterator.child_finders`, like `coola.recursive.transformers`.
 
 | Package or page                                                                                                                                                                                                                                                  | Change                                                                                                                                                                                                                                    |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `coola.recursive`                                                                                                                                                                                                                                                | No code change. The order of the calls of `func` must equal the order of `dfs_iterate` (the property test of ties the two); D3 aligns the containers.                                                                           |
+| `coola.recursive`                                                                                                                                                                                                                                                | No code change. The order of the calls of `func` must equal the order of `dfs_iterate` (the property test of ties the two); D3 aligns the containers.                                                                                     |
 | `coola.nested`, `coola.rounding`                                                                                                                                                                                                                                 | No import of `coola.iterator` in `src` (verified by `grep`); nothing to change.                                                                                                                                                           |
 | `pyproject.toml` (`forbidden_modules` list)                                                                                                                                                                                                                      | `coola.iterator` stays in the list of the modules that the core must not import; no change.                                                                                                                                               |
 | `tests/package_checks.py`, `tests/unit/test_public_api.py`, `tests/unit/test_default_registries.py`, `tests/unit/registry/test_dispatch.py`, `tests/integration/test_dataclasses.py`, `tests/properties/test_traversal.py`, `tests/properties/test_recursive.py` | Import the flat names (`from coola.iterator import ChildFinderRegistry, ...`); the test of the default registries has one registry to check instead of two.                                                                               |

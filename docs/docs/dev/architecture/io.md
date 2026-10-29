@@ -91,7 +91,7 @@ class BaseFileSaver(BaseSaver[T]):
   gets `repr`, `str` and `equal()` (the fields shown are the fields compared, compared with
   `objects_are_equal` and the `equal_nan` argument). `equal` is concrete in the base class, so the
   eight overrides and their `noqa: ARG002` are deleted. `==` and `hash` stay the identity
- .
+  .
 - A format that has no configuration defines nothing: `PickleLoader` is `_load` only.
 - `T` is an honest type: `JsonLoader(BaseLoader[Any])`, `JsonSaver(BaseFileSaver[Any])`,
   `PickleLoader(BaseLoader[Any])`, `TorchLoader(BaseLoader[Any])`, `TextLoader(BaseLoader[str])`,
@@ -139,7 +139,7 @@ Why the lock is not needed (the argument of , checked in):
 | Two `exist_ok=True` saves overwrite the same file | `os.replace` is atomic: the file is the whole content of the last one. A lock only orders the same two. |
 | A reader opens the file while it is replaced      | It opens the old inode or the new one, both complete.                                                   |
 | Two saves write at the same time                  | They write different temporary files (the name has a uuid), so the data does not mix.                   |
-| A save is killed                                  | The target is untouched; a hidden temporary file may stay (documented, ).                             |
+| A save is killed                                  | The target is untouched; a hidden temporary file may stay (documented, ).                               |
 
 A caller that needs **mutual exclusion** (a read-modify-write of one file) needs a lock around the
 read and the write, which `save` could never give; it uses a lock library of its choice. The
@@ -203,13 +203,13 @@ and gets the atomic write, `exist_ok`, `fsync`, `equal()`, `repr` from the bases
 
 ## Dependents
 
-| Package                                                                                 | Change                                                                                                                                                                                                                                 |
-| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `coola.factory`                                                                         | None. `resolve_object` / `is_object_config` are called as before (the `factory` design keeps the signature used by `resolve_loader` and `resolve_saver`).                                                                                |
-| `coola.utils.fork`                                                                      | `io` stops being a user of `track_fork`; `tests/integration/test_fork.py` loses the io test. The identifier generators, `LazySingleton` and the registries still use it.                                                               |
-| `coola.utils.path`                                                                      | Gains `add_uuid_suffix` (with its tests moved from `tests/unit/io/test_utils.py`).                                                                                                                                                     |
-| `coola.equality`                                                                        | `equal()` calls `objects_are_equal` on the fields, as `JsonSaver.equal` does before. No change in `equality`.                                                                                                                           |
-| Users of `lock=`, `equal()`, `_load`-less subclasses, `add_uuid_suffix` from `coola.io` | The breaking changes of.                                                                                                                                                                                                     |
+| Package                                                                                 | Change                                                                                                                                                                   |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `coola.factory`                                                                         | None. `resolve_object` / `is_object_config` are called as before (the `factory` design keeps the signature used by `resolve_loader` and `resolve_saver`).                |
+| `coola.utils.fork`                                                                      | `io` stops being a user of `track_fork`; `tests/integration/test_fork.py` loses the io test. The identifier generators, `LazySingleton` and the registries still use it. |
+| `coola.utils.path`                                                                      | Gains `add_uuid_suffix` (with its tests moved from `tests/unit/io/test_utils.py`).                                                                                       |
+| `coola.equality`                                                                        | `equal()` calls `objects_are_equal` on the fields, as `JsonSaver.equal` does before. No change in `equality`.                                                            |
+| Users of `lock=`, `equal()`, `_load`-less subclasses, `add_uuid_suffix` from `coola.io` | The breaking changes of.                                                                                                                                                 |
 
 ## Decision record
 

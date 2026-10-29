@@ -39,7 +39,7 @@ recursive walk and the error contract (`UnsupportedTypeError`, `on_missing_packa
 5. **Optional libraries stay lazy.** `import coola.rounding` imports no optional library (verified:
    `numpy`, `torch`, `pandas`, `polars` and `pyarrow` are all absent from `sys.modules` after it) and
    `coola` still has zero hard dependencies. New: rounding a polars or a pyarrow object needs NumPy
-  ; without it `on_missing_package` decides: raise (default), warn or ignore.
+   ; without it `on_missing_package` decides: raise (default), warn or ignore.
 
 ## Architecture in detail
 
@@ -144,7 +144,7 @@ s.is_not_null(), s)` when there are nulls. 20 lines instead of 40, no expression
     polars and pyarrow: their buffers are immutable).
   - NumPy is imported when the adapter runs, not when it is registered. If it is missing the adapter
     raises `MissingPackageError` before any work, and `round_values` applies `on_missing_package`
-   .
+    .
 
 ### The rounder contract and the registry
 
@@ -201,7 +201,7 @@ def round_values(
     if recursive:
         return recursive_apply(
             data, lambda x: _round_leaf(x, registry, mode, decimals, on_missing_package)
-)
+        )
     return _round_object(data, registry, mode, decimals, on_missing_package)
 ```
 

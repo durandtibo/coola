@@ -68,10 +68,10 @@ class _KeyTransformer(BaseTransformer[Mapping[Any, Any]]):
         if len(set(new)) != len(new):  # no silent loss
             raise DuplicateKeyError(
                 f"Renaming the keys of a {type(data).__name__} gives duplicate keys"
-)
+            )
         return [data[key] for key in keys], lambda items: rebuild_mapping(
             data, zip(new, items, strict=True)
-)
+        )
 
 
 def _apply(data, **options):
@@ -256,9 +256,9 @@ diff of each step small; the split of is optional.
 | `coola.recursive`                               | `KeyFilterTransformer` and `key.py` deleted (guide, `__all__`, tests). `rebuild_mapping` and `rebuild_sequence` stay the public helpers (`nested.keys` imports `rebuild_mapping`). The **Properties** of `recursive` lose the implicit exception. |
 | `coola.utils.conversion.to_jsonable`            | The dataclass branch and `_to_jsonable_recursive` are deleted; the docstring points to `convert_to_jsonable`.                                                                                                                                     |
 | `coola.io.json` (`save_json`)                   | The docstring already points to `convert_to_jsonable`; no code change.                                                                                                                                                                            |
-| `tests/integration/recursive/test_dataclass.py` | `test_remove_keys_if_dataclass_is_a_leaf` is replaced by `test_remove_keys_if_enters_the_dataclass`; `test_convert_to_jsonable_dataclass_is_converted_whole` stays and gains the set and the tuple of .                                         |
+| `tests/integration/recursive/test_dataclass.py` | `test_remove_keys_if_dataclass_is_a_leaf` is replaced by `test_remove_keys_if_enters_the_dataclass`; `test_convert_to_jsonable_dataclass_is_converted_whole` stays and gains the set and the tuple of .                                           |
 | `tests/package_checks.py`                       | Unchanged (`coola.nested.to_flat_dict`).                                                                                                                                                                                                          |
-| `iterator`                                      | **Prerequisite:** `dfs_items` with the labels and the `empty` option of (D9 of the `iterator` design).                                                                                                                        |
+| `iterator`                                      | **Prerequisite:** `dfs_items` with the labels and the `empty` option of (D9 of the `iterator` design).                                                                                                                                            |
 
 ## Decisions for the maintainers
 

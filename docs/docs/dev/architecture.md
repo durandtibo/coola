@@ -8,7 +8,7 @@ checklist to implement a new one. The design of each sub-package is on its own p
 ## Principles
 
 1. **Properties first.** A sub-package starts from a table of properties (what is guaranteed) and a
-   list of what is *not* guaranteed. Every design choice exists to make one property true **by
+   list of what is _not_ guaranteed. Every design choice exists to make one property true **by
    construction** (in one place), not by the discipline of each implementation.
 2. **One engine, one extension point.** The engine owns the invariants (identity, type, depth, cycles,
    order, laziness, errors). A plug-in (tester, hasher, transformer, summarizer, child finder, rounder,
@@ -56,14 +56,14 @@ Packages fall into two groups:
 
 The allowed imports are:
 
-| Package      | May import                                                           |
-| ------------ | -------------------------------------------------------------------- |
-| `validation` | the standard library                                                 |
-| `utils`      | the standard library and `validation`                                |
-| `formatting` | `utils` and `validation`                                             |
-| `display`    | `utils`, `validation` and `formatting`                               |
-| `registry`   | core packages (`utils`, `validation`, `formatting`)                  |
-| a feature    | core packages and the features it is built on; never the `testing`   |
+| Package      | May import                                                         |
+| ------------ | ------------------------------------------------------------------ |
+| `validation` | the standard library                                               |
+| `utils`      | the standard library and `validation`                              |
+| `formatting` | `utils` and `validation`                                           |
+| `display`    | `utils`, `validation` and `formatting`                             |
+| `registry`   | core packages (`utils`, `validation`, `formatting`)                |
+| a feature    | core packages and the features it is built on; never the `testing` |
 
 The contract is enforced with [import-linter](https://import-linter.readthedocs.io/) (configured in
 `pyproject.toml`), without exception. Run it with `lint-imports`. A new package adds its place in the
@@ -144,14 +144,13 @@ A package that dispatches on the type uses a subclass of `TypeRegistry` (`coola.
 - **Domain registry**: `class HasherRegistry(TypeRegistry[Hasher])` adds `has_hasher`, `find_hasher`
   (one-line delegations to `has` and `resolve`) and the entry point of the domain. A package also
   exposes `get_default_registry()` (and an alias with the domain name) and `register_<plural>(mapping,
-  *, exist_ok=False)`.
+*, exist_ok=False)`.
 - A **process-wide lazily built object** that is not a registry uses `LazySingleton`, not
   `functools.cache`.
 
 A package whose key is a name and not a type (`random`) subclasses `Registry` instead.
 
 ## Optional dependencies
-
 
 - **torch**: PyTorch tensor support
 - **numpy**: NumPy array support
@@ -169,7 +168,6 @@ import of its subpackages do not import any of them. The `__init__.py` files exp
 need a library with `lazy_exports`, and the default registries load the entries of a library the
 first time they look for one of its types (`register_lazy`). See
 [Lazy imports](add_backend.md#lazy-imports).
-
 
 The rules for a package that uses an optional library:
 
@@ -232,13 +230,13 @@ The rules for a package that uses an optional library:
 
 A new package ships these pages:
 
-| Page                                        | Content                                                                         |
-| ------------------------------------------- | ------------------------------------------------------------------------------- |
-| `uguide/<package>.md`                       | Overview, **Properties**, **Not guaranteed**, examples, extension, non-goals    |
-| `refs/<package>.md`                         | `::: coola.<package>` directives                                                |
-| `dev/architecture/<package>.md`             | Constraints, architecture, contracts, public API, dependents, decisions         |
-| `migration/<version>.md`                    | Breaking changes with a before/after table                                      |
-| `mkdocs.yml` navigation                     | The three pages above                                                           |
+| Page                            | Content                                                                      |
+| ------------------------------- | ---------------------------------------------------------------------------- |
+| `uguide/<package>.md`           | Overview, **Properties**, **Not guaranteed**, examples, extension, non-goals |
+| `refs/<package>.md`             | `::: coola.<package>` directives                                             |
+| `dev/architecture/<package>.md` | Constraints, architecture, contracts, public API, dependents, decisions      |
+| `migration/<version>.md`        | Breaking changes with a before/after table                                   |
+| `mkdocs.yml` navigation         | The three pages above                                                        |
 
 Write down **what the package does not do** and the decisions with the alternatives that were
 rejected; a later reader needs the reason, not only the choice.
@@ -278,26 +276,26 @@ rejected; a later reader needs the reason, not only the choice.
 Each sub-package of `coola` has its own page with the invariants, the contracts between the parts,
 the public API, the dependents and the decisions behind the design.
 
-| Package | Page |
-| ------- | ---- |
-| `coola.display` | [Display mixins, pydantic formatting, terminal output](architecture/display.md) |
-| `coola.equality` | [Equality engine, testers, numeric kernel, tables](architecture/equality.md) |
-| `coola.factory` | [Objects from configurations, allow-list](architecture/factory.md) |
-| `coola.formatting` | [Value-to-text helpers](architecture/formatting.md) |
-| `coola.hashing` | [Hash engine, `encode` contract, encoding](architecture/hashing.md) |
-| `coola.identifier` | [Stable and time-ordered identifiers](architecture/identifier.md) |
-| `coola.io` | [Loaders, savers, atomic write](architecture/io.md) |
-| `coola.iterator` | [`dfs_iterate` and `bfs_iterate`, child finders](architecture/iterator.md) |
-| `coola.nested` | [Flat dicts, keys, JSON, records](architecture/nested.md) |
-| `coola.random` | [Seed managers and RNG state](architecture/random.md) |
-| `coola.recursive` | [`recursive_apply` engine, transformers](architecture/recursive.md) |
-| `coola.reducer` | [Statistics backends](architecture/reducer.md) |
-| `coola.registry` | [`Registry` and `TypeRegistry`](architecture/registry.md) |
-| `coola.rounding` | [One rule, kernels, adapters](architecture/rounding.md) |
-| `coola.summary` | [Summary engine, summarizers](architecture/summary.md) |
-| `coola.testing` | [pytest marks and fixtures](architecture/testing.md) |
-| `coola.utils` | [Foundation helpers](architecture/utils.md) |
-| `coola.validation` | [Argument validators](architecture/validation.md) |
+| Package            | Page                                                                            |
+| ------------------ | ------------------------------------------------------------------------------- |
+| `coola.display`    | [Display mixins, pydantic formatting, terminal output](architecture/display.md) |
+| `coola.equality`   | [Equality engine, testers, numeric kernel, tables](architecture/equality.md)    |
+| `coola.factory`    | [Objects from configurations, allow-list](architecture/factory.md)              |
+| `coola.formatting` | [Value-to-text helpers](architecture/formatting.md)                             |
+| `coola.hashing`    | [Hash engine, `encode` contract, encoding](architecture/hashing.md)             |
+| `coola.identifier` | [Stable and time-ordered identifiers](architecture/identifier.md)               |
+| `coola.io`         | [Loaders, savers, atomic write](architecture/io.md)                             |
+| `coola.iterator`   | [`dfs_iterate` and `bfs_iterate`, child finders](architecture/iterator.md)      |
+| `coola.nested`     | [Flat dicts, keys, JSON, records](architecture/nested.md)                       |
+| `coola.random`     | [Seed managers and RNG state](architecture/random.md)                           |
+| `coola.recursive`  | [`recursive_apply` engine, transformers](architecture/recursive.md)             |
+| `coola.reducer`    | [Statistics backends](architecture/reducer.md)                                  |
+| `coola.registry`   | [`Registry` and `TypeRegistry`](architecture/registry.md)                       |
+| `coola.rounding`   | [One rule, kernels, adapters](architecture/rounding.md)                         |
+| `coola.summary`    | [Summary engine, summarizers](architecture/summary.md)                          |
+| `coola.testing`    | [pytest marks and fixtures](architecture/testing.md)                            |
+| `coola.utils`      | [Foundation helpers](architecture/utils.md)                                     |
+| `coola.validation` | [Argument validators](architecture/validation.md)                               |
 
 ## Module organization
 

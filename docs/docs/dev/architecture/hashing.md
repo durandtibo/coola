@@ -55,7 +55,7 @@ See the [user guide](../../uguide/hashing.md#properties) for the properties of t
    regenerated once, deliberately.
 3. **Consistent with equality.** "Equality drives hashing, not the reverse": equal objects must have
    the same hash, and where a hasher disagrees with `objects_are_equal` the hasher is changed
-  .
+   .
 4. **No slower than before, and the gate exists.** `tests/benchmarks/test_hashing_benchmark.py` was
    added with this document, and the baseline of the previous version is saved (appendix). A design that is
    simpler but slower is rejected.
@@ -232,25 +232,25 @@ Design points:
 
 ### Built-in hashers
 
-| Hasher                                              | `encode(data)`                                                                                                                                                                | Default registration                                                       |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `ReprHasher`                                        | leaf; tag is the builtin type name (`bool`, `int`, `float`, `complex`), payload is the builtin `repr` (`-0.0` is `0.0`); a NumPy scalar is converted to the builtin first     | `int`, `float`, `complex`, `bool`, `type(None)`, NumPy scalars             |
-| `StringHasher`                                      | leaf `tagged("str", data)`; `UserString` is a leaf `tagged("UserString", str(data))`                                                                                     | `str`, `UserString`                                                        |
-| `BytesHasher`                                       | leaf `tagged(tag, digest(raw))` with the tag `bytes`, `bytearray` or `memoryview`                                                                                        | `bytes`, `bytearray`, `memoryview`                                         |
-| `EnumHasher`                                        | leaf `tagged("Enum", "module.Class.NAME")`; the member name, or the `repr` of the value for a combined flag                                                                   | `Enum` (the enum-mixin rule is in the registry)               |
-| `DatetimeHasher`                                    | leaf; tag `date`, `datetime` or `time`; ISO form, aware values in UTC (unchanged rules, 22.7 is fixed)                                                                        | `date`, `datetime`, `time`                                                 |
-| `ReprHasher("timedelta")`, `StrHasher("UUID")`, ... | leaf with an **explicit** tag chosen at registration: `timedelta`, `timezone`, `UUID`, `ZoneInfo`                                                                        | `timedelta`, `timezone`, `UUID`, `ZoneInfo`                                |
-| `DecimalHasher`, `FractionHasher`, `RangeHasher`    | leaf with the canonical form (unchanged)                                                                                                                                      | `Decimal`, `Fraction`, `range`                                             |
-| `PathHasher`, `ResolvedPathHasher`                  | leaf `tagged("Path", posix form)`; the resolved variant is an opt-in                                                                                                          | `PurePath`                                                                 |
-| `SequenceHasher(tag)`                               | `Node(tag, data)`; a named tuple has the tag `tuple:Class(f1,f2)`                                                                                                             | `list`, `tuple`, `deque`, `Sequence`                                       |
-| `MappingHasher(tag, ordered=False)`                 | `Node(tag, chain(k1, v1, k2, v2, ...), ordered, group=2)`                                                                                                                     | `dict`, `OrderedDict` (`ordered=True`), `Mapping`, `MappingProxyType` |
-| `SetHasher(tag)`                                    | `Node(tag, data, ordered=False)`                                                                                                                                              | `set`, `frozenset`                                                         |
-| `DataclassHasher`                                   | `Node("dataclass:module.Class", chain(name, value, ...), ordered=False, group=2)` over the fields with `compare=True`                                                    | fallback: `dataclasses.is_dataclass`                                       |
-| `ContentHasher`                                     | `Node("custom:module.Class", [data.__coola_hash__()])`                                                                                                          | fallback: the type has a `__coola_hash__` method                           |
-| NumPy, torch, JAX, pandas, polars, pyarrow, xarray  | a leaf `tagged(tag, header + digest(raw values))` for numeric buffers, otherwise a `Node` whose children are plain values (names, dtype strings, arrays, lists) | lazy groups, unchanged                                                     |
-| `PydanticModelHasher`, `SecretHasher(on_secret)`    | `Node("pydantic:module.Class", chain(field, value, ...), ordered=False, group=2)`; a secret is a leaf or an error                                               | lazy group, unchanged                                                      |
+| Hasher                                              | `encode(data)`                                                                                                                                                            | Default registration                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `ReprHasher`                                        | leaf; tag is the builtin type name (`bool`, `int`, `float`, `complex`), payload is the builtin `repr` (`-0.0` is `0.0`); a NumPy scalar is converted to the builtin first | `int`, `float`, `complex`, `bool`, `type(None)`, NumPy scalars        |
+| `StringHasher`                                      | leaf `tagged("str", data)`; `UserString` is a leaf `tagged("UserString", str(data))`                                                                                      | `str`, `UserString`                                                   |
+| `BytesHasher`                                       | leaf `tagged(tag, digest(raw))` with the tag `bytes`, `bytearray` or `memoryview`                                                                                         | `bytes`, `bytearray`, `memoryview`                                    |
+| `EnumHasher`                                        | leaf `tagged("Enum", "module.Class.NAME")`; the member name, or the `repr` of the value for a combined flag                                                               | `Enum` (the enum-mixin rule is in the registry)                       |
+| `DatetimeHasher`                                    | leaf; tag `date`, `datetime` or `time`; ISO form, aware values in UTC (unchanged rules, 22.7 is fixed)                                                                    | `date`, `datetime`, `time`                                            |
+| `ReprHasher("timedelta")`, `StrHasher("UUID")`, ... | leaf with an **explicit** tag chosen at registration: `timedelta`, `timezone`, `UUID`, `ZoneInfo`                                                                         | `timedelta`, `timezone`, `UUID`, `ZoneInfo`                           |
+| `DecimalHasher`, `FractionHasher`, `RangeHasher`    | leaf with the canonical form (unchanged)                                                                                                                                  | `Decimal`, `Fraction`, `range`                                        |
+| `PathHasher`, `ResolvedPathHasher`                  | leaf `tagged("Path", posix form)`; the resolved variant is an opt-in                                                                                                      | `PurePath`                                                            |
+| `SequenceHasher(tag)`                               | `Node(tag, data)`; a named tuple has the tag `tuple:Class(f1,f2)`                                                                                                         | `list`, `tuple`, `deque`, `Sequence`                                  |
+| `MappingHasher(tag, ordered=False)`                 | `Node(tag, chain(k1, v1, k2, v2, ...), ordered, group=2)`                                                                                                                 | `dict`, `OrderedDict` (`ordered=True`), `Mapping`, `MappingProxyType` |
+| `SetHasher(tag)`                                    | `Node(tag, data, ordered=False)`                                                                                                                                          | `set`, `frozenset`                                                    |
+| `DataclassHasher`                                   | `Node("dataclass:module.Class", chain(name, value, ...), ordered=False, group=2)` over the fields with `compare=True`                                                     | fallback: `dataclasses.is_dataclass`                                  |
+| `ContentHasher`                                     | `Node("custom:module.Class", [data.__coola_hash__()])`                                                                                                                    | fallback: the type has a `__coola_hash__` method                      |
+| NumPy, torch, JAX, pandas, polars, pyarrow, xarray  | a leaf `tagged(tag, header + digest(raw values))` for numeric buffers, otherwise a `Node` whose children are plain values (names, dtype strings, arrays, lists)           | lazy groups, unchanged                                                |
+| `PydanticModelHasher`, `SecretHasher(on_secret)`    | `Node("pydantic:module.Class", chain(field, value, ...), ordered=False, group=2)`; a secret is a leaf or an error                                                         | lazy group, unchanged                                                 |
 
-Removed: the five public leaf functions of  (`hash_string`, `hash_bytes`, `hash_tagged`,
+Removed: the five public leaf functions of (`hash_string`, `hash_bytes`, `hash_tagged`,
 `hash_enum`, `hash_path`: `hash_object("x")` is the supported way; `tagged` and `digest` are the
 building blocks of a hasher), `hash_pydantic_model` and `unwrap_secrets`,
 `SupportsHash` and `HashableHasher` (replaced by `__coola_hash__` and `ContentHasher`), the
@@ -276,7 +276,7 @@ hash_object(x, length=n) = digest(x).hex()[:n]                         # n chara
 - **Fixed-width children** make the concatenation unambiguous without delimiters. The leading
   `0x00`/`0x01` byte makes a leaf and a node with the same tag different by construction.
 - **`length` is chosen by the caller and cuts the end.** The caller asks for 2 to 128 characters
- . Every digest is a full 64-byte BLAKE2b, so the hash of any length is the start of the
+  . Every digest is a full 64-byte BLAKE2b, so the hash of any length is the start of the
   longest one, a hasher never sees `length`, and `length` is validated once, before the traversal.
   The default `length=64` is the first half of the digest.
 - **The format version** is the `person` parameter of BLAKE2b (at most 16 bytes, free): the digests
@@ -318,15 +318,15 @@ The hashers of the optional libraries lose their registry plumbing (`_hash_value
 length, ignore_unhashable)` is called twenty times in `pandas.py`). They return a `Node` whose
 children are plain values; the engine hashes each one with the hasher of its type:
 
-| Library | `encode(data)`                                                                                                                                                                                                                                 |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| NumPy   | numeric dtype: leaf `tagged("numpy.ndarray", f"{dtype}\0{shape}\0" + digest(canonical bytes))` (masked arrays add the digest of the mask); `object` dtype: `Node("numpy.ndarray", [dtype, shape, items])`                                      |
-| torch   | leaf as NumPy with the tag `torch.Tensor`, the dense CPU values, no device and no `requires_grad`                                                                                                                                              |
-| JAX     | leaf as NumPy with the tag `jax.Array`                                                                                                                                                                                                         |
+| Library | `encode(data)`                                                                                                                                                                                                                            |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NumPy   | numeric dtype: leaf `tagged("numpy.ndarray", f"{dtype}\0{shape}\0" + digest(canonical bytes))` (masked arrays add the digest of the mask); `object` dtype: `Node("numpy.ndarray", [dtype, shape, items])`                                 |
+| torch   | leaf as NumPy with the tag `torch.Tensor`, the dense CPU values, no device and no `requires_grad`                                                                                                                                         |
+| JAX     | leaf as NumPy with the tag `jax.Array`                                                                                                                                                                                                    |
 | pandas  | `Node("pandas.DataFrame", [columns key, index key, dtype and values of each column])`; a key is `(names, dtype, values)`; a categorical dtype adds its categories and `ordered`; a missing value is `None` (22.1); a `NaN` name is `None` |
-| polars  | `Node("polars.DataFrame", [name, str(dtype), values, ...])` per column; numeric columns without nulls pass the NumPy array                                                                                                                     |
-| pyarrow | the fixed-width types as NumPy leaves with the digest of the validity bitmap; the other types as a `Node` over `to_pylist()`                                                                                                                   |
-| xarray  | `Node("xarray.DataArray", [name, dims, values, coords, attrs])` (the same three shapes as before)                                                                                                                                               |
+| polars  | `Node("polars.DataFrame", [name, str(dtype), values, ...])` per column; numeric columns without nulls pass the NumPy array                                                                                                                |
+| pyarrow | the fixed-width types as NumPy leaves with the digest of the validity bitmap; the other types as a `Node` over `to_pylist()`                                                                                                              |
+| xarray  | `Node("xarray.DataArray", [name, dims, values, coords, attrs])` (the same three shapes as before)                                                                                                                                         |
 
 The semantics of every library hasher are unchanged (the rules of the guide: dtype, shape, values,
 no layout, `-0.0` and NaN canonical). Only the way the parts are combined changes. The helpers that
@@ -391,7 +391,7 @@ part of the schema of the class, so it is not information; the value still is ne
 
 | Situation                                   | Behavior                                                                                                         |
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `length` is not an even `int` from 2 to 128 | `ValueError` before any traversal; a `bool` or a `float` is rejected with the same message                 |
+| `length` is not an even `int` from 2 to 128 | `ValueError` before any traversal; a `bool` or a `float` is rejected with the same message                       |
 | No hasher for a type                        | `TypeNotRegisteredError` (a `KeyError`) with the remedies, or a lossy placeholder and one `UserWarning` per type |
 | A container that contains itself            | `ValueError("Cannot hash a self-referencing <type>.")`                                                           |
 | Nesting of any depth                        | works; the only limit is memory (no `RecursionError`, no `ValueError`)                                           |
@@ -452,14 +452,14 @@ doctests use) and calls the same engine. The decimal, fraction and range hashers
 
 ## Dependents
 
-| Package                                       | Change                                                                                                                                                                                                                                    |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `identifier.generate_stable_content_id`       | No change of code (`hash_object(data, registry=get_stable_registry(), length=...)`). **Every identifier changes** with the format: the release notes and the migration page say so. The tests of the module use no literal. |
-| `identifier.generate_stable_uuid5`            | Same: it hashes at `length=128`, the whole digest. No code change.                                                                                                                                                                        |
-| `equality`                                    | None. The property "equal implies same hash" is tested from `tests/properties` for the rows of the support matrix (14.4): the `known gap` hash rows that this design closes (`MappingProxyType`, `compare=False`) are removed.            |
-| `utils.recursion.raise_recursion_limit_error` | Not used by `hashing` any more (the docstring example names "hashing"; change it to another action).                                                                                                                                      |
-| User code with a custom hasher                | Rewritten on `encode` (migration page). A hasher of `SupportsHash` becomes `__coola_hash__`.                                                                                                                            |
-| Plugins of `coola.hashing.hashers`            | Their hashers must implement `encode`; the group keeps its name.                                                                                                                                                                          |
+| Package                                       | Change                                                                                                                                                                                                                         |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `identifier.generate_stable_content_id`       | No change of code (`hash_object(data, registry=get_stable_registry(), length=...)`). **Every identifier changes** with the format: the release notes and the migration page say so. The tests of the module use no literal.    |
+| `identifier.generate_stable_uuid5`            | Same: it hashes at `length=128`, the whole digest. No code change.                                                                                                                                                             |
+| `equality`                                    | None. The property "equal implies same hash" is tested from `tests/properties` for the rows of the support matrix (14.4): the `known gap` hash rows that this design closes (`MappingProxyType`, `compare=False`) are removed. |
+| `utils.recursion.raise_recursion_limit_error` | Not used by `hashing` any more (the docstring example names "hashing"; change it to another action).                                                                                                                           |
+| User code with a custom hasher                | Rewritten on `encode` (migration page). A hasher of `SupportsHash` becomes `__coola_hash__`.                                                                                                                                   |
+| Plugins of `coola.hashing.hashers`            | Their hashers must implement `encode`; the group keeps its name.                                                                                                                                                               |
 
 ## Decision record
 
@@ -468,7 +468,7 @@ the only way to make cycles, depth, sharing, `length` and the placeholder proper
 instead of the discipline of 31 methods, and it is what `equality`, `summary` and `recursive` already
 do. Alternative: keep `hash(data, registry, *, length, ignore_unhashable) -> str` and move the
 parameters into a context object (`hash(data, ctx)`). It removes the `noqa` but a hasher still
-recurses, so  to  stay and the engine cannot be an explicit loop.
+recurses, so to stay and the engine cannot be an explicit loop.
 
 Decision: yes
 

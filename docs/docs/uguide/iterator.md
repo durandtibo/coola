@@ -35,7 +35,7 @@ collections.
 | Extensible                   | Support for a new container type is added with one child finder (`find_children`) registered for the type. It serves both orders.                                                                                                             |
 | Errors propagate             | An exception of a child finder, or of the data (for example a failing property), propagates unchanged.                                                                                                                                        |
 | Thread-safe                  | The state of a traversal (stack or queue, cache, ancestors) is local to the call, so a registry and a child finder can be shared by threads. A running traversal must not be shared.                                                          |
-| Consistent with siblings     | The containers entered are the ones of `recursive_apply`; dataclasses are entered as in `objects_are_equal`, `hash_object` and `summarize`; the options are keyword-only; the DFS order is the order of the calls of `recursive_apply`.      |
+| Consistent with siblings     | The containers entered are the ones of `recursive_apply`; dataclasses are entered as in `objects_are_equal`, `hash_object` and `summarize`; the options are keyword-only; the DFS order is the order of the calls of `recursive_apply`.       |
 
 Not guaranteed:
 

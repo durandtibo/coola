@@ -129,7 +129,7 @@ to build an independent registry with the same entries.
 | Extensible              | `requires` creates the pair of marks for another dependency, like for the built-in ones.                                                                                                                    |
 | Isolated registries     | The `isolated_default_registries` fixture runs a test on copies of the six default registries and restores the originals when the test ends, even if it fails.                                              |
 | Opt-in                  | Nothing in `coola` outside `coola.testing` imports it, and the fixture is not autouse.                                                                                                                      |
-| No state of its own     | The module has no global state besides the cache of the marks it built. It changes no environment variable and no registry at import.                                                                      |
+| No state of its own     | The module has no global state besides the cache of the marks it built. It changes no environment variable and no registry at import.                                                                       |
 
 Not guaranteed:
 

@@ -227,7 +227,7 @@ check.
   on the first error, as the standard library does.
 - **Custom exception classes** and error codes: the two builtin types are the contract.
 - **Validation of nested structures and of array shapes or dtypes.** `validate_isinstance(x,
-  np.ndarray)` works; a dtype check belongs to the package that owns the array library.
+np.ndarray)` works; a dtype check belongs to the package that owns the array library.
 - **Coercion** (`ensure_int`, `to_float`): validators never convert.
 - **Decorators and `Annotated` metadata**: use a schema library (pydantic, attrs validators,
   beartype). The package is a set of functions that a constructor calls.

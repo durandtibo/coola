@@ -99,11 +99,11 @@ is not readable). `EmptySequenceError` derives from `ValueError`.
 
 ### The backends
 
-| Backend         | `_prepare`                                                                                                                                                                                                                                                              | Computation                                                                                                       |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Backend         | `_prepare`                                                                                                                                                                                                                                                              | Computation                                                                                                  |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `NativeReducer` | Accept a `collections.abc.Sequence` that is not a `str` / `bytes`; reject everything else (arrays and tensors included: `TypeError("NativeReducer takes a list or a tuple, got ndarray; use NumpyReducer")`). Returns the input itself, no copy.                        | `max`, `min`, `statistics.fmean`, `median` with the halving rule, `stdev`, `utils.stats.quantile`, `sorted`. |
-| `NumpyReducer`  | `np.asarray(values)`; reject a `dtype` that is not `bool` / int / uint / float (`object` for a big int or a `Decimal`, complex, string) with a `TypeError` naming `NativeReducer`; reject `ndim != 1`. Rejects a set and an iterator before `asarray`.             | `np.max`, `np.min`, `np.mean`, `np.median` (halving rule), `np.std(ddof=1)`, `np.quantile`, `np.sort`.            |
-| `TorchReducer`  | Tensor: as is. List / tuple: one converter `_to_tensor(values)` (float64 if any float, else int64; `OverflowError` / `ValueError` of the conversion become the same `TypeError`). Reject complex and `ndim != 1`. An array goes through `coola.utils.tensor.to_tensor`. | `torch.max`, `torch.min`, `mean` on float64, `median` of two middle values, `std`, `quantile`, `sort`.            |
+| `NumpyReducer`  | `np.asarray(values)`; reject a `dtype` that is not `bool` / int / uint / float (`object` for a big int or a `Decimal`, complex, string) with a `TypeError` naming `NativeReducer`; reject `ndim != 1`. Rejects a set and an iterator before `asarray`.                  | `np.max`, `np.min`, `np.mean`, `np.median` (halving rule), `np.std(ddof=1)`, `np.quantile`, `np.sort`.       |
+| `TorchReducer`  | Tensor: as is. List / tuple: one converter `_to_tensor(values)` (float64 if any float, else int64; `OverflowError` / `ValueError` of the conversion become the same `TypeError`). Reject complex and `ndim != 1`. An array goes through `coola.utils.tensor.to_tensor`. | `torch.max`, `torch.min`, `mean` on float64, `median` of two middle values, `std`, `quantile`, `sort`.       |
 
 The halving rule of the median ("if the mean of the two middle values overflowed, halve the values
 first") is the same sentence in the three backends. It stays in the backends because it needs the
@@ -151,14 +151,14 @@ from coola.reducer import (
 | `quantile` with an invalid `q`  | `ValueError` or `RuntimeError`                 | `ValueError("quantiles must be in [0, 1], got 2")` in the three backends |
 | `auto_reducer()` with both libs | `TorchReducer`                                 | `NumpyReducer`                                                           |
 | `NativeReducer.mean`            | exact (`statistics.mean`)                      | `statistics.fmean` (15 times faster; the last bit can differ for floats) |
-| Reducer equality                | identity                                       | unchanged                                                       |
+| Reducer equality                | identity                                       | unchanged                                                                |
 
 ## Dependents
 
-| Package / file                                  | Change                                                                                                                                                                                  |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src` (everything except `coola.reducer`)       | None: no module imports `coola.reducer`. `coola.utils.stats.quantile` is used only by `NativeReducer`; it stays in `coola.utils` (public helper with its own tests, `CLAUDE.md`). |
-| `tests/unit/reducer/`, `tests/properties/`      | Ported; the 46 properties keep their meaning.                                                                                                                               |
+| Package / file                             | Change                                                                                                                                                                            |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src` (everything except `coola.reducer`)  | None: no module imports `coola.reducer`. `coola.utils.stats.quantile` is used only by `NativeReducer`; it stays in `coola.utils` (public helper with its own tests, `CLAUDE.md`). |
+| `tests/unit/reducer/`, `tests/properties/` | Ported; the 46 properties keep their meaning.                                                                                                                                     |
 
 ## Decisions
 
@@ -167,12 +167,12 @@ unchanged.
 
 | Decision | Question                                | Outcome                           | Where it applies               |
 | -------- | --------------------------------------- | --------------------------------- | ------------------------------ |
-| D1       | One base class or two?                  | One (`BaseReducer` as a template) | Section 3.1            |
-| D2       | How strict is the input?                | Strict                            | Section 1 (input rule) |
-| D3       | Does `auto_reducer` look at the values? | No                                | Section 3.3            |
+| D1       | One base class or two?                  | One (`BaseReducer` as a template) | Section 3.1                    |
+| D2       | How strict is the input?                | Strict                            | Section 1 (input rule)         |
+| D3       | Does `auto_reducer` look at the values? | No                                | Section 3.3                    |
 | D4       | `__eq__` and `__hash__` for reducers?   | No                                | Section 4 (equality unchanged) |
-| D5       | Keep `TorchReducer`?                    | Yes                               | Section 3.2            |
-| D6       | `NativeReducer.mean` exact or fast?     | `statistics.fmean`                | Section 4              |
+| D5       | Keep `TorchReducer`?                    | Yes                               | Section 3.2                    |
+| D6       | `NativeReducer.mean` exact or fast?     | `statistics.fmean`                | Section 4                      |
 
 The reasoning for each is kept below.
 
@@ -199,7 +199,7 @@ then native; a tensor on a device is a reason to write `TorchReducer()`. A signa
 `auto_reducer(values)` that returns `TorchReducer` for a tensor, `NumpyReducer` for an array and the
 default otherwise is about ten lines and a second dispatch; it can be added later without breaking
 anything, once a consumer asks. Alternative: keep "torch first" so that tensors are always handled;
-rejected on the measurements of  (slower on lists, 0.94 s of import).
+rejected on the measurements of (slower on lists, 0.94 s of import).
 
 Decision: no
 

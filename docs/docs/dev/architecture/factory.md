@@ -113,7 +113,7 @@ def instantiate_object(
     if not isinstance(_init_, str) or _init_.startswith("_"):
         raise TypeError(
             f"`_init_` must be '__init__' or the name of a public class method (received: {_init_!r})"
-)
+        )
     method = getattr(obj, _init_, None)
     if not callable(method):
         raise TypeError(f"{obj} does not have a callable `{_init_}` attribute")
@@ -121,7 +121,7 @@ def instantiate_object(
     if not isinstance(result, obj):
         raise TypeError(
             f"`{_init_}` of {obj} did not return an instance of {obj} (received: {result!r})"
-)
+        )
     return result
 ```
 
@@ -192,7 +192,7 @@ def _build(config, cls, *, allowed_prefixes, strict):
         if built is False or (built is None and strict):
             raise TypeError(
                 ...
-)  # the two messages of the previous version, naming the target; "it was not called"
+            )  # the two messages of the previous version, naming the target; "it was not called"
     return instantiate_object(target, _init_=init, **kwargs)
 
 
@@ -273,8 +273,8 @@ Behaviour changes (for the migration page):
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `io.base` (`resolve_loader`, `resolve_saver`)     | Unchanged code. A dict without `_target_` now fails with `Received object is not a BaseLoader instance (received: <class 'dict'>; a configuration needs the `_target_` key)` instead of "missing the `_target_` key". No test of `io` matches the old message; the two tests of `tests/unit/factory/test_resolve.py` that do (lines 465 and 502) are updated. |
 | `io.base` (`is_loader_config`, `is_saver_config`) | Unchanged code. Their docstrings point to `is_object_config`, which keeps the same contract for `allowed_prefixes` and `import_target`.                                                                                                                                                                                                                       |
-| `utils.imports.import_object`                     | Unchanged. Both docstrings cross-reference each other and state the path syntax.                                                                                                                                                                                                                                                                         |
-| `pyproject.toml` (import-linter)                  | No change: `coola.factory` imports `coola.utils.imports` only, as before.                                                                                                                                                                                                                                                                                      |
+| `utils.imports.import_object`                     | Unchanged. Both docstrings cross-reference each other and state the path syntax.                                                                                                                                                                                                                                                                              |
+| `pyproject.toml` (import-linter)                  | No change: `coola.factory` imports `coola.utils.imports` only, as before.                                                                                                                                                                                                                                                                                     |
 
 ## Decision record (settled)
 
@@ -297,7 +297,7 @@ the rule that depends on `cls`. The key is reserved, as in Hydra: a dict that ha
 passed through `resolve_object` as data, and the guide says so. Consequence: the dict-subclass tests
 and the guide warning are deleted, `Mapping`, `dict` and `object` work the same, and the explanation
 of the rule is one sentence. Rejected alternative: keep the previous rule; it needs the `issubclass` special case,
-fails for generics, and leaves  open.
+fails for generics, and leaves open.
 
 **D2. Remove `_init_="__new__"` and the underscore names.** **Decided: yes.** `cls(...)` runs
 `__new__` and `__init__`; `cls.__new__(cls, ...)` alone gives a partially initialised object, and the
@@ -311,19 +311,19 @@ feature, and it is a hole in the day somebody lets the data widen it. Rejected a
 when the caller passes none (today); costs nothing, keeps the smell.
 
 **D4. Refuse a nested configuration when an allow-list is active.** **Decided: yes.** It closes the
-exact case of  (an allowed function that resolves its arguments) in 5 lines, and it fails closed:
+exact case of (an allowed function that resolves its arguments) in 5 lines, and it fails closed:
 whoever needs the nested object resolves it first, with the same list, as the guide already tells.
 Limits: it scans the top level of the arguments only (a configuration deeper in a list is not found),
 and it does not help against a prefix that contains `import_object`. It is a mitigation, not a proof;
 the guide says which prefixes must never be allowed. Rejected alternative: documentation only; cheaper, but the
-fix of  then exposes .
+fix of then exposes .
 
 **D5. `dict` or `Mapping` for configurations?** **Decided: `dict`.** JSON and YAML load into
 `dict`; a `DictConfig` is converted by the caller (`to_container`). Accepting any `Mapping` costs one
 word but widens what counts as "a configuration" in a security-relevant check.
 
 **D6. Check the module that defines the target?** **Decided: no.** Comparing `target.__module__` to
-the prefixes would stop a re-export from another package, but it does not close  (the functions
+the prefixes would stop a re-export from another package, but it does not close (the functions
 of `coola.factory` are defined under `coola`), and it rejects legitimate aliases (`os.path.join` is
 defined in `posixpath`, `numpy` functions in private modules of other names). The guide states that
 the list filters paths.
@@ -339,7 +339,7 @@ is reached with `_init_`, a nested class is rare. (`import_object("collections.O
 raises `ImportError: The target object does not exist`, with the prototype.) Three reasons: (1) the
 fallback loop must tell an expected failure (`collections.OrderedDict` is not a module) from a real
 one (a module that exists but whose own dependency is missing), which is the `err.name` rule of
- repeated at every step; (2) `_init_` already reaches class methods, and D2 keeps it
+repeated at every step; (2) `_init_` already reaches class methods, and D2 keeps it
 public; (3) walking attributes widens what a prefix reaches: `"mypkg"` would allow
 `mypkg.module.Class.helper.os.system`, whereas before only the last segment goes through `getattr`.
 Cost accepted: a nested class (`pkg.Outer.Inner`) needs a module-level alias.

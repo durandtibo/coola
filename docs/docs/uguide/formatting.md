@@ -22,13 +22,13 @@ packages) are built on it.
 
 ## Properties
 
-| Property                | Statement                                                                                                                                      |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pure                    | A function has no side effect and keeps no state: the same input gives the same string. It does not touch the logger, the environment or files. |
-| `str` and `repr` pairs  | `str_mapping` / `repr_mapping` and `str_sequence` / `repr_sequence` (and the `*_line` variants) format the values with `str` or with `repr`.   |
-| One layout              | A mapping is `(key): value` per line, a sequence is `(index): value` per line, and a multi-line value is indented under its key.               |
-| Strict options          | Options are keyword-only and checked before any work (`num_spaces` must be at least 0): a wrong type is a `TypeError`, a wrong value a `ValueError`. |
-| No optional library     | Nothing here imports NumPy, torch or another optional package.                                                                                 |
+| Property               | Statement                                                                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pure                   | A function has no side effect and keeps no state: the same input gives the same string. It does not touch the logger, the environment or files.      |
+| `str` and `repr` pairs | `str_mapping` / `repr_mapping` and `str_sequence` / `repr_sequence` (and the `*_line` variants) format the values with `str` or with `repr`.         |
+| One layout             | A mapping is `(key): value` per line, a sequence is `(index): value` per line, and a multi-line value is indented under its key.                     |
+| Strict options         | Options are keyword-only and checked before any work (`num_spaces` must be at least 0): a wrong type is a `TypeError`, a wrong value a `ValueError`. |
+| No optional library    | Nothing here imports NumPy, torch or another optional package.                                                                                       |
 
 The exact layout of a bar or a diff is meant to be read, not parsed.
 

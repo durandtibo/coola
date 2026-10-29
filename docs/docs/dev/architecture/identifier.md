@@ -194,7 +194,7 @@ def generate_stable_uuid5(
 ) -> str:
     digest = generate_stable_content_id(
         data, registry=registry, length=128, ignore_unhashable=ignore_unhashable
-)
+    )
     return str(uuid.uuid5(namespace, digest))
 ```
 
@@ -254,9 +254,9 @@ What to use instead of the removed names (the migration page and the guide say i
 
 ## Dependents
 
-| Where                                                             | Change                                                                                                                                                                                                         |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tests/unit/hashing/test_golden.py`, `tests/integration/hashing/` | None: they use the stable identifiers, which keep their values. `test_content.py` gets its own golden vectors for the two identifiers.                                                             |
+| Where                                                             | Change                                                                                                                                 |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/unit/hashing/test_golden.py`, `tests/integration/hashing/` | None: they use the stable identifiers, which keep their values. `test_content.py` gets its own golden vectors for the two identifiers. |
 
 ## Decision record
 
@@ -282,7 +282,7 @@ modules (4 with `obfuscated`), and each one has to be documented, tested and kep
 `obfuscated` is the one with a real argument against it: it looks like encryption, leaks the parity,
 is broken by two pairs, and needs a 47-line module docstring on its limits; a user who needs an opaque public identifier
 should get one from a library made for it. Alternatives: (B) keep everything and apply only steps
-1, 3, 4, 5, 6 and 7, with `Callable`-based `prefixed` and the fixes of  and  for the four modules
+1, 3, 4, 5, 6 and 7, with `Callable`-based `prefixed` and the fixes of and for the four modules
 (about 420 more lines of source and 480 of tests to maintain), or (C) move the whole package to a
 separate distribution and keep only `content.py` in `coola`. (C) is the cleanest layering, and the
 most work for the users; it is worth considering if the time-ordered formats keep growing.
@@ -291,7 +291,7 @@ most work for the users; it is worth considering if the time-ordered formats kee
 
 **D2. Keep the checksummed identifier?** _Recommended: yes, with rejection sampling._ It is the one
 module that shares code with ULID (the decoder), its detection claim is true and tested, and the fix
-of  makes its output usable for what it is for. If D1(C) is chosen it moves with the others.
+of makes its output usable for what it is for. If D1(C) is chosen it moves with the others.
 
 **Decided: as recommended.**
 
@@ -357,6 +357,6 @@ move for little benefit.
 - **Allocation of Snowflake worker ids** across hosts (a database row, an environment variable, a
   coordinator): the caller's job, stated in the guide.
 - **The format version of the stable identifiers.** A `HASH_FORMAT_VERSION` mixed into the UUID5
-   belongs to `hashing`.
+  belongs to `hashing`.
 - **Windows.** `os.register_at_fork` does not exist there; the fork rules do not apply and the
   `os.fork` tests are skipped, as before.

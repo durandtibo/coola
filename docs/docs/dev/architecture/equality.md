@@ -195,7 +195,7 @@ class BaseEqualityTester(ABC, Generic[T]):
     @abstractmethod
     def objects_are_equal(
         self, actual: T, expected: T, ctx: Engine
-) -> bool | Iterator[tuple[object, object, object]]:
+    ) -> bool | Iterator[tuple[object, object, object]]:
         """A verdict (a leaf), or the child pairs (actual, expected, path part) that must all be
         equal (a container), produced lazily and in the order the first difference is wanted."""
 
@@ -245,7 +245,7 @@ class MappingEqualityTester(BaseEqualityTester[Mapping]):
         keys_a, keys_e = (
             key_index(actual, ctx),
             key_index(expected, ctx),
-)  # comparison_key: types, NaN keys
+        )  # comparison_key: types, NaN keys
         if keys_a.keys() != keys_e.keys():
             return ctx.fail(lambda: describe_key_difference(keys_a, keys_e))
         return ((actual[keys_a[k]], expected[keys_e[k]], keys_a[k]) for k in keys_a)
@@ -261,7 +261,7 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
             return (
                 (a, e, i)
                 for i, (a, e) in enumerate(zip(actual.ravel().tolist(), expected.ravel().tolist()))
-)
+            )
         close = close_numpy(actual, expected, ctx)  # boolean array, the kernel of
         if close.all():
             return True
@@ -275,7 +275,7 @@ class ScalarEqualityTester(BaseEqualityTester[float]):  # int, float, complex, N
             return actual == expected or ctx.fail(lambda: describe_values(actual, expected))
         return number_close(actual, expected, ctx) or ctx.fail(
             lambda: describe_values(actual, expected)
-)
+        )
 ```
 
 A user tester for their own class returns the pairs of its attributes:
@@ -290,19 +290,19 @@ A tester has no state but its configuration; `__eq__` and `__repr__` come from t
 
 ### Type rules
 
-| Type                                                                        | Tester                                                   | Rule                                                                                                                             |
-| --------------------------------------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `object` (unregistered)                                                     | `DefaultEqualityTester`                                  | `==`; a raise or a non-bool result is a `TypeError` naming the type                                                              |
-| `int`, `float`, `complex`, NumPy scalars                                    | `ScalarEqualityTester`                                   | kernel formula; `bool` and enums exact                                                                                           |
-| `Decimal`, `Fraction`, `timedelta`                                          | `DifferenceCloseEqualityTester`                          | difference-based tolerance; `Decimal` NaN by `equal_nan`                                                                         |
-| `list`, `tuple`, `deque`, `Sequence`, `array.array`, dict values            | `SequenceEqualityTester`                                 | length, then items in order                                                                                                      |
-| `dict`, `Mapping`, `MappingProxyType`                                       | `MappingEqualityTester`                                  | same keys (by type, NaN by `equal_nan`), then values                                                                             |
-| `OrderedDict`                                                               | `OrderedMappingEqualityTester`                           | and the same key order                                                                                                           |
-| `set`, `frozenset`                                                          | `SetEqualityTester`                                      | elements matched by hash and type; reports `Element`                                                                             |
-| dataclasses, pydantic models                                                | `DataclassEqualityTester`, `PydanticModelEqualityTester` | fields as `AttributeName` children                                                                                               |
+| Type                                                                        | Tester                                                   | Rule                                                                                                                        |
+| --------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `object` (unregistered)                                                     | `DefaultEqualityTester`                                  | `==`; a raise or a non-bool result is a `TypeError` naming the type                                                         |
+| `int`, `float`, `complex`, NumPy scalars                                    | `ScalarEqualityTester`                                   | kernel formula; `bool` and enums exact                                                                                      |
+| `Decimal`, `Fraction`, `timedelta`                                          | `DifferenceCloseEqualityTester`                          | difference-based tolerance; `Decimal` NaN by `equal_nan`                                                                    |
+| `list`, `tuple`, `deque`, `Sequence`, `array.array`, dict values            | `SequenceEqualityTester`                                 | length, then items in order                                                                                                 |
+| `dict`, `Mapping`, `MappingProxyType`                                       | `MappingEqualityTester`                                  | same keys (by type, NaN by `equal_nan`), then values                                                                        |
+| `OrderedDict`                                                               | `OrderedMappingEqualityTester`                           | and the same key order                                                                                                      |
+| `set`, `frozenset`                                                          | `SetEqualityTester`                                      | elements matched by hash and type; reports `Element`                                                                        |
+| dataclasses, pydantic models                                                | `DataclassEqualityTester`, `PydanticModelEqualityTester` | fields as `AttributeName` children                                                                                          |
 | `np.ndarray`, `np.ma.MaskedArray`, NumPy `datetime64`/`timedelta64` scalars | `Numpy*EqualityTester`                                   | dtype, shape, kernel; for a masked array the data (masked values included), the mask and `fill_value`; `NaT` by `equal_nan` |
-| `torch.Tensor`, `PackedSequence`, `jax.Array`, xarray                       | `Torch*`, `Jax*`, `Xarray*EqualityTester`                | device, dtype, shape, layout, kernel; xarray parts as children                                                                   |
-| pandas, polars, pyarrow frames, series, arrays                              | `TableEqualityTester`                        | structure, then columns by kind                                                                                                  |
+| `torch.Tensor`, `PackedSequence`, `jax.Array`, xarray                       | `Torch*`, `Jax*`, `Xarray*EqualityTester`                | device, dtype, shape, layout, kernel; xarray parts as children                                                              |
+| pandas, polars, pyarrow frames, series, arrays                              | `TableEqualityTester`                                    | structure, then columns by kind                                                                                             |
 
 ## Decision record
 
@@ -311,10 +311,10 @@ the maintainers; the steps of that depend on a choice are named.
 
 ### Q1. Engine: iterative or recursive
 
-| Option       | For                                                                                          | Against                                                                                                                             |
-| ------------ | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Option       | For                                                                                          | Against                                                                                                                                           |
+| ------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A. Iterative | No `RecursionError`, explaining is free, container testers are pure functions of two objects | About 1.5x slower than B on the happy path (still 3 to 5x faster than the previous version); a tester returns an iterator, which is less familiar |
-| B. Recursive | Fastest; testers call `ctx.compare`, the familiar shape                                      | Interpreter stack limit and `max_depth` stay; depth, cycle and path need a `try/finally`                                            |
+| B. Recursive | Fastest; testers call `ctx.compare`, the familiar shape                                      | Interpreter stack limit and `max_depth` stay; depth, cycle and path need a `try/finally`                                                          |
 
 Recommendation: A. Decision: A
 
@@ -463,34 +463,34 @@ intermediate states, a large diff). Decision: A
 
 ### Decisions taken and their effect on the design
 
-| Q   | Decision                                                                                              | Effect, already applied in the sections above                                                                                     |
-| --- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Q1  | Iterative engine                                                                                      |, 4                                                                                                                     |
-| Q2  | One method returns a verdict or an iterator                                                           |                                                                                                                       |
-| Q3  | Remove `show_difference` and the logger                                                               |                                                                                                               |
-| Q4  | Drop root `repr`s; `compare(rtol, atol)`; `Tolerance` public                                          |                                                                                                                         |
-| Q5  | Masked arrays: keep comparing the data under the mask                                                 | masked row of 4.4; dropped; C9 closed                                                                                      |
-| Q6  | Nested and `object` cells of frames left to the library                                               |: three kinds only, no cell children, the tolerance and `equal_nan` do not reach nested cells; C4 reworded; C6 left open |
-| Q7  | Time resolution stays in the dtype                                                                    |                                                                                                                         |
-| Q8  | Integers: exact difference, tolerance in `float64`                                                    |; small floats cast to `float64` (R2)                                                                                    |
-| Q9  | Ignored state stays ignored and is documented                                                         | guide sections                                                                                                                    |
-| Q10 | `bool` and every `Enum` exact                                                                         |                                                                                                                       |
-| Q11 | A migration guide in `docs/docs/migration/`                                                           |                                                                                                                           |
-| Q12 | Library testers stay public                                                                           | exports; open details in R3                                                                                             |
-| Q13 | Per-call lookup cache                                                                                 |                                                                                                                       |
-| Q14 | Engine PR with chain testers called as leaves                                                         |                                                                                                                            |
-| R1  | Document the `NaN`-in-nested-cell exception                                                           | property rows of                                                                                                        |
-| R2  | Cast small floats to `float64`                                                                        |                                                                                                                         |
-| R3  | `TableEqualityTester(adapter)` only, `Engine`, export both path parts, helpers private except `close` |                                                                                                                         |
-| R4  | Keep `max_depth=100` and `MaxDepthExceededError`                                                      |                                                                                                                       |
-| R5  | A table is one leaf, reported as different, no row (the column name comes from S1)                    |, 7                                                                                                                     |
-| S1  | The reason of a table names the first differing column (never a row)                                  |                                                                                                                         |
-| S2  | Arrays keep their index in the path                                                                   |, 5                                                                                                                   |
-| S3  | A `Series` says "series", an `Array` "arrays" (`kind_name`)                                           |                                                                                                                         |
-| H1  | The hasher of masked arrays is left as it is (may change later)                                       | last section                                                                                                                      |
-| T1  | All steps land on a major-release branch; nothing is released before                          |                                                                                                                      |
-| T2  | Benchmark gates are reported and checked by hand, not a failing CI check                              |                                                                                                                      |
-| T3  | The hashing follow-up is done after                                                           | last section                                                                                                                      |
+| Q   | Decision                                                                                              | Effect, already applied in the sections above                                                                            |
+| --- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Q1  | Iterative engine                                                                                      | , 4                                                                                                                      |
+| Q2  | One method returns a verdict or an iterator                                                           |                                                                                                                          |
+| Q3  | Remove `show_difference` and the logger                                                               |                                                                                                                          |
+| Q4  | Drop root `repr`s; `compare(rtol, atol)`; `Tolerance` public                                          |                                                                                                                          |
+| Q5  | Masked arrays: keep comparing the data under the mask                                                 | masked row of 4.4; dropped; C9 closed                                                                                    |
+| Q6  | Nested and `object` cells of frames left to the library                                               | : three kinds only, no cell children, the tolerance and `equal_nan` do not reach nested cells; C4 reworded; C6 left open |
+| Q7  | Time resolution stays in the dtype                                                                    |                                                                                                                          |
+| Q8  | Integers: exact difference, tolerance in `float64`                                                    | ; small floats cast to `float64` (R2)                                                                                    |
+| Q9  | Ignored state stays ignored and is documented                                                         | guide sections                                                                                                           |
+| Q10 | `bool` and every `Enum` exact                                                                         |                                                                                                                          |
+| Q11 | A migration guide in `docs/docs/migration/`                                                           |                                                                                                                          |
+| Q12 | Library testers stay public                                                                           | exports; open details in R3                                                                                              |
+| Q13 | Per-call lookup cache                                                                                 |                                                                                                                          |
+| Q14 | Engine PR with chain testers called as leaves                                                         |                                                                                                                          |
+| R1  | Document the `NaN`-in-nested-cell exception                                                           | property rows of                                                                                                         |
+| R2  | Cast small floats to `float64`                                                                        |                                                                                                                          |
+| R3  | `TableEqualityTester(adapter)` only, `Engine`, export both path parts, helpers private except `close` |                                                                                                                          |
+| R4  | Keep `max_depth=100` and `MaxDepthExceededError`                                                      |                                                                                                                          |
+| R5  | A table is one leaf, reported as different, no row (the column name comes from S1)                    | , 7                                                                                                                      |
+| S1  | The reason of a table names the first differing column (never a row)                                  |                                                                                                                          |
+| S2  | Arrays keep their index in the path                                                                   | , 5                                                                                                                      |
+| S3  | A `Series` says "series", an `Array` "arrays" (`kind_name`)                                           |                                                                                                                          |
+| H1  | The hasher of masked arrays is left as it is (may change later)                                       | last section                                                                                                             |
+| T1  | All steps land on a major-release branch; nothing is released before                                  |                                                                                                                          |
+| T2  | Benchmark gates are reported and checked by hand, not a failing CI check                              |                                                                                                                          |
+| T3  | The hashing follow-up is done after                                                                   | last section                                                                                                             |
 
 ### Follow-up questions
 
@@ -581,7 +581,7 @@ Recommendation: B.
 Decision: A
 
 **T2. Are the benchmark gates a failing CI check?** `ci-benchmark.yaml` exists. The gates of
- (regression above 10%, and the targets after, 10, 11) can fail the build, or be
+(regression above 10%, and the targets after, 10, 11) can fail the build, or be
 reported only. Failing builds on timing are flaky on shared runners.
 Options: A. fail the build on a regression above 10% against the stored baseline of the previous version, with a
 generous margin for the absolute targets; B. report only, and check by hand at each step.
@@ -634,7 +634,7 @@ def run(self, a, e):  # Engine.run
         if ok is False:
             return self.record_failure(
                 parts, part
-)  # path = parts[1:] + (part,) + the parts of fail()
+            )  # path = parts[1:] + (part,) + the parts of fail()
         while True:  # next pair: the top iterator, popping the exhausted ones
             if not stack:
                 return True
@@ -660,12 +660,12 @@ so that nothing is forgotten.
 The property "equal objects have the same `hash_object`" has to hold with the new equality. What the
 design implies for the hashers:
 
-| Case                                                  | Equality (target)                       | Hasher before / change                                                                              |
+| Case                                                  | Equality (target)                       | Hasher before / change                                                                             |
 | ----------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| pandas `object` column, `None` against `NaN`          | equal (the library's `equals`)          | hashes differ: hash a `None` and a `NaN` of an `object` column the same             |
+| pandas `object` column, `None` against `NaN`          | equal (the library's `equals`)          | hashes differ: hash a `None` and a `NaN` of an `object` column the same                            |
 | `NaN` inside nested cells (lists, structs) of a frame | equal without `equal_nan` (the library) | check the hash of nested `NaN`: it must not depend on the NaN bit pattern                          |
 | Nested floats of a frame, tolerance                   | exact (no tolerance)                    | nothing to do: equal values have equal hashes                                                      |
-| Masked array, data under the mask                     | compared                           | the hasher ignores it; allowed (different values may share a hash); decide if it should include it |
+| Masked array, data under the mask                     | compared                                | the hasher ignores it; allowed (different values may share a hash); decide if it should include it |
 | Integers above 2^53 in arrays, `bool` and enums       | exact                                   | check that the hash is exact (no `float64` conversion), and the same for `bool` and `Enum` members |
 | Enum members, `IntEnum` against `int`                 | different types                         | the hash of an `IntEnum` member may equal the hash of its `int`: allowed                           |
 | `MappingProxyType`, `array.array`                     | compared as a mapping and a sequence    | check they have a hasher consistent with a `dict` and a `list` of the same content                 |
@@ -687,7 +687,7 @@ Decision: no, leave the hasher as it is. It may change later.
 
 | Package                                                                     | Change                                                                                                                                                                                                                                                |
 | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `coola.io`, `coola.nested`, `coola.hashing.registry`, `coola.registry.base` | import `objects_are_equal` from `coola.equality`, not from the private `coola.equality.interface`                                                                                                                                               |
+| `coola.io`, `coola.nested`, `coola.hashing.registry`, `coola.registry.base` | import `objects_are_equal` from `coola.equality`, not from the private `coola.equality.interface`                                                                                                                                                     |
 | `coola.registry` (equality of two registries)                               | testers are compared with their `__eq__` (the `equal(other)` method of `BaseEqualityTester` is removed): the default registry registers the testers and handlers types of the removed chain with the default `==` tester, or no longer registers them |
 | `coola.summary`, `coola.iterator`, `coola.recursive`, `coola.reducer`       | no change expected; check that none imports a removed handler or `HandlerCycleError`                                                                                                                                                                  |
 | `coola.testing`                                                             | fixtures and helpers that use `show_difference` or the handler chain move to `compare` and `assert_*`                                                                                                                                                 |
