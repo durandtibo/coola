@@ -6,15 +6,27 @@ __all__ = ["print_markdown", "print_pretty"]
 
 from typing import TYPE_CHECKING, Any
 
-from rich import get_console
-from rich.box import MINIMAL, ROUNDED
-from rich.markdown import Markdown
-from rich.panel import Panel
-from rich.pretty import Pretty
+from coola.utils.imports import is_rich_available
 
 if TYPE_CHECKING:
     from rich.align import AlignMethod
     from rich.console import Console
+
+if TYPE_CHECKING or is_rich_available():  # pragma: no cover
+    from rich import get_console
+    from rich.box import MINIMAL, ROUNDED
+    from rich.markdown import Markdown
+    from rich.panel import Panel
+    from rich.pretty import Pretty
+else:  # pragma: no cover
+    from coola.utils.fallback.rich import (
+        MINIMAL,
+        ROUNDED,
+        Markdown,
+        Panel,
+        Pretty,
+        get_console,
+    )
 
 
 def _truncate(content: str, max_length: int) -> tuple[str, bool]:
@@ -130,6 +142,9 @@ def print_markdown(
             invocation only.  Pass ``None`` (the default) to use the
             shared instance.
 
+    Raises:
+        MissingPackageError: If ``rich`` is not installed.
+
     Example:
         ```pycon
         >>> from coola.display.rich import print_markdown
@@ -187,6 +202,9 @@ def print_pretty(
             for this call.  Overrides the shared default for this
             invocation only.  Pass ``None`` (the default) to use the
             shared instance.
+
+    Raises:
+        MissingPackageError: If ``rich`` is not installed.
 
     Example:
         ```pycon

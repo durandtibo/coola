@@ -5,13 +5,21 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
-from rich.logging import RichHandler
 
 from coola.display.rich import configure_rich_logging
+from coola.testing.marks import rich_available
+from coola.utils.imports import is_rich_available
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
+
+if is_rich_available():
+    from rich.logging import RichHandler
+else:
+    RichHandler = object
+
+pytestmark = rich_available
 
 MODULE = "coola.display.rich.logging"
 

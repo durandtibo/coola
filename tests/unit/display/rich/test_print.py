@@ -4,6 +4,9 @@ import pytest
 
 from coola.display.rich import print_markdown, print_pretty
 from coola.display.rich.print_ import _truncate
+from coola.testing.marks import rich_available
+
+pytestmark = rich_available
 
 ###############################
 #     Tests for _truncate     #

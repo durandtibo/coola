@@ -1,17 +1,25 @@
 from __future__ import annotations
 
-from rich.progress import (
-    BarColumn,
-    MofNCompleteColumn,
-    Progress,
-    SpinnerColumn,
-    TaskProgressColumn,
-    TextColumn,
-    TimeElapsedColumn,
-    TimeRemainingColumn,
-)
-
 from coola.display.rich import make_progressbar, make_spinner
+from coola.testing.marks import rich_available
+from coola.utils.imports import is_rich_available
+
+if is_rich_available():
+    from rich.progress import (
+        BarColumn,
+        MofNCompleteColumn,
+        Progress,
+        SpinnerColumn,
+        TaskProgressColumn,
+        TextColumn,
+        TimeElapsedColumn,
+        TimeRemainingColumn,
+    )
+else:
+    BarColumn = MofNCompleteColumn = Progress = SpinnerColumn = object
+    TaskProgressColumn = TextColumn = TimeElapsedColumn = TimeRemainingColumn = object
+
+pytestmark = rich_available
 
 ######################################
 #     Tests for make_progressbar     #
