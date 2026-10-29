@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, is_dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from coola.equality import objects_are_equal
 from coola.registry import AlreadyRegisteredError
 from coola.summary import (
-    BaseSummarizer,
     DataclassSummarizer,
     DefaultSummarizer,
     MappingSummarizer,
@@ -18,6 +17,9 @@ from coola.summary import (
     SummaryConfig,
 )
 from tests.helpers import nest
+
+if TYPE_CHECKING:
+    from coola.summary.base import Summarizer
 
 
 class CustomList(list):
@@ -46,7 +48,7 @@ def test_summarizer_registry_init_with_registry_keeps_the_summarizer() -> None:
 
 
 def test_summarizer_registry_init_with_registry_copies_the_registry() -> None:
-    initial_registry: dict[type, BaseSummarizer[Any]] = {list: SequenceSummarizer()}
+    initial_registry: dict[type, Summarizer[Any]] = {list: SequenceSummarizer()}
     registry = SummarizerRegistry(initial_registry)
     initial_registry[tuple] = SetSummarizer()
     assert tuple not in registry._state
@@ -132,7 +134,7 @@ def test_summarizer_registry_register_many_set() -> None:
 
 def test_summarizer_registry_register_many_with_existing_type() -> None:
     registry = SummarizerRegistry({list: SequenceSummarizer()})
-    summarizers = {
+    summarizers: dict[type, Summarizer[Any]] = {
         list: MappingSummarizer(),
         dict: MappingSummarizer(),
     }
@@ -145,7 +147,7 @@ def test_summarizer_registry_register_many_with_exist_ok() -> None:
     registry.register(list, SequenceSummarizer())
 
     summarizer = MappingSummarizer()
-    summarizers = {
+    summarizers: dict[type, Summarizer[Any]] = {
         list: summarizer,
         dict: MappingSummarizer(),
     }
