@@ -17,7 +17,7 @@ in `src`, `tests` or `docs` was changed.
 ## Constraints
 
 1. **Simple and easy to maintain.** The package is 981 lines of `src`, most of them docstrings.
-   Remove what duplicates another package (`_truncate`), what walks two structures in parallel
+   Remove what walks two structures in parallel
    (`_mask_nested_secret_fields`) and what only exists for one caller; do not add layers.
 2. **Major release.** Breaking changes are fine and compatibility is not a design input: no alias,
    no deprecation period. The release notes list the changes.
@@ -64,20 +64,20 @@ Not guaranteed, and documented as such:
 
 ## 2. What differs today
 
-| #   | Finding                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Status         |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| F1  | **`coola.display.rich` breaks without `rich`.** `__init__.py` imports `logging.py`, `print_.py` and `progressbar.py`, and each imports `rich` at module level with no guard. `import coola.display.rich` raises `ModuleNotFoundError: import of rich halted` (no hint to install `coola[rich]`) and, when `rich` is installed, importing the package imports `rich`, which the architecture guide says a subpackage must not do. `check_rich` exists in `coola.utils.imports` and is used nowhere in `src`. | **[verified]** |
-| F2  | **The `rich` tests fail at collection without `rich`.** `tests/unit/display/rich/*.py` import `rich` (or `coola.display.rich`) at the top of the module and use no `rich_available` mark, so a CI job without `rich` errors instead of skipping. `coola.testing.marks` already provides the mark.                                                                                                                                                                                                           | **[reading]**  |
-| F3  | **There is no fallback module for `rich`**, unlike `colorlog`, `pydantic`, `numpy`, ... (`coola.utils.fallback`). `colorlog.py` and `pydantic.py` of this package follow the pattern; the three `rich` modules do not, so the same package has two conventions.                                                                                                                                                                                                                                             | **[reading]**  |
-| F4  | **`_truncate` duplicates `coola.formatting.text.truncate_str`** and does it worse: `_truncate("abcdef", -1)` returns `("abcde", True)` (a negative `max_length` silently cuts from the end), and a Markdown string cut in the middle of `**...**` leaves an unbalanced marker, so the output shows a literal `**word word wor` **[verified]**. A cut of Markdown text is not a text truncation: it changes the meaning of the syntax.                                                                       | **[verified]** |
-| F5  | **Text from another project in the docstrings.** `configure_rich_logging` says `langchain_metrics.console`; `make_progressbar` says "across the codebase", "Processing papers"; the module docstring of `print_.py` says "Provide a shared Rich console" (it defines none). `uguide/display.md` and `refs/display.md` do not mention `coola.display.rich` at all (and `refs` omits `coola.display.pydantic`).                                                                                               | **[reading]**  |
-| F6  | **The two logging functions disagree.** `configure_colorlog_logging(level, force=False, **kwargs)` takes `force` positionally; `configure_rich_logging(level, *, fmt, datefmt, ..., force, **kwargs)` is keyword-only. `CLAUDE.md`: new options are keyword-only. The colorlog docstring also has no `Raises` and no `Example` with an observable result.                                                                                                                                                   | **[reading]**  |
-| F7  | **The pydantic formatting loses the type of the nested models.** `model_dump()` turns every nested model into a `dict`, so `str_pydantic_model(P(c=C(name="a", t="x")))` is `P(c={'name': 'a'}, ...)` where `str(P(...))` shows `c=C(name='a', ...)` **[verified]**. Fields declared with `Field(repr=False)` are shown (pydantic's own `repr` hides them), and a `field_serializer` (user code) runs inside a function that is meant to be a safe, pure formatter.                                         | **[verified]** |
-| F8  | **The secret masking walks two structures in parallel.** `_mask_secret_fields` / `_mask_nested_secret_fields` (45 lines, 3 `cast`) zip the model with its dump and rebuild lists, tuples and dicts; `zip(..., strict=False)` and `if k in dumped_map` hide a length mismatch instead of reporting it. It exists only because the dump was taken first (F7).                                                                                                                                                 | **[reading]**  |
-| F9  | **`str_pydantic_model` and `repr_pydantic_model` repeat 5 options and 25 lines of docstring**, differ only by `mapping_line_fn`, and are not consistent with the mixin API (`use_repr`), which already is the shared knob.                                                                                                                                                                                                                                                                                  | **[reading]**  |
-| F10 | **`is_secret_annotation` and `secret_field_names` are public, used by `summary`, and tested only through the formatters.** `coola.summary.pydantic` imports them from `coola.display.pydantic`: a feature package depends on a helper of a display module. It works (direction feature → core) but the helper is not about display.                                                                                                                                                                         | **[reading]**  |
-| F11 | **Hidden mutable behaviour of the Rich `console` argument.** `_print_in_panel` accepts `console or get_console()`; `configure_rich_logging` and the progress helpers always use `get_console()` and have no `console` argument, so a program that renders to its own `Console` (tests, a file) cannot log or show progress there.                                                                                                                                                                           | **[reading]**  |
-| F12 | **Guide Properties are only half true.** "Safe terminal output" and "Respects the logger" are about two functions of one module; the mixins have no property for `repr`/`str` of nested values, the pydantic helpers have none at all, and there is no statement about the optional libraries.                                                                                                                                                                                                              | **[reading]**  |
+| #   | Finding                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Status         |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
+| F1  | **`coola.display.rich` breaks without `rich`.** `__init__.py` imports `logging.py`, `print_.py` and `progressbar.py`, and each imports `rich` at module level with no guard. `import coola.display.rich` raises `ModuleNotFoundError: import of rich halted` (no hint to install `coola[rich]`) and, when `rich` is installed, importing the package imports `rich`, which the architecture guide says a subpackage must not do. `check_rich` exists in `coola.utils.imports` and is used nowhere in `src`.                                | **[verified]** |
+| F2  | **The `rich` tests fail at collection without `rich`.** `tests/unit/display/rich/*.py` import `rich` (or `coola.display.rich`) at the top of the module and use no `rich_available` mark, so a CI job without `rich` errors instead of skipping. `coola.testing.marks` already provides the mark.                                                                                                                                                                                                                                          | **[reading]**  |
+| F3  | **There is no fallback module for `rich`**, unlike `colorlog`, `pydantic`, `numpy`, ... (`coola.utils.fallback`). `colorlog.py` and `pydantic.py` of this package follow the pattern; the three `rich` modules do not, so the same package has two conventions.                                                                                                                                                                                                                                                                            | **[reading]**  |
+| F4  | **`_truncate` is not safe for Markdown.** `_truncate("abcdef", -1)` returns `("abcde", True)` (a negative `max_length` is not validated and cuts from the end), the 80 % word-boundary rule ignores paragraphs and lines, and a cut in the middle of `**...**` leaves an unbalanced marker (the output shows a literal `**word word wor`) or inside a code fence leaves the fence open **[verified]**. It does not duplicate `formatting.text.truncate_str` (which cuts at a character and appends a suffix), so the fix stays local (D2). | **[verified]** |
+| F5  | **Text from another project in the docstrings.** `configure_rich_logging` says `langchain_metrics.console`; `make_progressbar` says "across the codebase", "Processing papers"; the module docstring of `print_.py` says "Provide a shared Rich console" (it defines none). `uguide/display.md` and `refs/display.md` do not mention `coola.display.rich` at all (and `refs` omits `coola.display.pydantic`).                                                                                                                              | **[reading]**  |
+| F6  | **The two logging functions disagree.** `configure_colorlog_logging(level, force=False, **kwargs)` takes `force` positionally; `configure_rich_logging(level, *, fmt, datefmt, ..., force, **kwargs)` is keyword-only. `CLAUDE.md`: new options are keyword-only. The colorlog docstring also has no `Raises` and no `Example` with an observable result.                                                                                                                                                                                  | **[reading]**  |
+| F7  | **The pydantic formatting loses the type of the nested models.** `model_dump()` turns every nested model into a `dict`, so `str_pydantic_model(P(c=C(name="a", t="x")))` is `P(c={'name': 'a'}, ...)` where `str(P(...))` shows `c=C(name='a', ...)` **[verified]**. Fields declared with `Field(repr=False)` are shown (pydantic's own `repr` hides them), and a `field_serializer` (user code) runs inside a function that is meant to be a safe, pure formatter.                                                                        | **[verified]** |
+| F8  | **The secret masking walks two structures in parallel.** `_mask_secret_fields` / `_mask_nested_secret_fields` (45 lines, 3 `cast`) zip the model with its dump and rebuild lists, tuples and dicts; `zip(..., strict=False)` and `if k in dumped_map` hide a length mismatch instead of reporting it. It exists only because the dump was taken first (F7).                                                                                                                                                                                | **[reading]**  |
+| F9  | **`str_pydantic_model` and `repr_pydantic_model` repeat 5 options and 25 lines of docstring**, differ only by `mapping_line_fn`, and are not consistent with the mixin API (`use_repr`), which already is the shared knob.                                                                                                                                                                                                                                                                                                                 | **[reading]**  |
+| F10 | **`is_secret_annotation` and `secret_field_names` are public, used by `summary`, and tested only through the formatters.** `coola.summary.pydantic` imports them from `coola.display.pydantic`: a feature package depends on a helper of a display module. It works (direction feature → core) but the helper is not about display.                                                                                                                                                                                                        | **[reading]**  |
+| F11 | **Hidden mutable behaviour of the Rich `console` argument.** `_print_in_panel` accepts `console or get_console()`; `configure_rich_logging` and the progress helpers always use `get_console()` and have no `console` argument, so a program that renders to its own `Console` (tests, a file) cannot log or show progress there.                                                                                                                                                                                                          | **[reading]**  |
+| F12 | **Guide Properties are only half true.** "Safe terminal output" and "Respects the logger" are about two functions of one module; the mixins have no property for `repr`/`str` of nested values, the pydantic helpers have none at all, and there is no statement about the optional libraries.                                                                                                                                                                                                                                             | **[reading]**  |
 
 What is already right and must not regress: the three mixins and the `_display_fields` hook (used by
 `io`, `recursive`, `hashing`, `registry`, `tools.timing`); the layout of both mixins; the lazy export
@@ -216,11 +216,25 @@ get_console())`. The docstring loses the text of another project (F5) and says t
 - **`make_progressbar(*, transient=False, console=None)` / `make_spinner(*, transient=True,
 console=None)`.** Same `console` argument; the columns are unchanged.
 - **`print_pretty` / `print_markdown`** keep `title`, `title_align`, `box`, `panel`, `console`.
-  `print_markdown(max_length=...)` is **removed** (F4, D2): the helper cuts Markdown mid-syntax and
-  duplicates `truncate_str`; a caller who wants a short text calls `truncate_str` before. `_truncate`
-  and its 7 tests are deleted. `_print_in_panel` stays (it removes a real duplication) and
+  `print_markdown(max_length=...)` is **kept and improved** (F4, D2). `max_length` is validated
+  (`validate_ge(max_length, 1)`, so a negative value raises `ValueError` instead of cutting from the
+  end) and `_truncate` is replaced by a Markdown-aware `_truncate_markdown(msg, max_length)` that
+  stays in `print_.py` (it is about Markdown, so it does not belong in `formatting.text`;
+  `truncate_str` is not reused because it cuts at a character and appends a suffix). The cut:
+  1. snaps to the last paragraph break (`\n\n`), else the last line break, else the last space,
+     of the kept text, each only if it keeps at least half of `max_length` (one constant,
+     replacing the 80 % rule); otherwise it cuts at `max_length`;
+  2. closes a code fence left open by the cut (an odd number of lines that start with ``` or
+     `~~~` gets a closing fence), so the rest of the panel is not swallowed by an open block;
+  3. appends the notice `*… (N more characters)*` as a separate paragraph, as today (`N` is the
+     number of characters of `msg` that are not shown).
+
+  The cut is not guaranteed to keep an inline marker (`**`, `*`, `` ` ``) balanced when it falls
+  inside a paragraph: the preference for paragraph and line breaks makes it rare, and it is
+  documented instead of repaired with a heuristic. `_print_in_panel` stays (it removes a real duplication) and
   `print_.py` gets its docstring corrected ("Provide helpers to print an object or a Markdown string
   with rich").
+
 - **The `rich` modules stay four files** (`logging`, `print_`, `progressbar`, `__init__`). Merging
   them was rejected: the three cover three different `rich` APIs and the split keeps each import
   list short.
@@ -243,23 +257,23 @@ from coola.display.rich import (
     configure_rich_logging,  # (level=INFO, *, fmt, datefmt, rich_tracebacks, markup, force, console=None, **kwargs)
     make_progressbar,  # (*, transient=False, console=None)
     make_spinner,  # (*, transient=True, console=None)
-    print_markdown,  # (msg, *, title, title_align, box, panel, console)      no max_length
+    print_markdown,  # (msg, *, title, title_align, box, panel, max_length=None, console)
     print_pretty,  # (data, *, title, title_align, box, panel, console)
 )
 ```
 
 The behaviour changes to put in the release notes:
 
-| Before                                                               | After                                                                                     |
-| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `import coola.display.rich` without `rich`: `ModuleNotFoundError`    | the import works; the first call raises `MissingPackageError` (`pip install coola[rich]`) |
-| `import coola.display.rich` imports `rich`                           | it imports no `rich` module until a name is used                                          |
-| `configure_colorlog_logging(logging.INFO, True)`                     | `TypeError`: `force` is keyword-only                                                      |
-| `str_pydantic_model(P(c=C(...)))` shows `c={'name': 'a'}`            | shows `c=C(name=a)`; a nested model has its name, with the options of the root            |
-| a field with `Field(repr=False)` is shown; a `field_serializer` runs | the field is hidden like in pydantic's `repr`; no user code runs                          |
-| a `computed_field` is shown (it is in `model_dump()`)                | it is not shown (it is not a field); documented                                           |
-| `print_markdown(msg, max_length=n)`                                  | `TypeError`: truncate with `coola.formatting.text.truncate_str`                           |
-| `configure_rich_logging`, `make_*` always write to `get_console()`   | `console=` chooses the console; default unchanged                                         |
+| Before                                                                                                                 | After                                                                                                      |
+| ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `import coola.display.rich` without `rich`: `ModuleNotFoundError`                                                      | the import works; the first call raises `MissingPackageError` (`pip install coola[rich]`)                  |
+| `import coola.display.rich` imports `rich`                                                                             | it imports no `rich` module until a name is used                                                           |
+| `configure_colorlog_logging(logging.INFO, True)`                                                                       | `TypeError`: `force` is keyword-only                                                                       |
+| `str_pydantic_model(P(c=C(...)))` shows `c={'name': 'a'}`                                                              | shows `c=C(name=a)`; a nested model has its name, with the options of the root                             |
+| a field with `Field(repr=False)` is shown; a `field_serializer` runs                                                   | the field is hidden like in pydantic's `repr`; no user code runs                                           |
+| a `computed_field` is shown (it is in `model_dump()`)                                                                  | it is not shown (it is not a field); documented                                                            |
+| `print_markdown(msg, max_length=-1)` cut from the end silently; an open code fence in the cut text swallows the notice | `ValueError` for `max_length < 1`; the cut prefers paragraph and line breaks and closes an open code fence |
+| `configure_rich_logging`, `make_*` always write to `get_console()`                                                     | `console=` chooses the console; default unchanged                                                          |
 
 ## 5. Dependents
 
@@ -295,7 +309,11 @@ marks for the optional libraries.
   a guarded import at the top, as `tests/unit/display/test_pydantic.py` does); the modules are
   skipped, not errors, without `rich`. New tests: `console=` is used by `configure_rich_logging`,
   `make_progressbar` and `make_spinner` (`progress.console is console`); `print_markdown` without
-  `max_length`; the removal of `_truncate`'s 7 tests.
+  `max_length`; the 7 tests of `_truncate` become tests of `_truncate_markdown`, one behaviour each:
+  unchanged when short, exact length, paragraph break, line break, word boundary, hard cut when the
+  boundary keeps less than half, an open code fence closed (and a closed one left alone), the
+  notice with the number of omitted characters (whole output asserted against a literal), empty
+  string, and `max_length` 0 and -1 raise `ValueError` through `print_markdown` (regression for F4).
 - **Pydantic** (`test_pydantic.py`): new tests for a nested model that keeps its name, for the options of
   the root applied to a nested model (`sort`, `exclude_none`, `exclude_secret`), for a nested model
   in a list, a tuple, a set and a dict value, for `Field(repr=False)`, for `extra="allow"` values, for a
@@ -320,7 +338,7 @@ One branch and one pull request per step (`CLAUDE.md`). The order keeps every st
 | Step | Change                                                                                                                                                                                                                                                                                                                              | Breaking     |
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
 | 1    | **Make `coola.display.rich` optional (F1, F2, F3).** Add `coola/utils/fallback/rich.py`, guard the imports of the three modules, make `rich/__init__.py` lazy with `lazy_exports`, add the `rich_available` marks to the tests, add the integration tests of section 6. No change of behaviour when `rich` is installed.            | no           |
-| 2    | **Clean the `rich` helpers (F4, F5, F11).** Remove `print_markdown(max_length)` and `_truncate`, add the `console` argument, remove the text of another project, add the examples with a `StringIO` console.                                                                                                                        | yes          |
+| 2    | **Clean the `rich` helpers (F4, F5, F11).** Keep and improve `print_markdown(max_length)` (validation, `_truncate_markdown`, D2), add the `console` argument, remove the text of another project, add the examples with a `StringIO` console.                                                                                       | yes          |
 | 3    | **Align the logging functions (F6).** `configure_colorlog_logging(level, *, force, **kwargs)`; docstrings (`Raises`, `Example`, the difference between `rich` (required) and `colorlog` (optional)).                                                                                                                                | yes          |
 | 4    | **Simplify the pydantic formatting (F7, F8, F9).** Read the fields from the model, `_shown` for the nested values, delete `_mask_*`, one documented option list. New tests, regression tests for F7 checked with `git stash push src`.                                                                                              | yes (output) |
 | 5    | **Documentation (F5, F12).** Rewrite `uguide/display.md` (the Properties of section 1 at the top, one section per kind of content, the optional libraries), `refs/display.md`, the optional dependencies and the layering paragraphs of `dev/architecture.md`, the migration page, and the status table of `review/suggestions.md`. | no           |
@@ -336,16 +354,24 @@ the error is raised by the same mechanism for every library. Alternative: `check
 `from rich import ...` inside each of the five functions; no new file, no fake names to keep in sync
 with the names imported, but a second convention and imports hidden in function bodies.
 
+Decision: follow recommendation
+
 **D2. Remove `print_markdown(max_length)`?** _Recommended: yes._ It was added in the last release, it
 cuts a Markdown string at a character count (it can drop the closing `**` or a code fence, F4),
 `truncate_str` already exists in `formatting`, and no other helper of the package truncates. Alternative:
 keep it, call `truncate_str(msg, max_length, suffix=...)` and validate `max_length >= 1` with
 `validate_ge`; this keeps the feature and the mid-syntax cut.
 
+Decision (maintainers): keep it, but improve it. Resolved as: keep `max_length`, validate it, prefer
+paragraph and line breaks, close an open code fence, keep the notice; `_truncate` is replaced by
+`_truncate_markdown`, and `truncate_str` is not used (section 3.4).
+
 **D3. Should the pydantic formatter show computed fields and run serializers?** _Recommended: no._
 The function is documented as a safe formatter for logs, whose value is that it cannot raise or leak
 through user code. Alternative: keep `model_dump()` and fix F7 by walking the dump; it keeps
 `computed_field` but keeps the parallel walk (F8) and the serializers.
+
+Decision: follow recommendation
 
 **D4. Where do `secret_field_names` and `is_secret_annotation` live?** _Recommended: stay in
 `coola.display.pydantic`._ `summary` imports them (feature → core is allowed) and nobody else needs
@@ -353,9 +379,13 @@ them. Alternative: a `coola.pydantic` helper module for the pydantic knowledge s
 `summary`, `hashing` and `equality`; a new top-level package for two functions is not justified
 until a third use exists.
 
+Decision: follow recommendation
+
 **D5. One generic `format_pydantic_model(model, *, use_repr)` instead of the pair?** _Recommended: no,
 keep the pair._ It mirrors `str`/`repr` and the existing exports; the pair is two wrappers of 5 lines
 over the private function. Only the documentation is deduplicated.
+
+Decision: follow recommendation
 
 **D6. Guard the mixins against self-reference?** _Recommended: no._ A `reprlib.recursive_repr`-style
 guard needs a per-call set of ids on every `__repr__`, for a case that does not occur in the objects
@@ -363,9 +393,13 @@ that use the mixins (configurations, loaders, transformers, registries). Alterna
 `__repr__` with `reprlib.recursive_repr()` (3 lines, returns `...` for the inner call); cheap, but it
 changes `__str__` too and hides the bug in the caller's `_display_fields`.
 
+Decision: follow recommendation
+
 **D7. One `configure_logging(*, backend=...)` instead of two functions?** _Recommended: no._ The two
 functions have different options (`rich_tracebacks`, `markup` against the colour of the formatter),
 and a dispatcher adds a name and a string option for two lines of caller code.
+
+Decision: follow recommendation
 
 ## 9. Not covered
 
@@ -383,16 +417,16 @@ and a dispatcher adds a name and a string option for two lines of caller code.
 
 ## Appendix: effect on the size of the package
 
-| Module                    | Lines today | Expected after | Why                                                                               |
-| ------------------------- | ----------- | -------------- | --------------------------------------------------------------------------------- |
-| `pydantic.py`             | 262         | about 215      | `_mask_*` (45 lines) replaced by `_shown` (about 20), the options documented once |
-| `rich/print_.py`          | 202         | about 175      | no `_truncate`, no `max_length`                                                   |
-| `rich/logging.py`         | 106         | about 105      | guarded import, `console`, no text of another project                             |
-| `rich/progressbar.py`     | 113         | about 120      | guarded import, `console`                                                         |
-| `rich/__init__.py`        | 15          | about 25       | `lazy_exports`                                                                    |
-| `colorlog.py`             | 111         | about 115      | `*`, `Raises`, `Example`                                                          |
-| `utils/fallback/rich.py`  | 0           | about 25       | new                                                                               |
-| `mixin.py`, `__init__.py` | 172         | 172            | unchanged                                                                         |
+| Module                    | Lines today | Expected after | Why                                                                                |
+| ------------------------- | ----------- | -------------- | ---------------------------------------------------------------------------------- |
+| `pydantic.py`             | 262         | about 215      | `_mask_*` (45 lines) replaced by `_shown` (about 20), the options documented once  |
+| `rich/print_.py`          | 202         | about 205      | `_truncate_markdown` (about 25 lines) replaces `_truncate`, `max_length` validated |
+| `rich/logging.py`         | 106         | about 105      | guarded import, `console`, no text of another project                              |
+| `rich/progressbar.py`     | 113         | about 120      | guarded import, `console`                                                          |
+| `rich/__init__.py`        | 15          | about 25       | `lazy_exports`                                                                     |
+| `colorlog.py`             | 111         | about 115      | `*`, `Raises`, `Example`                                                           |
+| `utils/fallback/rich.py`  | 0           | about 25       | new                                                                                |
+| `mixin.py`, `__init__.py` | 172         | 172            | unchanged                                                                          |
 
 The line counts are estimates from the code to delete and to add; the gate is the behaviour
 (sections 1 and 6), not the size.
