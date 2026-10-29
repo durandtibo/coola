@@ -41,7 +41,7 @@ def test_resolve_object_dict_equals_the_direct_call(kwargs: dict[str, int]) -> N
 
 
 @given(kwargs=kwargs_strategy)
-def test_factory_dict_equals_the_direct_call(kwargs: dict[str, int]) -> None:
+def test_factory_dict_equals_the_direct_call(kwargs: dict[str, Any]) -> None:
     assert factory("builtins.dict", **kwargs) == dict(**kwargs)
 
 
