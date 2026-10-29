@@ -164,7 +164,9 @@ def test_hash_object_xarray_data_array() -> None:
 @pydantic_available
 def test_hash_object_pydantic_model_nested_in_a_list() -> None:
     model = pydantic.create_model("Model", x=(int, ...))
-    assert hash_object([model(x=1)]) == hash_object([model(x=1)])
+    assert hash_object([model.model_validate({"x": 1})]) == hash_object(
+        [model.model_validate({"x": 1})]
+    )
 
 
 @pydantic_available
