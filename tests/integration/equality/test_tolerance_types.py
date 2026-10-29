@@ -10,6 +10,7 @@ from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
 from types import MappingProxyType
+from typing import Any
 from unittest.mock import Mock
 
 import numpy as np
@@ -334,7 +335,7 @@ def test_objects_are_allclose_polars_integers_follow_atol() -> None:
 
 @pandas_available
 def test_objects_are_allclose_pandas_and_numpy_agree_on_atol_and_rtol() -> None:
-    kwargs = {"atol": 0.5, "rtol": 0.5}
+    kwargs: dict[str, Any] = {"atol": 0.5, "rtol": 0.5}
     assert objects_are_allclose(
         pd.Series([0.0]), pd.Series([0.9]), **kwargs
     ) == objects_are_allclose(np.array([0.0]), np.array([0.9]), **kwargs)
@@ -342,7 +343,7 @@ def test_objects_are_allclose_pandas_and_numpy_agree_on_atol_and_rtol() -> None:
 
 @polars_available
 def test_objects_are_allclose_polars_and_numpy_agree_on_atol_and_rtol() -> None:
-    kwargs = {"atol": 0.5, "rtol": 0.5}
+    kwargs: dict[str, Any] = {"atol": 0.5, "rtol": 0.5}
     assert objects_are_allclose(
         pl.Series([0.0]), pl.Series([0.9]), **kwargs
     ) == objects_are_allclose(np.array([0.0]), np.array([0.9]), **kwargs)
@@ -458,7 +459,7 @@ def test_objects_are_equal_timedelta64_scalar_different() -> None:
 @pytest.mark.parametrize("value", [True, 1.5])
 def test_objects_are_equal_max_depth_wrong_type(value: object) -> None:
     with pytest.raises(TypeError, match="max_depth must be an int"):
-        objects_are_equal([1], [1], max_depth=value)
+        objects_are_equal([1], [1], max_depth=value)  # ty: ignore[invalid-argument-type]
 
 
 def test_objects_are_allclose_atol_bool() -> None:
@@ -614,7 +615,7 @@ def test_objects_are_allclose_small_floats_at_the_edge_of_the_range(dtype: type)
 
 @torch_available
 @pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32])
-def test_objects_are_allclose_small_torch_floats_at_the_edge_of_the_range(dtype: object) -> None:
+def test_objects_are_allclose_small_torch_floats_at_the_edge_of_the_range(dtype: Any) -> None:
     assert not objects_are_allclose(
         torch.tensor([60000.0], dtype=dtype),
         torch.tensor([-60000.0], dtype=dtype),
