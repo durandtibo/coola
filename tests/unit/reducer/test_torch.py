@@ -452,7 +452,7 @@ def test_torch_reducer_matches_native_reducer_quantile() -> None:
     ],
 )
 def test_to_float_tensor_dtype(values: object, dtype: str) -> None:
-    assert _to_float_tensor(values).dtype == getattr(torch, dtype)
+    assert _to_float_tensor(values).dtype == getattr(torch, dtype)  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
@@ -507,7 +507,7 @@ def test_torch_reducer_median_infinite_values() -> None:
 @torch_available
 def test_torch_reducer_max_generator_raises() -> None:
     with pytest.raises(TypeError, match="iterator"):
-        TorchReducer().max(i for i in range(3))
+        TorchReducer().max(i for i in range(3))  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
@@ -530,33 +530,33 @@ def test_torch_reducer_unsupported_values_raise(values: list) -> None:
 @pytest.mark.parametrize("values", [[1 + 2j, 3], torch.tensor([1 + 2j, 3])])
 def test_torch_reducer_complex_raises(values: object) -> None:
     with pytest.raises(TypeError, match=r"TorchReducer does not support complex numbers"):
-        TorchReducer().max(values)
+        TorchReducer().max(values)  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
 @numpy_available
 def test_torch_reducer_complex_array_raises() -> None:
     with pytest.raises(TypeError, match=r"TorchReducer does not support an array of dtype complex"):
-        TorchReducer().max(np.array([1 + 2j, 3]))
+        TorchReducer().max(np.array([1 + 2j, 3]))  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
 @numpy_available
 def test_torch_reducer_array_max() -> None:
-    assert TorchReducer().max(np.array([1, 3, 2])) == 3
+    assert TorchReducer().max(np.array([1, 3, 2])) == 3  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
 @pytest.mark.parametrize("values", [[[1, 2], [3, 4]], torch.tensor(1), torch.ones(2, 0)])
 def test_torch_reducer_not_1d_raises(values: object) -> None:
     with pytest.raises(ValueError, match=r"TorchReducer takes a 1-D input"):
-        TorchReducer().max(values)
+        TorchReducer().max(values)  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
 def test_torch_reducer_sort_2d_raises() -> None:
     with pytest.raises(ValueError, match=r"TorchReducer takes a 1-D input, got 2 dimension"):
-        TorchReducer().sort([[2, 1], [4, 3]])
+        TorchReducer().sort([[2, 1], [4, 3]])  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
@@ -576,7 +576,7 @@ def test_torch_reducer_tensor_does_not_copy() -> None:
     ],
 )
 def test_torch_reducer_prepare_dtype(values: object, dtype: str) -> None:
-    assert TorchReducer()._prepare(values).dtype == getattr(torch, dtype)
+    assert TorchReducer()._prepare(values).dtype == getattr(torch, dtype)  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
