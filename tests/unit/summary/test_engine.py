@@ -19,7 +19,7 @@ from coola.summary import (
     get_default_registry,
 )
 from coola.summary.engine import CompactRepr, render
-from tests.helpers import nest
+from tests.helpers import DEEP_NESTING_DEPTH, nest
 
 REGISTRY = get_default_registry()
 
@@ -366,7 +366,7 @@ def test_render_very_deep_structure_does_not_raise() -> None:
 
 
 def test_render_deep_structure_above_the_display_depth_is_on_one_line() -> None:
-    assert run(nest(1, 100_000), max_depth=2, max_items=1).count("\n") == 2
+    assert run(nest(1, DEEP_NESTING_DEPTH), max_depth=2, max_items=1).count("\n") == 2
 
 
 ################################

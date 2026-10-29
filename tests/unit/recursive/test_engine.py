@@ -175,7 +175,7 @@ def test_transform_empty_registry_raises() -> None:
 
 
 def test_recursive_apply_deep_structure() -> None:
-    result = recursive_apply(nest(1, 10_000), str)
-    for _ in range(10_000):
+    result = recursive_apply(nest(1, DEEP_NESTING_DEPTH), str)
+    for _ in range(DEEP_NESTING_DEPTH):
         result = result[0]
     assert result == "1"
