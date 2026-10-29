@@ -114,18 +114,18 @@ def test_generate_checksummed_id_length_above_the_maximum_raises() -> None:
 @pytest.mark.parametrize("length", [True, 1.5, "8"])
 def test_generate_checksummed_id_length_wrong_type_raises(length: object) -> None:
     with pytest.raises(TypeError, match="length must be an int"):
-        generate_checksummed_id(length=length)
+        generate_checksummed_id(length=length)  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize("group_size", [True, 1.5, "4"])
 def test_generate_checksummed_id_group_size_wrong_type_raises(group_size: object) -> None:
     with pytest.raises(TypeError, match="group_size must be an int"):
-        generate_checksummed_id(group_size=group_size)
+        generate_checksummed_id(group_size=group_size)  # ty: ignore[invalid-argument-type]
 
 
 def test_generate_checksummed_id_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional argument"):
-        generate_checksummed_id(12)
+        generate_checksummed_id(12)  # ty: ignore[too-many-positional-arguments]
 
 
 @pytest.mark.parametrize("sep", ["A", "a", "0", "Z", "O", "o", "I", "i", "L", "l"])
@@ -142,7 +142,7 @@ def test_generate_checksummed_id_sep_multichar_raises() -> None:
 @pytest.mark.parametrize("sep", [1, None, b"-"])
 def test_generate_checksummed_id_sep_wrong_type_raises(sep: object) -> None:
     with pytest.raises(TypeError, match="sep must be an instance of"):
-        generate_checksummed_id(sep=sep)
+        generate_checksummed_id(sep=sep)  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize("sep", ["*", "~", "$", "=", "U", " ", "_"])
@@ -220,7 +220,7 @@ def test_verify_checksummed_id_accepts_the_extended_check_symbols(identifier: st
 
 @pytest.mark.parametrize("identifier", [None, 123, b"abc", ["A", "B"]])
 def test_verify_checksummed_id_not_a_str(identifier: object) -> None:
-    assert not verify_checksummed_id(identifier)
+    assert not verify_checksummed_id(identifier)  # ty: ignore[invalid-argument-type]
 
 
 def test_verify_checksummed_id_ascii_look_alike_source_is_valid() -> None:
@@ -252,7 +252,7 @@ def test_verify_checksummed_id_custom_separator() -> None:
 
 def test_verify_checksummed_id_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional argument"):
-        verify_checksummed_id("0123-4567-89AB-Y", "-")
+        verify_checksummed_id("0123-4567-89AB-Y", "-")  # ty: ignore[too-many-positional-arguments]
 
 
 @pytest.mark.parametrize("sep", ["A", "o", "--"])
@@ -263,7 +263,7 @@ def test_verify_checksummed_id_invalid_sep_raises(sep: str) -> None:
 
 def test_verify_checksummed_id_sep_wrong_type_raises() -> None:
     with pytest.raises(TypeError, match="sep must be an instance of"):
-        verify_checksummed_id("0123-4567-89AB-Y", sep=1)
+        verify_checksummed_id("0123-4567-89AB-Y", sep=1)  # ty: ignore[invalid-argument-type]
 
 
 ######################################
