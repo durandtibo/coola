@@ -13,6 +13,14 @@ from coola.recursive import recursive_apply
 from coola.reducer import NativeReducer
 from coola.registry import Registry
 from coola.summary import summarize
+from coola.testing.marks import (
+    jax_available,
+    numpy_available,
+    pandas_available,
+    polars_available,
+    torch_available,
+    xarray_available,
+)
 from coola.utils.imports import (
     is_jax_available,
     is_numpy_available,
@@ -20,12 +28,6 @@ from coola.utils.imports import (
     is_polars_available,
     is_torch_available,
     is_xarray_available,
-    jax_available,
-    numpy_available,
-    pandas_available,
-    polars_available,
-    torch_available,
-    xarray_available,
 )
 
 if is_jax_available():

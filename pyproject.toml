@@ -265,7 +265,7 @@ pyarrow = "pa"
 xarray = "xr"
 
 [tool.ty.src]
-include = ["src", "tests/unit/", "dev", "examples"]
+include = ["src", "tests", "dev", "examples"]
 
 [tool.importlinter]
 root_package = "coola"
