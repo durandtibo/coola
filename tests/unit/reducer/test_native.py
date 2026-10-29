@@ -314,7 +314,7 @@ def test_native_reducer_median_infinite_values() -> None:
 
 def test_native_reducer_max_generator_raises() -> None:
     with pytest.raises(TypeError, match="iterator"):
-        NativeReducer().max(i for i in range(3))
+        NativeReducer().max(i for i in range(3))  # ty: ignore[invalid-argument-type]
 
 
 @numpy_available
@@ -323,7 +323,7 @@ def test_native_reducer_array_raises() -> None:
         TypeError,
         match=r"NativeReducer does not support an input of type ndarray; use NumpyReducer",
     ):
-        NativeReducer().max(np.array([1, 2, 3]))
+        NativeReducer().max(np.array([1, 2, 3]))  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
@@ -331,12 +331,12 @@ def test_native_reducer_tensor_raises() -> None:
     with pytest.raises(
         TypeError, match=r"NativeReducer does not support an input of type Tensor; use TorchReducer"
     ):
-        NativeReducer().max(torch.tensor([1, 2, 3]))
+        NativeReducer().max(torch.tensor([1, 2, 3]))  # ty: ignore[invalid-argument-type]
 
 
 def test_native_reducer_dict_raises() -> None:
     with pytest.raises(TypeError, match=r"NativeReducer does not support an input of type dict$"):
-        NativeReducer().max({1: 2})
+        NativeReducer().max({1: 2})  # ty: ignore[invalid-argument-type]
 
 
 def test_native_reducer_max_range() -> None:
