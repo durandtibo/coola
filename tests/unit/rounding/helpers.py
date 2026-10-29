@@ -1,9 +1,9 @@
 r"""Define the oracle shared by the tests of ``coola.rounding``.
 
 The oracle is the specification of the package: a float is read as the
-decimal that ``repr`` shows, and this decimal is quantized with the
-mode of the rounding. It is independent of the implementation, which
-computes the same result with float arithmetic.
+decimal that ``repr`` shows, and this decimal is quantized with the mode
+of the rounding. It is independent of the implementation, which computes
+the same result with float arithmetic.
 """
 
 from __future__ import annotations

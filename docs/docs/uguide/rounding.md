@@ -141,7 +141,6 @@ An object with no rounder raises `UnsupportedTypeError`, a subclass of `TypeErro
 ...     round_values("abc")
 ... except UnsupportedTypeError as error:
 ...     print(error)
-...
 Cannot round an object of type str; register a rounder with register_rounders
 
 ```
@@ -176,10 +175,8 @@ the MRO is used.
 >>> class Meters:
 ...     def __init__(self, value):
 ...         self.value = value
-...
 >>> def round_meters(data, mode, decimals):
 ...     return Meters(round_values(data.value, mode=mode, decimals=decimals))
-...
 >>> register_rounders({Meters: round_meters})
 >>> round_values(Meters(2.567), decimals=1).value
 2.6
