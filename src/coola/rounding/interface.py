@@ -2,31 +2,52 @@ r"""Define the public interface to round numerical values."""
 
 from __future__ import annotations
 
-__all__ = ["round_values"]
+__all__ = ["get_default_registry", "register_rounders", "round_values"]
 
-import pkgutil
-from typing import Any
+import warnings
+from typing import TYPE_CHECKING, Any
 
 from coola.recursive.interface import recursive_apply
-from coola.rounding.common import RoundMode, validate_arguments
+from coola.registry import TypeNotRegisteredError, TypeRegistry
+from coola.registry.default import make_default_registry_singleton
+from coola.rounding.common import (
+    MissingPackagePolicy,
+    Rounder,
+    RoundMode,
+    UnsupportedTypeError,
+    validate_arguments,
+)
+from coola.rounding.native import get_default_rounders as get_native_rounders
+from coola.utils.imports import MissingPackageError, package_available
 
-# (name of the top-level module of the types, function that rounds them)
-_BACKENDS = {
-    "builtins": "coola.rounding.native:round_native",
-    "numpy": "coola.rounding.numpy:round_numpy",
-    "pandas": "coola.rounding.pandas:round_pandas",
-    "polars": "coola.rounding.polars:round_polars",
-    "pyarrow": "coola.rounding.pyarrow:round_pyarrow",
-    "torch": "coola.rounding.torch:round_torch",
-}
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from coola.utils.singleton import LazySingleton
+
+# (names of the library in the module of the types, module with the rounders)
+_LAZY_ROUNDERS = (
+    (("numpy",), "coola.rounding.numpy"),
+    (("pandas",), "coola.rounding.pandas"),
+    (("polars",), "coola.rounding.polars"),
+    (("pyarrow",), "coola.rounding.pyarrow"),
+    (("torch",), "coola.rounding.torch"),
+)
 
 
 def round_values(
-    data: Any, *, mode: RoundMode = "round", decimals: int = 0, recursive: bool = False
+    data: Any,
+    *,
+    mode: RoundMode = "round",
+    decimals: int = 0,
+    recursive: bool = False,
+    on_missing_package: MissingPackagePolicy = "raise",
+    registry: TypeRegistry[Rounder] | None = None,
 ) -> Any:
     r"""Round the numerical values of an object.
 
-    The supported objects are:
+    The supported objects are the following ones, and a rounder can be
+    registered for another type with ``register_rounders``:
 
     - the native ``int`` and ``float``;
     - the NumPy arrays and scalars;
@@ -65,6 +86,17 @@ def round_values(
             every leaf is rounded. A leaf that is not supported (a
             string, ``None``, a date, ...) is kept as it is instead of
             raising an error. Defaults to ``False``.
+        on_missing_package: What to do when the rounder of an object
+            needs a package that is not installed (NumPy for the
+            polars and pyarrow objects). ``"raise"`` raises an
+            ``UnsupportedTypeError``, ``"warn"`` emits a
+            ``UserWarning`` and returns the object unchanged, and
+            ``"ignore"`` returns the object unchanged. With
+            ``recursive=True`` the option applies to each leaf. An
+            object with no rounder is not concerned by this option.
+            Defaults to ``"raise"``.
+        registry: The registry used to find the rounder of each type.
+            If ``None``, the default registry is used.
 
     Returns:
         The object with the rounded values, with the same type, dtype
@@ -73,9 +105,14 @@ def round_values(
 
     Raises:
         ValueError: If ``mode`` is not ``"round"``, ``"floor"`` or
-            ``"ceil"``, or if ``decimals`` is negative.
-        TypeError: If ``decimals`` is not an integer, or if ``data`` is
-            not supported (with ``recursive=False``).
+            ``"ceil"``, if ``decimals`` is negative, or if
+            ``on_missing_package`` is not ``"raise"``, ``"warn"`` or
+            ``"ignore"``.
+        TypeError: If ``decimals`` is not an integer.
+        UnsupportedTypeError: If ``data`` is not supported (with
+            ``recursive=False``), or if its rounder needs a package
+            that is not installed and ``on_missing_package`` is
+            ``"raise"``. It is a ``TypeError``.
 
     Notes:
         One rule is used for the three modes and for every library. A
@@ -123,21 +160,138 @@ def round_values(
 
         ```
     """
-    decimals = validate_arguments(mode, decimals)
+    decimals = validate_arguments(mode, decimals, on_missing_package)
+    if registry is None:
+        registry = get_default_registry()
     if recursive:
-        return recursive_apply(data, lambda x: _round_leaf(x, mode, decimals))
-    return _round_object(data, mode, decimals)
+        return recursive_apply(
+            data, lambda x: _round_leaf(x, registry, mode, decimals, on_missing_package)
+        )
+    return _round_object(data, registry, mode, decimals, on_missing_package)
 
 
-def _round_leaf(data: Any, mode: RoundMode, decimals: int) -> Any:
+def register_rounders(mapping: Mapping[type, Rounder], *, exist_ok: bool = False) -> None:
+    r"""Register rounders into the default registry.
+
+    A rounder is a function ``(data, mode, decimals) -> result`` that
+    rounds the objects of one type. ``mode`` and ``decimals`` are
+    validated by ``round_values``. The function returns a new object,
+    and raises ``UnsupportedTypeError`` for a type or a dtype that it
+    does not support. The rounder of the most specific type along the
+    MRO of the object is used.
+
+    Args:
+        mapping: The mapping from types to rounders.
+        exist_ok: If ``False``, raises an error if a type is already
+            registered. Defaults to ``False``.
+
+    Example:
+        ```pycon
+        >>> from coola.rounding import register_rounders, round_values
+        >>> class Meters:
+        ...     def __init__(self, value):
+        ...         self.value = value
+        ...
+        >>> def round_meters(data, mode, decimals):
+        ...     return Meters(round_values(data.value, mode=mode, decimals=decimals))
+        ...
+        >>> register_rounders({Meters: round_meters})
+        >>> round_values(Meters(2.567), decimals=1).value
+        2.6
+
+        ```
+    """
+    get_default_registry().register_many(mapping, exist_ok=exist_ok)
+
+
+def get_default_registry() -> TypeRegistry[Rounder]:
+    r"""Return the default registry of the rounders.
+
+    The registry is created on the first call and reused on all the
+    subsequent calls (singleton pattern). It has the rounders of the
+    native numbers, and the rounders of NumPy, PyTorch, pandas, polars
+    and pyarrow, which are loaded the first time an object of the
+    library is rounded. The plugins of the group
+    ``coola.rounding.rounders`` are applied when it is created.
+
+    Returns:
+        The singleton registry.
+
+    Example:
+        ```pycon
+        >>> from coola.rounding import get_default_registry
+        >>> get_default_registry().has(float)
+        True
+
+        ```
+    """
+    return _default_registry.get()
+
+
+def _round_leaf(
+    data: Any,
+    registry: TypeRegistry[Rounder],
+    mode: RoundMode,
+    decimals: int,
+    on_missing_package: MissingPackagePolicy,
+) -> Any:
+    # Only an unsupported leaf is kept: the other errors are bugs and must not be hidden. A leaf
+    # whose package is missing is not unsupported: with ``"raise"`` the error stops the walk.
     try:
-        return _round_object(data, mode, decimals)
-    except TypeError:
+        return _round_object(data, registry, mode, decimals, on_missing_package)
+    except UnsupportedTypeError as exc:
+        if isinstance(exc.__cause__, MissingPackageError):
+            raise
         return data
 
 
-def _round_object(data: Any, mode: RoundMode, decimals: int) -> Any:
-    # The native function is the fallback: it raises the error for the unsupported types.
-    modules = (cls.__module__.split(".")[0] for cls in type(data).__mro__)
-    target = _BACKENDS[next((name for name in modules if name in _BACKENDS), "builtins")]
-    return pkgutil.resolve_name(target)(data, mode, decimals)
+def _round_object(
+    data: Any,
+    registry: TypeRegistry[Rounder],
+    mode: RoundMode,
+    decimals: int,
+    on_missing_package: MissingPackagePolicy,
+) -> Any:
+    try:
+        rounder = registry.resolve(type(data))
+    except TypeNotRegisteredError as exc:
+        msg = (
+            f"Cannot round an object of type {type(data).__qualname__}; "
+            "register a rounder with register_rounders"
+        )
+        raise UnsupportedTypeError(msg) from exc
+    try:
+        return rounder(data, mode, decimals)
+    except MissingPackageError as exc:
+        if on_missing_package == "raise":
+            msg = (
+                f"Cannot round an object of type {type(data).__qualname__}: "
+                f"the package {exc.name!r} is not installed"
+            )
+            raise UnsupportedTypeError(msg) from exc
+        if on_missing_package == "warn":
+            msg = (
+                f"The object of type {type(data).__qualname__} is not rounded: "
+                f"the package {exc.name!r} is not installed"
+            )
+            warnings.warn(msg, UserWarning, stacklevel=2)
+        return data
+
+
+def _register_default_rounders(registry: TypeRegistry[Rounder]) -> None:
+    r"""Populate a registry with the default rounders.
+
+    Args:
+        registry: The registry to populate.
+    """
+    registry.register_many(get_native_rounders())
+    # The rounders of the optional libraries are loaded the first time the registry needs a type
+    # of the library, so the libraries are not imported with ``coola.rounding``.
+    for names, module in _LAZY_ROUNDERS:
+        if package_available(names[0]):
+            registry.register_lazy(names, f"{module}:get_default_rounders")
+
+
+_default_registry: LazySingleton[TypeRegistry[Rounder]] = make_default_registry_singleton(
+    TypeRegistry, _register_default_rounders, plugin_group="coola.rounding.rounders"
+)

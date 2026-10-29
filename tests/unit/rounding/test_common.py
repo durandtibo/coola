@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from coola.rounding.common import MODES, get_scale, validate_arguments
+from coola.rounding.common import MISSING_PACKAGE_POLICIES, MODES, get_scale, validate_arguments
 from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
 
@@ -68,3 +68,20 @@ def test_validate_arguments_numpy_integer_returns_int() -> None:
 def test_validate_arguments_numpy_integer_negative() -> None:
     with pytest.raises(ValueError, match=r"decimals must be greater than or equal to 0"):
         validate_arguments("round", np.int64(-1))
+
+
+@pytest.mark.parametrize("policy", MISSING_PACKAGE_POLICIES)
+def test_validate_arguments_valid_on_missing_package(policy: str) -> None:
+    assert validate_arguments("round", 0, policy) == 0
+
+
+def test_validate_arguments_incorrect_on_missing_package() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"^on_missing_package must be one of \('raise', 'warn', 'ignore'\), got 'skip'$",
+    ):
+        validate_arguments("round", 0, "skip")
+
+
+def test_validate_arguments_on_missing_package_defaults_to_raise() -> None:
+    assert validate_arguments("round", 0) == 0

@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from coola.rounding.polars import round_polars
+from coola.rounding.polars import get_default_rounders, round_polars
 from coola.testing.marks import polars_available
 from coola.utils.imports import MissingPackageError, is_polars_available
 
@@ -179,3 +179,19 @@ def test_round_polars_requires_numpy(monkeypatch: pytest.MonkeyPatch) -> None:
 def _raise_missing_numpy() -> None:
     msg = "'numpy' package is required but not installed."
     raise MissingPackageError(msg)
+
+
+#############################################
+#     Tests for get_default_rounders        #
+#############################################
+
+
+@polars_available
+def test_get_default_rounders_polars() -> None:
+    assert get_default_rounders() == {pl.Series: round_polars, pl.DataFrame: round_polars}
+
+
+@polars_available
+def test_get_default_rounders_polars_not_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("coola.rounding.polars.is_polars_available", lambda: False)
+    assert get_default_rounders() == {}

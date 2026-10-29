@@ -2,15 +2,16 @@ r"""Implement the rounding of the pyarrow arrays and tables."""
 
 from __future__ import annotations
 
-__all__ = ["round_pyarrow"]
+__all__ = ["get_default_rounders", "round_pyarrow"]
 
 from typing import TYPE_CHECKING, Any
 
+from coola.rounding.common import UnsupportedTypeError
 from coola.rounding.numpy import round_numpy
 from coola.utils.imports import check_numpy, is_pyarrow_available
 
 if TYPE_CHECKING:
-    from coola.rounding.common import RoundMode
+    from coola.rounding.common import Rounder, RoundMode
 
 if is_pyarrow_available():
     import pyarrow as pa
@@ -39,7 +40,7 @@ def round_pyarrow(data: Any, mode: RoundMode, decimals: int) -> Any:
 
     Raises:
         MissingPackageError: If ``numpy`` is not installed.
-        TypeError: If ``data`` is not a table, a record batch, an
+        UnsupportedTypeError: If ``data`` is not a table, a record batch, an
             array or a chunked array, or if ``data`` is an array that
             is not numerical.
 
@@ -63,10 +64,10 @@ def round_pyarrow(data: Any, mode: RoundMode, decimals: int) -> Any:
     if isinstance(data, (pa.Array, pa.ChunkedArray)):
         if not (pa.types.is_floating(data.type) or pa.types.is_integer(data.type)):
             msg = f"Unsupported type: {data.type}"
-            raise TypeError(msg)
+            raise UnsupportedTypeError(msg)
         return _round_array(data, mode, decimals)
     msg = f"Unsupported type: {type(data).__qualname__}"
-    raise TypeError(msg)
+    raise UnsupportedTypeError(msg)
 
 
 def _round_array(array: Any, mode: RoundMode, decimals: int) -> Any:
@@ -79,3 +80,24 @@ def _round_array(array: Any, mode: RoundMode, decimals: int) -> Any:
     values = round_numpy(array.to_numpy(zero_copy_only=False), mode, decimals)
     mask = array.is_null().to_numpy(zero_copy_only=False) if array.null_count else None
     return pa.array(values, type=array.type, mask=mask)
+
+
+def get_default_rounders() -> dict[type, Rounder]:
+    r"""Get the default rounders of the pyarrow arrays and tables.
+
+    Returns:
+        The rounder of the pyarrow arrays, chunked arrays, tables and
+            record batches and their associated types.
+
+    Notes:
+        This function is called by the default registry the first time
+        it needs the rounders of pyarrow.
+    """
+    if not is_pyarrow_available():
+        return {}
+    return {
+        pa.Array: round_pyarrow,
+        pa.ChunkedArray: round_pyarrow,
+        pa.Table: round_pyarrow,
+        pa.RecordBatch: round_pyarrow,
+    }

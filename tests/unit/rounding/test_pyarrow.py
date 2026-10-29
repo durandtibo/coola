@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from coola.rounding.pyarrow import round_pyarrow
+from coola.rounding.pyarrow import get_default_rounders, round_pyarrow
 from coola.testing.marks import pyarrow_available
 from coola.utils.imports import MissingPackageError, is_pyarrow_available
 
@@ -202,3 +202,24 @@ def test_round_pyarrow_requires_numpy(monkeypatch: pytest.MonkeyPatch) -> None:
 def _raise_missing_numpy() -> None:
     msg = "'numpy' package is required but not installed."
     raise MissingPackageError(msg)
+
+
+#############################################
+#     Tests for get_default_rounders        #
+#############################################
+
+
+@pyarrow_available
+def test_get_default_rounders_pyarrow() -> None:
+    assert get_default_rounders() == {
+        pa.Array: round_pyarrow,
+        pa.ChunkedArray: round_pyarrow,
+        pa.Table: round_pyarrow,
+        pa.RecordBatch: round_pyarrow,
+    }
+
+
+@pyarrow_available
+def test_get_default_rounders_pyarrow_not_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("coola.rounding.pyarrow.is_pyarrow_available", lambda: False)
+    assert get_default_rounders() == {}

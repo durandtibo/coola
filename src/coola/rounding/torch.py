@@ -2,11 +2,11 @@ r"""Implement the rounding of the PyTorch tensors."""
 
 from __future__ import annotations
 
-__all__ = ["round_torch"]
+__all__ = ["get_default_rounders", "round_torch"]
 
 from typing import Any
 
-from coola.rounding.common import MAX_EXACT, RoundMode, get_scale
+from coola.rounding.common import MAX_EXACT, Rounder, RoundMode, UnsupportedTypeError, get_scale
 from coola.utils.imports import is_torch_available
 
 if is_torch_available():
@@ -31,8 +31,9 @@ def round_torch(data: Any, mode: RoundMode, decimals: int) -> Any:
         The rounded tensor. It never shares memory with ``data``.
 
     Raises:
-        TypeError: If ``data`` is not a tensor or if its dtype is
-            complex.
+        UnsupportedTypeError: If ``data`` is not a tensor, if its dtype
+            is complex or if its layout is not strided (sparse and
+            nested tensors).
 
     Example:
         ```pycon
@@ -45,10 +46,13 @@ def round_torch(data: Any, mode: RoundMode, decimals: int) -> Any:
     """
     if not isinstance(data, torch.Tensor):
         msg = f"Unsupported type: {type(data).__qualname__}"
-        raise TypeError(msg)
+        raise UnsupportedTypeError(msg)
+    if data.layout != torch.strided:
+        msg = f"Unsupported layout: {data.layout}"
+        raise UnsupportedTypeError(msg)
     if data.dtype.is_complex:
         msg = f"Unsupported dtype: {data.dtype}"
-        raise TypeError(msg)
+        raise UnsupportedTypeError(msg)
     scale = get_scale(decimals)
     if not data.dtype.is_floating_point or scale is None:
         return data.detach().clone()
@@ -83,3 +87,18 @@ def _round_float_tensor(data: torch.Tensor, mode: RoundMode, scale: float) -> to
     # ``NaN``, the infinite values and the values past the grid are not changed.
     result = torch.where(scaled.abs() < MAX_EXACT, index / scale, x)
     return torch.copysign(result, x).to(data.dtype)
+
+
+def get_default_rounders() -> dict[type, Rounder]:
+    r"""Get the default rounders of the PyTorch tensors.
+
+    Returns:
+        The rounder of the PyTorch tensors and their associated type.
+
+    Notes:
+        This function is called by the default registry the first time
+        it needs the rounders of PyTorch.
+    """
+    if not is_torch_available():
+        return {}
+    return {torch.Tensor: round_torch}

@@ -2,15 +2,16 @@ r"""Implement the rounding of the pandas Series and DataFrames."""
 
 from __future__ import annotations
 
-__all__ = ["round_pandas"]
+__all__ = ["get_default_rounders", "round_pandas"]
 
 from typing import TYPE_CHECKING, Any
 
+from coola.rounding.common import UnsupportedTypeError
 from coola.rounding.numpy import round_numpy
 from coola.utils.imports import is_pandas_available
 
 if TYPE_CHECKING:
-    from coola.rounding.common import RoundMode
+    from coola.rounding.common import Rounder, RoundMode
 
 if is_pandas_available():
     import pandas as pd
@@ -35,7 +36,7 @@ def round_pandas(data: Any, mode: RoundMode, decimals: int) -> Any:
             ``data``.
 
     Raises:
-        TypeError: If ``data`` is not a Series or a DataFrame, or if
+        UnsupportedTypeError: If ``data`` is not a Series or a DataFrame, or if
             ``data`` is a Series that is not numerical.
 
     Example:
@@ -58,10 +59,10 @@ def round_pandas(data: Any, mode: RoundMode, decimals: int) -> Any:
     if isinstance(data, pd.Series):
         if not _is_supported(data.dtype):
             msg = f"Unsupported dtype: {data.dtype}"
-            raise TypeError(msg)
+            raise UnsupportedTypeError(msg)
         return _round_series(data, mode, decimals)
     msg = f"Unsupported type: {type(data).__qualname__}"
-    raise TypeError(msg)
+    raise UnsupportedTypeError(msg)
 
 
 def _is_supported(dtype: Any) -> bool:
@@ -79,3 +80,19 @@ def _round_series(series: pd.Series, mode: RoundMode, decimals: int) -> pd.Serie
     ).astype(series.dtype)
     # A missing value (``NaN`` or ``NA``) is kept as it is.
     return result.where(series.notna(), series)
+
+
+def get_default_rounders() -> dict[type, Rounder]:
+    r"""Get the default rounders of the pandas Series and DataFrames.
+
+    Returns:
+        The rounder of the pandas Series and DataFrames and their
+            associated types.
+
+    Notes:
+        This function is called by the default registry the first time
+        it needs the rounders of pandas.
+    """
+    if not is_pandas_available():
+        return {}
+    return {pd.Series: round_pandas, pd.DataFrame: round_pandas}
