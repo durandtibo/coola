@@ -3,7 +3,6 @@
 ::: coola.utils.batching
 ::: coola.utils.bloom_filter
 ::: coola.utils.date
-::: coola.utils.deprecation
 ::: coola.utils.env_vars
 ::: coola.utils.fallback
 ::: coola.utils.file_size
