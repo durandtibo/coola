@@ -10,9 +10,9 @@ level.
 
 Usage::
 
-    python tests/package/check_package.py                  # no extra
-    python tests/package/check_package.py --extra numpy    # numpy is required
-    python tests/package/check_package.py --extra all      # every extra is required
+    python tests/package/checks.py                  # no extra
+    python tests/package/checks.py --extra numpy    # numpy is required
+    python tests/package/checks.py --extra all      # every extra is required
 
 A check on an optional library is skipped (and reported as skipped) when
 the library is not installed, unless the extra that provides it was
@@ -25,6 +25,7 @@ import argparse
 import importlib
 import importlib.metadata
 import importlib.util
+import json
 import logging
 import pkgutil
 import random
@@ -107,10 +108,25 @@ def require(extra: str) -> None:
 #################################
 
 
+def is_editable_install() -> bool:
+    r"""Indicate if ``coola`` is installed in editable mode (PEP
+    610)."""
+    text = importlib.metadata.distribution(PACKAGE).read_text("direct_url.json")
+    return bool(text) and bool(json.loads(text or "{}").get("dir_info", {}).get("editable"))
+
+
 def check_install_location() -> None:
     r"""Check that ``coola`` is imported from the installed package, not
-    from the source tree."""
+    from the source tree.
+
+    An editable install is imported from the source tree by design, so
+    the check is skipped.
+    """
     import coola
+
+    if is_editable_install():
+        msg = "editable install"
+        raise SkipCheckError(msg)
 
     location = Path(coola.__file__).resolve()
     source_tree = Path(__file__).resolve().parents[2] / "src"
@@ -134,8 +150,10 @@ def check_metadata() -> None:
 
 def check_distribution_files() -> None:
     r"""Check that the typing marker and the license are shipped."""
+    import coola
+
+    assert (Path(coola.__file__).parent / "py.typed").is_file(), "py.typed is missing"
     files = {str(f) for f in importlib.metadata.files(PACKAGE) or []}
-    assert "coola/py.typed" in files, "py.typed is missing"
     assert any(f.endswith("LICENSE") for f in files), "LICENSE is missing"
 
 
