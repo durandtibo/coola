@@ -14,7 +14,7 @@ from coola.rounding import (
     round_values,
 )
 from coola.rounding.common import Rounder
-from coola.rounding.interface import _round_leaf, _round_object
+from coola.rounding.interface import _register_default_rounders, _round_leaf, _round_object
 from coola.rounding.native import round_float
 from coola.testing.marks import (
     numpy_available,
@@ -460,3 +460,32 @@ def test_round_object_unsupported_type() -> None:
 
 def test_round_object_rounds() -> None:
     assert _round_object(1.26, get_default_registry(), "ceil", 1, "raise") == 1.3
+
+
+#################################################
+#     Tests for _register_default_rounders     #
+#################################################
+
+
+@numpy_available
+def test_register_default_rounders_skips_missing_packages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("coola.rounding.interface.package_available", lambda _: False)
+    registry = TypeRegistry()
+    _register_default_rounders(registry)
+    with pytest.raises(TypeNotRegisteredError):
+        registry.resolve(np.ndarray)
+
+
+@numpy_available
+def test_register_default_rounders_registers_numpy_rounder() -> None:
+    registry = TypeRegistry()
+    _register_default_rounders(registry)
+    assert registry.resolve(np.ndarray) is not None
+
+
+def test_register_default_rounders_registers_native_rounders() -> None:
+    registry = TypeRegistry()
+    _register_default_rounders(registry)
+    assert registry.resolve(float) is round_float
