@@ -54,7 +54,7 @@ if is_xarray_available():
     import xarray as xr
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Set as AbstractSet
 
 
 class Color(enum.Enum):
@@ -220,7 +220,7 @@ HASH_GAPS = {
 }
 
 
-def params(gaps: set[str] = frozenset()) -> list[Any]:
+def params(gaps: AbstractSet[str] = frozenset()) -> list[Any]:
     return [
         pytest.param(
             factory,

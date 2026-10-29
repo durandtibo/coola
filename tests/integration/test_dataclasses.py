@@ -11,7 +11,7 @@ from coola.recursive import recursive_apply
 
 @dataclass
 class Layer:
-    size: int
+    size: Any
     activation: str = "relu"
 
 
