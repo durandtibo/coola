@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import Counter, OrderedDict
 from types import MappingProxyType
+from typing import Any
 
 import pytest
 
@@ -30,7 +31,7 @@ def test_mapping_child_finder_repr() -> None:
         pytest.param(MappingProxyType({"a": 1}), [1], id="mapping proxy"),
     ],
 )
-def test_mapping_child_finder_find_children(data: object, expected: list) -> None:
+def test_mapping_child_finder_find_children(data: Any, expected: list) -> None:
     assert list(MappingChildFinder().find_children(data)) == expected
 
 
