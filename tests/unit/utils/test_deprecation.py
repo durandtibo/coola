@@ -33,38 +33,38 @@ def test_deprecate_positional_options_no_option() -> None:
 
 def test_deprecate_positional_options_one_positional_option_warns() -> None:
     with pytest.warns(DeprecationWarning, match="`scale` to `affine` as positional arguments"):
-        affine(3, 4)
+        affine(3, 4)  # ty: ignore[too-many-positional-arguments]
 
 
 def test_deprecate_positional_options_two_positional_options_warn() -> None:
     with pytest.warns(DeprecationWarning, match="`scale`, `offset` to `affine`"):
-        affine(3, 4, 1)
+        affine(3, 4, 1)  # ty: ignore[too-many-positional-arguments]
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_deprecate_positional_options_one_positional_option_result() -> None:
-    assert affine(3, 4) == 12
+    assert affine(3, 4) == 12  # ty: ignore[too-many-positional-arguments]
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_deprecate_positional_options_two_positional_options_result() -> None:
-    assert affine(3, 4, 1) == 13
+    assert affine(3, 4, 1) == 13  # ty: ignore[too-many-positional-arguments]
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_deprecate_positional_options_positional_and_keyword_options_result() -> None:
-    assert affine(3, 4, offset=1) == 13
+    assert affine(3, 4, offset=1) == 13  # ty: ignore[too-many-positional-arguments]
 
 
 def test_deprecate_positional_options_warning_points_to_the_caller() -> None:
     with pytest.warns(DeprecationWarning, match="is deprecated") as record:
-        affine(3, 4)
+        affine(3, 4)  # ty: ignore[too-many-positional-arguments]
     assert record[0].filename == __file__
 
 
 def test_deprecate_positional_options_too_many_positional_arguments_raises() -> None:
     with pytest.raises(TypeError, match=r"affine\(\) takes at most 3 positional arguments but 4"):
-        affine(3, 4, 1, 0)
+        affine(3, 4, 1, 0)  # ty: ignore[too-many-positional-arguments]
 
 
 def test_deprecate_positional_options_option_given_twice_raises() -> None:
@@ -72,17 +72,17 @@ def test_deprecate_positional_options_option_given_twice_raises() -> None:
         pytest.warns(DeprecationWarning, match="is deprecated"),
         pytest.raises(TypeError, match="multiple values for argument 'scale'"),
     ):
-        affine(3, 4, scale=5)
+        affine(3, 4, scale=5)  # ty: ignore[too-many-positional-arguments]
 
 
 def test_deprecate_positional_options_generator_warns_when_called() -> None:
     with pytest.warns(DeprecationWarning, match="`scale` to `generate`"):
-        generate(3, 4)
+        generate(3, 4)  # ty: ignore[too-many-positional-arguments]
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_deprecate_positional_options_generator_result() -> None:
-    assert list(generate(3, 4)) == [12]
+    assert list(generate(3, 4)) == [12]  # ty: ignore[too-many-positional-arguments]
 
 
 def test_deprecate_positional_options_keeps_the_name() -> None:

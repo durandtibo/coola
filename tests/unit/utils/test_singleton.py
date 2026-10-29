@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
@@ -274,7 +274,7 @@ def test_lazy_singleton_set_replaces_the_value() -> None:
 
 def test_lazy_singleton_set_before_get_does_not_call_the_factory() -> None:
     calls = []
-    singleton = LazySingleton(lambda: calls.append(1))
+    singleton = LazySingleton[Any](lambda: calls.append(1))
     singleton.set(2)
     singleton.get()
     assert calls == []
@@ -302,13 +302,13 @@ def test_lazy_singleton_reset_after_set_rebuilds_the_value() -> None:
 
 
 def test_lazy_singleton_set_from_the_factory_raises() -> None:
-    singleton = LazySingleton(lambda: singleton.set(1))
+    singleton = LazySingleton[Any](lambda: singleton.set(1))
     with pytest.raises(RuntimeError, match="set while its value is being built"):
         singleton.get()
 
 
 def test_lazy_singleton_set_from_the_factory_does_not_build_the_value() -> None:
-    singleton = LazySingleton(lambda: singleton.set(1))
+    singleton = LazySingleton[Any](lambda: singleton.set(1))
     with contextlib.suppress(RuntimeError):
         singleton.get()
     assert not singleton.is_built()
