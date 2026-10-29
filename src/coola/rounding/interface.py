@@ -52,12 +52,13 @@ def round_values(
     Args:
         data: The object to round.
         mode: The rounding mode. ``"round"`` rounds to the nearest
-            value and the halfway cases to the even value (like the
-            Python ``round`` function), ``"floor"`` rounds towards
+            value and the halfway cases to the even digit,
+            ``"floor"`` rounds towards
             negative infinity and ``"ceil"`` rounds towards positive
             infinity.
-        decimals: The number of decimals to keep. It must be greater
-            than or equal to ``0``.
+        decimals: The number of decimals to keep. It must be an
+            integer (a NumPy integer is accepted) greater than or equal
+            to ``0``.
         recursive: If ``True``, ``data`` can be a nested structure
             (``list``, ``tuple``, ``dict``, ``set``, dataclass, ...,
             as handled by ``coola.recursive.recursive_apply``) and
@@ -67,28 +68,35 @@ def round_values(
 
     Returns:
         The object with the rounded values, with the same type, dtype
-            and shape as ``data``.
+            and shape as ``data`` (a subclass of ``ndarray`` and a
+            masked array keep their type and their mask).
 
     Raises:
         ValueError: If ``mode`` is not ``"round"``, ``"floor"`` or
             ``"ceil"``, or if ``decimals`` is negative.
-        TypeError: If ``decimals`` is not an ``int``, or if ``data`` is
+        TypeError: If ``decimals`` is not an integer, or if ``data`` is
             not supported (with ``recursive=False``).
 
     Notes:
-        ``"floor"`` and ``"ceil"`` act on the decimal value of the
-        float: ``round_values(0.29, mode="floor", decimals=2)`` is
-        ``0.29`` and not ``0.28``, even if ``0.29 * 100`` is slightly
-        below ``29`` in floating-point arithmetic.
+        One rule is used for the three modes and for every library. A
+        float is read as the decimal that ``repr`` shows (the shortest
+        string that round-trips in its dtype). ``"floor"``, ``"ceil"``
+        and ``"round"`` (halfway cases to the even digit) act on this
+        decimal, and the result is the float of the dtype that is
+        nearest to the grid point. So ``round_values(0.29,
+        mode="floor", decimals=2)`` is ``0.29`` and not ``0.28``, and
+        ``round_values(2.675, decimals=2)`` is ``2.68``.
 
-        ``"round"`` uses the function of each library, so the halfway
-        cases of a float that cannot be represented exactly can differ
-        between the libraries. Python rounds the exact binary value, so
-        ``2.675`` is rounded to ``2.67``, while the other libraries
-        scale the value, round it and scale it back.
+        This differs from the Python ``round`` function and from
+        ``numpy.round``, which round the exact binary value (Python)
+        or scale and round (NumPy), so the halfway cases of a decimal
+        literal give another result (``round(2.675, 2)`` is ``2.67``).
 
-        The computation is made in ``float64`` and the result is cast
-        back to the dtype of ``data``.
+        The result equals ``Decimal(repr(x)).quantize(...)`` while
+        ``abs(x) * 10**decimals`` is below ``1e13``. Above, it is
+        within one grid step of it. A value that is zero after the
+        rounding has the sign of the input (``-0.4`` ceiled is
+        ``-0.0``, like ``numpy.ceil``).
 
     Example:
         ```pycon
@@ -115,7 +123,7 @@ def round_values(
 
         ```
     """
-    validate_arguments(mode, decimals)
+    decimals = validate_arguments(mode, decimals)
     if recursive:
         return recursive_apply(data, lambda x: _round_leaf(x, mode, decimals))
     return _round_object(data, mode, decimals)

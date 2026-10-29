@@ -41,7 +41,7 @@ tensor([1.3000, 5.7000])
 
 | Mode      | Behavior                                                                    |
 | --------- | --------------------------------------------------------------------------- |
-| `"round"` | Nearest value. The halfway cases go to the even value, like Python `round`. |
+| `"round"` | Nearest value. The halfway cases of the decimal go to the even digit.      |
 | `"floor"` | Towards negative infinity.                                                  |
 | `"ceil"`  | Towards positive infinity.                                                  |
 
@@ -53,18 +53,37 @@ tensor([1.3000, 5.7000])
 - **Integers are never changed**, and a float stays a float of the same type: `round_values(2.5)`
   is `2.0`, not `2`.
 - **`NaN`, infinite and missing values are kept.**
-- **The dtype is kept.** The computation is made in `float64`, and the result is cast back.
+- **The dtype is kept.** The computation is made in `float64`, and the result is cast back to the dtype of the data.
 - **The input is not modified**, and the result never shares memory with it.
 - **Tables are heterogeneous**: only the floating-point columns of a pandas, polars or pyarrow
   table are rounded. The other columns (integers, strings, booleans, dates, ...) are left as they
   are. A Series, an array or a tensor must be numerical, otherwise a `TypeError` is raised.
 - **Not supported**: date and time types, complex numbers, `Decimal` and `Fraction`.
 
-`"floor"` and `"ceil"` act on the decimal value of the float: `0.29` floored to 2 decimals is
-`0.29` (not `0.28`, as `0.29 * 100` is slightly below `29` in floating-point arithmetic).
-`"round"` uses the function of each library, so the halfway cases of a float that cannot be
-represented exactly can differ between libraries (Python rounds the exact binary value, so
-`round_values(2.675, decimals=2)` is `2.67`).
+### One decimal rule
+
+A float is read as the decimal that `repr` shows (the shortest string that round-trips in its
+dtype). The three modes act on that decimal, and the result is the float of the dtype that is
+nearest to the grid point. The native `float`, NumPy, PyTorch and pandas give the same result, bit
+for bit.
+
+```pycon
+>>> from coola.rounding import round_values
+>>> round_values(0.29, mode="floor", decimals=2)
+0.29
+>>> round_values(2.675, decimals=2)
+2.68
+>>> round_values(-0.4, mode="ceil")
+-0.0
+
+```
+
+The result equals `Decimal(repr(x)).quantize(...)` while `abs(x) * 10**decimals < 1e13`. Above, it
+is within one grid step of it. This is **not** the rule of the Python `round` function (which rounds
+the exact binary value, so `round(2.675, 2)` is `2.67`) nor of `numpy.round` (scale and `rint`).
+A value that is zero after the rounding keeps the sign of the input, like `numpy.ceil`. `decimals`
+can be any integer, a NumPy integer included. A NumPy `matrix`, a subclass of `ndarray` and a masked
+array keep their type (and the mask).
 
 ## Nested data
 

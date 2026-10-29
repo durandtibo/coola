@@ -53,13 +53,12 @@ if is_pyarrow_available():
 # The cases that fail on ``main``, with the finding of ``review/rounding.md`` that explains them.
 # Each step of the review removes its entries.
 _ORACLE_FAILURES: dict[tuple[str, str, int], str] = {
-    **{(b, "round", 2): "F3" for b in BACKENDS},
-    **{(b, "ceil", d): "F2" for b in BACKENDS for d in (1, 2, 5)},
+    ("pyarrow", "round", 2): "F3",
+    **{("pyarrow", "ceil", d): "F2" for d in (1, 2, 5)},
     **{("polars", m, d): "F1" for m in MODES for d in (1, 2, 5)},
 }
 _NUMPY_FAILURES: dict[tuple[str, str, int], str] = {
-    ("native", "round", 2): "F3",
-    **{("polars", m, d): "F1" for m in MODES for d in (1, 2, 5)},
+    **_ORACLE_FAILURES,
 }
 
 

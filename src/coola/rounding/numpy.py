@@ -19,8 +19,9 @@ def round_numpy(data: Any, mode: RoundMode, decimals: int) -> Any:
     r"""Round a NumPy array or scalar.
 
     Integer and boolean values are not changed. The computation is made
-    in ``float64`` and the result has the dtype of ``data``. The mask
-    of a masked array is kept.
+    in ``float64`` and the result has the type and the dtype of
+    ``data`` (a ``matrix``, a subclass of ``ndarray`` and a masked
+    array with its mask and fill value are kept).
 
     Args:
         data: The ``numpy.ndarray`` or NumPy scalar to round.
@@ -50,9 +51,6 @@ def round_numpy(data: Any, mode: RoundMode, decimals: int) -> Any:
     if not isinstance(data, np.ndarray):
         msg = f"Unsupported type: {type(data).__qualname__}"
         raise TypeError(msg)
-    if isinstance(data, np.ma.MaskedArray):
-        result = _round_array(np.asarray(data.data), mode, decimals)
-        return np.ma.array(result, mask=np.ma.getmask(data), fill_value=data.fill_value)
     return _round_array(data, mode, decimals)
 
 
@@ -63,27 +61,39 @@ def _round_array(data: np.ndarray, mode: RoundMode, decimals: int) -> np.ndarray
     if kind != "f":
         msg = f"Unsupported dtype: {data.dtype}"
         raise TypeError(msg)
+    # ``copy`` keeps the type of the array (``matrix``, subclasses, mask and fill value of a
+    # ``MaskedArray``): the rounded values are assigned to the copy.
+    result = data.copy()
     scale = get_scale(decimals)
-    if scale is None:
-        return data.copy()
-    values = data.astype(np.float64)
-    with np.errstate(over="ignore", invalid="ignore"):
-        scaled = values * scale
-        if mode == "round":
-            result = np.rint(scaled) / scale
-        elif mode == "floor":
-            index = np.floor(scaled)
-            # ``0.29 * 100`` is below 29: take the grid point if it is not above the value. The grid
-            # point is compared in the dtype of the array, as the value is.
-            index = np.where(_grid(index + 1, scale, data.dtype) <= values, index + 1, index)
-            result = index / scale
-        else:
-            index = np.ceil(scaled)
-            index = np.where(_grid(index - 1, scale, data.dtype) >= values, index - 1, index)
-            result = index / scale
-        result = np.where(np.abs(scaled) < MAX_EXACT, result, values)
-    return result.astype(data.dtype)
+    if scale is not None:
+        with np.errstate(over="ignore", invalid="ignore"):
+            np.copyto(result, _round_float_array(np.asarray(data), mode, scale))
+    return result
 
 
-def _grid(index: np.ndarray, scale: float, dtype: np.dtype) -> np.ndarray:
-    return (index / scale).astype(dtype).astype(np.float64)
+def _round_float_array(data: np.ndarray, mode: RoundMode, scale: float) -> np.ndarray:
+    # The computation is made in float64. The grid points are compared with the value after a
+    # cast to the dtype of the array, as the value is.
+    x = data.astype(np.float64)
+    low = data.dtype != np.float64
+
+    def grid(index: np.ndarray) -> np.ndarray:
+        point = index / scale
+        return point.astype(data.dtype).astype(np.float64) if low else point
+
+    scaled = x * scale
+    index = np.floor(scaled)
+    # ``scaled`` is rounded, so the index is wrong by at most one in either direction.
+    index = index + (grid(index + 1) <= x)
+    index = index - (grid(index) > x)
+    if mode == "ceil":
+        index = index + (grid(index) < x)
+    elif mode == "round":
+        middle = (2 * index + 1) / (2 * scale)
+        if low:
+            middle = middle.astype(data.dtype).astype(np.float64)
+        # ``rint`` sends a halfway case to the even index.
+        index = np.where(x > middle, index + 1, np.where(x == middle, np.rint(index + 0.5), index))
+    # ``NaN``, the infinite values and the values past the grid are not changed.
+    result = np.where(np.abs(scaled) < MAX_EXACT, index / scale, x)
+    return np.copysign(result, x).astype(data.dtype)

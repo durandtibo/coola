@@ -3,6 +3,11 @@ from __future__ import annotations
 import pytest
 
 from coola.rounding.common import MODES, get_scale, validate_arguments
+from coola.testing.marks import numpy_available
+from coola.utils.imports import is_numpy_available
+
+if is_numpy_available():
+    import numpy as np
 
 #################################
 #     Tests for get_scale       #
@@ -47,3 +52,19 @@ def test_validate_arguments_negative_decimals() -> None:
 def test_validate_arguments_decimals_not_int(decimals: object) -> None:
     with pytest.raises(TypeError, match=r"decimals must be an int"):
         validate_arguments("round", decimals)  # ty: ignore[invalid-argument-type]
+
+
+def test_validate_arguments_returns_decimals() -> None:
+    assert validate_arguments("round", 3) == 3
+
+
+@numpy_available
+def test_validate_arguments_numpy_integer_returns_int() -> None:
+    result = validate_arguments("round", np.int64(2))
+    assert type(result) is int
+
+
+@numpy_available
+def test_validate_arguments_numpy_integer_negative() -> None:
+    with pytest.raises(ValueError, match=r"decimals must be greater than or equal to 0"):
+        validate_arguments("round", np.int64(-1))
