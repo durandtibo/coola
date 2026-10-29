@@ -57,11 +57,8 @@ def make_unresolvable() -> UndefinedName:  # noqa: F821  # ty: ignore[unresolved
     return Dog()
 
 
-def make_literal() -> int:
+def make_literal() -> 1:  # ty: ignore[invalid-type-form]
     return 1
-
-
-make_literal.__annotations__["return"] = 1
 
 
 ############################
