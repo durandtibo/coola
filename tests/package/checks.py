@@ -5,9 +5,8 @@ from the source distribution or the wheel, or downloaded from PyPI), not
 against the source tree. It is a standalone script, not a pytest module:
 it must run in an environment where only ``coola`` (and the requested
 extras) are installed, so it does not import ``pytest`` or
-``coola.testing``. It imports the optional libraries that are installed
-at module level, so the check of the lazy imports runs in a fresh
-interpreter.
+``coola.testing``, and it does not import an optional library at module
+level.
 
 Usage::
 
@@ -30,7 +29,6 @@ import json
 import logging
 import pkgutil
 import random
-import subprocess
 import sys
 from copy import deepcopy
 from pathlib import Path
@@ -45,30 +43,6 @@ from coola.recursive import recursive_apply
 from coola.reducer import NativeReducer
 from coola.registry import Registry
 from coola.summary import summarize
-from coola.utils.imports import (
-    is_jax_available,
-    is_numpy_available,
-    is_pandas_available,
-    is_polars_available,
-    is_pyarrow_available,
-    is_torch_available,
-    is_xarray_available,
-)
-
-if is_jax_available():
-    import jax.numpy as jnp
-if is_numpy_available():
-    import numpy as np
-if is_pandas_available():
-    import pandas as pd
-if is_polars_available():
-    import polars as pl
-if is_pyarrow_available():
-    import pyarrow as pa
-if is_torch_available():
-    import torch
-if is_xarray_available():
-    import xarray as xr
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -224,34 +198,15 @@ def check_import_all_modules() -> None:
     assert not failures, "failed to import:\n" + "\n".join(failures)
 
 
-LAZY_IMPORTS_SCRIPT = """
-import importlib
-import pkgutil
-import sys
-
-package = importlib.import_module({package!r})
-for info in pkgutil.iter_modules(package.__path__, prefix={prefix!r}):
-    if not info.name.startswith({excluded!r}):
-        importlib.import_module(info.name)
-print(sorted(name for name in {lazy!r} if name in sys.modules))
-"""
-
-
 def check_lazy_imports() -> None:
-    r"""Check that importing the subpackages does not import the optional
-    libraries (nor ``pytest``).
-
-    The check runs in a fresh interpreter because this script imports
-    the optional libraries that are installed.
-    """
-    script = LAZY_IMPORTS_SCRIPT.format(
-        package=PACKAGE, prefix=f"{PACKAGE}.", excluded=IMPORT_EXCLUDED, lazy=LAZY_MODULES
-    )
-    result = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", script], capture_output=True, text=True, check=True
-    )
-    imported = result.stdout.strip()
-    assert imported == "[]", f"imported by the package at import time: {imported}"
+    r"""Check that importing the subpackages does not import the
+    optional libraries (nor ``pytest``)."""
+    package = importlib.import_module(PACKAGE)
+    for info in pkgutil.iter_modules(package.__path__, prefix=f"{PACKAGE}."):
+        if not info.name.startswith(IMPORT_EXCLUDED):
+            importlib.import_module(info.name)
+    imported = [name for name in LAZY_MODULES if name in sys.modules]
+    assert not imported, f"imported by the package at import time: {imported}"
 
 
 def check_imports() -> None:
@@ -305,6 +260,7 @@ def check_equality_native() -> None:
 def check_equality_jax() -> None:
     r"""Check equality operations for JAX arrays."""
     require("jax")
+    jnp = importlib.import_module("jax.numpy")
 
     assert objects_are_allclose(jnp.ones((2, 3)), jnp.ones((2, 3)))
     assert objects_are_equal(jnp.ones((2, 3)), jnp.ones((2, 3)))
@@ -314,6 +270,7 @@ def check_equality_jax() -> None:
 def check_equality_numpy() -> None:
     r"""Check equality operations for NumPy arrays."""
     require("numpy")
+    np = importlib.import_module("numpy")
 
     assert objects_are_allclose(np.ones((2, 3)), np.ones((2, 3)))
     assert objects_are_equal(np.ones((2, 3)), np.ones((2, 3)))
@@ -323,6 +280,7 @@ def check_equality_numpy() -> None:
 def check_equality_pandas() -> None:
     r"""Check equality operations for pandas DataFrames."""
     require("pandas")
+    pd = importlib.import_module("pandas")
 
     df = pd.DataFrame(
         {
@@ -339,6 +297,7 @@ def check_equality_pandas() -> None:
 def check_equality_polars() -> None:
     r"""Check equality operations for Polars DataFrames."""
     require("polars")
+    pl = importlib.import_module("polars")
 
     df = pl.DataFrame(
         {
@@ -355,6 +314,7 @@ def check_equality_polars() -> None:
 def check_equality_pyarrow() -> None:
     r"""Check equality operations for PyArrow arrays and tables."""
     require("pyarrow")
+    pa = importlib.import_module("pyarrow")
 
     table = pa.table({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
     assert objects_are_equal(table, deepcopy(table))
@@ -365,6 +325,7 @@ def check_equality_pyarrow() -> None:
 def check_equality_torch() -> None:
     r"""Check equality operations for PyTorch tensors and structures."""
     require("torch")
+    torch = importlib.import_module("torch")
 
     assert objects_are_allclose(torch.ones(2, 3), torch.ones(2, 3))
     assert objects_are_equal(torch.ones(2, 3), torch.ones(2, 3))
@@ -384,6 +345,8 @@ def check_equality_xarray() -> None:
     Variables."""
     require("xarray")
     require("numpy")
+    np = importlib.import_module("numpy")
+    xr = importlib.import_module("xarray")
 
     data = xr.DataArray(np.arange(6), dims=["z"]), xr.DataArray(np.arange(6), dims=["z"])
     assert objects_are_allclose(data, deepcopy(data))
