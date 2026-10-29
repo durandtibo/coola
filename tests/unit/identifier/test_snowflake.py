@@ -42,18 +42,18 @@ def _decode(snowflake_id: int) -> tuple[int, int, int]:
 
 def test_snowflake_id_generator_worker_id_is_required() -> None:
     with pytest.raises(TypeError, match="worker_id"):
-        SnowflakeIdGenerator()
+        SnowflakeIdGenerator()  # ty: ignore[missing-argument]
 
 
 def test_snowflake_id_generator_worker_id_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional argument"):
-        SnowflakeIdGenerator(3)
+        SnowflakeIdGenerator(3)  # ty: ignore[missing-argument, too-many-positional-arguments]
 
 
 @pytest.mark.parametrize("worker_id", [True, 1.5, "1", None])
 def test_snowflake_id_generator_worker_id_wrong_type_raises(worker_id: object) -> None:
     with pytest.raises(TypeError, match="worker_id must be an int"):
-        SnowflakeIdGenerator(worker_id=worker_id)
+        SnowflakeIdGenerator(worker_id=worker_id)  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize("worker_id", [-1, 1024])
@@ -208,12 +208,12 @@ def test_snowflake_id_generator_generate_timestamp_ms_wrong_type_raises(
     timestamp_ms: object,
 ) -> None:
     with pytest.raises(TypeError, match="timestamp_ms must be an int"):
-        SnowflakeIdGenerator(worker_id=5).generate(timestamp_ms=timestamp_ms)
+        SnowflakeIdGenerator(worker_id=5).generate(timestamp_ms=timestamp_ms)  # ty: ignore[invalid-argument-type]
 
 
 def test_snowflake_id_generator_generate_timestamp_ms_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional argument"):
-        SnowflakeIdGenerator(worker_id=5).generate(NOW_MS)
+        SnowflakeIdGenerator(worker_id=5).generate(NOW_MS)  # ty: ignore[too-many-positional-arguments]
 
 
 def test_snowflake_id_generator_generate_explicit_timestamp_does_not_touch_the_state() -> None:
@@ -284,7 +284,7 @@ def test_extract_snowflake_timestamp_ms_negative_raises() -> None:
 @pytest.mark.parametrize("snowflake_id", [True, 1.5, "1", None])
 def test_extract_snowflake_timestamp_ms_wrong_type_raises(snowflake_id: object) -> None:
     with pytest.raises(TypeError, match="snowflake_id must be an int"):
-        extract_snowflake_timestamp_ms(snowflake_id)
+        extract_snowflake_timestamp_ms(snowflake_id)  # ty: ignore[invalid-argument-type]
 
 
 def test_extract_snowflake_timestamp_ms_rejects_a_64_bit_value() -> None:

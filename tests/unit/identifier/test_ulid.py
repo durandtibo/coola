@@ -248,13 +248,13 @@ def test_extract_ulid_timestamp_ms_accepts_lowercase() -> None:
 @pytest.mark.parametrize("timestamp_ms", [True, 1.5, "1"])
 def test_generate_ulid_timestamp_wrong_type_raises(timestamp_ms: object) -> None:
     with pytest.raises(TypeError, match="timestamp_ms must be an int"):
-        generate_ulid(timestamp_ms=timestamp_ms)
+        generate_ulid(timestamp_ms=timestamp_ms)  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize("ulid", [None, 123, b"0" * 26])
 def test_extract_ulid_timestamp_ms_not_a_str_raises(ulid: object) -> None:
     with pytest.raises(TypeError, match="ulid must be an instance of"):
-        extract_ulid_timestamp_ms(ulid)
+        extract_ulid_timestamp_ms(ulid)  # ty: ignore[invalid-argument-type]
 
 
 def test_extract_ulid_timestamp_ms_reads_o_as_zero() -> None:
@@ -287,4 +287,4 @@ def test_generate_ulid_current_time_beyond_48_bits_raises() -> None:
 
 def test_generate_ulid_timestamp_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional argument"):
-        generate_ulid(1704067200000)
+        generate_ulid(1704067200000)  # ty: ignore[too-many-positional-arguments]

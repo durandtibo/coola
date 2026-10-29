@@ -98,7 +98,7 @@ def test_generate_stable_content_id_custom_registry_is_honored() -> None:
 
 def test_generate_stable_content_id_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
-        generate_stable_content_id({"a": 1}, 32)  # type: ignore[misc]
+        generate_stable_content_id({"a": 1}, 32)  # type: ignore[misc]  # ty: ignore[too-many-positional-arguments]
 
 
 def test_generate_stable_content_id_golden_vector() -> None:
@@ -266,7 +266,7 @@ def test_generate_stable_uuid5_same_data_different_namespace_matches_manual_uuid
 
 def test_generate_stable_uuid5_options_are_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
-        generate_stable_uuid5({"a": 1}, None)  # type: ignore[misc]
+        generate_stable_uuid5({"a": 1}, None)  # type: ignore[misc]  # ty: ignore[too-many-positional-arguments]
 
 
 def test_generate_stable_uuid5_golden_vector() -> None:

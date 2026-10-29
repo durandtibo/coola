@@ -134,12 +134,12 @@ def test_generate_object_id_timestamp_too_large_raises() -> None:
 @pytest.mark.parametrize("timestamp_s", [True, 1.5, "1"])
 def test_generate_object_id_timestamp_wrong_type_raises(timestamp_s: object) -> None:
     with pytest.raises(TypeError, match="timestamp_s must be an int"):
-        generate_object_id(timestamp_s=timestamp_s)
+        generate_object_id(timestamp_s=timestamp_s)  # ty: ignore[invalid-argument-type]
 
 
 def test_generate_object_id_timestamp_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional argument"):
-        generate_object_id(1_700_000_000)
+        generate_object_id(1_700_000_000)  # ty: ignore[too-many-positional-arguments]
 
 
 def test_generate_object_id_current_time_beyond_32_bits_raises() -> None:
@@ -183,7 +183,7 @@ def test_extract_object_id_timestamp_s_invalid_hex_raises() -> None:
 @pytest.mark.parametrize("object_id", [None, 123, b"65920a80aabbccddeeff0011"])
 def test_extract_object_id_timestamp_s_not_a_str_raises(object_id: object) -> None:
     with pytest.raises(TypeError, match="object_id must be an instance of"):
-        extract_object_id_timestamp_s(object_id)
+        extract_object_id_timestamp_s(object_id)  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize(
