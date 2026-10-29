@@ -843,7 +843,9 @@ def test_torch_tensor_compare_meta_tensors_different_shape() -> None:
 def test_torch_tensor_compare_reason_is_bounded() -> None:
     expected = torch.zeros(1_000_000)
     expected[0] = 1.0
-    assert len(compare(torch.zeros(1_000_000), expected).reason) < 100
+    reason = compare(torch.zeros(1_000_000), expected).reason
+    assert reason is not None
+    assert len(reason) < 100
 
 
 @torch_available

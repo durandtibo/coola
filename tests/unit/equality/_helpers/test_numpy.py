@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -314,13 +315,13 @@ def test_time_scalar_equal_datetime_has_no_tolerance() -> None:
 
 @numpy_available
 @pytest.mark.parametrize("value", [np.timedelta64("NaT", "s"), np.datetime64("NaT", "s")])
-def test_time_scalar_equal_nat_equal_nan(value: object) -> None:
+def test_time_scalar_equal_nat_equal_nan(value: Any) -> None:
     assert time_scalar_equal(value, value.copy(), EqualityConfig(equal_nan=True))
 
 
 @numpy_available
 @pytest.mark.parametrize("value", [np.timedelta64("NaT", "s"), np.datetime64("NaT", "s")])
-def test_time_scalar_equal_nat_not_equal_nan(value: object, config: EqualityConfig) -> None:
+def test_time_scalar_equal_nat_not_equal_nan(value: Any, config: EqualityConfig) -> None:
     assert not time_scalar_equal(value, value.copy(), config)
 
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import Mock
 
 import numpy as np
@@ -106,7 +107,7 @@ def _int_close(
 
 
 def _torch_int_close(
-    x: list[int], y: list[int], *, dtype: object = None, atol: float = 0.0, rtol: float = 0.0
+    x: list[int], y: list[int], *, dtype: Any = None, atol: float = 0.0, rtol: float = 0.0
 ) -> list[bool]:
     return elementwise_close(
         torch.tensor(x, dtype=dtype or torch.int64),
@@ -254,7 +255,7 @@ def test_elementwise_close_torch_uint8_does_not_wrap_around() -> None:
 
 @torch_available
 @pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32])
-def test_elementwise_close_torch_small_float_does_not_overflow(dtype: object) -> None:
+def test_elementwise_close_torch_small_float_does_not_overflow(dtype: Any) -> None:
     result = elementwise_close(
         torch.tensor([60000.0], dtype=dtype),
         torch.tensor([-60000.0], dtype=dtype),

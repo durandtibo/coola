@@ -89,39 +89,39 @@ def test_int_isclose_agrees_with_math_isclose_for_small_ints(number1: int, numbe
 
 
 def test_number_equal_complex_exact() -> None:
-    assert number_equal(1 + 1j, 1 + 1j, EqualityConfig())
+    assert number_equal(1 + 1j, 1 + 1j, EqualityConfig())  # ty: ignore[invalid-argument-type]
 
 
 def test_number_equal_complex_exact_different() -> None:
-    assert not number_equal(1 + 1j, 1 + 2j, EqualityConfig())
+    assert not number_equal(1 + 1j, 1 + 2j, EqualityConfig())  # ty: ignore[invalid-argument-type]
 
 
 def test_number_equal_complex_atol() -> None:
-    assert number_equal(1 + 1j, 1 + 1.05j, EqualityConfig(tolerance=Tolerance(atol=0.1)))
+    assert number_equal(1 + 1j, 1 + 1.05j, EqualityConfig(tolerance=Tolerance(atol=0.1)))  # ty: ignore[invalid-argument-type]
 
 
 def test_number_equal_complex_rtol() -> None:
-    assert number_equal(1 + 1j, 1.05 + 1j, EqualityConfig(tolerance=Tolerance(rtol=0.1)))
+    assert number_equal(1 + 1j, 1.05 + 1j, EqualityConfig(tolerance=Tolerance(rtol=0.1)))  # ty: ignore[invalid-argument-type]
 
 
 def test_number_equal_complex_tolerance_not_equal() -> None:
-    assert not number_equal(1 + 1j, 1 + 2j, EqualityConfig(tolerance=Tolerance(atol=0.1)))
+    assert not number_equal(1 + 1j, 1 + 2j, EqualityConfig(tolerance=Tolerance(atol=0.1)))  # ty: ignore[invalid-argument-type]
 
 
 def test_number_equal_complex_tolerance_checks_imaginary_part() -> None:
-    assert not number_equal(1 + 0j, 1 + 5j, EqualityConfig(tolerance=Tolerance(atol=0.1)))
+    assert not number_equal(1 + 0j, 1 + 5j, EqualityConfig(tolerance=Tolerance(atol=0.1)))  # ty: ignore[invalid-argument-type]
 
 
 def test_number_equal_complex_and_real_tolerance() -> None:
-    assert number_equal(1 + 0j, 1.05, EqualityConfig(tolerance=Tolerance(atol=0.1)))
+    assert number_equal(1 + 0j, 1.05, EqualityConfig(tolerance=Tolerance(atol=0.1)))  # ty: ignore[invalid-argument-type]
 
 
 def test_number_equal_real_and_complex_tolerance() -> None:
-    assert number_equal(1.05, 1 + 0j, EqualityConfig(tolerance=Tolerance(atol=0.1)))
+    assert number_equal(1.05, 1 + 0j, EqualityConfig(tolerance=Tolerance(atol=0.1)))  # ty: ignore[invalid-argument-type]
 
 
 def test_number_equal_complex_with_imaginary_part_and_real_tolerance() -> None:
-    assert not number_equal(1 + 1j, 1.0, EqualityConfig(tolerance=Tolerance(atol=0.1)))
+    assert not number_equal(1 + 1j, 1.0, EqualityConfig(tolerance=Tolerance(atol=0.1)))  # ty: ignore[invalid-argument-type]
 
 
 NAN = float("nan")
@@ -194,22 +194,26 @@ def test_number_equal_outside_atol_and_rtol(number1: float, number2: float) -> N
 
 
 def test_number_equal_not_a_number_equal() -> None:
-    assert number_equal("a", "a", EqualityConfig(tolerance=Tolerance(atol=0.5)))
+    assert number_equal("a", "a", EqualityConfig(tolerance=Tolerance(atol=0.5)))  # ty: ignore[invalid-argument-type]
 
 
 def test_number_equal_not_a_number_different() -> None:
-    assert not number_equal("a", "b", EqualityConfig(tolerance=Tolerance(atol=0.5)))
+    assert not number_equal("a", "b", EqualityConfig(tolerance=Tolerance(atol=0.5)))  # ty: ignore[invalid-argument-type]
 
 
 def test_number_equal_real_without_float_equal() -> None:
     assert number_equal(
-        Unconvertible(), Unconvertible(), EqualityConfig(tolerance=Tolerance(atol=0.5))
+        Unconvertible(),  # ty: ignore[invalid-argument-type]
+        Unconvertible(),  # ty: ignore[invalid-argument-type]
+        EqualityConfig(tolerance=Tolerance(atol=0.5)),
     )
 
 
 def test_number_equal_real_without_float_different() -> None:
     assert not number_equal(
-        Unconvertible(), Unconvertible(1), EqualityConfig(tolerance=Tolerance(atol=0.5))
+        Unconvertible(),  # ty: ignore[invalid-argument-type]
+        Unconvertible(1),  # ty: ignore[invalid-argument-type]
+        EqualityConfig(tolerance=Tolerance(atol=0.5)),
     )
 
 
@@ -235,7 +239,9 @@ class Color(enum.Enum):
 )
 def test_number_equal_enum_has_no_tolerance(number1: object, number2: object) -> None:
     assert not number_equal(
-        number1, number2, EqualityConfig(tolerance=Tolerance(atol=5.0, rtol=1.0))
+        number1,  # ty: ignore[invalid-argument-type]
+        number2,  # ty: ignore[invalid-argument-type]
+        EqualityConfig(tolerance=Tolerance(atol=5.0, rtol=1.0)),
     )
 
 

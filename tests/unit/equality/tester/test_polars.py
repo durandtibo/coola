@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -648,7 +649,7 @@ def test_series_compare_different_structure() -> None:
         (PolarsSeriesTable(pl.Series([1])), "series"),
     ],
 )
-def test_kind_name(table: object, name: str) -> None:
+def test_kind_name(table: Any, name: str) -> None:
     assert table.kind_name == name
 
 

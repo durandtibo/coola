@@ -22,7 +22,7 @@ from coola.equality.tester import BaseEqualityTester, get_default_registry
 class ExamplePair:
     actual: Any
     expected: Any
-    expected_message: str | None = None
+    expected_message: str = ""
     atol: float = 0.0
     rtol: float = 0.0
 

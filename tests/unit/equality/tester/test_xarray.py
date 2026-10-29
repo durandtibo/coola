@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -933,7 +934,7 @@ def test_xarray_variable_equality_tester_no_xarray() -> None:
 @xarray_available
 def test_xarray_data_array_equality_tester_non_index_coordinate(config: EqualityConfig) -> None:
     tester = XarrayDataArrayEqualityTester()
-    kwargs = {"dims": ["z"], "coords": {"label": ("z", ["a", "b", "c"])}}
+    kwargs: dict[str, Any] = {"dims": ["z"], "coords": {"label": ("z", ["a", "b", "c"])}}
     actual = xr.DataArray(np.arange(3), **kwargs)
     assert run_tester(tester, actual, xr.DataArray(np.arange(3), **kwargs), config)
 
@@ -943,7 +944,7 @@ def test_xarray_data_array_equality_tester_non_index_coordinate_different(
     config: EqualityConfig,
 ) -> None:
     tester = XarrayDataArrayEqualityTester()
-    kwargs = {"dims": ["z"], "coords": {"label": ("z", ["a", "b", "c"])}}
+    kwargs: dict[str, Any] = {"dims": ["z"], "coords": {"label": ("z", ["a", "b", "c"])}}
     actual = xr.DataArray(np.arange(3), **kwargs)
     other = xr.DataArray(np.arange(3), dims=["z"], coords={"label": ("z", ["a", "b", "d"])})
     assert not run_tester(tester, actual, other, config)

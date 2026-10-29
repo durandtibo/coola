@@ -20,48 +20,39 @@ else:
 
 if is_pydantic_available():
     from pydantic import BaseModel, ConfigDict, PrivateAttr
-else:
-    BaseModel, ConfigDict, PrivateAttr = object, dict, Mock()
 
+    class Point(BaseModel):
+        x: float
+        y: float
 
-class Point(BaseModel):
-    x: float
-    y: float
+    class OtherPoint(BaseModel):
+        x: float
+        y: float
 
+    class Open(BaseModel):
+        model_config = ConfigDict(extra="allow")
 
-class OtherPoint(BaseModel):
-    x: float
-    y: float
+        x: float
 
+    class Secret(BaseModel):
+        x: float
+        _cache: int = PrivateAttr(default=0)
 
-class Open(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    class Cached(BaseModel):
+        x: int
 
-    x: float
+        @functools.cached_property
+        def double(self) -> int:
+            return self.x * 2
 
+    class Nested(BaseModel):
+        point: Point
+        values: list[float]
 
-class Secret(BaseModel):
-    x: float
-    _cache: int = PrivateAttr(default=0)
+    class WithArray(BaseModel):
+        model_config = ConfigDict(arbitrary_types_allowed=True)
 
-
-class Cached(BaseModel):
-    x: int
-
-    @functools.cached_property
-    def double(self) -> int:
-        return self.x * 2
-
-
-class Nested(BaseModel):
-    point: Point
-    values: list[float]
-
-
-class WithArray(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    x: np.ndarray
+        x: np.ndarray
 
 
 @pytest.fixture

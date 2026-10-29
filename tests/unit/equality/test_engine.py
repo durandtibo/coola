@@ -82,8 +82,8 @@ def _engine(
     return Engine(config, explaining=explaining)
 
 
-def _nested(depth: int) -> dict | int:
-    obj: dict | int = 0
+def _nested(depth: int) -> Any:
+    obj: Any = 0
     for _ in range(depth):
         obj = {"child": obj}
     return obj
@@ -207,7 +207,8 @@ def test_registry_runs_a_nested_comparison_with_the_engine(
 
 
 def test_run_cycle_in_a_list_is_equal(registry: EqualityTesterRegistry) -> None:
-    a, b = [1], [1]
+    a: list[Any] = [1]
+    b: list[Any] = [1]
     a.append(a)
     b.append(b)
     assert _engine(registry).run(a, b)
@@ -222,7 +223,8 @@ def test_run_cycle_in_a_dict_is_equal(registry: EqualityTesterRegistry) -> None:
 
 
 def test_run_cycle_with_a_difference_is_different(registry: EqualityTesterRegistry) -> None:
-    a, b = [1], [2]
+    a: list[Any] = [1]
+    b: list[Any] = [2]
     a.append(a)
     b.append(b)
     assert not _engine(registry).run(a, b)
