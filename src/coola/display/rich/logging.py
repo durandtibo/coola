@@ -9,6 +9,9 @@ from typing import TYPE_CHECKING, Any
 
 from coola.utils.imports import is_rich_available
 
+if TYPE_CHECKING:
+    from rich.console import Console
+
 if TYPE_CHECKING or is_rich_available():  # pragma: no cover
     from rich import get_console
     from rich.logging import RichHandler
@@ -24,6 +27,7 @@ def configure_rich_logging(
     rich_tracebacks: bool = True,
     markup: bool = True,
     force: bool = False,
+    console: Console | None = None,
     **kwargs: Any,
 ) -> None:
     """Configure the root logger to use
@@ -40,7 +44,7 @@ def configure_rich_logging(
         logger = logging.getLogger(__name__)
 
     Using :func:`logging.getLogger` with ``__name__`` gives the logger a
-    dotted name matching its import path (e.g. ``langchain_metrics.console``),
+    dotted name matching its import path (e.g. ``my_package.my_module``),
     which slots it correctly into the logging hierarchy and allows callers to
     tune or silence it by name.
 
@@ -75,6 +79,9 @@ def configure_rich_logging(
             always takes effect.  Equivalent to passing ``force=True`` to
             :func:`logging.basicConfig` (requires Python 3.8+).
             Defaults to ``False``.
+        console: The :class:`~rich.console.Console` that renders the
+            records. ``None`` (the default) uses the shared console of
+            Rich (:func:`rich.get_console`).
         **kwargs: Additional keyword arguments forwarded verbatim to
             :class:`~rich.logging.RichHandler`.  For example::
 
@@ -101,6 +108,6 @@ def configure_rich_logging(
     """
     # The handler is created first: a missing ``rich`` raises before the root logger is changed.
     handler = RichHandler(
-        console=get_console(), rich_tracebacks=rich_tracebacks, markup=markup, **kwargs
+        console=console or get_console(), rich_tracebacks=rich_tracebacks, markup=markup, **kwargs
     )
     logging.basicConfig(level=level, format=fmt, datefmt=datefmt, handlers=[handler], force=force)

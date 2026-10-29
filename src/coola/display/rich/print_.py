@@ -1,4 +1,4 @@
-"""Provide a shared Rich console and console rendering utilities."""
+"""Provide helpers to print an object or a Markdown string with rich."""
 
 from __future__ import annotations
 
@@ -11,6 +11,8 @@ from coola.utils.imports import is_rich_available
 if TYPE_CHECKING:
     from rich.align import AlignMethod
     from rich.console import Console
+
+from coola.validation import validate_ge
 
 if TYPE_CHECKING or is_rich_available():  # pragma: no cover
     from rich import get_console
@@ -29,28 +31,85 @@ else:  # pragma: no cover
     )
 
 
-def _truncate(content: str, max_length: int) -> tuple[str, bool]:
-    """Truncate ``content`` to ``max_length`` characters, breaking on
-    the nearest word boundary rather than mid-word when possible.
+_MIN_KEPT_RATIO = 0.5
+_FENCES = ("```", "~~~")
+
+
+def _close_code_fence(text: str) -> str:
+    r"""Close the code fence that is left open at the end of ``text``.
 
     Args:
-        content: The text to truncate.
-        max_length: The maximum number of characters to keep.
+        text: The Markdown text, possibly cut inside a fenced code block.
 
     Returns:
-        A ``(truncated_content, was_truncated)`` tuple. If ``content``
-        is already within ``max_length``, it is returned unchanged
-        along with ``False``.
-    """
-    if len(content) <= max_length:
-        return content, False
+        ``text`` unchanged if every code fence is closed, otherwise
+        ``text`` followed by a line with the closing fence.
 
-    cut = content[:max_length]
-    last_space = cut.rfind(" ")
-    # Only snap to the word boundary if it doesn't discard too much text.
-    if last_space > max_length * 0.8:
-        cut = cut[:last_space]
-    return cut.rstrip(), True
+    Example:
+        ```pycon
+        >>> from coola.display.rich.print_ import _close_code_fence
+        >>> _close_code_fence("~~~\nx = 1")
+        '~~~\nx = 1\n~~~'
+        >>> _close_code_fence("~~~\nx = 1\n~~~")
+        '~~~\nx = 1\n~~~'
+
+        ```
+    """
+    opened = None
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        if opened is None:
+            opened = next((f for f in _FENCES if stripped.startswith(f)), None)
+        elif stripped.startswith(opened):
+            opened = None
+    return text if opened is None else f"{text}\n{opened}"
+
+
+def _truncate_markdown(msg: str, max_length: int) -> str:
+    r"""Truncate a Markdown string and append a notice with the number of
+    characters that are not shown.
+
+    The text is cut at the last paragraph break (``\n\n``) of the first
+    ``max_length`` characters, else at the last line break, else at the
+    last space, each one only if it keeps at least half of
+    ``max_length`` characters. Otherwise it is cut at ``max_length``.
+    A code fence left open by the cut is closed. The cut can still leave
+    an inline marker (bold, italic or code span) unbalanced when it falls
+    inside a paragraph.
+
+    Args:
+        msg: The Markdown string to truncate.
+        max_length: The maximum number of characters of ``msg`` to
+            keep. It must be greater than or equal to 1.
+
+    Returns:
+        ``msg`` unchanged if it has at most ``max_length`` characters,
+        otherwise the kept text followed by the notice
+        ``*… (N more characters)*`` as a separate paragraph.
+
+    Example:
+        ```pycon
+        >>> from coola.display.rich.print_ import _truncate_markdown
+        >>> print(_truncate_markdown("one\n\ntwo\n\nthree", 10))
+        one
+        <BLANKLINE>
+        two
+        <BLANKLINE>
+        *… (7 more characters)*
+
+        ```
+    """
+    if len(msg) <= max_length:
+        return msg
+    kept = msg[:max_length]
+    for separator in ("\n\n", "\n", " "):
+        index = kept.rfind(separator)
+        if index >= max_length * _MIN_KEPT_RATIO:
+            kept = kept[:index]
+            break
+    kept = kept.rstrip()
+    omitted = len(msg) - len(kept)
+    return f"{_close_code_fence(kept)}\n\n*… ({omitted:,} more characters)*"
 
 
 def _print_in_panel(
@@ -134,8 +193,11 @@ def print_markdown(
             a :class:`~rich.panel.Panel`.  If ``False``, print it
             directly and ignore ``title``, ``title_align``, and ``box``.
         max_length: Maximum number of characters of ``msg`` to render
-            before truncating on a word boundary, with the omitted
-            character count appended. Pass ``None`` (the default) to
+            before truncating. The cut prefers a paragraph break, then a
+            line break, then a space, closes a code fence left open, and
+            appends a notice with the number of omitted characters. An
+            inline marker (``**``) can be left unbalanced when the cut
+            falls inside a paragraph. Pass ``None`` (the default) to
             render ``msg`` in full.
         console: Optional :class:`~rich.console.Console` instance to use
             for this call.  Overrides the shared default for this
@@ -145,9 +207,19 @@ def print_markdown(
     Raises:
         MissingPackageError: If ``rich`` is not installed.
 
+    Raises:
+        MissingPackageError: If ``rich`` is not installed.
+        ValueError: If ``max_length`` is lower than 1.
+
     Example:
         ```pycon
+        >>> from io import StringIO
+        >>> from rich.console import Console
         >>> from coola.display.rich import print_markdown
+        >>> console = Console(file=StringIO(), width=20)
+        >>> print_markdown("**hello**", panel=False, console=console)
+        >>> console.file.getvalue().strip()
+        'hello'
         >>> print_markdown("**hello**", title="Demo")
         >>> print_markdown("**hello**", title="Demo", box=False)
         >>> print_markdown("**hello**", panel=False)
@@ -155,11 +227,8 @@ def print_markdown(
         ```
     """
     if max_length is not None:
-        original_length = len(msg)
-        msg, truncated = _truncate(msg, max_length)
-        if truncated:
-            omitted = original_length - len(msg)
-            msg += f"\n\n*… ({omitted:,} more characters)*"
+        validate_ge(max_length, 1, name="max_length")
+        msg = _truncate_markdown(msg, max_length)
     _print_in_panel(
         Markdown(msg), title=title, title_align=title_align, box=box, panel=panel, console=console
     )
@@ -208,7 +277,13 @@ def print_pretty(
 
     Example:
         ```pycon
+        >>> from io import StringIO
+        >>> from rich.console import Console
         >>> from coola.display.rich import print_pretty
+        >>> console = Console(file=StringIO(), width=20)
+        >>> print_pretty({"key": "value"}, panel=False, console=console)
+        >>> console.file.getvalue().strip()
+        "{'key': 'value'}"
         >>> print_pretty({"key": "value"}, title="Demo")
         >>> print_pretty({"key": "value"}, title="Demo", box=False)
         >>> print_pretty({"key": "value"}, panel=False)
