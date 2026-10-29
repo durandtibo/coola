@@ -888,7 +888,7 @@ def test_type_registry_init_non_type_key_raises() -> None:
 def test_type_registry_setitem_non_type_key_raises() -> None:
     registry = TypeRegistry[str]()
     with pytest.raises(TypeError, match="Expected a type as key"):
-        registry["abc"] = "value"  # ty: ignore[invalid-key]
+        registry["abc"] = "value"  # ty: ignore[invalid-assignment]
 
 
 def test_type_registry_not_registered_msg_same_qualname_is_qualified() -> None:
@@ -993,7 +993,7 @@ def test_type_registry_register_lazy_resolve_clears_the_cache_of_the_loaded_grou
 
 def test_type_registry_register_lazy_validates_the_loaded_keys() -> None:
     registry = TypeRegistry[str]()
-    registry.register_lazy("decimal", lambda: {"Decimal": "decimal"})
+    registry.register_lazy("decimal", lambda: {"Decimal": "decimal"})  # ty: ignore[invalid-argument-type]
     with pytest.raises(TypeError, match="Expected a type as key"):
         registry.resolve(Decimal)
 
@@ -1006,33 +1006,33 @@ def test_type_registry_resolve_no_match_raises() -> None:
 def test_type_registry_register_lazy_contains_non_type_is_false() -> None:
     registry = TypeRegistry[str]()
     registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
-    assert "abc" not in registry
+    assert "abc" not in registry  # ty: ignore[unsupported-operator]
 
 
 def test_type_registry_register_lazy_has_non_type_is_false() -> None:
     registry = TypeRegistry[str]()
     registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
-    assert not registry.has(None)
+    assert not registry.has(None)  # ty: ignore[invalid-argument-type]
 
 
 def test_type_registry_register_lazy_get_non_type_returns_default() -> None:
     registry = TypeRegistry[str]()
     registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
-    assert registry.get("abc", "default") == "default"
+    assert registry.get("abc", "default") == "default"  # ty: ignore[invalid-argument-type]
 
 
 def test_type_registry_register_lazy_getitem_non_type_raises() -> None:
     registry = TypeRegistry[str]()
     registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
     with pytest.raises(KeyError):
-        registry["abc"]
+        registry["abc"]  # ty: ignore[invalid-argument-type]
 
 
 def test_type_registry_register_lazy_resolve_non_type_raises() -> None:
     registry = TypeRegistry[str]()
     registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
     with pytest.raises(TypeError, match="Expected a type as key"):
-        registry.resolve("abc")
+        registry.resolve("abc")  # ty: ignore[invalid-argument-type]
 
 
 def test_type_registry_register_lazy_resolve_non_type_does_not_load_the_groups() -> None:
@@ -1040,7 +1040,7 @@ def test_type_registry_register_lazy_resolve_non_type_does_not_load_the_groups()
     registry = TypeRegistry[str]()
     registry.register_lazy("decimal", factory)
     with pytest.raises(TypeError, match="Expected a type as key"):
-        registry.resolve("abc")
+        registry.resolve("abc")  # ty: ignore[invalid-argument-type]
     factory.assert_not_called()
 
 
@@ -1048,7 +1048,7 @@ def test_type_registry_register_lazy_unregister_non_type_raises() -> None:
     registry = TypeRegistry[str]()
     registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
     with pytest.raises(TypeNotRegisteredError, match="is not registered"):
-        registry.unregister("abc")
+        registry.unregister("abc")  # ty: ignore[invalid-argument-type]
 
 
 #############################################
