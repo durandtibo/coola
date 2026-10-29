@@ -88,6 +88,7 @@ def test_base_file_saver_save_removes_tmp_file_on_failure_state_tmp_file_is_remo
     saver = FailingFileSaver()
     with contextlib.suppress(RuntimeError):
         saver.save("hello", path)
+    assert saver.tmp_path is not None
     assert not saver.tmp_path.is_file()
 
 
@@ -272,6 +273,7 @@ def test_base_file_saver_save_removes_tmp_file_on_link_failure_state_directory_i
 
 def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_create_raises(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # If the target path is created after the initial existence check but
     # before the commit step, ``exist_ok=False`` must still raise instead
@@ -284,13 +286,14 @@ def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_crea
         original_save_file(to_save, path)
         target_path.write_text("concurrent")
 
-    saver._save_file = save_file_then_create_target
+    monkeypatch.setattr(saver, "_save_file", save_file_then_create_target)
     with pytest.raises(FileExistsError):
         saver.save("hello", target_path)
 
 
 def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_create_state(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # If the target path is created after the initial existence check but
     # before the commit step, ``exist_ok=False`` must still raise instead
@@ -303,7 +306,7 @@ def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_crea
         original_save_file(to_save, path)
         target_path.write_text("concurrent")
 
-    saver._save_file = save_file_then_create_target
+    monkeypatch.setattr(saver, "_save_file", save_file_then_create_target)
     with contextlib.suppress(FileExistsError):
         saver.save("hello", target_path)
     assert target_path.read_text() == "concurrent"
@@ -311,6 +314,7 @@ def test_base_file_saver_save_exist_ok_false_fails_atomically_on_concurrent_crea
 
 def test_base_file_saver_save_exist_ok_true_silently_overwrites_concurrent_create(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # Unlike ``exist_ok=False``, the ``exist_ok=True`` path has no TOCTOU
     # guard: a file created concurrently between the initial check and the
@@ -324,7 +328,7 @@ def test_base_file_saver_save_exist_ok_true_silently_overwrites_concurrent_creat
         original_save_file(to_save, path)
         target_path.write_text("concurrent")
 
-    saver._save_file = save_file_then_create_target
+    monkeypatch.setattr(saver, "_save_file", save_file_then_create_target)
     saver.save("hello", target_path, exist_ok=True)
     assert target_path.read_text() == "hello"
 
