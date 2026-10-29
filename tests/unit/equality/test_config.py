@@ -48,7 +48,7 @@ def test_equality_config_negative_rtol() -> None:
 
 def test_equality_config_is_frozen() -> None:
     with pytest.raises(AttributeError):
-        EqualityConfig().equal_nan = True
+        EqualityConfig().equal_nan = True  # ty: ignore[invalid-assignment]
 
 
 def test_equality_config_replace_keeps_the_other_settings() -> None:
@@ -57,7 +57,7 @@ def test_equality_config_replace_keeps_the_other_settings() -> None:
 
 def test_equality_config_unknown_option() -> None:
     with pytest.raises(TypeError, match="unexpected keyword"):
-        EqualityConfig(unknown=1)
+        EqualityConfig(unknown=1)  # ty: ignore[unknown-argument]
 
 
 def test_equality_config_zero_atol() -> None:
@@ -117,7 +117,7 @@ def test_equality_config_eq_false_different_max_depth() -> None:
 @pytest.mark.parametrize("value", [True, 1.5, "a", None])
 def test_equality_config_max_depth_wrong_type(value: object) -> None:
     with pytest.raises(TypeError, match="max_depth must be an int"):
-        EqualityConfig(max_depth=value)
+        EqualityConfig(max_depth=value)  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize("name", ["atol", "rtol"])

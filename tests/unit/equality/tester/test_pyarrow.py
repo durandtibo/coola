@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import warnings
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -608,11 +609,12 @@ def test_table_compare_the_whole_result() -> None:
 @pytest.mark.parametrize("name", ["equal_nan", "atol", "rtol"])
 def test_a_setting_is_ignored_with_a_warning_without_numpy(name: str) -> None:
     settings = {"equal_nan": {"equal_nan": True}, "atol": {"atol": 0.1}, "rtol": {"rtol": 0.1}}
+    kwargs: dict[str, Any] = {"rtol": 0.0, "atol": 0.0, **settings[name]}
     with (
         patch("coola.equality.tester.pyarrow.is_numpy_available", return_value=False),
         pytest.warns(RuntimeWarning, match=f"{name} is ignored"),
     ):
-        compare(pa.array([1.0]), pa.array([1.0]), **{"rtol": 0.0, "atol": 0.0, **settings[name]})
+        compare(pa.array([1.0]), pa.array([1.0]), **kwargs)
 
 
 @pyarrow_available
@@ -650,7 +652,7 @@ def test_columns_are_compared_by_arrow_without_numpy() -> None:
         (PyarrowArrayTable(pa.array([1])), "arrays"),
     ],
 )
-def test_kind_name(table: object, name: str) -> None:
+def test_kind_name(table: Any, name: str) -> None:
     assert table.kind_name == name
 
 

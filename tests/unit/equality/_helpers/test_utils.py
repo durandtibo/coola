@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from coola.equality._helpers import comparison_key, is_exact_scalar_sequence
@@ -11,12 +13,12 @@ from coola.equality.config import EqualityConfig
 
 
 @pytest.mark.parametrize("seq", [[1, "a", None, True], (b"a", 2), [], ()])
-def test_is_exact_scalar_sequence_true(seq: object) -> None:
+def test_is_exact_scalar_sequence_true(seq: Any) -> None:
     assert is_exact_scalar_sequence(seq)
 
 
 @pytest.mark.parametrize("seq", [[1.0], [1, [2]], {1, 2}, "abc", range(3)])
-def test_is_exact_scalar_sequence_false(seq: object) -> None:
+def test_is_exact_scalar_sequence_false(seq: Any) -> None:
     assert not is_exact_scalar_sequence(seq)
 
 

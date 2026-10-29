@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -725,7 +726,7 @@ def test_array_compare_different_structure() -> None:
         (PandasArrayTable(pd.array([1], dtype="Int64")), "arrays"),
     ],
 )
-def test_kind_name(table: object, name: str) -> None:
+def test_kind_name(table: Any, name: str) -> None:
     assert table.kind_name == name
 
 

@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
-from pathlib import Path
 from types import MappingProxyType
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -182,7 +182,7 @@ def test_register_equality_testers_with_exist_ok_true() -> None:
 def test_register_equality_testers_exist_ok_is_keyword_only() -> None:
     positional = (True,)
     with pytest.raises(TypeError, match="positional"):
-        register_equality_testers({CustomList: SequenceEqualityTester()}, *positional)
+        register_equality_testers({CustomList: SequenceEqualityTester()}, *positional)  # ty: ignore[too-many-positional-arguments]
 
 
 def test_register_equality_testers_with_exist_ok_false() -> None:
@@ -319,7 +319,7 @@ class Point:
 
 # One sample for each type with a tester that does not need an optional library.
 # A new native type must be added here, so it is checked to be reflexive.
-NATIVE_SAMPLES = {
+NATIVE_SAMPLES: dict[type, Any] = {
     object: object(),
     int: 1,
     float: 1.5,
@@ -339,7 +339,7 @@ NATIVE_SAMPLES = {
     OrderedDict: OrderedDict(a=1, b=2),
     MappingProxyType: MappingProxyType({"a": [1, 2]}),
     Mapping: {"a": 1},
-    BaseLoader: TextLoader(Path("a.txt")),
+    BaseLoader: TextLoader(),
     BaseSaver: TextSaver(),
 }
 

@@ -117,7 +117,7 @@ def test_equality_tester_registry_register_many(dtype: type) -> None:
 
 def test_equality_tester_registry_register_many_with_existing_type() -> None:
     registry = EqualityTesterRegistry({list: SequenceEqualityTester()})
-    testers = {
+    testers: dict[type, BaseEqualityTester[Any]] = {
         list: MappingEqualityTester(),
         dict: MappingEqualityTester(),
     }
@@ -130,7 +130,7 @@ def test_equality_tester_registry_register_many_with_exist_ok() -> None:
     registry.register(list, SequenceEqualityTester())
 
     tester = DefaultEqualityTester()
-    testers = {
+    testers: dict[type, BaseEqualityTester[Any]] = {
         list: tester,
         dict: MappingEqualityTester(),
     }

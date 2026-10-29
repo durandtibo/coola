@@ -639,7 +639,9 @@ def test_numpy_array_compare_reason_has_the_two_values() -> None:
 def test_numpy_array_compare_reason_is_bounded() -> None:
     expected = np.zeros(1_000_000)
     expected[0] = 1.0
-    assert len(compare(np.zeros(1_000_000), expected).reason) < 100
+    reason = compare(np.zeros(1_000_000), expected).reason
+    assert reason is not None
+    assert len(reason) < 100
 
 
 @numpy_available
@@ -756,4 +758,5 @@ def test_numpy_masked_array_compare_path_is_an_attribute_name() -> None:
 @numpy_available
 def test_numpy_time_scalar_compare_reason() -> None:
     result = compare(np.datetime64("2020-01-01"), np.datetime64("2020-01-02"))
+    assert result.reason is not None
     assert result.reason.startswith("numpy time scalars are different:")

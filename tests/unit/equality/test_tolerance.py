@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+from typing import Any
 
 import pytest
 
@@ -21,7 +22,7 @@ def test_tolerance_repr() -> None:
 
 def test_tolerance_is_frozen() -> None:
     with pytest.raises(dataclasses.FrozenInstanceError):
-        Tolerance().rtol = 1.0
+        Tolerance().rtol = 1.0  # ty: ignore[invalid-assignment]
 
 
 def test_tolerance_is_hashable() -> None:
@@ -48,5 +49,6 @@ def test_tolerance_numpy_default() -> None:
 @pytest.mark.parametrize("name", ["rtol", "atol"])
 @pytest.mark.parametrize("value", [True, False, "a", None])
 def test_tolerance_wrong_type(name: str, value: object) -> None:
+    kwargs: dict[str, Any] = {name: value}
     with pytest.raises(TypeError, match=f"{name} must be a real number"):
-        Tolerance(**{name: value})
+        Tolerance(**kwargs)

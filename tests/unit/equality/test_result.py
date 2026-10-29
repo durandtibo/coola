@@ -4,7 +4,7 @@ import contextlib
 import dataclasses
 import logging
 from collections import OrderedDict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -65,7 +65,7 @@ def test_comparison_result_bool(equal: bool) -> None:
 
 def test_comparison_result_is_frozen() -> None:
     with pytest.raises(dataclasses.FrozenInstanceError):
-        ComparisonResult(True).equal = False
+        ComparisonResult(True).equal = False  # ty: ignore[invalid-assignment]
 
 
 @pytest.mark.parametrize(
@@ -375,7 +375,7 @@ def test_assert_objects_equal_equal_nan() -> None:
 
 def test_assert_objects_equal_rejects_tolerance() -> None:
     with pytest.raises(TypeError):
-        assert_objects_equal(1, 1, atol=0.1)
+        assert_objects_equal(1, 1, atol=0.1)  # ty: ignore[unknown-argument]
 
 
 def test_assert_objects_equal_is_exact() -> None:
@@ -425,8 +425,9 @@ def test_assert_objects_allclose_equal_nan() -> None:
 
 @pytest.mark.parametrize("name", ["atol", "rtol"])
 def test_assert_objects_allclose_negative_tolerance(name: str) -> None:
+    kwargs: dict[str, Any] = {name: -1.0}
     with pytest.raises(ValueError, match=name):
-        assert_objects_allclose(1.0, 1.0, **{name: -1.0})
+        assert_objects_allclose(1.0, 1.0, **kwargs)
 
 
 ####################################
