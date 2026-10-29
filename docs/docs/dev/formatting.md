@@ -1,11 +1,11 @@
 # Architecture of `coola.formatting`
 
-:book: This page describes the design of the `coola.formatting` package for contributors. The functions are described in the [user guide](../../uguide/formatting.md) and in the [reference](../../refs/formatting.md).
+:book: This page describes the design of the `coola.formatting` package for contributors. The functions are described in the [user guide](../uguide/formatting.md) and in the [reference](../refs/formatting.md).
 
 ## Overview
 
 `coola.formatting` turns values into text for messages, `repr` and reports. It is a **core** package
-(see [Package layering](../architecture.md#package-layering)): it imports `coola.utils` and
+(see [Package layering](architecture.md#package-layering)): it imports `coola.utils` and
 `coola.validation` only, and the packages that print values (`display`, `registry`, the error messages
 of the feature packages) import it. Every function that formats a value for a message, a `repr` or a
 report lives here, so there is one place to look for it.

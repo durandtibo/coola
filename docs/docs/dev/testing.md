@@ -1,6 +1,6 @@
 # Architecture of `coola.testing`
 
-:book: This page describes the design of the `coola.testing` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../../uguide/testing.md#properties); the API is in the [reference](../../refs/testing.md).
+:book: This page describes the design of the `coola.testing` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/testing.md#properties); the API is in the [reference](../refs/testing.md).
 
 ## Constraints
 

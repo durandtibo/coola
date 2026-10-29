@@ -1,6 +1,6 @@
 # Architecture of `coola.display`
 
-:book: This page describes the design of the `coola.display` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../../uguide/display.md#properties); the API is in the [reference](../../refs/display.md).
+:book: This page describes the design of the `coola.display` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/display.md#properties); the API is in the [reference](../refs/display.md).
 
 ## Constraints
 

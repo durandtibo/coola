@@ -234,7 +234,7 @@ A new package ships these pages:
 | ------------------------------- | ---------------------------------------------------------------------------- |
 | `uguide/<package>.md`           | Overview, **Properties**, **Not guaranteed**, examples, extension, non-goals |
 | `refs/<package>.md`             | `::: coola.<package>` directives                                             |
-| `dev/architecture/<package>.md` | Constraints, architecture, contracts, public API, dependents, decisions      |
+| `dev/<package>.md` | Constraints, architecture, contracts, public API, dependents, decisions      |
 | `migration/<version>.md`        | Breaking changes with a before/after table                                   |
 | `mkdocs.yml` navigation         | The three pages above                                                        |
 
@@ -278,24 +278,24 @@ the public API, the dependents and the decisions behind the design.
 
 | Package            | Page                                                                            |
 | ------------------ | ------------------------------------------------------------------------------- |
-| `coola.display`    | [Display mixins, pydantic formatting, terminal output](architecture/display.md) |
-| `coola.equality`   | [Equality engine, testers, numeric kernel, tables](architecture/equality.md)    |
-| `coola.factory`    | [Objects from configurations, allow-list](architecture/factory.md)              |
-| `coola.formatting` | [Value-to-text helpers](architecture/formatting.md)                             |
-| `coola.hashing`    | [Hash engine, `encode` contract, encoding](architecture/hashing.md)             |
-| `coola.identifier` | [Stable and time-ordered identifiers](architecture/identifier.md)               |
-| `coola.io`         | [Loaders, savers, atomic write](architecture/io.md)                             |
-| `coola.iterator`   | [`dfs_iterate` and `bfs_iterate`, child finders](architecture/iterator.md)      |
-| `coola.nested`     | [Flat dicts, keys, JSON, records](architecture/nested.md)                       |
-| `coola.random`     | [Seed managers and RNG state](architecture/random.md)                           |
-| `coola.recursive`  | [`recursive_apply` engine, transformers](architecture/recursive.md)             |
-| `coola.reducer`    | [Statistics backends](architecture/reducer.md)                                  |
-| `coola.registry`   | [`Registry` and `TypeRegistry`](architecture/registry.md)                       |
-| `coola.rounding`   | [One rule, kernels, adapters](architecture/rounding.md)                         |
-| `coola.summary`    | [Summary engine, summarizers](architecture/summary.md)                          |
-| `coola.testing`    | [pytest marks and fixtures](architecture/testing.md)                            |
-| `coola.utils`      | [Foundation helpers](architecture/utils.md)                                     |
-| `coola.validation` | [Argument validators](architecture/validation.md)                               |
+| `coola.display`    | [Display mixins, pydantic formatting, terminal output](display.md) |
+| `coola.equality`   | [Equality engine, testers, numeric kernel, tables](equality.md)    |
+| `coola.factory`    | [Objects from configurations, allow-list](factory.md)              |
+| `coola.formatting` | [Value-to-text helpers](formatting.md)                             |
+| `coola.hashing`    | [Hash engine, `encode` contract, encoding](hashing.md)             |
+| `coola.identifier` | [Stable and time-ordered identifiers](identifier.md)               |
+| `coola.io`         | [Loaders, savers, atomic write](io.md)                             |
+| `coola.iterator`   | [`dfs_iterate` and `bfs_iterate`, child finders](iterator.md)      |
+| `coola.nested`     | [Flat dicts, keys, JSON, records](nested.md)                       |
+| `coola.random`     | [Seed managers and RNG state](random.md)                           |
+| `coola.recursive`  | [`recursive_apply` engine, transformers](recursive.md)             |
+| `coola.reducer`    | [Statistics backends](reducer.md)                                  |
+| `coola.registry`   | [`Registry` and `TypeRegistry`](registry.md)                       |
+| `coola.rounding`   | [One rule, kernels, adapters](rounding.md)                         |
+| `coola.summary`    | [Summary engine, summarizers](summary.md)                          |
+| `coola.testing`    | [pytest marks and fixtures](testing.md)                            |
+| `coola.utils`      | [Foundation helpers](utils.md)                                     |
+| `coola.validation` | [Argument validators](validation.md)                               |
 
 ## Module organization
 

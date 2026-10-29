@@ -1,6 +1,6 @@
 # Architecture of `coola.rounding`
 
-:book: This page describes the design of the `coola.rounding` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../../uguide/rounding.md#properties); the API is in the [reference](../../refs/rounding.md).
+:book: This page describes the design of the `coola.rounding` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/rounding.md#properties); the API is in the [reference](../refs/rounding.md).
 
 ## Overview
 
@@ -17,7 +17,7 @@ semantics, the libraries own the structure". A rounder is a plain function
 `(data, mode, decimals) -> result` registered in a `TypeRegistry` (lazy per library, MRO lookup,
 the plugin group `coola.rounding.rounders`). `round_values` owns the validation, the dispatch, the
 recursive walk and the error contract (`UnsupportedTypeError`, `on_missing_package`). See the
-[user guide](../../uguide/rounding.md#properties) for the properties of the package.
+[user guide](../uguide/rounding.md#properties) for the properties of the package.
 
 ## Constraints
 

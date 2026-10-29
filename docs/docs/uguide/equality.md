@@ -1655,7 +1655,7 @@ is `.x`, an element of a set is `{2}`, and an array reports its index (`[1][2]`)
 PyArrow table is reported as a whole, with the first differing column in the reason (for example
 `tables have different values: column 'a' differs`); use the library (`DataFrame.compare`,
 `polars.testing`, `Table.equals`) to find the row. The design behind this is described in
-[Architecture](../dev/architecture/equality.md).
+[Architecture](../dev/equality.md).
 
 - `compare` and the assert functions do not log and do not change the logging configuration, so they
   can be called from several threads at the same time.

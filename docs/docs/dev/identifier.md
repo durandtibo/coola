@@ -1,6 +1,6 @@
 # Architecture of `coola.identifier`
 
-:book: This page describes the design of the `coola.identifier` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../../uguide/identifier.md#properties); the API is in the [reference](../../refs/identifier.md).
+:book: This page describes the design of the `coola.identifier` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/identifier.md#properties); the API is in the [reference](../refs/identifier.md).
 
 ## Overview
 
@@ -17,7 +17,7 @@ until the clock catches up. The state is per object and protected by a lock, and
 the child cannot choose, raises there instead. `crockford.py` is the one Crockford Base32 encoder and
 decoder (ULID and the checksummed identifiers), and the range and type checks come from
 `coola.validation`. The extractors are the strict inverse of the generators: they accept the
-canonical form only. See the [user guide](../../uguide/identifier.md#properties) for the properties of
+canonical form only. See the [user guide](../uguide/identifier.md#properties) for the properties of
 the package.
 
 ## Design constraints

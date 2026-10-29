@@ -1,6 +1,6 @@
 # Architecture of `coola.io`
 
-:book: This page describes the design of the `coola.io` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../../uguide/io.md#properties); the API is in the [reference](../../refs/io.md).
+:book: This page describes the design of the `coola.io` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/io.md#properties); the API is in the [reference](../refs/io.md).
 
 ## Overview
 
@@ -15,7 +15,7 @@ two concurrent saves never mix. There is no lock, no lock file and no thread: th
 decides every race, and a caller that needs mutual exclusion around a read-modify-write uses its own
 lock. `equal()`, `repr` and `str` are written once in the base classes from `_display_fields()`; a
 format that has no configuration defines nothing. `TextSaver` accepts a `str` only. Optional
-libraries (torch) are imported lazily. See the [user guide](../../uguide/io.md#properties) for the
+libraries (torch) are imported lazily. See the [user guide](../uguide/io.md#properties) for the
 properties of the package.
 
 ## Design constraints

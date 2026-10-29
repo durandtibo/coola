@@ -228,5 +228,5 @@ The `coola.formatting.text` module provides small helpers to work with strings: 
 
 - [Utility Functions](utils.md)
 - [Display Utilities](display.md): the mixins that build `repr` and `str` with these functions
-- [Architecture of `coola.formatting`](../dev/architecture/formatting.md)
+- [Architecture of `coola.formatting`](../dev/formatting.md)
 - [API reference](../refs/formatting.md)

@@ -1,6 +1,6 @@
 # Architecture of `coola.validation`
 
-:book: This page describes the design of the `coola.validation` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../../uguide/validation.md#properties); the API is in the [reference](../../refs/validation.md).
+:book: This page describes the design of the `coola.validation` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/validation.md#properties); the API is in the [reference](../refs/validation.md).
 
 ## Overview
 
@@ -19,7 +19,7 @@ The rule for the whole project: validate an argument with `coola.validation`; do
 `raise ValueError` for a type, range or membership check, and do not add a validator that is one
 `isinstance` or one comparison (`validate_str(x)` is `validate_isinstance(x, str)`,
 `validate_positive(x)` is `validate_gt(x, 0)`). See the
-[user guide](../../uguide/validation.md#properties) for the properties of the package.
+[user guide](../uguide/validation.md#properties) for the properties of the package.
 
 ## Design constraints
 

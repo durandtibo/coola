@@ -1,6 +1,6 @@
 # Architecture of `coola.factory`
 
-:book: This page describes the design of the `coola.factory` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../../uguide/factory.md#properties); the API is in the [reference](../../refs/factory.md).
+:book: This page describes the design of the `coola.factory` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/factory.md#properties); the API is in the [reference](../refs/factory.md).
 
 ## Overview
 
@@ -13,7 +13,7 @@ only place that imports a target (allow-list checked before the import, one `Imp
 missing target), and `instantiate_object` is the only place that calls one (abstract classes
 refused, the `_init_` rule, the target's keywords never shadowed by a parameter of the API). The
 allow-list is a filter on a path and always comes from the caller's code, never from the data. See
-the [user guide](../../uguide/factory.md#properties) for the properties of the package.
+the [user guide](../uguide/factory.md#properties) for the properties of the package.
 
 ## Design constraints
 

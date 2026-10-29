@@ -1,6 +1,6 @@
 # Architecture of `coola.equality`
 
-:book: This page describes the design of the `coola.equality` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../../uguide/equality.md#guarantees); the API is in the [reference](../../refs/equality.md).
+:book: This page describes the design of the `coola.equality` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/equality.md#guarantees); the API is in the [reference](../refs/equality.md).
 
 ## Overview
 
@@ -887,7 +887,7 @@ To add support for a custom type:
    objects_are_equal(obj1, obj2)
    ```
 
-See the [extending guide](../../uguide/extending.md) for more details.
+See the [extending guide](../uguide/extending.md) for more details.
 
 #### Checklist: writing a tester
 

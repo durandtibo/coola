@@ -1,6 +1,6 @@
 # Architecture of `coola.hashing`
 
-:book: This page describes the design of the `coola.hashing` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../../uguide/hashing.md#properties); the API is in the [reference](../../refs/hashing.md).
+:book: This page describes the design of the `coola.hashing` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/hashing.md#properties); the API is in the [reference](../refs/hashing.md).
 
 ## Overview
 
@@ -39,7 +39,7 @@ the 64-byte digest of the root  ->  hex()[:length]
 | `__coola_hash__` returns the content of a custom object, not a hash | the object cannot bypass the engine and does not forward any option      |
 | Only the `compare=True` fields of a dataclass                       | equal dataclasses have the same hash                                     |
 
-See the [user guide](../../uguide/hashing.md#properties) for the properties of the package.
+See the [user guide](../uguide/hashing.md#properties) for the properties of the package.
 
 ## Design constraints
 
