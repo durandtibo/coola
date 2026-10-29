@@ -264,6 +264,23 @@ invariants: the transformer lookup (by MRO, cached for the call), the call of `f
 the cycle check and the depth (an explicit stack, so there is no `RecursionError`). This is the same
 split as the equality engine, where a tester returns the child pairs.
 
+### Rounding
+
+`round_values` has **one rule, two kernels, one adapter per table library and one extension
+point**. A float is read as the decimal that `repr` shows, and `"floor"`, `"ceil"` and `"round"`
+(halfway cases to the even digit) act on that decimal. The NumPy kernel (`coola.rounding.numpy`)
+finds the grid point with float arithmetic and two checks that compare the grid points in the dtype
+of the data, so the result equals `Decimal(repr(x)).quantize(...)` without `Decimal`. The torch
+kernel and the native scalar are the same formula with the operations of their library, and the
+tests compare them bit for bit with the NumPy kernel and with a `Decimal` oracle that is independent
+of the implementation. The adapters of pandas, polars and pyarrow find the floating-point columns,
+round each with the NumPy kernel, restore the nulls and put the column back: "coola owns the
+semantics, the libraries own the structure". A rounder is a plain function
+`(data, mode, decimals) -> result` registered in a `TypeRegistry` (lazy per library, MRO lookup,
+the plugin group `coola.rounding.rounders`). `round_values` owns the validation, the dispatch, the
+recursive walk and the error contract (`UnsupportedTypeError`, `on_missing_package`). See the
+[user guide](../uguide/rounding.md#properties) for the properties of the package.
+
 ### Nested
 
 `coola.nested` has no traversal of its own: a function that goes inside the values uses the engine of
