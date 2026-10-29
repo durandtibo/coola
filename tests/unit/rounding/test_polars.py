@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
 import pytest
 
 from coola.rounding.polars import get_default_rounders, round_polars
 from coola.testing.marks import polars_available
 from coola.utils.imports import MissingPackageError, is_polars_available
+
+if TYPE_CHECKING:
+    from coola.rounding.common import RoundMode
 
 if is_polars_available():
     import polars as pl
@@ -128,7 +132,7 @@ def test_round_polars_series_round_is_exact() -> None:
 
 @polars_available
 @pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
-def test_round_polars_series_second_row_not_affected_by_reciprocal(mode: str) -> None:
+def test_round_polars_series_second_row_not_affected_by_reciprocal(mode: RoundMode) -> None:
     # polars divides by a scalar as a multiplication by its reciprocal: 12 / 10 is 1.2000000000000002
     assert round_polars(pl.Series([-4.822, 12.0]), mode, 1).to_list()[1] == 12.0
 

@@ -13,7 +13,7 @@ from coola.rounding import (
     register_rounders,
     round_values,
 )
-from coola.rounding.common import Rounder
+from coola.rounding.common import Rounder, RoundMode
 from coola.rounding.interface import _register_default_rounders, _round_leaf, _round_object
 from coola.rounding.native import round_float
 from coola.testing.marks import (
@@ -61,8 +61,8 @@ def test_round_values_int() -> None:
 
 
 @pytest.mark.parametrize(("mode", "expected"), [("round", 1.2), ("floor", 1.2), ("ceil", 1.3)])
-def test_round_values_modes(mode: str, expected: float) -> None:
-    assert round_values(1.234, mode=mode, decimals=1) == expected  # ty: ignore[invalid-argument-type]
+def test_round_values_modes(mode: RoundMode, expected: float) -> None:
+    assert round_values(1.234, mode=mode, decimals=1) == expected
 
 
 def test_round_values_incorrect_mode() -> None:
@@ -164,18 +164,18 @@ def test_round_values_polars_dataframe() -> None:
 @pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
 @torch_available
 @numpy_available
-def test_round_values_numpy_and_torch_agree(mode: str) -> None:
+def test_round_values_numpy_and_torch_agree(mode: RoundMode) -> None:
     values = [0.29, 0.07, -2.567, 2.5, 1.005, 1e-3]
-    expected = round_values(np.array(values), mode=mode, decimals=2).tolist()  # ty: ignore[invalid-argument-type]
+    expected = round_values(np.array(values), mode=mode, decimals=2).tolist()
     assert (
         round_values(torch.tensor(values, dtype=torch.float64), mode=mode, decimals=2).tolist()
         == expected
-    )  # ty: ignore[invalid-argument-type]
+    )
 
 
 @numpy_available
 def test_round_values_numpy_integer_decimals() -> None:
-    assert round_values(1.26, mode="floor", decimals=np.int64(1)) == 1.2
+    assert round_values(1.26, mode="floor", decimals=np.int64(1)) == 1.2  # ty: ignore[invalid-argument-type]
 
 
 ###################################################
@@ -188,17 +188,17 @@ class Meters:
         self.value = value
 
 
-def round_meters(data: Meters, mode: str, decimals: int) -> Meters:
-    return Meters(round_values(data.value, mode=mode, decimals=decimals))  # ty: ignore[invalid-argument-type]
+def round_meters(data: Meters, mode: RoundMode, decimals: int) -> Meters:
+    return Meters(round_values(data.value, mode=mode, decimals=decimals))
 
 
-def raise_missing_package(data: object, mode: str, decimals: int) -> object:
+def raise_missing_package(data: object, mode: RoundMode, decimals: int) -> object:
     del data, mode, decimals
     msg = "No module named 'fake_package'"
     raise MissingPackageError(msg, name="fake_package")
 
 
-def raise_value_error(data: object, mode: str, decimals: int) -> object:
+def raise_value_error(data: object, mode: RoundMode, decimals: int) -> object:
     del data, mode, decimals
     msg = "bug in the rounder"
     raise ValueError(msg)
@@ -427,7 +427,7 @@ def test_round_values_recursive_propagates_the_error_of_a_rounder() -> None:
 
 
 def test_round_values_recursive_propagates_a_type_error_of_a_rounder() -> None:
-    def raise_type_error(data: object, mode: str, decimals: int) -> object:
+    def raise_type_error(data: object, mode: RoundMode, decimals: int) -> object:
         del data, mode, decimals
         msg = "bug in the rounder"
         raise TypeError(msg)
