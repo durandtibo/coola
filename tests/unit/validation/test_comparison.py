@@ -26,8 +26,6 @@ class _Float(float):
 
 if is_numpy_available():
     import numpy as np
-else:  # pragma: no cover
-    np = None
 
 
 def test_validate_ge_greater() -> None:
@@ -113,9 +111,9 @@ def test_validate_lt_custom_name() -> None:
         pytest.param(lambda v: validate_lt(v, 0), id="lt"),
     ],
 )
-def test_validate_comparison_rejects_nan(validate: object) -> None:
+def test_validate_comparison_rejects_nan(validate: Any) -> None:
     with pytest.raises(ValueError, match="nan"):
-        validate(float("nan"))  # type: ignore[operator]
+        validate(float("nan"))
 
 
 ####################################
@@ -284,8 +282,9 @@ def test_validate_finite_not_a_real_number_raises(value: Any) -> None:
 
 @numpy_available
 def test_validate_finite_array_raises_a_named_type_error() -> None:
+    value: Any = np.array([1.0, 2.0])
     with pytest.raises(TypeError, match=r"^value must be a real number, got ndarray$"):
-        validate_finite(np.array([1.0, 2.0]))
+        validate_finite(value)
 
 
 def test_validate_finite_message_shows_the_value_with_repr() -> None:
@@ -306,7 +305,8 @@ def test_validate_range_incomparable_value_keeps_the_cause() -> None:
 
 
 def test_validate_finite_accepts_a_fraction() -> None:
-    validate_finite(Fraction(1, 2))
+    value: Any = Fraction(1, 2)
+    validate_finite(value)
 
 
 def test_validate_finite_rejects_a_non_finite_float_subclass() -> None:
