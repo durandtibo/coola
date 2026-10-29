@@ -28,111 +28,91 @@ if is_pydantic_available():
         computed_field,
         field_serializer,
     )
-else:
-    BaseModel, Secret, SecretBytes, SecretStr = object, object, object, object
 
+    class MyModel(BaseModel):
+        name: str
+        age: int
+        token: SecretStr
+        nickname: str | None = None
 
-class MyModel(BaseModel):
-    name: str
-    age: int
-    token: SecretStr
-    nickname: str | None = None
+    class NoSecretModel(BaseModel):
+        a: int
+        b: str
 
+    class OptionalSecretModel(BaseModel):
+        key: SecretStr | None = None
+        value: int = 0
 
-class NoSecretModel(BaseModel):
-    a: int
-    b: str
+    class OtherSecretsModel(BaseModel):
+        data: SecretBytes
+        wrapped: Secret[int]
+        pair: tuple[SecretStr, int]
+        value: int = 0
 
+    class ChildModel(BaseModel):
+        api_key: SecretStr
+        host: str
 
-class OptionalSecretModel(BaseModel):
-    key: SecretStr | None = None
-    value: int = 0
+    class ParentModel(BaseModel):
+        name: str
+        child: ChildModel
 
+    class ParentWithChildListModel(BaseModel):
+        name: str
+        children: list[ChildModel]
 
-class OtherSecretsModel(BaseModel):
-    data: SecretBytes
-    wrapped: Secret[int]
-    pair: tuple[SecretStr, int]
-    value: int = 0
+    class ParentWithChildDictModel(BaseModel):
+        name: str
+        children: dict[str, ChildModel]
 
+    class ParentWithChildTupleModel(BaseModel):
+        children: tuple[ChildModel, ...]
 
-class ChildModel(BaseModel):
-    api_key: SecretStr
-    host: str
+    class LeafModel(BaseModel):
+        model_config = ConfigDict(frozen=True)
 
+        name: str
+        note: str | None = None
 
-class ParentModel(BaseModel):
-    name: str
-    child: ChildModel
+    class ParentWithLeafCollectionsModel(BaseModel):
+        leaves_set: set[LeafModel]
+        leaves_frozenset: frozenset[LeafModel]
 
+    class UnsortedLeafModel(BaseModel):
+        z: int
+        a: int
 
-class ParentWithChildListModel(BaseModel):
-    name: str
-    children: list[ChildModel]
+    class ParentWithUnsortedLeafModel(BaseModel):
+        leaf: UnsortedLeafModel
 
+    class ParentWithLeafModel(BaseModel):
+        leaf: LeafModel
+        note: str | None = None
 
-class ParentWithChildDictModel(BaseModel):
-    name: str
-    children: dict[str, ChildModel]
+    class HiddenFieldModel(BaseModel):
+        shown: int
+        hidden: int = Field(default=1, repr=False)
 
+    class ExtraModel(BaseModel):
+        model_config = ConfigDict(extra="allow")
 
-class ParentWithChildTupleModel(BaseModel):
-    children: tuple[ChildModel, ...]
+        a: int
 
+    class SerializerModel(BaseModel):
+        value: int
 
-class LeafModel(BaseModel):
-    model_config = ConfigDict(frozen=True)
+        @field_serializer("value")
+        def serialize_value(self, value: int) -> int:
+            msg = f"the serializer must not run: {value}"
+            raise RuntimeError(msg)
 
-    name: str
-    note: str | None = None
+    class ComputedModel(BaseModel):
+        value: int
 
-
-class ParentWithLeafCollectionsModel(BaseModel):
-    leaves_set: set[LeafModel]
-    leaves_frozenset: frozenset[LeafModel]
-
-
-class UnsortedLeafModel(BaseModel):
-    z: int
-    a: int
-
-
-class ParentWithUnsortedLeafModel(BaseModel):
-    leaf: UnsortedLeafModel
-
-
-class ParentWithLeafModel(BaseModel):
-    leaf: LeafModel
-    note: str | None = None
-
-
-class HiddenFieldModel(BaseModel):
-    shown: int
-    hidden: int = Field(default=1, repr=False)
-
-
-class ExtraModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-    a: int
-
-
-class SerializerModel(BaseModel):
-    value: int
-
-    @field_serializer("value")
-    def serialize_value(self, value: int) -> int:
-        msg = f"the serializer must not run: {value}"
-        raise RuntimeError(msg)
-
-
-class ComputedModel(BaseModel):
-    value: int
-
-    @computed_field
-    @property
-    def double(self) -> int:
-        return self.value * 2
+        @computed_field
+        @property
+        def double(self) -> int:
+            return self.value * 2
 
 
 ##########################################

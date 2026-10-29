@@ -18,8 +18,6 @@ if is_rich_available():
     from rich import get_console
     from rich.console import Console
     from rich.logging import RichHandler
-else:
-    Console = RichHandler = get_console = object
 
 pytestmark = rich_available
 

@@ -17,9 +17,6 @@ if is_rich_available():
         TimeElapsedColumn,
         TimeRemainingColumn,
     )
-else:
-    get_console = Console = BarColumn = MofNCompleteColumn = Progress = SpinnerColumn = object
-    TaskProgressColumn = TextColumn = TimeElapsedColumn = TimeRemainingColumn = object
 
 pytestmark = rich_available
 

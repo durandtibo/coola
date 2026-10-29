@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from coola.display.rich import print_markdown, print_pretty
@@ -11,8 +13,9 @@ if is_rich_available():
     from io import StringIO
 
     from rich.console import Console
-else:
-    StringIO = Console = object
+
+if TYPE_CHECKING:
+    from rich.align import AlignMethod
 
 pytestmark = rich_available
 
@@ -159,7 +162,7 @@ def test_print_markdown_renders_panel(msg: str, title: str | None) -> None:
 
 
 @pytest.mark.parametrize("title_align", ["left", "center", "right"])
-def test_print_markdown_title_align(title_align: str) -> None:
+def test_print_markdown_title_align(title_align: AlignMethod) -> None:
     print_markdown("**hello**", title="Demo", title_align=title_align)
 
 
@@ -187,9 +190,10 @@ def test_print_markdown_max_length_none_renders_full() -> None:
 
 
 def test_print_markdown_max_length_truncates_output() -> None:
-    console = Console(file=StringIO(), width=24)
+    stream = StringIO()
+    console = Console(file=stream, width=24)
     print_markdown("alpha beta\n\ngamma delta", panel=False, max_length=12, console=console)
-    assert console.file.getvalue() == "alpha beta              \n\n… (13 more characters)  \n"
+    assert stream.getvalue() == "alpha beta              \n\n… (13 more characters)  \n"
 
 
 @pytest.mark.parametrize("panel", [True, False])
@@ -224,7 +228,7 @@ def test_print_pretty_renders_panel(data: object, title: str | None) -> None:
 
 
 @pytest.mark.parametrize("title_align", ["left", "center", "right"])
-def test_print_pretty_title_align(title_align: str) -> None:
+def test_print_pretty_title_align(title_align: AlignMethod) -> None:
     print_pretty({"key": "value"}, title="Demo", title_align=title_align)
 
 
