@@ -66,7 +66,7 @@ else:  # pragma: no cover
 def make_wide_nested_object(width: int, depth: int) -> dict:
     r"""Create a dict with ``width`` keys at each of ``depth`` nested
     levels."""
-    obj = {f"key{i}": float(i) for i in range(width)}
+    obj: dict[str, Any] = {f"key{i}": float(i) for i in range(width)}
     for _ in range(depth):
         obj = {f"level{i}": dict(obj) for i in range(width)}
     return obj

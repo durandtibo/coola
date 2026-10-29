@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from coola.identifier import (
+    SnowflakeIdGenerator,
     extract_snowflake_timestamp_ms,
     extract_ulid_timestamp_ms,
     extract_uuid7_timestamp_ms,
@@ -29,12 +30,8 @@ from coola.identifier import (
     verify_checksummed_id,
 )
 
-try:
-    from coola.identifier import generate_snowflake_id
-except ImportError:  # the generator takes its worker_id in the constructor
-    from coola.identifier import SnowflakeIdGenerator
-
-    generate_snowflake_id = SnowflakeIdGenerator(worker_id=0).generate
+# The generator takes its worker_id in the constructor.
+generate_snowflake_id = SnowflakeIdGenerator(worker_id=0).generate
 
 if TYPE_CHECKING:
     from collections.abc import Callable
