@@ -16,6 +16,7 @@ __all__ = [
     "check_pyarrow",
     "check_pydantic",
     "check_rich",
+    "check_scipy",
     "check_torch",
     "check_torch_numpy",
     "check_xarray",
@@ -28,6 +29,7 @@ __all__ = [
     "is_pyarrow_available",
     "is_pydantic_available",
     "is_rich_available",
+    "is_scipy_available",
     "is_torch_available",
     "is_torch_numpy_available",
     "is_xarray_available",
@@ -491,3 +493,38 @@ def check_torch_numpy() -> None:
         # are installed but not compatible.
         name = "torch" if not is_torch_available() or is_numpy_available() else "numpy"
         raise MissingPackageError(msg, name=name)
+
+
+@availability_cache
+def is_scipy_available() -> bool:
+    r"""Indicate if the ``scipy`` package is installed and can be
+    imported.
+
+    Returns:
+        ``True`` if ``scipy`` is available otherwise ``False``.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import is_scipy_available
+        >>> is_scipy_available()
+
+        ```
+    """
+    return module_available("scipy")
+
+
+def check_scipy() -> None:
+    r"""Check if the ``scipy`` package is installed.
+
+    Raises:
+        MissingPackageError: if the ``scipy`` package is not installed.
+
+    Example:
+        ```pycon
+        >>> from coola.utils.imports import check_scipy
+        >>> check_scipy()
+
+        ```
+    """
+    if not is_scipy_available():
+        raise_package_missing_error("scipy")

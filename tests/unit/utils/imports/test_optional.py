@@ -29,6 +29,7 @@ PACKAGES = [
     "pyarrow",
     "pydantic",
     "rich",
+    "scipy",
     "torch",
     "xarray",
 ]
