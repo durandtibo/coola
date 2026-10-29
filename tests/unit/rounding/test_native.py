@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import pytest
 
-from coola.rounding.common import UnsupportedTypeError
+from coola.rounding.common import RoundMode, UnsupportedTypeError
 from coola.rounding.native import get_default_rounders, round_float, round_int
 
 ####################################
@@ -15,7 +15,7 @@ from coola.rounding.native import get_default_rounders, round_float, round_int
 
 @pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
 @pytest.mark.parametrize("value", [0, 3, -3, 2**100])
-def test_round_native_int_unchanged(mode: str, value: int) -> None:
+def test_round_native_int_unchanged(mode: RoundMode, value: int) -> None:
     assert round_int(value, mode, 2) == value
 
 
@@ -50,7 +50,7 @@ def test_round_native_ceil(value: float, expected: float) -> None:
 
 
 @pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
-def test_round_native_float_type(mode: str) -> None:
+def test_round_native_float_type(mode: RoundMode) -> None:
     assert type(round_float(2.5, mode, 0)) is float
 
 
@@ -82,27 +82,27 @@ def test_round_native_round_halfway_decimal_goes_to_even() -> None:
 
 @pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
 @pytest.mark.parametrize("value", [math.inf, -math.inf])
-def test_round_native_infinite(mode: str, value: float) -> None:
+def test_round_native_infinite(mode: RoundMode, value: float) -> None:
     assert round_float(value, mode, 1) == value
 
 
 @pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
-def test_round_native_nan(mode: str) -> None:
+def test_round_native_nan(mode: RoundMode) -> None:
     assert math.isnan(round_float(math.nan, mode, 1))
 
 
 @pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
-def test_round_native_large_value_unchanged(mode: str) -> None:
+def test_round_native_large_value_unchanged(mode: RoundMode) -> None:
     assert round_float(1e308, mode, 2) == 1e308
 
 
 @pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
-def test_round_native_value_larger_than_2_53_unchanged(mode: str) -> None:
+def test_round_native_value_larger_than_2_53_unchanged(mode: RoundMode) -> None:
     assert round_float(123456789.123, mode, 12) == 123456789.123
 
 
 @pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
-def test_round_native_too_many_decimals_unchanged(mode: str) -> None:
+def test_round_native_too_many_decimals_unchanged(mode: RoundMode) -> None:
     assert round_float(0.1, mode, 400) == 0.1
 
 
@@ -153,17 +153,19 @@ def test_get_default_rounders() -> None:
         (0.29, "floor", 2, 0.29),
     ],
 )
-def test_round_native_decimal_rule(value: float, mode: str, decimals: int, expected: float) -> None:
+def test_round_native_decimal_rule(
+    value: float, mode: RoundMode, decimals: int, expected: float
+) -> None:
     assert round_float(value, mode, decimals) == expected
 
 
 @pytest.mark.parametrize("mode", ["round", "floor", "ceil"])
-def test_round_native_negative_zero_kept(mode: str) -> None:
+def test_round_native_negative_zero_kept(mode: RoundMode) -> None:
     assert math.copysign(1.0, round_float(-0.0, mode, 1)) == -1.0
 
 
 @pytest.mark.parametrize("mode", ["round", "ceil"])
-def test_round_native_ceil_of_small_negative_is_negative_zero(mode: str) -> None:
+def test_round_native_ceil_of_small_negative_is_negative_zero(mode: RoundMode) -> None:
     assert math.copysign(1.0, round_float(-0.4, mode, 0)) == -1.0
 
 
