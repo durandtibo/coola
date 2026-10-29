@@ -869,14 +869,14 @@ def test_expand_list_columns_all_empty_or_null_keeps_column() -> None:
 @polars_available
 def test_flatten_frame_lazy_frame_raises() -> None:
     with pytest.raises(TypeError, match=r"got LazyFrame.*Call collect\(\)"):
-        flatten_frame(pl.LazyFrame({"a": [1]}))
+        flatten_frame(pl.LazyFrame({"a": [1]}))  # ty: ignore[invalid-argument-type]
 
 
 @polars_available
 @pytest.mark.parametrize("value", [None, 42, {"a": 1}, [1]])
 def test_flatten_frame_non_frame_raises(value: object) -> None:
     with pytest.raises(TypeError, match="must be a polars DataFrame"):
-        flatten_frame(value)
+        flatten_frame(value)  # ty: ignore[invalid-argument-type]
 
 
 @polars_available

@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path, PurePosixPath
+from typing import Any
 from uuid import UUID
 
 import pytest
@@ -35,8 +36,6 @@ from tests.helpers import nest
 
 if is_pydantic_available():
     from pydantic import BaseModel
-else:
-    BaseModel = object
 
 if is_numpy_available():
     import numpy as np
@@ -45,9 +44,11 @@ if is_torch_available():
     import torch
 
 
-class MyModel(BaseModel):
-    name: str
-    age: int
+if is_pydantic_available():
+
+    class MyModel(BaseModel):
+        name: str
+        age: int
 
 
 @dataclass
@@ -265,7 +266,7 @@ def test_convert_to_jsonable_set_and_range() -> None:
 @pytest.mark.parametrize("value", ["ab", b"ab", bytearray(b"ab")])
 def test_convert_to_list_of_dicts_string_value_raises(value: object) -> None:
     with pytest.raises(TypeError, match="must be a sequence of items"):
-        convert_to_list_of_dicts({"a": value, "b": [1, 2]})
+        convert_to_list_of_dicts({"a": value, "b": [1, 2]})  # ty: ignore[invalid-argument-type]
 
 
 def test_convert_to_jsonable_deep_structure() -> None:
@@ -283,13 +284,15 @@ def test_convert_to_jsonable_list_that_contains_itself() -> None:
 
 
 def test_set_to_list_transformer_expand_children() -> None:
-    children, _ = _SetToListTransformer().expand({1})
-    assert children == [1]
+    expanded = _SetToListTransformer().expand({1})
+    assert expanded is not None
+    assert expanded[0] == [1]
 
 
 def test_set_to_list_transformer_expand_rebuild_sorts_the_items() -> None:
-    _, rebuild = _SetToListTransformer().expand({3, 1, 2})
-    assert rebuild([3, 1, 2]) == [1, 2, 3]
+    expanded = _SetToListTransformer().expand({3, 1, 2})
+    assert expanded is not None
+    assert expanded[1]([3, 1, 2]) == [1, 2, 3]
 
 
 def test_set_to_list_transformer_repr() -> None:
@@ -307,32 +310,32 @@ def test_convert_to_jsonable_does_not_modify_the_default_registry() -> None:
 
 def test_convert_to_list_of_dicts_set_value_raises() -> None:
     with pytest.raises(TypeError, match="must be a sequence of items, not a set"):
-        convert_to_list_of_dicts({"a": {1, 2}})
+        convert_to_list_of_dicts({"a": {1, 2}})  # ty: ignore[invalid-argument-type]
 
 
 def test_convert_to_list_of_dicts_frozenset_value_raises() -> None:
     with pytest.raises(TypeError, match="not a frozenset"):
-        convert_to_list_of_dicts({"a": frozenset({1})})
+        convert_to_list_of_dicts({"a": frozenset({1})})  # ty: ignore[invalid-argument-type]
 
 
 def test_convert_to_list_of_dicts_generator_value_raises_a_type_error_with_the_type() -> None:
     with pytest.raises(TypeError, match="not a generator"):
-        convert_to_list_of_dicts({"a": (i for i in range(2))})
+        convert_to_list_of_dicts({"a": (i for i in range(2))})  # ty: ignore[invalid-argument-type]
 
 
 def test_convert_to_list_of_dicts_iterator_value_raises() -> None:
     with pytest.raises(TypeError, match="not a list_iterator"):
-        convert_to_list_of_dicts({"a": iter([1])})
+        convert_to_list_of_dicts({"a": iter([1])})  # ty: ignore[invalid-argument-type]
 
 
 def test_convert_to_list_of_dicts_names_the_key() -> None:
     with pytest.raises(TypeError, match="value of 'b'"):
-        convert_to_list_of_dicts({"a": [1], "b": {1}})
+        convert_to_list_of_dicts({"a": [1], "b": {1}})  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize("value", [(1, 2), range(2), deque([1, 2])])
 def test_convert_to_list_of_dicts_accepts_a_sequence(value: object) -> None:
-    assert convert_to_list_of_dicts({"a": value}) == [{"a": value[0]}, {"a": value[1]}]
+    assert convert_to_list_of_dicts({"a": value}) == [{"a": value[0]}, {"a": value[1]}]  # ty: ignore[invalid-argument-type, not-subscriptable]
 
 
 def test_convert_to_dict_of_lists_accepts_a_generator() -> None:
@@ -473,8 +476,9 @@ def test_convert_to_jsonable_deep_dataclass_does_not_raise() -> None:
 
 
 def test_convert_to_jsonable_cycle_through_a_dataclass_raises() -> None:
-    data = Wrapper(value=[])
-    data.value.append(data)
+    items: list[Any] = []
+    data = Wrapper(value=items)
+    items.append(data)
     with pytest.raises(ValueError, match="Cycle detected"):
         convert_to_jsonable(data)
 
