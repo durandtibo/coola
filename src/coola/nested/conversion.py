@@ -193,15 +193,6 @@ class _DataclassToDictTransformer(InlineDisplayMixin, BaseTransformer[Any]):
     """
 
     def expand(self, data: Any) -> Expansion | None:
-        r"""Expand a dataclass instance.
-
-        Args:
-            data: The dataclass instance.
-
-        Returns:
-            The values of the fields, and the function that builds a
-                ``dict`` from the converted values.
-        """
         names = [field.name for field in dataclasses.fields(data)]
         return [getattr(data, name) for name in names], lambda items: dict(
             zip(names, items, strict=True)
@@ -217,15 +208,6 @@ class _SetToListTransformer(InlineDisplayMixin, BaseTransformer["AbstractSet[Any
     """
 
     def expand(self, data: AbstractSet[Any]) -> Expansion | None:
-        r"""Expand a set.
-
-        Args:
-            data: The set.
-
-        Returns:
-            The elements, and the function that builds a sorted ``list``
-                from the converted elements.
-        """
         return list(data), _sorted_elements
 
 

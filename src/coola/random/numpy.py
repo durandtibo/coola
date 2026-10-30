@@ -56,11 +56,6 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
         return hash(type(self))
 
     def get_rng_state(self) -> tuple[Any, ...]:
-        r"""Get the state of the NumPy random number generator.
-
-        Returns:
-            The state, as returned by ``numpy.random``.
-        """
         return np.random.get_state()
 
     def manual_seed(self, seed: int) -> None:
@@ -80,9 +75,4 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
             np.random.seed([seed & 0xFFFFFFFF, seed >> 32])
 
     def set_rng_state(self, state: tuple[Any, ...]) -> None:
-        r"""Restore the state of the NumPy random number generator.
-
-        Args:
-            state: The state returned by ``get_rng_state``.
-        """
         np.random.set_state(state)

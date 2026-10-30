@@ -254,37 +254,15 @@ class TypeRegistry(Registry[type, T], Generic[T]):
     _not_registered_error = TypeNotRegisteredError
 
     def _changed(self) -> None:
-        r"""Clear the cache of the lookups.
-
-        It is called when the registry changes, so the new registrations
-        are used.
-        """
         # Clear cache when registry changes to ensure new registrations are used
         self._cache = {}
 
     def _validate_key(self, key: type) -> None:
-        r"""Validate that a key is a type.
-
-        Args:
-            key: The key.
-
-        Raises:
-            TypeError: If the key is not a type.
-        """
         if not isinstance(key, type):
             msg = f"Expected a type as key, got {key!r} of type {type(key).__qualname__}"
             raise TypeError(msg)
 
     def _not_registered_msg(self, key: type) -> str:
-        r"""Return the error message used when a type is not registered.
-
-        Args:
-            key: The type.
-
-        Returns:
-            The message, with the MRO of the type and the registered
-                types.
-        """
         msg = f"Type '{key}' is not registered"
         mro = getattr(key, "__mro__", None) or ()
         registered = list(self._state)
@@ -315,43 +293,18 @@ class TypeRegistry(Registry[type, T], Generic[T]):
         return msg
 
     def _already_registered_msg(self, key: type) -> str:
-        r"""Return the error message used when a type is already
-        registered.
-
-        Args:
-            key: The type.
-
-        Returns:
-            The message.
-        """
         return (
             f"A value is already registered for {key}. "
             "Use a different type or set exist_ok=True to override."
         )
 
     def _many_already_registered_msg(self, duplicates: set[type]) -> str:
-        r"""Return the error message used when several types are already
-        registered.
-
-        Args:
-            duplicates: The types that are already registered.
-
-        Returns:
-            The message.
-        """
         return (
             f"Types already registered: {', '.join(sorted(map(str, duplicates)))}. "
             "Use different types or set exist_ok=True to override."
         )
 
     def _pending_msg(self) -> str:
-        r"""Return the lines that complete the display of the entries.
-
-        They list the fallbacks and the lazy groups that are not loaded.
-
-        Returns:
-            The lines, or an empty string.
-        """
         lines = [
             f"(fallback) {predicate!r}: {handler}" for predicate, handler in self._fallbacks.items()
         ]
@@ -457,15 +410,6 @@ class TypeRegistry(Registry[type, T], Generic[T]):
         self._cache = {}
 
     def _load_lazy_for_equal(self, other: Registry[type, T]) -> None:
-        r"""Load the entries that must be loaded before comparing two
-        registries.
-
-        Nothing is loaded if the registries have the same pending
-        groups.
-
-        Args:
-            other: The registry to compare with.
-        """
         # Two registries with the same pending groups (a registry and its copy) are compared
         # without loading: each registry would build its own values, which are not equal.
         if self._lazy != cast("TypeRegistry[T]", other)._lazy:
@@ -518,14 +462,6 @@ class TypeRegistry(Registry[type, T], Generic[T]):
             self._lazy = (*self._lazy, group)
 
     def _load_lazy_for(self, key: type) -> None:
-        r"""Load the lazy groups that can have entries for a type.
-
-        The groups of the libraries of the type and its base classes are
-        loaded.
-
-        Args:
-            key: The type.
-        """
         if not self._lazy:
             return
         # Only an object whose class (or a base class) comes from a library can need the
@@ -537,7 +473,6 @@ class TypeRegistry(Registry[type, T], Generic[T]):
         self._load_groups([group for group in self._lazy if group.packages & packages])
 
     def _load_lazy_all(self) -> None:
-        r"""Load all the lazy groups."""
         if self._lazy:
             self._load_groups(list(self._lazy))
 

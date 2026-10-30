@@ -45,22 +45,9 @@ class PolarsDataFrameSummarizer(BaseMetadataSummarizer[pl.DataFrame]):
     """
 
     def _check_dependencies(self) -> None:
-        r"""Check that ``polars`` is installed.
-
-        Raises:
-            MissingPackageError: If ``polars`` is not installed.
-        """
         check_polars()
 
     def _describe(self, data: pl.DataFrame) -> list[Field]:
-        r"""Describe the metadata of a polars data frame.
-
-        Args:
-            data: The data to describe.
-
-        Returns:
-            The shape and the dtype of each column.
-        """
         return [
             f"shape={data.shape}",
             ("columns", data.schema.items()),
@@ -89,23 +76,9 @@ class PolarsLazyFrameSummarizer(BaseMetadataSummarizer[pl.LazyFrame]):
     """
 
     def _check_dependencies(self) -> None:
-        r"""Check that ``polars`` is installed.
-
-        Raises:
-            MissingPackageError: If ``polars`` is not installed.
-        """
         check_polars()
 
     def _describe(self, data: pl.LazyFrame) -> list[Field]:
-        r"""Describe the metadata of a polars lazy frame.
-
-        Args:
-            data: The data to describe.
-
-        Returns:
-            The dtype of each column, or a placeholder if the schema
-                cannot be resolved.
-        """
         try:
             schema = data.collect_schema()
         except pl.exceptions.PolarsError as exc:
@@ -134,22 +107,9 @@ class PolarsSeriesSummarizer(BaseMetadataSummarizer[pl.Series]):
     """
 
     def _check_dependencies(self) -> None:
-        r"""Check that ``polars`` is installed.
-
-        Raises:
-            MissingPackageError: If ``polars`` is not installed.
-        """
         check_polars()
 
     def _describe(self, data: pl.Series) -> list[Field]:
-        r"""Describe the metadata of a polars series.
-
-        Args:
-            data: The data to describe.
-
-        Returns:
-            The shape, the dtype and the name.
-        """
         return [f"shape={data.shape}", f"dtype={data.dtype}", f"name={data.name!r}"]
 
 

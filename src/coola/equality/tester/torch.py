@@ -74,17 +74,6 @@ class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.Pa
         expected: torch.nn.utils.rnn.PackedSequence,
         _ctx: Engine,
     ) -> Iterator[tuple[object, object, object]]:
-        r"""Test two packed sequences.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            _ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            The pairs of ``data``, ``batch_sizes``, ``sorted_indices``
-                and ``unsorted_indices`` that must all be equal.
-        """
         return iter(
             (getattr(actual, name), getattr(expected, name), AttributeName(name))
             for name in ("data", "batch_sizes", "sorted_indices", "unsorted_indices")
@@ -127,20 +116,6 @@ class TorchTensorEqualityTester(BaseEqualityTester[torch.Tensor]):
         check_torch()
 
     def objects_are_equal(self, actual: torch.Tensor, expected: torch.Tensor, ctx: Engine) -> bool:
-        r"""Test two tensors.
-
-        The tensors must have the same dtype, shape, device and layout;
-        the elements are compared with the tolerance and ``equal_nan``.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``True`` if the objects are equal, otherwise ``False`` (the
-                reason is recorded in the engine).
-        """
         failure = check_dtype_and_shape(actual, expected, ctx)
         if failure is not None:
             return failure

@@ -67,19 +67,6 @@ class PydanticModelEqualityTester(BaseEqualityTester[pydantic.BaseModel]):
     def objects_are_equal(
         self, actual: pydantic.BaseModel, expected: pydantic.BaseModel, _ctx: Engine
     ) -> bool | Iterator[tuple[object, object, object]]:
-        r"""Test two pydantic models.
-
-        The fields and the extra values are the children.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            _ctx: The ``Engine`` of the comparison.
-
-        Yields:
-            The pairs of field values and of ``model_extra`` that must
-                all be equal.
-        """
         # ``type(actual).model_fields``: the access from an instance is deprecated.
         yield from (
             (getattr(actual, name), getattr(expected, name), AttributeName(name))

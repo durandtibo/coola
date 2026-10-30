@@ -132,15 +132,6 @@ class _NodeTransformer(BaseTransformer[_Node]):
         self._restore_lists = restore_lists
 
     def expand(self, data: _Node) -> Expansion | None:
-        r"""Expand a node.
-
-        Args:
-            data: The node.
-
-        Returns:
-            The values of the node, and the function that builds the
-                ``dict`` or the ``list`` from the converted values.
-        """
         keys = list(data)
         restore = (
             self._restore_lists and bool(keys) and set(keys) == {str(i) for i in range(len(keys))}

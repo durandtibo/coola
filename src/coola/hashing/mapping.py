@@ -52,11 +52,6 @@ class MappingHasher(InlineDisplayMixin, BaseHasher[Mapping[Any, Any]]):
         self._ordered = ordered
 
     def _display_fields(self) -> dict[str, Any]:
-        r"""Return the fields shown in the representation.
-
-        Returns:
-            The ``tag``, ``ordered`` of the hasher.
-        """
         return {"tag": self._tag, "ordered": self._ordered}
 
     def encode(self, data: Mapping[Any, Any]) -> Encoding:

@@ -86,17 +86,6 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
     def objects_are_equal(
         self, actual: xr.DataArray, expected: xr.DataArray, _ctx: Engine
     ) -> Iterator[tuple[object, object, object]]:
-        r"""Test two ``xarray.DataArray`` objects.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            _ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            The pairs of ``variable``, ``name`` and ``coords`` that must
-                all be equal.
-        """
         return _attributes(actual, expected, ("variable", "name", "coords.variables"))
 
 
@@ -136,17 +125,6 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
     def objects_are_equal(
         self, actual: xr.Dataset, expected: xr.Dataset, _ctx: Engine
     ) -> Iterator[tuple[object, object, object]]:
-        r"""Test two ``xarray.Dataset`` objects.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            _ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            The pairs of ``data_vars``, ``coords`` and ``attrs`` that
-                must all be equal.
-        """
         return _attributes(actual, expected, ("data_vars", "coords", "attrs"))
 
 
@@ -187,17 +165,6 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
     def objects_are_equal(
         self, actual: xr.Variable, expected: xr.Variable, _ctx: Engine
     ) -> Iterator[tuple[object, object, object]]:
-        r"""Test two ``xarray.Variable`` objects.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            _ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            The pairs of ``data``, ``dims`` and ``attrs`` that must all
-                be equal.
-        """
         return _attributes(actual, expected, ("data", "dims", "attrs"))
 
 

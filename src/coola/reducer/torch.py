@@ -53,19 +53,6 @@ class TorchReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | torch.Tens
         check_torch()
 
     def _prepare(self, values: Sequence[float] | torch.Tensor) -> torch.Tensor:
-        r"""Convert the values to a one-dimensional tensor.
-
-        Args:
-            values: The values: a sequence, a NumPy array or a tensor.
-
-        Returns:
-            The values as a one-dimensional real tensor.
-
-        Raises:
-            TypeError: If the values are complex or cannot be converted
-                to a tensor.
-            ValueError: If the values are not one-dimensional.
-        """
         if isinstance(values, torch.Tensor):
             tensor = values
         elif is_numpy_available() and isinstance(values, np.ndarray):
@@ -106,36 +93,12 @@ class TorchReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | torch.Tens
             )
 
     def _max(self, values: torch.Tensor) -> int | float:
-        r"""Compute the maximum value with PyTorch.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python number.
-        """
         return values.max().item()
 
     def _mean(self, values: torch.Tensor) -> float:
-        r"""Compute the mean value with PyTorch.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python float.
-        """
         return _to_float_tensor(values).mean().item()
 
     def _median(self, values: torch.Tensor) -> int | float:
-        r"""Compute the median value with PyTorch.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python number.
-        """
         if values.isnan().any():
             return float("nan")
         result = _median_of(values)
@@ -145,27 +108,9 @@ class TorchReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | torch.Tens
         return result
 
     def _min(self, values: torch.Tensor) -> int | float:
-        r"""Compute the minimum value with PyTorch.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python number.
-        """
         return values.min().item()
 
     def _quantile(self, values: torch.Tensor, quantiles: Sequence[float]) -> list[float]:
-        r"""Compute the quantiles with PyTorch.
-
-        Args:
-            values: The prepared values, which are not empty.
-            quantiles: The quantile values, which are in the range ``[0,
-                1]``.
-
-        Returns:
-            The quantiles as Python floats.
-        """
         tensor = _to_float_tensor(values)
         if tensor.dtype not in {torch.float32, torch.float64}:
             tensor = tensor.float()  # ``torch.quantile`` only supports float32/float64
@@ -173,28 +118,10 @@ class TorchReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | torch.Tens
         return result.tolist()
 
     def _sort(self, values: torch.Tensor, *, descending: bool) -> list[int | float]:
-        r"""Sort the values with PyTorch.
-
-        Args:
-            values: The prepared values, which can be empty.
-            descending: If ``True``, sorts in descending order.
-
-        Returns:
-            A new list with the sorted values. The ``NaN`` values are
-                last (first if descending).
-        """
         result: Any = torch.sort(values, descending=descending)[0]
         return result.tolist()
 
     def _std(self, values: torch.Tensor) -> float:
-        r"""Compute the sample standard deviation with PyTorch.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python float, ``NaN`` for a single value.
-        """
         if values.numel() == 1:
             return float("nan")
         return _to_float_tensor(values).std().item()

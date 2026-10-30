@@ -75,20 +75,6 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
     def objects_are_equal(
         self, actual: np.ndarray, expected: np.ndarray, ctx: Engine
     ) -> bool | Iterator[tuple[object, object, object]]:
-        r"""Test two NumPy arrays.
-
-        The arrays must have the same dtype and shape.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``False`` if the arrays differ, ``True`` if they are equal,
-                or, for an array of objects, the pairs of elements that
-                must all be equal.
-        """
         failure = check_dtype_and_shape(actual, expected, ctx)
         if failure is not None:
             return failure
@@ -143,20 +129,6 @@ class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
     def objects_are_equal(
         self, actual: np.ma.MaskedArray, expected: np.ma.MaskedArray, ctx: Engine
     ) -> bool | Iterator[tuple[object, object, object]]:
-        r"""Test two NumPy masked arrays.
-
-        The arrays must have the same dtype and shape.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``False`` if the dtypes or shapes differ, otherwise the
-                pairs of ``data``, ``mask`` and ``fill_value`` that must
-                all be equal.
-        """
         failure = check_dtype_and_shape(actual, expected, ctx)
         if failure is not None:
             return failure
@@ -204,17 +176,6 @@ class NumpyTimeScalarEqualityTester(BaseEqualityTester[object]):
         check_numpy()
 
     def objects_are_equal(self, actual: Any, expected: Any, ctx: Engine) -> bool:
-        r"""Test two NumPy ``datetime64`` or ``timedelta64`` scalars.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``True`` if the objects are equal, otherwise ``False`` (the
-                reason is recorded in the engine).
-        """
         return time_scalar_equal(actual, expected, ctx.config) or ctx.fail(
             lambda: format_value_difference(actual, expected, name="numpy time scalars")
         )

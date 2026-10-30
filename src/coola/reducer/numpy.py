@@ -47,21 +47,6 @@ class NumpyReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | np.ndarray
         check_numpy()
 
     def _prepare(self, values: Sequence[float] | np.ndarray) -> np.ndarray:
-        r"""Convert the values to a one-dimensional NumPy array.
-
-        Args:
-            values: The values: a sequence or a NumPy array.
-
-        Returns:
-            The values as a one-dimensional array of booleans, integers
-                or floats.
-
-        Raises:
-            TypeError: If the values are nested sequences of different
-                lengths or have another dtype (an integer beyond 64
-                bits, a complex number, ...).
-            ValueError: If the values are not one-dimensional.
-        """
         try:
             array = np.asarray(values)
         except ValueError:  # ragged nested sequences
@@ -77,36 +62,12 @@ class NumpyReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | np.ndarray
         return array
 
     def _max(self, values: np.ndarray) -> int | float:
-        r"""Compute the maximum value with NumPy.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python number.
-        """
         return values.max().item()
 
     def _mean(self, values: np.ndarray) -> float:
-        r"""Compute the mean value with NumPy.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python float.
-        """
         return values.mean().item()
 
     def _median(self, values: np.ndarray) -> int | float:
-        r"""Compute the median value with NumPy.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python number.
-        """
         if values.dtype.kind in "iu" and values.size % 2 == 1:
             # Like the other reducers, the median of an odd number of integers is an integer.
             return np.sort(values)[values.size // 2].item()
@@ -118,56 +79,20 @@ class NumpyReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | np.ndarray
         return result
 
     def _min(self, values: np.ndarray) -> int | float:
-        r"""Compute the minimum value with NumPy.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python number.
-        """
         return values.min().item()
 
     def _quantile(self, values: np.ndarray, quantiles: Sequence[float]) -> list[float]:
-        r"""Compute the quantiles with NumPy.
-
-        Args:
-            values: The prepared values, which are not empty.
-            quantiles: The quantile values, which are in the range ``[0,
-                1]``.
-
-        Returns:
-            The quantiles as Python floats.
-        """
         if values.dtype.kind == "b":
             values = values.astype(np.float64)  # ``np.quantile`` does not support booleans
         return np.quantile(values, q=quantiles).tolist()
 
     def _sort(self, values: np.ndarray, *, descending: bool) -> list[int | float]:
-        r"""Sort the values with NumPy.
-
-        Args:
-            values: The prepared values, which can be empty.
-            descending: If ``True``, sorts in descending order.
-
-        Returns:
-            A new list with the sorted values. The ``NaN`` values are
-                last (first if descending).
-        """
         array = np.sort(values)
         if descending:
             return array[::-1].tolist()
         return array.tolist()
 
     def _std(self, values: np.ndarray) -> float:
-        r"""Compute the sample standard deviation with NumPy.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python float, ``NaN`` for a single value.
-        """
         if values.size <= 1:
             return float("nan")
         return np.std(values, ddof=1).item()

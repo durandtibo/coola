@@ -53,20 +53,6 @@ class DifferenceCloseEqualityTester(BaseEqualityTester[Any]):
     """
 
     def objects_are_equal(self, actual: Any, expected: Any, ctx: Engine) -> bool:
-        r"""Test two objects that support a difference.
-
-        The objects are equal if the absolute difference is within the
-        tolerance.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``True`` if the objects are equal, otherwise ``False`` (the
-                reason is recorded in the engine).
-        """
         return difference_close(actual, expected, ctx.config) or ctx.fail(
             lambda: format_value_difference(actual=actual, expected=expected, name="values")
         )

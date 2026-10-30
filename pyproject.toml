@@ -100,6 +100,7 @@ dev = [
 ]
 
 docs = [
+  "griffe-inherited-docstrings >=1.1,<2.0",
   "mike >=2.2,<3.0",
   "mkdocs-material >=9.7,<10.0",
   "mkdocstrings[python]>=1.0.7,<2.0",

@@ -62,21 +62,6 @@ class ObjectAttributesEqualityTester(BaseEqualityTester[Any]):
     def objects_are_equal(
         self, actual: Any, expected: Any, ctx: Engine
     ) -> bool | Iterator[tuple[object, object, object]]:
-        r"""Test two objects by their attributes.
-
-        The objects must have the same attribute names; the values are
-        the children.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``False`` if the objects differ at this level, otherwise the
-                child pairs ``(actual, expected, path part)`` that must
-                all be equal.
-        """
         attributes_a = get_object_attributes(actual)
         attributes_e = get_object_attributes(expected)
         if attributes_a.keys() != attributes_e.keys():

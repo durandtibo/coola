@@ -127,6 +127,8 @@ plugins:
       handlers:
         python:
           paths: [../src]
+          extensions:
+            - griffe_inherited_docstrings
           options:
             allow_inspection: true
             docstring_style: google

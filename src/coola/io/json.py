@@ -46,22 +46,9 @@ class JsonLoader(BaseLoader[Any]):
         self._encoding = encoding
 
     def _display_fields(self) -> dict[str, Any]:
-        r"""Return the fields shown in the representation.
-
-        Returns:
-            The ``encoding`` of the object.
-        """
         return {"encoding": self._encoding}
 
     def _load(self, path: Path) -> Any:
-        r"""Load a JSON file.
-
-        Args:
-            path: The path of the file.
-
-        Returns:
-            The data of the file.
-        """
         if self._encoding is None:
             with path.open(mode="rb") as file:
                 return json.load(file)
@@ -105,20 +92,9 @@ class JsonSaver(BaseFileSaver[Any]):
         self._kwargs = kwargs
 
     def _display_fields(self) -> dict[str, Any]:
-        r"""Return the fields shown in the representation.
-
-        Returns:
-            The ``encoding`` and the arguments of ``json.dump``.
-        """
         return {"encoding": self._encoding, **self._kwargs}
 
     def _save_file(self, to_save: Any, path: Path) -> None:
-        r"""Save the data into a JSON file.
-
-        Args:
-            to_save: The data to save.
-            path: The path of the file.
-        """
         with path.open(mode="w", encoding=self._encoding) as file:
             json.dump(to_save, file, **self._kwargs)
 

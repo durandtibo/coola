@@ -37,18 +37,6 @@ class SequenceSummarizer(BaseSummarizer["Sequence[Any]"]):
     """
 
     def summarize(self, data: Sequence[Any], config: SummaryConfig, *, compact: bool) -> Node:  # noqa: ARG002
-        r"""Summarize a sequence.
-
-        Args:
-            data: The data to summarize.
-            config: The options of the summary.
-            compact: If ``True``, the summary is a single line, as the
-                node is not expanded.
-
-        Returns:
-            The node whose children are the items, numbered by their
-                index (named by their field for a named tuple).
-        """
         length = len(data)
         fields = getattr(data, "_fields", None) if isinstance(data, tuple) else None
         children = enumerate(data) if fields is None else zip(fields, data, strict=True)

@@ -58,23 +58,9 @@ class NDArraySummarizer(BaseMetadataSummarizer[np.ndarray]):
     """
 
     def _check_dependencies(self) -> None:
-        r"""Check that ``numpy`` is installed.
-
-        Raises:
-            MissingPackageError: If ``numpy`` is not installed.
-        """
         check_numpy()
 
     def _describe(self, data: np.ndarray) -> list[Field]:
-        r"""Describe the metadata of a NumPy array.
-
-        Args:
-            data: The data to describe.
-
-        Returns:
-            The shape and the dtype, and the number of masked elements
-                for a masked array.
-        """
         fields = [f"shape={data.shape}", f"dtype={data.dtype}"]
         if isinstance(data, np.ma.MaskedArray):
             # The mask is part of the value: two arrays with a different mask are different.

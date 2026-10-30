@@ -49,12 +49,6 @@ class RandomManagerRegistry(Registry[str, BaseRandomManager], BaseRandomManager)
     """
 
     def get_rng_state(self) -> dict[str, Any]:
-        r"""Get the state of the random number generators of all the
-        managers.
-
-        Returns:
-            The state of each manager, by key.
-        """
         return {key: manager.get_rng_state() for key, manager in self.items()}
 
     def manual_seed(self, seed: int) -> None:

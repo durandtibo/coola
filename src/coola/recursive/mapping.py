@@ -53,16 +53,6 @@ class MappingTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]])
     """
 
     def expand(self, data: Mapping[Any, Any]) -> Expansion | None:
-        r"""Expand an object into its children.
-
-        Args:
-            data: The object.
-
-        Returns:
-            ``None`` if the object is a leaf. Otherwise the children and
-                the function that rebuilds the mapping from the
-                transformed children.
-        """
         return list(data.values()), lambda items: rebuild_mapping(
             data, dict(zip(data, items, strict=True))
         )

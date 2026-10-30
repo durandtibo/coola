@@ -44,12 +44,4 @@ class DataclassSummarizer(BaseObjectFieldsSummarizer[Any]):
     """
 
     def _get_names(self, data: Any) -> list[str]:
-        r"""Get the names of the fields to show.
-
-        Args:
-            data: The dataclass instance.
-
-        Returns:
-            The names of the fields whose ``repr`` is enabled.
-        """
         return [field.name for field in dataclasses.fields(data) if field.repr]

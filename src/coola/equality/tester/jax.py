@@ -62,20 +62,6 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
         check_jax()
 
     def objects_are_equal(self, actual: jnp.ndarray, expected: jnp.ndarray, ctx: Engine) -> bool:
-        r"""Test two JAX arrays.
-
-        The arrays must have the same dtype and shape; the elements are
-        compared with the tolerance and ``equal_nan``.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``True`` if the objects are equal, otherwise ``False`` (the
-                reason is recorded in the engine).
-        """
         failure = check_dtype_and_shape(actual, expected, ctx)
         if failure is not None:
             return failure

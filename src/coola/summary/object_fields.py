@@ -37,17 +37,6 @@ class BaseObjectFieldsSummarizer(BaseSummarizer[T]):
         """
 
     def summarize(self, data: T, config: SummaryConfig, *, compact: bool) -> Node:  # noqa: ARG002
-        r"""Summarize an object by its fields.
-
-        Args:
-            data: The data to summarize.
-            config: The options of the summary.
-            compact: If ``True``, the summary is a single line, as the
-                node is not expanded.
-
-        Returns:
-            The node whose children are the fields.
-        """
         names = self._get_names(data)
         children = ((name, getattr(data, name)) for name in names)
         return Node(f"{type(data)} (fields={len(names):,})", children, len(names))

@@ -62,20 +62,6 @@ class MappingEqualityTester(BaseEqualityTester["Mapping[Any, Any]"]):
     def objects_are_equal(
         self, actual: Mapping[Any, Any], expected: Mapping[Any, Any], ctx: Engine
     ) -> bool | Iterator[tuple[object, object, object]]:
-        r"""Test two mappings.
-
-        The keys must be equal; the values are the children.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``False`` if the objects differ at this level, otherwise the
-                child pairs ``(actual, expected, path part)`` that must
-                all be equal.
-        """
         if (
             actual.keys() == expected.keys()
             and set(map(type, actual)) <= _PLAIN_KEY_TYPES
@@ -127,20 +113,6 @@ class OrderedMappingEqualityTester(MappingEqualityTester):
     def objects_are_equal(
         self, actual: Mapping[Any, Any], expected: Mapping[Any, Any], ctx: Engine
     ) -> bool | Iterator[tuple[object, object, object]]:
-        r"""Test two mappings with the order of the keys.
-
-        The mappings must have the same keys in the same order.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``False`` if the objects differ at this level, otherwise the
-                child pairs ``(actual, expected, path part)`` that must
-                all be equal.
-        """
         result = super().objects_are_equal(actual, expected, ctx)
         if result is False:
             return False
@@ -181,21 +153,6 @@ class SequenceEqualityTester(BaseEqualityTester["Sequence[Any]"]):
     def objects_are_equal(
         self, actual: Sequence[Any], expected: Sequence[Any], ctx: Engine
     ) -> bool | Iterator[tuple[object, object, object]]:
-        r"""Test two sequences.
-
-        The sequences must have the same length; the items are the
-        children.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``False`` if the objects differ at this level, otherwise the
-                child pairs ``(actual, expected, path part)`` that must
-                all be equal.
-        """
         if len(actual) != len(expected):
             return ctx.fail(
                 lambda: f"sequences have different lengths: {len(actual):,} vs {len(expected):,}"
@@ -242,20 +199,6 @@ class SetEqualityTester(BaseEqualityTester["AbstractSet[Any]"]):
     def objects_are_equal(
         self, actual: AbstractSet[Any], expected: AbstractSet[Any], ctx: Engine
     ) -> bool:
-        r"""Test two sets.
-
-        The sets must have the same length and every element of
-        ``actual`` must have a match in ``expected``.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``True`` if the objects are equal, otherwise ``False`` (the
-                reason is recorded in the engine).
-        """
         if len(actual) != len(expected):
             return ctx.fail(
                 lambda: f"sets have different lengths: {len(actual):,} vs {len(expected):,}"

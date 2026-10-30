@@ -33,26 +33,9 @@ class IterableChildFinder(InlineDisplayMixin, BaseChildFinder[Iterable[Any]]):
     """
 
     def find_children(self, data: Iterable[Any]) -> Iterable[Any]:
-        r"""Return the children of an object.
-
-        Args:
-            data: The object.
-
-        Returns:
-            The items of the iterable.
-        """
         return data
 
     def find_items(self, data: Iterable[Any]) -> Iterable[tuple[Any, Any]]:
-        r"""Return the items of an object, as ``(key, child)`` pairs.
-
-        Args:
-            data: The object.
-
-        Returns:
-            The ``(index, item)`` pairs, or the ``(item, item)`` pairs
-                for a set.
-        """
         if isinstance(data, AbstractSet):
             return ((item, item) for item in data)
         return enumerate(data)

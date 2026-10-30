@@ -74,19 +74,6 @@ class TolerantEqualEqualityTester(BaseEqualityTester[object]):
     """
 
     def objects_are_equal(self, actual: Any, expected: object, ctx: Engine) -> bool:
-        r"""Test two objects with ``allclose`` or ``equal``.
-
-        ``allclose`` is used if a tolerance is set, otherwise ``equal``.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``True`` if the objects are equal, otherwise ``False`` (the
-                reason is recorded in the engine).
-        """
         if not supports_methods(actual, "allclose", "equal"):
             return False
         if ctx.atol != 0 or ctx.rtol != 0:

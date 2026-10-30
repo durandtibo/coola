@@ -98,17 +98,6 @@ class MultilineDisplayMixin(BaseDisplayMixin):
     """
 
     def _render_fields(self, fields: dict[str, Any], *, use_repr: bool) -> str:
-        r"""Render the fields on one line each.
-
-        Args:
-            fields: The fields to show.
-            use_repr: If ``True``, the values are formatted with
-                ``repr``, otherwise with ``str``.
-
-        Returns:
-            The class name followed by the fields, one per line, in
-                parentheses.
-        """
         args = repr_indent(repr_mapping(fields)) if use_repr else str_indent(str_mapping(fields))
         return f"{self.__class__.__qualname__}(\n  {args}\n)"
 
@@ -147,16 +136,5 @@ class InlineDisplayMixin(BaseDisplayMixin):
     """
 
     def _render_fields(self, fields: dict[str, Any], *, use_repr: bool) -> str:
-        r"""Render the fields on one line.
-
-        Args:
-            fields: The fields to show.
-            use_repr: If ``True``, the values are formatted with
-                ``repr``, otherwise with ``str``.
-
-        Returns:
-            The class name followed by the comma-separated fields, in
-                parentheses.
-        """
         args = repr_mapping_line(fields) if use_repr else str_mapping_line(fields)
         return f"{self.__class__.__qualname__}({args})"

@@ -58,18 +58,6 @@ class NativeReducer(InlineDisplayMixin, BaseReducer[Sequence[float]]):
     """
 
     def _prepare(self, values: Sequence[float]) -> Sequence[float]:
-        r"""Check that the values are a sequence.
-
-        Args:
-            values: The values.
-
-        Returns:
-            The values, unchanged.
-
-        Raises:
-            TypeError: If the values are not a sequence (for example a
-                NumPy array or a PyTorch tensor).
-        """
         if not isinstance(values, Sequence):
             module = type(values).__module__.partition(".")[0]
             hint = {"numpy": "use NumpyReducer", "torch": "use TorchReducer"}.get(module)
@@ -77,28 +65,12 @@ class NativeReducer(InlineDisplayMixin, BaseReducer[Sequence[float]]):
         return values
 
     def _max(self, values: Sequence[float]) -> int | float:
-        r"""Compute the maximum value with the standard library.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python number.
-        """
         # ``max`` depends on the order of the values if one is NaN.
         if _has_nan(values):
             return float("nan")
         return max(values)
 
     def _mean(self, values: Sequence[float]) -> float:
-        r"""Compute the mean value with the standard library.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python float.
-        """
         try:
             return fmean(values)
         except OverflowError:
@@ -106,14 +78,6 @@ class NativeReducer(InlineDisplayMixin, BaseReducer[Sequence[float]]):
             return float(exact_mean(values))
 
     def _median(self, values: Sequence[float]) -> int | float:
-        r"""Compute the median value with the standard library.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python number.
-        """
         if _has_nan(values):
             return float("nan")
         result = median(values)
@@ -123,58 +87,21 @@ class NativeReducer(InlineDisplayMixin, BaseReducer[Sequence[float]]):
         return result
 
     def _min(self, values: Sequence[float]) -> int | float:
-        r"""Compute the minimum value with the standard library.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python number.
-        """
         if _has_nan(values):
             return float("nan")
         return min(values)
 
     def _quantile(self, values: Sequence[float], quantiles: Sequence[float]) -> list[float]:
-        r"""Compute the quantiles with the standard library.
-
-        Args:
-            values: The prepared values, which are not empty.
-            quantiles: The quantile values, which are in the range ``[0,
-                1]``.
-
-        Returns:
-            The quantiles as Python floats.
-        """
         if _has_nan(values):
             return [float("nan")] * len(quantiles)
         return quantile(values, quantiles)
 
     def _std(self, values: Sequence[float]) -> float:
-        r"""Compute the sample standard deviation with the standard
-        library.
-
-        Args:
-            values: The prepared values, which are not empty.
-
-        Returns:
-            The result as a Python float, ``NaN`` for a single value.
-        """
         # ``statistics.stdev`` raises an error for the NaN and infinite values.
         if len(values) == 1 or not all(math.isfinite(value) for value in values):
             return float("nan")
         return stdev(values)
 
     def _sort(self, values: Sequence[float], *, descending: bool) -> list[int | float]:
-        r"""Sort the values with the standard library.
-
-        Args:
-            values: The prepared values, which can be empty.
-            descending: If ``True``, sorts in descending order.
-
-        Returns:
-            A new list with the sorted values. The ``NaN`` values are
-                last (first if descending).
-        """
         # The NaN values are last (first if descending), like with NumPy and PyTorch.
         return sorted(values, key=_nan_last_key, reverse=descending)

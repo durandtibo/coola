@@ -53,11 +53,6 @@ class _KeyTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]]):
         self._drop = drop
 
     def _display_fields(self) -> dict[str, Any]:
-        r"""Return the fields shown in the representation.
-
-        Returns:
-            The ``rename``, ``drop`` of the object.
-        """
         return {"rename": self._rename, "drop": self._drop}
 
     def expand(self, data: Mapping[Any, Any]) -> Expansion | None:

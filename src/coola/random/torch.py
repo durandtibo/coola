@@ -52,14 +52,6 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
         return hash(type(self))
 
     def get_rng_state(self) -> dict[str, Any]:
-        r"""Get the state of the PyTorch random number generators.
-
-        Returns:
-            The state of the CPU generator (``"torch"``), and the states
-                of the CUDA (``"torch.cuda"``, only if CUDA is
-                initialized) and MPS (``"torch.mps"``, only if it is
-                available) generators.
-        """
         state = {"torch": torch.get_rng_state()}
         # ``get_rng_state_all`` initializes CUDA, which fails in a forked worker. A CUDA
         # that is not initialized has no generator state to save.

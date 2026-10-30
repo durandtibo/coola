@@ -51,17 +51,6 @@ class EqualEqualityTester(BaseEqualityTester[object]):
     """
 
     def objects_are_equal(self, actual: object, expected: object, ctx: Engine) -> bool:
-        r"""Test two objects with their ``equal`` method.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``True`` if the objects are equal, otherwise ``False`` (the
-                reason is recorded in the engine).
-        """
         equal = getattr(actual, "equal", None)
         if not callable(equal):
             return False
@@ -107,18 +96,6 @@ class EqualNanEqualityTester(BaseEqualityTester[object]):
     """
 
     def objects_are_equal(self, actual: object, expected: object, ctx: Engine) -> bool:
-        r"""Test two objects with their ``equal`` method and
-        ``equal_nan``.
-
-        Args:
-            actual: The actual object.
-            expected: The expected object, with the same type.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``True`` if the objects are equal, otherwise ``False`` (the
-                reason is recorded in the engine).
-        """
         equal = getattr(actual, "equal", None)
         if not callable(equal):
             return False

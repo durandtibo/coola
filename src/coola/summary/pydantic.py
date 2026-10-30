@@ -46,15 +46,6 @@ class PydanticModelSummarizer(BaseObjectFieldsSummarizer["pydantic.BaseModel"]):
     """
 
     def _get_names(self, data: pydantic.BaseModel) -> list[str]:
-        r"""Get the names of the fields to show.
-
-        Args:
-            data: The pydantic model.
-
-        Returns:
-            The names of the fields, followed by the extra fields. The
-                secret fields are hidden.
-        """
         secrets = secret_field_names(data)
         names = [name for name in type(data).model_fields if name not in secrets]
         names.extend(data.model_extra or {})

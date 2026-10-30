@@ -108,19 +108,6 @@ class BaseMetadataSummarizer(BaseSummarizer[T]):
         """
 
     def summarize(self, data: T, config: SummaryConfig, *, compact: bool) -> str:  # noqa: ARG002
-        r"""Summarize the metadata of an object.
-
-        Args:
-            data: The data to summarize.
-            config: The options of the summary.
-            compact: If ``True``, the summary is a single line, as the
-                node is not expanded.
-
-        Returns:
-            The ``repr`` of the data if ``config.show_data`` is
-                ``True``, otherwise the type and the fields of the
-                metadata, separated by ``|``.
-        """
         if config.show_data:
             return safe_repr(data)
         parts = [f"{type(data)}"]

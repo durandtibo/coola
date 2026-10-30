@@ -235,11 +235,6 @@ class ReprHasher(InlineDisplayMixin, BaseHasher[Any]):
         self._tag = tag
 
     def _display_fields(self) -> dict[str, Any]:
-        r"""Return the fields shown in the representation.
-
-        Returns:
-            The ``tag`` if it is set, otherwise no field.
-        """
         return {} if self._tag is None else {"tag": self._tag}
 
     def encode(self, data: Any) -> Encoding:
@@ -300,11 +295,6 @@ class StrHasher(InlineDisplayMixin, BaseHasher[Any]):
         self._tag = tag
 
     def _display_fields(self) -> dict[str, Any]:
-        r"""Return the fields shown in the representation.
-
-        Returns:
-            The ``tag`` if it is set, otherwise no field.
-        """
         return {} if self._tag is None else {"tag": self._tag}
 
     def encode(self, data: Any) -> Encoding:

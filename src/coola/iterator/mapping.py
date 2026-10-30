@@ -31,23 +31,7 @@ class MappingChildFinder(InlineDisplayMixin, BaseChildFinder[Mapping[Any, Any]])
     """
 
     def find_children(self, data: Mapping[Any, Any]) -> Iterable[Any]:
-        r"""Return the children of an object.
-
-        Args:
-            data: The object.
-
-        Returns:
-            The values of the mapping.
-        """
         return data.values()
 
     def find_items(self, data: Mapping[Any, Any]) -> Iterable[tuple[Any, Any]]:
-        r"""Return the items of an object, as ``(key, child)`` pairs.
-
-        Args:
-            data: The object.
-
-        Returns:
-            The ``(key, value)`` pairs.
-        """
         return data.items()
