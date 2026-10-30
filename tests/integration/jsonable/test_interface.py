@@ -10,7 +10,8 @@ from typing import Any
 import pytest
 
 from coola.jsonable import to_jsonable
-from tests.integration.helpers import run_threads
+from coola.testing.marks import pydantic_available
+from tests.integration.helpers import run_python, run_threads
 
 NUM_THREADS = 8
 
@@ -118,3 +119,29 @@ def test_to_jsonable_output_round_trips_through_json() -> None:
     """Test that ``json.dumps`` accepts the output."""
     data = {"a": (1, {2, 1}), 3: Node(None, [b"a"])}
     assert json.loads(json.dumps(to_jsonable(data))) == to_jsonable(data)
+
+
+PYDANTIC_SCRIPT = """
+from pydantic import BaseModel
+from coola.jsonable import to_jsonable
+
+class Tags(BaseModel):
+    tags: set[str]
+
+print(to_jsonable(Tags(tags={"d", "a", "b", "c", "e"})))
+"""
+
+
+@pydantic_available
+@pytest.mark.parametrize("seed", ["0", "1", "2", "3", "42"])
+def test_to_jsonable_model_with_a_set_is_the_same_for_every_hash_seed(seed: str) -> None:
+    """Test that the set of a pydantic model is sorted whatever
+    ``PYTHONHASHSEED`` is."""
+    assert run_python(PYDANTIC_SCRIPT, env={"PYTHONHASHSEED": seed}) == [
+        "{'tags':",
+        "['a',",
+        "'b',",
+        "'c',",
+        "'d',",
+        "'e']}",
+    ]
