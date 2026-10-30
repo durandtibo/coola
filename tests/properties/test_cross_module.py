@@ -6,7 +6,11 @@ from __future__ import annotations
 import copy
 from typing import Any
 
-import pytest
+from hypothesis import (
+    assume,
+    given,
+    strategies as st,
+)
 
 from coola.equality import objects_are_equal
 from coola.hashing import hash_object
@@ -17,14 +21,6 @@ from tests.properties.strategies import (
     small_values,
     tiny_values,
     values,
-)
-
-hypothesis = pytest.importorskip("hypothesis")
-
-from hypothesis import (  # noqa: E402
-    assume,
-    given,
-    strategies as st,
 )
 
 

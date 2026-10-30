@@ -16,7 +16,14 @@ from collections import OrderedDict, deque
 from pathlib import PurePosixPath
 from typing import Any, NamedTuple
 
+import hypothesis
 import pytest
+from hypothesis import (
+    assume,
+    given,
+    settings,
+    strategies as st,
+)
 
 from coola.equality import objects_are_equal
 from coola.hashing import HasherRegistry, SequenceHasher, hash_object, tagged
@@ -27,15 +34,6 @@ from tests.properties.strategies import (
     rebuild,
     tiny_values,
     values,
-)
-
-hypothesis = pytest.importorskip("hypothesis")
-
-from hypothesis import (  # noqa: E402
-    assume,
-    given,
-    settings,
-    strategies as st,
 )
 
 HEX_PATTERN = re.compile(r"^[0-9a-f]+$")
