@@ -11,7 +11,7 @@ from hypothesis import assume, given, strategies as st
 
 from coola.random import NumpyRandomManager, random_seed
 from coola.summary import summarize
-from tests.helpers import draw_python_random
+from tests.helpers import draw_numpy_rand, draw_python_random
 from tests.properties.strategies import values
 
 ##################
@@ -102,7 +102,7 @@ def test_numpy_manager_different_seeds_give_different_numbers(seed: int, other: 
     assume(seed != other)
     manager = NumpyRandomManager()
     with manager.seed(seed):
-        first = np.random.rand(4)  # noqa: NPY002
+        first = draw_numpy_rand(4)
     with manager.seed(other):
-        second = np.random.rand(4)  # noqa: NPY002
+        second = draw_numpy_rand(4)
     assert not np.array_equal(first, second)

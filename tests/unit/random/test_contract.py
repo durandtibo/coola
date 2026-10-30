@@ -15,13 +15,13 @@ from coola.random import (
 )
 from coola.testing.marks import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
-from tests.helpers import draw_python_random
+from tests.helpers import draw_numpy_rand, draw_python_random
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
 
 if is_numpy_available():
-    import numpy as np
+    pass
 
 if is_torch_available():
     import torch
@@ -32,7 +32,7 @@ def _draw_python() -> Any:
 
 
 def _draw_numpy() -> Any:
-    return np.random.rand(3)  # noqa: NPY002
+    return draw_numpy_rand(3)
 
 
 def _draw_torch() -> Any:
