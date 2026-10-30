@@ -3,7 +3,8 @@ from __future__ import annotations
 from dataclasses import InitVar, dataclass, field
 from typing import Any
 
-from coola.nested import convert_to_jsonable, remove_keys_if
+from coola.jsonable import to_jsonable
+from coola.nested import remove_keys_if
 from coola.recursive import DefaultTransformer, get_default_registry, recursive_apply
 from coola.rounding import round_values
 
@@ -68,8 +69,8 @@ def test_round_values_recursive_dataclass() -> None:
     assert round_values(Node("a", [1.234]), decimals=1, recursive=True) == Node("a", [1.2])
 
 
-def test_convert_to_jsonable_dataclass_is_converted_whole() -> None:
-    assert convert_to_jsonable(Frozen(1, {2})) == {"a": 1, "b": [2]}
+def test_to_jsonable_dataclass_is_converted_whole() -> None:
+    assert to_jsonable(Frozen(1, {2})) == {"a": 1, "b": [2]}
 
 
 def test_remove_keys_if_enters_the_dataclass() -> None:

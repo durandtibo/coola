@@ -5,9 +5,10 @@ from unittest.mock import patch
 import pytest
 
 from coola.jsonable import to_jsonable
-from coola.jsonable.numpy import get_default_transformers
+from coola.jsonable.numpy import NDArrayTransformer, get_default_transformers
 from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
+from tests.unit.recursive.helpers import expand_not_none
 
 if is_numpy_available():
     import numpy as np
@@ -100,3 +101,54 @@ def test_to_jsonable_object_array_raises() -> None:
 @numpy_available
 def test_to_jsonable_complex_array_keep() -> None:
     assert to_jsonable(np.array([1 + 2j]), on_unsupported="keep") == [1 + 2j]
+
+
+@numpy_available
+def test_ndarray_transformer_repr() -> None:
+    assert repr(NDArrayTransformer()) == "NDArrayTransformer()"
+
+
+@numpy_available
+@pytest.mark.parametrize(
+    "dtype", ["bool", "int8", "int64", "uint64", "float16", "float32", "float64"]
+)
+def test_ndarray_transformer_numeric_array_has_no_children(dtype: str) -> None:
+    children, _ = expand_not_none(NDArrayTransformer(), np.zeros(2, dtype=dtype))
+    assert children == ()
+
+
+@numpy_available
+def test_ndarray_transformer_numeric_array_rebuild() -> None:
+    _, rebuild = expand_not_none(NDArrayTransformer(), np.arange(3))
+    assert rebuild([]) == [0, 1, 2]
+
+
+@numpy_available
+@pytest.mark.parametrize("dtype", ["complex128", "longdouble", "datetime64[D]", "object", "U1"])
+def test_ndarray_transformer_other_array_is_converted_in_turn(dtype: str) -> None:
+    array = np.zeros(1, dtype=dtype)
+    children, _ = expand_not_none(NDArrayTransformer(), array)
+    assert len(children) == 1
+
+
+@numpy_available
+def test_to_jsonable_numeric_array_whole_output() -> None:
+    assert to_jsonable(np.array([[True, False], [False, True]])) == [[True, False], [False, True]]
+
+
+@numpy_available
+def test_to_jsonable_float_array_keeps_nan() -> None:
+    assert repr(to_jsonable(np.array([np.nan, 1.0]))) == "[nan, 1.0]"
+
+
+@numpy_available
+def test_to_jsonable_string_array() -> None:
+    assert to_jsonable(np.array(["a", "b"])) == ["a", "b"]
+
+
+@numpy_available
+def test_to_jsonable_long_double_array_raises() -> None:
+    with pytest.raises(
+        TypeError, match=r"The converter of longdouble returned a value of the same type"
+    ):
+        to_jsonable(np.zeros(1, dtype="longdouble"))

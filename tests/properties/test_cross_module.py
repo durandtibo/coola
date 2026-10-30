@@ -4,18 +4,15 @@ modules."""
 from __future__ import annotations
 
 import copy
-import json
 from typing import Any
 
 import pytest
 
 from coola.equality import objects_are_equal
 from coola.hashing import hash_object
-from coola.nested import convert_to_jsonable
 from coola.summary import summarize
 from tests.properties.strategies import (
     nan_values,
-    nested,
     rebuild,
     small_values,
     tiny_values,
@@ -28,18 +25,6 @@ from hypothesis import (  # noqa: E402
     assume,
     given,
     strategies as st,
-)
-
-# The documented limits of ``convert_to_jsonable`` (NaN and infinity are kept, complex numbers
-# and non-string keys are not converted) are outside of this domain.
-json_values = nested(
-    st.one_of(
-        st.none(),
-        st.booleans(),
-        st.integers(),
-        st.text(),
-        st.floats(allow_nan=False, allow_infinity=False),
-    )
 )
 
 
@@ -82,8 +67,3 @@ class _BadRepr:
 @given(items=st.lists(st.just(_BadRepr()) | st.integers(), max_size=5), max_depth=st.integers(0, 2))
 def test_summarize_never_raises_with_a_failing_repr(items: list[Any], max_depth: int) -> None:
     assert isinstance(summarize({"a": items, "b": tuple(items)}, max_depth=max_depth), str)
-
-
-@given(data=json_values)
-def test_convert_to_jsonable_is_accepted_by_strict_json(data: Any) -> None:
-    json.dumps(convert_to_jsonable(data), allow_nan=False)

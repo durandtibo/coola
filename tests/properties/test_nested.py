@@ -14,7 +14,6 @@ from coola.equality import objects_are_equal
 from coola.nested import (
     DuplicateKeyError,
     add_prefix_suffix_to_keys,
-    convert_to_jsonable,
     flatten_mapping,
     from_flat_dict,
     merge_mappings,
@@ -26,7 +25,6 @@ from tests.properties.strategies import (
     int_mappings,
     keys,
     nested_dicts,
-    rebuild,
     values,
 )
 
@@ -379,7 +377,6 @@ def nest_dicts(depth: int) -> dict[str, Any]:
 KEY_FUNCTIONS = [
     lambda data: remove_keys_if(data, lambda key: key == "never"),
     lambda data: add_prefix_suffix_to_keys(data, "x_", recursive=True),
-    convert_to_jsonable,
     to_flat_dict,
 ]
 
@@ -410,16 +407,10 @@ def test_add_prefix_suffix_to_keys_with_no_prefix_and_suffix_is_the_identity(val
     assert objects_are_equal(add_prefix_suffix_to_keys(data, recursive=True), data)
 
 
-@pytest.mark.parametrize("function", KEY_FUNCTIONS[:3])
+@pytest.mark.parametrize("function", KEY_FUNCTIONS[:2])
 @given(value=values)
 def test_the_functions_do_not_modify_the_input(function: Any, value: Any) -> None:
     data = {"root": value}
     expected = copy.deepcopy(data)
     function(data)
     assert objects_are_equal(data, expected)
-
-
-@given(value=values)
-def test_convert_to_jsonable_does_not_depend_on_the_order_of_the_input(value: Any) -> None:
-    data = {"root": value}
-    assert objects_are_equal(convert_to_jsonable(data), convert_to_jsonable(rebuild(data)))

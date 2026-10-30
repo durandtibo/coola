@@ -20,7 +20,6 @@ import pytest
 from coola.nested import (
     add_prefix_suffix_to_keys,
     convert_to_dict_of_lists,
-    convert_to_jsonable,
     convert_to_list_of_dicts,
     flatten_mapping,
     from_flat_dict,
@@ -56,7 +55,6 @@ FUNCTIONS = {
     "to_flat_dict": to_flat_dict,
     "remove_keys_if": lambda data: remove_keys_if(data, is_key_0),
     "add_prefix_suffix_to_keys": lambda data: add_prefix_suffix_to_keys(data, "x_", recursive=True),
-    "convert_to_jsonable": convert_to_jsonable,
 }
 FUNCTION = pytest.mark.parametrize("name", FUNCTIONS)
 
