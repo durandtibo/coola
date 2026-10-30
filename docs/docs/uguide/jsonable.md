@@ -28,41 +28,41 @@ The conversion is chosen from the type of each value, along the Method Resolutio
 containers are entered at any depth, and the optional libraries (NumPy, PyTorch, pandas, pydantic) are
 imported only when a value of that library is converted.
 
-| Type                                                      | JSON value                                                  |
-| --------------------------------------------------------- | ----------------------------------------------------------- |
-| `str`, `int`, `float`, `bool`, `None`                     | kept (a subclass, such as an `IntEnum` member, is kept)     |
-| `list`, `tuple`, `deque`, `range`, other `Sequence`       | `list`                                                      |
-| `set`, `frozenset`                                        | sorted `list`                                               |
-| `dict`, `Mapping`, `MappingProxyType`                     | `dict` with `str` keys                                      |
-| dataclass instance                                        | `dict` of the fields                                        |
-| `PurePath`, `UUID`, `Decimal`, `UserString`               | `str`                                                       |
-| `bytes`, `bytearray`                                      | Base64 `str`                                                |
-| `datetime.date`, `datetime.datetime`, `datetime.time`     | ISO 8601 `str`                                              |
-| `datetime.timedelta`                                      | number of seconds (`float`)                                 |
-| `enum.Enum`                                               | its value, converted                                        |
-| `numpy.ndarray`, NumPy scalar                             | nested `list`, Python value                                 |
-| `torch.Tensor`                                            | nested `list`                                               |
-| `pandas.Series`, `pandas.Index`; `pd.NaT`, `pd.NA`        | `list`; `None`                                              |
-| `pydantic.BaseModel`; `SecretStr`, `SecretBytes`          | `dict` of `model_dump()`, converted; `"**********"`         |
+| Type                                                  | JSON value                                              |
+| ----------------------------------------------------- | ------------------------------------------------------- |
+| `str`, `int`, `float`, `bool`, `None`                 | kept (a subclass, such as an `IntEnum` member, is kept) |
+| `list`, `tuple`, `deque`, `range`, other `Sequence`   | `list`                                                  |
+| `set`, `frozenset`                                    | sorted `list`                                           |
+| `dict`, `Mapping`, `MappingProxyType`                 | `dict` with `str` keys                                  |
+| dataclass instance                                    | `dict` of the fields                                    |
+| `PurePath`, `UUID`, `Decimal`, `UserString`           | `str`                                                   |
+| `bytes`, `bytearray`                                  | Base64 `str`                                            |
+| `datetime.date`, `datetime.datetime`, `datetime.time` | ISO 8601 `str`                                          |
+| `datetime.timedelta`                                  | number of seconds (`float`)                             |
+| `enum.Enum`                                           | its value, converted                                    |
+| `numpy.ndarray`, NumPy scalar                         | nested `list`, Python value                             |
+| `torch.Tensor`                                        | nested `list`                                           |
+| `pandas.Series`, `pandas.Index`; `pd.NaT`, `pd.NA`    | `list`; `None`                                          |
+| `pydantic.BaseModel`; `SecretStr`, `SecretBytes`      | `dict` of `model_dump()`, converted; `"**********"`     |
 
 ## Properties
 
-| Property                 | Statement                                                                                                                                                                                                                                                                                                 |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| JSON data model          | The output contains only `dict` with `str` keys, `list`, `str`, `int`, `float`, `bool` and `None`. Tuples, deques, sets and ranges become lists, dataclasses and pydantic models become dicts. A subclass of `str`, `int` or `float` (an `IntEnum` member) is kept: `json` writes it as its base value. |
-| Accepted by `json`       | With `on_unsupported="raise"` (the default), `json.dumps(to_jsonable(x))` never raises, and `json.loads` of it equals `to_jsonable(x)` (`NaN` aside). The function is idempotent: `to_jsonable(to_jsonable(x)) == to_jsonable(x)`.                                                                       |
-| Strict and loud          | A value whose type has no transformer raises a `TypeError` that names the type and tells how to register one. It is never silently returned unchanged, never replaced by `repr` or `None`. `"warn"` and `"keep"` are explicit choices of the caller.                                                      |
-| Type dispatch            | The transformer is chosen from `type(data)` along the Method Resolution Order, so the most specific registered type wins.                                                                                                                                                                                 |
-| Registry-extensible      | A new type is supported by registering one transformer, without changing another one. The plugin group `coola.jsonable.transformers` does it from another package.                                                                                                                                       |
+| Property                 | Statement                                                                                                                                                                                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| JSON data model          | The output contains only `dict` with `str` keys, `list`, `str`, `int`, `float`, `bool` and `None`. Tuples, deques, sets and ranges become lists, dataclasses and pydantic models become dicts. A subclass of `str`, `int` or `float` (an `IntEnum` member) is kept: `json` writes it as its base value.                              |
+| Accepted by `json`       | With `on_unsupported="raise"` (the default), `json.dumps(to_jsonable(x))` never raises, and `json.loads` of it equals `to_jsonable(x)` (`NaN` aside). The function is idempotent: `to_jsonable(to_jsonable(x)) == to_jsonable(x)`.                                                                                                   |
+| Strict and loud          | A value whose type has no transformer raises a `TypeError` that names the type and tells how to register one. It is never silently returned unchanged, never replaced by `repr` or `None`. `"warn"` and `"keep"` are explicit choices of the caller.                                                                                 |
+| Type dispatch            | The transformer is chosen from `type(data)` along the Method Resolution Order, so the most specific registered type wins.                                                                                                                                                                                                            |
+| Registry-extensible      | A new type is supported by registering one transformer, without changing another one. The plugin group `coola.jsonable.transformers` does it from another package.                                                                                                                                                                   |
 | Keys are strings         | A `str` key is kept; `bool`, `int`, `float` and `None` are written like `json.dumps` writes them (`"true"`, `"1"`, `"1.5"`, `"null"`); any other key is converted by the registry (a `Path`, a `UUID`, an `Enum`) and must give one of these. A tuple key raises `TypeError`. Two keys that give the same string raise `ValueError`. |
-| No silent loss           | Two entries are never merged into one, a value is never dropped and a secret is never written: `SecretStr` and `SecretBytes` give `"**********"`.                                                                                                                                                         |
-| Deterministic            | The same input gives the same output in every process, whatever `PYTHONHASHSEED` is: dictionaries keep the order of the input and a set becomes a sorted list.                                                                                                                                            |
-| Pure                     | The input is never modified. The output shares no container with the input. A registry is read, never modified by a call, so it can be shared by threads.                                                                                                                                                |
-| Cycle-safe               | A container that contains itself raises `ValueError`.                                                                                                                                                                                                                                                     |
-| Any depth                | No `RecursionError`, whatever the nesting (`json.dumps` itself raises one at about 1,000 levels).                                                                                                                                                                                                         |
-| Consistent with siblings | The same containers as `equality`, `hashing`, `summary`, `recursive` and `iterator`: dataclasses are entered, text and bytes are leaves, iterators and generators are not accepted. Options are keyword-only.                                                                                            |
-| Lazy                     | `import coola.jsonable` imports no optional library.                                                                                                                                                                                                                                                      |
-| Fast                     | The cost is linear in the number of nodes, and there is no per-call setup.                                                                                                                                                                                                                                |
+| No silent loss           | Two entries are never merged into one, a value is never dropped and a secret is never written: `SecretStr` and `SecretBytes` give `"**********"`.                                                                                                                                                                                    |
+| Deterministic            | The same input gives the same output in every process, whatever `PYTHONHASHSEED` is: dictionaries keep the order of the input and a set becomes a sorted list.                                                                                                                                                                       |
+| Pure                     | The input is never modified. The output shares no container with the input. A registry is read, never modified by a call, so it can be shared by threads.                                                                                                                                                                            |
+| Cycle-safe               | A container that contains itself raises `ValueError`.                                                                                                                                                                                                                                                                                |
+| Any depth                | No `RecursionError`, whatever the nesting (`json.dumps` itself raises one at about 1,000 levels).                                                                                                                                                                                                                                    |
+| Consistent with siblings | The same containers as `equality`, `hashing`, `summary`, `recursive` and `iterator`: dataclasses are entered, text and bytes are leaves, iterators and generators are not accepted. Options are keyword-only.                                                                                                                        |
+| Lazy                     | `import coola.jsonable` imports no optional library.                                                                                                                                                                                                                                                                                 |
+| Fast                     | The cost is linear in the number of nodes, and there is no per-call setup.                                                                                                                                                                                                                                                           |
 
 Not guaranteed:
 
@@ -84,11 +84,11 @@ Not guaranteed:
 
 `on_unsupported` says what happens to a value whose type has no transformer.
 
-| Value       | Effect                                                                    |
-| ----------- | ------------------------------------------------------------------------- |
-| `"raise"`   | `TypeError` that names the type (default)                                 |
-| `"warn"`    | `UserWarning` for each value, the value is kept                           |
-| `"keep"`    | The value is kept silently                                                |
+| Value     | Effect                                          |
+| --------- | ----------------------------------------------- |
+| `"raise"` | `TypeError` that names the type (default)       |
+| `"warn"`  | `UserWarning` for each value, the value is kept |
+| `"keep"`  | The value is kept silently                      |
 
 ```pycon
 >>> from coola.jsonable import to_jsonable
