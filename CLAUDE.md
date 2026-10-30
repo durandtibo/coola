@@ -13,17 +13,25 @@
 
 ## Workflow
 
-- One branch and one pull request per item (for example per item of `review/suggestions.md`).
-  Branch from an up to date `main`, name the branch `fix/...` or `docs/...`.
+- One branch and one pull request per logical change (one feature, one bug fix, one refactor).
+  Branch from an up to date `main`.
+- Name the branch `<type>/<short-description>` in lowercase kebab-case, for example
+  `feat/add-cache-option` or `bugfix/handle-empty-input`. Use one of these types:
+  `feat` (new feature), `bugfix` (bug fix), `hotfix` (urgent fix), `docs` (documentation),
+  `refactor` (no behaviour change), `perf` (performance), `test` (tests only),
+  `chore` (maintenance, dependencies, tooling), `ci` (CI configuration).
 - Do not commit or push to `main`.
-- End commit messages with the `Co-Authored-By` line and PR descriptions with the "Generated with
-  Claude Code" line given by the harness.
+- When working on several sequential PRs where one depends on the previous one, use stacked PRs:
+  branch each PR from the branch of the previous one (not from `main`) and open it with the
+  previous branch as its base. Keep each PR small and reviewable on its own. Once a PR of the stack
+  is merged, retarget the next PR to `main` and merge `origin/main` into it.
 - In the PR description, say what was changed, what was deliberately not changed, and any
-  behaviour change (for example hashes that change, or a breaking change of the signature).
+  behaviour change (for example a changed output, or a breaking change of the signature).
 - When a PR conflicts with `main`, merge `origin/main` into the branch and resolve the conflicts
   (do not rebase and force-push). Most conflicts are two PRs appending tests at the end of the
   same test file: keep both. Check what `main` already contains before choosing a side.
-- Update the status table of `review/suggestions.md` when items are fixed, with the PR number.
+- Update any tracking document (changelog, status table, issue) affected by the change, with the
+  PR number.
 
 ## Code
 
