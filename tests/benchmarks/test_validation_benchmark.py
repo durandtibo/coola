@@ -30,8 +30,12 @@ from coola.validation import (
     validate_finite,
     validate_ge,
     validate_gt,
+    validate_in,
     validate_int,
     validate_isinstance,
+    validate_le,
+    validate_lt,
+    validate_not_empty,
     validate_number,
     validate_range,
 )
@@ -66,3 +70,19 @@ def test_validate_ge(benchmark: BenchmarkFixture) -> None:
 
 def test_validate_range(benchmark: BenchmarkFixture) -> None:
     benchmark(validate_range, 1, 0, 2)
+
+
+def test_validate_in(benchmark: BenchmarkFixture) -> None:
+    benchmark(validate_in, 1, (0, 1, 2))
+
+
+def test_validate_le(benchmark: BenchmarkFixture) -> None:
+    benchmark(validate_le, 1, 2)
+
+
+def test_validate_lt(benchmark: BenchmarkFixture) -> None:
+    benchmark(validate_lt, 1, 2)
+
+
+def test_validate_not_empty(benchmark: BenchmarkFixture) -> None:
+    benchmark(validate_not_empty, [1])

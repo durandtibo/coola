@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.identifier import (
     SnowflakeIdGenerator,
+    extract_object_id_timestamp_s,
     extract_snowflake_timestamp_ms,
     extract_ulid_timestamp_ms,
     extract_uuid7_timestamp_ms,
@@ -88,6 +89,11 @@ def test_extract_ulid_timestamp_ms_benchmark(benchmark: BenchmarkFixture) -> Non
 def test_extract_uuid7_timestamp_ms_benchmark(benchmark: BenchmarkFixture) -> None:
     value = generate_uuid7()
     assert len(benchmark(repeat, extract_uuid7_timestamp_ms, value)) == CALLS
+
+
+def test_extract_object_id_timestamp_s_benchmark(benchmark: BenchmarkFixture) -> None:
+    object_id = generate_object_id()
+    assert benchmark(extract_object_id_timestamp_s, object_id) > 0
 
 
 def test_extract_snowflake_timestamp_ms_benchmark(benchmark: BenchmarkFixture) -> None:

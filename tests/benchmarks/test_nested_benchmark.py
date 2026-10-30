@@ -19,9 +19,15 @@ import pytest
 
 from coola.nested import (
     add_prefix_suffix_to_keys,
+    convert_to_dict_of_lists,
     convert_to_jsonable,
+    convert_to_list_of_dicts,
+    flatten_mapping,
     from_flat_dict,
+    merge_mappings,
+    remove_keys_containing,
     remove_keys_if,
+    remove_keys_starting_with,
     to_flat_dict,
 )
 
@@ -87,3 +93,31 @@ def test_from_flat_dict_flat_dict_benchmark(benchmark: BenchmarkFixture) -> None
 
 def test_from_flat_dict_tiny_input_benchmark(benchmark: BenchmarkFixture) -> None:
     benchmark(from_flat_dict, {"a": 1, "b.c": 2})
+
+
+def test_flatten_mapping_benchmark(benchmark: BenchmarkFixture) -> None:
+    data = {f"group{i}": {f"key{j}": j for j in range(100)} for i in range(100)}
+    assert len(benchmark(flatten_mapping, data, always_prefix=True)) == 10_000
+
+
+def test_merge_mappings_benchmark(benchmark: BenchmarkFixture) -> None:
+    data = [{f"key{i}_{j}": j for j in range(100)} for i in range(100)]
+    assert len(benchmark(merge_mappings, data)) == 10_000
+
+
+def test_remove_keys_starting_with_benchmark(benchmark: BenchmarkFixture) -> None:
+    assert len(benchmark(remove_keys_starting_with, FLAT, "key1")) == 88_889
+
+
+def test_remove_keys_containing_benchmark(benchmark: BenchmarkFixture) -> None:
+    assert len(benchmark(remove_keys_containing, FLAT, "9")) == 59_049
+
+
+def test_convert_to_dict_of_lists_benchmark(benchmark: BenchmarkFixture) -> None:
+    data = [{"a": i, "b": i + 1, "c": i + 2} for i in range(10_000)]
+    assert len(benchmark(convert_to_dict_of_lists, data)["a"]) == 10_000
+
+
+def test_convert_to_list_of_dicts_benchmark(benchmark: BenchmarkFixture) -> None:
+    data = {"a": list(range(10_000)), "b": list(range(10_000)), "c": list(range(10_000))}
+    assert len(benchmark(convert_to_list_of_dicts, data)) == 10_000
