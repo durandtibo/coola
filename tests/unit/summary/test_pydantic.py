@@ -57,7 +57,7 @@ def test_pydantic_model_summarizer_summarize_empty() -> None:
 
 @pydantic_available
 def test_pydantic_model_summarizer_summarize_hides_the_secret_fields() -> None:
-    user = User.model_validate({"name": "a", "password": "secret", "token": "tok"})
+    user = User(name="a", password="secret", token="tok")  # noqa: S106
     node = PydanticModelSummarizer().summarize(user, CONFIG, compact=False)
     assert (node.header, list(node.children), node.total) == (
         f"{User} (fields=1)",
