@@ -9,12 +9,21 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher, Encoding, Node, digest, tagged
+from coola.hashing.numpy import canonicalize_floats
 from coola.utils.imports import is_numpy_available, is_pyarrow_available
+
+if TYPE_CHECKING or is_numpy_available():
+    import numpy as np
+else:  # pragma: no cover
+    from coola.utils.fallback.numpy import numpy as np
 
 if TYPE_CHECKING or is_pyarrow_available():
     import pyarrow as pa
+    import pyarrow.compute as pc
 else:  # pragma: no cover
     from coola.utils.fallback.pyarrow import pyarrow as pa
+
+    pc = pa
 
 if TYPE_CHECKING:
     from coola.hashing.base import Hasher
@@ -50,11 +59,6 @@ def _encode_array(array: Any) -> Encoding:
     """
     if not (is_numpy_available() and _is_fixed_width(array.type)):
         return Node("pyarrow.Array", [str(array.type), array.to_pylist()])
-    import numpy as np  # noqa: PLC0415
-    import pyarrow.compute as pc  # noqa: PLC0415
-
-    from coola.hashing.numpy import canonicalize_floats  # noqa: PLC0415
-
     mask = b""
     if array.null_count:
         mask = digest(

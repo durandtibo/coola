@@ -4,16 +4,16 @@ Date: 2026-10-29 · Branch: `main` (7530c55a) · ruff 0.17.2 · Python ≥ 3.11 
 
 ## Summary
 
-- 114 lines with a `# noqa` directive in Python code (`src/` = 34, `tests/` = 80). The previous review counted 161 (`src/` = 51, `tests/` = 110). `src/` went down, `tests/` went up because of the new test suites (`jsonable`, `random`, `registry`, `hashing`, `summary`, `factory`, `tests/properties/`). Some mentions are in `docs/docs/dev/*.md`, which describe removed directives and are not source.
+- 111 lines with a `# noqa` directive in Python code (`src/` = 31, `tests/` = 80). The previous review counted 161 (`src/` = 51, `tests/` = 110). `src/` went down, `tests/` went up because of the new test suites (`jsonable`, `random`, `registry`, `hashing`, `summary`, `factory`, `tests/properties/`). Some mentions are in `docs/docs/dev/*.md`, which describe removed directives and are not source.
 - **No directive is unused.** `ruff check --extend-select RUF100 --no-fix .` passes. `RUF` is selected in `pyproject.toml`, and `RUF100` is part of it, so a stale directive already fails CI.
 - No file-level or blanket `# noqa` is used. Every directive names a rule code (`PGH004` is enabled through `PGH`).
-- About **31 of the 114 (~27%) can be removed** with a few per-file ignores and small refactors. The remaining ~83 are justified or need a policy decision.
-- Since the previous review, the `src/` count dropped from 51 to 34, because:
+- About **31 of the 111 (~28%) can be removed** with a few per-file ignores and small refactors. The remaining ~80 are justified or need a policy decision.
+- Since the previous review, the `src/` count dropped from 51 to 31, because:
   - the `ARG002` in `hashing/`, `equality/handler/`, `io/`, `recursive/` and `iterator/` are gone (the signatures were reworked into a context object, see `docs/docs/dev/hashing.md` and `docs/docs/dev/io.md`);
   - the `PLW1641` directives were fixed (the random managers define `__hash__`);
   - `S105` / `S107` in `hashing/pydantic.py` went from 7 to 0 (see section 4);
   - `equality/handler/base.py` no longer exists, so its docstring mention is gone.
-- New in `src/`: `PLC0415` went from 2 to 12 (deferred imports of optional libraries and of circular imports), `BLE001` from 0 to 5, plus `PLR0124` (`PLW2901` and `N807` were added and then fixed).
+- New in `src/`: `PLC0415` went from 2 to 9 (deferred imports of optional libraries and of circular imports), `BLE001` from 0 to 5, plus `PLR0124` (`PLW2901` and `N807` were added and then fixed).
 
 (Note: `ruff check --select RUF100` alone wrongly reports all directives as unused, because it disables every other rule. Always use `--extend-select`.)
 
@@ -27,7 +27,7 @@ A line with two codes (`# noqa: A001, N801`) counts once for each code.
 | NPY002 (legacy `np.random`)        | 5      | 0   | 5      | Keep (shared helpers, see below)                                 |
 | ARG002 (unused method arg)         | 27     | 10  | 17     | Keep in `src`. Per-file ignore in tests.                         |
 | ARG001 (unused function arg)       | 16     | 2   | 14     | Keep in `src`. Per-file ignore in tests.                         |
-| PLC0415 (import outside top level) | 12     | 12  | 0      | Keep (lazy optional imports, circular imports)                   |
+| PLC0415 (import outside top level) | 9      | 9   | 0      | Keep (lazy optional imports, circular imports)                   |
 | BLE001 (blind except)              | 7      | 5   | 2      | Keep (see below)                                                 |
 | DTZ001 (naive `datetime`)          | 3      | 0   | 3      | Keep (naive vs aware datetime is the test subject)               |
 | S301 (`pickle.load`)               | 2      | 1   | 1      | Keep (`src`, and one shared test helper)                         |
@@ -78,11 +78,15 @@ The three tests (`tests/unit/utils/test_env_vars.py`, `tests/unit/random/test_in
 
 The strings are _policy names_ (`"reveal"`, `"exclude"`, `"error"`) compared with, and defaulted to, a parameter called `on_secret`, and the rules trigger on the name containing "secret". Renaming the parameter would break the public API, so the policies are now private constants (`_REVEAL`, `_EXCLUDE`, `_ERROR`, `Final`), used for the comparisons and the defaults. The signature, the `Literal` type and the `repr` are unchanged. The four directives are gone.
 
-### 5. Keep (justified, 22 directives in `src/`)
+### 5. Keep (justified, 19 directives in `src/`)
 
-- `PLC0415` ×12: deferred imports. Two groups:
-  - optional libraries imported lazily, as `CLAUDE.md` requires (`hashing/pyarrow.py` ×3, `utils/imports/optional.py` torch, `equality/_helpers/elementwise.py` jax, `random/interface.py` ×2, `equality/tester/table.py`);
+- `PLC0415` ×9: deferred imports. Two groups:
+  - optional libraries imported lazily, as `CLAUDE.md` requires (`utils/imports/optional.py` torch, `equality/_helpers/elementwise.py` jax, `random/interface.py` ×2, `equality/tester/table.py`);
   - circular-import avoidance (`equality/config.py`, `equality/tester/{registry,interface}.py`, `__init__.py` for `importlib.metadata`).
+
+  `hashing/pyarrow.py` had 3 more: `numpy`, `pyarrow.compute` and `coola.hashing.numpy` are now imported at the top of the module, with the same guard and fallback as the other modules (`pc = pa` as in `equality/tester/pyarrow.py`). `pyarrow` loads `numpy` itself, so nothing is loaded that was not already.
+
+  The others cannot move: `torch`, `jax`, `numpy` (`equality/tester/table.py`, `random/interface.py`) would be loaded by the import of the package, which `tests/integration/test_lazy_imports.py` forbids, and the circular imports need a restructuring of `equality` / `io`.
 
   `tests/` has no `PLC0415` left (local imports in tests are forbidden).
 
@@ -99,7 +103,7 @@ The strings are _policy names_ (`"reveal"`, `"exclude"`, `"error"`) compared wit
 2. ~~Restructure the 3 `PT012` tests (−3).~~ Done.
 3. Add a short reason to the kept directives in `src` that have none (`# noqa: S301  # trusted local file`).
 
-Expected result: 114 → ~83 directives, of which 34 are in `src/` (12 `PLC0415`, 12 `ARG001` / `ARG002`, 5 `BLE001`, and 10 others) and ~49 are in tests where the old syntax or the unusual construct is the subject. `RUF100` is already active, so stale directives are caught in CI.
+Expected result: 111 → ~80 directives, of which 31 are in `src/` (9 `PLC0415`, 12 `ARG001` / `ARG002`, 5 `BLE001`, and 10 others) and ~49 are in tests where the old syntax or the unusual construct is the subject. `RUF100` is already active, so stale directives are caught in CI.
 
 ## Caveats
 
