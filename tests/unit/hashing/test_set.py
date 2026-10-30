@@ -45,9 +45,8 @@ def test_set_hasher_hash_is_deterministic(registry: HasherRegistry) -> None:
 
 def test_set_hasher_hash_is_independent_of_insertion_order(registry: HasherRegistry) -> None:
     hasher = SetHasher()
-    items = ["a", "b", "c", "d"]
-    first = hash_with(hasher, set(items), registry)
-    second = hash_with(hasher, set(items[::-1]), registry)  # noqa: C415
+    first = hash_with(hasher, {"a", "b", "c", "d"}, registry)
+    second = hash_with(hasher, {"d", "c", "b", "a"}, registry)
     assert first == second
 
 
