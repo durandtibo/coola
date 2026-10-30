@@ -39,6 +39,15 @@ def _attributes(
 
     A dotted name (``"coords.variables"``) is read through the
     attributes, and it is one part of the path.
+
+    Args:
+        actual: The actual object.
+        expected: The expected object.
+        names: The names of the attributes to compare.
+
+    Yields:
+        The triplet ``(actual value, expected value, path part)`` of
+            each attribute.
     """
     for name in names:
         getter = attrgetter(name)
@@ -49,8 +58,11 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
     r"""Implement an equality tester for ``xarray.DataArray``.
 
     This tester compares the variable (data, dimensions and attributes),
-    the name and the coordinate variables of two DataArrays. The location
-    of a difference is the name of the attribute.
+    the name and the coordinate variables of two DataArrays. The
+    location of a difference is the name of the attribute.
+
+    Raises:
+        MissingPackageError: If ``xarray`` is not installed.
 
     Example:
         ```pycon
@@ -83,6 +95,9 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
     This tester compares the data variables, the coordinates and the
     attributes of two Datasets. The location of a difference is the
     name of the attribute.
+
+    Raises:
+        MissingPackageError: If ``xarray`` is not installed.
 
     Example:
         ```pycon
@@ -119,6 +134,9 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
     This tester compares the data, the dimension names and the
     attributes of two Variables. The location of a difference is the
     name of the attribute.
+
+    Raises:
+        MissingPackageError: If ``xarray`` is not installed.
 
     Example:
         ```pycon

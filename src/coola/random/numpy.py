@@ -34,6 +34,9 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
     different seeds in ``[0, 2**63)`` never give the same random
     numbers.
 
+    Raises:
+        MissingPackageError: If ``numpy`` is not installed.
+
     Example:
         ```pycon
         >>> from coola.random import NumpyRandomManager
@@ -56,6 +59,15 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
         return np.random.get_state()
 
     def manual_seed(self, seed: int) -> None:
+        r"""Set the seed of the NumPy random number generator.
+
+        Args:
+            seed: The seed.
+
+        Raises:
+            TypeError: If the seed is not an ``int``.
+            ValueError: If the seed is not in the range ``[0, 2**63)``.
+        """
         validate_seed(seed)
         if seed < 2**32:
             np.random.seed(seed)

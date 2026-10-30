@@ -34,7 +34,14 @@ _LENGTHS = [bytes([i]) for i in range(_MAX_INLINE + 1)]  # the entry of a leaf s
 
 def _entry(encoding: bytes) -> bytes:
     r"""Return the entry of a leaf in the preimage of its parent: the
-    leaf itself with its size if it is short, its digest otherwise."""
+    leaf itself with its size if it is short, its digest otherwise.
+
+    Args:
+        encoding: The encoding of the leaf.
+
+    Returns:
+        The entry of the leaf.
+    """
     size = len(encoding)
     if size <= _MAX_INLINE:
         return _LENGTHS[size] + encoding
@@ -119,7 +126,22 @@ def hash_hex(
 def _resolve(
     registry: HasherRegistry, data_type: type, ignore_unhashable: bool, stacklevel: int
 ) -> Hasher[Any] | None:
-    r"""Find the hasher of a type, or ``None`` for the placeholder."""
+    r"""Find the hasher of a type, or ``None`` for the placeholder.
+
+    Args:
+        registry: The registry of the hashers.
+        data_type: The type to hash.
+        ignore_unhashable: If ``True``, a type without hasher is hashed
+            as a placeholder, with a warning.
+        stacklevel: The stack level of the warning.
+
+    Returns:
+        The hasher, or ``None`` for the placeholder.
+
+    Raises:
+        TypeNotRegisteredError: If no hasher is registered for
+            ``data_type`` and ``ignore_unhashable`` is ``False``.
+    """
     try:
         return registry.find_hasher(data_type)
     except KeyError as exc:
@@ -146,7 +168,14 @@ def _resolve(
 class _Walker:
     r"""The state of one call: the hasher of each type, the digests of
     the containers (or ``None`` while they are in progress), and the
-    options."""
+    options.
+
+    Args:
+        registry: The registry of the hashers.
+        ignore_unhashable: If ``True``, a type without hasher is
+            hashed as a placeholder, with a warning.
+        warn_level: The stack level of the warning.
+    """
 
     def __init__(self, registry: HasherRegistry, ignore_unhashable: bool, warn_level: int) -> None:
         self._registry = registry
@@ -160,14 +189,31 @@ class _Walker:
 
     def start(self, obj: object, hasher: Hasher[Any], node: Node) -> _Frame:
         r"""Return the frame of the root container, whose hasher was
-        found and called by the caller."""
+        found and called by the caller.
+
+        Args:
+            obj: The root container.
+            hasher: The hasher of ``obj``.
+            node: The node returned by ``hasher`` for ``obj``.
+
+        Returns:
+            The frame of the root.
+        """
         self._cache[type(obj)] = hasher
         self._memo[id(obj)] = (obj, None)
         return _Frame(obj, node)
 
     def enter(self, obj: object) -> _Frame | bytes:
         r"""Return a frame for a container to walk, and the digest
-        otherwise."""
+        otherwise.
+
+        Args:
+            obj: The object to hash.
+
+        Returns:
+            A frame for a container to walk, otherwise the entry of the
+                leaf.
+        """
         data_type = type(obj)
         if data_type not in self._cache:
             self._cache[data_type] = _resolve(
@@ -180,7 +226,16 @@ class _Walker:
 
     def encode(self, obj: object, hasher: Hasher[Any]) -> _Frame | bytes:
         r"""Encode an object with its hasher: return a frame for a
-        container to walk, and the digest otherwise."""
+        container to walk, and the digest otherwise.
+
+        Args:
+            obj: The object to hash.
+            hasher: The hasher of ``obj``.
+
+        Returns:
+            A frame for a container to walk, otherwise the entry of the
+                leaf.
+        """
         encoding = hasher.encode(obj)
         if isinstance(encoding, bytes):
             return _entry(encoding)
@@ -188,7 +243,19 @@ class _Walker:
 
     def container(self, obj: object, node: Node) -> _Frame | bytes:
         r"""Return a frame for a container, or its digest if it was
-        already hashed in this call (a shared container)."""
+        already hashed in this call (a shared container).
+
+        Args:
+            obj: The container.
+            node: The node returned by the hasher for ``obj``.
+
+        Returns:
+            A frame to walk, or the entry of the container if it was
+                already hashed.
+
+        Raises:
+            ValueError: If the container contains itself.
+        """
         seen = self._memo.get(id(obj))
         if seen is not None:
             if seen[1] is None:
@@ -202,7 +269,15 @@ class _Walker:
         r"""Collect the digests of the children of a frame, and return
         the frame of the first child that is a container to walk (the
         frame is resumed afterwards), or ``None`` when all the children
-        are done."""
+        are done.
+
+        Args:
+            frame: The frame to fill.
+
+        Returns:
+            The frame of the next container child to walk, or ``None``
+                when all the children are done.
+        """
         cache = self._cache
         append = frame.digests.append
         for child in frame.children:  # resumes where it stopped
@@ -223,8 +298,15 @@ class _Walker:
         return None
 
     def leave(self, frame: _Frame) -> bytes:
-        r"""Compute and remember the digest of a container whose
-        children are done, and return its entry in the parent."""
+        r"""Compute and remember the digest of a container whose children
+        are done, and return its entry in the parent.
+
+        Args:
+            frame: The frame whose children are done.
+
+        Returns:
+            The entry of the container in its parent.
+        """
         node = frame.node
         digests = frame.digests
         if not node.ordered:
@@ -242,7 +324,14 @@ class _Walker:
         return _DIGEST + result
 
     def _tag(self, tag: str) -> bytes:
-        r"""Return the encoded tag of a node followed by a NUL byte."""
+        r"""Return the encoded tag of a node followed by a NUL byte.
+
+        Args:
+            tag: The tag of a node.
+
+        Returns:
+            The encoded tag followed by a NUL byte.
+        """
         encoded = self._tags.get(tag)
         if encoded is None:
             encoded = self._tags[tag] = tag.encode(errors="surrogatepass") + b"\0"
@@ -251,7 +340,12 @@ class _Walker:
 
 class _Frame:
     r"""A container being walked: its children are visited one after the
-    other and their digests are collected."""
+    other and their digests are collected.
+
+    Args:
+        obj: The container.
+        node: The node returned by the hasher for ``obj``.
+    """
 
     __slots__ = ("children", "digests", "node", "obj")
 
@@ -322,6 +416,13 @@ def _walk(walker: _Walker, root: _Frame) -> bytes:
     ``root`` is either a container (its own digest is returned), or the
     frame with the object as only child (``obj`` is ``None``: the digest
     of the object is returned).
+
+    Args:
+        walker: The state of the call.
+        root: The frame to start from.
+
+    Returns:
+        The digest of the root.
     """
     stack = [root]
     while True:

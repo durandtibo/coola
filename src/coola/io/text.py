@@ -92,6 +92,15 @@ class TextSaver(BaseFileSaver[str]):
         return {"encoding": self._encoding}
 
     def _save_file(self, to_save: str, path: Path) -> None:
+        r"""Save a text into a file.
+
+        Args:
+            to_save: The text to save.
+            path: The path of the file.
+
+        Raises:
+            TypeError: If ``to_save`` is not a ``str``.
+        """
         if not isinstance(to_save, str):
             msg = (
                 f"{type(self).__name__} expects a str, got {type(to_save).__name__}; "

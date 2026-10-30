@@ -15,10 +15,26 @@ from coola.utils.stats import quantile
 
 
 def _has_nan(values: Sequence[float]) -> bool:
+    r"""Indicate if some values are ``NaN``.
+
+    Args:
+        values: The values.
+
+    Returns:
+        ``True`` if at least one value is ``NaN``, otherwise ``False``.
+    """
     return any(math.isnan(value) for value in values)
 
 
 def _nan_last_key(value: float) -> tuple[bool, float]:
+    r"""Return the sort key that puts the ``NaN`` values last.
+
+    Args:
+        value: The value.
+
+    Returns:
+        A pair whose first item is ``True`` for a ``NaN``.
+    """
     return math.isnan(value), value
 
 

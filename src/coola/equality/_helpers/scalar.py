@@ -108,12 +108,21 @@ def number_equal(number1: float, number2: float, config: EqualityConfig) -> bool
 
 
 def _isclose(number1: complex, number2: complex, rtol: float, atol: float) -> bool:
-    """Indicate if two numbers are close with the NumPy rule.
+    r"""Indicate if two numbers are close with the NumPy rule.
 
     The numbers are close if ``abs(number1 - number2) <= atol + rtol *
     max(abs(number1), abs(number2))``, which is the rule of the NumPy,
     PyTorch and JAX handlers. Two different numbers are never close if
     one of them is infinite or NaN.
+
+    Args:
+        number1: The first number.
+        number2: The second number.
+        rtol: The relative tolerance.
+        atol: The absolute tolerance.
+
+    Returns:
+        ``True`` if the numbers are close, otherwise ``False``.
     """
     if number1 == number2:
         return True

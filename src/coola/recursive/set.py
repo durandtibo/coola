@@ -52,5 +52,19 @@ class SetTransformer(InlineDisplayMixin, BaseTransformer[AbstractSet[Any]]):
     """
 
     def expand(self, data: AbstractSet[Any]) -> Expansion | None:
+        r"""Expand an object into its children.
+
+        Args:
+            data: The object.
+
+        Returns:
+            ``None`` if the object is a leaf. Otherwise the children and
+                the function that rebuilds the set from the transformed
+                children.
+
+        Raises:
+            TypeError: From the function that rebuilds the set, if a
+                transformed value is not hashable.
+        """
         # Note: the rebuild raises TypeError if the transformed values are not hashable
         return list(data), lambda items: rebuild_set(data, items)

@@ -73,7 +73,12 @@ class EqualityConfig:
     max_depth: int = 100
 
     def __post_init__(self) -> None:
-        """Validate configuration parameters after initialization."""
+        r"""Validate the configuration parameters after initialization.
+
+        Raises:
+            TypeError: If ``max_depth`` is not an int.
+            ValueError: If ``max_depth`` is not positive.
+        """
         validate_int(self.max_depth, name="max_depth")
         validate_gt(self.max_depth, 0, name="max_depth")
 

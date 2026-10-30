@@ -37,7 +37,17 @@ _LITERALS = (int, float, bool, type(None))
 
 def _cut(text: str, max_characters: int | None) -> str:
     r"""Cut a text to ``max_characters`` characters, followed by ``...``
-    if it is cut."""
+    if it is cut.
+
+    Args:
+        text: The text.
+        max_characters: The maximum number of characters, or ``None``
+            for no limit.
+
+    Returns:
+        The text, or its first ``max_characters`` characters followed by
+            ``...``.
+    """
     if max_characters is None or len(text) <= max_characters:
         return text
     return text[:max_characters] + "..."
@@ -101,6 +111,15 @@ class CompactRepr:
         return self._repr(data, _COMPACT_LEVELS)
 
     def _repr(self, data: Any, level: int) -> str:
+        r"""Format an object on one line.
+
+        Args:
+            data: The object.
+            level: The number of levels that are expanded.
+
+        Returns:
+            The ``repr`` of the object, truncated if it is too long.
+        """
         kind = type(data)
         if kind in _LITERALS:
             return repr(data)
@@ -110,6 +129,15 @@ class CompactRepr:
         return getattr(self, method)(data, level)
 
     def _repr_str(self, data: str, level: int) -> str:  # noqa: ARG002
+        r"""Format a string, cutting the middle if it is too long.
+
+        Args:
+            data: The string.
+            level: The number of levels that are expanded (unused).
+
+        Returns:
+            The ``repr`` of the string.
+        """
         limit = self._max_characters
         if limit is None or len(data) <= limit:
             return repr(data)
@@ -119,21 +147,78 @@ class CompactRepr:
         return text[:head] + _FILL + text[len(text) - tail :]
 
     def _repr_list(self, data: list[Any], level: int) -> str:
+        r"""Format a list.
+
+        Args:
+            data: The list.
+            level: The number of levels that are expanded.
+
+        Returns:
+            The ``repr`` of the list.
+        """
         return self._repr_items(data, level, "[", "]")
 
     def _repr_tuple(self, data: tuple[Any, ...], level: int) -> str:
+        r"""Format a tuple.
+
+        Args:
+            data: The tuple.
+            level: The number of levels that are expanded.
+
+        Returns:
+            The ``repr`` of the tuple.
+        """
         return self._repr_items(data, level, "(", ",)" if len(data) == 1 else ")")
 
     def _repr_deque(self, data: deque[Any], level: int) -> str:
+        r"""Format a deque.
+
+        Args:
+            data: The deque.
+            level: The number of levels that are expanded.
+
+        Returns:
+            The ``repr`` of the deque.
+        """
         return self._repr_items(data, level, "deque([", "])")
 
     def _repr_set(self, data: set[Any], level: int) -> str:
+        r"""Format a set, with the smallest items first.
+
+        Args:
+            data: The set.
+            level: The number of levels that are expanded.
+
+        Returns:
+            The ``repr`` of the set.
+        """
         return self._repr_sorted(data, level, "{", "}", "set()")
 
     def _repr_frozenset(self, data: frozenset[Any], level: int) -> str:
+        r"""Format a frozenset, with the smallest items first.
+
+        Args:
+            data: The frozenset.
+            level: The number of levels that are expanded.
+
+        Returns:
+            The ``repr`` of the frozenset.
+        """
         return self._repr_sorted(data, level, "frozenset({", "})", "frozenset()")
 
     def _repr_items(self, data: Any, level: int, left: str, right: str) -> str:
+        r"""Format the items of a sequence.
+
+        Args:
+            data: The sequence.
+            level: The number of levels that are expanded.
+            left: The opening delimiter.
+            right: The closing delimiter.
+
+        Returns:
+            The items between the delimiters, up to ``max_items``,
+                followed by ``...`` if some are not shown.
+        """
         if not data:
             return left + right.replace(",", "")
         if level <= 0:
@@ -144,6 +229,15 @@ class CompactRepr:
         return left + ", ".join(pieces) + right
 
     def _repr_dict(self, data: dict[Any, Any], level: int) -> str:
+        r"""Format a dictionary.
+
+        Args:
+            data: The dictionary.
+            level: The number of levels that are expanded.
+
+        Returns:
+            The ``repr`` of the dictionary, up to ``max_items`` entries.
+        """
         if not data:
             return "{}"
         if level <= 0:
@@ -157,6 +251,20 @@ class CompactRepr:
         return "{" + ", ".join(pieces) + "}"
 
     def _repr_sorted(self, data: Any, level: int, left: str, right: str, empty: str) -> str:
+        r"""Format the items of a set.
+
+        Args:
+            data: The set.
+            level: The number of levels that are expanded.
+            left: The opening delimiter.
+            right: The closing delimiter.
+            empty: The text of an empty set.
+
+        Returns:
+            The smallest items between the delimiters, up to
+                ``max_items``, followed by ``...`` if some are not
+                shown.
+        """
         if not data:
             return empty
         if level <= 0:
@@ -181,7 +289,13 @@ class _Frame:
 
 
 class _Renderer:
-    r"""Walk the nodes with an explicit stack and write the lines."""
+    r"""Walk the nodes with an explicit stack and write the lines.
+
+    Args:
+        registry: The registry that gives the summarizer of each
+            type.
+        config: The options of the summary.
+    """
 
     def __init__(self, registry: SummarizerRegistry, config: SummaryConfig) -> None:
         self._registry = registry
@@ -191,13 +305,25 @@ class _Renderer:
         self._stack: list[_Frame] = []
 
     def render(self, data: object) -> str:
+        r"""Render the summary of an object.
+
+        Args:
+            data: The object to summarize.
+
+        Returns:
+            The summary, with one line per node.
+        """
         self._visit(None, data, 0)
         while self._stack:
             self._advance(self._stack[-1])
         return "\n".join(self._lines)
 
     def _advance(self, frame: _Frame) -> None:
-        r"""Visit the next child of the frame, or close the frame."""
+        r"""Visit the next child of the frame, or close the frame.
+
+        Args:
+            frame: The frame on top of the stack.
+        """
         try:
             label, child = next(frame.children)
         except StopIteration:
@@ -211,6 +337,14 @@ class _Renderer:
             self._visit(label, child, frame.depth)
 
     def _close(self, frame: _Frame) -> None:
+        r"""Close the frame on top of the stack.
+
+        The line that announces the children that are not shown is
+        written.
+
+        Args:
+            frame: The frame to close.
+        """
         self._stack.pop()
         self._ancestors.discard(id(frame.data))
         if frame.total > frame.shown:
@@ -218,7 +352,14 @@ class _Renderer:
 
     def _visit(self, label: Any, obj: Any, depth: int) -> None:
         r"""Write the line of an object, and open its frame if it is a
-        container that is expanded."""
+        container that is expanded.
+
+        Args:
+            label: The label of the object in its parent, or ``None``
+                for the root.
+            obj: The object.
+            depth: The depth of the object.
+        """
         max_characters = self._config.max_characters
         prefix = INDENT * depth
         if label is None:
@@ -240,7 +381,20 @@ class _Renderer:
 
     def _describe(self, summarizer: Any, obj: Any, depth: int) -> str:
         r"""Return the text of an object, and open its frame if it is a
-        container that is expanded."""
+        container that is expanded.
+
+        Args:
+            summarizer: The summarizer of the type of the object.
+            obj: The object.
+            depth: The depth of the object.
+
+        Returns:
+            The text of the object.
+
+        Raises:
+            TypeError: If the summarizer returns neither a ``str`` nor a
+                ``Node``.
+        """
         config = self._config
         compact = depth >= config.max_depth
         result = summarizer.summarize(obj, config, compact=compact)

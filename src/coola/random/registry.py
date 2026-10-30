@@ -52,6 +52,15 @@ class RandomManagerRegistry(Registry[str, BaseRandomManager], BaseRandomManager)
         return {key: manager.get_rng_state() for key, manager in self.items()}
 
     def manual_seed(self, seed: int) -> None:
+        r"""Set the seed of all the random number generators.
+
+        Args:
+            seed: The seed.
+
+        Raises:
+            TypeError: If the seed is not an ``int``.
+            ValueError: If the seed is not in the range ``[0, 2**63)``.
+        """
         # Validate once before seeding, so a seed rejected by one backend
         # does not leave the others half-seeded.
         validate_seed(seed)

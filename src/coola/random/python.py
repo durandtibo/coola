@@ -42,6 +42,15 @@ class PythonRandomManager(InlineDisplayMixin, BaseRandomManager):
         return random.getstate()
 
     def manual_seed(self, seed: int) -> None:
+        r"""Set the seed of the Python random number generator.
+
+        Args:
+            seed: The seed.
+
+        Raises:
+            TypeError: If the seed is not an ``int``.
+            ValueError: If the seed is not in the range ``[0, 2**63)``.
+        """
         validate_seed(seed)
         random.seed(seed)
 

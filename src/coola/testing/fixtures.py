@@ -30,6 +30,10 @@ def isolated_default_registries() -> Generator[None]:
     fixture with
     ``pytest.mark.usefixtures("isolated_default_registries")``.
 
+    Yields:
+        ``None``. The default registries are restored when the test
+            ends.
+
     Example:
         ```pycon
         >>> from coola.testing.fixtures import isolated_default_registries

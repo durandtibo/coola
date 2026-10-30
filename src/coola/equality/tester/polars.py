@@ -61,9 +61,24 @@ class PolarsFrameTable:
         self._frame = frame
 
     def same_structure(self, other: PolarsFrameTable, ctx: Engine) -> bool:  # noqa: ARG002
+        r"""Indicate if two data frames have the same structure.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the structures are the same, otherwise
+                ``False``.
+        """
         return self._frame.shape == other._frame.shape and self._frame.schema == other._frame.schema
 
     def columns(self) -> Iterator[Column]:
+        r"""Iterate over the columns.
+
+        Yields:
+            The column of each data frame column.
+        """
         for name in self._frame.columns:
             yield _column(name, self._frame[name])
 
@@ -96,6 +111,16 @@ class PolarsLazyFrameTable:
         self._collected: pl.DataFrame | None = None
 
     def same_structure(self, other: PolarsLazyFrameTable, ctx: Engine) -> bool:
+        r"""Indicate if two lazy frames have the same structure.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the structures are the same, otherwise
+                ``False``.
+        """
         if self._frame.collect_schema() != other._frame.collect_schema():
             return False
         return PolarsFrameTable(self.collect()).same_structure(
@@ -103,12 +128,21 @@ class PolarsLazyFrameTable:
         )
 
     def collect(self) -> pl.DataFrame:
-        r"""Collect the lazy frame (once)."""
+        r"""Collect the lazy frame (once).
+
+        Returns:
+            The collected data frame.
+        """
         if self._collected is None:
             self._collected = self._frame.collect()
         return self._collected
 
     def columns(self) -> Iterator[Column]:
+        r"""Iterate over the columns.
+
+        Yields:
+            The column of each column of the collected frame.
+        """
         return PolarsFrameTable(self.collect()).columns()
 
 
@@ -137,25 +171,61 @@ class PolarsSeriesTable:
         self._series = series
 
     def same_structure(self, other: PolarsSeriesTable, ctx: Engine) -> bool:  # noqa: ARG002
+        r"""Indicate if two series have the same structure.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the structures are the same, otherwise
+                ``False``.
+        """
         s1, s2 = self._series, other._series
         return s1.shape == s2.shape and s1.name == s2.name and s1.dtype == s2.dtype
 
     def columns(self) -> Iterator[Column]:
+        r"""Iterate over the columns.
+
+        Yields:
+            The column of the series.
+        """
         yield _column(None, self._series)
 
 
 def polars_frame(frame: pl.DataFrame) -> PolarsFrameTable:
-    r"""Adapt a ``polars.DataFrame`` to a table."""
+    r"""Adapt a ``polars.DataFrame`` to a table.
+
+    Args:
+        frame: The data frame to adapt.
+
+    Returns:
+        The table.
+    """
     return PolarsFrameTable(frame)
 
 
 def polars_lazy_frame(frame: pl.LazyFrame) -> PolarsLazyFrameTable:
-    r"""Adapt a ``polars.LazyFrame`` to a table."""
+    r"""Adapt a ``polars.LazyFrame`` to a table.
+
+    Args:
+        frame: The lazy frame to adapt.
+
+    Returns:
+        The table.
+    """
     return PolarsLazyFrameTable(frame)
 
 
 def polars_series(series: pl.Series) -> PolarsSeriesTable:
-    r"""Adapt a ``polars.Series`` to a table."""
+    r"""Adapt a ``polars.Series`` to a table.
+
+    Args:
+        series: The series to adapt.
+
+    Returns:
+        The table.
+    """
     return PolarsSeriesTable(series)
 
 
@@ -169,6 +239,13 @@ def _column(name: object, series: pl.Series) -> Column:
     - other (booleans, strings, categories, instants, decimals, nested
       values, ...): the ``equals`` of polars. It never sees the
       tolerance or ``equal_nan``, and a null is equal to a null.
+
+    Args:
+        name: The name of the column.
+        series: The series of the column.
+
+    Returns:
+        The column.
     """
     dtype = series.dtype
     if dtype.is_integer() or dtype.is_float():
@@ -184,6 +261,16 @@ def _column(name: object, series: pl.Series) -> Column:
 
 
 def _series_equals(series1: pl.Series, series2: pl.Series) -> bool:
+    r"""Indicate if two series are equal.
+
+    Args:
+        series1: The first series.
+        series2: The second series.
+
+    Returns:
+        ``True`` if the dtypes, the names and the values are equal,
+            otherwise ``False``. A null is equal to a null.
+    """
     return bool(series1.equals(series2, check_dtypes=True, check_names=True, null_equal=True))
 
 

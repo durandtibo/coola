@@ -212,6 +212,14 @@ class _SetToListTransformer(InlineDisplayMixin, BaseTransformer["AbstractSet[Any
 
 
 def _sort_key(value: Any) -> tuple[str, str]:
+    r"""Return the key used to sort values that cannot be compared.
+
+    Args:
+        value: The value.
+
+    Returns:
+        The ``(type name, repr)`` pair.
+    """
     return type(value).__name__, repr(value)
 
 
@@ -311,7 +319,15 @@ def _is_instance_of_loaded(data: Any, library: str, *names: str) -> bool:
 
 def _is_array(data: Any) -> bool:
     r"""Indicate if ``data`` is a NumPy array or scalar, or a
-    ``torch.Tensor``."""
+    ``torch.Tensor``.
+
+    Args:
+        data: The object to check.
+
+    Returns:
+        ``True`` if ``data`` is an array or a tensor, otherwise
+            ``False``.
+    """
     return _is_instance_of_loaded(data, "numpy", "ndarray", "generic") or _is_instance_of_loaded(
         data, "torch", "Tensor"
     )

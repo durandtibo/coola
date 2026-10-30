@@ -36,6 +36,9 @@ class JaxArrayEqualityTester(BaseEqualityTester[jnp.ndarray]):
     element that differs. Without 64-bit mode, JAX has no ``float64``:
     the tolerance is computed in the widest dtype JAX has.
 
+    Raises:
+        MissingPackageError: If ``jax`` is not installed.
+
     Example:
         ```pycon
         >>> import jax.numpy as jnp

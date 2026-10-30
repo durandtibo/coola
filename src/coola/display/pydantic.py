@@ -181,12 +181,25 @@ def _format_model(
     exclude_secret: bool,
     exclude_fields: list[str] | None = None,
 ) -> str:
-    """Shared implementation for ``str_pydantic_model`` and
+    r"""Shared implementation for ``str_pydantic_model`` and
     ``repr_pydantic_model``.
 
     The fields are read from the model (no serializer runs), the fields
     declared with ``Field(repr=False)`` are hidden, and the values of
     ``extra="allow"`` are shown.
+
+    Args:
+        model: The model to format.
+        line_fn: The function that formats the fields on one line.
+        sort: If ``True``, the fields are sorted by name.
+        exclude_none: If ``True``, the fields whose value is ``None``
+            are hidden.
+        exclude_secret: If ``True``, the secret fields are hidden.
+        exclude_fields: The names of the fields to hide. A name that is
+            not a field of the model raises a warning.
+
+    Returns:
+        The formatted model.
     """
     fields: dict[str, Any] = {
         name: getattr(model, name) for name, info in type(model).model_fields.items() if info.repr

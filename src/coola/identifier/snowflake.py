@@ -101,6 +101,12 @@ class SnowflakeIdGenerator:
         track_fork(self)
 
     def _reset_after_fork(self) -> None:
+        r"""Mark the generator as unusable in the child process of a
+        fork.
+
+        The child would continue the sequence of its parent with the
+        same worker ID, so ``generate`` raises an error.
+        """
         # The child would continue the sequence of its parent with the same worker id.
         self._forked = True
 

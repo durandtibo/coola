@@ -86,7 +86,17 @@ def round_float(data: Any, mode: RoundMode, decimals: int) -> float:
 
 def _move_index(index: int, value: float, scale: float, mode: RoundMode) -> int:
     r"""Move the index of the grid point that is not above ``value`` to
-    the index that the mode selects."""
+    the index that the mode selects.
+
+    Args:
+        index: The index of the grid point that is not above ``value``.
+        value: The value.
+        scale: The scale of the grid: ``10 ** decimals``.
+        mode: The rounding mode.
+
+    Returns:
+        The index selected by the mode.
+    """
     if mode == "ceil":
         return index + (index / scale < value)
     if mode == "round":

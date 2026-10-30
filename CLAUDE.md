@@ -41,7 +41,12 @@
 - Optional libraries (numpy, torch, pandas, polars, ...) are imported lazily; do not import them
   at module level in `src`.
 - Every function, public or private (leading underscore), needs a docstring and its own unit
-  tests. Private functions are not exempt.
+  tests. Private functions are not exempt. An override that adds nothing to the docstring of the
+  method it overrides (same behaviour, arguments and exceptions) has no docstring: it inherits the
+  parent's. Document an override only when it adds something (for example a `Raises:` section).
+- Document the constructor arguments (`Args:`, `Raises:`) in the class docstring, not in a
+  docstring of `__init__`, as the existing classes do. Do not add a docstring to `__init__`
+  or to the other dunder methods (`__repr__`, `__str__`, `__eq__`, ...).
 - Keep docstrings and documentation up to date and comprehensive: update them whenever the
   behaviour, signature or options of the code change.
 

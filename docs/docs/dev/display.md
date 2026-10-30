@@ -211,13 +211,13 @@ The behaviour changes to put in the release notes:
 
 ## Dependents
 
-| Package                                           | Change                                                                                                                                                                  |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `io`, `recursive`, `hashing`, `registry`, `tools` | None: they use `InlineDisplayMixin` / `_display_fields`, unchanged.                                                                                                     |
-| `summary.pydantic`                                | None: `secret_field_names` keeps its name and its module.                                                                                                               |
-| `coola.utils.fallback`                            | New `rich.py` with the fakes; added to the test of the fallback modules if there is a generic one.                                                                      |
-| `coola.testing.marks`                             | None: `rich_available` and `colorlog_available` exist. The `rich` tests use them.                                                                                       |
-| `pyproject.toml` (`lint-imports`)                 | None: `display` already is in the core group. A contract "`display` imports `utils`, `validation`, `formatting` only" is added by the `utils` review; no new rule here. |
+| Package                                  | Change                                                                                                                                                                  |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `io`, `recursive`, `hashing`, `registry` | None: they use `InlineDisplayMixin` / `_display_fields`, unchanged.                                                                                                     |
+| `summary.pydantic`                       | None: `secret_field_names` keeps its name and its module.                                                                                                               |
+| `coola.utils.fallback`                   | New `rich.py` with the fakes; added to the test of the fallback modules if there is a generic one.                                                                      |
+| `coola.testing.marks`                    | None: `rich_available` and `colorlog_available` exist. The `rich` tests use them.                                                                                       |
+| `pyproject.toml` (`lint-imports`)        | None: `display` already is in the core group. A contract "`display` imports `utils`, `validation`, `formatting` only" is added by the `utils` review; no new rule here. |
 
 ## Decisions for the maintainers
 
@@ -282,7 +282,7 @@ Decision: follow recommendation
   user asks.
 - **Log in JSON or to a file**: `configure_*_logging` forward `handlers`, `filename`, `format` to
   `logging.basicConfig`; nothing else is planned.
-- **Moving the logging helpers out of `display`** (to `coola.tools` or a `coola.logging` package):
+- **Moving the logging helpers out of `display`** (to `coola.utils` or a `coola.logging` package):
   `display` is where the user looks for terminal output and the two modules are small; revisit if the
   package grows a third logging backend.
 - **`coola.utils.logging.CaptureHandler`** is a test helper for loggers and is unrelated to the

@@ -235,6 +235,25 @@ def _round_leaf(
     decimals: int,
     on_missing_package: MissingPackagePolicy,
 ) -> Any:
+    r"""Round a leaf of a nested structure.
+
+    An unsupported leaf is returned as it is.
+
+    Args:
+        data: The leaf.
+        registry: The registry of the rounders.
+        mode: The rounding mode.
+        decimals: The number of decimals.
+        on_missing_package: What to do when a rounder needs a package
+            that is not installed.
+
+    Returns:
+        The rounded leaf, or ``data`` if its type is not supported.
+
+    Raises:
+        UnsupportedTypeError: If the package of the rounder is missing
+            and ``on_missing_package`` is ``"raise"``.
+    """
     # Only an unsupported leaf is kept: the other errors are bugs and must not be hidden. A leaf
     # whose package is missing is not unsupported: with ``"raise"`` the error stops the walk.
     try:
@@ -252,6 +271,25 @@ def _round_object(
     decimals: int,
     on_missing_package: MissingPackagePolicy,
 ) -> Any:
+    r"""Round an object with the rounder of its type.
+
+    Args:
+        data: The object.
+        registry: The registry of the rounders.
+        mode: The rounding mode.
+        decimals: The number of decimals.
+        on_missing_package: What to do when a rounder needs a package
+            that is not installed.
+
+    Returns:
+        The rounded object, or ``data`` if the package of the rounder is
+            missing and ``on_missing_package`` is not ``"raise"``.
+
+    Raises:
+        UnsupportedTypeError: If no rounder supports the type, or if the
+            package of the rounder is missing and ``on_missing_package``
+            is ``"raise"``.
+    """
     try:
         rounder = registry.resolve(type(data))
     except TypeNotRegisteredError as exc:

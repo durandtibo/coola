@@ -91,6 +91,15 @@ class ComparisonResult:
 
 
 def _format_part(key: object) -> str:
+    r"""Format one part of a path.
+
+    Args:
+        key: The part: an attribute name, a set element or an index/key.
+
+    Returns:
+        ``.name`` for an attribute, ``{element}`` for a set element,
+            otherwise ``[key]``.
+    """
     if isinstance(key, AttributeName):
         return f".{key}"
     if isinstance(key, Element):

@@ -118,6 +118,9 @@ class BaseRandomManager(ABC):
         Args:
             seed: The seed to use while inside the context manager.
 
+        Yields:
+            ``None``. The seed is set while the block runs.
+
         Raises:
             TypeError: If the seed is not an ``int``.
             ValueError: If the seed is not in the range ``[0, 2**63)``.

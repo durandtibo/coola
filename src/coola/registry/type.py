@@ -40,7 +40,11 @@ class _LazyGroup(Generic[T]):
     factory: str | Callable[[], Mapping[type, T]]
 
     def load(self) -> Mapping[type, T]:
-        r"""Build the entries."""
+        r"""Build the entries.
+
+        Returns:
+            The entries of the group.
+        """
         factory = (
             pkgutil.resolve_name(self.factory) if isinstance(self.factory, str) else self.factory
         )
@@ -67,7 +71,15 @@ _UNPICKLABLE_TYPES: dict[str, type] = {
 
 
 def _encode_type(key: type) -> type | _NamedType:
-    r"""Replace a type that ``pickle`` cannot find by its name."""
+    r"""Replace a type that ``pickle`` cannot find by its name.
+
+    Args:
+        key: The type.
+
+    Returns:
+        A ``_NamedType`` if ``pickle`` cannot find the type, otherwise
+            ``key``.
+    """
     for name, dtype in _UNPICKLABLE_TYPES.items():
         if key is dtype:
             return _NamedType(name)
@@ -75,7 +87,15 @@ def _encode_type(key: type) -> type | _NamedType:
 
 
 def _decode_type(key: type | _NamedType) -> type:
-    r"""Reverse ``_encode_type``."""
+    r"""Reverse ``_encode_type``.
+
+    Args:
+        key: The type, or the name of a type that ``pickle`` cannot
+            find.
+
+    Returns:
+        The type.
+    """
     return _UNPICKLABLE_TYPES[key.name] if isinstance(key, _NamedType) else key
 
 
@@ -88,56 +108,62 @@ class TypeRegistry(Registry[type, T], Generic[T]):
     r"""A thread-safe type-based registry for storing and retrieving
     values.
 
-    The TypeRegistry class provides a thread-safe container for mapping Python
-    types to values. It supports standard dictionary operations through operator
-    overloading and provides methods for safe registration and querying.
+    The TypeRegistry class provides a thread-safe container for mapping
+    Python types to values. It supports standard dictionary operations
+    through operator overloading and provides methods for safe
+    registration and querying.
 
-    The registry uses the Method Resolution Order (MRO) for type lookup through
-    the `resolve()` method. When resolving a type, it automatically selects the
-    most specific registered type, walking up the inheritance hierarchy if needed.
-    This makes it ideal for type-based dispatching systems.
+    The registry uses the Method Resolution Order (MRO) for type lookup
+    through the `resolve()` method. When resolving a type, it
+    automatically selects the most specific registered type, walking up
+    the inheritance hierarchy if needed. This makes it ideal for
+    type-based dispatching systems.
 
-    The registry includes an internal cache for type resolution, bounded to
-    ``_MAX_CACHE_SIZE`` (1024) entries. The cache is a plain dictionary that
-    is filled under the lock and replaced by an empty one on any change of the
-    registry, so cache hits in ``resolve()`` are lock-free and do not contend
-    under threads. When the cache is full, it is reset rather than evicting
-    entries. It holds strong references to the types, so a dynamically
-    created class stays alive until the cache is reset.
+    The registry includes an internal cache for type resolution, bounded
+    to ``_MAX_CACHE_SIZE`` (1024) entries. The cache is a plain
+    dictionary that is filled under the lock and replaced by an empty
+    one on any change of the registry, so cache hits in ``resolve()``
+    are lock-free and do not contend under threads. When the cache is
+    full, it is reset rather than evicting entries. It holds strong
+    references to the types, so a dynamically created class stays alive
+    until the cache is reset.
 
-    A type that cannot be a key (every dataclass, the classes that define a
-    method, the virtual subclasses of an abstract base class) is supported by
-    registering a fallback predicate with ``register_fallback``. The order of
-    precedence of ``resolve()`` is: the registered types (MRO order, ``object``
-    excluded), then the fallbacks (registration order), then ``object``.
+    A type that cannot be a key (every dataclass, the classes that
+    define a method, the virtual subclasses of an abstract base class)
+    is supported by registering a fallback predicate with
+    ``register_fallback``. The order of precedence of ``resolve()`` is:
+    the registered types (MRO order, ``object`` excluded), then the
+    fallbacks (registration order), then ``object``.
 
-    Note:
-        ``resolve()`` walks ``dtype.__mro__``, which reflects real (static)
-        inheritance only. Virtual subclasses registered via
-        ``abc.ABCMeta.register()`` do not appear in ``__mro__``, so
-        registering a value for an ABC does not make ``resolve()`` match
-        that ABC's virtual subclasses even though ``isinstance`` would
-        report them as instances of the ABC. See ``resolve()`` for details.
+    Note: ``resolve()`` walks ``dtype.__mro__``, which reflects real
+    (static) inheritance only. Virtual subclasses registered via
+    ``abc.ABCMeta.register()`` do not appear in ``__mro__``, so
+    registering a value for an ABC does not make ``resolve()`` match
+    that ABC's virtual subclasses even though ``isinstance`` would
+    report them as instances of the ABC. See ``resolve()`` for details.
 
-        A fallback on ``issubclass`` is deliberately not provided. Many
-        built-in types are virtual subclasses of ``Sequence`` (``str``,
-        ``bytes``, ``range``, ``memoryview``...), so such a fallback would
-        send ``str`` to the handler registered for ``Sequence`` and, for
-        instance, iterate over a string character by character. Register
-        the virtual subclass explicitly instead.
+    A fallback on ``issubclass`` is deliberately not provided. Many
+    built-in types are virtual subclasses of ``Sequence`` (``str``,
+    ``bytes``, ``range``, ``memoryview``...), so such a fallback would
+    send ``str`` to the handler registered for ``Sequence`` and, for
+    instance, iterate over a string character by character. Register the
+    virtual subclass explicitly instead.
 
     Args:
-        initial_state: An optional dictionary to initialize the registry with.
-            If provided, a copy is made to prevent external modifications.
-            Defaults to None, which creates an empty registry.
+        initial_state: An optional dictionary to initialize the registry
+            with. If provided, a copy is made to prevent external
+            modifications. Defaults to None, which creates an empty
+            registry.
 
-    Attributes:
-        _state: Internal dictionary storing the type-value pairs.
-        _cache: Bounded dictionary of type resolution lookups, filled under the lock and
-            replaced by an empty one on any change.
-        _fallbacks: The ``(predicate, handler)`` pairs in registration order. The
-            dictionary is replaced on write, never mutated.
-        _lock: Threading lock for synchronizing access to both state and cache.
+    Attributes: _state: Internal dictionary storing the type-value
+    pairs. _cache: Bounded dictionary of type resolution lookups, filled
+    under the lock and replaced by an empty one on any change.
+    _fallbacks: The ``(predicate, handler)`` pairs in registration
+    order. The dictionary is replaced on write, never mutated. _lock:
+    Threading lock for synchronizing access to both state and cache.
+
+    Raises:
+        TypeError: If a key is not a type.
 
     Example:
         Basic usage with registration and retrieval:
@@ -245,6 +271,15 @@ class TypeRegistry(Registry[type, T], Generic[T]):
         counts = Counter(t.__qualname__ for t in {*mro, *registered})
 
         def name(t: type) -> str:
+            r"""Return the name of a type, qualified by its module if the
+            name is ambiguous.
+
+            Args:
+                t: The type.
+
+            Returns:
+                The name of the type.
+            """
             return (
                 t.__qualname__
                 if counts[t.__qualname__] == 1
@@ -445,6 +480,13 @@ class TypeRegistry(Registry[type, T], Generic[T]):
         r"""Load some lazy groups.
 
         The entries that are already registered are not replaced.
+
+        Args:
+            groups: The groups to load.
+
+        Raises:
+            Exception: If a group fails to load. The group is kept, so
+                the next call tries again.
         """
         with self._lock:
             for group in groups:
@@ -552,6 +594,9 @@ class TypeRegistry(Registry[type, T], Generic[T]):
 
         A fallback registered after the call does not change the view.
 
+        Returns:
+            A view of the ``(predicate, value)`` pairs.
+
         Example:
             ```pycon
             >>> from dataclasses import is_dataclass
@@ -648,6 +693,20 @@ class TypeRegistry(Registry[type, T], Generic[T]):
         return value
 
     def _resolve(self, dtype: type) -> T:
+        r"""Find the value of a type, with the cache.
+
+        The lookup is lock-free if the type is in the cache. A miss is
+        not cached.
+
+        Args:
+            dtype: The type.
+
+        Returns:
+            The value, or the ``_MISSING`` marker if no value matches.
+
+        Raises:
+            TypeError: If ``dtype`` is not a type.
+        """
         # Lock-free fast path: a hit is a single dict lookup.
         try:
             value = self._cache.get(dtype, _MISSING)

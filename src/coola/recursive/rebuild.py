@@ -127,7 +127,15 @@ def rebuild_set(data: Any, items: Iterable[Any]) -> Any:
 
 
 def _rebuild_error(data: Any, exc: TypeError) -> TypeError:
-    r"""Create the error raised when a container cannot be rebuilt."""
+    r"""Create the error raised when a container cannot be rebuilt.
+
+    Args:
+        data: The container.
+        exc: The error raised when rebuilding it.
+
+    Returns:
+        The error to raise.
+    """
     name = get_qualified_class_name(type(data))
     msg = (
         f"Cannot rebuild an object of type {name} from its transformed items. "

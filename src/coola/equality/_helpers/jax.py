@@ -93,6 +93,17 @@ def array_close(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig
 
 
 def _arrays_close(array1: jnp.ndarray, array2: jnp.ndarray, config: EqualityConfig) -> bool:
+    r"""Indicate if two JAX arrays are equal within the tolerance.
+
+    Args:
+        array1: The first array.
+        array2: The second array.
+        config: The configuration of the comparison.
+
+    Returns:
+        ``True`` if the arrays have the same shape and dtype and all the
+            elements are close, otherwise ``False``.
+    """
     if array1.shape != array2.shape or array1.dtype != array2.dtype:
         return False
     close = elementwise_close(

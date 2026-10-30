@@ -320,6 +320,7 @@ dev = [
     { name = "xdoctest" },
 ]
 docs = [
+    { name = "griffe-inherited-docstrings" },
     { name = "mike" },
     { name = "mkdocs-include-markdown-plugin" },
     { name = "mkdocs-material" },
@@ -366,6 +367,7 @@ dev = [
     { name = "xdoctest", specifier = ">=1.3,<2.0" },
 ]
 docs = [
+    { name = "griffe-inherited-docstrings", specifier = ">=1.1,<2.0" },
     { name = "mike", specifier = ">=2.2,<3.0" },
     { name = "mkdocs-include-markdown-plugin", specifier = ">=7.3,<8.0" },
     { name = "mkdocs-material", specifier = ">=9.7,<10.0" },
@@ -674,6 +676,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c0/ff/fee293f1ec3e1b64db6eb270e00964f29c086d769201474cedb8d1608930/gitpython-3.2.1.tar.gz", hash = "sha256:0f1229ec5c057bdabdeeda8bda4f17bda679ab33dbccc00f24e6a480553c8613", size = 241688, upload-time = "2026-10-14T12:20:20.589Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6b/50/2a923c4dc02522ff9567f07c67ed1deca6d5fa9474f4708168b8088dfa37/gitpython-3.2.1-py3-none-any.whl", hash = "sha256:d66b0832aa8755c1a84892937282df0befb16c97e5a64aeebd68be9c5e323f53", size = 231548, upload-time = "2026-10-14T12:20:18.844Z" },
+]
+
+[[package]]
+name = "griffe-inherited-docstrings"
+version = "1.1.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "griffelib" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/32/61/1dd4a7c59618c5e9ee0f61eb9fb934ba11163fa66932c8e2cc99d74f3d7b/griffe_inherited_docstrings-1.1.4.tar.gz", hash = "sha256:ac98890a4505d986254302325959de6c82716968ec499aca009cb91c1d75eecb", size = 32495, upload-time = "2026-10-06T09:07:03.147Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/34/35/364ed24b4cba404a6f02998b381c872f99480a26f0c57687537578d4b5ad/griffe_inherited_docstrings-1.1.4-py3-none-any.whl", hash = "sha256:6c813c567f6f7396d6e1a78575fb7ad0d5b472fc02c1b782f830fcf26ab7254d", size = 10888, upload-time = "2026-10-06T09:07:02.095Z" },
 ]
 
 [[package]]

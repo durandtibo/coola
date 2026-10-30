@@ -47,6 +47,9 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
     the first element that differs (the position in the flattened
     array for an ``object`` array).
 
+    Raises:
+        MissingPackageError: If ``numpy`` is not installed.
+
     Example:
         ```pycon
         >>> import numpy as np
@@ -98,6 +101,9 @@ class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
     is ``.data``, ``.mask`` or ``.fill_value``, and then the index in
     the array.
 
+    Raises:
+        MissingPackageError: If ``numpy`` is not installed.
+
     Example:
         ```pycon
         >>> import numpy as np
@@ -143,6 +149,9 @@ class NumpyTimeScalarEqualityTester(BaseEqualityTester[object]):
     ``numpy.timedelta64`` is a duration: the tolerances apply (``atol``
     is a number of seconds). A ``numpy.datetime64`` is an instant and
     is compared exactly.
+
+    Raises:
+        MissingPackageError: If ``numpy`` is not installed.
 
     Example:
         ```pycon

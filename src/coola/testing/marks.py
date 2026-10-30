@@ -77,16 +77,36 @@ def requires(is_available: bool, name: str) -> tuple[pytest.MarkDecorator, pytes
 
 
 class _Dependency(NamedTuple):
+    r"""Describe an optional dependency used by a mark.
+
+    Attributes:
+        is_available: The check of the library, called on first use.
+        name: The singular name of the dependency, used in the reasons.
+    """
+
     is_available: Callable[[], bool]  # the check of the library, called on first use
     name: str  # singular, used in the reasons
 
 
 def _is_cuda_available() -> bool:
+    r"""Indicate if CUDA is available.
+
+    ``coola.utils.tensor`` is imported on the first call, because it
+    imports ``torch`` when it is installed.
+
+    Returns:
+        ``True`` if CUDA is available, otherwise ``False``.
+    """
     # ``coola.utils.tensor`` imports ``torch`` when it is installed: import it on first call.
     return import_module("coola.utils.tensor").is_cuda_available()
 
 
 def _is_mps_available() -> bool:
+    r"""Indicate if MPS is available.
+
+    Returns:
+        ``True`` if MPS is available, otherwise ``False``.
+    """
     return import_module("coola.utils.tensor").is_mps_available()
 
 

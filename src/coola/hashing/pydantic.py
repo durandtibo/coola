@@ -93,6 +93,9 @@ class SecretHasher(InlineDisplayMixin, BaseHasher["SecretStr | SecretBytes"]):
 
             Defaults to ``"error"``.
 
+    Raises:
+        ValueError: If ``on_secret`` is not one of the three values.
+
     Example:
         ```pycon
         >>> from pydantic import SecretStr

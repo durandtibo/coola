@@ -221,6 +221,12 @@ class SetEqualityTester(BaseEqualityTester["AbstractSet[Any]"]):
         r"""Find an element of ``actual`` that has no match in
         ``expected``.
 
+        Args:
+            actual: The first set.
+            expected: The second set.
+            ctx: The ``Engine`` of the comparison, which gives the
+                comparison keys.
+
         Returns:
             The first element of ``actual`` that has no match, or
                 ``_NO_ELEMENT`` if every element has one.

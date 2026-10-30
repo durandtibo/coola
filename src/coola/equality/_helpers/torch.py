@@ -107,6 +107,17 @@ def tensor_close(
 
 
 def _tensors_close(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig) -> bool:
+    r"""Indicate if two tensors are equal within the tolerance.
+
+    Args:
+        tensor1: The first tensor.
+        tensor2: The second tensor.
+        config: The configuration of the comparison.
+
+    Returns:
+        ``True`` if the tensors have the same shape and dtype and all
+            the elements are close, otherwise ``False``.
+    """
     if tensor1.shape != tensor2.shape or tensor1.dtype != tensor2.dtype:
         return False
     if tensor1.dtype == torch.uint64:

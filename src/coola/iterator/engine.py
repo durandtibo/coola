@@ -27,12 +27,29 @@ def _get_method(finder: Any, method: str) -> Callable[[Any], Iterable[Any] | Non
 
     A child finder that follows the ``ChildFinder`` protocol has no
     ``find_items`` method: its children are numbered.
+
+    Args:
+        finder: The child finder.
+        method: The name of the method: ``"find_children"`` or
+            ``"find_items"``.
+
+    Returns:
+        The method of the finder, or a function that numbers the
+            children if the finder has no ``find_items`` method.
     """
     find = getattr(finder, method, None)
     if find is not None:
         return find
 
     def find_items(data: Any) -> Iterable[Any] | None:
+        r"""Return the items of an object, as ``(key, child)`` pairs.
+
+        Args:
+            data: The object.
+
+        Returns:
+            The ``(index, child)`` pairs, or ``None`` for a leaf.
+        """
         children = finder.find_children(data)
         return None if children is None else enumerate(children)
 
@@ -62,6 +79,14 @@ def _make_find(
     """
 
     def find(data: Any) -> Iterable[Any] | None:
+        r"""Find the children or the items of an object.
+
+        Args:
+            data: The object.
+
+        Returns:
+            The children or the items, or ``None`` for a leaf.
+        """
         data_type = type(data)
         try:
             find_children = cache[data_type]
@@ -74,6 +99,14 @@ def _make_find(
 
 
 def _cycle_error(data: object) -> ValueError:
+    r"""Create the error of a cycle.
+
+    Args:
+        data: The object that contains itself.
+
+    Returns:
+        The error to raise.
+    """
     return ValueError(f"Cycle detected: an object of type {type(data)} contains itself")
 
 
@@ -171,7 +204,14 @@ _END = object()
 
 def _peek(items: Iterable[Any]) -> Iterator[Any] | None:
     r"""Return an iterator over the items, or ``None`` if there is no
-    item."""
+    item.
+
+    Args:
+        items: The items.
+
+    Returns:
+        An iterator over all the items, or ``None`` if there is no item.
+    """
     iterator = iter(items)
     first = next(iterator, _END)
     if first is _END:

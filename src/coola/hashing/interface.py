@@ -293,13 +293,25 @@ def _register_default_hashers(registry: HasherRegistry) -> None:
 
 def _has_coola_hash_method(data_type: type) -> bool:
     r"""Indicate if the instances of a type have a ``__coola_hash__``
-    method (see ``SupportsCoolaHash``)."""
+    method (see ``SupportsCoolaHash``).
+
+    Args:
+        data_type: The type to check.
+
+    Returns:
+        ``True`` if the type has a ``__coola_hash__`` method, otherwise
+            ``False``.
+    """
     return callable(getattr(data_type, "__coola_hash__", None))
 
 
 def _get_value_hashers() -> dict[type, Hasher[Any]]:
     r"""Get the hashers of the standard library values that are not
-    containers."""
+    containers.
+
+    Returns:
+        The hashers, by type.
+    """
     return {
         # ``str`` is canonical for these types
         UUID: StrHasher("UUID"),

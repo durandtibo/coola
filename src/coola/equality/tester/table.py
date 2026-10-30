@@ -71,6 +71,14 @@ class Table(Protocol):
 
         The engine gives the settings of the comparison (``equal_nan``)
         and receives the warnings.
+
+        Args:
+            other: The other table, of the same kind.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the structures are the same, otherwise
+                ``False``.
         """
 
     def columns(self) -> Iterator[Column]:

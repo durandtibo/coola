@@ -140,11 +140,18 @@ class EnumHasher(InlineDisplayMixin, BaseHasher[Enum]):
 
 
 def _numpy_scalar_to_builtin(data: Any) -> Any:
-    """Convert a NumPy scalar to the equivalent builtin value.
+    r"""Convert a NumPy scalar to the equivalent builtin value.
 
     The ``repr`` of a NumPy scalar depends on the NumPy version (``1.0``
     with NumPy 1, ``np.float32(1.0)`` with NumPy 2), so the scalars are
     converted before hashing. The other values are returned unchanged.
+
+    Args:
+        data: The value.
+
+    Returns:
+        The builtin value if ``data`` is a NumPy scalar, otherwise
+            ``data``.
     """
     # A NumPy scalar cannot exist before NumPy is imported, so NumPy is not imported here.
     np = sys.modules.get("numpy")
@@ -162,10 +169,18 @@ def _numpy_scalar_to_builtin(data: Any) -> Any:
 
 
 def _builtin_repr(base: Any, data: Any) -> str:
-    """Return the ``repr`` of ``data`` as the builtin type ``base``.
+    r"""Return the ``repr`` of ``data`` as the builtin type ``base``.
 
     ``-0.0`` is normalised to ``0.0`` (also for the components of a
     complex number) because the two values are equal.
+
+    Args:
+        base: The builtin type: ``float``, ``complex``, ``int`` or
+            another.
+        data: The value.
+
+    Returns:
+        The ``repr`` of ``data`` as ``base``.
     """
     if base is float:
         return float.__repr__(float(data) + 0.0)

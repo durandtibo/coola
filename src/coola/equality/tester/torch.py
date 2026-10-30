@@ -38,6 +38,9 @@ class TorchPackedSequenceEqualityTester(BaseEqualityTester[torch.nn.utils.rnn.Pa
     ``unsorted_indices``. The location of a difference is the name of
     the attribute.
 
+    Raises:
+        MissingPackageError: If ``torch`` is not installed.
+
     Example:
         ```pycon
         >>> import torch
@@ -86,6 +89,9 @@ class TorchTensorEqualityTester(BaseEqualityTester[torch.Tensor]):
     tensor is exact. The tensors on the ``meta`` device have no data:
     only the metadata is compared. The location of a difference is the
     index of the first element that differs.
+
+    Raises:
+        MissingPackageError: If ``torch`` is not installed.
 
     Example:
         ```pycon

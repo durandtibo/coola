@@ -140,6 +140,10 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None]:
             variable name to value. Values are automatically converted
             to strings.
 
+    Yields:
+        ``None``. The environment variables are restored when the block
+            exits.
+
     Example:
         ```pycon
         >>> import os

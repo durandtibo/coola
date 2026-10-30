@@ -68,6 +68,18 @@ class TorchReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | torch.Tens
         return tensor
 
     def _to_tensor(self, values: Sequence[float]) -> torch.Tensor:
+        r"""Convert a sequence of numbers to a tensor.
+
+        Args:
+            values: The sequence.
+
+        Returns:
+            The tensor, in ``float64`` if a value is a Python float.
+
+        Raises:
+            TypeError: If the sequence cannot be converted (an integer
+                beyond 64 bits, a string, a ``Decimal``, ...).
+        """
         # Python floats are double precision, so a list that contains a float is converted
         # to ``float64`` (instead of the ``float32`` default of torch).
         has_float = any(isinstance(value, float) for value in values)
@@ -116,6 +128,15 @@ class TorchReducer(InlineDisplayMixin, BaseReducer["Sequence[float] | torch.Tens
 
 
 def _median_of(tensor: torch.Tensor) -> int | float:
+    r"""Compute the median of a non-empty tensor.
+
+    Args:
+        tensor: The one-dimensional tensor, without ``NaN``.
+
+    Returns:
+        The median: the middle value, or the mean of the two middle
+            values.
+    """
     # ``torch.median`` returns the lower of the two middle values;
     # average them to match ``statistics.median`` and ``numpy.median``.
     n = tensor.numel()
@@ -127,9 +148,16 @@ def _median_of(tensor: torch.Tensor) -> int | float:
 
 
 def _to_float_tensor(tensor: torch.Tensor) -> torch.Tensor:
-    """Convert a tensor to a floating-point tensor.
+    r"""Convert a tensor to a floating-point tensor.
 
     Floating-point tensors keep their dtype; integer and boolean ones
     are promoted to ``float64``.
+
+    Args:
+        tensor: The tensor.
+
+    Returns:
+        The tensor, in ``float64`` if it was an integer or a boolean
+            tensor.
     """
     return tensor if tensor.is_floating_point() else tensor.double()

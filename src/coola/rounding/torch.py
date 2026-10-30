@@ -60,12 +60,31 @@ def round_torch(data: Any, mode: RoundMode, decimals: int) -> Any:
 
 
 def _round_float_tensor(data: torch.Tensor, mode: RoundMode, scale: float) -> torch.Tensor:
+    r"""Round a float tensor on the grid of the decimals.
+
+    Args:
+        data: The tensor of floats.
+        mode: The rounding mode.
+        scale: The scale of the grid: ``10 ** decimals``.
+
+    Returns:
+        The rounded values.
+    """
     # The computation is made in float64 (float32 on mps). The grid points are compared with the
     # value after a cast to the dtype of the tensor, as the value is.
     x = data.detach().to(torch.float32 if data.device.type == "mps" else torch.float64)
     low = data.dtype != x.dtype
 
     def grid(index: torch.Tensor) -> torch.Tensor:
+        r"""Return the points of the grid.
+
+        Args:
+            index: The indexes of the grid points.
+
+        Returns:
+            The grid points, as the dtype of the tensor can represent
+                them.
+        """
         point = index / scale
         return point.to(data.dtype).to(x.dtype) if low else point
 

@@ -29,10 +29,10 @@ class Registry(Generic[K, V]):
     r"""A thread-safe generic key-value registry for storing and managing
     typed mappings.
 
-    The Registry class provides a type-safe container for registering and
-    retrieving values by key. It supports all standard dictionary operations
-    through operator overloading and provides additional methods for safe
-    registration and querying.
+    The Registry class provides a type-safe container for registering
+    and retrieving values by key. It supports all standard dictionary
+    operations through operator overloading and provides additional
+    methods for safe registration and querying.
 
     The state is a dictionary that is replaced on every write and never
     mutated, so the reads take no lock, ``items()``, ``keys()`` and
@@ -41,14 +41,18 @@ class Registry(Generic[K, V]):
     ``TypeRegistry`` extends this class.
 
     Args:
-        initial_state: An optional dictionary to initialize the registry with.
-            If provided, a copy is made to prevent external modifications.
-            Defaults to None, which creates an empty registry.
+        initial_state: An optional dictionary to initialize the registry
+            with. If provided, a copy is made to prevent external
+            modifications. Defaults to None, which creates an empty
+            registry.
 
     Attributes:
         _state: Internal dictionary storing the key-value pairs. It is
             replaced, never mutated.
         _lock: Threading lock for synchronizing the writers.
+
+    Raises:
+        TypeError: If a key is not valid for the registry.
 
     Example:
         Basic usage with registration and retrieval:
@@ -154,6 +158,9 @@ class Registry(Generic[K, V]):
 
         This must be called while holding ``self._lock``. The default
         implementation returns nothing.
+
+        Returns:
+            The lines to add to the display, or an empty string.
         """
         return ""
 
@@ -237,18 +244,38 @@ class Registry(Generic[K, V]):
         """
 
     def _not_registered_msg(self, key: K) -> str:
-        r"""Return the error message used when ``key`` is not
-        registered."""
+        r"""Return the error message used when ``key`` is not registered.
+
+        Args:
+            key: The key.
+
+        Returns:
+            The message.
+        """
         return f"Key '{key}' is not registered"
 
     def _getitem_not_registered_msg(self, key: K) -> str:
-        r"""Return the error message used by ``__getitem__`` when
-        ``key`` is not registered."""
+        r"""Return the error message used by ``__getitem__`` when ``key``
+        is not registered.
+
+        Args:
+            key: The key.
+
+        Returns:
+            The message.
+        """
         return self._not_registered_msg(key)
 
     def _already_registered_msg(self, key: K) -> str:
         r"""Return the error message used when ``key`` is already
-        registered."""
+        registered.
+
+        Args:
+            key: The key.
+
+        Returns:
+            The message.
+        """
         return (
             f"A value is already registered for '{key}'. "
             "Use a different key or set exist_ok=True to override."
@@ -256,7 +283,14 @@ class Registry(Generic[K, V]):
 
     def _many_already_registered_msg(self, duplicates: set[K]) -> str:
         r"""Return the error message used when several keys are already
-        registered."""
+        registered.
+
+        Args:
+            duplicates: The keys that are already registered.
+
+        Returns:
+            The message.
+        """
         return (
             f"Keys already registered: {', '.join(sorted(map(str, duplicates)))}. "
             "Use different keys or set exist_ok=True to override."
@@ -545,6 +579,9 @@ class Registry(Generic[K, V]):
 
         This is a hook for the subclasses that have lazy entries. The
         default implementation does nothing.
+
+        Args:
+            key: The key.
         """
 
     def _load_lazy_all(self) -> None:
@@ -556,7 +593,11 @@ class Registry(Generic[K, V]):
 
     def _load_lazy_for_equal(self, other: Registry[K, V]) -> None:
         r"""Load the entries that must be loaded before comparing the
-        registry with ``other``."""
+        registry with ``other``.
+
+        Args:
+            other: The registry to compare with.
+        """
         self._load_lazy_all()
         other._load_lazy_all()
 

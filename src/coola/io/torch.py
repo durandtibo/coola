@@ -30,6 +30,9 @@ class TorchLoader(BaseLoader[Any]):
         Loading with ``weights_only=False`` can execute arbitrary code
         (it uses pickle). Only do so for files from a trusted source.
 
+    Raises:
+        MissingPackageError: If ``torch`` is not installed.
+
     Example:
         ```pycon
         >>> import tempfile
@@ -63,6 +66,9 @@ class TorchSaver(BaseFileSaver[Any]):
 
     Args:
         **kwargs: Additional arguments passed to ``torch.save``.
+
+    Raises:
+        MissingPackageError: If ``torch`` is not installed.
 
     Example:
         ```pycon

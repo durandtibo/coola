@@ -48,6 +48,10 @@ class ScipySparseEqualityTester(BaseEqualityTester[Any]):
     The location of a difference is the coordinates of the first value
     that differs.
 
+    Raises:
+        MissingPackageError: If ``numpy`` or ``scipy`` is not
+            installed.
+
     Example:
         ```pycon
         >>> from scipy import sparse

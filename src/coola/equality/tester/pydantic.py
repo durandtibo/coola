@@ -31,13 +31,16 @@ class PydanticModelEqualityTester(BaseEqualityTester[pydantic.BaseModel]):
     r"""Implement an equality tester for ``pydantic.BaseModel``.
 
     The two models must have the same type, the same field values and
-    the same extra values. The values are compared with the registry,
-    so they support the tolerance and ``equal_nan``. The private
-    attributes are not compared, as the fields are what the model
-    validates and serializes. The other entries of the instance
-    ``__dict__`` (for example the value of a ``functools.cached_property``
-    that was read on one model only) are ignored too. The location of a
-    difference is the name of the field, or ``model_extra``.
+    the same extra values. The values are compared with the registry, so
+    they support the tolerance and ``equal_nan``. The private attributes
+    are not compared, as the fields are what the model validates and
+    serializes. The other entries of the instance ``__dict__`` (for
+    example the value of a ``functools.cached_property`` that was read
+    on one model only) are ignored too. The location of a difference is
+    the name of the field, or ``model_extra``.
+
+    Raises:
+        MissingPackageError: If ``pydantic`` is not installed.
 
     Example:
         ```pycon

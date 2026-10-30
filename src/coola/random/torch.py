@@ -30,6 +30,9 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
     reading it would initialize CUDA, which fails in a forked worker,
     and an uninitialized CUDA has no state to save.
 
+    Raises:
+        MissingPackageError: If ``torch`` is not installed.
+
     Example:
         ```pycon
         >>> from coola.random import TorchRandomManager
@@ -59,10 +62,30 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
         return state
 
     def manual_seed(self, seed: int) -> None:
+        r"""Set the seed of the PyTorch random number generator.
+
+        Args:
+            seed: The seed.
+
+        Raises:
+            TypeError: If the seed is not an ``int``.
+            ValueError: If the seed is not in the range ``[0, 2**63)``.
+        """
         validate_seed(seed)
         torch.manual_seed(seed)  # seeds the CPU, CUDA (lazily) and MPS generators
 
     def set_rng_state(self, state: dict[str, Any]) -> None:
+        r"""Restore the state of the PyTorch random number generators.
+
+        Args:
+            state: The state returned by ``get_rng_state``. Only the
+                generators in the state are restored.
+
+        Raises:
+            ValueError: If the number of CUDA generators of the state
+                differs from the number of CUDA devices, or if the state
+                has an MPS generator but MPS is not available.
+        """
         # Only the generators in ``state`` are restored.
         if "torch" in state:
             torch.set_rng_state(state["torch"])

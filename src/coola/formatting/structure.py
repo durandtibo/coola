@@ -321,5 +321,13 @@ def str_sequence_line(sequence: Sequence[Any], *, separator: str = ", ") -> str:
 
 
 def _iter_items(mapping: Mapping[Any, Any], sorted_keys: bool) -> Iterable[tuple[Any, Any]]:
-    r"""Return the items of a mapping, sorted by key if requested."""
+    r"""Return the items of a mapping, sorted by key if requested.
+
+    Args:
+        mapping: The mapping.
+        sorted_keys: If ``True``, the items are sorted by key.
+
+    Returns:
+        The items of the mapping.
+    """
     return sort_by_keys(mapping).items() if sorted_keys else mapping.items()

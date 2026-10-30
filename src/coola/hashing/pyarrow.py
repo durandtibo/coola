@@ -21,8 +21,16 @@ if TYPE_CHECKING:
 
 
 def _is_fixed_width(data_type: Any) -> bool:
-    r"""Indicate if the values of a type can be hashed from a NumPy
-    array without going through Python objects."""
+    r"""Indicate if the values of a type can be hashed from a NumPy array
+    without going through Python objects.
+
+    Args:
+        data_type: The Arrow type.
+
+    Returns:
+        ``True`` for an integer, floating-point or boolean type,
+            otherwise ``False``.
+    """
     return (
         pa.types.is_integer(data_type)
         or pa.types.is_floating(data_type)
@@ -32,7 +40,14 @@ def _is_fixed_width(data_type: Any) -> bool:
 
 def _encode_array(array: Any) -> Encoding:
     r"""Describe an array: a leaf for the fixed-width types, a ``Node``
-    over ``to_pylist()`` for the others."""
+    over ``to_pylist()`` for the others.
+
+    Args:
+        array: The Arrow array.
+
+    Returns:
+        The encoding of the array.
+    """
     if not (is_numpy_available() and _is_fixed_width(array.type)):
         return Node("pyarrow.Array", [str(array.type), array.to_pylist()])
     import numpy as np  # noqa: PLC0415

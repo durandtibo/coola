@@ -26,7 +26,18 @@ class Transformer(Protocol[T_contra]):
     a convenience base class.
     """
 
-    def expand(self, data: T_contra) -> Expansion | None: ...
+    def expand(self, data: T_contra) -> Expansion | None:
+        r"""Describe the children of ``data`` and how to rebuild it.
+
+        Args:
+            data: The data to expand.
+
+        Returns:
+            ``None`` if ``data`` is a leaf. Otherwise, a tuple
+            ``(children, rebuild)``: the children of ``data`` and the
+            function that rebuilds ``data`` from a list with the
+            transformed children.
+        """
 
 
 class BaseTransformer(ABC, Generic[T]):
