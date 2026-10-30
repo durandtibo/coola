@@ -146,7 +146,7 @@ def test_datetime_hasher_hash_time_differs_from_datetime(registry: HasherRegistr
     hasher = DatetimeHasher()
     assert hash_with(hasher, time(0, 0), registry) != hash_with(
         hasher,
-        datetime(2024, 1, 1),  # noqa: DTZ001
+        datetime(2024, 1, 1, tzinfo=UTC),
         registry=registry,
     )
 
