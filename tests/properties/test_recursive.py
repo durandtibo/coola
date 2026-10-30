@@ -13,6 +13,10 @@ from dataclasses import dataclass
 from typing import Any, NamedTuple
 
 import pytest
+from hypothesis import (
+    given,
+    strategies as st,
+)
 
 from coola.iterator import dfs_iterate
 from coola.recursive import (
@@ -22,13 +26,6 @@ from coola.recursive import (
     recursive_apply,
 )
 from tests.properties.strategies import nested, scalars, small_values, values
-
-hypothesis = pytest.importorskip("hypothesis")
-
-from hypothesis import (  # noqa: E402
-    given,
-    strategies as st,
-)
 
 # Nested data without sets: the order of the leaves of a set is not specified.
 ordered_values = nested(scalars, with_sets=False)

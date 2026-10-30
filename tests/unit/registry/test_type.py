@@ -714,8 +714,10 @@ def test_type_registry_registry_with_int_keys_equal() -> None:
 # Test resolve() with ABC virtual subclasses
 
 
-class MyABC(abc.ABC):  # noqa: B024
-    pass
+class MyABC(abc.ABC):
+    @abc.abstractmethod
+    def run(self) -> None:
+        pass
 
 
 class NotARealSubclass:

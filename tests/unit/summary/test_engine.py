@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from collections import Counter, OrderedDict, deque, namedtuple
+from collections import Counter, OrderedDict, deque
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field, is_dataclass
-from typing import Any
+from typing import Any, NamedTuple
 
 import pytest
 
@@ -28,7 +28,9 @@ def run(data: Any, **kwargs: Any) -> str:
     return render(data, REGISTRY, SummaryConfig(**kwargs))
 
 
-Coord = namedtuple("Coord", ["x", "y"])  # noqa: PYI024
+class Coord(NamedTuple):
+    x: int
+    y: int
 
 
 @dataclass

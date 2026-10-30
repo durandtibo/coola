@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections import UserList, deque, namedtuple
+from collections import UserList, deque
+from typing import NamedTuple
 
 import pytest
 
@@ -8,7 +9,10 @@ from coola.summary import SequenceSummarizer, SummaryConfig
 
 CONFIG = SummaryConfig()
 
-Point = namedtuple("Point", ["x", "y"])  # noqa: PYI024
+
+class Point(NamedTuple):
+    x: int
+    y: int
 
 
 class CustomList(list): ...

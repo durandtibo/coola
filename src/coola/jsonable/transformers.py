@@ -261,11 +261,11 @@ def _to_dict(items: list[Any]) -> dict[str, Any]:
     size = len(items) // 2
     result: dict[str, Any] = {}
     for key, value in zip(items[:size], items[size:], strict=True):
-        key = _to_key(key)  # noqa: PLW2901
-        if key in result:
-            msg = f"Two keys give the same JSON key: {key!r}"
+        json_key = _to_key(key)
+        if json_key in result:
+            msg = f"Two keys give the same JSON key: {json_key!r}"
             raise ValueError(msg)
-        result[key] = value
+        result[json_key] = value
     return result
 
 

@@ -11,6 +11,7 @@ from hypothesis import assume, given, strategies as st
 
 from coola.random import NumpyRandomManager, random_seed
 from coola.summary import summarize
+from tests.helpers import draw_numpy_rand, draw_python_random
 from tests.properties.strategies import values
 
 ##################
@@ -79,9 +80,9 @@ def test_summarize_shows_the_length_of_a_list(data: list[int]) -> None:
 @given(seed=st.integers(0, 2**32 - 1))
 def test_random_seed_gives_the_same_numbers(seed: int) -> None:
     with random_seed(seed):
-        first = random.random()  # noqa: S311
+        first = draw_python_random()
     with random_seed(seed):
-        second = random.random()  # noqa: S311
+        second = draw_python_random()
     assert first == second
 
 
@@ -89,7 +90,7 @@ def test_random_seed_gives_the_same_numbers(seed: int) -> None:
 def test_random_seed_restores_the_state(seed: int) -> None:
     state = random.getstate()
     with random_seed(seed):
-        random.random()  # noqa: S311
+        draw_python_random()
     assert random.getstate() == state
 
 
@@ -101,7 +102,7 @@ def test_numpy_manager_different_seeds_give_different_numbers(seed: int, other: 
     assume(seed != other)
     manager = NumpyRandomManager()
     with manager.seed(seed):
-        first = np.random.rand(4)  # noqa: NPY002
+        first = draw_numpy_rand(4)
     with manager.seed(other):
-        second = np.random.rand(4)  # noqa: NPY002
+        second = draw_numpy_rand(4)
     assert not np.array_equal(first, second)

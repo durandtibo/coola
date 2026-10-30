@@ -18,7 +18,7 @@ def test_version_is_not_empty() -> None:
 
 
 def test_version_is_cached_in_the_module() -> None:
-    coola.__version__  # noqa: B018
+    _ = coola.__version__
     assert "__version__" in vars(coola)
 
 
@@ -28,4 +28,4 @@ def test_dir_lists_the_version() -> None:
 
 def test_unknown_attribute_raises_attribute_error() -> None:
     with pytest.raises(AttributeError, match="has no attribute 'missing'"):
-        coola.missing  # noqa: B018
+        _ = coola.missing

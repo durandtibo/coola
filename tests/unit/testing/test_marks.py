@@ -176,7 +176,7 @@ def test_available_mark_is_cached() -> None:
 
 @pytest.mark.usefixtures("two_dependencies")
 def test_marks_are_created_together() -> None:
-    marks.alpha_not_available  # noqa: B018
+    _ = marks.alpha_not_available
     assert "alpha_available" in vars(marks)
 
 

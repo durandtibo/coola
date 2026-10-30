@@ -360,9 +360,10 @@ def to_flat_dict(
     flat: dict[str, Any] = {}
     for path, value in dfs_items(data, registry=registry, empty=True):
         if to_str_types and isinstance(value, to_str_types):
-            value = str(value)  # noqa: PLW2901
+            leaf = str(value)
             from_to_str = True
         else:
+            leaf = value
             from_to_str = False
         if not path and prefix is None:
             if from_to_str:
@@ -380,7 +381,7 @@ def to_flat_dict(
                 )
                 raise ValueError(msg)
             continue  # an empty container at the root has no entry
-        _set_leaf(flat, _build_key(prefix, path, separator, escape=escape), value)
+        _set_leaf(flat, _build_key(prefix, path, separator, escape=escape), leaf)
     return flat
 
 

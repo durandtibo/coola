@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import random
-
 from coola.random.interface import random_seed
+from tests.helpers import draw_python_random
 
 #################################
 #     Tests for random_seed     #
@@ -11,13 +10,13 @@ from coola.random.interface import random_seed
 
 def _draw_with_nested_contexts() -> tuple[float, float, float]:
     with random_seed(42):
-        value1 = random.uniform(0, 1)  # noqa: S311
+        value1 = draw_python_random()
 
         with random_seed(123):
-            value2 = random.uniform(0, 1)  # noqa: S311
+            value2 = draw_python_random()
 
         # After inner context exits, outer seed should still be active
-        value3 = random.uniform(0, 1)  # noqa: S311
+        value3 = draw_python_random()
     return value1, value2, value3
 
 

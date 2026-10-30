@@ -8,6 +8,7 @@ from coola.equality import objects_are_equal
 from coola.random import NumpyRandomManager
 from coola.testing.marks import numpy_available
 from coola.utils.imports import MissingPackageError, is_numpy_available
+from tests.helpers import draw_numpy_rand, draw_numpy_randint, draw_numpy_randn, get_numpy_state
 
 if is_numpy_available():
     import numpy as np
@@ -67,10 +68,10 @@ def test_numpy_random_manager_get_rng_state() -> None:
 def test_numpy_random_manager_manual_seed_same_seed_same_values() -> None:
     rng = NumpyRandomManager()
     rng.manual_seed(42)
-    x1 = np.random.randn(4, 6)  # noqa: NPY002
-    np.random.randn(4, 6)  # noqa: NPY002
+    x1 = draw_numpy_randn(4, 6)
+    draw_numpy_randn(4, 6)
     rng.manual_seed(42)
-    x3 = np.random.randn(4, 6)  # noqa: NPY002
+    x3 = draw_numpy_randn(4, 6)
     assert np.array_equal(x1, x3)
 
 
@@ -78,10 +79,10 @@ def test_numpy_random_manager_manual_seed_same_seed_same_values() -> None:
 def test_numpy_random_manager_manual_seed_different_values() -> None:
     rng = NumpyRandomManager()
     rng.manual_seed(42)
-    x1 = np.random.randn(4, 6)  # noqa: NPY002
-    x2 = np.random.randn(4, 6)  # noqa: NPY002
+    x1 = draw_numpy_randn(4, 6)
+    x2 = draw_numpy_randn(4, 6)
     rng.manual_seed(42)
-    np.random.randn(4, 6)  # noqa: NPY002
+    draw_numpy_randn(4, 6)
     assert not np.array_equal(x1, x2)
 
 
@@ -89,10 +90,10 @@ def test_numpy_random_manager_manual_seed_different_values() -> None:
 def test_numpy_random_manager_set_rng_state_restored_values() -> None:
     rng = NumpyRandomManager()
     state = rng.get_rng_state()
-    x1 = np.random.randn(4, 6)  # noqa: NPY002
-    np.random.randn(4, 6)  # noqa: NPY002
+    x1 = draw_numpy_randn(4, 6)
+    draw_numpy_randn(4, 6)
     rng.set_rng_state(state)
-    x3 = np.random.randn(4, 6)  # noqa: NPY002
+    x3 = draw_numpy_randn(4, 6)
     assert np.array_equal(x1, x3)
 
 
@@ -100,10 +101,10 @@ def test_numpy_random_manager_set_rng_state_restored_values() -> None:
 def test_numpy_random_manager_set_rng_state_different_values() -> None:
     rng = NumpyRandomManager()
     state = rng.get_rng_state()
-    x1 = np.random.randn(4, 6)  # noqa: NPY002
-    x2 = np.random.randn(4, 6)  # noqa: NPY002
+    x1 = draw_numpy_randn(4, 6)
+    x2 = draw_numpy_randn(4, 6)
     rng.set_rng_state(state)
-    np.random.randn(4, 6)  # noqa: NPY002
+    draw_numpy_randn(4, 6)
     assert not np.array_equal(x1, x2)
 
 
@@ -118,19 +119,19 @@ def test_numpy_random_manager_no_numpy() -> None:
 @numpy_available
 def test_numpy_random_manager_seed_restores_the_state() -> None:
     manager = NumpyRandomManager()
-    state = np.random.get_state()  # noqa: NPY002
+    state = get_numpy_state()
     with manager.seed(42):
-        np.random.rand()  # noqa: NPY002
-    assert objects_are_equal(state, np.random.get_state())  # noqa: NPY002
+        draw_numpy_rand()
+    assert objects_are_equal(state, get_numpy_state())
 
 
 @numpy_available
 def test_numpy_random_manager_seed_is_reproducible() -> None:
     manager = NumpyRandomManager()
     with manager.seed(42):
-        first = np.random.rand()  # noqa: NPY002
+        first = draw_numpy_rand()
     with manager.seed(42):
-        second = np.random.rand()  # noqa: NPY002
+        second = draw_numpy_rand()
     assert first == second
 
 
@@ -147,16 +148,16 @@ def test_numpy_random_manager_manual_seed_below_2_32_keeps_the_numbers(
     seed: int, expected: list[int]
 ) -> None:
     NumpyRandomManager().manual_seed(seed)
-    assert np.random.randint(0, 2**31, size=3).tolist() == expected  # noqa: NPY002
+    assert draw_numpy_randint(0, 2**31, size=3).tolist() == expected
 
 
 @numpy_available
 def test_numpy_random_manager_manual_seed_not_folded_modulo_2_32() -> None:
     manager = NumpyRandomManager()
     manager.manual_seed(1)
-    first = np.random.rand(3)  # noqa: NPY002
+    first = draw_numpy_rand(3)
     manager.manual_seed(2**32 + 1)
-    second = np.random.rand(3)  # noqa: NPY002
+    second = draw_numpy_rand(3)
     assert not objects_are_equal(first, second)
 
 
@@ -164,9 +165,9 @@ def test_numpy_random_manager_manual_seed_not_folded_modulo_2_32() -> None:
 def test_numpy_random_manager_manual_seed_large_seed_same_seed_same_values() -> None:
     manager = NumpyRandomManager()
     manager.manual_seed(2**32 + 1)
-    first = np.random.rand(3)  # noqa: NPY002
+    first = draw_numpy_rand(3)
     manager.manual_seed(2**32 + 1)
-    second = np.random.rand(3)  # noqa: NPY002
+    second = draw_numpy_rand(3)
     assert objects_are_equal(first, second)
 
 
@@ -174,25 +175,25 @@ def test_numpy_random_manager_manual_seed_large_seed_same_seed_same_values() -> 
 def test_numpy_random_manager_manual_seed_large_seeds_with_same_high_word_differ() -> None:
     manager = NumpyRandomManager()
     manager.manual_seed(2**32)
-    first = np.random.rand(3)  # noqa: NPY002
+    first = draw_numpy_rand(3)
     manager.manual_seed(2**32 + 2**32)
-    second = np.random.rand(3)  # noqa: NPY002
+    second = draw_numpy_rand(3)
     assert not objects_are_equal(first, second)
 
 
 @numpy_available
 def test_numpy_random_manager_manual_seed_max_seed() -> None:
     NumpyRandomManager().manual_seed(2**63 - 1)
-    assert np.random.rand(3).shape == (3,)  # noqa: NPY002
+    assert draw_numpy_rand(3).shape == (3,)
 
 
 @numpy_available
 def test_numpy_random_manager_different_seeds_give_different_numbers() -> None:
     manager = NumpyRandomManager()
     manager.manual_seed(1)
-    first = np.random.rand(3)  # noqa: NPY002
+    first = draw_numpy_rand(3)
     manager.manual_seed(2)
-    second = np.random.rand(3)  # noqa: NPY002
+    second = draw_numpy_rand(3)
     assert not objects_are_equal(first, second)
 
 

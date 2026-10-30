@@ -13,18 +13,14 @@ from enum import Enum
 from pathlib import PurePosixPath
 from typing import Any
 
-import pytest
+from hypothesis import (
+    given,
+    strategies as st,
+)
 
 from coola.equality import objects_are_equal
 from coola.jsonable import to_jsonable
 from tests.properties.strategies import rebuild
-
-hypothesis = pytest.importorskip("hypothesis")
-
-from hypothesis import (  # noqa: E402
-    given,
-    strategies as st,
-)
 
 
 class Color(Enum):

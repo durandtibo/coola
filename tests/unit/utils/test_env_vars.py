@@ -339,11 +339,11 @@ def test_temp_env_vars_removes_new_variable_on_exception() -> None:
 @mock.patch.dict(os.environ, {"EXISTING_VAR": "original"}, clear=True)
 def test_temp_env_vars_propagates_the_exception() -> None:
     """Test that the exception raised in the context is propagated."""
-    with (  # noqa: PT012
+    msg = "Test exception"
+    with (
         pytest.raises(ValueError, match=r"Test exception"),
         temp_env_vars({"EXISTING_VAR": "temporary"}),
     ):
-        msg = "Test exception"
         raise ValueError(msg)
 
 

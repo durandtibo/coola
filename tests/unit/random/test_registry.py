@@ -12,6 +12,7 @@ from coola.random import (
     RandomManagerRegistry,
 )
 from coola.registry import AlreadyRegisteredError, KeyNotRegisteredError
+from tests.helpers import draw_python_random
 
 
 class CounterRandomManager(BaseRandomManager):
@@ -137,10 +138,10 @@ def test_random_manager_registry_manual_seed_seeds_every_manager() -> None:
 def test_random_manager_registry_manual_seed_same_seed_same_values() -> None:
     registry = RandomManagerRegistry({"random": PythonRandomManager()})
     registry.manual_seed(42)
-    x1 = random.uniform(0, 1)  # noqa: S311
-    random.uniform(0, 1)  # noqa: S311
+    x1 = draw_python_random()
+    draw_python_random()
     registry.manual_seed(42)
-    assert random.uniform(0, 1) == x1  # noqa: S311
+    assert draw_python_random() == x1
 
 
 @pytest.mark.parametrize("seed", [-1, 2**63, 2**70])
@@ -188,9 +189,9 @@ def test_random_manager_registry_set_rng_state_restores_every_manager() -> None:
 def test_random_manager_registry_set_rng_state_restored_values() -> None:
     registry = RandomManagerRegistry({"random": PythonRandomManager()})
     state = registry.get_rng_state()
-    x1 = random.uniform(0, 1)  # noqa: S311
+    x1 = draw_python_random()
     registry.set_rng_state(state)
-    assert random.uniform(0, 1) == x1  # noqa: S311
+    assert draw_python_random() == x1
 
 
 def test_random_manager_registry_set_rng_state_empty_registry() -> None:
@@ -286,6 +287,6 @@ def test_random_manager_registry_seed_seeds_inside_the_context() -> None:
 def test_random_manager_registry_seed_is_reproducible() -> None:
     registry = RandomManagerRegistry({"random": PythonRandomManager()})
     with registry.seed(42):
-        first = random.uniform(0, 1)  # noqa: S311
+        first = draw_python_random()
     with registry.seed(42):
-        assert random.uniform(0, 1) == first  # noqa: S311
+        assert draw_python_random() == first

@@ -30,6 +30,7 @@ from coola.testing.marks import (
     torch_not_available,
 )
 from coola.utils.imports import is_torch_available
+from tests.helpers import draw_python_random
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -59,28 +60,27 @@ class CustomList(list):
 def test_random_seed_changes_the_state() -> None:
     state = random.getstate()
     with random_seed(42):
-        random.uniform(0, 1)  # noqa: S311
+        draw_python_random()
         assert not objects_are_equal(state, random.getstate())
 
 
 def test_random_seed_restore_random_seed() -> None:
     state = random.getstate()
     with random_seed(42):
-        random.uniform(0, 1)  # noqa: S311
+        draw_python_random()
     assert objects_are_equal(state, random.getstate())
 
 
 def test_random_seed_with_exception_raises_the_error() -> None:
-    with pytest.raises(RuntimeError, match=r"Exception"), random_seed(42):  # noqa: PT012
-        random.uniform(0, 1)  # noqa: S311
-        msg = "Exception"
+    msg = "Exception"
+    with pytest.raises(RuntimeError, match=r"Exception"), random_seed(42):
         raise RuntimeError(msg)
 
 
 def test_random_seed_restore_random_seed_with_exception() -> None:
     state = random.getstate()
     with contextlib.suppress(RuntimeError), random_seed(42):
-        random.uniform(0, 1)  # noqa: S311
+        draw_python_random()
         msg = "Exception"
         raise RuntimeError(msg)
     assert objects_are_equal(state, random.getstate())
@@ -88,17 +88,17 @@ def test_random_seed_restore_random_seed_with_exception() -> None:
 
 def test_random_seed_same_random_seed() -> None:
     with random_seed(42):
-        x1 = random.uniform(0, 1)  # noqa: S311
+        x1 = draw_python_random()
     with random_seed(42):
-        x2 = random.uniform(0, 1)  # noqa: S311
+        x2 = draw_python_random()
     assert objects_are_equal(x1, x2)
 
 
 def test_random_seed_different_random_seeds() -> None:
     with random_seed(42):
-        x1 = random.uniform(0, 1)  # noqa: S311
+        x1 = draw_python_random()
     with random_seed(420):
-        x2 = random.uniform(0, 1)  # noqa: S311
+        x2 = draw_python_random()
     assert not objects_are_equal(x1, x2)
 
 

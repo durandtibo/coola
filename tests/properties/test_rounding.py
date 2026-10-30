@@ -8,8 +8,6 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING
 
-import pytest
-
 from coola.rounding import round_values
 from coola.testing.marks import numpy_available, polars_available, pyarrow_available
 from coola.utils.imports import is_numpy_available, is_polars_available, is_pyarrow_available
@@ -18,9 +16,7 @@ from tests.unit.rounding.helpers import EXACT_BOUND, oracle
 if TYPE_CHECKING:
     from coola.rounding.common import RoundMode
 
-hypothesis = pytest.importorskip("hypothesis")
-
-from hypothesis import (  # noqa: E402
+from hypothesis import (
     example,
     given,
     strategies as st,
