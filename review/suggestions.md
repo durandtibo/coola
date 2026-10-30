@@ -1,619 +1,688 @@
-# Codebase review: suggestions (round 5)
+# Codebase review: suggestions (round 6)
 
-This file **replaces the previous `review/suggestions.md`** (round 4, items 12.1 to 19.3). That
-version is in git history (last touched by `e2546e4d`). Section 31 gives the status of its items.
-Nothing below repeats an item of round 4, `src-coola-review.md`, `noqa-review.md` or
-`python-311-modernization.md`, except where an item is explicitly marked _carried over_.
+This file **replaces the previous `review/suggestions.md`** (round 5, items 22.1 to 30.1). That version
+is in git history (last touched by `7530c55a`).
+Section 41 gives the status of its items. Nothing below repeats an item of round 5 or of the
+`review/<package>.md` design documents, except where an item is explicitly marked _carried over_.
 
-The numbering **continues** the previous rounds (sections 22 to 32), so that an ID such as `22.1` in a
+The numbering **continues** the previous rounds (sections 34 to 42), so that an ID such as `34.1` in a
 branch name or a commit message is unambiguous.
 
 ## How this review was done
 
-Checkout of `main` at `eea4aeab` (`.venv`, Python 3.14.8, NumPy 2.5.4, pandas 3.0.6, torch, polars,
-pyarrow, xarray, JAX, pydantic installed). Baseline: `pytest tests/unit tests/integration` gives
-12740 passed, 40 skipped, 30 xfailed in 25 s with 99% line coverage (6395 statements, 1 missed, 1
-partial branch); `pytest tests/properties` gives 527 passed, 2 xfailed, 2 xpassed in 42 s;
-`ruff check`, `ty check`, `lint-imports`, `xdoctest src/coola` (525 doctests) and
-`mkdocs build --strict` are clean. The review changed no source file.
+Checkout of `main` at `7cd495e8` (`.venv`, Python 3.14.8, NumPy 2.x, pandas 3.x, torch, polars,
+pyarrow, xarray, JAX, pydantic, scipy installed). Baseline, run on the clean checkout:
 
-1. **Read-through.** Every module of `src/coola` (237 files, 31.6k lines) was read with the docstrings
-   stripped, package by package: `registry`, `equality` (handlers and testers), `hashing`, `summary`,
-   `identifier`, `utils`, `io`, `iterator`, `recursive`, `nested`, `reducer`, `random`, `display`,
-   `factory`, `validation`, `testing`. The tests (323 files, 65k lines), the docs, `pyproject.toml` and
-   the CI workflows were surveyed with scripts (structure, conventions, markers), not read line by
-   line.
-2. **Probes.** Items marked **[verified]** were reproduced on this checkout with a script and the
-   repro is given. Items marked **[reading]** or **[lead]** come from reading the code and were not
-   reproduced (GPU, Windows and CI-only behaviour were not run).
-3. **Round 4 follow-up.** The items of round 4 that were merged (PRs #2238 to #2270) were
-   re-checked by running their repros; the ones that are still open are carried over in section 31.
+- `pytest tests/unit tests/integration`: 13411 passed, 34 skipped, 25 xfailed, **1 failed** (39.1
+  below), in 35 s, with 100% line and branch coverage (6647 statements, 1560 branches).
+- `pytest tests/properties`: all pass (with the markers of 39.2 hiding a defect and a wrong test).
+- `ruff check src tests`, `ty check` and `lint-imports` (7 contracts) are clean. `uv build` builds the
+  sdist and the wheel.
+- The Markdown of `README.md`, `docs/docs/index.md`, `get_started.md` and `uguide/*.md` passes
+  `python -m doctest` (315 examples in `uguide/equality.md` alone), so the user documentation is not
+  the problem; the findings on the documentation are about `docs/docs/dev`.
 
-Almost all round-4 items are merged. The new findings are in four places: the **hashing of pandas
-objects with missing values** (section 22), the **process-level behaviour of the global registries**
-(fork, test isolation, plugins, section 24), the **traversal helpers** that do not follow the
-protections of `equality` and `hashing` (section 25), and **property tests whose `xfail` markers
-hide the state of the defects** (section 29).
+What was done:
 
-Priority: **P1** wrong result or crash on realistic input, **P2** inconsistent or surprising
-behaviour, **P3** cleanup or design.
+1. **Read-through.** Every package of `src/coola` (231 modules, 31.7k lines) was surveyed. The
+   packages with the most logic (`registry`, `equality` engine, helpers and the NumPy, pandas, torch,
+   xarray, pydantic, table and collection testers, `jsonable`, `io`, `identifier`, `random`,
+   `validation`, `factory`, `utils`, `formatting`, `display`) were read with the docstrings stripped.
+   The hashing, summary, recursive, iterator, nested, reducer and rounding engines were exercised
+   rather than read line by line.
+2. **Probes.** Several hundred one-line probes (equality of 120 pairs of values, hashing of 60 types,
+   `to_jsonable` of 50 values, summaries, rounding, reducers, pandas, polars and pyarrow edge cases,
+   a differential fuzz of the three reducers, timing of the traversal helpers on shared structures).
+   Items marked **[verified]** were reproduced on this checkout and the repro is given. Items marked
+   **[reading]** come from reading the code and were not reproduced (GPU, Windows and CI-only
+   behaviour were not run; the CI results were not looked at).
+3. **Conventions.** The rules of `CLAUDE.md` that can be checked mechanically (one assertion per test,
+   section headers, tests for every function, docstrings) were checked with AST scripts over `src` and
+   `tests` (section 39).
+4. **Round 5 follow-up.** Every round-5 item was re-checked by running its repro (section 41).
+
+The library is in a very good state: all the round-5 crashes are fixed, and the findings below are
+smaller. Four themes stand out: **hashing and equality still disagree** on a few types (section 34),
+the **diagnostics of the table testers** are far less useful than those of the array testers
+(section 35), **the validators are written for Python `int` and not for NumPy integers** (36.1), and
+**the shared sub-objects of a structure cost an exponential time** in every traversal helper but one
+(38.1).
+
+Priority: **P1** wrong result, crash on realistic input or a red test on `main`, **P2** inconsistent or
+surprising behaviour, **P3** cleanup or design.
 
 ## Summary
 
-| ID   | P   | Area      | Finding                                                                                       |
-| ---- | --- | --------- | --------------------------------------------------------------------------------------------- |
-| 22.1 | P1  | hashing   | pandas objects with a missing value in `boolean`, `string`, tz-aware, period, interval dtypes |
-| 22.2 | P2  | hashing   | Equal bfloat16 / float8 arrays (`ml_dtypes`, JAX) hash differently (`-0.0`, NaN)              |
-| 22.3 | P2  | hashing   | pyarrow arrays are hashed through Python objects: 200x slower than NumPy                      |
-| 22.4 | P2  | hashing   | "Stable" IDs depend on the mutable default registry and on installed plugins                  |
-| 23.1 | P2  | equality  | Equal pydantic models are different after a `cached_property` was read on one of them         |
-| 24.1 | P2  | registry  | A registry lock held by another thread at `fork()` deadlocks the child                        |
-| 24.2 | P2  | registry  | No way to copy, scope or reset a default registry: the tests of a user leak state             |
-| 25.1 | P2  | recursive | `recursive_apply` has no cycle detection; deep structures give a raw `RecursionError`         |
-| 26.1 | P2  | utils     | `to_jsonable` of a dataclass deep-copies it (fails on a lock, copies big arrays)              |
-| 28.1 | P2  | api       | `import coola` exposes nothing: the three main functions live in three subpackages            |
-| 29.1 | P2  | tests     | Stale non-strict `xfail` markers: a test of a fixed defect still "xfails" for another reason  |
-| 22.5 | P3  | hashing   | The hash of an integer with more than 4300 digits depends on `sys.set_int_max_str_digits`     |
-| 22.6 | P3  | hashing   | A `str` with a lone surrogate (`os.fsdecode` of a bad file name) cannot be hashed             |
-| 22.7 | P3  | hashing   | Equal aware `datetime.time` objects hash differently                                          |
-| 22.8 | P3  | hashing   | Merkle hashing costs 10 µs for a three-key dict (format v2)                                   |
-| 23.2 | P3  | equality  | `set` and `frozenset` are compared with `==`: `equal_nan` and the tolerance never apply       |
-| 23.3 | P3  | equality  | Plain objects, exceptions and `functools.partial` are different even if all attributes match  |
-| 24.3 | P3  | registry  | Entry-point plugins cannot be disabled or listed                                              |
-| 25.2 | P3  | summary   | Set previews are not deterministic; `RecordBatch` and the mask of masked arrays are missing   |
-| 25.3 | P3  | traversal | `recursive_apply`, `dfs_iterate`, `bfs_iterate` and `nested` do not enter dataclasses         |
-| 26.2 | P3  | nested    | `flatten_mapping` raises a bare `AttributeError`; `sort_by_keys` fallback can still raise     |
-| 27.1 | P3  | factory   | Nested `_target_` configurations are not resolved, and the docs do not say so                 |
-| 27.2 | P3  | factory   | `is_object_config` imports the module of an untrusted `_target_`                              |
-| 28.2 | P3  | api       | `summarize`, `recursive_apply`, `dfs_iterate` take options positionally                       |
-| 28.3 | P3  | api       | `max_depth` means "raise above" in `equality` and "truncate at" in `summary`                  |
-| 28.4 | P3  | docs      | The README quick start shows `show_difference` log output and never mentions `compare`        |
-| 29.2 | P3  | tests     | Test layout and convention slips (mirror rule, multiple asserts, one `sleep`)                 |
-| 30.1 | P3  | packaging | `CITATION.cff` is out of date; classifiers, changelog and README still open (19.1 to 19.3)    |
+| ID   | P   | Area        | Finding                                                                                                 |
+| ---- | --- | ----------- | ------------------------------------------------------------------------------------------------------- |
+| 39.1 | P1  | tests       | `test_real_mark_is_importable_in_a_generated_module` fails on `main`: `docformatter` rewrote its source |
+| 34.1 | P2  | hashing     | Equal data frames with a different order of the categories hash differently                             |
+| 34.2 | P2  | hashing     | `hash_object(np.timedelta64)` leaks a raw `TypeError`; `np.datetime64` and other types have no hasher   |
+| 35.1 | P2  | equality    | A data frame or series difference is reported without cause, row or value                               |
+| 35.2 | P2  | equality    | `objects_are_allclose` ignores the tolerance in list/struct columns and in `object` columns             |
+| 36.1 | P2  | validation  | `manual_seed(np.int64(3))` and 5 other entry points reject NumPy integers                               |
+| 38.1 | P2  | performance | Shared sub-objects are visited once per reference: 2^n time for equality, `recursive_apply`, ...        |
+| 39.2 | P2  | tests       | Non-strict `xfail` markers hide a real defect (34.1) and a wrong test (_carried over_ 29.1)             |
+| 34.3 | P3  | hashing     | The list of types that are not hashed is stale and omits what changed recently                          |
+| 35.3 | P3  | equality    | `compare` and `assert_objects_equal` do not follow the signature of the `objects_are_*` functions       |
+| 36.2 | P3  | api         | `dir(coola.<package>)` lists `TYPE_CHECKING` and `lazy_exports`; `coola.formatting` exports nothing     |
+| 36.3 | P3  | factory     | `import_object` cannot reach `module.Class.attribute`, `pkgutil.resolve_name` can                       |
+| 36.4 | P3  | utils       | 12 modules of the public `coola.utils` are used by nothing in the library                               |
+| 37.1 | P3  | jsonable    | Non-finite floats, `longdouble`, `IntEnum` keys, data frames and sparse tensors                         |
+| 37.2 | P3  | nested      | `from_flat_dict(to_flat_dict(x))` is lossy for keys that contain the separator (default)                |
+| 37.3 | P3  | reducer     | `NativeReducer.mean` raises on `[inf, -inf]` where NumPy and torch return `nan`                         |
+| 37.4 | P3  | random      | `random_seed` leaves the CUDA/MPS generators seeded when they are initialised inside the block          |
+| 37.5 | P3  | formatting  | Byte sizes stop at TB, `truncate_str` raises for a short limit; summary of sparse/nested tensors        |
+| 38.2 | P3  | performance | A list of floats takes 80x the time of `==` (no fast path for floats)                                   |
+| 39.3 | P3  | tests       | Convention slips: 103 multi-assert tests, 82 malformed headers, 29 tests with logic (_carried over_)    |
+| 39.4 | P3  | tests       | 14 modules without a mirrored test file; about 160 functions never named in a test                      |
+| 39.5 | P3  | maintenance | 56 `# pragma: no cover` import guards and 12 copies of the `is_*_available`/`check_*` pair              |
+| 40.1 | P3  | docs        | `docs/docs/dev` describes the deleted `DataclassMarker`; `dev` and `review/` duplicate about half       |
+| 40.2 | P3  | packaging   | Classifiers, `CITATION.cff`, `all` extra (_carried over_ 30.1)                                          |
 
-## 22. `hashing`
+## 34. `hashing` and `equality`: the contract "equal objects hash equal"
 
-### 22.1 pandas objects with a missing value cannot be hashed in several dtypes **[verified]** (P1)
-
-`PandasSeriesHasher` and `PandasDataFrameHasher` hash `column.to_numpy()`. For an extension dtype
-with a missing value, or a tz-aware datetime with `NaT`, that is an object array that contains
-`pd.NA` or `pd.NaT`, and neither has a hasher:
+### 34.1 Equal data frames with a different order of the categories hash differently **[verified]** (P2)
 
 ```python
 import pandas as pd
-from coola.hashing import hash_object
-
-hash_object(pd.Series([True, None], dtype="boolean"))  # TypeNotRegisteredError: NAType
-hash_object(pd.Series(["a", None], dtype="string"))  # TypeNotRegisteredError: NAType
-hash_object(pd.Series(["a", None], dtype="string[pyarrow]"))  # TypeNotRegisteredError: NAType
-hash_object(
-    pd.Series(pd.to_datetime(["2020", None]).tz_localize("UTC"))
-)  # ValueError: NaTType does not support utcoffset
-hash_object(
-    pd.Series(pd.period_range("2020", periods=2, freq="D"))
-)  # TypeNotRegisteredError: Period
-hash_object(
-    pd.Series(pd.arrays.IntervalArray.from_breaks([0, 1, 2]))
-)  # TypeNotRegisteredError: Interval
-```
-
-`Int64`, `Float64`, `category`, `timedelta64`, `Sparse` and the `int64[pyarrow]` dtype work, so the
-failure depends on the dtype in a way users cannot guess. `objects_are_equal(a, a.copy(), equal_nan=True)`
-is `True` for all of them. This is the realistic case of round 4's 14.4 (which listed
-the scalars `pd.NA`, `pd.NaT`, `Period`, `Interval`), and it is the one that users hit: any data frame
-read with `convert_dtypes()` or `dtype_backend="pyarrow"` and containing a missing value.
-
-Fix, in `hashing/pandas.py`: for the columns that are not plain NumPy dtypes, hash
-`column.to_numpy(dtype=object, na_value=None)` (verified: it gives `None` for `NA` and `NaT`, and
-`Timestamp`, `Period` and `Interval` objects otherwise), and add the dtype string already hashed by
-`_hash_dtype`. Register hashers for `pd.Period` (`freqstr` and ordinal) and `pd.Interval`
-(`left`, `right`, `closed`) so that the objects of the arrays can be hashed, and route `NaTType`
-before `DatetimeHasher` (`NaT` is a `datetime` subclass). Add the dtypes above to the support matrix
-(`tests/integration/test_support_matrix.py`) and to `tests/properties/test_library_types.py`.
-
-### 22.2 Equal bfloat16 and float8 arrays hash differently **[verified]** (P2)
-
-`canonicalize_floats` (`hashing/numpy.py:88`) normalizes `-0.0` and the NaN bit pattern only for the
-NumPy kinds `f` and `c`. The `ml_dtypes` types (`bfloat16`, `float8_*`, which JAX uses and NumPy can
-hold) have the kind `V`:
-
-```python
-import ml_dtypes, numpy as np
 from coola.equality import objects_are_equal
 from coola.hashing import hash_object
 
-z, nz = np.array([0.0], dtype=ml_dtypes.bfloat16), np.array([-0.0], dtype=ml_dtypes.bfloat16)
-objects_are_equal(z, nz)  # True
-hash_object(z) == hash_object(nz)  # False
-# the same for the sign of a NaN, and for jnp.array([-0.0], dtype=jnp.bfloat16)
+a = pd.DataFrame({"c": pd.Categorical(["a", "b"], categories=["a", "b"])})
+b = pd.DataFrame({"c": pd.Categorical(["a", "b"], categories=["b", "a"])})
+objects_are_equal(a, b)  # True
+hash_object(a) == hash_object(b)  # False
+a.c.cat.codes.tolist(), b.c.cat.codes.tolist()  # ([0, 1], [1, 0])
 ```
 
-This is the 14.3 defect (round 4) for the dtypes that 14.3 did not reach. Fix: when
-`dtype.kind == "V"` and `dtype.type.__module__.startswith("ml_dtypes")`, view the array as the
-unsigned integer of the same size, and canonicalize with the integer pattern of `0.0` and of the
-default NaN (or `astype(np.float32)` for the hash only, which is exact for these types).
-The torch hasher has the same problem for float8 (`tensor + 0` raises, 14.5 of round 4): both can
-share the "convert to float32 for the normalization, hash the original bytes" strategy.
+With `ordered=True` the two are different for both (the contract holds), and with an extra unused
+category they are different for both. Only the order of the categories of an **unordered** categorical
+is invisible to equality and visible to the hash. This is the defect that the property test
+`test_different_frames_have_different_hashes` is marked `xfail(reason="pandas metadata (14.2)")` for:
+run it with `--runxfail` and Hypothesis finds `(None, None, ['a', 'b'], False)` against
+`(None, None, ['b', 'a'], False)`, and it fails on `assert not objects_are_equal(...)`, that is on the
+equality side, not on the hash. The marker hides it (39.2).
 
-### 22.3 pyarrow arrays are hashed through Python objects **[verified]** (P2)
+`pandas.testing.assert_frame_equal` compares the categories in order by default
+(`check_category_order=True`), so the simplest fix is in the equality: `_same_dtypes`
+(`equality/tester/pandas.py:326`) compares `list(df.dtypes)`, and `CategoricalDtype(["a", "b"]) ==
+CategoricalDtype(["b", "a"])` is `True` for unordered dtypes. Compare `list(dtype.categories)` for the
+category dtypes (also inside a `MultiIndex`), keep the hash as is, and remove the marker. The alternative (sort the categories in the hash) changes every categorical hash and is not recommended. The polars
+`Categorical` and the pyarrow dictionary arrays should be checked for the same question (not tested).
 
-`_hash_array` (`hashing/pyarrow.py:24`) calls `array.to_pylist()` and hashes the list item by item.
+### 34.2 `hash_object(np.timedelta64)` raises a `TypeError` that names no type **[verified]** (P2)
 
 ```python
-import numpy as np, pyarrow as pa
+import numpy as np
 from coola.hashing import hash_object
 
-hash_object(pa.array(np.arange(10**6)))  # 1.67 s
-hash_object(np.arange(10**6))  # 0.008 s
+hash_object(np.timedelta64(1, "s"))
+# TypeError: int() argument must be a string, a bytes-like object or a real number, not 'datetime.timedelta'
+hash_object(np.datetime64("2020-01-01"))  # TypeNotRegisteredError
 ```
 
-Fix: for the fixed-width types (`pa.types.is_integer`, `is_floating`, `is_boolean`, `is_temporal`,
-`is_decimal`), hash the validity bitmap and the values buffer with the NumPy path
-(`array.to_numpy(zero_copy_only=False)` after `fill_null(0)` is what the equality handler already
-does in `_to_numpy`), and keep `to_pylist()` for the strings, lists and structs. The hash changes for
-the types of the fast path, so do it with 22.4 (golden vectors first, then change the format once).
+`np.timedelta64` is a subclass of `np.signedinteger` (`[c.__name__ for c in np.timedelta64.__mro__]` is
+`['timedelta64', 'signedinteger', 'integer', ...]`), so the registry resolves it to the `ReprHasher`, and
+`_normalize_numpy_scalar` (`hashing/scalar.py:162`, `isinstance(data, np.integer)`) calls `int(value)`.
+The user guide says that the scalar is _not hashed yet_ (so a
+`TypeNotRegisteredError` is expected); the actual error is a bare `TypeError` that does not name the
+type.
 
-### 22.4 The "stable" IDs depend on global mutable state **[verified]** (P2)
+Fix: write the two hashers (`datetime64` and `timedelta64`: the unit, the int64 value, one `NaT`),
+register them in `hashing/numpy.py` (the type is in the MRO before `np.integer` if it is registered by
+its own class), and make the integer branch of the normalization test `dtype.kind in "iu"`, not
+`isinstance(data, np.integer)`. The same `isinstance(..., np.integer)` idiom should be searched for in
+the other packages (`grep -rn "np.integer\|np.signedinteger" src`).
 
-`generate_stable_content_id` and `generate_stable_uuid5` call `hash_object(data, registry=None)`, i.e.
-the **default registry**. That registry changes when (a) any code of the process calls
-`register_hashers`, or (b) an installed distribution declares a `coola.hashing.hashers` entry point
-(plugins are loaded the first time the registry is built, `utils/singleton.py:180`). A library that calls
-`register_hashers({int: ...}, exist_ok=True)` changes the IDs of every other library in the process,
-and the IDs differ between two environments that differ only by an installed package.
+### 34.3 The list of unhashable types is stale **[verified]** (P3)
 
-Suggestions, in this order:
+`docs/docs/uguide/hashing.md:229` lists the types that `objects_are_equal` supports and `hash_object`
+does not. Running `hash_object` on one object of each type gives, in addition to that list:
+`scipy.sparse` matrices and arrays (the equality tester was added in #2642), `pd.RangeIndex`,
+`pd.MultiIndex` and `pd.array(..., dtype="Int64")` (the pandas extension arrays), `JsonLoader` and the
+other `BaseLoader`/`BaseSaver` (they have an equality tester, `EqualEqualityTester`), `np.void`, `type`
+objects (`hash_object(int)`), `np.dtype` and `torch.dtype`. `tests/integration/test_support_matrix.py`
+has a `HASH_GAPS` set that is the right place to keep the list: it is `xfail(strict=True)`, so it cannot
+go stale, but it has no `scipy` row, and the guide is not generated from it.
 
-1. Golden vectors (14.6, carried): `tests/unit/hashing/test_golden.py` with one fixed value per hasher
-   family, so that a change of format is a deliberate edit.
-2. A frozen registry for the stable IDs: `get_stable_registry()` (built-in hashers only, no plugin, no
-   `register_hashers`) used by `generate_stable_content_id` and `generate_stable_uuid5` when
-   `registry=None`. Document that passing another registry opts out of the stability.
-3. A `HASH_FORMAT_VERSION` constant, mixed into the UUID5 name, so that the next format change
-   (22.3, 22.8) can be requested with `version=1`.
+Suggestions: (a) add the scipy sparse row to the matrix; (b) generate the sentence of the guide from
+`HASH_GAPS` (a test that compares the two is enough); (c) close the cheap gaps in one batch, since a
+hash format change is needed for each anyway: the NumPy time scalars (34.2), `np.dtype`, `torch.dtype`
+and `torch.device` (a string each), `array.array` (typecode and bytes), the dict views (as the list
+of the elements), `type` (the qualified name), the pandas `Index`, `RangeIndex`, `MultiIndex` and
+`Categorical` (the index hashing already exists inside the frame hasher, and only needs a registration
+of its own), and the scipy sparse matrices (format, shape, `data`, `indices`, `indptr`). The
+`LazyFrame` should stay out (hashing it would run the query).
 
-### 22.5 The hash of a huge integer depends on an interpreter setting **[verified]** (P3)
+## 35. `equality`: diagnostics and tolerance of the table testers
 
-`int_repr` (`utils/integer.py`) uses `int.__repr__` and falls back to hexadecimal only when Python
-raises `ValueError` for an integer above `sys.get_int_max_str_digits()` (4300 by default). The same
-integer therefore has two representations, and two hashes, depending on `PYTHONINTMAXSTRDIGITS` or
-`sys.set_int_max_str_digits`:
+### 35.1 A data frame difference is reported without cause, row or value **[verified]** (P2)
+
+The README promises that `compare` and `assert_objects_equal` "tell where two objects differ", and the
+array testers do (`actual['k'][0]`, `values are different: 1.0 vs 0.0`). The `TableEqualityTester`
+reports:
 
 ```python
-import sys
-from coola.hashing import hash_object
-
-sys.set_int_max_str_digits(0)
-a = hash_object(10**5000)
-sys.set_int_max_str_digits(4300)
-b = hash_object(10**5000)
-a != b  # True
+a = pd.DataFrame({"a": [1, 2], "b": [1.0, 2.0]})
+compare(a, a.rename(columns={"b": "c"})).format_message()  # 'tables have a different structure'
+compare(a, a.astype({"a": "float64"})).format_message()  # 'tables have a different structure'
+compare(a, a.set_axis([5, 6])).format_message()  # 'tables have a different structure'
+compare(a, a.iloc[:1]).format_message()  # 'tables have a different structure'
+compare(
+    a, a.assign(b=[1.0, 3.0])
+).format_message()  # "tables have different values: column 'b' differs"
+compare(
+    pl.DataFrame({"a": [1]}), pl.DataFrame({"a": [1.0]})
+).format_message()  # 'tables have a different structure'
 ```
 
-Fix: decide by size, not by exception: `value.bit_length() > 14000` (about 4200 digits) is always
-hexadecimal. The hash of an integer between 4300 and 14000 digits does not change for the default
-setting.
+The same four causes give the same sentence, and a value difference names the column but not the row
+nor the two values. For the tests of a data pipeline (the main use of `assert_objects_equal` on data
+frames) the message is the first thing the user reads.
 
-### 22.6 A string with a lone surrogate cannot be hashed **[verified]** (P3)
+Fix, in `equality/tester/table.py`: `same_structure(other, ctx)` returns `bool`; let it return `None`
+for "same" or a reason string (or call `ctx.fail(reason)` itself, as the array testers do) so that
+each adapter says which part differs: shape (`(2, 2)` vs `(1, 2)`), columns (`['a', 'b']` vs
+`['a', 'c']`, the first difference), dtypes (`a: int64` vs `a: float64`), index (the first differing
+label, or the name). For the values, `column_close` already has the two arrays (`array_equal` for the
+numeric kinds): compute the first mismatch with the existing `array_close` and report the row label
+and the two values; for the `exact` kind, report the first position where `~(s1 == s2)` (with the
+same null rule) is `True`, bounded as the NumPy reason is (`test_numpy_array_compare_reason_is_bounded`
+is the model). Add the row label to the path (`actual['b'][1]`) so that `format_path` is useful.
 
-`hash_string` raises `ValueError: Cannot hash a string that is not valid UTF-8` for `"a\udc80"`. Such
-strings are produced by `os.fsdecode` / `os.listdir` for a file name that is not valid UTF-8, so
-`hash_object(Path(name))`, `hash_object(os.listdir(...))` and every dict that has such a key raise.
-Encode with `errors="surrogatepass"` (deterministic, and the result is unchanged for every string that
-can be hashed today).
-
-### 22.7 Equal aware `time` objects hash differently **[verified]** (P3)
-
-`datetime.time(12, tzinfo=UTC) == datetime.time(13, tzinfo=timezone(timedelta(hours=1)))` is `True`
-and the hashes are different: `DatetimeHasher` normalizes aware `datetime` objects to UTC but hashes
-an aware `time` with its own `isoformat()`. Use the rule of `time.__hash__` (subtract the offset from
-the time of day) for aware `time` objects.
-
-### 22.8 Merkle hashing is 10 µs per small container **[lead]** (P3)
-
-`hash_object([{"a": i, "b": 1.0, "c": "x"} for i in range(10**5)])` takes 1.0 s: each node is hashed
-with its own `blake2b`, tagged, and the fixed-width digests of the children are concatenated and
-hashed again. This is simple and unambiguous, and it makes `hash_object(child)` reusable, but a
-streaming encoder (one `blake2b` object, a type tag and a length prefix per node) would do the same
-work with one hash call per container. It is a format change, so it belongs with 22.3 and the format
-version of 22.4. Not worth doing before the golden vectors exist.
-
-### 22.9 Carried over from round 4
-
-14.4 (hashers for the types that equality supports; the 27 `known gap` hash rows of the support matrix),
-14.5 (meta and float8 tensors raise `NotImplementedError`) and 14.7 (`compare=False` fields; the
-property test `test_equal_dataclasses_have_the_same_hash` still fails) are unchanged. 14.4 now
-has a first priority list: pandas missing values (22.1), then `Index`/`MultiIndex`/`Categorical`,
-`np.datetime64`/`np.timedelta64`, `array.array`, `dict_keys`/`dict_values`/`dict_items`,
-`MappingProxyType`, `slice`, `Ellipsis`, `re.Pattern`, `torch.dtype`/`torch.device`.
-
-## 23. `equality`
-
-### 23.1 Equal pydantic models are different after a `cached_property` is read **[verified]** (P2)
-
-`PydanticModelEqualityTester` (added in #2242) compares `__dict__` and `__pydantic_extra__`.
-`functools.cached_property` stores its value in the instance `__dict__`, so a model whose cached
-property was read is "different" from an equal model whose property was not:
+### 35.2 `objects_are_allclose` ignores the tolerance in nested and object columns **[verified]** (P2)
 
 ```python
-import functools
-from pydantic import BaseModel
-from coola.equality import compare, objects_are_equal
-from coola.hashing import hash_object
-
-
-class M(BaseModel):
-    x: int
-
-    @functools.cached_property
-    def double(self) -> int:
-        return self.x * 2
-
-
-a, b = M(x=1), M(x=1)
-a.double
-a == b  # True (pydantic ignores the cache)
-objects_are_equal(a, b)  # False: "objects have different lengths: 2 vs 1" at actual.__dict__
-hash_object(a) == hash_object(b)  # True (the hasher reads model_fields)
+S = pd.Series
+close(S([1.0]), S([1.000001]))  # True
+close(pl.Series([[1.0]]), pl.Series([[1.0000001]]))  # False  (list column)
+close(pl.Series([{"a": 1.0}]), pl.Series([{"a": 1.0000001}]))  # False  (struct column)
+close(pa.array([[1.0]]), pa.array([[1.0000001]]))  # False  (list array)
+close(pa.array([{"a": 1.0}]), pa.array([{"a": 1.0000001}]))  # False  (struct array)
+close(S([1.0], dtype=object), S([1.000001], dtype=object))  # False  (pandas object column)
 ```
 
-Equality, hashing and the summarizer must agree on what a model is. Fix: compare
-`{name: getattr(model, name) for name in type(model).model_fields}` (the fields the hasher and the
-summarizer use) plus `model_extra`, instead of `__dict__`; a handler such as
-`SameFieldsHandler(fields_getter)` keeps the report path (`actual.x`). Private attributes
-(`__pydantic_private__`) can be an opt-in, as in pydantic's own `__eq__`. Add the regression test (two equal models, a
-`cached_property` read on one of them).
+`_column` in the pandas, polars and pyarrow adapters classifies the data types into `numeric`,
+`duration` and `exact`; a list, a struct, an `object` column holding floats, and a decimal fall in
+`exact`, which "never sees the tolerance". The docstring of `_column` says so, but the user guide and
+the docstring of `objects_are_allclose` do not, and the result (`False` for a difference of `1e-7`
+with the default `rtol=1e-5`) is the opposite of what the function name promises. A model whose
+predictions are a struct or list column cannot be compared with a tolerance.
 
-### 23.2 Sets are compared with `==`, so `equal_nan` and the tolerance never apply **[verified]** (P3)
+Options: (a) document the rule in `uguide/equality.md` (a table of the dtypes that follow the
+tolerance), which is the minimum; (b) for `list`/`struct`/`object` columns, fall back to the
+engine: yield the values as children (`ctx.run` already compares nested Python values with the
+tolerance) when the tolerance is not zero. (b) costs a conversion to Python objects only on the
+non-exact path.
 
-There is no tester for `set` and `frozenset` (the default tester calls `==`). Documented in
-`equality.md:818`, but it is the one container with silent behaviour:
+### 35.3 `compare` and `assert_objects_equal` do not follow the `objects_are_*` signatures **[verified]** (P3)
+
+`compare(actual, expected, *, rtol=0.0, atol=0.0, ...)` takes a tolerance and defaults to an exact
+comparison; `assert_objects_allclose` defaults to `rtol=1e-5, atol=1e-8` (like `objects_are_allclose`);
+`assert_objects_equal` has no tolerance. So `compare(a, b)` is the diagnostic twin of
+`objects_are_equal` and not of `objects_are_allclose`, which is surprising to anybody who reads the
+README ("`compare` ... exact or with a tolerance"). Suggestion: keep `compare` exact, and add the
+sibling `compare_close` (or document the default prominently in the first line of the docstring);
+this is the moment to do it because `compare` is new in the 2.0 line.
+
+## 36. API, validation and `utils`
+
+### 36.1 The validators reject NumPy integers **[verified]** (P2)
 
 ```python
-objects_are_equal({1.0, float("nan")}, {1.0, float("nan")}, equal_nan=True)  # False
-objects_are_allclose({1.0}, {1.0 + 1e-9})  # False
-objects_are_equal({(float("nan"), 1)}, {(float("nan"), 1)}, equal_nan=True)  # False
+manual_seed(np.int64(3))  # TypeError: seed must be an int, got int64
+random_seed(np.int32(3))  # TypeError: seed must be an int, got int32
+objects_are_equal(1, 1, max_depth=np.int64(5))  # TypeError: max_depth must be an int, got int64
+summarize([1, 2, 3], max_items=np.int64(2))  # TypeError: max_items must be an int, got int64
+SnowflakeIdGenerator(worker_id=np.int64(1))  # TypeError: worker_id must be an int, got int64
+generate_ulid(timestamp_ms=np.int64(1700000000000))  # TypeError: timestamp_ms must be an int, ...
+round_values(1.234, decimals=np.int64(1))  # works (inconsistent with the others)
 ```
 
-Suggestion: a `SetEqualityTester` (same type, same length, then a matching): when every element is of
-an exact scalar type (`is_exact_scalar_sequence` logic of 13.7), keep `==`; otherwise match each
-element of `actual` to one unmatched element of `expected` through the registry (O(n²) worst case,
-bucket by `type(x)` first). Report `sets differ: 1 element of actual has no match` (the element, not
-the index, is the path). This closes the family left by 13.3 (Decimal, Fraction, timedelta are PR
-#2244).
+`validate_int` (`validation/type.py`) is `isinstance(value, int) and not isinstance(value, bool)`. A
+library whose raison d'être is NumPy and torch data meets NumPy integers all the time: the seed comes
+from `rng.integers(...)` or from a dataframe row, a timestamp from `df["t"].iloc[0]`. The error message
+("must be an int, got int64") is also hard to understand.
 
-### 23.3 Objects without value semantics **[verified]** (P3, _carried over_ from 13.1)
+Fix: accept `numbers.Integral` (NumPy registers its integer types, and `bool` is excluded explicitly
+as now) and have the callers store `operator.index(value)` so that the rest of the code sees a Python
+`int` (for the `Tolerance` and `EqualityConfig` dataclasses, `__post_init__` can use
+`object.__setattr__` on the frozen instance, or the interface functions can convert before building
+them). Add a parametrized regression test over the 6 entry points above. `validate_number` already
+accepts `np.float32` (it is a `numbers.Real`), so only the integer validator needs the change.
 
-`objects_are_equal(C(1), C(1))` for a plain class, `ValueError("a")` vs `ValueError("a")`, and two
-`functools.partial(print, 1)` are `False` (identity `==`). That is correct for "equal means `==`", and
-surprising next to dataclasses, pydantic models and `attrs`-like classes that are compared field by
-field. Options: document the rule in the "Type-specific behavior" table (it says "compared with `==`
-unless a tester exists"), and provide an opt-in `ObjectAttributesEqualityTester(attributes="vars")` (vars or
-`__slots__`, with a `BaseException` variant comparing `args`) that users register for their classes.
-`torch.nested` tensors still raise `RuntimeError` (13.6): compare `unbind()` of both.
+### 36.2 `dir()` of the packages leaks names; `coola.formatting` exports nothing **[verified]** (P3)
 
-## 24. `registry` and process-level behaviour
+`lazy_exports` returns `dir_` as `sorted({*namespace, *exports})`. For the 10 packages that use it
+(`io`, `reducer`, `hashing`, `equality`, `equality.tester`, `display`, `display.rich`, `random`,
+`nested`, `summary`) `dir(coola.nested)` therefore contains `TYPE_CHECKING` and `lazy_exports` (and
+`annotations`), next to the public names. Tab completion and the `help()` index show them. Return
+`sorted({*namespace.get("__all__", ()), *exports})` (`namespace` is the `globals()` of the package, and the packages define `__all__`).
 
-### 24.1 A registry lock held at `fork()` deadlocks the child **[verified]** (P2)
+`coola.formatting.__init__` re-exports nothing (`dir(coola.formatting)` is `['annotations']`), unlike
+every other package: the functions are reached through `coola.formatting.quantity`, `.text`,
+`.secret`, `.diff` and `.structure`. Either export the public names, or write in the module docstring
+that the submodules are the API, as `coola/__init__.py` does.
 
-`BaseRegistry` and `LazySingleton` hold `threading` locks. If a thread of the parent is inside a
-registry operation (registration, lazy loading, the first call that builds a default registry) when
-the process forks, the child inherits a locked lock whose owner does not exist. The next use of the
-registry in the child blocks forever. A typical case is a `torch.utils.data.DataLoader`
-with `fork` workers, or a `multiprocessing` pool, created while another thread of the program is
-using coola.
+### 36.3 `import_object` cannot reach an attribute of a class **[verified]** (P3)
 
 ```python
-# thread holds registry._state._lock, then os.fork(): the child calls registry.register(...)
-# -> never returns (the repro is 30 lines; the child was killed by SIGALRM after 5 s)
+import_object("os.path.join")  # ok
+import_object("collections.OrderedDict.fromkeys")  # ImportError: The target object does not exist
+pkgutil.resolve_name("collections.OrderedDict.fromkeys")  # <built-in method fromkeys ...>
 ```
 
-`coola.identifier` already solves this for its generators (`coola.utils.fork`: `track_fork` registers
-the object in a `WeakSet`, and `os.register_at_fork(after_in_child=...)` calls `_reset_after_fork`).
-Fix: move `track_fork` to `coola.utils` (public, with tests), make `BaseRegistry`, `LazySingleton`,
-`HasherRegistry._fallbacks_lock` and `_SAVE_LOCKS_GUARD` fork-aware (`_reset_after_fork` creates new
-locks; the registry content is valid because the child has a snapshot of memory), and add the
-integration test with `os.fork` (skipped on Windows). The `multiprocessing` `spawn` start method is
-not affected.
+`import_object` imports `rpartition(".")[0]` as a module. The `_init_` option of `instantiate_object`
+is the supported way to call an alternative constructor, so this has a workaround, but a `_target_`
+such as `torch.optim.lr_scheduler.LRScheduler.step` or a nested class or a class constant
+(`enum` members) fails. The registry already uses `pkgutil.resolve_name` for the lazy groups; the same
+function (with the `allowed_prefixes` check done on the string first, as now) gives the same
+behaviour and removes the hand-written error handling.
 
-### 24.2 A default registry can be changed but not copied, scoped or reset **[verified]** (P2)
+### 36.4 `coola.utils` contains 12 modules and a function that the library does not use **[verified]** (P3)
 
-Every default registry is a process-wide `LazySingleton`. The public API can mutate it
-(`register_*`, `clear`, `unregister`) and nothing can restore it:
+By a search of `src` outside `utils`, nothing imports (directly or by name) `password`, `git`,
+`env_vars`, `timing`, `date`, `file_size`, `batching`, `array`, `logging` (`CaptureHandler`), `lru`
+(`LRUCache`), `bloom_filter`, `recursion` or `path.find_root_package_parent`. They are documented in
+`uguide/utils.md` (348 lines) and tested, so they are maintained: each of them has to follow the
+conventions of the repository (a docstring with a doctest, a test per function, keyword-only options),
+and each is a public API that has to be kept in a 2.x line. `get_password` (an interactive prompt),
+`get_today_date`, `get_current_branch`, `temp_env_vars` and `timeblock` have nothing to do with
+comparing, hashing or summarizing.
+
+`docs/docs/dev/utils.md` (decision D2) keeps `password` and `recursion` "for now and re-examine them later".
+The alpha (`2.0.0a1`) is the moment to re-examine: either delete them, or move them to a separate
+distribution (`coola-utils`) and keep `coola.utils` for what the other packages import (`fork`,
+`singleton`, `imports`, `introspection`, `path.add_uuid_suffix`/`sanitize_path`, `safe`, `integer`,
+`selection`, `stats`, `mapping`, `version`, `tensor`). Without the unused modules `coola.utils` shrinks from 23 modules (and the `imports` and `fallback` sub-packages) to 11.
+
+## 37. Smaller findings by package
+
+### 37.1 `jsonable` **[verified]** (P3)
 
 ```python
-from coola.equality.tester import get_default_registry
-
-get_default_registry().clear()
-objects_are_equal(
-    np.ones(2), np.ones(2)
-)  # TypeNotRegisteredError: ndarray, for the rest of the process
+json.dumps(
+    to_jsonable({"a": float("nan")}), allow_nan=False
+)  # ValueError: Out of range float values ...
+json.dumps(to_jsonable(np.array([np.inf])), allow_nan=False)  # ValueError
+to_jsonable(np.longdouble(1.5))
+# TypeError: The converter of longdouble returned a value of the same type: it would be converted without end
+to_jsonable(np.array([1.5], dtype=np.longdouble))  # the same
+to_jsonable(
+    IntEnum_member
+)  # the member itself (it is an int), and a StrEnum member is kept as a dict key
+to_jsonable(
+    pd.DataFrame({"a": [1]})
+)  # TypeError: Cannot convert an object of type DataFrame to JSON
+to_jsonable(
+    torch.tensor([[1.0, 0]]).to_sparse()
+)  # RuntimeError: Cannot access data pointer of Tensor ...
 ```
 
-`clear()` also drops the pending lazy groups (`BaseRegistry.clear` clears `_lazy`), so the optional
-libraries cannot be loaded again. `LazySingleton.reset()` exists but is reachable only through the
-private `_default_registry` of each module. A user who registers a tester in one test (with
-`exist_ok=True`, since the default registry may already hold it) leaks it to every other test of
-the session.
+1. **Non-finite floats** are returned as `nan`/`inf`, which `json.dumps` writes as `NaN`/`Infinity`,
+   invalid in strict JSON (`JSON.parse` of a browser, PostgreSQL `jsonb`). The name is `to_jsonable`.
+   Add `nan="keep" | "null" | "raise" | "string"` (default `"keep"` to keep the current behaviour, or
+   `"null"` as the safe default in a 2.0) and apply it in the float leaf and in the NumPy/torch/pandas
+   fast path (`tolist()` followed by a check is the cost; `np.isfinite(array).all()` on a float array
+   is cheaper than the `tolist()`).
+2. **`np.longdouble`**: `scalar.item()` returns the same type, which the `ConvertTransformer` guard
+   reports as an infinite loop. Convert with `float(scalar)` (documented as lossy) or `str(scalar)`.
+   `dtype.char in "efd"` in `NDArrayTransformer` excludes `g`, which sends the array through the guard.
+3. **`IntEnum` / `StrEnum`**: the MRO finds `int`/`str` before `Enum`, so the member is returned
+   unchanged (a member that is an `int`), while a plain `Enum` gives its `value`. A dict key
+   `{SE.A: 1}` stays an enum member. `json.dumps` handles both, but `yaml.safe_dump` and strict encoders do not. The registry resolves the MRO of the type, and `int`/`str` come before `Enum`: register a transformer for `IntEnum` and `StrEnum` explicitly (the `value`).
+4. **`pandas.DataFrame`** has no transformer while `Series` and `Index` do. The obvious conversion is
+   `to_dict(orient="records")` or `"list"`; make it an option or document that it must be registered.
+5. **Sparse and nested tensors** raise a raw `RuntimeError`; check `tensor.layout` and raise the same
+   `TypeError` as the other unsupported objects (or use `to_dense()` for the sparse COO/CSR).
+6. `JsonSaver` (`io/json.py`) calls `json.dump` and so cannot save the objects that `to_jsonable` can.
+   Since both exist in the package, an option `JsonSaver(convert=True)` (call `to_jsonable` first)
+   closes the loop; it is one line and the docs can then describe one route from a nested object to a
+   file.
 
-Suggestions: `BaseRegistry.copy()` (shallow copy of state, lazy groups and fallbacks, new lock);
-a context manager `registry.scoped()` / `temporary_registry()` that restores the state on exit; a
-public `reset_default_registry()` per package (or one `coola.registry.reset_defaults()`); and a pytest
-fixture in `coola.testing` that snapshots and restores the default registries around a test. The
-`registry.md` guide gets a "Testing code that registers types" section.
-
-### 24.3 Entry-point plugins cannot be disabled or listed **[reading]** (P3)
-
-`load_registry_plugins` imports and calls every entry point of the group the first time a default
-registry is built. Only the failure mode is configurable (`COOLA_STRICT_PLUGINS`). Add
-`COOLA_DISABLE_PLUGINS=1` (reproducible runs, debugging a plugin conflict, 22.4), and a function that
-lists the plugins that were loaded (`coola.utils.singleton.get_loaded_plugins()`), so that a surprise in
-`objects_are_equal` or in a hash can be traced to a package without reading `importlib.metadata`.
-
-## 25. `recursive`, `iterator`, `summary`
-
-### 25.1 The traversal helpers do not have the protections of `equality` and `hashing` **[verified]** (P2)
-
-`objects_are_equal` raises `MaxDepthExceededError` (with the fix to apply), `hash_object` wraps the
-`RecursionError` in a `ValueError`, `dfs_iterate`/`bfs_iterate` detect cycles. Three entry points do none of it:
+### 37.2 `nested`: the default of `escape` loses information **[verified]** (P3)
 
 ```python
-cycle = []
-cycle.append(cycle)
-recursive_apply(
-    cycle, lambda x: x
-)  # RecursionError: maximum recursion depth exceeded (no cycle detection)
-dfs_iterate(deep)  # RecursionError for a 3000-level structure (bfs_iterate is iterative and works)
-summarize(deep, max_depth=5000)  # RecursionError
-convert_to_jsonable(deep)  # RecursionError
+from_flat_dict(
+    to_flat_dict({"a.b": 1, "c": {"d": 2}})
+)  # {'a': {'b': 1}, 'c': {'d': 2}}  (the key 'a.b' is gone)
+to_flat_dict({"a.b": 1, "a": {"b": 2}})  # ValueError: Key collision: ... 'a.b' (good)
 ```
 
-Suggestions: `TransformerRegistry.transform` tracks the ids of the ancestors like `PathRegistry` does for the
-iterators (cycle → `ValueError("Cycle detected...")`) and wraps the `RecursionError` in the same
-message as `_compare`; `summarize` documents that `max_depth` is the display depth and relies on the
-caller for the Python limit, or raises the same wrapped error; `dfs_iterate` could use an explicit
-stack (the `IterableIterator` and `MappingIterator` of the registry are the only users of the
-recursion). A shared helper `coola.utils.recursion.raise_if_too_deep(exc)` gives one message for all.
+`to_flat_dict` and `from_flat_dict` have `escape=False`. With the default, a key that contains the
+separator silently changes the structure on the way back; the collision check only catches the case
+where the two flattened keys are equal. Suggestions (breaking, fine for 2.0): default `escape=True`; or,
+if the unescaped form is wanted for readability, make `to_flat_dict` raise `ValueError` when a key
+contains the separator and `escape=False`.
 
-### 25.2 Summaries: set previews are random, some types fall back to `str()` **[verified]** (P3)
+### 37.3 `NativeReducer.mean` raises where the other reducers return `nan` **[verified]** (P3)
 
-- `SetSummarizer` previews the first `max_items` of `iter(set)`. For strings the order depends on
-  `PYTHONHASHSEED`: `summarize({"b", "a", "c"}, max_depth=2)` printed `a, c, b` here, and a log line
-  or an `assert summarize(x) == "..."` differs from one run to the next. Sort when the elements can
-  be sorted (`try_sorted_list` of `coola.nested` is the helper), keep the iteration order otherwise.
-- `pa.RecordBatch` is registered by equality and hashing, not by summary: it falls to
-  `DefaultSummarizer` and prints the Arrow `repr` (cut at 1000 characters) while `pa.Table` gets
-  `shape | columns`. `RecordBatch` has `.shape` and `.schema`, so registering it with
-  `PyarrowTableSummarizer` is one line. `np.ma.MaskedArray` goes through `NDArraySummarizer`, which
-  omits the mask: `summarize(np.ma.masked_array([1, 2], mask=[0, 1]))` shows only the shape and the
-  dtype, so two arrays that equality and hashing distinguish have the same summary.
+A differential fuzz of the three reducers (`mean`, `median`, `std`, `min`, `max`, `sort`, about 1,800 inputs over `0.0, -0.0, 1.0, 2.5, -3.0, inf, -inf, nan, 1e308, -1e308, 1e-320`) agrees everywhere except:
 
-### 25.3 Dataclasses and models are leaves for the traversal helpers **[reading]** (P3)
+- `NativeReducer().mean([inf, -inf])` raises `ValueError: -inf + inf in fsum`; NumPy and torch return
+  `nan`. 161 of the inputs. `mean([10**400, 10**400])` raises `OverflowError`.
+- `std` on values near the limits: NumPy and torch overflow or underflow (`std([0, 1e308])` is `inf`,
+  `std([0.0, 1e-320])` is `0.0`) where `NativeReducer` is right (`7.07e+307`, `7.07e-321`). This is not
+  a defect of coola but is worth a sentence in the docstring of `BaseReducer.std`.
+- `NumpyReducer().mean([1e308, 1.0, -1e308])` is `0.0` and torch gives `0.333...`: the naive sum
+  loses the `1.0`. Same remark.
 
-`recursive_apply`, `dfs_iterate`, `bfs_iterate`, `convert_to_jsonable` and the `nested` helpers treat
-a dataclass or a pydantic model as a leaf, while `objects_are_equal`, `hash_object`, `summarize` (15.3)
-and `to_jsonable` enter them. `recursive_apply(Config(...), func)` therefore calls `func` on the whole
-object. The fallback mechanism of `HasherRegistry` (12.4) would work here too: a
-`DataclassTransformer` (rebuild with `dataclasses.replace`) and a `DataclassIterator`, registered
-through `register_fallback`, opt-in through a `coola.recursive.enter_dataclasses()` helper so that the
-default behaviour does not change.
+Fix for the first: catch the `ValueError` of `math.fsum`, or test `math.isinf` of the values first and
+return `nan` when both signs are present, so that the three reducers agree; add the case to
+`tests/properties/test_reducer.py` as a cross-reducer property.
 
-## 26. `utils` and `nested`
+### 37.4 `random_seed` and a CUDA/MPS generator that is initialised inside the block **[reading]** (P3)
 
-### 26.1 `to_jsonable` of a dataclass deep-copies it **[verified]** (P2)
-
-`to_jsonable` calls `dataclasses.asdict(data)`, which deep-copies every field value that is not a
-dataclass, list, tuple or dict:
+`TorchRandomManager.get_rng_state` saves the CUDA state only `if torch.cuda.is_initialized()` and the
+MPS state only if MPS is available. `manual_seed` calls `torch.manual_seed`, which seeds CUDA lazily
+(it queues the seed if CUDA is not initialised). So
 
 ```python
-@dataclass
-class HasLock:
-    lock: object
-
-
-to_jsonable(HasLock(threading.Lock()))  # TypeError: cannot pickle '_thread.lock' object
-to_jsonable(HasLock(np.zeros(10**7)))  # copies 80 MB before converting the array to a list
+with random_seed(0):  # CUDA not initialised: the state of 'torch.cuda' is not saved
+    x = torch.randn(1, device="cuda")  # CUDA is initialised here with the seed derived from 0
+# after the block, set_rng_state restores the CPU state, the CUDA generators keep the seed of 0
 ```
 
-Fix: `{f.name: getattr(data, f.name) for f in fields(data)}` (the pattern `DataclassHasher` and
-`DataclassSummarizer` use) and convert the values with `_to_jsonable_recursive`. The behaviour for
-nested dataclasses is the same.
+Every later CUDA random number is then deterministic although the user asked for a scoped seed. Not
+reproduced (no GPU). Fix: in `get_rng_state`, when CUDA is available but not initialised, record that
+fact (`state["torch.cuda"] = None`) and, in `set_rng_state`, re-seed the CUDA generators from fresh
+entropy (`torch.cuda.seed_all()` would do) when the saved value is `None` and CUDA is now initialised;
+or document the limit in `random_seed` and in `uguide/random.md`.
 
-### 26.2 Smaller input-validation slips **[verified]** (P3)
+### 37.5 `formatting` and `summary` **[verified]** (P3)
 
-- `flatten_mapping({"a": 1})` raises `AttributeError: 'int' object has no attribute 'items'`. The
-  signature says `Mapping[Any, Mapping[Any, Any]]`; raise a `TypeError` that names the outer key.
-- `sort_by_keys({(1,): 1, ("a",): 2})` still raises `TypeError`: the fallback sorts by
-  `(type name, key)`, which fails for two keys of the same type that cannot be compared. Fall back to
-  `(type name, repr(key))` or keep the insertion order.
-- `slugify("😀")` returns `""`, an empty file or URL component. The function already hashes non-ASCII
-  text that has letters (`slugify("日本")`); the same rule can cover the text without letters.
+- `str_human_byte_size` (`formatting/quantity.py`) has no unit above TB: `1024**5` is `'1,024.00 TB'`,
+  `10**30` is `'909,494,701,772,928,256.00 TB'`. Add `PB`, `EB`, `ZB`, `YB`. The units are powers of
+  1024 but are written `KB`, `MB`: `KiB` is the IEC name, or switch to powers of 1000; say which in the
+  docstring. `str_human_byte_size(True)` returns `'1.00 B'` (a `bool` is accepted).
+- `truncate_str('abc', 0)` and `truncate_str('abcdef', 2)` raise a `ValueError` ("max_len (2) must be greater than or equal to the suffix length (3)"). A truncation helper that is used to build a message
+  should not raise because the limit is small: return `text[:max_len]` when the suffix does not fit.
+- `char_diff_summary('abc', 'abd')` is `'3 -> 3 chars (+0 chars, +0.0%).'`: it counts lengths, not
+  character differences; the name suggests the second.
+- `summarize(torch.sparse_coo_tensor)` shows no `layout` (the shape and dtype of a sparse tensor look
+  like a dense one), and `summarize(torch.nested.nested_tensor(...))` returns
+  `<summary failed: RuntimeError>` instead of the fields that can be read (`dtype`, `device` do not raise). Add `layout=` to the tensor summary when it is not `torch.strided`, and catch the `RuntimeError` per field.
 
-## 27. `io` and `factory`
+## 38. Performance
 
-### 27.1 Nested `_target_` configurations are not resolved **[verified]** (P3)
+### 38.1 A shared sub-object is visited once per reference **[verified]** (P2)
+
+`hash_object` memoizes the digest of a shared child (the cost for a DAG is linear, documented in the
+hashing guide) and `summarize` is bounded by `max_items`. The other helpers re-visit a shared object
+every time it is referenced, so a structure in which each level references the next one twice takes
+`2^n`:
 
 ```python
-resolve_object({"_target_": "collections.Counter", "a": {"_target_": "builtins.int"}})
-# Counter({'a': {'_target_': 'builtins.int'}})
+def dag(n):
+    x = [1]
+    for _ in range(n):
+        x = [x, x]
+    return x
+
+
+d = dag(20)  # 2 million nodes in the tree view, 20 objects in memory
+recursive_apply(d, lambda x: x)  # 4.1 s
+objects_are_equal(d, dag(20))  # 1.9 s
+sum(1 for _ in bfs_iterate(d))  # 2.4 s
+sum(1 for _ in dfs_iterate(d))  # 0.9 s
+to_jsonable(d)  # 1.7 s
+to_flat_dict(d)  # 3.3 s
+hash_object(d)  # 0.0 s
+summarize(d)  # 0.0 s
 ```
 
-Hydra users expect the nested configuration to be instantiated. The current behaviour is the safer
-one (the allow-list applies to one `_target_` per call), but neither `factory.md` nor the
-docstrings say so. Add one sentence and an example in the guide ("`_target_` is resolved at the top
-level only; resolve the nested ones with `resolve_object` yourself"), or an opt-in
-`recursive=True` that applies `allowed_prefixes` to every level.
+`n = 30` would take about a thousand times longer (not run). The same happens, less dramatically, for realistic structures: a config in
+which the same large sub-dict is referenced from 1000 places is compared 1000 times, and a list that
+contains the same `np.ndarray` object many times compares the array each time. Also,
+`recursive_apply([s, s], f)` returns a list whose two items are two distinct copies
+(`result[0] is result[1]` is `False`): the sharing is lost, which matters if a node is later mutated.
 
-### 27.2 `is_object_config` imports an untrusted module **[reading]** (P3, _carried over_ from 16.3)
+- **Equality**: `Engine.run` already has `visiting` (the pairs `(id(a), id(b))` on the current path, for
+  the cycles). Add a `proven` set of the pairs whose children were all found equal (add the key when the
+  child iterator is exhausted at `stack.pop()`), and return `True` for a pair in it. Sound as long as the
+  objects are not mutated during the comparison, which the cycle detection already assumes. This is also
+  the fix for the repeated array.
+- **`recursive_apply`**, **`to_jsonable`**, **`to_flat_dict`**, **`dfs_iterate`**, **`bfs_iterate`**:
+  `recursive_apply` is the base of the first three. A memo `id(obj) -> result` (valid only while the
+  input is alive, which is true during the call) gives a linear time and preserves the sharing.
+  `dfs_iterate`/`bfs_iterate` yield leaves, so a visited set would change what they yield: add a
+  keyword `unique=False` (visit each container once) rather than change the default, and document the
+  cost in the docstrings.
 
-#2258 made `resolve_object` check the target before calling it. `is_object_config`
-(`factory/config.py:74`) still calls `import_object(target)`, which imports the module named by the
-configuration just to answer a boolean (import-time side effects of an arbitrary module, or of a
-module of `allowed_prefixes`). Without `allowed_prefixes`, check the type without importing: parse the
-string, and answer `False` for the targets that are not in `sys.modules` unless the caller opts in
-(`import_target=True`).
+### 38.2 A list of floats takes 80x the time of `==` **[verified]** (P3)
 
-## 28. API and documentation
+```
+python == on two lists of 1e6 floats      1.7 ms
+objects_are_equal(...)                  141.5 ms
+objects_are_allclose(...)                84.6 ms
+objects_are_equal on two lists of 1e6 ints  39.2 ms     (has a fast path)
+```
 
-### 28.1 `import coola` exposes nothing **[verified]** (P2)
+`SequenceEqualityTester` has a fast path for lists and tuples of exact scalars
+(`is_exact_scalar_sequence`: `int`, `str`, `bytes`, `bool`, `None`), and `float` is excluded because of
+`NaN` and the tolerance. But `actual == expected` being `True` is sound for floats in every
+configuration (every pair is `==`, hence equal with any tolerance and any `equal_nan`; `-0.0 == 0.0`
+too), so the fast path can accept `float` for the `True` answer: `if actual == expected: return True`
+before the check of the types (the types are the same if both lists contain only floats; keep the
+`list(map(type, ...))` comparison). Only the `False` answer needs the slow path when `equal_nan` or a
+tolerance is set (already how the code is structured). The same shortcut applies to `complex`.
+A single list of floats is the common shape of a metric history or a loss curve.
 
-`coola.__init__` only provides `__version__`. The three functions that most users want are in three
-subpackages (`coola.equality.objects_are_equal`, `coola.hashing.hash_object`,
-`coola.summary.summarize`), and `coola.objects_are_equal` is an `AttributeError`. With
-`lazy_exports` (already used in every `__init__`) a flat namespace costs no import time:
+## 39. Tests, CI and maintenance
+
+### 39.1 A test fails on `main`: `docformatter` rewrote the source of a generated module **[verified]** (P1)
+
+```
+$ .venv/bin/pytest tests/integration/testing/test_marks.py::test_real_mark_is_importable_in_a_generated_module
+E   File ".../test_real_mark_is_importable_in_a_generated_module.py", line 1
+E     From coola.testing.marks import numpy_available,
+E          ^^^^^
+E   SyntaxError: invalid syntax
+```
+
+The test passes the source of a module to `pytester.makepyfile("""...""")`. The commit `8b53d01b` ("Fix format (#2534)") changed it to:
 
 ```python
-# coola/__init__.py
-_LAZY_EXPORTS = {
-    "objects_are_equal": "coola.equality",
-    "objects_are_allclose": "coola.equality",
-    "assert_objects_equal": "coola.equality",
-    "assert_objects_allclose": "coola.equality",
-    "compare": "coola.equality",
-    "hash_object": "coola.hashing",
-    "summarize": "coola.summary",
-}
+    pytester.makepyfile(
+        """From coola.testing.marks import numpy_available,
+        numpy_not_available.
+
+        @numpy_available
 ```
 
-Keep the subpackage paths as the documented ones for everything else. The import-time benchmark
-(`ci-benchmark-import.yaml`) guards the cost.
+The cause is `docformatter` (pre-commit hook, `types: python`, no `files`): it takes the triple-quoted string that is the only argument of the call for a docstring, capitalizes the first word, wraps the first line, adds a period and re-indents the rest. This is reproducible: running `docformatter --config pyproject.toml --in-place` on the version of the file before `8b53d01b` gives exactly the text above. The failure is deterministic and comes from the formatter, not from what the commit was about. I did not look at whether CI reports it (`ci-test.yaml` runs `inv test.integration`, which includes the test). The other `makepyfile` calls of the file are not affected because their source is an expression (`HEADER + """..."""`) and not the only argument.
 
-### 28.2 Options are positional in three entry points **[verified]** (P3)
+Fix, in order of preference: (a) restrict the hook to the code that has docstrings with
+`files: ^src/` (the `tests/**` per-file-ignore of ruff already disables the docstring rules `D`); (b) move the sources to module-level constants
+(`_MARK_MODULE = "from coola.testing.marks import ..."`, as `test_fixtures.py` does with `TEST_FILE`),
+or build them with `textwrap.dedent`; (c) both. Restore the source of the generated module. The pre-commit job (`ci-pre-commit.yaml`) is where a hook that rewrites a file must fail the build; check that it does so for `docformatter` (the commit is titled "Fix format", so the rewrite was merged as a formatting change and nobody ran the integration tests on it).
 
-`CLAUDE.md` asks for keyword-only options (`hash_object` and `objects_are_equal` are). Three others
-are not: `summarize(data, max_depth=1, registry=None)`, `recursive_apply(data, func, registry=None)`
-and `dfs_iterate`/`bfs_iterate(data, registry=None)`. `summarize(data, 2)` and `recursive_apply(data,
-f, registry)` are valid today and unreadable; a breaking change is acceptable: make `max_depth` and
-`registry` keyword-only (a `DeprecationWarning` for one release, as `hash_object` did).
+### 39.2 The non-strict `xfail` markers hide a defect and a wrong test **[verified]** (P2, _carried over_ 29.1)
 
-### 28.3 `max_depth` has two meanings **[reading]** (P3)
+`tests/properties/test_library_types.py` has three `xfail(strict=False)`. Running them with `--runxfail`:
 
-`objects_are_equal(max_depth=100)` is a **limit that raises** (`MaxDepthExceededError`), while
-`summarize(max_depth=1)` is a **display depth that truncates** (the rest is shown as a string). The
-same parameter name for opposite behaviours is easy to confuse (`summarize(data, max_depth=100)` is
-legitimate and `objects_are_equal(data, copy_of_data, max_depth=1)` raises for any structure nested
-more than one level). Rename in
-`summarize` (`depth` or `expand_depth`) with the old name accepted for a release, or say it in the
-first line of both docstrings.
+| Test                                                     | Marker says              | Actual state                                                                                                                                                                                                                                                                                                                                                                                          |
+| -------------------------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `test_equal_float_arrays_have_the_same_hash`             | NaN bit patterns (14.3)  | The defect is fixed (`hash_object(np.array([nan])) == hash_object(np.array([-nan]))`, also for a payload NaN). The test fails for another reason: `floats` is `sampled_from([0.0, -0.0, 1.0, -1.0, nan, -nan, inf])` and the test flips the sign of every item, so `[1.0]` against `[-1.0]` is a legitimate difference and the first `assert objects_are_equal(first, second, equal_nan=True)` fails. |
+| `test_different_structured_arrays_have_different_hashes` | structured dtypes (14.1) | **Passes**: the defect is fixed and the marker is stale (non-strict, so XPASS is silent).                                                                                                                                                                                                                                                                                                             |
+| `test_different_frames_have_different_hashes`            | pandas metadata (14.2)   | The metadata (names, attrs) is fixed. The remaining failure is the real defect 34.1 (category order).                                                                                                                                                                                                                                                                                                 |
 
-### 28.4 The README shows log output and never mentions `compare` **[verified]** (P3)
+Fix: remove the three markers; restrict the sample of the first test to the values that are equal to
+their sign flip (`0.0`, `-0.0`, `nan`, `-nan`; for `1.0`, `-1.0` and `inf` do not flip); after 34.1 the third passes. Make
+`xfail_strict = true` apply (it is set in `pyproject.toml` but `strict=False` on the marker overrides it;
+`grep -rn "strict=False" tests` should return nothing), and consider a `scripts/check_xfail.py` that
+runs the suite with `--runxfail` weekly to catch the reasons that change.
 
-The "Debug differences easily" example of the README uses `objects_are_equal(...,
-show_difference=True)` and a block "Log output". The differences are emitted with `logger.info`, so a
-user who copies the example sees only `False` (the root logger shows WARNING and above).
-`compare(...)` (a structured `ComparisonResult` with the path) and `assert_objects_equal` /
-`assert_objects_allclose` (the pytest use case, with the path in the `AssertionError`) are the better
-first examples; neither the README nor `index.md` nor `get_started.md` mention them, they appear
-only in `equality.md`. The overview paragraph also still describes a library that "makes it easy to compare
-complex and nested data structures" (19.3, carried): lead with the three features (compare, hash,
-summarize) and show `assert_objects_equal` first.
+### 39.3 Convention slips in the unit tests **[verified]** (P3, _carried over_ 29.2)
 
-## 29. Tests and CI
+Counted with an AST script over `tests/unit` (6289 tests):
 
-### 29.1 Stale non-strict `xfail` markers hide the state of the defects **[verified]** (P2)
+- **103** tests with more than one `assert` or `pytest.raises` (CLAUDE.md: one behaviour, one
+  assertion). Most in `utils` (18), `factory` (11), `hashing` (11), `registry` (11), `equality` (8),
+  `rounding` (8), `validation` (8), `reducer` (7). Examples: `unit/equality/test_engine.py:374-390`
+  (`test_warn_once_*` has a `pytest.warns` and an `assert` that both check the result),
+  `unit/factory/test_instantiation.py:102`.
+- **56** tests without an assertion or a `pytest.raises` (25 in `validation`, which is the "does not
+  raise" idiom, 9 in `display`). The `display/rich/test_print.py` tests (`print_markdown`,
+  `print_pretty`) call the function and assert nothing: capture the output with `capsys`/`Console(file=...)`
+  and assert it contains the title and the message, or they cannot fail. `test_installs_rich_handler`
+  ends with a comment (`# raises if not found`).
+- **82** section headers whose lines do not match the rule (the second line is `#`, 5 spaces, the name,
+  5 spaces, `#`, and the other two repeat `#` to the same length): `unit/equality/test_engine.py:204`
+  (`#     Tests cycle   #`, 3 spaces), `unit/display/rich/test_print.py:22` (the `#` lines are longer than
+  the title line), `unit/equality/_helpers/test_numpy.py:260`, `unit/display/test_pydantic.py:675`, etc.
+  A 15-line script can check and fix them; run it as a pre-commit hook (`local` repo hook).
+- **29** tests whose body contains a loop or a conditional (some of them in a local helper generator, for instance `unit/equality/test_engine.py:163`; others are real logic: `unit/nested/test_flat.py:737` and `:744` unroll a nesting with `for _ in range(DEEP_NESTING_DEPTH)`, and `unit/hashing/test_engine.py` builds a DAG in a loop). Use a helper function with its own test, `parametrize`, or move the test to `tests/integration`.
+- `time.sleep` is used in two integration tests (`integration/registry/test_type.py:409,600`: "encourage race conditions" and "let the thread miss the fast path and block on the lock"). It is allowed in `integration`, but the second test depends on the speed of the machine; a `threading.Event`/`Barrier` that the thread sets when it is about to block is deterministic.
 
-`tests/properties/test_library_types.py` marks four tests `xfail(strict=False)` with the number of the
-defect. The pytest configuration has `xfail_strict = true`, which the explicit `strict=False`
-overrides. Current state:
+### 39.4 Modules without a mirrored test file and functions never named in a test **[verified]** (P3)
 
-| Test                                                     | Marker says | Reality                                                                                 |
-| -------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------- |
-| `test_different_structured_arrays_have_different_hashes` | 14.1        | **XPASS**: fixed by #2250; the marker is stale                                          |
-| `test_different_frames_have_different_hashes`            | 14.2        | **XPASS**: fixed by #2251; the marker is stale                                          |
-| `test_equal_float_arrays_have_the_same_hash`             | 14.3        | **XFAIL, for another reason**: fixed by #2252, but the strategy flips the sign of `inf` |
-| `test_equal_dataclasses_have_the_same_hash`              | 14.7        | XFAIL: the defect is open                                                               |
+`tests/unit/<package>/test_<module>.py` should exist for each module (CLAUDE.md). Missing:
+`display/rich/print_.py`, `equality/tester/_array.py`, `equality/tester/base.py`,
+`equality/tester/object.py`, `factory/constants.py`, `hashing/{jax,numpy,pandas,polars,pyarrow,torch}.py`
+(their cases are presumably in `test_array_libraries.py`, which does not say which module a test covers),
+`iterator/base.py`, `recursive/base.py`, `summary/object_fields.py`. The coverage is 100%, so the code is
+executed; the point is that a test that fails does not point to the module.
 
-The third one cannot pass: `floats` includes `float("inf")`, `-x if flip else x` turns it into `-inf`, and
-`objects_are_equal(first, second, equal_nan=True)` (the first assertion) is `False`. An exhaustive
-check of the other six values (`0.0`, `-0.0`, `1.0`, `-1.0`, `nan`, `-nan`) finds no pair of equal arrays
-with different hashes, so the test would pass without `inf`. The marker hides that the property is
-now true, and would hide a regression. Fix: remove the flip for `inf` (flip only zeros and NaNs), remove the
-three stale markers, and use `strict=True` for the one that remains (14.7) so that fixing it
-fails the test until the marker is removed. A rule for the repository: `xfail` in a PR always carries `strict=True`.
+CLAUDE.md also says that every function, private ones included, has its own unit test. A script that
+lists the functions of `src` whose name appears nowhere in `tests/` gives 162 names. Most are private
+helpers that are only covered through the public function, for instance
+`equality/_helpers/elementwise.py` (`_is_torch`, `_is_integer`, `_itemsize`, `_cast`, `_to_double`,
+`_integer_close`), `equality/_helpers/numpy.py` (`_uses_tolerance`, `_is_nan_like`, `_durations_close`,
+`_supports_nan`), `equality/engine.py` (`_fail_types`, `_check_depth`, `_record_failure`),
+`equality/tester/pandas.py` (`_same_index`, `_index_equals`, `_same_dtypes`, `_column`, `_series_equals`,
+`_has_nan_dtype`, `_same_label`), `io/base.py` (`_fsync_file`, `_fsync_directory`, `_link`),
+`nested/flat.py` (`_freeze`, `_split_key`, `_escape_key`, `_set_nested`, `_set_leaf`, `_build_key`),
+`registry/type.py` (`_encode_type`, `_decode_type`, `_load_groups`, `_resolve`, `_resolve_uncached`),
+`summary/engine.py` (`_cut`, `_repr`, `_repr_list`, ..., `_visit`), `reducer/base.py`
+(`_prepare_input`, `_check_quantiles`), and also public ones: `hashing/numpy.py:canonicalize_floats`
+and `hash_array_content`, `utils/fallback/factory.py:make_fake_module`,
+`utils/imports/optional.py:check_colorlog`, `check_rich`, `check_scipy`, `utils/introspection.py:get_type_constructor`,
+`equality/_helpers/torch.py:tensor_close`. The list is reproducible with the script of the appendix. Do it package by package, with the existing helpers; the elementwise kernel in particular
+deserves its own tests (the dtype pairs int8/uint64/float16/bfloat16 and the overflow cases are where an
+error would be), because three libraries share it.
 
-### 29.2 Test layout and convention slips **[verified]** (P3)
+### 39.5 Boilerplate: 56 import guards and 12 `is_*`/`check_*` pairs **[verified]** (P3)
 
-- `CLAUDE.md` says unit tests mirror the source tree. Fifteen modules have no `test_<module>.py`:
-  `hashing/{numpy,pandas,polars,pyarrow,torch,jax,base}.py`, `summary/{base,object_fields}.py`,
-  `equality/tester/base.py`, `iterator/{bfs,dfs}/base.py`, `recursive/base.py`, `reducer/base.py`,
-  `factory/constants.py`. The hashers of the libraries are tested in one file,
-  `tests/unit/hashing/test_array_libraries.py` (86 tests), and `tests/unit/hashing/test_xarray.py` has
-  one test (`repr`) while the hasher is tested in `test_array_libraries.py`. Split the file per
-  library (`test_numpy.py`, `test_pandas.py`, ...), which also makes the missing dtypes of 22.1 visible.
-  The abstract `base.py` modules need no file (say so in `TESTING_GUIDE.md`).
-- An AST scan of `tests/unit` finds 31 tests with more than one `assert`/`raises` (6 in
-  `factory/test_resolve.py`, 4 in `registry/test_type.py`, 3 in `io/test_base.py` and
-  `utils/imports/test_torch_numpy.py`), one test with a loop (`utils/test_bloom_filter.py`) and one
-  test that sleeps (`identifier/test_snowflake.py::test_snowflake_id_generator_generate_holds_lock_during_busy_wait`),
-  against the rules of `CLAUDE.md`. The sleeping test belongs in `tests/integration/`.
-- `fail_under` is still not set in `[tool.coverage.report]` (carried from 18.4); the coverage is 99%, so
-  `fail_under = 99` costs nothing. Mutation testing of `equality/handler` is still not done.
+- `grep -rn "pragma: no" src` gives 65 lines; 56 of them are the `else:  # pragma: no cover` of the optional import guard
+  `if TYPE_CHECKING or is_numpy_available(): import numpy as np / else: from coola.utils.fallback.numpy import numpy as np`.
+  CLAUDE.md forbids `# pragma: no cover` on a line that can be tested; these lines can be (a job runs the package without its optional libraries), but the coverage of that job is not combined with the main one as far as I can see (`ci-test.yaml` uploads a single cell), so the pragma is the practical choice. Combining the coverage of the two jobs (`coverage combine`) and removing the pragmas would make the 100% mean something again.
+- `utils/imports/optional.py` (530 lines) has one `@availability_cache def is_X_available()` and one
+  `def check_X()` per library (12 pairs), each with a docstring and a doctest, which are the same code
+  with a different name. `check_rich`, `check_scipy` and `check_colorlog` are never referenced by a test
+  (39.4). A small factory `make_optional("numpy") -> (is_available, check)` removes 300 lines. The
+  explicit functions are kept for the type checker; assigning the factory results at module level
+  (`is_numpy_available, check_numpy = make_optional("numpy")`) types fine with `Callable[[], bool]` and
+  `Callable[[], None]`.
+- `module_available` (used by every `is_*_available`) imports the module, while `package_available`
+  uses `find_spec`; the two names do not say it. A docstring line in each is enough.
 
-## 30. Packaging and documentation
+## 40. Documentation and packaging
 
-### 30.1 Metadata and release notes **[verified]** (P3, _carried over_ from 19.1 to 19.3)
+### 40.1 `docs/docs/dev` describes removed code; `dev` and `review/` duplicate each other **[verified]** (P3)
 
+- `docs/docs/dev/iterator.md:37,156` and `docs/docs/dev/recursive.md:41,150` give `DataclassMarker` as the
+  registration of the dataclass child finder and transformer. `DataclassMarker` was deleted in #2472;
+  the code registers `registry.register_fallback(dataclasses.is_dataclass, DataclassChildFinder())`
+  (`iterator/interface.py:250`). `dev/summary.md` and `dev/registry.md` mention it too. The mentions of
+  `convert_to_jsonable`, `resolve_or`, `enter_dataclasses` and `coola.tools` in `dev/nested.md`,
+  `dev/registry.md`, `dev/recursive.md` and `dev/utils.md` are in the history paragraphs (acceptable if
+  they say so).
+- `docs/docs/dev` has 7436 lines in 22 files and `review/` 11608 lines. About half of the lines of a
+  `review/<package>.md` also appear in `docs/docs/dev/<package>.md` (338 of 862 for hashing, 309 of 716
+  for summary, 208 of 608 for registry), and the published pages contain the decision logs ("Decided",
+  "Recommended": 18 lines in `dev/utils.md`, 16 in `dev/identifier.md`, 10 in `dev/hashing.md`, ...). The reader of a published
+  architecture page wants the current design, the contracts and the extension points, not the options
+  that were weighed.
+  Suggestion: once a design is implemented, keep **one** current page per package in `docs/docs/dev`
+  (architecture and contracts, with the `pycon` examples that are doctested) and move the decision
+  record to `docs/adr/NNNN-title.md` (or delete `review/<package>.md`, whose content is in git
+  history), and add a check that greps `docs/docs/dev` for the names that `src` no longer defines
+  (a 20-line test: collect the backticked identifiers of the docs that look like `CamelCase` or
+  `snake_case()` and check that they are importable from `coola`, with an allow-list for the history
+  paragraphs).
+
+### 40.2 Packaging metadata **[verified]** (P3, _carried over_ 30.1)
+
+- `Development Status :: 5 - Production/Stable` is the classifier of a `2.0.0a1` alpha; use
+  `3 - Alpha` (then `4 - Beta`, `5` at 2.0.0).
+- `license = "BSD-3-Clause"` (an SPDX expression, PEP 639) **and** the classifier
+  `License :: OSI Approved :: BSD License`: PEP 639 says to use one or the other, and setuptools-based consumers of the metadata reject the combination. `uv build` (hatchling) accepts it, and the wheel metadata carries both (`License-Expression` and `Classifier`). Remove the classifier.
 - `CITATION.cff` still says `title: "COOLA: A Python library to check if two complex/nested objects are
-equal or not."`, `date-released: 2023-01-01`, and has no `version`. Use the description of
-  `pyproject.toml` and add the release date and version to the release steps
-  (nothing in `docs/docs/dev/development.md` describes the release steps yet).
-- `Development Status :: 5 - Production/Stable` for `1.2.0a2` (19.1), no `CHANGELOG.md` or "What
-  changed in 1.2" page (19.2) are unchanged. Items 22.1 to 22.5 and 23.1 change hash values or
-  equality results, so the notes are now needed: each of them has a "behaviour change" line to copy.
-- The 19.3 docstring slip (`objects_are_equal` documents `RecursionError`, the class is
-  `MaxDepthExceededError`) is unchanged (`equality/interface.py:87`).
+equal or not."`, `date-released: 2023-01-01` and has no `version`, `abstract` or `keywords`, while the
+  library is now "compare, hash and summarize". Update the title, the version (`2.0.0a1`, which a
+  release script can fill) and the date.
+- The `all` extra installs `pytest` (the `testing` extra is part of it) in an environment where nobody
+  runs the tests; exclude `testing` from `all`.
 
-## 31. Status of round 4
+## 41. Status of round 5
 
-Checked against `git log 0287a61a..HEAD` and by re-running the repros.
+Checked on `main` at `7cd495e8` by running the repro of each item.
 
-| Round-4 ID                 | Status      | Notes                                                                                                     |
-| -------------------------- | ----------- | --------------------------------------------------------------------------------------------------------- |
-| 12.1, 12.2, 12.4           | Fixed       | #2238, #2239, #2241                                                                                       |
-| 12.3                       | Documented  | #2245 (decision documented, the locks are still held during the comparison)                               |
-| 13.1                       | Fixed       | #2242 (pydantic tester and `==` that raises); the generic attributes tester is 23.3, and 23.1 is new      |
-| 13.2, 13.3                 | **PR open** | #2243 (symmetric tolerance), #2244 (Decimal, Fraction, timedelta); sets are 23.2                          |
-| 13.4, 13.5, 13.6, 13.7     | Fixed       | #2246, #2247, #2248, #2249 (`torch.nested` still raises: 23.3)                                            |
-| 14.1, 14.2, 14.3           | Fixed       | #2250, #2251, #2252 (the same family remains for bfloat16/float8: 22.2; pandas missing values: 22.1)      |
-| 14.4, 14.5, 14.6, 14.7     | **Open**    | Reproduced; see 22.9 and 22.4                                                                             |
-| 15.1, 15.2, 15.3           | Fixed       | #2253, #2254, #2255                                                                                       |
-| 16.1 to 16.5               | Fixed       | #2256 to #2260 (the second half of 16.3, `is_object_config`, is 27.2)                                     |
-| 17.1 to 17.3, 17.5 to 17.7 | Fixed       | #2261 to #2266 (17.2 as #2262)                                                                            |
-| 17.4                       | Fixed       | `utils/imports` is `package.py`, `optional.py` and `lazy.py`; the fallbacks take the package name (#2572) |
-| 18.1, 18.2, 18.3           | Fixed       | #2267, #2268, #2269 (but see 29.1 for the markers of 18.2)                                                |
-| 18.4                       | Partly      | Type diagnostics of the tests in CI (#2270); `fail_under`, mutation testing, pytest plugin: open          |
-| testing.md                 | Fixed       | #2526 to #2530, and the guide PR (`review/testing.md`)                                                    |
-| 19.1, 19.2, 19.3           | **Open**    | See 30.1 and 28.4                                                                                         |
+| Round-5 ID                         | Status     | Notes                                                                                                                                                     |
+| ---------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 22.1                               | Fixed      | `boolean`, `string`, tz-aware, `Period` and `Interval` series with a missing value hash.                                                                  |
+| 22.2, 22.3, 22.5, 22.6, 22.7, 22.8 | Fixed      | bfloat16 `-0.0` hashes like `0.0`; `hash_object(pa.array(np.arange(10**6)))` takes 12 ms; huge integers, lone surrogate, aware `time`.                    |
+| 22.4                               | Partly     | `get_stable_registry` is used by `identifier/content.py`; the optional `HASH_FORMAT_VERSION` constant (item 3 of 22.4) is not there.                      |
+| 23.1                               | Fixed      | Two models are equal after a `cached_property` was read on one of them.                                                                                   |
+| 23.2                               | **Open**   | `objects_are_allclose({1.0}, {1.0000001}, atol=1e-3)` is still `False`: the elements of a set are compared with `==`.                                     |
+| 23.3                               | **Open**   | Plain objects, exceptions and `functools.partial` compare `False` even if all attributes are equal (`ObjectAttributesEqualityTester` is not the default). |
+| 24.1, 24.2, 24.3                   | Fixed      | `track_fork`, `temporary_default_registries`, `COOLA_DISABLE_PLUGINS`/`get_loaded_plugins`.                                                               |
+| 25.1, 25.2, 25.3                   | Fixed      | Cycles and any depth with an explicit stack; deterministic summaries of sets (checked under 3 `PYTHONHASHSEED`); dataclasses are entered.                 |
+| 26.1, 26.2                         | Fixed      | `DataclassTransformer`; the `TypeError` of `flatten_mapping` names the key.                                                                               |
+| 27.1                               | Documented | A nested `_target_` is not resolved (`resolve_object({... "a": {"_target_": ...}})` returns the inner dict unchanged); the guide says so.                 |
+| 27.2                               | Fixed      | `is_object_config(..., import_target=False)` does not import.                                                                                             |
+| 28.1                               | Won't fix  | `coola/__init__.py` states the choice (only `__version__`).                                                                                               |
+| 28.2                               | Fixed      | Options of `summarize`, `recursive_apply`, `dfs_iterate`, `bfs_iterate` are keyword-only.                                                                 |
+| 28.3                               | **Open**   | `max_depth` still raises above the limit in `equality` and is a display depth in `summary` (now documented as such).                                      |
+| 28.4                               | Fixed      | The README quick start shows `assert_objects_equal` with its path and mentions `compare` (but see 35.1 and 35.3).                                         |
+| 29.1                               | **Open**   | See 39.2: one marker is stale (the test passes), one hides a wrong test, one hides 34.1.                                                                  |
+| 29.2                               | **Open**   | See 39.3 and 39.4.                                                                                                                                        |
+| 30.1                               | **Open**   | See 40.2.                                                                                                                                                 |
+| Items of the `review/<package>.md` | Fixed      | As listed in the table of round 5 (kept in git history); no regression seen in the probes of this round.                                                  |
 
-## 32. Suggested order
+## 42. Suggested order
 
-1. **Crash on realistic input, one PR each, with the regression test that would have caught it:**
-   22.1 (pandas missing values), 26.1 (`to_jsonable` of a dataclass), 23.1 (pydantic
-   `cached_property`).
-2. **Test hygiene, first, because it makes the next steps visible:** 29.1 (markers and strategy).
-3. **Hash format, in one batch (the hash values change once):** golden vectors (14.6/22.4) first, then
-   22.2, 22.3, 22.5, 22.6, 22.7, 14.7, 14.5, and the new hashers of 14.4. Add the frozen registry and
-   `HASH_FORMAT_VERSION` in the same release and write the notes (30.1).
-4. **Robustness of the process:** 24.1 (fork), 24.2 (copy, scope, reset), 25.1 (cycles and depth of
-   the traversal helpers), 24.3 (plugins).
-5. **API:** 28.1 (flat namespace), 28.2, 28.3 (breaking), 28.4 (README), 27.1.
-6. **Cleanup:** 22.8, 23.2, 23.3, 25.2, 25.3, 26.2, 27.2, 29.2, 17.4 (carried).
+1. **Unblock `main`:** 39.1 (restore the test and stop the formatter from rewriting `tests/`).
+   One small PR; the rest of the list is easier to review once the suite is green.
+2. **Tests first, because they make the next steps visible:** 39.2 (remove the markers, fix the
+   strategy), which makes 34.1 an ordinary red test; then 39.3 (the header script and the multi-assert
+   tests can be done mechanically, package by package).
+3. **Contract fixes, one PR each, with the regression test that fails without the change:** 34.1
+   (category order), 34.2 (`timedelta64` and `datetime64`), 36.1 (NumPy integers), 37.3 (`mean` of
+   `[inf, -inf]`), 37.2 (default of `escape`).
+4. **Diagnostics:** 35.1 (messages of the table testers), then 35.2 (document the rule first, the
+   engine fallback second), 35.3.
+5. **Hash format batch (the hash values change once; do it with the format version):** 34.3 (the new
+   hashers) together with 34.2.
+6. **Performance:** 38.2 (the float fast path, five lines), then 38.1 (the memo of the equality engine,
+   then `recursive_apply` and the helpers built on it). Add both to `tests/benchmarks`.
+7. **API and `utils`:** 36.2, 36.3, 37.1, then the decision of 36.4 (the 2.0 window).
+8. **Maintenance:** 39.4, 39.5, 40.1, 40.2 and 37.4/37.5 as time permits.
 
-## 33. Status of the items fixed in round 5
+## Appendix: the script of 39.4
 
-| ID                                 | Status | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ---------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 25.1                               | Fixed  | `recursive_apply`: cycles and any depth with an explicit stack (#2375). `dfs_iterate` and `bfs_iterate` too (#2395).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| 25.3                               | Fixed  | `recursive_apply`, `round_values` (#2377), `dfs_iterate` and `bfs_iterate` enter dataclasses by default; `enter_dataclasses` is removed (#2381).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| 28.2                               | Fixed  | `recursive_apply`: `registry` is keyword-only, the deprecated paths are removed (#2373), as `dfs_iterate` and `bfs_iterate` (#2395), and `summarize` (#2441).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| F1 to F10 (`review/factory.md`)    | Fixed  | Steps 1 to 8 of the factory design: guide (#2405), one import error (#2406), allow-list and collisions (#2407), `_init_` rule (#2408), `builds` (#2409), dict rule and one import (#2410), integration and property tests (#2411), migration page (this PR).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| F1 to F13 (`review/summary.md`)    | Fixed  | Steps 1 to 7 of the summary design: guide and properties (#2438), `UserString` and `MappingProxyType` (#2439), keyword-only options and validated `max_depth` (#2441), engine, `Node`, `SummaryConfig` and options of `summarize` (#2443), `field(repr=False)` (#2444), documentation (this PR). Also 25.1 for `summarize` (no `RecursionError`) and 25.2 (deterministic sets).                                                                                                                                                                                                                                                                                                                                                                |
-| F1 to F13 (`review/reducer.md`)    | Fixed  | Steps 1 to 6 of the reducer design: guide and properties (#2451), `auto_reducer` (#2452), `BaseReducer` template (#2453), input rule and errors (#2454), `NativeReducer.mean` (#2455), migration page (#2456).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| F1 to F13 (`review/registry.md`)   | Fixed  | Steps 1 to 7 of the registry design: guide and properties (#2463), plain `dict` cache (#2464), fallbacks in `TypeRegistry` (#2465) then equality (#2466), summary (#2467), iterator (#2468), recursive and nested (#2469), hashing (#2471), deletion of `DataclassMarker` and `resolve_or` (#2472), one storage class and replaced state (#2473), lazy groups as a tuple (#2475), pickle (#2476), documentation (this PR). Also 24.1 for the registries (a lock held at `fork()`).                                                                                                                                                                                                                                                             |
-| F1 to F15 (`review/hashing.md`)    | Fixed  | Steps 1 to 8 of the hashing design: benchmark (#2481), documentation (#2483), equality-consistency and type-sensitivity (#2484), engine and `encode` contract with `__coola_hash__` (#2485), secrets as types with a hasher (#2486), dead and deprecated code (#2487), user guide, architecture and migration page (this PR). Also 22.8 (cost of a small container), 14.7 (`compare=False` fields) and, for `MappingProxyType`, 14.4. The prefix property of `length`, any depth and a linear cost for a DAG are documented. Step 10 (inlined leaves, this PR's successor) makes flat containers about 2x faster than before; the gate is still not met on a scalar, an empty list and deep nesting (see the appendix of `review/hashing.md`). |
-| F1 to F13 (`review/io.md`)         | Fixed  | Steps 1 to 7 of the io design: guide (#2499), honest types and strict `TextSaver` (#2500), `_load` template and shared `equal` (#2501), `add_uuid_suffix` to `coola.utils.path` (#2502), save lock removed (#2503), property tests and test layout (#2504), architecture and migration page. F6 (async) is out of scope.                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| F1 to F12 (`review/identifier.md`) | Fixed  | Steps 1 to 8 of the identifier design: guide and properties (#2510), the four wrappers removed (#2511), one Crockford decoder and strict inputs (#2512), `TickSequence` (#2513), `SnowflakeIdGenerator(worker_id=...)` (#2515), one content module (#2516), checksummed identifiers (#2517), tests and documentation (this PR).                                                                                                                                                                                                                                                                                                                                                                                                                |
-| F1 to F13 (`review/nested.md`)     | Fixed  | Steps 0 to 9 of the nested design: `dfs_items` (#2538), properties (#2539), keyword-only options and private helpers (#2540), keys on the engine (#2541), `from_flat_dict` without recursion (#2542), deterministic `convert_to_jsonable` (#2543), `to_flat_dict` on `dfs_items` (#2544), mappings and records (#2545), `flatten_frame` (#2546), documentation (#2547), benchmark gate (#2549), property tests (this PR). Also 25.3 for `nested` (dataclasses are entered), and 26.2 for `flatten_mapping` (a `TypeError` that names the outer key; `sort_by_keys` and `slugify` are still open).                                                                                                                                              |
-| F1 to F13 (`review/utils.md`)      | Fixed  | Steps 1 to 10 of the utils design: three defects (#2567), documentation (#2568), `coola.tools` (#2569, moved back into `coola.utils` afterwards) and `coola.formatting` (#2570), `working_directory` removed (#2571), `imports` rewritten (#2572), keyword-only options and validation (#2573), one qualified name (#2574), `to_jsonable` in `nested` (#2575), `singleton` split (#2576), documentation (this PR). Also 26.2: `sort_by_keys` falls back to `(type name, repr)` and `slugify("😀")` returns a hash.                                                                                                                                                                                                                             |
-| F1 to F13 (`review/json.md`)       | Fixed  | Steps 1 to 4 of the json design: `coola.jsonable` with the containers and the standard library types (#2652), NumPy, PyTorch, pandas and pydantic (#2653), `convert_to_jsonable` and the old `to_jsonable` removed (#2654), documentation (#2656). The arrays of numeric dtypes skip the element check to pass the benchmark gate (D12).                                                                                                                                                                                                                                                                                                                                                                                                       |
-| 26.1                               | Fixed  | `to_jsonable` reads the fields of a dataclass one by one (`DataclassTransformer`), no `dataclasses.asdict` (#2652); the old function is removed (#2654).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+The other checks of section 39 are small AST scripts over `tests/unit` (count the `assert` and
+`pytest.raises` per `test_*` function; match the three lines of each header). They are not in the
+repository. The three that would be worth keeping in CI are (a) the header checker (39.3), (b) the
+report below (39.4), and (c) the check that the identifiers of `docs/docs/dev` exist (40.1).
+
+```python
+import ast, pathlib, re
+
+tests = "".join(p.read_text() for p in pathlib.Path("tests").rglob("*.py"))
+for p in sorted(pathlib.Path("src/coola").rglob("*.py")):
+    if p.name == "__init__.py":
+        continue
+    rel = p.relative_to("src/coola")
+    if not (pathlib.Path("tests/unit") / rel.parent / f"test_{rel.name}").exists():
+        print("no mirrored test file:", rel)
+    for node in ast.walk(ast.parse(p.read_text())):
+        if isinstance(node, ast.FunctionDef) and not node.name.startswith("__"):
+            if not re.search(rf"\b{re.escape(node.name)}\b", tests):
+                print("never named in a test:", f"{rel}:{node.lineno}", node.name)
+```
+
+(The methods that implement an abstract method with the same name, such as `expand` or
+`objects_are_equal`, are tested through the public function; exclude them.)
