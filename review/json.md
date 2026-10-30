@@ -20,22 +20,22 @@ were reproduced; **[reading]** comes from the code. Nothing in `src`, `tests` or
 These are the rules. Every design choice below exists to make one of them true **by construction**
 (in the engine, in one transformer) instead of by the discipline of each converter.
 
-| Property                 | Statement                                                                                                                                                                                                                                                                                                                                                                                | Enforced by                                |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| JSON data model          | The output contains only `dict` with `str` keys, `list`, `str`, `int`, `float`, `bool` and `None`. Tuples, deques, sets and ranges become lists, dataclasses and pydantic models become dicts. A subclass of `str`, `int` or `float` (an `IntEnum` member) is kept: `json` writes it as its base value.                                                                                  | the registry (one transformer per type)    |
-| Accepted by `json`       | `json.dumps(to_jsonable(x))` never raises for a `x` that `to_jsonable` accepts, and `json.loads` of it equals `to_jsonable(x)` (`NaN` aside). Hence `to_jsonable(to_jsonable(x)) == to_jsonable(x)`: the function is idempotent.                                                                                                                                                         | the property test (section 8)              |
-| Strict and loud          | A value whose type has no transformer raises a `TypeError` that names the type and tells how to register one. It is never returned unchanged, never replaced by `repr` or `None`.                                                                                                                                                                                                        | the `object` transformer                   |
-| Type dispatch            | The transformer is chosen from `type(data)` along the Method Resolution Order, so the most specific registered type wins (the dispatch of every registry of `coola`).                                                                                                                                                                                                                    | `TransformerRegistry`                      |
-| Registry-extensible      | A new type is supported by registering one transformer, without changing another one. A plugin group (`coola.jsonable.transformers`) does it from another package.                                                                                                                                                                                                                       | the registry, the plugin group             |
-| Keys are strings         | Every key of the output is a `str`. A `str` key is kept; `bool`, `int`, `float` and `None` are written like `json.dumps` writes them (`"true"`, `"1"`, `"1.5"`, `"null"`); any other key is converted by the registry (a `Path`, a `UUID`, an `Enum`) and must give one of these. A key that cannot (a tuple) raises `TypeError`. Two keys that give the same string raise `ValueError`. | the mapping transformer                    |
-| No silent loss           | Two entries are never merged into one, a value is never dropped and a secret is never written: `SecretStr` and `SecretBytes` give `"**********"`. Everything that is lossy is listed under "Not guaranteed".                                                                                                                                                                             | the transformers, tested one by one        |
-| Deterministic            | The same input gives the same output in every process (whatever `PYTHONHASHSEED` is): dictionaries keep the order of the input, a set becomes a sorted list, and the sort never depends on the iteration order of the set.                                                                                                                                                               | the set transformer                        |
-| Pure                     | The input is never modified. The output shares no container with the input (leaves are immutable). A converter keeps no state; a registry is read, never modified, so it can be shared by threads.                                                                                                                                                                                       | the engine, stateless transformers         |
-| Cycle-safe               | A container that contains itself raises `ValueError`, whichever transformer is registered for it.                                                                                                                                                                                                                                                                                        | the engine of `coola.recursive`            |
-| Any depth                | No `RecursionError`, whatever the nesting (100,000 levels work; `json.dumps` itself raises a `RecursionError` at that depth **[verified]**). The depth is bounded by memory only.                                                                                                                                                                                                        | the engine of `coola.recursive`            |
-| Consistent with siblings | The same containers as `equality`, `hashing`, `summary`, `recursive` and `iterator`: dataclasses are entered, text and bytes are leaves, iterators and generators are not accepted. Options are keyword-only.                                                                                                                                                                            | the default registry                       |
-| Lazy                     | `import coola.jsonable` imports no optional library. The converters of NumPy, PyTorch, pandas and pydantic are loaded the first time the registry meets a type of the library, with no look at `sys.modules`.                                                                                                                                                                            | `register_lazy`                            |
-| Fast                     | The cost is linear in the number of nodes, about 0.07 µs per leaf, and there is no per-call setup (no registry is built per call).                                                                                                                                                                                                                                                       | the engine, the default registry singleton |
+| Property                 | Statement                                                                                                                                                                                                                                                                                                                                                                                                                    | Enforced by                                |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| JSON data model          | The output contains only `dict` with `str` keys, `list`, `str`, `int`, `float`, `bool` and `None`. Tuples, deques, sets and ranges become lists, dataclasses and pydantic models become dicts. A subclass of `str`, `int` or `float` (an `IntEnum` member) is kept: `json` writes it as its base value.                                                                                                                      | the registry (one transformer per type)    |
+| Accepted by `json`       | With the default `on_unsupported="raise"` (and with `"warn"` when no warning was issued), `json.dumps(to_jsonable(x))` never raises, and `json.loads` of it equals `to_jsonable(x)` (`NaN` aside). Hence `to_jsonable(to_jsonable(x)) == to_jsonable(x)`: the function is idempotent.                                                                                                                                        | the property test (section 8)              |
+| Strict and loud          | By default (`on_unsupported="raise"`), a value whose type has no transformer raises a `TypeError` that names the type and tells how to register one. It is never silently returned unchanged, never replaced by `repr` or `None`. The caller can choose `"warn"` (a `UserWarning` per value, the value is kept) or `"keep"` (the value is kept): both are explicit, and only they give up the property "Accepted by `json`". | the leaf function of the mode              |
+| Type dispatch            | The transformer is chosen from `type(data)` along the Method Resolution Order, so the most specific registered type wins (the dispatch of every registry of `coola`).                                                                                                                                                                                                                                                        | `TransformerRegistry`                      |
+| Registry-extensible      | A new type is supported by registering one transformer, without changing another one. A plugin group (`coola.jsonable.transformers`) does it from another package.                                                                                                                                                                                                                                                           | the registry, the plugin group             |
+| Keys are strings         | Every key of the output is a `str`. A `str` key is kept; `bool`, `int`, `float` and `None` are written like `json.dumps` writes them (`"true"`, `"1"`, `"1.5"`, `"null"`); any other key is converted by the registry (a `Path`, a `UUID`, an `Enum`) and must give one of these. A key that cannot (a tuple) raises `TypeError`. Two keys that give the same string raise `ValueError`.                                     | the mapping transformer                    |
+| No silent loss           | Two entries are never merged into one, a value is never dropped and a secret is never written: `SecretStr` and `SecretBytes` give `"**********"`. Everything that is lossy is listed under "Not guaranteed".                                                                                                                                                                                                                 | the transformers, tested one by one        |
+| Deterministic            | The same input gives the same output in every process (whatever `PYTHONHASHSEED` is): dictionaries keep the order of the input, a set becomes a sorted list, and the sort never depends on the iteration order of the set.                                                                                                                                                                                                   | the set transformer                        |
+| Pure                     | The input is never modified. The output shares no container with the input (leaves are immutable). A converter keeps no state; a registry is read, never modified, so it can be shared by threads.                                                                                                                                                                                                                           | the engine, stateless transformers         |
+| Cycle-safe               | A container that contains itself raises `ValueError`, whichever transformer is registered for it.                                                                                                                                                                                                                                                                                                                            | the engine of `coola.recursive`            |
+| Any depth                | No `RecursionError`, whatever the nesting (100,000 levels work; `json.dumps` itself raises a `RecursionError` at that depth **[verified]**). The depth is bounded by memory only.                                                                                                                                                                                                                                            | the engine of `coola.recursive`            |
+| Consistent with siblings | The same containers as `equality`, `hashing`, `summary`, `recursive` and `iterator`: dataclasses are entered, text and bytes are leaves, iterators and generators are not accepted. Options are keyword-only.                                                                                                                                                                                                                | the default registry                       |
+| Lazy                     | `import coola.jsonable` imports no optional library. The converters of NumPy, PyTorch, pandas and pydantic are loaded the first time the registry meets a type of the library, with no look at `sys.modules`.                                                                                                                                                                                                                | `register_lazy`                            |
+| Fast                     | The cost is linear in the number of nodes, about 0.1 µs per leaf, and there is no per-call setup (no registry is built per call).                                                                                                                                                                                                                                                                                            | the engine, the default registry singleton |
 
 Not guaranteed, and documented as such:
 
@@ -128,8 +128,13 @@ until only JSON scalars and containers remain: an `Enum` gives its value (which 
 paths), `ndarray.tolist()` gives a list that is checked like any list (F5), a pydantic model gives a
 dict whose values may be sets or arrays (F6), a `SecretStr` gives a `str`. No converter calls another
 one, no converter knows the registry, and nothing is returned unchecked. The leaf function of the
-engine is the identity, because every value that reaches it is a JSON scalar: the others go through a
-transformer or raise.
+engine is chosen by the option `on_unsupported`, and it is the only place where the three modes
+differ: `object` is a leaf like the JSON scalars, so a value of an unregistered type reaches the leaf
+function, which keeps the JSON scalars and treats the others as unsupported (`"raise"`: `TypeError`,
+`"warn"`: `UserWarning` and the value is kept, `"keep"`: the value is kept, the function is the
+identity and costs nothing). The transformers are the same in the three modes, so there is one
+registry and nothing is built per call. The check is one `isinstance` against the five scalar types,
++0.03 µs per leaf (7.7 ms to 10.6 ms for 100,000 `int` in the prototype).
 
 ### 3.1 Modules
 
@@ -139,7 +144,8 @@ coola/jsonable/
     interface.py      to_jsonable, get_default_registry, register_transformers; the default registry
                       (native types, lazy libraries, plugin group)
     transformers.py   ConvertTransformer (the public building block) and the transformers of the
-                      containers: Unsupported, Sequence, Set, Mapping, Dataclass
+                      containers: Sequence, Set, Mapping, Dataclass (the leaf functions of `on_unsupported` are in
+                      `interface.py`)
     stdlib.py         get_default_transformers(): the standard library types (Path, UUID, Decimal,
                       bytes, date/time, timedelta, Enum, range, UserString)
     numpy.py          get_default_transformers(): ndarray, np.generic
@@ -171,12 +177,32 @@ class ConvertTransformer(InlineDisplayMixin, BaseTransformer[T]):
         return [converted], _first
 
 
-class UnsupportedTransformer(InlineDisplayMixin, BaseTransformer[Any]):  # registered for ``object``
-    def expand(self, data):
-        raise TypeError(
-            f"Cannot convert an object of type {type(data).__qualname__} to JSON: register a "
-            f"ConvertTransformer for it with coola.jsonable.register_transformers"
+# ``object`` and the JSON scalars are registered with ``DefaultTransformer`` (leaves). The leaf
+# function of ``on_unsupported`` is the only code that tells a scalar from an unsupported value.
+_SCALARS = (str, int, float, bool, type(None))
+
+
+def _keep(value):  # "keep": everything that reaches the leaf function is kept
+    return value
+
+
+def _raise(value):  # "raise"
+    if isinstance(value, _SCALARS):
+        return value
+    raise TypeError(
+        f"Cannot convert an object of type {type(value).__qualname__} to JSON: register a "
+        f"ConvertTransformer for it with coola.jsonable.register_transformers, or pass "
+        f"on_unsupported='keep'"
+    )
+
+
+def _warn(value):  # "warn": same message as a UserWarning, then the value is kept
+    if not isinstance(value, _SCALARS):
+        warnings.warn(
+            f"Cannot convert an object of type {type(value).__qualname__} to JSON; kept as is",
+            stacklevel=2,
         )
+    return value
 
 
 class SequenceTransformer(...):  # list, tuple, deque, Sequence, range
@@ -211,7 +237,7 @@ The default registrations (the contract test of section 8 checks every row):
 
 | Type                                              | Transformer                                 | Output                                     |
 | ------------------------------------------------- | ------------------------------------------- | ------------------------------------------ |
-| `object`                                          | `UnsupportedTransformer`                    | `TypeError` naming the type                |
+| `object`                                          | `DefaultTransformer` (leaf)                 | the leaf function of `on_unsupported`      |
 | `str`, `int`, `float`, `bool`, `NoneType`         | `DefaultTransformer` (scalar)               | kept                                       |
 | `list`, `tuple`, `deque`, `Sequence`, `range`     | `SequenceTransformer`                       | `list`                                     |
 | `set`, `frozenset`                                | `SetTransformer`                            | sorted `list`                              |
@@ -238,17 +264,22 @@ kept (D11).
 
 ```python
 from coola.jsonable import (
-    to_jsonable,  # (data, *, registry=None)
+    to_jsonable,  # (data, *, registry=None, on_unsupported="raise")
     get_default_registry,  # the singleton TransformerRegistry
     register_transformers,  # (mapping, *, exist_ok=False)
     ConvertTransformer,  # (func): the building block of a custom type
 )
 ```
 
-`to_jsonable(data, *, registry=None)` is the one function. It replaces `convert_to_jsonable` and the
+`to_jsonable(data, *, registry=None, on_unsupported="raise")` is the one function. It replaces `convert_to_jsonable` and the
 old `to_jsonable`; there is no alias. `registry` is a `coola.recursive.TransformerRegistry` (a copy of
-`get_default_registry()` plus the caller's entries). It raises `TypeError` for an unsupported type or
-key, and `ValueError` for a cycle and for two keys that give the same string.
+`get_default_registry()` plus the caller's entries). `on_unsupported` says what happens to a value
+whose type has no transformer: `"raise"` (default) raises `TypeError`, `"warn"` issues a `UserWarning`
+and keeps the value, `"keep"` keeps the value silently; any other string raises `ValueError` before
+any work is done (validated with `coola.validation`). A key that cannot become a string always
+raises `TypeError` (whatever the mode), and `ValueError` is raised for a cycle and for two keys that
+give the same string. With `"warn"` and `"keep"` the result may contain objects that `json` rejects;
+the caller owns them.
 
 The extension example of the guide is the shortest possible one:
 
@@ -333,8 +364,8 @@ Behaviour of the prototype on the probes of F1 to F11 **[verified]**:
 | `UserString("ab")` with a `Sequence` transformer                           | n/a                                        | **never ends**; with `UserString` registered: `'ab'`  |
 
 Two limits of the prototype: it has no `pandas.py` (so the `NaT` row is the design, not a
-measurement), and its leaf function is the identity as in the design, so a `str` enum member is kept
-as a member (D11).
+measurement), and its leaf function is the identity (the mode `"keep"`; the check of the other modes was
+measured separately, section 3), so a `str` enum member is kept as a member (D11).
 
 ## 7. Changes to reach the target state
 
@@ -353,12 +384,13 @@ break calling code):
 1. `coola.nested.convert_to_jsonable(x)` and `coola.nested.conversion.to_jsonable(x)` become
    `coola.jsonable.to_jsonable(x)`. The new function enters containers and dataclasses, so
    `to_jsonable([Path("a")])` converts the path.
-2. A value of an unknown type raises `TypeError` (it was returned unchanged). The remedy is
-   `register_transformers` with a `ConvertTransformer`.
+2. A value of an unknown type raises `TypeError` (it was returned unchanged). The remedies are
+   `register_transformers` with a `ConvertTransformer`, or `on_unsupported="keep"` to get the old
+   behaviour (`"warn"` to see which values are kept).
 3. Tuples, deques, named tuples and ranges become lists; `OrderedDict`, `defaultdict` and `Counter`
    become dicts.
 4. The keys become strings (as `json.dumps` writes them) or raise; two keys that give one string raise.
-5. NumPy, PyTorch and pydantic outputs are checked: complex numbers and objects raise, a `datetime64`
+5. NumPy, PyTorch and pydantic outputs are checked: complex numbers and objects raise (by default), a `datetime64`
    with a unit coarser than the nanosecond gives an ISO string instead of a `date`, a `timedelta64`
    gives seconds, `np.bytes_` gives Base64.
 6. A pydantic model is dumped with `model_dump()` (Python mode) and converted by the registry: the sets
@@ -382,9 +414,11 @@ test for every bug, checked to fail without the fix).
   a converter that returns its own type raises.
 - **The default registry** (`test_interface.py`, new): one row per line of the table of section 3.2,
   with a sample and a literal expected value (like `NATIVE_SAMPLES` in `equality`), `UserString` is a
-  string, `numpy.float64` goes through `item`, an `IntEnum` is kept, an unknown type raises
-  `TypeError` that names the type, a dataclass class (not an instance) raises, and `to_jsonable` does
-  not modify the default registry.
+  string, `numpy.float64` goes through `item`, an `IntEnum` is kept, an unknown type raises in the
+  default mode, warns and is kept with `"warn"`, is kept silently with `"keep"`, an invalid
+  `on_unsupported` raises `ValueError`; an unknown type in a key raises in the three modes; the
+  `TypeError` names the type; a dataclass class (not an instance) is unsupported; and `to_jsonable`
+  does not modify the default registry.
 - **The libraries** (`test_numpy.py`, `test_torch.py`, `test_pandas.py`, `test_pydantic.py`): with the
   `*_available` fixtures; the cases of F5 to F7 (complex, object array, `datetime64[D]`, a tensor with
   `requires_grad`, `bfloat16`, `NaT`, a model with a set, a NumPy field and a `SecretStr`).
@@ -420,11 +454,18 @@ the sibling `recursive` property does not apply to a conversion whose purpose is
 representation. Alternative: keep tuples and `OrderedDict`; the caller then cannot tell whether the
 result is JSON without calling `json.dumps`, and the property test of section 8 disappears.
 
-**D2. An unsupported type raises.** _Recommended: yes._ "Strict and loud" is principle 3 of the
-architecture guide. The error is raised at the leaf, with the type and the remedy. Alternatives:
-return the value unchanged (today, F1); a `default=` keyword like `json.dumps` (a fallback for every
-unknown type; one more option, and the caller has `ConvertTransformer` for a type). A caller who
-wants "anything goes" registers `ConvertTransformer(repr)` for `object` in a copy of the registry.
+Decision: follow recommendation
+
+**D2. What happens to an unsupported type: three modes.** _Decided: `on_unsupported` with `"raise"`
+(default), `"warn"` and `"keep"`._ The default is "strict and loud" (principle 3 of the architecture
+guide): the error is raised at the leaf, with the type and the remedy. `"warn"` issues a
+`UserWarning` per value and keeps it, so a caller migrating from `convert_to_jsonable` can see what
+is not converted; `"keep"` keeps it silently (the behaviour of `main`, F1). Only the leaf function
+differs between the modes (section 3), so there is one registry and no cost for `"keep"`. The price
+is the one `isinstance` per leaf of the two checking modes (+0.03 µs) and the property "Accepted by
+`json`", which holds in `"raise"` only. Rejected: a `default=` callable like `json.dumps` (the
+registry already is the per-type hook); `repr` as a fourth mode (`ConvertTransformer(repr)` registered
+for `object` in a copy of the registry does it).
 
 **D3. Pydantic models: `model_dump()` in Python mode, then the registry.** _Recommended._ The registry
 owns the semantics (principle 4): the sets are sorted, the arrays and the paths are converted, a
@@ -436,21 +477,29 @@ non-deterministic sets, fails on a NumPy field, F6); the fields as children, as 
 `summary` do (ignores `exclude` and every serializer). A model that needs its JSON mode registers
 `ConvertTransformer(lambda m: m.model_dump(mode="json"))` for its class.
 
+Decision: follow recommendation
+
 **D4. `NaN` and infinities are kept.** _Recommended._ The contract is "what `json` accepts by default"
 (as `save_json` documents), and `json.dumps(..., allow_nan=False)` is the one place that enforces
 RFC 8259 and reports the offending value. Alternatives: an `allow_nan` keyword that raises (a second
 check of what `json.dumps` already does), or `NaN` to `None` (silently changes a number into a
 missing value, the kind of loss the properties forbid).
 
+Decision: follow recommendation
+
 **D5. Bytes are Base64.** _Recommended: keep._ It is the existing behaviour and the usual one for
 binary data; it is lossless but indistinguishable from text on reading. Alternatives: raise (strict,
 but the common case of a small blob then needs a registration), or UTF-8 decoding (raises for binary
 data and returns text for text).
 
+Decision: follow recommendation
+
 **D6. A `timedelta` is a number of seconds.** _Recommended: keep._ Simple, no new code (`total_seconds`),
 and the one that most consumers read. It is a `float`, so microseconds are lost above ~285 years.
 Alternative: an ISO 8601 duration (`"P1DT0.000001S"`), lossless and what pydantic writes, but it needs
 a formatter of about ten lines and a parser on the reading side.
+
+Decision: follow recommendation
 
 **D7. Frames and tables are not converted by default.** _Recommended._ A `DataFrame` has at least three
 usual shapes (list of records, dict of columns, split) and none is neutral: a default would be a
@@ -459,6 +508,8 @@ The guide shows the one-line registration for each shape. `polars`, `pyarrow`, `
 the same decision (a jax array is `tolist()` and can be registered in one line, so it is a candidate
 for the second round).
 
+Decision: follow recommendation
+
 **D8. A new package `coola.jsonable`, one function.** _Recommended._ The name avoids `coola.json`
 (which hides the standard library in `from coola import json` and in the reader's head) and echoes
 `to_jsonable`, the name that `pydantic_core` and FastAPI (`jsonable_encoder`) already teach.
@@ -466,15 +517,21 @@ for the second round).
 only fix the code; cheaper, but `nested` then owns a registry, a plugin group and four library
 adapters, and the guide of `nested` stays about two unrelated things.
 
+Decision: follow recommendation
+
 **D9. `register_transformers` and `ConvertTransformer` rather than a new function-based API.**
 _Recommended._ The registry is the extension point of every package, the plugin group needs it, and
 `ConvertTransformer(func)` makes the common case (a value to a JSON-able value) one line. A
 `register_converters({Point: func})` would be a second spelling of the same thing.
 
+Decision: follow recommendation
+
 **D10. The keys go through the registry.** _Recommended._ It is why a `Path`, a `UUID`, an `Enum` or a
 `datetime` key works, with no code in the mapping transformer, and a collision is reported once, at
 the end. Alternative: only `str`, `int`, `float`, `bool` and `None` keys, anything else raises (the
 rule of `json.dumps` itself); simpler, but `{Path("a"): 1}` then needs a pre-pass by the caller.
+
+Decision: follow recommendation
 
 **D11. Subclasses of the JSON scalars are kept.** _Recommended._ A `str` enum member, an `IntEnum`
 member, a `numpy.str_` are `str` or `int` for the MRO, and `json` writes them as their base value.
@@ -484,12 +541,16 @@ would not change what `json` writes. Alternative if a consumer needs exact types
 driver): register the enum class itself, `register_transformers({MyEnum: ConvertTransformer(lambda e:
 e.value)})`, because the MRO then finds it before `str`.
 
+Decision: follow recommendation
+
 **D12. The output of an array is checked.** _Recommended._ The check is what makes "accepted by `json`"
 true for complex numbers, object arrays and `datetime64` (F5), and it costs 0.09 µs per element
 against 0.32 µs for `json.dumps` itself. Alternative if a user converts arrays of tens of millions of
 elements: skip the check for the numeric dtypes (`kind in "biuf"`), a four-line `ArrayTransformer`
 that returns `((), lambda _: data.tolist())`; not included until a benchmark of a real use asks for
 it.
+
+Decision: follow recommendation
 
 **D13. No guard against a converter that never ends, other than its own type.** _Recommended._ The
 engine has no depth limit by design ("Any depth"), so a transformer that returns a value of a type that
@@ -498,6 +559,8 @@ converts to a value of the first type (or a sequence whose elements are sequence
 (the same type); the contract test over the default registry catches the others; the guide states the
 rule "a conversion must reduce the type to simpler ones". A depth counter in the engine would add a
 check to every node for a mistake of a plugin author.
+
+Decision: follow recommendation
 
 ## 10. Not covered
 
