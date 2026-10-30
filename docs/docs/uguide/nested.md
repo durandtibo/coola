@@ -14,8 +14,7 @@ The `coola.nested` package provides utilities for working with nested data struc
 2. **Flat dictionaries** - Flatten a nested structure to dot-separated keys and rebuild it
 3. **Mapping utilities** - Extract values, filter keys, rename keys, merge mappings and flatten a
    mapping of mappings
-4. **JSON conversion** - Convert a nested structure to JSON-compatible data
-5. **Frame flattening** - Flatten the struct and list columns of a polars `DataFrame`
+4. **Frame flattening** - Flatten the struct and list columns of a polars `DataFrame`
 
 This is particularly useful when working with tabular data, configuration files, or any nested data
 structures that need to be transformed or manipulated.
@@ -379,23 +378,8 @@ This is useful when you want to preserve certain data types as strings in the fl
 
 ## JSON Conversion
 
-Use `convert_to_jsonable()` to recursively convert a nested structure to JSON-compatible data.
-Dataclasses and pydantic models found at any depth are converted to dictionaries, and sets are
-converted to sorted lists (the order does not depend on the iteration order of the set, so it is the
-same in every process). A dataclass is converted by the engine, field by field, like any other
-container, and a tuple stays a tuple:
-
-```pycon
->>> from dataclasses import dataclass
->>> from coola.nested import convert_to_jsonable
->>> @dataclass
-... class Point:
-...     x: int
-...     y: int
->>> convert_to_jsonable([Point(x=1, y=2), {"key": Point(x=3, y=4)}, {3, 1, 2}])
-[{'x': 1, 'y': 2}, {'key': {'x': 3, 'y': 4}}, [1, 2, 3]]
-
-```
+The conversion of a nested structure to JSON data is in [`coola.jsonable`](jsonable.md):
+`to_jsonable(data)` replaces the former `convert_to_jsonable`.
 
 ## Flattening a polars DataFrame
 
@@ -418,8 +402,6 @@ is only known after the evaluation. The supported range of polars is `polars>=1.
 
 ## What `coola.nested` does not do
 
-- **Keys of `convert_to_jsonable`.** The output is accepted by the Python `json` module, not by a
-  strict JSON parser: the keys are not converted to strings, and `NaN` and the infinities are kept.
 - **Dataclasses and pydantic models from `from_flat_dict`.** The function builds dicts and lists:
   rebuilding a typed object needs a schema.
 - **A deep merge.** `merge_mappings` merges the top level with a duplicate strategy; it does not
@@ -514,22 +496,22 @@ Processing ID 3 with value 30
 
 ## Properties
 
-The functions fall into five groups: `flat` (`to_flat_dict`, `from_flat_dict`, `flatten_frame`),
+The functions fall into four groups: `flat` (`to_flat_dict`, `from_flat_dict`, `flatten_frame`),
 `keys` (`remove_keys_if`, `remove_keys_containing`, `remove_keys_starting_with`,
 `add_prefix_suffix_to_keys`), `mappings` (`merge_mappings`, `flatten_mapping`, `DuplicateKeyError`),
-`records` (`convert_to_dict_of_lists`, `convert_to_list_of_dicts`) and `json`
-(`convert_to_jsonable`). The table says which group each property covers.
+and `records` (`convert_to_dict_of_lists`, `convert_to_list_of_dicts`). The table says which group
+each property covers.
 
 | Property                | Statement                                                                                                                                                                                                                                              | Groups                 |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------- |
 | Pure                    | The input is never modified. A function that rebuilds containers returns new ones (the leaves and the values are shared, never copied). No function keeps state between calls.                                                                         | all                    |
-| One notion of container | A function that looks inside the values enters the containers of the other packages (sequences, mappings, sets, dataclasses) and treats text, bytes, iterators and unknown types as leaves. `to_flat_dict` does not enter sets.                        | `flat`, `keys`, `json` |
-| Structure-preserving    | A function that rebuilds a structure keeps the type of every container, the top one included, and the order of the entries.                                                                                                                            | `keys`, `json`         |
-| Any depth               | No `RecursionError`, whatever the nesting.                                                                                                                                                                                                             | `flat`, `keys`, `json` |
-| Cycle-safe              | A container that contains itself raises `ValueError`, never `RecursionError`.                                                                                                                                                                          | `flat`, `keys`, `json` |
+| One notion of container | A function that looks inside the values enters the containers of the other packages (sequences, mappings, sets, dataclasses) and treats text, bytes, iterators and unknown types as leaves. `to_flat_dict` does not enter sets.                        | `flat`, `keys`         |
+| Structure-preserving    | A function that rebuilds a structure keeps the type of every container, the top one included, and the order of the entries.                                                                                                                            | `keys`                 |
+| Any depth               | No `RecursionError`, whatever the nesting.                                                                                                                                                                                                             | `flat`, `keys`         |
+| Cycle-safe              | A container that contains itself raises `ValueError`, never `RecursionError`.                                                                                                                                                                          | `flat`, `keys`         |
 | Keys are labels         | Only the `flat` and `keys` functions read or change keys. `add_prefix_suffix_to_keys` renames the `str` keys and keeps the others; `to_flat_dict` writes every key with `str()`.                                                                       | `flat`, `keys`         |
 | No silent loss          | Two entries are never merged into one without a decision of the caller: a key collision raises (`DuplicateKeyError` or `ValueError`). A wrong input type raises `TypeError` naming the type.                                                           | all                    |
-| Deterministic           | The same input gives the same output in every process: the entries keep the order of the input; a set becomes a sorted list.                                                                                                                           | all                    |
+| Deterministic           | The same input gives the same output in every process: the entries keep the order of the input.                                                                                                                           | all                    |
 | Documented round trips  | `from_flat_dict(to_flat_dict(x)) == x` for `dict`/`str` keys that do not contain the separator (or with `escape=True`); with `restore_lists=True`, also for lists. `convert_to_list_of_dicts(convert_to_dict_of_lists(r)) == r` for non-empty records. | `flat`, `records`      |
 | Explicit options        | Options are keyword-only. An invalid option raises `ValueError` before any work is done.                                                                                                                                                               | all                    |
 | Lazy                    | `import coola.nested` imports no optional library (polars is loaded by the first use of `flatten_frame`).                                                                                                                                              | all                    |
@@ -545,11 +527,10 @@ Not guaranteed:
 - **The type of a list-like.** `to_flat_dict` gives the same entries for a list and a tuple, so
   `from_flat_dict(..., restore_lists=True)` returns lists.
 - **Non-`str` keys of `to_flat_dict`.** They are written with `str()` and cannot be restored.
-- **Strict JSON.** `convert_to_jsonable` follows the Python `json` module: `NaN` is kept, the keys are
-  not converted, tuples stay tuples.
 
 ## See Also
 
+- [`coola.jsonable`](jsonable.md): For converting nested data to JSON data
 - [`coola.recursive`](recursive.md): For recursively transforming nested data
 - [`coola.iterator`](iterator.md): For iterating over nested data structures
 - [`coola.equality`](equality.md): For comparing nested data structures

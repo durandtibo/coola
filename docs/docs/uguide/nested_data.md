@@ -126,7 +126,8 @@ The packages share the same idea of container and leaf, and each adds what it do
 | [`summary`](summary.md)     | Builds a short, readable description, with a depth limit                               |
 | [`recursive`](recursive.md) | Applies a function to each leaf and rebuilds the same structure                        |
 | [`iterator`](iterator.md)   | Returns the leaves one at a time, depth first or breadth first                         |
-| [`nested`](nested.md)       | Utilities built on these (flatten, filter and rename keys, merge, to JSON, ...)        |
+| [`nested`](nested.md)       | Utilities built on these (flatten, filter and rename keys, merge, ...)                 |
+| [`jsonable`](jsonable.md)   | Converts the structure to JSON data (`to_jsonable`)                                    |
 
 ```pycon
 >>> from coola.equality import objects_are_equal

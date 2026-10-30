@@ -8,8 +8,7 @@
 `recursive` (or the path iterator `dfs_items` of `iterator`) and describes one type, and a function
 that works on the top level only is a plain loop. The key functions (`remove_keys_*`,
 `add_prefix_suffix_to_keys`) use one private transformer for the mappings, registered in a copy of
-the default registry; `convert_to_jsonable` adds a transformer for the sets (a sorted list) and one
-for the dataclasses (a `dict`); `to_flat_dict` joins the paths of `dfs_items`; `from_flat_dict`
+the default registry; `to_flat_dict` joins the paths of `dfs_items`; `from_flat_dict`
 builds its result with a private `dict` subclass and one final `recursive_apply`. The containers,
 the cycle check and the depth are therefore the ones of the other packages.
 
@@ -41,7 +40,6 @@ coola.nested
   keys.py        remove_keys_*, add_prefix_suffix_*      one private transformer (_KeyTransformer) + recursive_apply
   mappings.py    merge_mappings, flatten_mapping         plain loops over the top-level mappings, no nesting
   records.py     convert_to_dict_of_lists, ..._of_dicts  plain loops, no nesting
-  json.py        convert_to_jsonable                     recursive_apply with two transformers (dataclass, set)
   polars.py      flatten_frame (+ private helpers)       loaded on first use
 ```
 
@@ -146,34 +144,11 @@ recursion:
   tree and runs on 20,000 levels.
 - `data` is annotated `Mapping[str, Any]`.
 
-### `json`: `convert_to_jsonable` and `to_jsonable`
+### `json`: moved to `coola.jsonable`
 
-`convert_to_jsonable(data)` is `recursive_apply(data, to_jsonable, registry=registry)` with a registry
-derived from the default one in which:
-
-- `set` and `frozenset` have a transformer whose `rebuild` returns a sorted list (kept from
-  `SetToListTransformer`, now private), sorted with a key that does not depend on the iteration order:
-  the elements when they compare, otherwise `(type name, repr)`. `try_sorted_list` becomes the private
-  `_sorted_elements` of this module;
-- a dataclass has a transformer that returns its fields as a `dict` (`expand` gives the field values,
-  `rebuild` zips them with the names). The dataclass fallback of the default registry (entering and
-  rebuilding the same dataclass) is replaced, so **a dataclass is converted by the engine, field by
-  field, like any other container** and its fields get the same treatment as everything else: sets
-  are sorted, the depth is unlimited, a cycle is a `ValueError`.
-
-`coola.utils.conversion.to_jsonable` converts **one object** and no longer walks the fields of a
-dataclass: the `is_dataclass` branch and `_to_jsonable_recursive` are deleted (about 30 lines and a
-second recursion). Its docstring says "use `convert_to_jsonable` for a dataclass". It is a breaking
-change for `to_jsonable(Point(1, 2))` (the object is returned unchanged). The behaviour changes of
-`convert_to_jsonable`: a tuple in a dataclass stays a tuple (before: list), a set in a dataclass is
-sorted (before: iteration order).
-
-The registry is derived at each call (it reads the user registrations of the default registry; a copy
-costs 6 µs). It is not cached in a `LazySingleton`, which would freeze the default registry at the
-first call.
-
-`convert_to_jsonable` documents what it does not do (keys, `NaN`, tuples) as before. A
-`stringify_keys` option is the obvious next step and is not part of this design.
+The conversion to JSON data (`convert_to_jsonable` and `to_jsonable`) is no longer part of `nested`:
+it is `coola.jsonable.to_jsonable`, a registry of transformers on the engine of `recursive` with its
+own [design page](jsonable.md). `conversion.py` is now `records.py`.
 
 ### `mappings` and `records`: small corrections
 
@@ -229,7 +204,6 @@ from coola.nested import (
     DuplicateKeyError,
     add_prefix_suffix_to_keys,  # (mapping, prefix="", suffix="", *, recursive=False)
     convert_to_dict_of_lists,  # (records)
-    convert_to_jsonable,  # (data)
     convert_to_list_of_dicts,  # (columns)
     flatten_frame,  # (frame, *, separator=".", depth=None, expand_lists=False), lazy, polars
     flatten_mapping,  # (mapping, *, on_duplicate="raise", always_prefix=False, separator=".", equal_nan=False)
@@ -254,8 +228,8 @@ diff of each step small; the split of is optional.
 | Package                                         | Change                                                                                                                                                                                                                                            |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `coola.recursive`                               | `KeyFilterTransformer` and `key.py` deleted (guide, `__all__`, tests). `rebuild_mapping` and `rebuild_sequence` stay the public helpers (`nested.keys` imports `rebuild_mapping`). The **Properties** of `recursive` lose the implicit exception. |
-| `coola.utils.conversion.to_jsonable`            | The dataclass branch and `_to_jsonable_recursive` are deleted; the docstring points to `convert_to_jsonable`.                                                                                                                                     |
-| `coola.io.json` (`save_json`)                   | The docstring already points to `convert_to_jsonable`; no code change.                                                                                                                                                                            |
+| `coola.utils.conversion.to_jsonable`            | Moved to `coola.jsonable` (see [jsonable](jsonable.md)).                                                                                                                                     |
+| `coola.io.json` (`save_json`)                   | The docstring points to `coola.jsonable.to_jsonable`; no code change.                                                                                                                                                                            |
 | `tests/integration/recursive/test_dataclass.py` | `test_remove_keys_if_dataclass_is_a_leaf` is replaced by `test_remove_keys_if_enters_the_dataclass`; `test_convert_to_jsonable_dataclass_is_converted_whole` stays and gains the set and the tuple of .                                           |
 | `tests/package_checks.py`                       | Unchanged (`coola.nested.to_flat_dict`).                                                                                                                                                                                                          |
 | `iterator`                                      | **Prerequisite:** `dfs_items` with the labels and the `empty` option of (D9 of the `iterator` design).                                                                                                                                            |

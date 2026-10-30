@@ -42,6 +42,7 @@ nav:
       - uguide/identifier.md
       - uguide/io.md
       - uguide/iterator.md
+      - uguide/jsonable.md
       - uguide/nested.md
       - uguide/nested_data.md
       - uguide/random.md
@@ -64,6 +65,7 @@ nav:
       - dev/identifier.md
       - dev/io.md
       - dev/iterator.md
+      - dev/jsonable.md
       - dev/nested.md
       - dev/random.md
       - dev/recursive.md
@@ -87,6 +89,7 @@ nav:
       - refs/identifier.md
       - refs/io.md
       - refs/iterator.md
+      - refs/jsonable.md
       - refs/nested.md
       - refs/random.md
       - refs/recursive.md

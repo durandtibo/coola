@@ -98,6 +98,7 @@ groups:
 | `coola.summary.summarizers`    | summarizers            |
 | `coola.hashing.hashers`        | hashers                |
 | `coola.recursive.transformers` | recursive transformers |
+| `coola.jsonable.transformers`  | JSON transformers      |
 | `coola.iterator.child_finders` | Iterator child finders |
 | `coola.random.managers`        | random managers        |
 
