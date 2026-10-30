@@ -5,6 +5,7 @@ import random
 import pytest
 
 from coola.random import PythonRandomManager
+from tests.helpers import draw_python_random, make_python_generator
 
 #########################################
 #     Tests for PythonRandomManager     #
@@ -52,40 +53,40 @@ def test_python_random_manager_get_rng_state() -> None:
 def test_python_random_manager_manual_seed_same_seed_same_values() -> None:
     rng = PythonRandomManager()
     rng.manual_seed(42)
-    x1 = random.uniform(0, 1)  # noqa: S311
-    random.uniform(0, 1)  # noqa: S311
+    x1 = draw_python_random()
+    draw_python_random()
     rng.manual_seed(42)
-    x3 = random.uniform(0, 1)  # noqa: S311
+    x3 = draw_python_random()
     assert x1 == x3
 
 
 def test_python_random_manager_manual_seed_different_values() -> None:
     rng = PythonRandomManager()
     rng.manual_seed(42)
-    x1 = random.uniform(0, 1)  # noqa: S311
-    x2 = random.uniform(0, 1)  # noqa: S311
+    x1 = draw_python_random()
+    x2 = draw_python_random()
     rng.manual_seed(42)
-    random.uniform(0, 1)  # noqa: S311
+    draw_python_random()
     assert x1 != x2
 
 
 def test_python_random_manager_set_rng_state_restored_values() -> None:
     rng = PythonRandomManager()
     state = rng.get_rng_state()
-    x1 = random.uniform(0, 1)  # noqa: S311
-    random.uniform(0, 1)  # noqa: S311
+    x1 = draw_python_random()
+    draw_python_random()
     rng.set_rng_state(state)
-    x3 = random.uniform(0, 1)  # noqa: S311
+    x3 = draw_python_random()
     assert x1 == x3
 
 
 def test_python_random_manager_set_rng_state_different_values() -> None:
     rng = PythonRandomManager()
     state = rng.get_rng_state()
-    x1 = random.uniform(0, 1)  # noqa: S311
-    x2 = random.uniform(0, 1)  # noqa: S311
+    x1 = draw_python_random()
+    x2 = draw_python_random()
     rng.set_rng_state(state)
-    random.uniform(0, 1)  # noqa: S311
+    draw_python_random()
     assert x1 != x2
 
 
@@ -93,23 +94,23 @@ def test_python_random_manager_seed_restores_the_state() -> None:
     manager = PythonRandomManager()
     state = random.getstate()
     with manager.seed(42):
-        random.random()  # noqa: S311
+        draw_python_random()
     assert random.getstate() == state
 
 
 def test_python_random_manager_seed_is_reproducible() -> None:
     manager = PythonRandomManager()
     with manager.seed(42):
-        first = random.random()  # noqa: S311
+        first = draw_python_random()
     with manager.seed(42):
-        second = random.random()  # noqa: S311
+        second = draw_python_random()
     assert first == second
 
 
 def test_python_random_manager_does_not_manage_random_instances() -> None:
     manager = PythonRandomManager()
-    generator = random.Random(0)  # noqa: S311
-    expected = random.Random(0).random()  # noqa: S311
+    generator = make_python_generator(0)
+    expected = make_python_generator(0).random()
     with manager.seed(42):
         value = generator.random()
     assert value == expected

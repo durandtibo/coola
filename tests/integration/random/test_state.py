@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import random
-
 from coola.equality import objects_are_equal
 from coola.random import get_default_registry, get_rng_state, manual_seed, set_rng_state
 from coola.testing.marks import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
+from tests.helpers import draw_python_random
 
 if is_numpy_available():
     import numpy as np
@@ -24,10 +23,10 @@ def test_get_rng_state_has_the_keys_of_the_default_registry() -> None:
 
 def test_set_rng_state_restores_random() -> None:
     state = get_rng_state()
-    expected = random.random()  # noqa: S311
+    expected = draw_python_random()
     manual_seed(42)
     set_rng_state(state)
-    assert random.random() == expected  # noqa: S311
+    assert draw_python_random() == expected
 
 
 @numpy_available
@@ -52,9 +51,9 @@ def test_set_rng_state_restores_torch() -> None:
 @torch_available
 def test_manual_seed_seeds_the_three_libraries() -> None:
     manual_seed(42)
-    first = (random.random(), np.random.rand(3), torch.rand(3))  # noqa: S311, NPY002
+    first = (draw_python_random(), np.random.rand(3), torch.rand(3))  # noqa: NPY002
     manual_seed(42)
-    second = (random.random(), np.random.rand(3), torch.rand(3))  # noqa: S311, NPY002
+    second = (draw_python_random(), np.random.rand(3), torch.rand(3))  # noqa: NPY002
     assert objects_are_equal(first, second)
 
 

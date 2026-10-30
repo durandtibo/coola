@@ -385,13 +385,19 @@ def check_nested() -> None:
     assert to_flat_dict({"a": {"b": 1}, "c": 2}) == {"a.b": 1, "c": 2}
 
 
+def _draw_python_random() -> float:
+    r"""Draw a number from the global generator of the ``random``
+    module."""
+    return random.random()  # noqa: S311
+
+
 def check_random() -> None:
     r"""Check random seed management functionality."""
     manual_seed(42)
-    x1 = random.uniform(0, 1)  # noqa: S311
-    x2 = random.uniform(0, 1)  # noqa: S311
+    x1 = _draw_python_random()
+    x2 = _draw_python_random()
     manual_seed(42)
-    x3 = random.uniform(0, 1)  # noqa: S311
+    x3 = _draw_python_random()
     assert x1 == x3
     assert x1 != x2
 

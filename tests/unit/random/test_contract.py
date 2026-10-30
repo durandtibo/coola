@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import random
 from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
@@ -16,6 +15,7 @@ from coola.random import (
 )
 from coola.testing.marks import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
+from tests.helpers import draw_python_random
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
@@ -28,7 +28,7 @@ if is_torch_available():
 
 
 def _draw_python() -> Any:
-    return [random.random() for _ in range(3)]  # noqa: S311
+    return [draw_python_random() for _ in range(3)]
 
 
 def _draw_numpy() -> Any:

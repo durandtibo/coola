@@ -2,13 +2,21 @@ r"""Define helpers shared by the tests."""
 
 from __future__ import annotations
 
+import random
 from collections import UserString, deque
 from types import MappingProxyType
 from typing import Any
 
 import pytest
 
-__all__ = ["CONTAINER_SAMPLES", "DEEP_NESTING_DEPTH", "LEAF_SAMPLES", "nest"]
+__all__ = [
+    "CONTAINER_SAMPLES",
+    "DEEP_NESTING_DEPTH",
+    "LEAF_SAMPLES",
+    "draw_python_random",
+    "make_python_generator",
+    "nest",
+]
 
 # Deeper than the default recursion limit (1000), so a recursive implementation fails.
 DEEP_NESTING_DEPTH = 5_000
@@ -51,3 +59,30 @@ def nest(leaf: Any, depth: int) -> Any:
     for _ in range(depth):
         data = [data]
     return data
+
+
+def draw_python_random() -> float:
+    r"""Draw a number from the global generator of the ``random`` module.
+
+    The tests of the random managers use it to check the seed and the
+    state of this generator. It is the only place that calls ``random``
+    for a draw (the rule ``S311`` targets cryptographic uses, which a
+    test is not).
+
+    Returns:
+        A float in ``[0.0, 1.0)``.
+    """
+    return random.random()  # noqa: S311
+
+
+def make_python_generator(seed: int) -> random.Random:
+    r"""Make a ``random.Random`` instance, independent of the global
+    generator.
+
+    Args:
+        seed: The seed of the generator.
+
+    Returns:
+        The seeded generator.
+    """
+    return random.Random(seed)  # noqa: S311

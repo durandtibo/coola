@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import os
-import random
 
 import pytest
 
 from coola.random import get_rng_state, manual_seed, set_rng_state
+from tests.helpers import draw_python_random
 from tests.integration.helpers import run_in_children
 
 pytestmark = [
@@ -24,11 +24,11 @@ pytestmark = [
 def test_forked_child_restores_a_state_of_the_parent() -> None:
     manual_seed(0)
     state = get_rng_state()
-    expected = random.random()  # noqa: S311
+    expected = draw_python_random()
 
     def child() -> str:
         set_rng_state(state)
-        return repr(random.random())  # noqa: S311
+        return repr(draw_python_random())
 
     assert run_in_children(1, child) == [repr(expected)]
 
