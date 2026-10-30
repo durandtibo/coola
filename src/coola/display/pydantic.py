@@ -122,41 +122,15 @@ class _NestedModel:
         self.options = options
 
     def __repr__(self) -> str:
-        r"""Return the ``repr`` of the model, with the options of the
-        root model.
-
-        Returns:
-            The representation of the model.
-        """
         return _format_model(self.model, line_fn=repr_mapping_line, **self.options)
 
     def __str__(self) -> str:
-        r"""Return the ``str`` of the model, with the options of the root
-        model.
-
-        Returns:
-            The string of the model.
-        """
         return _format_model(self.model, line_fn=str_mapping_line, **self.options)
 
     def __eq__(self, other: object) -> bool:
-        r"""Indicate if two wrappers hold equal models.
-
-        Args:
-            other: The other object.
-
-        Returns:
-            ``True`` if ``other`` is a wrapper of an equal model,
-                otherwise ``False``.
-        """
         return isinstance(other, _NestedModel) and self.model == other.model
 
     def __hash__(self) -> int:
-        r"""Return the hash of the model.
-
-        Returns:
-            The hash of the wrapped model.
-        """
         return hash(self.model)
 
 

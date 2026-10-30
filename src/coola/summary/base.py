@@ -119,11 +119,6 @@ class BaseSummarizer(ABC, Generic[T]):
     """
 
     def __repr__(self) -> str:
-        r"""Return the representation of the summarizer.
-
-        Returns:
-            The class name followed by parentheses.
-        """
         return f"{type(self).__qualname__}()"
 
     def equal(self, other: object) -> bool:

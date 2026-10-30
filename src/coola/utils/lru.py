@@ -69,48 +69,18 @@ class LRUCache(Generic[K, V]):
         self._data: OrderedDict[K, V] = OrderedDict()
 
     def __repr__(self) -> str:
-        r"""Return the representation, with the entries.
-
-        Returns:
-            The representation of the cache.
-        """
         return f"{self.__class__.__qualname__}(maxsize={self._maxsize}, data={self._data})"
 
     def __str__(self) -> str:
-        r"""Return the string, with the number of entries.
-
-        Returns:
-            The string of the cache.
-        """
         return f"{self.__class__.__qualname__}(maxsize={self._maxsize}, size={len(self._data)})"
 
     def __len__(self) -> int:
-        r"""Return the number of entries.
-
-        Returns:
-            The number of entries.
-        """
         return len(self._data)
 
     def __contains__(self, key: object) -> bool:
-        r"""Indicate if a key is in the cache, without changing the
-        order.
-
-        Args:
-            key: The key.
-
-        Returns:
-            ``True`` if the key is in the cache, otherwise ``False``.
-        """
         return key in self._data
 
     def __iter__(self) -> Iterator[K]:
-        r"""Iterate over the keys, from the least to the most recently
-        used.
-
-        Returns:
-            An iterator over the keys.
-        """
         return iter(self._data)
 
     def __getitem__(self, key: K) -> V:
@@ -145,38 +115,14 @@ class LRUCache(Generic[K, V]):
             self._data.popitem(last=False)
 
     def __delitem__(self, key: K) -> None:
-        r"""Remove a key.
-
-        Args:
-            key: The key.
-
-        Raises:
-            KeyError: If the key is not in the cache.
-        """
         del self._data[key]
 
     def __hash__(self) -> int:
-        r"""Raise an error because the cache is mutable.
-
-        Raises:
-            TypeError: Always.
-        """
         # Mutable and compares by content, like dict: not hashable.
         msg = f"unhashable type: {type(self).__name__!r}"
         raise TypeError(msg)
 
     def __eq__(self, other: object) -> bool:
-        r"""Indicate if the cache is equal to another cache or a
-        dictionary.
-
-        Args:
-            other: The other object.
-
-        Returns:
-            ``True`` if ``other`` is a cache or a dictionary with the
-                same entries, ``NotImplemented`` for another type,
-                otherwise ``False``.
-        """
         if isinstance(other, LRUCache):
             return self._data == cast("LRUCache[Any, Any]", other)._data
         if isinstance(other, dict):

@@ -445,12 +445,6 @@ class TypeRegistry(Registry[type, T], Generic[T]):
         return list(self._fallbacks.items()) == list(other._fallbacks.items())
 
     def __getstate__(self) -> dict[str, Any]:
-        r"""Return the state used by ``pickle`` and ``copy``.
-
-        Returns:
-            The state, without the lock and the cache. A type that
-                ``pickle`` cannot find is replaced by its name.
-        """
         # The cache is rebuilt by the lookups.
         state = super().__getstate__()
         del state["_cache"]
@@ -458,11 +452,6 @@ class TypeRegistry(Registry[type, T], Generic[T]):
         return state
 
     def __setstate__(self, state: dict[str, Any]) -> None:
-        r"""Restore the state used by ``pickle`` and ``copy``.
-
-        Args:
-            state: The state returned by ``__getstate__``.
-        """
         state["_state"] = {_decode_type(key): value for key, value in state["_state"].items()}
         super().__setstate__(state)
         self._cache = {}

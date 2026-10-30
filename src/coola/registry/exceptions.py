@@ -26,11 +26,6 @@ class KeyNotRegisteredError(KeyError):
     """
 
     def __str__(self) -> str:
-        r"""Return the message without the quotes of ``KeyError``.
-
-        Returns:
-            The message of the error.
-        """
         # KeyError.__str__ would repr() the message, escaping newlines.
         return str(self.args[0]) if len(self.args) == 1 else super().__str__()
 

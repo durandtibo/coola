@@ -43,7 +43,8 @@
 - Every function, public or private (leading underscore), needs a docstring and its own unit
   tests. Private functions are not exempt.
 - Document the constructor arguments (`Args:`, `Raises:`) in the class docstring, not in a
-  docstring of `__init__`, as the existing classes do. Do not add a docstring to `__init__`.
+  docstring of `__init__`, as the existing classes do. Do not add a docstring to `__init__`
+  or to the other dunder methods (`__repr__`, `__str__`, `__eq__`, ...).
 - Keep docstrings and documentation up to date and comprehensive: update them whenever the
   behaviour, signature or options of the code change.
 

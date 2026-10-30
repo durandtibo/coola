@@ -141,23 +141,6 @@ __all__ += [
 
 
 def __getattr__(name: str) -> pytest.MarkDecorator:
-    r"""Create the mark of a dependency the first time it is used (PEP
-    562).
-
-    The marks are module attributes, so ``from coola.testing.marks
-    import torch_available`` works. A mark is cached in the module after
-    its creation.
-
-    Args:
-        name: The name of the mark, e.g. ``"torch_available"`` or
-            ``"torch_not_available"``.
-
-    Returns:
-        The mark.
-
-    Raises:
-        AttributeError: If ``name`` is not the name of a mark.
-    """
     # The marks are still module attributes (``from coola.testing.marks import
     # torch_available`` works, and ``pytestmark = [torch_available]``), through PEP 562.
     for suffix in ("_available", "_not_available"):
@@ -176,9 +159,4 @@ def __getattr__(name: str) -> pytest.MarkDecorator:
 
 
 def __dir__() -> list[str]:
-    r"""List the names of the marks.
-
-    Returns:
-        The sorted names of the module.
-    """
     return sorted(__all__)

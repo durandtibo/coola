@@ -80,20 +80,6 @@ def lazy_exports(
     """
 
     def __getattr__(name: str) -> Any:  # noqa: N807
-        r"""Import a lazy name the first time it is used.
-
-        The value is stored in the namespace of the package, so this
-        function is not called again for this name.
-
-        Args:
-            name: The name of the attribute.
-
-        Returns:
-            The value of the attribute.
-
-        Raises:
-            AttributeError: If ``name`` is not one of the lazy names.
-        """
         module_name = exports.get(name)
         if module_name is None:
             msg = f"module {package!r} has no attribute {name!r}"
@@ -103,11 +89,6 @@ def lazy_exports(
         return value
 
     def __dir__() -> list[str]:  # noqa: N807
-        r"""List the names of the package.
-
-        Returns:
-            The sorted names of the namespace and of the lazy names.
-        """
         return sorted({*namespace, *exports})
 
     return __getattr__, __dir__

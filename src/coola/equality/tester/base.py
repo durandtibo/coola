@@ -64,15 +64,6 @@ class BaseEqualityTester(InlineDisplayMixin, ABC, Generic[T]):
     """
 
     def __eq__(self, other: object) -> bool:
-        r"""Indicate if two testers are equal.
-
-        Args:
-            other: The other object.
-
-        Returns:
-            ``True`` if ``other`` has the same type and the same
-                attributes, otherwise ``False``.
-        """
         return type(other) is type(self) and vars(self) == vars(other)
 
     __hash__ = None

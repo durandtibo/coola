@@ -60,11 +60,6 @@ class ComparisonResult:
     reason: str | None = None
 
     def __bool__(self) -> bool:
-        r"""Return the verdict.
-
-        Returns:
-            ``True`` if the objects are equal, otherwise ``False``.
-        """
         return self.equal
 
     def format_path(self, root: str = "") -> str:

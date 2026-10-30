@@ -55,15 +55,6 @@ class SummaryConfig:
     show_data: bool = False
 
     def __post_init__(self) -> None:
-        r"""Validate the options.
-
-        Raises:
-            TypeError: If ``max_depth``, ``max_items`` or
-                ``max_characters`` is not an ``int`` (a ``bool`` is
-                rejected), or if ``show_data`` is not a ``bool``.
-            ValueError: If ``max_depth``, ``max_items`` or
-                ``max_characters`` is negative.
-        """
         # The plain valid values are checked first, because the config is built by each call of
         # ``summarize``.
         if type(self.max_depth) is not int or self.max_depth < 0:

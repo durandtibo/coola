@@ -30,19 +30,9 @@ class BaseDisplayMixin(ABC):
     """
 
     def __repr__(self) -> str:
-        r"""Return the representation, with the ``repr`` of the fields.
-
-        Returns:
-            The representation of the object.
-        """
         return self._render_fields(self._display_fields(), use_repr=True)
 
     def __str__(self) -> str:
-        r"""Return the string, with the ``str`` of the fields.
-
-        Returns:
-            The string of the object.
-        """
         return self._render_fields(self._display_fields(), use_repr=False)
 
     def _display_fields(self) -> dict[str, Any]:

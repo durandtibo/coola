@@ -33,23 +33,9 @@ class PythonRandomManager(InlineDisplayMixin, BaseRandomManager):
     """
 
     def __eq__(self, other: object) -> bool:
-        r"""Indicate if two managers are equal.
-
-        Args:
-            other: The other object.
-
-        Returns:
-            ``True`` if ``other`` has the same type, otherwise
-                ``False``.
-        """
         return is_same_type(other, self)
 
     def __hash__(self) -> int:
-        r"""Return the hash of the manager.
-
-        Returns:
-            The hash of the type of the manager.
-        """
         return hash(type(self))
 
     def get_rng_state(self) -> tuple[Any, ...]:

@@ -302,7 +302,7 @@ A tester has no state but its configuration; `__eq__` and `__repr__` come from t
 | dataclasses, pydantic models                                                | `DataclassEqualityTester`, `PydanticModelEqualityTester` | fields as `AttributeName` children                                                                                          |
 | `np.ndarray`, `np.ma.MaskedArray`, NumPy `datetime64`/`timedelta64` scalars | `Numpy*EqualityTester`                                   | dtype, shape, kernel; for a masked array the data (masked values included), the mask and `fill_value`; `NaT` by `equal_nan` |
 | `torch.Tensor`, `PackedSequence`, `jax.Array`, xarray                       | `Torch*`, `Jax*`, `Xarray*EqualityTester`                | device, dtype, shape, layout, kernel; xarray parts as children                                                              |
-| `scipy.sparse` matrices and arrays                                          | `ScipySparseEqualityTester`                              | class, shape, dtype, non-zero positions, then the stored values with the kernel; duplicates summed, stored zeros ignored |
+| `scipy.sparse` matrices and arrays                                          | `ScipySparseEqualityTester`                              | class, shape, dtype, non-zero positions, then the stored values with the kernel; duplicates summed, stored zeros ignored    |
 | pandas, polars, pyarrow frames, series, arrays                              | `TableEqualityTester`                                    | structure, then columns by kind                                                                                             |
 
 ## Decision record

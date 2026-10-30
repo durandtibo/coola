@@ -102,28 +102,9 @@ class Registry(Generic[K, V]):
         track_fork(self)
 
     def __contains__(self, key: K) -> bool:
-        r"""Indicate if a key is registered.
-
-        Args:
-            key: The key.
-
-        Returns:
-            ``True`` if the key is registered, otherwise ``False``.
-        """
         return self.has(key)
 
     def __getitem__(self, key: K) -> V:
-        r"""Get the value of a key.
-
-        Args:
-            key: The key.
-
-        Returns:
-            The value of the key.
-
-        Raises:
-            KeyNotRegisteredError: If the key is not registered.
-        """
         self._load_lazy_for(key)
         with self._lock:
             if key not in self._state:
@@ -131,49 +112,20 @@ class Registry(Generic[K, V]):
             return self._state[key]
 
     def __setitem__(self, key: K, value: V) -> None:
-        r"""Register a value, replacing the existing one.
-
-        Args:
-            key: The key.
-            value: The value.
-        """
         self.register(key, value, exist_ok=True)
 
     def __delitem__(self, key: K) -> None:
-        r"""Unregister a key.
-
-        Args:
-            key: The key.
-
-        Raises:
-            KeyNotRegisteredError: If the key is not registered.
-        """
         self.unregister(key)
 
     def __iter__(self) -> Iterator[K]:
-        r"""Iterate over the registered keys.
-
-        Returns:
-            An iterator over the keys.
-        """
         self._load_lazy_all()
         return iter(self._state)
 
     def __len__(self) -> int:
-        r"""Return the number of registered keys.
-
-        Returns:
-            The number of entries.
-        """
         self._load_lazy_all()
         return len(self._state)
 
     def __repr__(self) -> str:
-        r"""Return the representation, with the ``repr`` of the entries.
-
-        Returns:
-            The representation of the registry.
-        """
         # Displaying a registry must not import the optional libraries: the entries that
         # are not loaded yet are listed by group name instead.
         with self._lock:
@@ -183,11 +135,6 @@ class Registry(Generic[K, V]):
         return f"{self.__class__.__qualname__}(\n  {body}\n)"
 
     def __str__(self) -> str:
-        r"""Return the string, with the ``str`` of the entries.
-
-        Returns:
-            The string of the registry.
-        """
         with self._lock:
             state = self._state
             pending = self._pending_msg()
@@ -195,22 +142,12 @@ class Registry(Generic[K, V]):
         return f"{self.__class__.__qualname__}(\n  {body}\n)"
 
     def __getstate__(self) -> dict[str, Any]:
-        r"""Return the state used by ``pickle`` and ``copy``.
-
-        Returns:
-            The state, without the lock.
-        """
         # The lock cannot be pickled: the clone creates its own.
         state = self.__dict__.copy()
         del state["_lock"]
         return state
 
     def __setstate__(self, state: dict[str, Any]) -> None:
-        r"""Restore the state used by ``pickle`` and ``copy``.
-
-        Args:
-            state: The state returned by ``__getstate__``.
-        """
         self.__dict__.update(state)
         self._lock = threading.RLock()
         track_fork(self)
