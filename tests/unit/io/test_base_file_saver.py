@@ -510,7 +510,7 @@ def test_base_file_saver_save_fsync_flushes_the_file_before_the_commit(
         real_link(src, dst)
 
     with (
-        patch("coola.io.base.os.fsync", side_effect=lambda fd: events.append("fsync")),  # noqa: ARG005
+        patch("coola.io.base.os.fsync", side_effect=lambda _: events.append("fsync")),
         patch("coola.io.base.os.link", recording_link),
     ):
         SimpleFileSaver().save("hello", path, fsync=True)

@@ -10,8 +10,6 @@ import datetime as dt
 import enum
 import os
 import re
-import subprocess
-import sys
 from collections import OrderedDict, deque
 from pathlib import PurePosixPath
 from typing import Any, NamedTuple
@@ -28,6 +26,7 @@ from hypothesis import (
 from coola.equality import objects_are_equal
 from coola.hashing import HasherRegistry, SequenceHasher, hash_object, tagged
 from coola.hashing.base import BaseHasher
+from tests.integration.helpers import run_interpreter
 from tests.properties.strategies import (
     lengths,
     literal_values,
@@ -83,13 +82,7 @@ def test_deterministic_independent_of_pythonhashseed(seed: str, data: Any) -> No
         "from coola.hashing import hash_object\n"
         "print(hash_object(ast.literal_eval(sys.argv[1])))"
     )
-    out = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", code, repr(data)],
-        capture_output=True,
-        text=True,
-        check=True,
-        env={**os.environ, "PYTHONHASHSEED": seed},
-    )
+    out = run_interpreter("-c", code, repr(data), env={**os.environ, "PYTHONHASHSEED": seed})
     assert out.stdout.strip() == hash_object(data)
 
 

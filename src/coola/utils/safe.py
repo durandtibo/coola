@@ -37,7 +37,7 @@ def safe_str(obj: object) -> str:
     """
     try:
         return str(obj)
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001  user code can raise anything
         return _placeholder(obj)
 
 
@@ -68,7 +68,7 @@ def safe_repr(obj: object) -> str:
     """
     try:
         return repr(obj)
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001  user code can raise anything
         return _placeholder(obj)
 
 

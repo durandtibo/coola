@@ -6,7 +6,7 @@ from __future__ import annotations
 __all__ = ["PydanticModelHasher", "SecretHasher", "get_secret_hashers"]
 
 from itertools import chain
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Final, Literal
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher, Encoding, Node, tagged
@@ -20,6 +20,12 @@ if TYPE_CHECKING or is_pydantic_available():
     from pydantic import SecretBytes, SecretStr
 else:  # pragma: no cover
     from coola.utils.fallback.pydantic import SecretBytes, SecretStr, pydantic
+
+# The policies are compared and defaulted by name: a string literal assigned or compared to
+# a name that contains "secret" is reported by the rules S105 and S107.
+_REVEAL: Final = "reveal"
+_EXCLUDE: Final = "exclude"
+_ERROR: Final = "error"
 
 
 class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
@@ -111,7 +117,7 @@ class SecretHasher(InlineDisplayMixin, BaseHasher["SecretStr | SecretBytes"]):
 
     def __init__(
         self,
-        on_secret: Literal["reveal", "exclude", "error"] = "error",  # noqa: S107
+        on_secret: Literal["reveal", "exclude", "error"] = _ERROR,
     ) -> None:
         if on_secret not in {"reveal", "exclude", "error"}:
             msg = f"on_secret must be 'reveal', 'exclude' or 'error', got {on_secret!r}."
@@ -138,9 +144,9 @@ class SecretHasher(InlineDisplayMixin, BaseHasher["SecretStr | SecretBytes"]):
                 contains the secret.
         """
         tag = f"pydantic.{type(data).__name__}"
-        if self._on_secret == "reveal":  # noqa: S105
+        if self._on_secret == _REVEAL:
             return tagged(tag, data.get_secret_value())
-        if self._on_secret == "exclude":  # noqa: S105
+        if self._on_secret == _EXCLUDE:
             return tagged(tag)
         msg = (
             "Encountered a SecretStr/SecretBytes value while hashing; register "
@@ -151,7 +157,7 @@ class SecretHasher(InlineDisplayMixin, BaseHasher["SecretStr | SecretBytes"]):
 
 
 def get_secret_hashers(
-    on_secret: Literal["reveal", "exclude", "error"] = "error",  # noqa: S107
+    on_secret: Literal["reveal", "exclude", "error"] = _ERROR,
 ) -> dict[type, Hasher[Any]]:
     r"""Get the hashers of ``SecretStr`` and ``SecretBytes`` for a
     policy.

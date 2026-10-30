@@ -19,15 +19,16 @@ from __future__ import annotations
 import json
 import pkgutil
 import statistics
-import subprocess
-import sys
 from typing import TYPE_CHECKING
 
 import pytest
 
 import coola
+from tests.integration.helpers import run_interpreter
 
 if TYPE_CHECKING:
+    import subprocess
+
     from pytest_benchmark.fixture import BenchmarkFixture
 
 OPTIONAL_LIBRARIES = ("jax", "numpy", "pandas", "polars", "pyarrow", "torch", "xarray")
@@ -53,12 +54,7 @@ print(json.dumps({{
 def run_import(statement: str, *flags: str) -> subprocess.CompletedProcess[str]:
     r"""Run ``statement`` in a fresh isolated interpreter."""
     code = CODE.format(statement=statement, libraries=OPTIONAL_LIBRARIES)
-    return subprocess.run(  # noqa: S603
-        [sys.executable, "-I", *flags, "-c", code],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
+    return run_interpreter("-I", *flags, "-c", code)
 
 
 def slowest_imports(statement: str) -> list[dict[str, int | str]]:

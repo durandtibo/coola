@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import os
-import subprocess
-import sys
 import threading
 from collections import UserString, deque
 from dataclasses import dataclass
@@ -34,7 +32,7 @@ from coola.utils.imports import (
     is_xarray_available,
 )
 from tests.helpers import nest
-from tests.integration.helpers import run_threads
+from tests.integration.helpers import run_interpreter, run_threads
 
 if is_jax_available():
     import jax.numpy as jnp
@@ -111,12 +109,8 @@ def _summary_of_a_set_of_strings(hash_seed: str) -> str:
         "from coola.summary import summarize; "
         "print(repr(summarize({'beta', 'alpha', 'gamma', 'delta', 'epsilon', 'zeta'}, max_items=3)))"
     )
-    return subprocess.run(  # noqa: S603
-        [sys.executable, "-c", code],
-        capture_output=True,
-        text=True,
-        check=True,
-        env={**os.environ, "PYTHONPATH": src, "PYTHONHASHSEED": hash_seed},
+    return run_interpreter(
+        "-c", code, env={**os.environ, "PYTHONPATH": src, "PYTHONHASHSEED": hash_seed}
     ).stdout
 
 

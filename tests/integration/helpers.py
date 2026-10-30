@@ -4,6 +4,7 @@ import os
 import signal
 import subprocess
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -11,7 +12,24 @@ import coola
 
 if TYPE_CHECKING:
     import threading
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable, Generator, Sequence
+
+
+@contextmanager
+def collect_errors(errors: list[BaseException]) -> Generator[None]:
+    r"""Collect the exception raised in the context instead of raising
+    it.
+
+    A worker thread (or a forked process) uses it to forward an error
+    to the main thread, which asserts that the list is empty.
+
+    Args:
+        errors: The list where the exception is appended.
+    """
+    try:
+        yield
+    except BaseException as exc:  # noqa: BLE001
+        errors.append(exc)
 
 
 def run_threads(threads: Sequence[threading.Thread]) -> None:
@@ -26,6 +44,35 @@ def run_threads(threads: Sequence[threading.Thread]) -> None:
 
     for thread in threads:
         thread.join()
+
+
+def run_interpreter(
+    *args: str, env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
+    r"""Run the Python interpreter of the tests with arguments.
+
+    It is the only place that starts a subprocess (the rule ``S603``
+    targets untrusted input, and the command here is the interpreter
+    running code written in the tests).
+
+    Args:
+        *args: The arguments of the interpreter, e.g. ``"-c", code``.
+        env: The environment of the interpreter. If ``None``, the
+            environment of this process is used. Defaults to ``None``.
+
+    Returns:
+        The completed process, with the output captured as text.
+
+    Raises:
+        subprocess.CalledProcessError: If the interpreter fails.
+    """
+    return subprocess.run(  # noqa: S603
+        [sys.executable, *args],
+        capture_output=True,
+        text=True,
+        check=True,
+        env=env,
+    )
 
 
 def run_python(code: str, env: dict[str, str] | None = None) -> list[str]:
@@ -47,13 +94,7 @@ def run_python(code: str, env: dict[str, str] | None = None) -> list[str]:
         subprocess.CalledProcessError: If the code fails.
     """
     src = str(Path(coola.__file__).parents[1])
-    result = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", code],
-        capture_output=True,
-        text=True,
-        check=True,
-        env={**os.environ, "PYTHONPATH": src, **(env or {})},
-    )
+    result = run_interpreter("-c", code, env={**os.environ, "PYTHONPATH": src, **(env or {})})
     return result.stdout.split()
 
 

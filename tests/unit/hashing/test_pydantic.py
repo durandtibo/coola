@@ -347,13 +347,13 @@ def test_get_secret_hashers_default_policy_is_error() -> None:
 @pydantic_available
 def test_default_registry_secret_in_a_model_raises() -> None:
     with pytest.raises(ValueError, match="SecretStr/SecretBytes"):
-        hash_object(Creds(username="alice", password="hunter2"))
+        hash_object(Creds(username="alice", password="hunter2"))  # noqa: S106
 
 
 @pydantic_available
 def test_default_registry_secret_error_does_not_leak_the_value() -> None:
     with pytest.raises(ValueError, match="SecretStr/SecretBytes") as exc_info:
-        hash_object(Creds(username="alice", password="hunter2"))
+        hash_object(Creds(username="alice", password="hunter2"))  # noqa: S106
     assert "hunter2" not in str(exc_info.value)
 
 
@@ -381,16 +381,16 @@ def test_default_registry_bare_secret_raises() -> None:
 @pydantic_available
 def test_exclude_secrets_in_models_with_different_secrets_have_the_same_hash() -> None:
     registry = secret_registry("exclude")
-    a = Creds(username="alice", password="hunter2")
-    b = Creds(username="alice", password="different")
+    a = Creds(username="alice", password="hunter2")  # noqa: S106
+    b = Creds(username="alice", password="different")  # noqa: S106
     assert registry.hash(a) == registry.hash(b)
 
 
 @pydantic_available
 def test_exclude_secrets_keeps_the_other_fields() -> None:
     registry = secret_registry("exclude")
-    a = Creds(username="alice", password="hunter2")
-    b = Creds(username="bob", password="hunter2")
+    a = Creds(username="alice", password="hunter2")  # noqa: S106
+    b = Creds(username="bob", password="hunter2")  # noqa: S106
     assert registry.hash(a) != registry.hash(b)
 
 
@@ -427,8 +427,8 @@ def test_exclude_secret_str_and_secret_bytes_differ() -> None:
 @pydantic_available
 def test_exclude_secrets_in_a_nested_model() -> None:
     registry = secret_registry("exclude")
-    a = Nested(name="n", creds=Creds(username="alice", password="one"))
-    b = Nested(name="n", creds=Creds(username="alice", password="two"))
+    a = Nested(name="n", creds=Creds(username="alice", password="one"))  # noqa: S106
+    b = Nested(name="n", creds=Creds(username="alice", password="two"))  # noqa: S106
     assert registry.hash(a) == registry.hash(b)
 
 
@@ -445,24 +445,24 @@ def test_exclude_secrets_in_a_dataclass() -> None:
 @pydantic_available
 def test_exclude_multiple_secret_fields() -> None:
     registry = secret_registry("exclude")
-    a = CredsWithToken(username="alice", password="a", token=b"x")
-    b = CredsWithToken(username="alice", password="b", token=b"y")
+    a = CredsWithToken(username="alice", password="a", token=b"x")  # noqa: S106
+    b = CredsWithToken(username="alice", password="b", token=b"y")  # noqa: S106
     assert registry.hash(a) == registry.hash(b)
 
 
 @pydantic_available
 def test_reveal_secrets_depends_on_the_value() -> None:
     registry = secret_registry("reveal")
-    a = Creds(username="alice", password="hunter2")
-    b = Creds(username="alice", password="different")
+    a = Creds(username="alice", password="hunter2")  # noqa: S106
+    b = Creds(username="alice", password="different")  # noqa: S106
     assert registry.hash(a) != registry.hash(b)
 
 
 @pydantic_available
 def test_reveal_secrets_equal_values_have_the_same_hash() -> None:
     registry = secret_registry("reveal")
-    a = Creds(username="alice", password="hunter2")
-    b = Creds(username="alice", password="hunter2")
+    a = Creds(username="alice", password="hunter2")  # noqa: S106
+    b = Creds(username="alice", password="hunter2")  # noqa: S106
     assert registry.hash(a) == registry.hash(b)
 
 
@@ -480,7 +480,7 @@ def test_reveal_secret_differs_from_the_plain_string() -> None:
 
 @pydantic_available
 def test_reveal_and_exclude_differ() -> None:
-    creds = Creds(username="alice", password="hunter2")
+    creds = Creds(username="alice", password="hunter2")  # noqa: S106
     assert secret_registry("reveal").hash(creds) != secret_registry("exclude").hash(creds)
 
 

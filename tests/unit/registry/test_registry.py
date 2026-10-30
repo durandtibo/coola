@@ -8,6 +8,7 @@ import pytest
 
 from coola.registry import AlreadyRegisteredError, Registry, TypeRegistry
 from coola.utils import fork
+from tests.helpers import pickle_round_trip
 
 ##############################
 #     Tests for Registry     #
@@ -906,27 +907,27 @@ def test_registry_equal_after_unregistration_is_false() -> None:
 
 def test_registry_pickle_round_trip_keeps_the_entries() -> None:
     registry = Registry[str, int]({"a": 1, "b": 2})
-    assert pickle.loads(pickle.dumps(registry)).equal(registry)  # noqa: S301
+    assert pickle_round_trip(registry).equal(registry)
 
 
 def test_registry_pickle_round_trip_keeps_the_class() -> None:
     registry = Registry[str, int]({"a": 1})
-    assert type(pickle.loads(pickle.dumps(registry))) is Registry  # noqa: S301
+    assert type(pickle_round_trip(registry)) is Registry
 
 
 def test_registry_pickle_clone_can_register() -> None:
-    clone = pickle.loads(pickle.dumps(Registry[str, int]({"a": 1})))  # noqa: S301
+    clone = pickle_round_trip(Registry[str, int]({"a": 1}))
     clone.register("b", 2)
     assert clone.get("b") == 2
 
 
 def test_registry_pickle_clone_has_its_own_lock() -> None:
     registry = Registry[str, int]({"a": 1})
-    assert pickle.loads(pickle.dumps(registry))._lock is not registry._lock  # noqa: S301
+    assert pickle_round_trip(registry)._lock is not registry._lock
 
 
 def test_registry_pickle_clone_is_tracked_for_forks() -> None:
-    assert pickle.loads(pickle.dumps(Registry[str, int]())) in fork._TRACKED  # noqa: S301
+    assert pickle_round_trip(Registry[str, int]()) in fork._TRACKED
 
 
 def test_registry_pickle_does_not_change_the_source() -> None:

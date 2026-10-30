@@ -9,7 +9,7 @@ import pytest
 
 from coola.equality.tester import get_default_registry
 from coola.registry import AlreadyRegisteredError, TypeRegistry
-from tests.integration.helpers import run_threads
+from tests.integration.helpers import collect_errors, run_threads
 
 
 class Animal:
@@ -355,11 +355,9 @@ def test_type_registry_concurrent_resolve_same_type() -> None:
     errors = []
 
     def resolve_type() -> None:
-        try:
+        with collect_errors(errors):
             result = registry.resolve(int)
             results.append(result)
-        except Exception as e:  # noqa: BLE001
-            errors.append(e)
 
     run_threads([threading.Thread(target=resolve_type) for _ in range(num_threads)])
 
@@ -615,11 +613,9 @@ def test_type_registry_cache_invalidated_by_concurrent_register() -> None:
 
     def resolve_repeatedly() -> None:
         barrier.wait()
-        try:
+        with collect_errors(errors):
             for _ in range(200):
                 assert registry.resolve(Poodle) in {"base", "dog"}
-        except Exception as e:  # noqa: BLE001
-            errors.append(e)
 
     threads = [threading.Thread(target=resolve_repeatedly) for _ in range(num_threads)]
     for thread in threads:
@@ -647,11 +643,9 @@ def test_type_registry_cache_invalidated_by_concurrent_register_and_unregister()
             registry.unregister(Dog)
 
     def resolve() -> None:
-        try:
+        with collect_errors(errors):
             for _ in range(num_iterations):
                 assert registry.resolve(Poodle) in {"base", "dog"}
-        except Exception as e:  # noqa: BLE001
-            errors.append(e)
 
     run_threads(
         [threading.Thread(target=toggle)] + [threading.Thread(target=resolve) for _ in range(10)]

@@ -21,6 +21,7 @@ from coola.registry import (
     TypeNotRegisteredError,
     TypeRegistry,
 )
+from tests.helpers import pickle_round_trip
 
 if TYPE_CHECKING:
     import threading
@@ -1617,42 +1618,38 @@ def test_type_registry_register_lazy_group_loaded_by_another_factory_is_not_load
 ########################################
 
 
-def round_trip(registry: TypeRegistry[str]) -> TypeRegistry[str]:
-    return pickle.loads(pickle.dumps(registry))  # noqa: S301
-
-
 def test_type_registry_pickle_keeps_the_entries() -> None:
     registry = TypeRegistry[str]({object: "object", int: "int"})
-    assert round_trip(registry).equal(registry)
+    assert pickle_round_trip(registry).equal(registry)
 
 
 def test_type_registry_pickle_keeps_the_fallbacks() -> None:
     registry = TypeRegistry[str]()
     registry.register_fallback(is_dataclass, "dataclass")
-    assert list(round_trip(registry).fallbacks()) == [(is_dataclass, "dataclass")]
+    assert list(pickle_round_trip(registry).fallbacks()) == [(is_dataclass, "dataclass")]
 
 
 def test_type_registry_pickle_keeps_the_pending_groups() -> None:
     registry = TypeRegistry[str]()
     registry.register_lazy("decimal", "tests.unit.registry.test_type:lazy_decimal_entries")
-    assert round_trip(registry).resolve(Decimal) == "decimal"
+    assert pickle_round_trip(registry).resolve(Decimal) == "decimal"
 
 
 def test_type_registry_pickle_does_not_load_the_pending_groups() -> None:
     registry = TypeRegistry[str]()
     registry.register_lazy("decimal", "tests.unit.registry.test_type:lazy_decimal_entries")
-    assert len(round_trip(registry)._state) == 0
+    assert len(pickle_round_trip(registry)._state) == 0
 
 
-def test_type_registry_pickle_resolves_after_the_round_trip() -> None:
+def test_type_registry_pickle_resolves_after_the_pickle_round_trip() -> None:
     registry = TypeRegistry[str]({object: "object", int: "int"})
-    assert round_trip(registry).resolve(bool) == "int"
+    assert pickle_round_trip(registry).resolve(bool) == "int"
 
 
 def test_type_registry_pickle_drops_the_cache() -> None:
     registry = TypeRegistry[str]({object: "object"})
     registry.resolve(int)
-    assert round_trip(registry)._cache == {}
+    assert pickle_round_trip(registry)._cache == {}
 
 
 def test_type_registry_pickle_source_keeps_its_cache() -> None:
@@ -1673,12 +1670,12 @@ def test_type_registry_pickle_source_keeps_its_cache() -> None:
 )
 def test_type_registry_pickle_keeps_the_types_without_an_importable_name(dtype: type) -> None:
     registry = TypeRegistry[str]({dtype: "handler"})
-    assert round_trip(registry)[dtype] == "handler"
+    assert pickle_round_trip(registry)[dtype] == "handler"
 
 
 def test_type_registry_pickle_keeps_the_order_of_the_entries() -> None:
     registry = TypeRegistry[str]({MappingProxyType: "a", int: "b", type({}.values()): "c"})
-    assert list(round_trip(registry).keys()) == [MappingProxyType, int, type({}.values())]
+    assert list(pickle_round_trip(registry).keys()) == [MappingProxyType, int, type({}.values())]
 
 
 def test_type_registry_deepcopy_keeps_the_entries() -> None:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import threading
 
 from coola.utils.singleton import LazySingleton
-from tests.integration.helpers import run_threads
+from tests.integration.helpers import collect_errors, run_threads
 
 ###################################
 #     Tests for LazySingleton     #
@@ -28,10 +28,8 @@ def test_lazy_singleton_is_thread_safe() -> None:
     errors: list[BaseException] = []
 
     def target(index: int) -> None:
-        try:
+        with collect_errors(errors):
             results[index] = singleton.get()
-        except BaseException as exc:  # noqa: BLE001
-            errors.append(exc)
 
     run_threads([threading.Thread(target=target, args=(i,)) for i in range(32)])
 
@@ -54,18 +52,14 @@ def test_lazy_singleton_get_from_another_thread_waits_for_the_factory() -> None:
     singleton = LazySingleton(factory)
 
     def first() -> None:
-        try:
+        with collect_errors(errors):
             results[0] = singleton.get()
-        except BaseException as exc:  # noqa: BLE001
-            errors.append(exc)
 
     def second() -> None:
         # The factory is running in the first thread: this call waits for it.
         started.wait(timeout=5)
-        try:
+        with collect_errors(errors):
             results[1] = singleton.get()
-        except BaseException as exc:  # noqa: BLE001
-            errors.append(exc)
 
     def release_later() -> None:
         started.wait(timeout=5)

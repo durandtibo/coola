@@ -57,7 +57,7 @@ def test_find_root_package_parent_stops_at_filesystem_root(
     # Simulate every directory (including the real filesystem root) containing
     # an __init__.py, forcing the walk to continue all the way up until
     # parent == current at the filesystem root.
-    monkeypatch.setattr(Path, "is_file", lambda self: True)  # noqa: ARG005
+    monkeypatch.setattr(Path, "is_file", lambda _: True)
 
     result = find_root_package_parent(tmp_path)
 

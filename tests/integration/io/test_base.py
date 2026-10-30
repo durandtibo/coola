@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from coola.io import BaseFileSaver
-from tests.integration.helpers import run_python, run_threads
+from tests.integration.helpers import collect_errors, run_python, run_threads
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -60,10 +60,8 @@ def test_base_file_saver_save_concurrent_exist_ok_true_does_not_interleave(
     errors: list[BaseException] = []
 
     def worker(value: str) -> None:
-        try:
+        with collect_errors(errors):
             saver.save(value, path, exist_ok=True)
-        except BaseException as exc:  # noqa: BLE001
-            errors.append(exc)
 
     run_threads([threading.Thread(target=worker, args=(value,)) for value in values])
 
@@ -129,12 +127,10 @@ def _overwrite_file(path: Path, value: str, barrier: Any, queue: Any) -> None:  
     r"""Overwrite ``path`` with ``exist_ok=True`` and report the
     outcome."""
     barrier.wait()
-    try:
+    errors: list[BaseException] = []
+    with collect_errors(errors):
         SimpleFileSaver().save(value * _CONTENT_SIZE, path, exist_ok=True)
-    except BaseException:  # noqa: BLE001
-        queue.put("error")
-    else:
-        queue.put("done")
+    queue.put("error" if errors else "done")
 
 
 def _run_processes(target: Any, path: Path) -> list[str]:

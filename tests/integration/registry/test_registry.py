@@ -4,7 +4,7 @@ import threading
 from collections import defaultdict
 
 from coola.registry import AlreadyRegisteredError, Registry
-from tests.integration.helpers import run_threads
+from tests.integration.helpers import collect_errors, run_threads
 
 ##############################
 #     Tests for Registry     #
@@ -430,7 +430,7 @@ def test_registry_concurrent_mutation_stress() -> None:
     barrier = threading.Barrier(num_threads)
 
     def mutate(thread_id: int) -> None:
-        try:
+        with collect_errors(errors):
             barrier.wait()
             for i in range(num_keys):
                 key = thread_id * num_keys + i
@@ -439,8 +439,6 @@ def test_registry_concurrent_mutation_stress() -> None:
                 list(registry.items())  # iterate while other threads mutate
                 if i % 2:
                     assert registry.unregister(key) == key
-        except BaseException as exc:  # noqa: BLE001
-            errors.append(exc)
 
     run_threads([threading.Thread(target=mutate, args=(i,)) for i in range(num_threads)])
 

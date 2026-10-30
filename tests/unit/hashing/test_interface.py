@@ -355,14 +355,14 @@ def test_register_default_hashers_registers_pydantic_model_when_available() -> N
 
 
 @pydantic_available
-@patch("coola.hashing.interface.package_available", lambda name: False)  # noqa: ARG005
+@patch("coola.hashing.interface.package_available", lambda _: False)
 def test_register_default_hashers_skips_pydantic_model_when_unavailable() -> None:
     registry = HasherRegistry()
     _register_default_hashers(registry)
     assert not registry.has_hasher(pydantic.BaseModel)
 
 
-@patch("coola.hashing.interface.package_available", lambda name: False)  # noqa: ARG005
+@patch("coola.hashing.interface.package_available", lambda _: False)
 def test_register_default_hashers_registers_the_other_hashers_when_pydantic_is_unavailable() -> (
     None
 ):

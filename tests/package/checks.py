@@ -193,7 +193,7 @@ def check_import_all_modules() -> None:
             missing = (exc.name or "").split(".")[0]
             if missing not in EXTRA_MODULES.values() or missing in required:
                 failures.append(f"{info.name}: {type(exc).__name__}: {exc}")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001  an import can raise anything
             failures.append(f"{info.name}: {type(exc).__name__}: {exc}")
     assert not failures, "failed to import:\n" + "\n".join(failures)
 

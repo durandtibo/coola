@@ -328,7 +328,7 @@ class _Renderer:
             label, child = next(frame.children)
         except StopIteration:
             self._close(frame)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001  user code can raise anything
             # a property that raises, a broken ``__iter__``
             frame.children = iter(())
             self._lines.append(f"{INDENT * frame.depth}<summary failed: {type(exc).__name__}>")
@@ -370,7 +370,7 @@ class _Renderer:
         summarizer = self._registry.find_summarizer(type(obj))
         try:
             text = self._describe(summarizer, obj, depth)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001  user code can raise anything
             # the data is broken, not the summary
             text = f"{type(obj)} <summary failed: {type(exc).__name__}>"
         line = head + text
