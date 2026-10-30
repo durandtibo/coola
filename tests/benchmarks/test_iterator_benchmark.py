@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 
 import pytest
 
-from coola.iterator import bfs_iterate, dfs_items, dfs_iterate
+from coola.iterator import bfs_iterate, dfs_items, dfs_iterate, filter_by_type
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -182,3 +182,8 @@ def test_dfs_items_tree_benchmark(benchmark: BenchmarkFixture, depth: int, width
 def test_dfs_items_empty_option_benchmark(benchmark: BenchmarkFixture) -> None:
     data = make_tree(4, 10)
     assert benchmark(lambda: sum(1 for _ in dfs_items(data, empty=True))) == 10_000
+
+
+def test_filter_by_type_benchmark(benchmark: BenchmarkFixture) -> None:
+    data = [1, "a", 2.0] * 10_000
+    assert benchmark(lambda: sum(1 for _ in filter_by_type(data, int))) == 10_000

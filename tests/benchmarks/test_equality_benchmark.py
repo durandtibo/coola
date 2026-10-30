@@ -14,11 +14,20 @@ large or deeply nested objects.
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
-from coola.equality import compare, objects_are_allclose, objects_are_equal
+import pytest
+
+from coola.equality import (
+    assert_objects_allclose,
+    assert_objects_equal,
+    compare,
+    objects_are_allclose,
+    objects_are_equal,
+)
 from coola.testing.marks import (
     numpy_available,
     pandas_available,
@@ -278,3 +287,24 @@ def test_objects_are_equal_numpy_array_different_at_first_benchmark(
 def test_objects_are_equal_torch_tensor_benchmark(benchmark: BenchmarkFixture) -> None:
     values = torch.randn(1_000_000, generator=torch.Generator().manual_seed(0))
     assert benchmark(objects_are_equal, values, values.clone())
+
+
+def test_assert_objects_equal_wide_nested_benchmark(benchmark: BenchmarkFixture) -> None:
+    data = {f"key{i}": {"values": list(range(10)), "name": f"n{i}"} for i in range(1_000)}
+    assert benchmark(assert_objects_equal, data, copy.deepcopy(data)) is None
+
+
+def test_assert_objects_allclose_flat_list_benchmark(benchmark: BenchmarkFixture) -> None:
+    data = [float(i) for i in range(10_000)]
+    assert benchmark(assert_objects_allclose, data, list(data)) is None
+
+
+def test_assert_objects_equal_different_at_last_benchmark(benchmark: BenchmarkFixture) -> None:
+    actual = list(range(10_000))
+    expected = [*actual[:-1], -1]
+
+    def run() -> None:
+        with pytest.raises(AssertionError, match=r"differ"):
+            assert_objects_equal(actual, expected)
+
+    benchmark(run)

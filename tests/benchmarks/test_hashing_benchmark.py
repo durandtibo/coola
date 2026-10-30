@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 
 import pytest
 
-from coola.hashing import hash_object
+from coola.hashing import digest, get_secret_hashers, get_stable_registry, hash_object, tagged
 from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
 
@@ -183,3 +183,19 @@ def test_hash_object_numpy_array_benchmark(benchmark: BenchmarkFixture) -> None:
 def test_hash_object_list_of_numpy_arrays_benchmark(benchmark: BenchmarkFixture) -> None:
     data = [np.arange(10, dtype=np.float64) for _ in range(1_000)]
     assert len(benchmark(hash_object, data)) == 64
+
+
+def test_digest_benchmark(benchmark: BenchmarkFixture) -> None:
+    assert len(benchmark(digest, b"x" * 1_000_000)) == 64
+
+
+def test_tagged_benchmark(benchmark: BenchmarkFixture) -> None:
+    assert benchmark(tagged, "str", "abc").startswith(b"str")
+
+
+def test_get_secret_hashers_benchmark(benchmark: BenchmarkFixture) -> None:
+    assert isinstance(benchmark(get_secret_hashers, "exclude"), dict)
+
+
+def test_get_stable_registry_benchmark(benchmark: BenchmarkFixture) -> None:
+    benchmark(get_stable_registry)

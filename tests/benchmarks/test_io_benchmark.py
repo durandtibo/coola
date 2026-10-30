@@ -19,13 +19,23 @@ from typing import TYPE_CHECKING
 
 from coola.io import (
     JsonLoader,
+    JsonSaver,
     load_json,
     load_pickle,
     load_text,
+    load_torch,
+    resolve_loader,
+    resolve_saver,
     save_json,
     save_pickle,
     save_text,
+    save_torch,
 )
+from coola.testing.marks import torch_available
+from coola.utils.imports import is_torch_available
+
+if is_torch_available():
+    import torch
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -177,3 +187,34 @@ def test_save_json_distinct_paths_4_threads_benchmark(
     counter = itertools.count()
     benchmark(lambda: distinct_paths_threads(tmp_path, 4, 25, next(counter)))
     assert load_json(tmp_path.joinpath("run0-3-24.json")) == SMALL
+
+
+#####################
+#     Resolvers     #
+#####################
+
+
+def test_resolve_loader_config_benchmark(benchmark: BenchmarkFixture) -> None:
+    assert isinstance(benchmark(resolve_loader, {"_target_": "coola.io.JsonLoader"}), JsonLoader)
+
+
+def test_resolve_saver_config_benchmark(benchmark: BenchmarkFixture) -> None:
+    assert isinstance(benchmark(resolve_saver, {"_target_": "coola.io.JsonSaver"}), JsonSaver)
+
+
+#####################
+#     PyTorch       #
+#####################
+
+
+@torch_available
+def test_save_torch_benchmark(benchmark: BenchmarkFixture, tmp_path: Path) -> None:
+    data = {"x": torch.arange(10_000)}
+    benchmark(save_torch, data, tmp_path / "data.pt", exist_ok=True)
+
+
+@torch_available
+def test_load_torch_benchmark(benchmark: BenchmarkFixture, tmp_path: Path) -> None:
+    path = tmp_path / "data.pt"
+    save_torch({"x": torch.arange(10_000)}, path)
+    assert benchmark(load_torch, path)["x"].shape == (10_000,)
