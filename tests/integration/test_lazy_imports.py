@@ -90,6 +90,7 @@ def test_a_missing_name_raises_an_attribute_error() -> None:
         "from coola.equality import objects_are_equal; objects_are_equal([1, {'a': 2}], [1, {'a': 2}])",
         "from coola.hashing import hash_object; hash_object([1, {'a': 2}])",
         "from coola.summary import summarize; summarize([1, {'a': 2}])",
+        "from coola.jsonable import to_jsonable; to_jsonable([1, {'a': (2, {3})}])",
     ],
 )
 def test_using_the_registries_with_builtin_types_does_not_import_the_optional_libraries(

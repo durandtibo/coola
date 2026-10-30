@@ -12,6 +12,7 @@ from coola.equality.tester import (
 )
 from coola.hashing import get_default_registry as get_hasher_registry
 from coola.iterator import get_default_registry as get_iterator_registry
+from coola.jsonable import get_default_registry as get_jsonable_registry
 from coola.recursive import get_default_registry as get_transformer_registry
 from coola.registry import TypeNotRegisteredError, TypeRegistry
 from coola.registry.default import reset_default_registries, temporary_default_registries
@@ -108,6 +109,7 @@ DEFAULT_REGISTRIES = [
     pytest.param(get_equality_registry, id="equality"),
     pytest.param(get_hasher_registry, id="hashing"),
     pytest.param(get_iterator_registry, id="iterator"),
+    pytest.param(get_jsonable_registry, id="jsonable"),
     pytest.param(get_summarizer_registry, id="summary"),
     pytest.param(get_transformer_registry, id="recursive"),
     pytest.param(get_rounder_registry, id="rounding"),
