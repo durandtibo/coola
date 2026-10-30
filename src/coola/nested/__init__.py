@@ -1,13 +1,13 @@
 r"""Helpers to reshape, filter and convert nested data structures.
 
 ``nested`` is not one algorithm: it is a set of helpers built on the
-traversal packages, in five groups. ``flat``: ``to_flat_dict`` and
+traversal packages, in four groups. ``flat``: ``to_flat_dict`` and
 ``from_flat_dict``. ``keys``: ``remove_keys_if``,
 ``remove_keys_containing``, ``remove_keys_starting_with`` and
 ``add_prefix_suffix_to_keys``. ``mappings``: ``merge_mappings``,
 ``flatten_mapping`` and ``DuplicateKeyError``. ``records``:
-``convert_to_dict_of_lists`` and ``convert_to_list_of_dicts``. ``json``:
-``convert_to_jsonable``.
+``convert_to_dict_of_lists`` and ``convert_to_list_of_dicts``. The
+conversion to JSON data is in ``coola.jsonable``.
 
 Properties:
 
@@ -26,8 +26,6 @@ Properties:
 - No silent loss: two entries are never merged into one without a
     decision of the caller, a key collision raises. A wrong input type
     raises a ``TypeError`` that names the type.
-- Deterministic: the same input gives the same output in every process;
-    a set becomes a sorted list.
 - Documented round trips: ``from_flat_dict(to_flat_dict(x)) == x`` and
     ``convert_to_list_of_dicts(convert_to_dict_of_lists(r)) == r``
     under the conditions of the guide.
@@ -38,8 +36,8 @@ Properties:
 - Fast: the cost is linear in the number of nodes.
 
 Not guaranteed: the cost of a container shared by several paths (it is
-visited once per path), the round trip of dataclasses and of non-``str``
-keys, and strict JSON (``NaN`` is kept, the keys are not converted).
+visited once per path), and the round trip of dataclasses and of
+non-``str`` keys.
 
 Several of these properties are reached step by step; the guide says
 which ones.
@@ -59,7 +57,6 @@ __all__ = [
     "DuplicateKeyError",
     "add_prefix_suffix_to_keys",
     "convert_to_dict_of_lists",
-    "convert_to_jsonable",
     "convert_to_list_of_dicts",
     "flatten_frame",
     "flatten_mapping",
@@ -73,11 +70,6 @@ __all__ = [
 
 from typing import TYPE_CHECKING
 
-from coola.nested.conversion import (
-    convert_to_dict_of_lists,
-    convert_to_jsonable,
-    convert_to_list_of_dicts,
-)
 from coola.nested.flat import from_flat_dict, to_flat_dict
 from coola.nested.keys import (
     add_prefix_suffix_to_keys,
@@ -90,6 +82,7 @@ from coola.nested.mapping import (
     flatten_mapping,
     merge_mappings,
 )
+from coola.nested.records import convert_to_dict_of_lists, convert_to_list_of_dicts
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
