@@ -6,10 +6,7 @@ __all__ = ["get_file_size"]
 
 import os
 import stat
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
 
 
 def get_file_size(path: Path) -> int:
@@ -47,7 +44,7 @@ def get_file_size(path: Path) -> int:
     for dirpath, _, filenames in os.walk(path, followlinks=False):
         for name in filenames:
             try:
-                info = os.lstat(os.path.join(dirpath, name))  # noqa: PTH118
+                info = (Path(dirpath) / name).lstat()
             except OSError:  # the file vanished during the scan
                 continue
             if stat.S_ISREG(info.st_mode):  # a regular file, not a symlink
