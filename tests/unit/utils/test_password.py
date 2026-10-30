@@ -104,9 +104,9 @@ def test_get_password_at_max_length() -> None:
 @pytest.mark.usefixtures("mock_interactive_terminal")
 def test_get_password_preserves_whitespace() -> None:
     """Test that whitespace in password is preserved."""
-    password_with_spaces = "  my pass word  "  # noqa: S105
-    with patch("getpass.getpass", return_value=password_with_spaces):
-        assert get_password() == password_with_spaces
+    with_spaces = "  my pass word  "
+    with patch("getpass.getpass", return_value=with_spaces):
+        assert get_password() == with_spaces
 
 
 @pytest.mark.usefixtures("mock_interactive_terminal")
@@ -203,26 +203,26 @@ def test_get_password_eof_error() -> None:
 @pytest.mark.usefixtures("mock_interactive_terminal")
 def test_get_password_special_characters() -> None:
     """Test password with special characters is accepted."""
-    special_password = "!@#$%^&*()_+-={}[]|:\";'<>?,./"  # noqa: S105
-    with patch("getpass.getpass", return_value=special_password):
-        assert get_password() == special_password
+    special_chars = "!@#$%^&*()_+-={}[]|:\";'<>?,./"
+    with patch("getpass.getpass", return_value=special_chars):
+        assert get_password() == special_chars
 
 
 @pytest.mark.usefixtures("mock_interactive_terminal")
 def test_get_password_unicode_characters() -> None:
     """Test password with unicode characters is accepted."""
-    unicode_password = "пароль密码🔒"  # noqa: S105
-    with patch("getpass.getpass", return_value=unicode_password):
-        assert get_password() == unicode_password
+    unicode_chars = "пароль密码🔒"
+    with patch("getpass.getpass", return_value=unicode_chars):
+        assert get_password() == unicode_chars
 
 
 @pytest.mark.usefixtures("mock_interactive_terminal")
 def test_get_password_confirm_unicode_characters_match() -> None:
     """Test that unicode passwords can be confirmed without raising
     TypeError."""
-    unicode_password = "пароль密码🔒"  # noqa: S105
-    with patch("getpass.getpass", side_effect=[unicode_password, unicode_password]):
-        assert get_password(confirm=True) == unicode_password
+    unicode_chars = "пароль密码🔒"
+    with patch("getpass.getpass", side_effect=[unicode_chars, unicode_chars]):
+        assert get_password(confirm=True) == unicode_chars
 
 
 @pytest.mark.usefixtures("mock_interactive_terminal")

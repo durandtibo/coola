@@ -218,7 +218,7 @@ def test_summarize_pydantic_model_hides_the_secrets() -> None:
         name: str
         password: SecretStr
 
-    assert summarize(Model(name="a", password="b")) == (  # noqa: S106
+    assert summarize(Model.model_validate({"name": "a", "password": "b"})) == (
         f"{Model} (fields=1)\n  (name): a"
     )
 
