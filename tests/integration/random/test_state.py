@@ -3,11 +3,8 @@ from __future__ import annotations
 from coola.equality import objects_are_equal
 from coola.random import get_default_registry, get_rng_state, manual_seed, set_rng_state
 from coola.testing.marks import numpy_available, torch_available
-from coola.utils.imports import is_numpy_available, is_torch_available
+from coola.utils.imports import is_torch_available
 from tests.helpers import draw_numpy_rand, draw_python_random, seed_numpy
-
-if is_numpy_available():
-    pass
 
 if is_torch_available():
     import torch

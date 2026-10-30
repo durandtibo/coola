@@ -20,9 +20,6 @@ from tests.helpers import draw_numpy_rand, draw_python_random
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
 
-if is_numpy_available():
-    pass
-
 if is_torch_available():
     import torch
 
