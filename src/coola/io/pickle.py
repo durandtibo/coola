@@ -41,6 +41,14 @@ class PickleLoader(BaseLoader[Any]):
     """
 
     def _load(self, path: Path) -> Any:
+        r"""Load a pickle file.
+
+        Args:
+            path: The path of the file.
+
+        Returns:
+            The data of the file.
+        """
         with path.open(mode="rb") as file:
             return pickle.load(file)  # noqa: S301
 
@@ -71,9 +79,20 @@ class PickleSaver(BaseFileSaver[Any]):
         self._kwargs = kwargs
 
     def _display_fields(self) -> dict[str, Any]:
+        r"""Return the fields shown in the representation.
+
+        Returns:
+            The arguments of ``pickle.dump``.
+        """
         return self._kwargs
 
     def _save_file(self, to_save: Any, path: Path) -> None:
+        r"""Save the data into a pickle file.
+
+        Args:
+            to_save: The data to save.
+            path: The path of the file.
+        """
         with path.open(mode="wb") as file:
             pickle.dump(to_save, file, **self._kwargs)
 

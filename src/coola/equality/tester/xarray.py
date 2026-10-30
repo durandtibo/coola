@@ -39,6 +39,15 @@ def _attributes(
 
     A dotted name (``"coords.variables"``) is read through the
     attributes, and it is one part of the path.
+
+    Args:
+        actual: The actual object.
+        expected: The expected object.
+        names: The names of the attributes to compare.
+
+    Yields:
+        The triplet ``(actual value, expected value, path part)`` of
+            each attribute.
     """
     for name in names:
         getter = attrgetter(name)
@@ -49,8 +58,11 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
     r"""Implement an equality tester for ``xarray.DataArray``.
 
     This tester compares the variable (data, dimensions and attributes),
-    the name and the coordinate variables of two DataArrays. The location
-    of a difference is the name of the attribute.
+    the name and the coordinate variables of two DataArrays. The
+    location of a difference is the name of the attribute.
+
+    Raises:
+        MissingPackageError: If ``xarray`` is not installed.
 
     Example:
         ```pycon
@@ -74,6 +86,17 @@ class XarrayDataArrayEqualityTester(BaseEqualityTester[xr.DataArray]):
     def objects_are_equal(
         self, actual: xr.DataArray, expected: xr.DataArray, _ctx: Engine
     ) -> Iterator[tuple[object, object, object]]:
+        r"""Test two ``xarray.DataArray`` objects.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            _ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            The pairs of ``variable``, ``name`` and ``coords`` that must
+                all be equal.
+        """
         return _attributes(actual, expected, ("variable", "name", "coords.variables"))
 
 
@@ -83,6 +106,9 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
     This tester compares the data variables, the coordinates and the
     attributes of two Datasets. The location of a difference is the
     name of the attribute.
+
+    Raises:
+        MissingPackageError: If ``xarray`` is not installed.
 
     Example:
         ```pycon
@@ -110,6 +136,17 @@ class XarrayDatasetEqualityTester(BaseEqualityTester[xr.Dataset]):
     def objects_are_equal(
         self, actual: xr.Dataset, expected: xr.Dataset, _ctx: Engine
     ) -> Iterator[tuple[object, object, object]]:
+        r"""Test two ``xarray.Dataset`` objects.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            _ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            The pairs of ``data_vars``, ``coords`` and ``attrs`` that
+                must all be equal.
+        """
         return _attributes(actual, expected, ("data_vars", "coords", "attrs"))
 
 
@@ -119,6 +156,9 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
     This tester compares the data, the dimension names and the
     attributes of two Variables. The location of a difference is the
     name of the attribute.
+
+    Raises:
+        MissingPackageError: If ``xarray`` is not installed.
 
     Example:
         ```pycon
@@ -147,6 +187,17 @@ class XarrayVariableEqualityTester(BaseEqualityTester[xr.Variable]):
     def objects_are_equal(
         self, actual: xr.Variable, expected: xr.Variable, _ctx: Engine
     ) -> Iterator[tuple[object, object, object]]:
+        r"""Test two ``xarray.Variable`` objects.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            _ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            The pairs of ``data``, ``dims`` and ``attrs`` that must all
+                be equal.
+        """
         return _attributes(actual, expected, ("data", "dims", "attrs"))
 
 

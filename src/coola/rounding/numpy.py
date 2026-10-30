@@ -55,6 +55,20 @@ def round_numpy(data: Any, mode: RoundMode, decimals: int) -> Any:
 
 
 def _round_array(data: np.ndarray, mode: RoundMode, decimals: int) -> np.ndarray:
+    r"""Round a NumPy array.
+
+    Args:
+        data: The array.
+        mode: The rounding mode.
+        decimals: The number of decimals.
+
+    Returns:
+        A new array. The integer and boolean arrays are copied.
+
+    Raises:
+        UnsupportedTypeError: If the dtype is not a boolean, an integer
+            or a float.
+    """
     kind = data.dtype.kind
     if kind in "iub":
         return data.copy()
@@ -72,12 +86,31 @@ def _round_array(data: np.ndarray, mode: RoundMode, decimals: int) -> np.ndarray
 
 
 def _round_float_array(data: np.ndarray, mode: RoundMode, scale: float) -> np.ndarray:
+    r"""Round a float array on the grid of the decimals.
+
+    Args:
+        data: The array of floats.
+        mode: The rounding mode.
+        scale: The scale of the grid: ``10 ** decimals``.
+
+    Returns:
+        The rounded values, in ``float64``.
+    """
     # The computation is made in float64. The grid points are compared with the value after a
     # cast to the dtype of the array, as the value is.
     x = data.astype(np.float64)
     low = data.dtype != np.float64
 
     def grid(index: np.ndarray) -> np.ndarray:
+        r"""Return the points of the grid.
+
+        Args:
+            index: The indexes of the grid points.
+
+        Returns:
+            The grid points, as the dtype of the array can represent
+                them.
+        """
         point = index / scale
         return point.astype(data.dtype).astype(np.float64) if low else point
 

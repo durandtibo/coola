@@ -47,6 +47,9 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
     the first element that differs (the position in the flattened
     array for an ``object`` array).
 
+    Raises:
+        MissingPackageError: If ``numpy`` is not installed.
+
     Example:
         ```pycon
         >>> import numpy as np
@@ -72,6 +75,20 @@ class NumpyArrayEqualityTester(BaseEqualityTester[np.ndarray]):
     def objects_are_equal(
         self, actual: np.ndarray, expected: np.ndarray, ctx: Engine
     ) -> bool | Iterator[tuple[object, object, object]]:
+        r"""Test two NumPy arrays.
+
+        The arrays must have the same dtype and shape.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``False`` if the arrays differ, ``True`` if they are equal,
+                or, for an array of objects, the pairs of elements that
+                must all be equal.
+        """
         failure = check_dtype_and_shape(actual, expected, ctx)
         if failure is not None:
             return failure
@@ -98,6 +115,9 @@ class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
     is ``.data``, ``.mask`` or ``.fill_value``, and then the index in
     the array.
 
+    Raises:
+        MissingPackageError: If ``numpy`` is not installed.
+
     Example:
         ```pycon
         >>> import numpy as np
@@ -123,6 +143,20 @@ class NumpyMaskedArrayEqualityTester(BaseEqualityTester[np.ma.MaskedArray]):
     def objects_are_equal(
         self, actual: np.ma.MaskedArray, expected: np.ma.MaskedArray, ctx: Engine
     ) -> bool | Iterator[tuple[object, object, object]]:
+        r"""Test two NumPy masked arrays.
+
+        The arrays must have the same dtype and shape.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``False`` if the dtypes or shapes differ, otherwise the
+                pairs of ``data``, ``mask`` and ``fill_value`` that must
+                all be equal.
+        """
         failure = check_dtype_and_shape(actual, expected, ctx)
         if failure is not None:
             return failure
@@ -143,6 +177,9 @@ class NumpyTimeScalarEqualityTester(BaseEqualityTester[object]):
     ``numpy.timedelta64`` is a duration: the tolerances apply (``atol``
     is a number of seconds). A ``numpy.datetime64`` is an instant and
     is compared exactly.
+
+    Raises:
+        MissingPackageError: If ``numpy`` is not installed.
 
     Example:
         ```pycon
@@ -167,6 +204,17 @@ class NumpyTimeScalarEqualityTester(BaseEqualityTester[object]):
         check_numpy()
 
     def objects_are_equal(self, actual: Any, expected: Any, ctx: Engine) -> bool:
+        r"""Test two NumPy ``datetime64`` or ``timedelta64`` scalars.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the objects are equal, otherwise ``False`` (the
+                reason is recorded in the engine).
+        """
         return time_scalar_equal(actual, expected, ctx.config) or ctx.fail(
             lambda: format_value_difference(actual, expected, name="numpy time scalars")
         )

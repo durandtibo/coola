@@ -48,6 +48,13 @@ def _short_name(name: str) -> str:
     The short name is a hash of ``name`` followed by its extension, so
     the names derived from it (temporary file) stay below the filesystem
     limit for any legal target name.
+
+    Args:
+        name: The name of the file.
+
+    Returns:
+        ``name``, or a hash of ``name`` followed by its extension if
+            ``name`` is too long.
     """
     if len(name.encode()) <= _MAX_DERIVED_NAME_BYTES:
         return name
@@ -60,6 +67,9 @@ def _short_name(name: str) -> str:
 
 def _make_parent_dir(path: Path) -> None:
     r"""Create the parent directory of ``path``.
+
+    Args:
+        path: The path of the file.
 
     Raises:
         NotADirectoryError: if the parent exists and is not a directory.
@@ -80,12 +90,22 @@ def _tmp_path(path: Path) -> Path:
     lists the directory does not take it for the final file while it is
     being written. The extension is kept because some writers choose the
     format or add an extension from it.
+
+    Args:
+        path: The final path of the file.
+
+    Returns:
+        The path of the hidden temporary file.
     """
     return add_uuid_suffix(path.with_name(f".{_short_name(path.name)}"))
 
 
 def _fsync_file(path: Path) -> None:
-    r"""Flush the content of a file to the disk."""
+    r"""Flush the content of a file to the disk.
+
+    Args:
+        path: The path of the file.
+    """
     fd = os.open(path, os.O_RDWR)
     try:
         os.fsync(fd)
@@ -99,6 +119,9 @@ def _fsync_directory(path: Path) -> None:
 
     It is a best effort: some platforms and filesystems do not support
     opening or syncing a directory.
+
+    Args:
+        path: The path of the directory.
     """
     with contextlib.suppress(OSError):
         fd = os.open(path, os.O_RDONLY)

@@ -122,7 +122,15 @@ class Hasher(Protocol[T_contra]):
     convenience base class.
     """
 
-    def encode(self, data: T_contra) -> Encoding: ...
+    def encode(self, data: T_contra) -> Encoding:
+        r"""Describe an object for hashing.
+
+        Args:
+            data: The object to describe.
+
+        Returns:
+            The ``bytes`` of a leaf, or a ``Node`` for a container.
+        """
 
 
 class BaseHasher(ABC, Generic[T]):

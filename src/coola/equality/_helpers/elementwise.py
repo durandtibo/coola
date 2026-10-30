@@ -75,21 +75,57 @@ def elementwise_close(
 
 
 def _is_torch(xp: Any) -> bool:
+    r"""Indicate if the array module is PyTorch.
+
+    Args:
+        xp: The array module (NumPy, PyTorch or JAX).
+
+    Returns:
+        ``True`` if ``xp`` is ``torch``, otherwise ``False``.
+    """
     return xp.__name__ == "torch"
 
 
 def _is_integer(array: Any, xp: Any) -> bool:
+    r"""Indicate if the dtype of an array is an integer type.
+
+    Args:
+        array: The array to check.
+        xp: The array module of ``array``.
+
+    Returns:
+        ``True`` if the dtype is an integer (not floating-point or
+            complex), otherwise ``False``.
+    """
     if _is_torch(xp):
         return not (array.is_floating_point() or array.is_complex())
     return array.dtype.kind in {"i", "u"}
 
 
 def _itemsize(array: Any, xp: Any) -> int:
+    r"""Return the size in bytes of one element of an array.
+
+    Args:
+        array: The array.
+        xp: The array module of ``array``.
+
+    Returns:
+        The number of bytes of one element.
+    """
     return array.element_size() if _is_torch(xp) else array.dtype.itemsize
 
 
 def _cast(array: Any, name: str, xp: Any) -> Any:
-    r"""Cast ``array`` to the dtype ``name`` of the module ``xp``."""
+    r"""Cast ``array`` to the dtype ``name`` of the module ``xp``.
+
+    Args:
+        array: The array to cast.
+        name: The name of the target dtype, e.g. ``"float64"``.
+        xp: The array module of ``array``.
+
+    Returns:
+        The cast array.
+    """
     dtype = getattr(xp, name)
     if _is_torch(xp):
         return array.to(dtype)
@@ -102,8 +138,16 @@ def _cast(array: Any, name: str, xp: Any) -> Any:
 
 
 def _to_double(array: Any, xp: Any) -> Any:
-    r"""Cast the floating-point and complex arrays to double
-    precision."""
+    r"""Cast the floating-point and complex arrays to double precision.
+
+    Args:
+        array: The array to cast.
+        xp: The array module of ``array``.
+
+    Returns:
+        The array in double precision (``float64`` or ``complex128``),
+            or ``array`` itself if it is already at least that wide.
+    """
     is_complex = array.is_complex() if _is_torch(xp) else array.dtype.kind == "c"
     if is_complex:
         return array if _itemsize(array, xp) >= 16 else _cast(array, "complex128", xp)
@@ -117,6 +161,16 @@ def _integer_close(array1: Any, array2: Any, *, atol: float, rtol: float, xp: An
     widened to ``int64``, so the difference cannot wrap around; the
     difference of two ``int64`` can wrap, and then the modulus is added
     back. The unsigned 64-bit integers do not wrap.
+
+    Args:
+        array1: The first integer array.
+        array2: The second integer array, with the same dtype and shape.
+        atol: The absolute tolerance.
+        rtol: The relative tolerance.
+        xp: The array module of the arrays.
+
+    Returns:
+        A boolean array that is ``True`` where the elements are close.
     """
     unsigned_64 = not _is_torch(xp) and array1.dtype.kind == "u"
     if _itemsize(array1, xp) < 8:

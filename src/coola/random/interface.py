@@ -47,8 +47,11 @@ def random_seed(seed: int, *, registry: RandomManagerRegistry | None = None) -> 
 
     Args:
         seed: Seed used while inside the context manager.
-        registry: Random manager registry to use. If ``None``, the default
-            registry is used.
+        registry: Random manager registry to use. If ``None``, the
+            default registry is used.
+
+    Yields:
+        ``None``. The seed is set while the block runs.
 
     Example:
         ```pycon

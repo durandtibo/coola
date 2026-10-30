@@ -122,12 +122,25 @@ class _NodeTransformer(BaseTransformer[_Node]):
     from a list, and converting it would lose the keys. The conversion
     is opt-in (``restore_lists``) because a dict built with such keys
     looks the same as a list in the flat dict.
+
+    Args:
+        restore_lists: If ``True``, a node whose keys are ``"0"``,
+            ..., ``"n-1"`` becomes a ``list``.
     """
 
     def __init__(self, *, restore_lists: bool) -> None:
         self._restore_lists = restore_lists
 
     def expand(self, data: _Node) -> Expansion | None:
+        r"""Expand a node.
+
+        Args:
+            data: The node.
+
+        Returns:
+            The values of the node, and the function that builds the
+                ``dict`` or the ``list`` from the converted values.
+        """
         keys = list(data)
         restore = (
             self._restore_lists and bool(keys) and set(keys) == {str(i) for i in range(len(keys))}
@@ -171,10 +184,17 @@ def _freeze(nested: _Root, *, restore_lists: bool) -> dict[str, Any]:
 
 
 def _split_key(key: str, separator: str) -> list[str]:
-    """Split *key* on the separators that are not escaped.
+    r"""Split *key* on the separators that are not escaped.
 
     A backslash followed by the separator or by a backslash gives the
     separator or the backslash; any other backslash is kept.
+
+    Args:
+        key: The flattened key.
+        separator: The separator of the segments.
+
+    Returns:
+        The segments of the key.
     """
     segments: list[str] = []
     current: list[str] = []
@@ -198,7 +218,15 @@ def _split_key(key: str, separator: str) -> list[str]:
 
 
 def _escape_key(key: str, separator: str) -> str:
-    """Escape the backslashes and the separators of a key segment."""
+    r"""Escape the backslashes and the separators of a key segment.
+
+    Args:
+        key: The key segment.
+        separator: The separator of the segments.
+
+    Returns:
+        The escaped segment.
+    """
     return key.replace("\\", "\\\\").replace(separator, "\\" + separator)
 
 
@@ -391,11 +419,19 @@ def _make_registry(to_str: tuple[type, ...]) -> ChildFinderRegistry:
 
 
 def _set_leaf(flat: dict[str, Any], key: str, value: Any) -> None:
-    """Store *value* under *key*, refusing to overwrite an existing
+    r"""Store *value* under *key*, refusing to overwrite an existing
     entry.
 
     Keys are converted with ``str()`` while flattening, so different
     keys (e.g. ``1`` and ``"1"``) can collide.
+
+    Args:
+        flat: The flat dictionary to update.
+        key: The flattened key.
+        value: The value.
+
+    Raises:
+        ValueError: If ``key`` is already in ``flat``.
     """
     if key in flat:
         msg = (

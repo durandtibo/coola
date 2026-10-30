@@ -51,6 +51,21 @@ class DefaultEqualityTester(BaseEqualityTester[object]):
     """
 
     def objects_are_equal(self, actual: object, expected: object, ctx: Engine) -> bool:
+        r"""Test two objects with ``==``.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the objects are equal, otherwise ``False`` (the
+                reason is recorded in the engine).
+
+        Raises:
+            TypeError: If ``==`` raises or returns a value that cannot
+                be converted to a ``bool``.
+        """
         try:
             equal = bool(actual == expected)
         except (TypeError, ValueError) as exc:

@@ -34,6 +34,9 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
     different seeds in ``[0, 2**63)`` never give the same random
     numbers.
 
+    Raises:
+        MissingPackageError: If ``numpy`` is not installed.
+
     Example:
         ```pycon
         >>> from coola.random import NumpyRandomManager
@@ -47,15 +50,43 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
         check_numpy()
 
     def __eq__(self, other: object) -> bool:
+        r"""Indicate if two managers are equal.
+
+        Args:
+            other: The other object.
+
+        Returns:
+            ``True`` if ``other`` has the same type, otherwise
+                ``False``.
+        """
         return is_same_type(other, self)
 
     def __hash__(self) -> int:
+        r"""Return the hash of the manager.
+
+        Returns:
+            The hash of the type of the manager.
+        """
         return hash(type(self))
 
     def get_rng_state(self) -> tuple[Any, ...]:
+        r"""Get the state of the NumPy random number generator.
+
+        Returns:
+            The state, as returned by ``numpy.random``.
+        """
         return np.random.get_state()
 
     def manual_seed(self, seed: int) -> None:
+        r"""Set the seed of the NumPy random number generator.
+
+        Args:
+            seed: The seed.
+
+        Raises:
+            TypeError: If the seed is not an ``int``.
+            ValueError: If the seed is not in the range ``[0, 2**63)``.
+        """
         validate_seed(seed)
         if seed < 2**32:
             np.random.seed(seed)
@@ -63,4 +94,9 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
             np.random.seed([seed & 0xFFFFFFFF, seed >> 32])
 
     def set_rng_state(self, state: tuple[Any, ...]) -> None:
+        r"""Restore the state of the NumPy random number generator.
+
+        Args:
+            state: The state returned by ``get_rng_state``.
+        """
         np.random.set_state(state)

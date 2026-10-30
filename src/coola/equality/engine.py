@@ -217,11 +217,26 @@ class Engine:
                 return True
 
     def _fail_types(self, actual_type: type, expected_type: type) -> bool:
-        r"""Record that the two objects have different types."""
+        r"""Record that the two objects have different types.
+
+        Args:
+            actual_type: The type of the actual object.
+            expected_type: The type of the expected object.
+
+        Returns:
+            Always ``False``.
+        """
         return self.fail(lambda: format_type_difference(actual_type, expected_type))
 
     def _check_depth(self, depth: int) -> None:
-        r"""Raise an error if the nesting of the objects is too deep."""
+        r"""Raise an error if the nesting of the objects is too deep.
+
+        Args:
+            depth: The current nesting depth.
+
+        Raises:
+            MaxDepthExceededError: If ``depth`` reaches ``max_depth``.
+        """
         if depth >= self.max_depth:
             msg = (
                 f"Maximum recursion depth ({self.max_depth}) exceeded. "
@@ -234,6 +249,13 @@ class Engine:
 
         A reason given to ``fail`` is recorded with the path of the
         stack and the parts given to ``fail``.
+
+        Args:
+            parts: The path parts of the stack of the engine.
+            part: The path part of the failing pair.
+
+        Returns:
+            Always ``False``.
         """
         if not self.explaining:
             return False

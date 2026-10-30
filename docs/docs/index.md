@@ -151,7 +151,9 @@ Compare complex nested objects with support for multiple data types:
 [pandas](https://pandas.pydata.org/) •
 [polars](https://www.pola.rs/) •
 [PyArrow](https://arrow.apache.org/docs/python/) •
+[pydantic](https://docs.pydantic.dev/) •
 [PyTorch](https://pytorch.org/) •
+[SciPy](https://scipy.org/) (sparse matrices and arrays) •
 [xarray](https://docs.xarray.dev/) •
 Python built-ins (dict, list, tuple, set, etc.)
 

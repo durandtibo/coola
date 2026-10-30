@@ -77,8 +77,15 @@ class BloomFilter:
     @staticmethod
     def _optimal_size(n: int, p: float) -> int:
         r"""Compute the bit-array size minimizing memory for the given
-        expected item count ``n`` and target false-positive rate
-        ``p``."""
+        expected item count ``n`` and target false-positive rate ``p``.
+
+        Args:
+            n: The expected number of items.
+            p: The target false-positive rate.
+
+        Returns:
+            The number of bits, at least 8.
+        """
         return max(8, int(-(n * math.log(p)) / (math.log(2) ** 2)))
 
     # Upper bound on the number of hash rounds per item, regardless of what
@@ -94,7 +101,15 @@ class BloomFilter:
     def _optimal_hash_count(cls, m: int, n: int) -> int:
         r"""Compute the number of hash functions minimizing the false-
         positive rate for a bit array of size ``m`` and expected item
-        count ``n``, capped at ``_MAX_HASH_COUNT``."""
+        count ``n``, capped at ``_MAX_HASH_COUNT``.
+
+        Args:
+            m: The size of the bit array.
+            n: The expected number of items.
+
+        Returns:
+            The number of hash functions, in ``[1, _MAX_HASH_COUNT]``.
+        """
         return max(1, min(cls._MAX_HASH_COUNT, int((m / max(n, 1)) * math.log(2))))
 
     def _hashes(self, item: bytes) -> Generator[int]:

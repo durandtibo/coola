@@ -40,7 +40,23 @@ class DataclassChildFinder(InlineDisplayMixin, BaseChildFinder[Any]):
     """
 
     def find_children(self, data: Any) -> Iterator[Any]:
+        r"""Return the children of an object.
+
+        Args:
+            data: The object.
+
+        Returns:
+            The values of the fields.
+        """
         return (getattr(data, field.name) for field in dataclasses.fields(data))
 
     def find_items(self, data: Any) -> Iterator[tuple[str, Any]]:
+        r"""Return the items of an object, as ``(key, child)`` pairs.
+
+        Args:
+            data: The object.
+
+        Returns:
+            The ``(field name, value)`` pairs.
+        """
         return ((field.name, getattr(data, field.name)) for field in dataclasses.fields(data))

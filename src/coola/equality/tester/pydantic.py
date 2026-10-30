@@ -31,13 +31,16 @@ class PydanticModelEqualityTester(BaseEqualityTester[pydantic.BaseModel]):
     r"""Implement an equality tester for ``pydantic.BaseModel``.
 
     The two models must have the same type, the same field values and
-    the same extra values. The values are compared with the registry,
-    so they support the tolerance and ``equal_nan``. The private
-    attributes are not compared, as the fields are what the model
-    validates and serializes. The other entries of the instance
-    ``__dict__`` (for example the value of a ``functools.cached_property``
-    that was read on one model only) are ignored too. The location of a
-    difference is the name of the field, or ``model_extra``.
+    the same extra values. The values are compared with the registry, so
+    they support the tolerance and ``equal_nan``. The private attributes
+    are not compared, as the fields are what the model validates and
+    serializes. The other entries of the instance ``__dict__`` (for
+    example the value of a ``functools.cached_property`` that was read
+    on one model only) are ignored too. The location of a difference is
+    the name of the field, or ``model_extra``.
+
+    Raises:
+        MissingPackageError: If ``pydantic`` is not installed.
 
     Example:
         ```pycon
@@ -64,6 +67,19 @@ class PydanticModelEqualityTester(BaseEqualityTester[pydantic.BaseModel]):
     def objects_are_equal(
         self, actual: pydantic.BaseModel, expected: pydantic.BaseModel, _ctx: Engine
     ) -> bool | Iterator[tuple[object, object, object]]:
+        r"""Test two pydantic models.
+
+        The fields and the extra values are the children.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            _ctx: The ``Engine`` of the comparison.
+
+        Yields:
+            The pairs of field values and of ``model_extra`` that must
+                all be equal.
+        """
         # ``type(actual).model_fields``: the access from an instance is deprecated.
         yield from (
             (getattr(actual, name), getattr(expected, name), AttributeName(name))

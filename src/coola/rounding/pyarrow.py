@@ -71,6 +71,17 @@ def round_pyarrow(data: Any, mode: RoundMode, decimals: int) -> Any:
 
 
 def _round_array(array: Any, mode: RoundMode, decimals: int) -> Any:
+    r"""Round an array.
+
+    Args:
+        array: The array or chunked array.
+        mode: The rounding mode.
+        decimals: The number of decimals.
+
+    Returns:
+        The rounded array. An array that is not a floating-point one is
+            returned as it is, and the null values are kept.
+    """
     if not pa.types.is_floating(array.type):
         return array
     if isinstance(array, pa.ChunkedArray):

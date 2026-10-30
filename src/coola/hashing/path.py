@@ -87,6 +87,14 @@ def _posix(path: PurePath, *, resolve: bool = False) -> str:
 
     If the resolution fails (permission error, OS-level issue), the path
     is used as given.
+
+    Args:
+        path: The path.
+        resolve: If ``True``, the path is resolved (a ``PurePath`` is
+            not).
+
+    Returns:
+        The POSIX form of the path.
     """
     if resolve and isinstance(path, Path):
         with suppress(OSError):

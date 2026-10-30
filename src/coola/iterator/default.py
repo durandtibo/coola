@@ -31,4 +31,12 @@ class DefaultChildFinder(InlineDisplayMixin, BaseChildFinder[Any]):
     """
 
     def find_children(self, data: Any) -> None:
+        r"""Return the children of an object.
+
+        Args:
+            data: The object.
+
+        Returns:
+            ``None``: the object is a leaf.
+        """
         del data  # a leaf: no children

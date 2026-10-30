@@ -46,9 +46,22 @@ class PandasDataFrameSummarizer(BaseMetadataSummarizer[pd.DataFrame]):
     """
 
     def _check_dependencies(self) -> None:
+        r"""Check that ``pandas`` is installed.
+
+        Raises:
+            MissingPackageError: If ``pandas`` is not installed.
+        """
         check_pandas()
 
     def _describe(self, data: pd.DataFrame) -> list[Field]:
+        r"""Describe the metadata of a pandas data frame.
+
+        Args:
+            data: The data to describe.
+
+        Returns:
+            The shape and the dtype of each column.
+        """
         return [
             f"shape={data.shape}",
             ("columns", data.dtypes.items()),
@@ -76,9 +89,22 @@ class PandasSeriesSummarizer(BaseMetadataSummarizer[pd.Series]):
     """
 
     def _check_dependencies(self) -> None:
+        r"""Check that ``pandas`` is installed.
+
+        Raises:
+            MissingPackageError: If ``pandas`` is not installed.
+        """
         check_pandas()
 
     def _describe(self, data: pd.Series) -> list[Field]:
+        r"""Describe the metadata of a pandas series.
+
+        Args:
+            data: The data to describe.
+
+        Returns:
+            The shape, the dtype and the name.
+        """
         return [f"shape={data.shape}", f"dtype={data.dtype}", f"name={data.name!r}"]
 
 

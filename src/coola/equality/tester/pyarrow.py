@@ -56,6 +56,16 @@ class PyarrowTableTable:
         self._table = table
 
     def same_structure(self, other: PyarrowTableTable, ctx: Engine) -> bool:
+        r"""Indicate if two tables have the same structure.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the structures are the same, otherwise
+                ``False``.
+        """
         _warn_ignored(ctx, self._table.schema.types, self._table)
         return bool(
             self._table.schema.equals(other._table.schema)
@@ -63,6 +73,11 @@ class PyarrowTableTable:
         )
 
     def columns(self) -> Iterator[Column]:
+        r"""Iterate over the columns.
+
+        Yields:
+            The column of each table column.
+        """
         for name, column in zip(self._table.schema.names, self._table.columns, strict=True):
             yield _column(name, column)
 
@@ -93,22 +108,51 @@ class PyarrowArrayTable:
         self._array = array
 
     def same_structure(self, other: PyarrowArrayTable, ctx: Engine) -> bool:
+        r"""Indicate if two arrays have the same structure.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the structures are the same, otherwise
+                ``False``.
+        """
         _warn_ignored(ctx, [self._array.type], self._array)
         return bool(self._array.type == other._array.type and len(self._array) == len(other._array))
 
     def columns(self) -> Iterator[Column]:
+        r"""Iterate over the columns.
+
+        Yields:
+            The column of the array.
+        """
         yield _column(None, self._array)
 
 
 def pyarrow_table(table: Any) -> PyarrowTableTable:
     r"""Adapt a ``pyarrow.Table`` or a ``pyarrow.RecordBatch`` to a
-    table."""
+    table.
+
+    Args:
+        table: The table or record batch to adapt.
+
+    Returns:
+        The table.
+    """
     return PyarrowTableTable(table)
 
 
 def pyarrow_array(array: Any) -> PyarrowArrayTable:
     r"""Adapt a ``pyarrow.Array`` or a ``pyarrow.ChunkedArray`` to a
-    table."""
+    table.
+
+    Args:
+        array: The array or chunked array to adapt.
+
+    Returns:
+        The table.
+    """
     return PyarrowArrayTable(array)
 
 
@@ -128,6 +172,13 @@ def _column(name: object, array: Any) -> Column:
     If NumPy is not installed, ``equal_nan``, ``atol`` and ``rtol`` are
     ignored and every column is compared by Arrow (see
     ``_warn_ignored``).
+
+    Args:
+        name: The name of the column.
+        array: The array of the column.
+
+    Returns:
+        The column.
     """
     kind = array.type
     if is_numpy_available() and _is_quantity(kind):
@@ -139,16 +190,42 @@ def _column(name: object, array: Any) -> Column:
 
 
 def _is_quantity(kind: Any) -> bool:
+    r"""Indicate if an Arrow type is compared with the tolerance.
+
+    Args:
+        kind: The Arrow type.
+
+    Returns:
+        ``True`` for an integer, floating-point or duration type,
+            otherwise ``False``.
+    """
     return bool(
         pa.types.is_floating(kind) or pa.types.is_integer(kind) or pa.types.is_duration(kind)
     )
 
 
 def _nulls(array: Any) -> Any:
+    r"""Return the mask of the null values of an array.
+
+    Args:
+        array: The array.
+
+    Returns:
+        A NumPy boolean array that is ``True`` at the null values.
+    """
     return array.is_null().to_numpy(zero_copy_only=False)
 
 
 def _arrow_equals(array1: Any, array2: Any) -> bool:
+    r"""Indicate if two arrays are equal for Arrow.
+
+    Args:
+        array1: The first array.
+        array2: The second array.
+
+    Returns:
+        ``True`` if the arrays are equal, otherwise ``False``.
+    """
     return bool(array1.equals(array2))
 
 
@@ -159,6 +236,11 @@ def _warn_ignored(ctx: Engine, kinds: list[Any], obj: Any) -> None:
 
     A nested structure can contain many Arrow objects, and the same
     warning for each of them would flood the output.
+
+    Args:
+        ctx: The ``Engine`` of the comparison.
+        kinds: The Arrow types of the columns.
+        obj: The compared object, named in the warning.
     """
     if is_numpy_available() or not any(_is_quantity(kind) for kind in kinds):
         return

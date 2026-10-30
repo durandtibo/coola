@@ -30,6 +30,9 @@ class TorchLoader(BaseLoader[Any]):
         Loading with ``weights_only=False`` can execute arbitrary code
         (it uses pickle). Only do so for files from a trusted source.
 
+    Raises:
+        MissingPackageError: If ``torch`` is not installed.
+
     Example:
         ```pycon
         >>> import tempfile
@@ -52,9 +55,23 @@ class TorchLoader(BaseLoader[Any]):
         self._kwargs = kwargs
 
     def _display_fields(self) -> dict[str, Any]:
+        r"""Return the fields shown in the representation.
+
+        Returns:
+            The ``weights_only`` option and the arguments of
+                ``torch.load``.
+        """
         return {"weights_only": self._weights_only, **self._kwargs}
 
     def _load(self, path: Path) -> Any:
+        r"""Load a file with ``torch.load``.
+
+        Args:
+            path: The path of the file.
+
+        Returns:
+            The data of the file.
+        """
         return torch.load(path, weights_only=self._weights_only, **self._kwargs)
 
 
@@ -63,6 +80,9 @@ class TorchSaver(BaseFileSaver[Any]):
 
     Args:
         **kwargs: Additional arguments passed to ``torch.save``.
+
+    Raises:
+        MissingPackageError: If ``torch`` is not installed.
 
     Example:
         ```pycon
@@ -85,9 +105,20 @@ class TorchSaver(BaseFileSaver[Any]):
         self._kwargs = kwargs
 
     def _display_fields(self) -> dict[str, Any]:
+        r"""Return the fields shown in the representation.
+
+        Returns:
+            The arguments of ``torch.save``.
+        """
         return self._kwargs
 
     def _save_file(self, to_save: Any, path: Path) -> None:
+        r"""Save the data with ``torch.save``.
+
+        Args:
+            to_save: The data to save.
+            path: The path of the file.
+        """
         torch.save(to_save, path, **self._kwargs)
 
 

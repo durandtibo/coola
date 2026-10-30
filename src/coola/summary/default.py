@@ -36,6 +36,18 @@ class DefaultSummarizer(BaseSummarizer[object]):
     """
 
     def summarize(self, data: object, config: SummaryConfig, *, compact: bool) -> str:  # noqa: ARG002
+        r"""Summarize any object.
+
+        Args:
+            data: The data to summarize.
+            config: The options of the summary.
+            compact: If ``True``, the summary is a single line, as the
+                node is not expanded.
+
+        Returns:
+            The ``str`` of the object, preceded by its type unless
+                ``compact`` is ``True``.
+        """
         text = safe_str(data)
         if compact:
             return text

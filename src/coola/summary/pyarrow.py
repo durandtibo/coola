@@ -45,9 +45,22 @@ class PyarrowArraySummarizer(BaseMetadataSummarizer["pa.Array | pa.ChunkedArray"
     """
 
     def _check_dependencies(self) -> None:
+        r"""Check that ``pyarrow`` is installed.
+
+        Raises:
+            MissingPackageError: If ``pyarrow`` is not installed.
+        """
         check_pyarrow()
 
     def _describe(self, data: pa.Array | pa.ChunkedArray) -> list[Field]:
+        r"""Describe the metadata of a PyArrow array.
+
+        Args:
+            data: The data to describe.
+
+        Returns:
+            The length and the type.
+        """
         return [f"length={len(data)}", f"type={data.type}"]
 
 
@@ -74,9 +87,22 @@ class PyarrowTableSummarizer(BaseMetadataSummarizer["pa.Table | pa.RecordBatch"]
     """
 
     def _check_dependencies(self) -> None:
+        r"""Check that ``pyarrow`` is installed.
+
+        Raises:
+            MissingPackageError: If ``pyarrow`` is not installed.
+        """
         check_pyarrow()
 
     def _describe(self, data: pa.Table | pa.RecordBatch) -> list[Field]:
+        r"""Describe the metadata of a PyArrow table.
+
+        Args:
+            data: The data to describe.
+
+        Returns:
+            The shape and the type of each column.
+        """
         fields = [(field.name, field.type) for field in data.schema]
         return [f"shape={data.shape}", ("columns", fields)]
 

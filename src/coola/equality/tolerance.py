@@ -43,6 +43,13 @@ class Tolerance:
     atol: float = 0.0
 
     def __post_init__(self) -> None:
+        r"""Validate the tolerances.
+
+        Raises:
+            TypeError: If ``rtol`` or ``atol`` is not a real number.
+            ValueError: If ``rtol`` or ``atol`` is negative or not
+                finite.
+        """
         validate_number(self.rtol, name="rtol")
         validate_number(self.atol, name="atol")
         validate_ge(self.rtol, 0, name="rtol")

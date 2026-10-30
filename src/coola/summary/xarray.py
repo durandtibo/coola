@@ -46,9 +46,22 @@ class XarrayDataArraySummarizer(BaseMetadataSummarizer[xr.DataArray]):
     """
 
     def _check_dependencies(self) -> None:
+        r"""Check that ``xarray`` is installed.
+
+        Raises:
+            MissingPackageError: If ``xarray`` is not installed.
+        """
         check_xarray()
 
     def _describe(self, data: xr.DataArray) -> list[Field]:
+        r"""Describe the metadata of an xarray data array.
+
+        Args:
+            data: The data to describe.
+
+        Returns:
+            The dimensions, the shape, the dtype and the name.
+        """
         return [
             f"dims={data.dims}",
             f"shape={data.shape}",
@@ -81,9 +94,22 @@ class XarrayDatasetSummarizer(BaseMetadataSummarizer[xr.Dataset]):
     """
 
     def _check_dependencies(self) -> None:
+        r"""Check that ``xarray`` is installed.
+
+        Raises:
+            MissingPackageError: If ``xarray`` is not installed.
+        """
         check_xarray()
 
     def _describe(self, data: xr.Dataset) -> list[Field]:
+        r"""Describe the metadata of an xarray dataset.
+
+        Args:
+            data: The data to describe.
+
+        Returns:
+            The dimensions and the dtype of each data variable.
+        """
         variables = [(name, variable.dtype) for name, variable in data.data_vars.items()]
         return [
             f"dims={dict(data.sizes)}",
@@ -114,9 +140,22 @@ class XarrayVariableSummarizer(BaseMetadataSummarizer[xr.Variable]):
     """
 
     def _check_dependencies(self) -> None:
+        r"""Check that ``xarray`` is installed.
+
+        Raises:
+            MissingPackageError: If ``xarray`` is not installed.
+        """
         check_xarray()
 
     def _describe(self, data: xr.Variable) -> list[Field]:
+        r"""Describe the metadata of an xarray variable.
+
+        Args:
+            data: The data to describe.
+
+        Returns:
+            The dimensions, the shape and the dtype.
+        """
         return [f"dims={data.dims}", f"shape={data.shape}", f"dtype={data.dtype}"]
 
 

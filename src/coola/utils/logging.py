@@ -46,5 +46,11 @@ class CaptureHandler(logging.Handler):
         self._thread_id = threading.get_ident()
 
     def emit(self, record: logging.LogRecord) -> None:
+        r"""Store a record.
+
+        Args:
+            record: The log record. It is ignored if it comes from
+                another thread and ``all_threads`` is ``False``.
+        """
         if self._all_threads or record.thread == self._thread_id:
             self.records.append(record)

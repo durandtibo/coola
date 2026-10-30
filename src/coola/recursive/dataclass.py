@@ -59,9 +59,28 @@ class DataclassTransformer(InlineDisplayMixin, BaseTransformer[Any]):
     """
 
     def expand(self, data: Any) -> Expansion | None:
+        r"""Expand an object into its children.
+
+        Args:
+            data: The object.
+
+        Returns:
+            ``None`` if the object is a leaf. Otherwise the children and
+                the function that rebuilds a copy of the instance from
+                the transformed children.
+        """
         names = [field.name for field in dataclasses.fields(data)]
 
         def rebuild(items: list[Any]) -> Any:
+            r"""Rebuild the dataclass instance.
+
+            Args:
+                items: The transformed values of the fields, in the
+                    order of the fields.
+
+            Returns:
+                A copy of the instance with the new values.
+            """
             result = copy.copy(data)
             for name, item in zip(names, items, strict=True):
                 object.__setattr__(result, name, item)

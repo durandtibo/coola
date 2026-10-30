@@ -62,6 +62,16 @@ class PandasFrameTable:
         self._frame = frame
 
     def same_structure(self, other: PandasFrameTable, ctx: Engine) -> bool:
+        r"""Indicate if two data frames have the same structure.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the structures are the same, otherwise
+                ``False``.
+        """
         df1, df2 = self._frame, other._frame
         return (
             df1.shape == df2.shape
@@ -71,6 +81,11 @@ class PandasFrameTable:
         )
 
     def columns(self) -> Iterator[Column]:
+        r"""Iterate over the columns.
+
+        Yields:
+            The column of each data frame column.
+        """
         for i, name in enumerate(self._frame.columns):
             yield _column(name, self._frame.iloc[:, i])
 
@@ -100,6 +115,16 @@ class PandasSeriesTable:
         self._series = series
 
     def same_structure(self, other: PandasSeriesTable, ctx: Engine) -> bool:
+        r"""Indicate if two series have the same structure.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the structures are the same, otherwise
+                ``False``.
+        """
         s1, s2 = self._series, other._series
         return (
             s1.shape == s2.shape
@@ -109,6 +134,11 @@ class PandasSeriesTable:
         )
 
     def columns(self) -> Iterator[Column]:
+        r"""Iterate over the columns.
+
+        Yields:
+            The column of the series.
+        """
         yield _column(None, self._series)
 
 
@@ -138,11 +168,26 @@ class PandasArrayTable:
         self._array = array
 
     def same_structure(self, other: PandasArrayTable, ctx: Engine) -> bool:  # noqa: ARG002
+        r"""Indicate if two extension arrays have the same structure.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the structures are the same, otherwise
+                ``False``.
+        """
         return bool(
             self._array.shape == other._array.shape and self._array.dtype == other._array.dtype
         )
 
     def columns(self) -> Iterator[Column]:
+        r"""Iterate over the columns.
+
+        Yields:
+            The column of the array.
+        """
         yield _column(None, pd.Series(self._array))
 
 
@@ -173,6 +218,16 @@ class PandasIndexTable:
         self._index = index
 
     def same_structure(self, other: PandasIndexTable, ctx: Engine) -> bool:
+        r"""Indicate if two indexes have the same structure.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the structures are the same, otherwise
+                ``False``.
+        """
         i1, i2 = self._index, other._index
         return (
             type(i1) is type(i2)
@@ -183,40 +238,101 @@ class PandasIndexTable:
         )
 
     def columns(self) -> Iterator[Column]:
+        r"""Iterate over the columns.
+
+        Yields:
+            The column of the index, compared exactly.
+        """
         yield Column(None, "exact", self._index, equals=_index_equals)
 
 
 def pandas_frame(frame: pd.DataFrame) -> PandasFrameTable:
-    r"""Adapt a ``pandas.DataFrame`` to a table."""
+    r"""Adapt a ``pandas.DataFrame`` to a table.
+
+    Args:
+        frame: The data frame to adapt.
+
+    Returns:
+        The table.
+    """
     return PandasFrameTable(frame)
 
 
 def pandas_series(series: pd.Series) -> PandasSeriesTable:
-    r"""Adapt a ``pandas.Series`` to a table."""
+    r"""Adapt a ``pandas.Series`` to a table.
+
+    Args:
+        series: The series to adapt.
+
+    Returns:
+        The table.
+    """
     return PandasSeriesTable(series)
 
 
 def pandas_array(array: Any) -> PandasArrayTable:
-    r"""Adapt a pandas extension array to a table."""
+    r"""Adapt a pandas extension array to a table.
+
+    Args:
+        array: The extension array to adapt.
+
+    Returns:
+        The table.
+    """
     return PandasArrayTable(array)
 
 
 def pandas_index(index: pd.Index) -> PandasIndexTable:
-    r"""Adapt a ``pandas.Index`` to a table."""
+    r"""Adapt a ``pandas.Index`` to a table.
+
+    Args:
+        index: The index to adapt.
+
+    Returns:
+        The table.
+    """
     return PandasIndexTable(index)
 
 
 def _same_index(index1: pd.Index, index2: pd.Index, ctx: Engine) -> bool:
+    r"""Indicate if two indexes have the same structure and labels.
+
+    Args:
+        index1: The first index.
+        index2: The second index.
+        ctx: The ``Engine`` of the comparison.
+
+    Returns:
+        ``True`` if the indexes are equal, otherwise ``False``.
+    """
     return PandasIndexTable(index1).same_structure(PandasIndexTable(index2), ctx) and bool(
         index1.equals(index2)
     )
 
 
 def _index_equals(index1: pd.Index, index2: pd.Index) -> bool:
+    r"""Indicate if two indexes are equal.
+
+    Args:
+        index1: The first index.
+        index2: The second index.
+
+    Returns:
+        ``True`` if the indexes are equal, otherwise ``False``.
+    """
     return bool(index1.equals(index2))
 
 
 def _same_dtypes(obj1: pd.Index | pd.DataFrame, obj2: pd.Index | pd.DataFrame) -> bool:
+    r"""Indicate if two indexes or data frames have the same dtypes.
+
+    Args:
+        obj1: The first index or data frame.
+        obj2: The second index or data frame, with the same type.
+
+    Returns:
+        ``True`` if the dtypes are the same, otherwise ``False``.
+    """
     if isinstance(obj1, pd.MultiIndex):
         return list(obj1.dtypes) == list(cast("pd.MultiIndex", obj2).dtypes)
     if isinstance(obj1, pd.DataFrame):
@@ -236,6 +352,13 @@ def _column(name: object, series: pd.Series) -> Column:
       intervals, decimals, nested values and ``object``): the
       ``equals`` of pandas. It never sees the tolerance or
       ``equal_nan``, and a null is equal to a null.
+
+    Args:
+        name: The name of the column.
+        series: The series of the column.
+
+    Returns:
+        The column.
     """
     dtype = series.dtype
     if _is_numeric_dtype(dtype) and not pd.api.types.is_bool_dtype(dtype):
@@ -252,10 +375,28 @@ def _column(name: object, series: pd.Series) -> Column:
 
 
 def _series_equals(series1: pd.Series, series2: pd.Series) -> bool:
+    r"""Indicate if two series are equal, ignoring their index.
+
+    Args:
+        series1: The first series.
+        series2: The second series, which takes the index of
+            ``series1``.
+
+    Returns:
+        ``True`` if the series are equal, otherwise ``False``.
+    """
     return bool(series1.equals(series2.set_axis(series1.index)))
 
 
 def _is_numeric_dtype(dtype: Any) -> bool:
+    r"""Indicate if a dtype is an integer, float or complex dtype.
+
+    Args:
+        dtype: The dtype.
+
+    Returns:
+        ``True`` if the dtype is numeric, otherwise ``False``.
+    """
     return bool(
         pd.api.types.is_integer_dtype(dtype)
         or pd.api.types.is_float_dtype(dtype)
@@ -264,6 +405,14 @@ def _is_numeric_dtype(dtype: Any) -> bool:
 
 
 def _index_has_nan(index: pd.Index) -> bool:
+    r"""Indicate if an index can hold a ``NaN`` label.
+
+    Args:
+        index: The index.
+
+    Returns:
+        ``True`` if a label is ``NaN``, otherwise ``False``.
+    """
     if isinstance(index, pd.MultiIndex):  # ``isna`` is not defined for MultiIndex
         # A level that holds only missing values has the dtype ``object``, whatever the values
         # were: it is conservatively considered as ``NaN``.
@@ -275,10 +424,28 @@ def _index_has_nan(index: pd.Index) -> bool:
 
 
 def _has_nan_dtype(dtype: Any) -> bool:
+    r"""Indicate if a dtype can hold a ``NaN``.
+
+    Args:
+        dtype: The dtype.
+
+    Returns:
+        ``True`` for a float or complex dtype, otherwise ``False``.
+    """
     return bool(pd.api.types.is_float_dtype(dtype) or pd.api.types.is_complex_dtype(dtype))
 
 
 def _same_label(label1: Any, label2: Any) -> bool:
+    r"""Indicate if two labels are equal, as labels of an index.
+
+    Args:
+        label1: The first label.
+        label2: The second label.
+
+    Returns:
+        ``True`` if the labels are equal, otherwise ``False``. A ``NaN``
+            is equal to a ``NaN``.
+    """
     # A name can be ``NaN`` or a tuple: compare them as the labels of an index.
     return bool(
         pd.Index([label1], tupleize_cols=False).equals(pd.Index([label2], tupleize_cols=False))

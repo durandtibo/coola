@@ -71,6 +71,14 @@ class Table(Protocol):
 
         The engine gives the settings of the comparison (``equal_nan``)
         and receives the warnings.
+
+        Args:
+            other: The other table, of the same kind.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the structures are the same, otherwise
+                ``False``.
         """
 
     def columns(self) -> Iterator[Column]:
@@ -121,9 +129,28 @@ class TableEqualityTester(BaseEqualityTester[Any]):
         self._adapter = adapter
 
     def _display_fields(self) -> dict[str, Any]:
+        r"""Return the fields shown in the representation.
+
+        Returns:
+            The name of the adapter.
+        """
         return {"adapter": getattr(self._adapter, "__name__", repr(self._adapter))}
 
     def objects_are_equal(self, actual: Any, expected: Any, ctx: Engine, /) -> bool:
+        r"""Test two tables.
+
+        The structures are compared first, then the columns one by one
+        until the first difference.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the objects are equal, otherwise ``False`` (the
+                reason is recorded in the engine).
+        """
         table, other = self._adapter(actual), self._adapter(expected)
         if not table.same_structure(other, ctx):
             return ctx.fail(f"{table.kind_name} have a different structure")

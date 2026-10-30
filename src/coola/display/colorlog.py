@@ -22,9 +22,16 @@ _PLAIN_OPTIONS = frozenset({"handlers", "filename", "filemode", "format", "style
 
 
 def _is_tty(stream: object) -> bool:
-    """Indicate if a stream is attached to a terminal.
+    r"""Indicate if a stream is attached to a terminal.
 
     ``sys.stderr`` can be ``None`` (for example with ``pythonw``).
+
+    Args:
+        stream: The stream to check.
+
+    Returns:
+        ``True`` if ``stream`` is attached to a terminal, otherwise
+            ``False``.
     """
     isatty = getattr(stream, "isatty", None)
     return callable(isatty) and bool(isatty())

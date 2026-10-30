@@ -65,7 +65,19 @@ class Summarizer(Protocol[T_contra]):
     convenience base class.
     """
 
-    def summarize(self, data: T_contra, config: SummaryConfig, *, compact: bool) -> str | Node: ...
+    def summarize(self, data: T_contra, config: SummaryConfig, *, compact: bool) -> str | Node:
+        r"""Summarize the data.
+
+        Args:
+            data: The data to summarize.
+            config: The options of the summary.
+            compact: If ``True``, the node is not expanded, so a
+                summary on one line is enough.
+
+        Returns:
+            A ``str`` for a leaf, or a ``Node`` (a header and lazy
+            children) for a container.
+        """
 
 
 class BaseSummarizer(ABC, Generic[T]):
@@ -107,6 +119,11 @@ class BaseSummarizer(ABC, Generic[T]):
     """
 
     def __repr__(self) -> str:
+        r"""Return the representation of the summarizer.
+
+        Returns:
+            The class name followed by parentheses.
+        """
         return f"{type(self).__qualname__}()"
 
     def equal(self, other: object) -> bool:

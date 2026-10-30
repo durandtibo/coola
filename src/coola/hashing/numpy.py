@@ -81,13 +81,27 @@ def _dtype_str(dtype: np.dtype) -> str:
 
     ``dtype.str`` is ``'|V8'`` for every structured dtype of 8 bytes, so
     the field names, formats and padding (``descr``) are used for them.
+
+    Args:
+        dtype: The data type.
+
+    Returns:
+        The string that identifies the data type.
     """
     return str(dtype.descr) if dtype.names else str(dtype.str)
 
 
 def _is_ml_dtypes_float(dtype: np.dtype) -> bool:
     r"""Indicate if a dtype is a floating-point type of ``ml_dtypes``
-    (``bfloat16``, ``float8_*``, ...) with the kind ``V``."""
+    (``bfloat16``, ``float8_*``, ...) with the kind ``V``.
+
+    Args:
+        dtype: The data type.
+
+    Returns:
+        ``True`` if the data type comes from ``ml_dtypes``, otherwise
+            ``False``.
+    """
     return dtype.type.__module__.startswith("ml_dtypes") and dtype.name.startswith(
         ("bfloat", "float")
     )

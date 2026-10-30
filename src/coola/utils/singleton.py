@@ -120,8 +120,15 @@ class LazySingleton(Generic[T]):
 
     def _check_not_building(self, action: str) -> None:
         r"""Raise an error if the current thread is building the value,
-        because ``action`` would wait for a lock that this thread
-        holds."""
+        because ``action`` would wait for a lock that this thread holds.
+
+        Args:
+            action: The action that is refused, used in the error
+                message, e.g. ``"reset"``.
+
+        Raises:
+            RuntimeError: If the current thread is building the value.
+        """
         if self._building_thread == threading.get_ident():
             msg = (
                 f"The singleton is {action} while its value is being built, which would wait "

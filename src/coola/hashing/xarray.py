@@ -47,6 +47,11 @@ class XarrayHasher(InlineDisplayMixin, BaseHasher[Any]):
         self._tag = tag
 
     def _display_fields(self) -> dict[str, Any]:
+        r"""Return the fields shown in the representation.
+
+        Returns:
+            The ``tag`` of the hasher.
+        """
         return {"tag": self._tag}
 
     def encode(self, data: Any) -> Encoding:

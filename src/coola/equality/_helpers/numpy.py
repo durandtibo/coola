@@ -101,7 +101,17 @@ def array_close(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
 
 
 def _uses_tolerance(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) -> bool:
-    r"""Indicate if the elements are compared with the numeric rule."""
+    r"""Indicate if the elements are compared with the numeric rule.
+
+    Args:
+        array1: The first array.
+        array2: The second array.
+        config: The configuration of the comparison.
+
+    Returns:
+        ``True`` if the tolerance applies to the arrays, otherwise
+            ``False``.
+    """
     if config.atol <= 0 and config.rtol <= 0:
         return False
     if array1.dtype.kind == "m" and array2.dtype.kind == "m":
@@ -118,6 +128,15 @@ def _uses_tolerance(array1: np.ndarray, array2: np.ndarray, config: EqualityConf
 
 
 def _is_nan_like(array: np.ndarray) -> np.ndarray:
+    r"""Indicate the missing values of an array.
+
+    Args:
+        array: The array.
+
+    Returns:
+        A boolean array that is ``True`` at the ``NaT`` (``datetime64``
+            and ``timedelta64``) or ``NaN`` elements.
+    """
     return np.isnat(array) if array.dtype.kind in {"m", "M"} else np.isnan(array)
 
 
@@ -129,6 +148,15 @@ def _durations_close(array1: np.ndarray, array2: np.ndarray, config: EqualityCon
     ``|a - b| <= atol + rtol * max(|a|, |b|)`` (``atol`` is a number of
     seconds). ``NaT`` is equal to ``NaT`` only if ``config.equal_nan``
     is ``True``.
+
+    Args:
+        array1: The first array of ``timedelta64``.
+        array2: The second array of ``timedelta64``.
+        config: The configuration of the comparison.
+
+    Returns:
+        A boolean array that is ``True`` where the durations are equal
+            within the tolerance.
     """
     nat1, nat2 = np.isnat(array1), np.isnat(array2)
     nanoseconds1 = array1.astype("timedelta64[ns]").astype(np.int64)
@@ -142,6 +170,15 @@ def _durations_close(array1: np.ndarray, array2: np.ndarray, config: EqualityCon
 
 
 def _supports_nan(array: np.ndarray) -> bool:
+    r"""Indicate if an array can hold missing values.
+
+    Args:
+        array: The array.
+
+    Returns:
+        ``True`` for a numeric, ``datetime64`` or ``timedelta64`` array,
+            otherwise ``False``.
+    """
     return is_numeric_array(array) or array.dtype.kind in {"m", "M"}
 
 

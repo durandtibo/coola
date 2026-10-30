@@ -193,6 +193,15 @@ class _DataclassToDictTransformer(InlineDisplayMixin, BaseTransformer[Any]):
     """
 
     def expand(self, data: Any) -> Expansion | None:
+        r"""Expand a dataclass instance.
+
+        Args:
+            data: The dataclass instance.
+
+        Returns:
+            The values of the fields, and the function that builds a
+                ``dict`` from the converted values.
+        """
         names = [field.name for field in dataclasses.fields(data)]
         return [getattr(data, name) for name in names], lambda items: dict(
             zip(names, items, strict=True)
@@ -208,10 +217,27 @@ class _SetToListTransformer(InlineDisplayMixin, BaseTransformer["AbstractSet[Any
     """
 
     def expand(self, data: AbstractSet[Any]) -> Expansion | None:
+        r"""Expand a set.
+
+        Args:
+            data: The set.
+
+        Returns:
+            The elements, and the function that builds a sorted ``list``
+                from the converted elements.
+        """
         return list(data), _sorted_elements
 
 
 def _sort_key(value: Any) -> tuple[str, str]:
+    r"""Return the key used to sort values that cannot be compared.
+
+    Args:
+        value: The value.
+
+    Returns:
+        The ``(type name, repr)`` pair.
+    """
     return type(value).__name__, repr(value)
 
 
@@ -311,7 +337,15 @@ def _is_instance_of_loaded(data: Any, library: str, *names: str) -> bool:
 
 def _is_array(data: Any) -> bool:
     r"""Indicate if ``data`` is a NumPy array or scalar, or a
-    ``torch.Tensor``."""
+    ``torch.Tensor``.
+
+    Args:
+        data: The object to check.
+
+    Returns:
+        ``True`` if ``data`` is an array or a tensor, otherwise
+            ``False``.
+    """
     return _is_instance_of_loaded(data, "numpy", "ndarray", "generic") or _is_instance_of_loaded(
         data, "torch", "Tensor"
     )

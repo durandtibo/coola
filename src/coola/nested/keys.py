@@ -53,9 +53,26 @@ class _KeyTransformer(InlineDisplayMixin, BaseTransformer[Mapping[Any, Any]]):
         self._drop = drop
 
     def _display_fields(self) -> dict[str, Any]:
+        r"""Return the fields shown in the representation.
+
+        Returns:
+            The ``rename``, ``drop`` of the object.
+        """
         return {"rename": self._rename, "drop": self._drop}
 
     def expand(self, data: Mapping[Any, Any]) -> Expansion | None:
+        r"""Expand a mapping.
+
+        Args:
+            data: The mapping.
+
+        Returns:
+            The values of the kept entries, and the function that
+                rebuilds the mapping with the renamed keys.
+
+        Raises:
+            DuplicateKeyError: If two entries have the same new key.
+        """
         keys = [key for key in data if not (self._drop and self._drop(key))]
         new_keys = [self._rename(key) for key in keys] if self._rename else keys
         _check_no_duplicate(new_keys, data)
@@ -80,6 +97,14 @@ def _check_no_duplicate(keys: list[Any], data: Mapping[Any, Any]) -> None:
 
 
 def _identity(value: Any) -> Any:
+    r"""Return the value unchanged.
+
+    Args:
+        value: The value.
+
+    Returns:
+        ``value``.
+    """
     return value
 
 
@@ -152,6 +177,14 @@ def add_prefix_suffix_to_keys(
     """
 
     def rename(key: Any) -> Any:
+        r"""Add the prefix and the suffix to a key.
+
+        Args:
+            key: The key.
+
+        Returns:
+            The new key if ``key`` is a ``str``, otherwise ``key``.
+        """
         return f"{prefix}{key}{suffix}" if isinstance(key, str) else key
 
     if recursive:

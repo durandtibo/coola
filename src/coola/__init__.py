@@ -21,6 +21,20 @@ from typing import Any
 
 
 def __getattr__(name: str) -> Any:
+    r"""Get a lazy attribute of the package (PEP 562).
+
+    The version is read from the metadata of the installed package the
+    first time it is used.
+
+    Args:
+        name: The name of the attribute.
+
+    Returns:
+        The value of the attribute.
+
+    Raises:
+        AttributeError: If the package has no attribute ``name``.
+    """
     # PEP 562: the version is read from the metadata of the installed package the first time
     # it is used, because ``importlib.metadata`` is slow to import and every subpackage of
     # ``coola`` would pay for it.
@@ -39,4 +53,9 @@ def __getattr__(name: str) -> Any:
 
 
 def __dir__() -> list[str]:
+    r"""List the names of the package.
+
+    Returns:
+        The sorted names, including ``__version__``.
+    """
     return sorted([*globals(), "__version__"])

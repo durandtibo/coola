@@ -37,6 +37,16 @@ def make_fake_class(package: str) -> type:
     """
 
     def init(self: Any, *args: Any, **kwargs: Any) -> None:  # noqa: ARG001
+        r"""Raise an error because the package is missing.
+
+        Args:
+            self: The fake instance.
+            *args: The positional arguments, which are ignored.
+            **kwargs: The keyword arguments, which are ignored.
+
+        Raises:
+            MissingPackageError: Always.
+        """
         raise_package_missing_error(package)
 
     return type(
@@ -66,6 +76,15 @@ def make_fake_function(package: str) -> Callable[..., Never]:
     """
 
     def fake_function(*args: Any, **kwargs: Any) -> Never:  # noqa: ARG001
+        r"""Raise an error because the package is missing.
+
+        Args:
+            *args: The positional arguments, which are ignored.
+            **kwargs: The keyword arguments, which are ignored.
+
+        Raises:
+            MissingPackageError: Always.
+        """
         raise_package_missing_error(package)
 
     return fake_function

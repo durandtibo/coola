@@ -47,6 +47,19 @@ class DataclassEqualityTester(BaseEqualityTester[Any]):
     def objects_are_equal(
         self, actual: Any, expected: Any, _ctx: Engine
     ) -> bool | Iterator[tuple[object, object, object]]:
+        r"""Test two dataclass instances.
+
+        The fields are the children.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            _ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            The pairs of values of the fields compared by the dataclass
+                (``compare=True``).
+        """
         return (
             (getattr(actual, field.name), getattr(expected, field.name), AttributeName(field.name))
             for field in dataclasses.fields(actual)

@@ -42,5 +42,13 @@ class DefaultTransformer(InlineDisplayMixin, BaseTransformer[Any]):
     """
 
     def expand(self, data: object) -> Expansion | None:
+        r"""Expand an object into its children.
+
+        Args:
+            data: The object.
+
+        Returns:
+            ``None``: the object is a leaf.
+        """
         del data  # a leaf: no children
         return None

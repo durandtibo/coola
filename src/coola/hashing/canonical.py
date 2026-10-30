@@ -19,12 +19,18 @@ from coola.utils.integer import int_repr
 
 
 def _canonical_decimal(data: Decimal) -> str:
-    """Return a canonical string of a decimal.
+    r"""Return a canonical string of a decimal.
 
     The string is computed from ``as_tuple()`` instead of
     ``Decimal.normalize()``, because ``normalize()`` rounds to the
     precision of the current context, so it can merge different decimals
     and depends on the thread-local context.
+
+    Args:
+        data: The decimal.
+
+    Returns:
+        The canonical string: equal decimals give the same string.
     """
     sign, digits, exponent = data.as_tuple()
     if not isinstance(exponent, int):  # 'F', 'n' or 'N': infinity or NaN

@@ -193,7 +193,9 @@ True
 
 #### `EqualEqualityTester`
 
-Generic tester that uses Python's `==` operator:
+Generic tester for objects that have an `equal(other)` method. The objects are equal if
+`actual.equal(expected)` is true; an object without an `equal` method is not equal. It is not
+registered by default: register it for your own types:
 
 ```pycon
 >>> from coola.equality.config import EqualityConfig
@@ -208,6 +210,28 @@ Generic tester that uses Python's `==` operator:
 True
 >>> tester.objects_are_equal(MyList([1, 2, 3]), MyList([1, 2, 4]), engine)
 False
+
+```
+
+#### `DifferenceCloseEqualityTester`
+
+`decimal.Decimal`, `fractions.Fraction` and `datetime.timedelta` have no `allclose` method, so this
+tester compares their difference with the tolerance. A `Decimal` NaN is equal to a NaN only if
+`equal_nan` is `True`, and the `atol` of a `timedelta` is a number of seconds. It is registered for
+these three types in the default registry:
+
+```pycon
+>>> from decimal import Decimal
+>>> from coola.equality import Tolerance
+>>> from coola.equality.config import EqualityConfig
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import DifferenceCloseEqualityTester
+>>> tester = DifferenceCloseEqualityTester()
+>>> tester.objects_are_equal(Decimal("1.0"), Decimal("1.00001"), Engine(EqualityConfig()))
+False
+>>> config = EqualityConfig(tolerance=Tolerance(atol=1e-3))
+>>> tester.objects_are_equal(Decimal("1.0"), Decimal("1.00001"), Engine(config))
+True
 
 ```
 
@@ -264,6 +288,27 @@ Handles NumPy masked arrays:
 >>> arr1 = np.ma.array([1, 2, 3], mask=[0, 0, 1])
 >>> arr2 = np.ma.array([1, 2, 99], mask=[0, 0, 1])  # Masked value differs
 >>> engine.run(arr1, arr2)
+False
+
+```
+
+#### `NumpyTimeScalarEqualityTester`
+
+Handles `numpy.timedelta64` and `numpy.datetime64` scalars. `NaT` is equal to `NaT` only if
+`equal_nan` is `True`. A `timedelta64` is a duration, so the tolerances apply (`atol` is a number
+of seconds), whereas a `datetime64` is an instant and is compared exactly:
+
+```pycon
+>>> import numpy as np
+>>> from coola.equality import Tolerance
+>>> from coola.equality.config import EqualityConfig
+>>> from coola.equality.engine import Engine
+>>> from coola.equality.tester import NumpyTimeScalarEqualityTester
+>>> tester = NumpyTimeScalarEqualityTester()
+>>> engine = Engine(EqualityConfig(tolerance=Tolerance(atol=1.0)))
+>>> tester.objects_are_equal(np.timedelta64(1, "s"), np.timedelta64(2000, "ms"), engine)
+True
+>>> tester.objects_are_equal(np.datetime64("2020-01-01"), np.datetime64("2020-01-02"), engine)
 False
 
 ```
@@ -384,6 +429,13 @@ method that yields `Column`s, and register `TableEqualityTester(adapter)` for th
 - **`XarrayDataArrayEqualityTester`**: Compare xarray DataArrays
 - **`XarrayDatasetEqualityTester`**: Compare xarray Datasets
 - **`XarrayVariableEqualityTester`**: Compare xarray Variables
+- **`PydanticModelEqualityTester`**: Compare pydantic models. The models must have the same type,
+  the same fields and the same extra values. The private attributes are not compared, and the
+  location of a difference is the name of the field (or `model_extra`)
+- **`ScipySparseEqualityTester`**: Compare `scipy.sparse` matrices and arrays. The class (so the
+  format), the shape, the dtype and the non-zero positions must be equal, then the stored values
+  are compared with the tolerance and `equal_nan`. Duplicate entries are summed and explicitly
+  stored zeros are ignored, so two objects that represent the same matrix are equal
 
 ### Tester for Objects Without Value Semantics
 
@@ -527,7 +579,9 @@ receives two objects of the same type and the `Engine` (`ctx`). For a leaf, retu
 `ctx.fail(reason, *path)` records the reason and returns `False`. A reason can be a callable: it is
 called only when the difference is explained (`compare`, `assert_*`), so `objects_are_equal` formats
 nothing. For a container, return the child pairs `(actual, expected, path part)`; they are produced
-lazily and in the order the first difference is wanted. The engine compares them, applies the
+lazily and in the order the first difference is wanted. The path part is a key or an index
+(`0`, `"a"`), an `AttributeName` for an attribute, or an `Element` for an element of a set; it is
+what `compare` reports in `result.path`. The engine compares them, applies the
 tolerance, detects the cycles and locates the difference:
 
 ```pycon
@@ -578,8 +632,8 @@ This means you can register a tester for a base class and it will work for all s
 
 ### Recursive Comparison
 
-Testers that handle collections (sequences, mappings) recursively use the registry to compare
-nested values:
+A tester does not recurse: a tester for a container returns the child pairs, and the `Engine`
+compares them with the registry, so the nested values get the same tolerance and `equal_nan`:
 
 ```pycon
 >>> from coola.equality.tester import get_default_registry
@@ -594,11 +648,13 @@ True
 
 ```
 
-The recursion depth is controlled by the `max_depth` parameter in `EqualityConfig`.
+The nesting depth is limited by the `max_depth` parameter in `EqualityConfig`: a deeper structure
+raises a `MaxDepthExceededError`.
 
 ### Performance Considerations
 
-The registry includes an LRU cache for type lookups to optimize performance:
+The registry caches the result of the type lookups (a bounded cache that is emptied when the
+registry changes) to optimize performance:
 
 ```pycon
 >>> from coola.equality.tester import get_default_registry
@@ -613,7 +669,9 @@ The registry includes an LRU cache for type lookups to optimize performance:
 
 ### Testing Framework Integration
 
-Testers are commonly used in testing frameworks:
+Testers are commonly used in testing frameworks. For the common case, `assert_objects_equal` and
+`assert_objects_allclose` already raise an `AssertionError` with the path and the reason of the
+first difference. To build your own assertion from a registry:
 
 ```pycon
 >>> from coola.equality.tester import get_default_registry
@@ -679,7 +737,7 @@ The tester system is designed around several key principles:
 4. **Iterative comparison**: Nested structures are compared with an explicit stack, so there is no
    `RecursionError`
 
-5. **Performance**: LRU caching of type lookups for efficient repeated comparisons
+5. **Performance**: Caching of type lookups for efficient repeated comparisons
 
 6. **Configurability**: `EqualityConfig` provides fine-grained control over comparison behavior
 

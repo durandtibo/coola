@@ -179,7 +179,7 @@ class ComparisonResult:
 
 Exported by `coola.equality`: the five functions, `ComparisonResult`, `EqualityConfig`, `Tolerance`,
 `MaxDepthExceededError`, `AttributeName`, `Element`, `BaseEqualityTester`, `Engine` (the type of
-`ctx`), `EqualityTesterRegistry`, `get_default_registry`, `register_equality_testers`, and the
+`ctx`), `EqualityTesterRegistry`, `get_default_registry`, `register_equality_testers`, and
 the named testers (`ObjectAttributesEqualityTester`, `EqualEqualityTester`,
 `OrderedMappingEqualityTester`, `SequenceEqualityTester`, `MappingEqualityTester`, ... and the
 library testers `NumpyArrayEqualityTester`, `TorchTensorEqualityTester`, `TableEqualityTester`, ...,
@@ -302,6 +302,7 @@ A tester has no state but its configuration; `__eq__` and `__repr__` come from t
 | dataclasses, pydantic models                                                | `DataclassEqualityTester`, `PydanticModelEqualityTester` | fields as `AttributeName` children                                                                                          |
 | `np.ndarray`, `np.ma.MaskedArray`, NumPy `datetime64`/`timedelta64` scalars | `Numpy*EqualityTester`                                   | dtype, shape, kernel; for a masked array the data (masked values included), the mask and `fill_value`; `NaT` by `equal_nan` |
 | `torch.Tensor`, `PackedSequence`, `jax.Array`, xarray                       | `Torch*`, `Jax*`, `Xarray*EqualityTester`                | device, dtype, shape, layout, kernel; xarray parts as children                                                              |
+| `scipy.sparse` matrices and arrays                                          | `ScipySparseEqualityTester`                              | class, shape, dtype, non-zero positions, then the stored values with the kernel; duplicates summed, stored zeros ignored |
 | pandas, polars, pyarrow frames, series, arrays                              | `TableEqualityTester`                                    | structure, then columns by kind                                                                                             |
 
 ## Decision record
@@ -742,7 +743,9 @@ class PointTester(BaseEqualityTester[Point]):
 The testers of NumPy, PyTorch, JAX and xarray use the engine too: an array tester checks the data
 type and the shape (and the device for a tensor), then compares the elements with the shared kernel;
 the location of a difference is the index of the first element that differs, looked up only when the
-difference is explained. #### Built-in Testers
+difference is explained.
+
+#### Built-in Testers
 
 - **`DefaultEqualityTester`**: Fallback for any type (`==` on two objects of the same type)
 - **`MappingEqualityTester`**, **`OrderedMappingEqualityTester`** (also checks the key order, used
@@ -755,6 +758,7 @@ difference is explained. #### Built-in Testers
   `equal` method
 - Array testers for NumPy, PyTorch, xarray and JAX (for example `NumpyArrayEqualityTester`,
   `TorchTensorEqualityTester`)
+- **`ScipySparseEqualityTester`**: SciPy sparse matrices and arrays
 - **`TableEqualityTester`**: pandas, polars and PyArrow tables, with one adapter per library
 
 #### 3. Registry

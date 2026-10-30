@@ -60,6 +60,11 @@ class ComparisonResult:
     reason: str | None = None
 
     def __bool__(self) -> bool:
+        r"""Return the verdict.
+
+        Returns:
+            ``True`` if the objects are equal, otherwise ``False``.
+        """
         return self.equal
 
     def format_path(self, root: str = "") -> str:
@@ -91,6 +96,15 @@ class ComparisonResult:
 
 
 def _format_part(key: object) -> str:
+    r"""Format one part of a path.
+
+    Args:
+        key: The part: an attribute name, a set element or an index/key.
+
+    Returns:
+        ``.name`` for an attribute, ``{element}`` for a set element,
+            otherwise ``[key]``.
+    """
     if isinstance(key, AttributeName):
         return f".{key}"
     if isinstance(key, Element):

@@ -44,9 +44,22 @@ class JaxArraySummarizer(BaseMetadataSummarizer[jnp.ndarray]):
     """
 
     def _check_dependencies(self) -> None:
+        r"""Check that ``jax`` is installed.
+
+        Raises:
+            MissingPackageError: If ``jax`` is not installed.
+        """
         check_jax()
 
     def _describe(self, data: jnp.ndarray) -> list[Field]:
+        r"""Describe the metadata of a JAX array.
+
+        Args:
+            data: The data to describe.
+
+        Returns:
+            The shape and the dtype.
+        """
         return [f"shape={data.shape}", f"dtype={data.dtype}"]
 
 

@@ -51,6 +51,19 @@ class ScalarEqualityTester(BaseEqualityTester[float]):
     """
 
     def objects_are_equal(self, actual: float, expected: float, ctx: Engine) -> bool:
+        r"""Test two numbers with the same type.
+
+        The numbers are compared with the tolerance and ``equal_nan``.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the objects are equal, otherwise ``False`` (the
+                reason is recorded in the engine).
+        """
         if actual == expected:
             # The two numbers have the same type: equal numbers are always close.
             return True

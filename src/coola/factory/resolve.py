@@ -115,6 +115,13 @@ def _refuse_nested_configurations(args: Sequence[Any], kwargs: dict[str, Any]) -
 
     Only the top level of the arguments is scanned. With an allow-list,
     the target could resolve such an argument without the allow-list.
+
+    Args:
+        args: The positional arguments of the target.
+        kwargs: The keyword arguments of the target.
+
+    Raises:
+        ValueError: If an argument is a configuration.
     """
     for value in (*args, *kwargs.values()):
         if isinstance(value, dict) and OBJECT_TARGET in value:
@@ -140,6 +147,25 @@ def _build(
     The target is imported once. It is refused before it is called if it
     is known not to build an instance of ``cls`` (or if it is not known
     and ``strict`` is ``True``). The configuration is not modified.
+
+    Args:
+        config: The configuration, with the key ``_target_``.
+        cls: The expected class, or a tuple of classes.
+        cls_name: The name of the expected class(es), used in the error
+            messages.
+        allowed_prefixes: The allow-list of module prefixes of the
+            target, or ``None`` to allow any target.
+        strict: If ``True``, a target that is not known to build an
+            instance of ``cls`` is refused.
+
+    Returns:
+        The built object.
+
+    Raises:
+        TypeError: If the target does not build an instance of ``cls``,
+            or if ``strict`` is ``True`` and this cannot be checked.
+        ValueError: If ``allowed_prefixes`` is set and an argument is a
+            configuration.
     """
     kwargs = {k: v for k, v in config.items() if k not in _RESERVED}
     init = config.get(OBJECT_INIT, "__init__")

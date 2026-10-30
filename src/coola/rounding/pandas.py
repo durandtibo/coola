@@ -66,12 +66,32 @@ def round_pandas(data: Any, mode: RoundMode, decimals: int) -> Any:
 
 
 def _is_supported(dtype: Any) -> bool:
+    r"""Indicate if a dtype can be rounded.
+
+    Args:
+        dtype: The dtype.
+
+    Returns:
+        ``True`` for a float or an integer (not boolean) dtype,
+            otherwise ``False``.
+    """
     return pd.api.types.is_float_dtype(dtype) or (
         pd.api.types.is_integer_dtype(dtype) and not pd.api.types.is_bool_dtype(dtype)
     )
 
 
 def _round_series(series: pd.Series, mode: RoundMode, decimals: int) -> pd.Series:
+    r"""Round a series.
+
+    Args:
+        series: The series.
+        mode: The rounding mode.
+        decimals: The number of decimals.
+
+    Returns:
+        A new series. A series that is not a float one is copied, and
+            the missing values are kept.
+    """
     if not pd.api.types.is_float_dtype(series.dtype):
         return series.copy()
     values = series.to_numpy(dtype="float64", na_value=float("nan"))

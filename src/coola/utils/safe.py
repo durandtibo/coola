@@ -73,4 +73,13 @@ def safe_repr(obj: object) -> str:
 
 
 def _placeholder(obj: object) -> str:
+    r"""Create a placeholder for an object that cannot be formatted.
+
+    Args:
+        obj: The object.
+
+    Returns:
+        The type and the address of the object, e.g. ``<Foo object at
+            0x7f...>``.
+    """
     return f"<{type(obj).__qualname__} object at {id(obj):#x}>"

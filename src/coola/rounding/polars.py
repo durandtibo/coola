@@ -73,6 +73,17 @@ def round_polars(data: Any, mode: RoundMode, decimals: int) -> Any:
 
 
 def _round_series(series: pl.Series, mode: RoundMode, decimals: int) -> pl.Series:
+    r"""Round a series.
+
+    Args:
+        series: The series.
+        mode: The rounding mode.
+        decimals: The number of decimals.
+
+    Returns:
+        A new series. A series that is not a float one is cloned, and
+            the null values are kept.
+    """
     if not series.dtype.is_float():
         return series.clone()
     # ``to_numpy`` converts a null value to ``NaN``: the null values are restored below.

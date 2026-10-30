@@ -30,9 +30,19 @@ class BaseDisplayMixin(ABC):
     """
 
     def __repr__(self) -> str:
+        r"""Return the representation, with the ``repr`` of the fields.
+
+        Returns:
+            The representation of the object.
+        """
         return self._render_fields(self._display_fields(), use_repr=True)
 
     def __str__(self) -> str:
+        r"""Return the string, with the ``str`` of the fields.
+
+        Returns:
+            The string of the object.
+        """
         return self._render_fields(self._display_fields(), use_repr=False)
 
     def _display_fields(self) -> dict[str, Any]:
@@ -98,6 +108,17 @@ class MultilineDisplayMixin(BaseDisplayMixin):
     """
 
     def _render_fields(self, fields: dict[str, Any], *, use_repr: bool) -> str:
+        r"""Render the fields on one line each.
+
+        Args:
+            fields: The fields to show.
+            use_repr: If ``True``, the values are formatted with
+                ``repr``, otherwise with ``str``.
+
+        Returns:
+            The class name followed by the fields, one per line, in
+                parentheses.
+        """
         args = repr_indent(repr_mapping(fields)) if use_repr else str_indent(str_mapping(fields))
         return f"{self.__class__.__qualname__}(\n  {args}\n)"
 
@@ -136,5 +157,16 @@ class InlineDisplayMixin(BaseDisplayMixin):
     """
 
     def _render_fields(self, fields: dict[str, Any], *, use_repr: bool) -> str:
+        r"""Render the fields on one line.
+
+        Args:
+            fields: The fields to show.
+            use_repr: If ``True``, the values are formatted with
+                ``repr``, otherwise with ``str``.
+
+        Returns:
+            The class name followed by the comma-separated fields, in
+                parentheses.
+        """
         args = repr_mapping_line(fields) if use_repr else str_mapping_line(fields)
         return f"{self.__class__.__qualname__}({args})"

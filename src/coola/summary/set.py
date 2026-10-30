@@ -38,6 +38,18 @@ class SetSummarizer(BaseSummarizer["AbstractSet[Any]"]):
     """
 
     def summarize(self, data: AbstractSet[Any], config: SummaryConfig, *, compact: bool) -> Node:  # noqa: ARG002
+        r"""Summarize a set.
+
+        Args:
+            data: The data to summarize.
+            config: The options of the summary.
+            compact: If ``True``, the summary is a single line, as the
+                node is not expanded.
+
+        Returns:
+            The node whose children are the smallest items, up to
+                ``max_items``.
+        """
         length = len(data)
         children = enumerate(smallest_items(data, limit=config.max_items))
         return Node(f"{type(data)} (length={length:,})", children, length)

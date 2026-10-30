@@ -122,15 +122,41 @@ class _NestedModel:
         self.options = options
 
     def __repr__(self) -> str:
+        r"""Return the ``repr`` of the model, with the options of the
+        root model.
+
+        Returns:
+            The representation of the model.
+        """
         return _format_model(self.model, line_fn=repr_mapping_line, **self.options)
 
     def __str__(self) -> str:
+        r"""Return the ``str`` of the model, with the options of the root
+        model.
+
+        Returns:
+            The string of the model.
+        """
         return _format_model(self.model, line_fn=str_mapping_line, **self.options)
 
     def __eq__(self, other: object) -> bool:
+        r"""Indicate if two wrappers hold equal models.
+
+        Args:
+            other: The other object.
+
+        Returns:
+            ``True`` if ``other`` is a wrapper of an equal model,
+                otherwise ``False``.
+        """
         return isinstance(other, _NestedModel) and self.model == other.model
 
     def __hash__(self) -> int:
+        r"""Return the hash of the model.
+
+        Returns:
+            The hash of the wrapped model.
+        """
         return hash(self.model)
 
 
@@ -181,12 +207,25 @@ def _format_model(
     exclude_secret: bool,
     exclude_fields: list[str] | None = None,
 ) -> str:
-    """Shared implementation for ``str_pydantic_model`` and
+    r"""Shared implementation for ``str_pydantic_model`` and
     ``repr_pydantic_model``.
 
     The fields are read from the model (no serializer runs), the fields
     declared with ``Field(repr=False)`` are hidden, and the values of
     ``extra="allow"`` are shown.
+
+    Args:
+        model: The model to format.
+        line_fn: The function that formats the fields on one line.
+        sort: If ``True``, the fields are sorted by name.
+        exclude_none: If ``True``, the fields whose value is ``None``
+            are hidden.
+        exclude_secret: If ``True``, the secret fields are hidden.
+        exclude_fields: The names of the fields to hide. A name that is
+            not a field of the model raises a warning.
+
+    Returns:
+        The formatted model.
     """
     fields: dict[str, Any] = {
         name: getattr(model, name) for name, info in type(model).model_fields.items() if info.repr

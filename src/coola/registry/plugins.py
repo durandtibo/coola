@@ -125,17 +125,32 @@ def load_registry_plugins(registry: object, group: str) -> None:
 
 def _env_flag(name: str) -> bool:
     r"""Indicate whether an environment variable is enabled (set to a
-    value other than ``""``, ``"0"`` and ``"false"``)."""
+    value other than ``""``, ``"0"`` and ``"false"``).
+
+    Args:
+        name: The name of the environment variable.
+
+    Returns:
+        ``True`` if the variable is enabled, otherwise ``False``.
+    """
     return os.environ.get(name, "").strip().lower() not in {"", "0", "false"}
 
 
 def _strict_plugins() -> bool:
-    r"""Indicate whether plugin failures must raise instead of warn."""
+    r"""Indicate whether plugin failures must raise instead of warn.
+
+    Returns:
+        ``True`` if the plugin failures must raise.
+    """
     return _env_flag(STRICT_PLUGINS_ENV_VAR)
 
 
 def _plugins_disabled() -> bool:
-    r"""Indicate whether the plugins must not be loaded."""
+    r"""Indicate whether the plugins must not be loaded.
+
+    Returns:
+        ``True`` if the plugins must not be loaded.
+    """
     return _env_flag(DISABLE_PLUGINS_ENV_VAR)
 
 
@@ -147,6 +162,12 @@ def _load_plugin(
     A failure is logged with its traceback and reported as a
     ``RuntimeWarning``, or, in strict mode, annotated with a note and
     appended to ``errors`` so the caller can raise them together.
+
+    Args:
+        entry_point: The entry point of the plugin.
+        registry: The registry the plugin is applied to.
+        group: The entry point group of the plugin.
+        errors: The list where the failures are appended in strict mode.
     """
     try:
         entry_point.load()(registry)

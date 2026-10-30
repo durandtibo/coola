@@ -64,4 +64,14 @@ class SequenceTransformer(InlineDisplayMixin, BaseTransformer[Sequence[Any]]):
     """
 
     def expand(self, data: Sequence[Any]) -> Expansion | None:
+        r"""Expand an object into its children.
+
+        Args:
+            data: The object.
+
+        Returns:
+            ``None`` if the object is a leaf. Otherwise the children and
+                the function that rebuilds the sequence from the
+                transformed children.
+        """
         return list(data), lambda items: rebuild_sequence(data, items)

@@ -59,9 +59,22 @@ class TensorSummarizer(BaseMetadataSummarizer[torch.Tensor]):
     """
 
     def _check_dependencies(self) -> None:
+        r"""Check that ``torch`` is installed.
+
+        Raises:
+            MissingPackageError: If ``torch`` is not installed.
+        """
         check_torch()
 
     def _describe(self, data: torch.Tensor) -> list[Field]:
+        r"""Describe the metadata of a tensor.
+
+        Args:
+            data: The data to describe.
+
+        Returns:
+            The shape, the dtype, the device and ``requires_grad``.
+        """
         return [
             f"shape={data.shape}",
             f"dtype={data.dtype}",

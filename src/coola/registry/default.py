@@ -66,6 +66,14 @@ def make_default_registry_singleton(
     """
 
     def build() -> R:
+        r"""Build the default registry.
+
+        The registry is created, filled with the defaults, then with the
+        plugins.
+
+        Returns:
+            The populated registry.
+        """
         registry = registry_cls()
         register_defaults(registry)
         if plugin_group is not None:
@@ -116,6 +124,10 @@ def temporary_default_registries() -> Generator[None]:
 
     The default registries are process-wide: do not enter the context
     in several threads at the same time.
+
+    Yields:
+        ``None``. The default registries are restored when the block
+            exits.
 
     Example:
         ```pycon

@@ -39,6 +39,11 @@ class TimingResult:
         return self.finished_at - self.started_at
 
     def __repr__(self) -> str:
+        r"""Return the representation, with the elapsed time.
+
+        Returns:
+            The representation of the result.
+        """
         return (
             f"{type(self).__name__}(started_at={self.started_at!r}, "
             f"finished_at={self.finished_at!r}, elapsed={self.elapsed!r})"

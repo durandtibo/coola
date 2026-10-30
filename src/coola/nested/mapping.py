@@ -27,6 +27,11 @@ class DuplicateKeyError(KeyError, ValueError):
     """
 
     def __str__(self) -> str:
+        r"""Return the message without the quotes of ``KeyError``.
+
+        Returns:
+            The message of the error.
+        """
         # ``KeyError`` would show the ``repr`` of the message (with quotes).
         return str(self.args[0]) if len(self.args) == 1 else super().__str__()
 

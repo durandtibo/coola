@@ -28,8 +28,15 @@ if TYPE_CHECKING:
 
 
 def _dtype_key(dtype: Any) -> Any:
-    r"""Return the dtype in a form that can be hashed: the categories
-    and the ``ordered`` flag are added to a categorical dtype."""
+    r"""Return the dtype in a form that can be hashed: the categories and
+    the ``ordered`` flag are added to a categorical dtype.
+
+    Args:
+        dtype: The data type.
+
+    Returns:
+        The data type, in a form that can be hashed.
+    """
     if isinstance(dtype, pd.CategoricalDtype):
         return [str(dtype), dtype.ordered, dtype.categories.to_numpy()]
     return str(dtype)
@@ -41,6 +48,12 @@ def _normalize_name(name: Any) -> Any:
 
     A series named ``None`` and a series named ``NaN`` are equal for
     ``objects_are_equal``, so they must have the same hash.
+
+    Args:
+        name: The name of a series or an index.
+
+    Returns:
+        ``None`` for a ``NaN``, otherwise ``name``.
     """
     return None if isinstance(name, float) and math.isnan(name) else name
 
@@ -54,6 +67,12 @@ def _column_values(column: Any) -> Any:
     ...) are converted to an object array where a missing value is
     ``None``, because ``to_numpy()`` would put ``pandas.NA`` or
     ``pandas.NaT`` in the array.
+
+    Args:
+        column: The column.
+
+    Returns:
+        The values, in a form that can be hashed.
     """
     dtype = column.dtype
     if isinstance(dtype, (np.dtype, pd.CategoricalDtype, pd.SparseDtype)):
@@ -67,6 +86,13 @@ def _index_key(index: pd.Index) -> list[Any]:
 
     The values of a ``MultiIndex`` are described level by level, not as
     an array of tuples.
+
+    Args:
+        index: The index.
+
+    Returns:
+        The names, dtypes and values of the index, in a form that can be
+            hashed.
     """
     levels = (
         [index.get_level_values(i) for i in range(index.nlevels)]

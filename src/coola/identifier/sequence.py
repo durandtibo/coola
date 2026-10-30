@@ -87,10 +87,19 @@ class TickSequence:
             return self._tick, self._counter
 
     def _start(self) -> int:
-        r"""Generate the first counter of a tick."""
+        r"""Generate the first counter of a tick.
+
+        Returns:
+            The first counter of the tick.
+        """
         return secrets.randbits(self._bits) if self._random_start else 0
 
     def _reset_after_fork(self) -> None:
+        r"""Reset the state in the child process of a fork.
+
+        The lock may have been held by a thread that does not exist in
+        the child, so a new one is created.
+        """
         # The lock may have been held by a thread that does not exist in the child.
         self._lock = threading.Lock()
         self._tick = -1

@@ -77,7 +77,14 @@ class DatetimeHasher(InlineDisplayMixin, BaseHasher[date | time]):
 
 def _tag(data: date | time) -> str:
     r"""Return the constant tag of the family of ``data``, so a subclass
-    (such as ``pandas.Timestamp``) hashes like its base."""
+    (such as ``pandas.Timestamp``) hashes like its base.
+
+    Args:
+        data: The date, time or datetime.
+
+    Returns:
+        ``"datetime"``, ``"time"`` or ``"date"``.
+    """
     if isinstance(data, datetime):
         return "datetime"
     if isinstance(data, time):

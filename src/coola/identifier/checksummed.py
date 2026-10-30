@@ -47,12 +47,26 @@ _DIGIT_CHARACTERS = frozenset(crockford.ALPHABET + "OIL")
 
 def _normalize(identifier: str) -> str:
     r"""Apply the Crockford Base32 case/confusable normalization to
-    ``identifier``."""
+    ``identifier``.
+
+    Args:
+        identifier: The identifier.
+
+    Returns:
+        The identifier in upper case, with the confusable characters
+            replaced.
+    """
     return identifier.upper().translate(_NORMALIZE_TABLE)
 
 
 def _checksum_symbol(payload: str) -> str:
     r"""Compute the mod-37 Crockford check symbol for ``payload``.
+
+    Args:
+        payload: The payload, in the Crockford Base32 alphabet.
+
+    Returns:
+        The check symbol.
 
     Raises:
         ValueError: If ``payload`` contains a character outside the
@@ -69,6 +83,9 @@ def _validate_sep(sep: str) -> None:
     r"""Validate that ``sep`` is at most one character and is not read
     as a digit, which would make the grouped output ambiguous to parse
     back: the separator is stripped before the check.
+
+    Args:
+        sep: The separator of the groups.
 
     Raises:
         TypeError: If ``sep`` is not a ``str``.

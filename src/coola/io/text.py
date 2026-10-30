@@ -47,9 +47,22 @@ class TextLoader(BaseLoader[str]):
         self._encoding = encoding
 
     def _display_fields(self) -> dict[str, Any]:
+        r"""Return the fields shown in the representation.
+
+        Returns:
+            The ``encoding`` of the object.
+        """
         return {"encoding": self._encoding}
 
     def _load(self, path: Path) -> str:
+        r"""Load a text file.
+
+        Args:
+            path: The path of the file.
+
+        Returns:
+            The text of the file.
+        """
         with path.open(encoding=self._encoding, newline="") as file:
             return file.read()
 
@@ -89,9 +102,23 @@ class TextSaver(BaseFileSaver[str]):
         self._encoding = encoding
 
     def _display_fields(self) -> dict[str, Any]:
+        r"""Return the fields shown in the representation.
+
+        Returns:
+            The ``encoding`` of the object.
+        """
         return {"encoding": self._encoding}
 
     def _save_file(self, to_save: str, path: Path) -> None:
+        r"""Save a text into a file.
+
+        Args:
+            to_save: The text to save.
+            path: The path of the file.
+
+        Raises:
+            TypeError: If ``to_save`` is not a ``str``.
+        """
         if not isinstance(to_save, str):
             msg = (
                 f"{type(self).__name__} expects a str, got {type(to_save).__name__}; "

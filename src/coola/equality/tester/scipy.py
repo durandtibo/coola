@@ -48,6 +48,10 @@ class ScipySparseEqualityTester(BaseEqualityTester[Any]):
     The location of a difference is the coordinates of the first value
     that differs.
 
+    Raises:
+        MissingPackageError: If ``numpy`` or ``scipy`` is not
+            installed.
+
     Example:
         ```pycon
         >>> from scipy import sparse
@@ -74,6 +78,21 @@ class ScipySparseEqualityTester(BaseEqualityTester[Any]):
         check_scipy()
 
     def objects_are_equal(self, actual: Any, expected: Any, ctx: Engine) -> bool | Any:
+        r"""Test two SciPy sparse arrays or matrices.
+
+        The objects must have the same dtype and shape and the same
+        non-zero positions; the stored values are compared with the
+        tolerance and ``equal_nan``.
+
+        Args:
+            actual: The actual object.
+            expected: The expected object, with the same type.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            ``True`` if the objects are equal, otherwise ``False`` (the
+                reason is recorded in the engine).
+        """
         failure = check_dtype_and_shape(actual, expected, ctx)
         if failure is not None:
             return failure
