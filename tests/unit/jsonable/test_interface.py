@@ -4,13 +4,13 @@ import datetime
 import json
 import threading
 import warnings
-from collections import ChainMap, Counter, OrderedDict, UserString, defaultdict, deque, namedtuple
+from collections import ChainMap, Counter, OrderedDict, UserString, defaultdict, deque
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum, IntEnum, StrEnum
 from pathlib import PurePosixPath
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NamedTuple
 from unittest.mock import patch
 from uuid import UUID
 
@@ -67,7 +67,9 @@ class Point:
     y: Any
 
 
-Pair = namedtuple("Pair", ["a", "b"])  # noqa: PYI024
+class Pair(NamedTuple):
+    a: Any
+    b: Any
 
 
 #####################################
