@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import importlib
 import sys
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections import Counter
 from typing import TYPE_CHECKING, Union
 
@@ -41,8 +41,12 @@ def create_undefined_return_type() -> UndefinedType:  # noqa: F821  # ty: ignore
     return []
 
 
-class Interface(ABC):  # noqa: B024
+class Interface(ABC):
     """An abstract class with a virtual subclass."""
+
+    @abstractmethod
+    def run(self) -> None:
+        """Run the object."""
 
 
 class VirtualSubclass:
