@@ -59,4 +59,5 @@ jobs:
         with:
           name: benchmark-import-results
           path: .benchmarks
-          if-no-files-found: ignore
+          include-hidden-files: true
+          if-no-files-found: warn
