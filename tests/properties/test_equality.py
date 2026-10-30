@@ -350,8 +350,8 @@ def test_signed_zero_in_a_list_is_equal_to_zero() -> None:
 @pytest.mark.parametrize("hours", [-5, 1, 9])
 @given(
     value=st.datetimes(
-        min_value=dt.datetime(2000, 1, 1),  # noqa: DTZ001
-        max_value=dt.datetime(2100, 1, 1),  # noqa: DTZ001
+        min_value=dt.datetime(2000, 1, 1, tzinfo=dt.UTC),
+        max_value=dt.datetime(2100, 1, 1, tzinfo=dt.UTC),
     )
 )
 def test_time_zones_aware_datetimes_compare_by_instant(hours: int, value: dt.datetime) -> None:
@@ -362,8 +362,8 @@ def test_time_zones_aware_datetimes_compare_by_instant(hours: int, value: dt.dat
 
 @given(
     value=st.datetimes(
-        min_value=dt.datetime(2000, 1, 1),  # noqa: DTZ001
-        max_value=dt.datetime(2100, 1, 1),  # noqa: DTZ001
+        min_value=dt.datetime(2000, 1, 1, tzinfo=dt.UTC),
+        max_value=dt.datetime(2100, 1, 1, tzinfo=dt.UTC),
     )
 )
 def test_time_zones_aware_datetimes_with_a_shifted_instant_differ(value: dt.datetime) -> None:

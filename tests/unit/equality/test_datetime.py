@@ -62,7 +62,7 @@ def test_datetime_naive_is_equal_to_same_naive(compare: Callable[..., bool]) -> 
 
 @pytest.mark.parametrize("compare", [objects_are_equal, objects_are_allclose])
 def test_datetime_and_date_are_not_equal(compare: Callable[..., bool]) -> None:
-    assert not compare(date(2024, 1, 1), datetime(2024, 1, 1))  # noqa: DTZ001
+    assert not compare(date(2024, 1, 1), datetime(2024, 1, 1, tzinfo=UTC))
 
 
 @pytest.mark.parametrize("compare", [objects_are_equal, objects_are_allclose])

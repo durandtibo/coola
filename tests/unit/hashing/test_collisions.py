@@ -76,7 +76,7 @@ def test_hash_object_different_types_do_not_collide(first: object, second: objec
         pytest.param(["ab", "c"], ["a", "bc"], id="item-boundaries"),
         pytest.param([1, 2], [2, 1], id="list-order"),
         pytest.param(OrderedDict(a=1, b=2), OrderedDict(b=2, a=1), id="ordereddict-order"),
-        pytest.param(date(2024, 1, 1), datetime(2024, 1, 1), id="date-datetime"),  # noqa: DTZ001
+        pytest.param(date(2024, 1, 1), datetime(2024, 1, 1, tzinfo=UTC), id="date-datetime"),
         pytest.param(
             datetime(2024, 1, 1),  # noqa: DTZ001
             datetime(2024, 1, 1, tzinfo=UTC),
