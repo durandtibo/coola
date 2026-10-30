@@ -14,6 +14,8 @@ Evidence comes from probes (about 60 inputs) and a throw-away prototype run on `
 NumPy, PyTorch, pandas, pydantic; scripts kept outside the repository). Items marked **[verified]**
 were reproduced; **[reading]** comes from the code. Nothing in `src`, `tests` or `docs` was changed.
 
+**Status:** implemented in four pull requests: step 1 #2652, step 2 #2653, step 3 #2654, step 4 #2656. One deviation: the benchmark gate of section 8 failed for the array with the check of every element (149 ms, 7.9x `tolist`, 47 % of `json.dumps`), so the fast path that D12 names is included (`NDArrayTransformer`, `TensorTransformer`: no check of the elements of real numeric arrays, 17 ms).
+
 ## 1. Properties of the sub-package
 
 `to_jsonable(data)` turns any nested data into **JSON data**: the values that `json.loads` returns.
