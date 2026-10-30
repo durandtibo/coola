@@ -36,6 +36,7 @@ __all__ = [
     "OrderedMappingEqualityTester",
     "PydanticModelEqualityTester",
     "ScalarEqualityTester",
+    "ScipySparseEqualityTester",
     "SequenceEqualityTester",
     "SetEqualityTester",
     "TableEqualityTester",
@@ -81,6 +82,7 @@ if TYPE_CHECKING:
         NumpyTimeScalarEqualityTester,
     )
     from coola.equality.tester.pydantic import PydanticModelEqualityTester
+    from coola.equality.tester.scipy import ScipySparseEqualityTester
     from coola.equality.tester.torch import (
         TorchPackedSequenceEqualityTester,
         TorchTensorEqualityTester,
@@ -100,6 +102,7 @@ _LAZY_EXPORTS = {
     "NumpyMaskedArrayEqualityTester": "coola.equality.tester.numpy",
     "NumpyTimeScalarEqualityTester": "coola.equality.tester.numpy",
     "PydanticModelEqualityTester": "coola.equality.tester.pydantic",
+    "ScipySparseEqualityTester": "coola.equality.tester.scipy",
     "TorchPackedSequenceEqualityTester": "coola.equality.tester.torch",
     "TorchTensorEqualityTester": "coola.equality.tester.torch",
     "XarrayDataArrayEqualityTester": "coola.equality.tester.xarray",

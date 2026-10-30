@@ -266,6 +266,7 @@ LAZY_MODULES = [
     pytest.param("coola.equality.tester.pandas", ("pandas",), id="pandas"),
     pytest.param("coola.equality.tester.polars", ("polars",), id="polars"),
     pytest.param("coola.equality.tester.pyarrow", ("pyarrow",), id="pyarrow"),
+    pytest.param("coola.equality.tester.scipy", ("scipy",), id="scipy"),
     pytest.param("coola.equality.tester.torch", ("torch",), id="torch"),
     pytest.param("coola.equality.tester.xarray", ("xarray",), id="xarray"),
 ]
@@ -276,6 +277,7 @@ LAZY_MODULE_NAMES = [
     "coola.equality.tester.pandas",
     "coola.equality.tester.polars",
     "coola.equality.tester.pyarrow",
+    "coola.equality.tester.scipy",
     "coola.equality.tester.torch",
     "coola.equality.tester.xarray",
 ]
@@ -356,7 +358,17 @@ def test_default_tester_equals_itself(data_type: type) -> None:
 
 
 def test_default_registry_native_types_have_a_sample() -> None:
-    optional = ("jax", "numpy", "pandas", "polars", "pyarrow", "pydantic", "torch", "xarray")
+    optional = (
+        "jax",
+        "numpy",
+        "pandas",
+        "polars",
+        "pyarrow",
+        "pydantic",
+        "scipy",
+        "torch",
+        "xarray",
+    )
     native = {
         data_type
         for data_type, _ in get_default_registry().items()

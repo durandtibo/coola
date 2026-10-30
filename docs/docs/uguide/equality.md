@@ -27,6 +27,7 @@ These functions work with a wide variety of types, including:
 - JAX arrays
 - xarray DataArrays and Datasets
 - PyArrow arrays and tables
+- SciPy sparse matrices and arrays
 - pydantic models
 
 Nested structures like lists of dictionaries containing arrays are handled correctly. The comparison
@@ -848,6 +849,11 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   [`pyarrow.Table`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html)
   (experimental): `equal_nan`, `atol` and `rtol` are honored for the integer and floating-point
   columns (this requires NumPy), and the other types are compared exactly
+- `scipy.sparse` matrices and arrays (`csr_matrix`, `coo_array`...): the class (which includes the
+  format), the shape, the data type and the non-zero positions must be equal, and the stored values
+  are compared with `equal_nan`, `atol` and `rtol`. Duplicate entries are summed and stored zeros
+  are ignored. The tolerance applies to stored values only: a stored value is never compared with
+  an absent one. This requires NumPy
 - `numpy.ndarray` with a non-numeric dtype: `str`, `bytes` and `object` arrays are compared
   exactly, and so are `datetime64` arrays (an instant is not a quantity), even if a tolerance is
   given. A `timedelta64` array, like a `datetime.timedelta`, follows the tolerance (`atol` is a
