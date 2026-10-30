@@ -1,12 +1,12 @@
-r"""Benchmarks comparing ``objects_are_equal`` and ``objects_are_allclose``
-with the built-in comparison of each library.
+r"""Benchmarks comparing ``objects_are_equal`` and
+``objects_are_allclose`` with the built-in comparison of each library.
 
 Each benchmark runs on the same data with coola and with the built-in
 function (``==``, ``numpy.array_equal``, ``torch.equal``,
-``pandas.Series.equals``, ...), so the overhead of coola is the ratio between
-the two times of a group. Run them with:
+``pandas.Series.equals``, ...), so the overhead of coola is the ratio
+between the two times of a group. Run them with:
 
-    inv test.benchmark
+inv test.benchmark
 
 and compare the rows of the same group in the output.
 """
@@ -101,8 +101,8 @@ def passes(assert_fn: Callable[..., None]) -> Callable[..., Any]:
 
 
 def run(benchmark: BenchmarkFixture, group: str, fn: Callable[..., Any], *args: Any) -> None:
-    r"""Benchmark ``fn(*args)`` in the group ``group`` and check that the
-    objects are equal."""
+    r"""Benchmark ``fn(*args)`` in the group ``group`` and check that
+    the objects are equal."""
     benchmark.group = group
     assert benchmark(fn, *args)
 
