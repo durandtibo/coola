@@ -48,11 +48,11 @@ Packages fall into two groups:
 - **Core**: `registry` (type-based dispatch), `utils` (generic helpers), `validation`, `formatting`
   (turning values into text) and `display`. A core package imports no feature package.
 - **Features**: `equality`, `hashing`, `summary`, `recursive`, `iterator`, `rounding`, `random`,
-  `nested`, `reducer`, `io`, `factory`, `identifier` and `testing`. `equality`, `hashing`, `summary`,
+  `nested`, `jsonable`, `reducer`, `io`, `factory`, `identifier` and `testing`. `equality`, `hashing`, `summary`,
   `recursive`, `iterator` and `rounding` are built on `registry`; `reducer` and `random` are standalone
   helpers. `identifier` depends on `hashing` (the stable identifiers are built on `hash_object`), and
   `hashing` must not import `identifier`. `nested` is built on the engines of `recursive` and
-  `iterator`.
+  `iterator`, and `jsonable` on the engine of `recursive`.
 
 The allowed imports are:
 
@@ -286,7 +286,8 @@ the public API, the dependents and the decisions behind the design.
 | `coola.identifier` | [Stable and time-ordered identifiers](identifier.md)               |
 | `coola.io`         | [Loaders, savers, atomic write](io.md)                             |
 | `coola.iterator`   | [`dfs_iterate` and `bfs_iterate`, child finders](iterator.md)      |
-| `coola.nested`     | [Flat dicts, keys, JSON, records](nested.md)                       |
+| `coola.jsonable`   | [JSON data, one registry, one rule per type](jsonable.md)          |
+| `coola.nested`     | [Flat dicts, keys, records](nested.md)                             |
 | `coola.random`     | [Seed managers and RNG state](random.md)                           |
 | `coola.recursive`  | [`recursive_apply` engine, transformers](recursive.md)             |
 | `coola.reducer`    | [Statistics backends](reducer.md)                                  |
@@ -302,7 +303,7 @@ the public API, the dependents and the decisions behind the design.
 ```
 coola/
 ├── equality/, hashing/, summary/, recursive/, iterator/, rounding/   # traversal and dispatch
-├── nested/, reducer/, random/, io/, factory/, identifier/            # helpers built on the core
+├── nested/, jsonable/, reducer/, random/, io/, factory/, identifier/ # helpers built on the core
 ├── registry/             # Generic registries and type dispatch
 ├── formatting/           # Turning values into text
 ├── display/              # Display mixins, pydantic formatting, terminal output
