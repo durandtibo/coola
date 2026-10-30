@@ -245,6 +245,44 @@ Seed, save and restore the random number generators of `random`, NumPy and PyTor
 
 [Learn more about transformation →](uguide/recursive.md) · [Learn more about validation →](uguide/validation.md)
 
+### 🧩 **Registries and Factories**
+
+Build extensible components:
+
+- Thread-safe `Registry` and `TypeRegistry` (lookup by Method Resolution Order, lazy loading of
+  optional libraries)
+- Build any importable class or function from a configuration dictionary with `coola.factory`
+
+[Learn more about registries →](uguide/registry.md) · [Learn more about factories →](uguide/factory.md)
+
+### 🧾 **JSON Conversion**
+
+Convert nested data (dataclasses, sets, paths, arrays, tensors, pydantic models, ...) to JSON data
+with `to_jsonable`, with a strict, extensible and cycle-safe conversion.
+
+[Learn more →](uguide/jsonable.md)
+
+### 🔢 **Rounding**
+
+Round, floor or ceil numbers, NumPy arrays, PyTorch tensors, and pandas, polars and PyArrow data
+with `round_values`.
+
+[Learn more →](uguide/rounding.md)
+
+### 🖨️ **Display and Formatting**
+
+Build consistent `__repr__`/`__str__` with display mixins, mask secrets, format sizes and durations,
+and configure `rich` and `colorlog` output.
+
+[Learn more about display →](uguide/display.md) · [Learn more about formatting →](uguide/formatting.md)
+
+### 🧪 **Testing and Utilities**
+
+`pytest` marks and fixtures to test code with optional dependencies, and helpers for imports, paths,
+environment variables, caches and more.
+
+[Learn more about testing →](uguide/testing.md) · [Learn more about utilities →](uguide/utils.md)
+
 ## Contributing
 
 Contributions are welcome! We appreciate bug fixes, feature additions, documentation improvements,

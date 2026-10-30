@@ -1,4 +1,17 @@
-r"""Utilities to control and restore random number generator states."""
+r"""Utilities to control and restore random number generator states.
+
+``manual_seed`` seeds the global generators of ``random``, and of NumPy and
+PyTorch when they are installed, in one call. ``get_rng_state`` and
+``set_rng_state`` save and restore the state of every managed generator,
+and ``random_seed`` seeds the generators in a ``with`` block and restores
+their state on exit. A seed is an ``int`` in ``[0, 2**63)``.
+
+Each generator is handled by a ``BaseRandomManager``
+(``PythonRandomManager``, ``NumpyRandomManager``, ``TorchRandomManager``).
+The managers are stored in a ``RandomManagerRegistry``; a manager for
+another generator is added with ``register_managers``. The libraries are
+imported the first time they are used.
+"""
 
 from __future__ import annotations
 

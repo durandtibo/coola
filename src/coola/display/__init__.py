@@ -1,4 +1,17 @@
-r"""Contain display shared helpers."""
+r"""Provide helpers to display objects and to write to the terminal.
+
+The package has three kinds of content:
+
+- Mixins: ``InlineDisplayMixin``, ``MultilineDisplayMixin`` and
+  ``BaseDisplayMixin`` give a class a consistent ``__repr__`` and
+  ``__str__``. A class only overrides ``_display_fields``.
+- Pydantic formatting: ``str_pydantic_model`` and ``repr_pydantic_model``
+  format a pydantic model without exposing its secrets. They need
+  ``pydantic``, which is imported the first time they are used.
+- Terminal output: ``coola.display.rich`` and ``coola.display.colorlog``
+  configure logging and print with ``rich`` and ``colorlog``. A function
+  raises ``MissingPackageError`` when its library is not installed.
+"""
 
 from __future__ import annotations
 

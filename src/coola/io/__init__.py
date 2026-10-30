@@ -1,4 +1,25 @@
-r"""Contain data loaders and savers."""
+r"""Provide loaders and savers to read and write data to files.
+
+A loader reads one value from a file (``load(path)``) and a saver writes
+one value to a file (``save(data, path, exist_ok=False)``), with the same
+interface for every format: JSON, pickle, text and PyTorch. Each format
+has a class (``JsonLoader``, ``JsonSaver``, ...) and a function shortcut
+(``load_json``, ``save_json``, ...).
+
+Properties of a file saver:
+
+- Atomic write: the data is written to a temporary file that replaces the
+  target in one operation, so a reader never sees a partial file and a
+  failed ``save`` leaves the target untouched.
+- No silent overwrite: ``save`` raises ``FileExistsError`` if the target
+  exists, unless ``exist_ok=True``.
+- Opt-in durability: ``fsync=True`` flushes the file and its directory.
+
+``resolve_loader`` and ``resolve_saver`` build a loader or a saver from a
+configuration. A new format is added by subclassing ``BaseLoader`` and
+``BaseFileSaver``. ``TorchLoader`` and ``TorchSaver`` import PyTorch the
+first time they are used.
+"""
 
 from __future__ import annotations
 
