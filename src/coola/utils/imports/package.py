@@ -33,6 +33,8 @@ class _CachedFunction(Protocol):
 
     def cache_clear(self) -> None:
         r"""Clear the cache of the function."""
+        ...
+
 
 _CACHED_FUNCTIONS: list[_CachedFunction] = []
 
