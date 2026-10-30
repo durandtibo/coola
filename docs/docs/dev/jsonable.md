@@ -10,10 +10,10 @@ engine. A transformer only describes the shape of one type with the `expand` con
 `expand(data)` returns `None` for a scalar, or `(children, rebuild)`. Three shapes are enough for every
 type:
 
-| Shape          | `expand(data)`                                              | Used for                                       |
-| -------------- | ----------------------------------------------------------- | ---------------------------------------------- |
-| scalar         | `None`: `str`, `int`, `float`, `bool`, `None` are kept      | the JSON scalars (`DefaultTransformer`)        |
-| container      | `(children, rebuild)`: the rebuild makes a `list` or a `dict` | sequences, sets, mappings, dataclasses       |
+| Shape          | `expand(data)`                                                       | Used for                                       |
+| -------------- | -------------------------------------------------------------------- | ---------------------------------------------- |
+| scalar         | `None`: `str`, `int`, `float`, `bool`, `None` are kept               | the JSON scalars (`DefaultTransformer`)        |
+| container      | `(children, rebuild)`: the rebuild makes a `list` or a `dict`        | sequences, sets, mappings, dataclasses         |
 | **conversion** | `([convert(data)], lambda xs: xs[0])`: the result is converted again | every other type (`Path`, `Enum`, arrays, ...) |
 
 The third shape is the whole trick (`ConvertTransformer`). A conversion returns a value that the
@@ -157,13 +157,13 @@ from coola.jsonable import (
 
 ## Dependents
 
-| Package or file                  | Relation                                                                                       |
-| -------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Package or file                  | Relation                                                                                              |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `coola.recursive`                | `TransformerRegistry`, `BaseTransformer`, `DefaultTransformer` and the engine are reused as they are. |
-| `coola.nested`                   | `convert_to_jsonable` and `conversion.to_jsonable` are removed; `conversion.py` is now `records.py`. |
-| `coola.io` (`save_json`)         | The docstring says "use `coola.jsonable.to_jsonable` first". No code change.                   |
-| `pyproject.toml` (import-linter) | `coola.jsonable` is in the lists of the contracts: the core packages must not import it.      |
-| Entry points                     | New plugin group `coola.jsonable.transformers`.                                                |
+| `coola.nested`                   | `convert_to_jsonable` and `conversion.to_jsonable` are removed; `conversion.py` is now `records.py`.  |
+| `coola.io` (`save_json`)         | The docstring says "use `coola.jsonable.to_jsonable` first". No code change.                          |
+| `pyproject.toml` (import-linter) | `coola.jsonable` is in the lists of the contracts: the core packages must not import it.              |
+| Entry points                     | New plugin group `coola.jsonable.transformers`.                                                       |
 
 ## Tests
 
