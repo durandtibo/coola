@@ -122,8 +122,8 @@ def _canonical_coo(matrix: Any) -> Any:
 
 
 def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
-    r"""Get the default equality testers of the SciPy sparse matrices
-    and arrays.
+    r"""Get the default equality testers of the SciPy sparse matrices and
+    arrays.
 
     Returns:
         The equality tester of the SciPy sparse matrices and arrays and their associated types.
