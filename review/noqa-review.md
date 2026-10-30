@@ -4,10 +4,10 @@ Date: 2026-10-29 · Branch: `main` (7530c55a) · ruff 0.17.2 · Python ≥ 3.11 
 
 ## Summary
 
-- 123 lines with a `# noqa` directive in Python code (`src/` = 34, `tests/` = 89). The previous review counted 161 (`src/` = 51, `tests/` = 110). `src/` went down, `tests/` went up because of the new test suites (`jsonable`, `random`, `registry`, `hashing`, `summary`, `factory`, `tests/properties/`). Some mentions are in `docs/docs/dev/*.md`, which describe removed directives and are not source.
+- 118 lines with a `# noqa` directive in Python code (`src/` = 34, `tests/` = 84). The previous review counted 161 (`src/` = 51, `tests/` = 110). `src/` went down, `tests/` went up because of the new test suites (`jsonable`, `random`, `registry`, `hashing`, `summary`, `factory`, `tests/properties/`). Some mentions are in `docs/docs/dev/*.md`, which describe removed directives and are not source.
 - **No directive is unused.** `ruff check --extend-select RUF100 --no-fix .` passes. `RUF` is selected in `pyproject.toml`, and `RUF100` is part of it, so a stale directive already fails CI.
 - No file-level or blanket `# noqa` is used. Every directive names a rule code (`PGH004` is enabled through `PGH`).
-- About **40 of the 123 (~33%) can be removed** with a few per-file ignores and small refactors. The remaining ~83 are justified or need a policy decision.
+- About **35 of the 118 (~30%) can be removed** with a few per-file ignores and small refactors. The remaining ~83 are justified or need a policy decision.
 - Since the previous review, the `src/` count dropped from 51 to 34, because:
   - the `ARG002` in `hashing/`, `equality/handler/`, `io/`, `recursive/` and `iterator/` are gone (the signatures were reworked into a context object, see `docs/docs/dev/hashing.md` and `docs/docs/dev/io.md`);
   - the `PLW1641` directives were fixed (the random managers define `__hash__`);
@@ -30,7 +30,7 @@ A line with two codes (`# noqa: A001, N801`) counts once for each code.
 | PLC0415 (import outside top level) | 12     | 12  | 0      | Keep (lazy optional imports, circular imports)                   |
 | BLE001 (blind except)              | 7      | 5   | 2      | Keep (see below)                                                 |
 | DTZ001 (naive `datetime`)          | 3      | 0   | 3      | Keep (naive vs aware datetime is the test subject)               |
-| S301 (`pickle.load`)               | 7      | 1   | 6      | Keep in `src`. Per-file ignore in tests.                         |
+| S301 (`pickle.load`)               | 2      | 1   | 1      | Keep (`src`, and one shared test helper)                         |
 | S603 (`subprocess`)                | 6      | 1   | 5      | Keep in `src`. Per-file ignore in tests.                         |
 | F821 (undefined name)              | 3      | 0   | 3      | Keep (deliberately unresolvable annotation)                      |
 | ANN201                             | 3      | 0   | 3      | Keep (tests of unannotated factories)                            |
@@ -39,18 +39,19 @@ A line with two codes (`# noqa: A001, N801`) counts once for each code.
 | A001 / N801                        | 2 each | 0   | 2 each | Keep                                                             |
 | TRY004                             | 1      | 1   | 0      | Keep (see below)                                                 |
 
-Where the tests are: `tests/unit` 72, `tests/integration` 6, `tests/properties` 1, `tests/package` 2, `tests/benchmarks` 1.
+Where the tests are: `tests/unit` 66, `tests/integration` 6, `tests/properties` 1, `tests/package` 2, `tests/benchmarks` 1.
 
 ## Recommendations
 
-### 1. Tests: per-file ignores in `pyproject.toml` (~40 directives)
+### 1. Tests: per-file ignores in `pyproject.toml` (~35 directives)
 
 `[tool.ruff.lint.per-file-ignores]` has a `tests/**` block (`D`, `S101`) (the narrow `tests/unit/hashing/test_pydantic.py = ["S106"]` entry is removed: its 15 hidden hits now have a per-line `# noqa: S106`). The `PL` rules are no longer ignored there. These rules are noise in tests and are suppressed line by line:
 
 - `S311` (fixed, was 47): the tests of the random-seed managers must draw from `random` to check seeding. They now call `draw_python_random()` and `make_python_generator(seed)` from `tests/helpers.py`, which carry the only 2 directives. `tests/package/checks.py` is standalone (it does not import `tests`), so it has its own `_draw_python_random()` helper (1 directive).
 - `NPY002` (fixed, was 37): same approach for `np.random.*`. The tests call `draw_numpy_rand`, `draw_numpy_randn`, `draw_numpy_randint`, `get_numpy_state` and `seed_numpy` from `tests/helpers.py`, which carry the only 5 directives (numpy is imported there only if available).
 - `S105`, `S106` (was 9 + 2 in tests, plus 15 hidden by the per-file entry): the 4 password variables in `test_password.py` are renamed (`with_spaces`, `special_chars`, `unicode_chars`). The rest is kept on purpose: the 3 assertions on the private `_on_secret` (`# noqa: S105`, reading the private attribute is the point of those tests) and the 17 models built with `password="..."` (`# noqa: S106`, more readable than `model_validate({...})`; 15 of them are in `test_pydantic.py`). Adding `S105` and `S106` to `tests/**` would remove these 20 comments.
-- `S301` (6) and `S603` (5): tests pickle their own objects and run a fixed subprocess command. Add both to `tests/**`.
+- `S301` (fixed, was 6): the registry tests call `pickle_round_trip(obj)` from `tests/helpers.py`, which carries the only directive.
+- `S603` (5): tests run a fixed subprocess command. Add it to `tests/**`.
 - `DTZ001` (3): was 10. The other 7 now use a timezone (`tzinfo=UTC`; the Hypothesis bounds in `tests/properties/test_equality.py` too). The 3 left (`tests/unit/equality/test_datetime.py` ×2, `tests/unit/hashing/test_collisions.py`) build a naive datetime on purpose, to test naive vs aware. Keep them; no per-file ignore needed.
 - `BLE001` (fixed in `tests/integration`, was 8): the worker threads and forked processes caught `BaseException` / `Exception` to forward the error to the main thread. They now use `with collect_errors(errors):` from `tests/integration/helpers.py`, which carries the only directive. `tests/package/checks.py` keeps its own (it collects import failures of any kind and does not import `tests`).
 - `ARG005` (fixed, was 12): the unused lambda arguments are renamed to `_` (`lambda _: False`). `entry_points` is called with `group=`, so that stub is `lambda **_: eps`.
@@ -94,14 +95,14 @@ The strings are _policy names_ (`"reveal"`, `"exclude"`, `"error"`) compared wit
 
 ## Proposed change set (in order of value/effort)
 
-1. Extend `per-file-ignores` for `tests/**` with `ARG`, `S301` and `S603`. This removes ~40 directives with a small diff. Then run `ruff check --extend-select RUF100 --fix` to strip the now-unused comments.
+1. Extend `per-file-ignores` for `tests/**` with `ARG` and `S603`. This removes ~35 directives with a small diff. Then run `ruff check --extend-select RUF100 --fix` to strip the now-unused comments.
 2. ~~Restructure the 3 `PT012` tests (−3).~~ Done.
 3. Add a short reason to the kept directives in `src` that have none (`# noqa: S301  # trusted local file`).
 
-Expected result: 123 → ~83 directives, of which 34 are in `src/` (12 `PLC0415`, 12 `ARG001` / `ARG002`, 5 `BLE001`, and 10 others) and ~49 are in tests where the old syntax or the unusual construct is the subject. `RUF100` is already active, so stale directives are caught in CI.
+Expected result: 118 → ~83 directives, of which 34 are in `src/` (12 `PLC0415`, 12 `ARG001` / `ARG002`, 5 `BLE001`, and 10 others) and ~49 are in tests where the old syntax or the unusual construct is the subject. `RUF100` is already active, so stale directives are caught in CI.
 
 ## Caveats
 
 - I did not apply any change. Impact on remaining rules should be confirmed by running `ruff check .` after each step.
 - The `ARG` test ignore also hides real unused fixtures/arguments in tests, so it is a trade-off.
-- The per-rule counts come from `grep` on `# noqa`, not from ruff. The "~40 removable" figure is an estimate: only `RUF100` after the config change confirms it.
+- The per-rule counts come from `grep` on `# noqa`, not from ruff. The "~35 removable" figure is an estimate: only `RUF100` after the config change confirms it.

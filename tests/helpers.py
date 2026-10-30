@@ -2,6 +2,7 @@ r"""Define helpers shared by the tests."""
 
 from __future__ import annotations
 
+import pickle
 import random
 from collections import UserString, deque
 from types import MappingProxyType
@@ -25,6 +26,7 @@ __all__ = [
     "get_numpy_state",
     "make_python_generator",
     "nest",
+    "pickle_round_trip",
     "seed_numpy",
 ]
 
@@ -158,3 +160,19 @@ def seed_numpy(seed: Any) -> None:
         seed: The seed, as accepted by ``numpy.random.seed``.
     """
     np.random.seed(seed)  # noqa: NPY002
+
+
+def pickle_round_trip(obj: Any) -> Any:
+    r"""Pickle an object and load it back.
+
+    The tests of the picklable objects use it to check what survives a
+    round trip (the rule ``S301`` targets untrusted data, which an object
+    created by the test is not).
+
+    Args:
+        obj: The object to pickle.
+
+    Returns:
+        The loaded copy of ``obj``.
+    """
+    return pickle.loads(pickle.dumps(obj))  # noqa: S301
