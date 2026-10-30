@@ -4,10 +4,10 @@ Date: 2026-10-29 · Branch: `main` (7530c55a) · ruff 0.17.2 · Python ≥ 3.11 
 
 ## Summary
 
-- 215 lines with a `# noqa` directive in Python code (`src/` = 38, `tests/` = 177). The previous review counted 161 (`src/` = 51, `tests/` = 110). `src/` went down, `tests/` went up because of the new test suites (`jsonable`, `random`, `registry`, `hashing`, `summary`, `factory`, `tests/properties/`). Some mentions are in `docs/docs/dev/*.md`, which describe removed directives and are not source.
+- 210 lines with a `# noqa` directive in Python code (`src/` = 38, `tests/` = 172). The previous review counted 161 (`src/` = 51, `tests/` = 110). `src/` went down, `tests/` went up because of the new test suites (`jsonable`, `random`, `registry`, `hashing`, `summary`, `factory`, `tests/properties/`). Some mentions are in `docs/docs/dev/*.md`, which describe removed directives and are not source.
 - **No directive is unused.** `ruff check --extend-select RUF100 --no-fix .` passes. `RUF` is selected in `pyproject.toml`, and `RUF100` is part of it, so a stale directive already fails CI.
 - No file-level or blanket `# noqa` is used. Every directive names a rule code (`PGH004` is enabled through `PGH`).
-- About **147 of the 215 (~63%) can be removed** with a few per-file ignores and small refactors. The remaining ~90 are justified or need a policy decision.
+- About **147 of the 210 (~70%) can be removed** with a few per-file ignores and small refactors. The remaining ~60 are justified or need a policy decision.
 - Since the previous review, the `src/` count dropped from 51 to 38, because:
   - the `ARG002` in `hashing/`, `equality/handler/`, `io/`, `recursive/` and `iterator/` are gone (the signatures were reworked into a context object, see `docs/docs/dev/hashing.md` and `docs/docs/dev/io.md`);
   - the `PLW1641` directives were fixed (the random managers define `__hash__`);
@@ -34,7 +34,6 @@ A line with two codes (`# noqa: S311, NPY002`) counts once for each code.
 | S105 / S106 / S107 (hardcoded password) | 9/2/2  | 2/0/2 | 7/2/0  | Mixed. See below.                                                |
 | S301 (`pickle.load`)                    | 7      | 1     | 6      | Keep in `src`. Per-file ignore in tests.                         |
 | S603 (`subprocess`)                     | 6      | 1     | 5      | Keep in `src`. Per-file ignore in tests.                         |
-| E402 (import not at top)                | 5      | 0     | 5      | Keep (`tests/properties`, after `importorskip`)                  |
 | F821 (undefined name)                   | 3      | 0     | 3      | Keep (deliberately unresolvable annotation)                      |
 | ANN201                                  | 3      | 0     | 3      | Keep (tests of unannotated factories)                            |
 | UP007 / UP045 / UP042                   | 2/2/2  | 0     | 6      | Keep (tests of the old `Union` / `Optional` / `str, Enum` forms) |
@@ -42,7 +41,7 @@ A line with two codes (`# noqa: S311, NPY002`) counts once for each code.
 | A001 / N801                             | 2 each | 0     | 2 each | Keep                                                             |
 | TRY004                                  | 1      | 1     | 0      | Keep (see below)                                                 |
 
-Where the tests are: `tests/unit` 132, `tests/integration` 28, `tests/properties` 12, `tests/package` 4, `tests/benchmarks` 1.
+Where the tests are: `tests/unit` 132, `tests/integration` 28, `tests/properties` 7, `tests/package` 4, `tests/benchmarks` 1.
 
 ## Recommendations
 
@@ -91,7 +90,7 @@ False positives: the strings are _policy names_ (`"reveal"`, `"exclude"`, `"erro
 - `S603` `subprocess.run` (`utils/git.py:59`): trusted fixed command.
 - `PLR0124` ×2 (`jsonable/transformers.py:299`, `equality/_helpers/utils.py:81`): `value != value` is the NaN test. `math.isnan` does not work on arbitrary objects.
 - `TRY004` (`nested/flat.py:278`): `ValueError` is the right type, not `TypeError`. Add a reason.
-- Tests: `E402` ×5 (`tests/properties`, imports after `pytest.importorskip`), `F821` ×3 (deliberately undefined name, also `ty: ignore`), `ANN201` ×3, `UP007`/`UP045`/`UP042` ×6 (old syntax is the subject), `A001`/`N801` ×2 (a class named `int` shadows the builtin), `DTZ001` ×3 (naive vs aware).
+- Tests: `F821` ×3 (deliberately undefined name, also `ty: ignore`), `ANN201` ×3, `UP007`/`UP045`/`UP042` ×6 (old syntax is the subject), `A001`/`N801` ×2 (a class named `int` shadows the builtin), `DTZ001` ×3 (naive vs aware).
 
 ## Proposed change set (in order of value/effort)
 
@@ -99,7 +98,7 @@ False positives: the strings are _policy names_ (`"reveal"`, `"exclude"`, `"erro
 2. ~~Restructure the 3 `PT012` tests (−3).~~ Done.
 3. Add a short reason to the kept directives in `src` that have none (`# noqa: S301  # trusted local file`).
 
-Expected result: 215 → ~85 directives, of which 38 are in `src/` (12 `PLC0415`, 12 `ARG001` / `ARG002`, 5 `BLE001`, 4 `S105` / `S107`, and 10 others) and ~40 are in tests where the old syntax or the unusual construct is the subject. `RUF100` is already active, so stale directives are caught in CI.
+Expected result: 210 → ~60 directives, of which 38 are in `src/` (12 `PLC0415`, 12 `ARG001` / `ARG002`, 5 `BLE001`, 4 `S105` / `S107`, and 10 others) and ~20 are in tests where the old syntax or the unusual construct is the subject. `RUF100` is already active, so stale directives are caught in CI.
 
 ## Caveats
 
