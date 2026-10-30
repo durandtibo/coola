@@ -146,7 +146,7 @@ def save_json(
     example ``int``) are written as strings, so they are strings after
     ``load_json``. Pass ``allow_nan=False`` to raise an error for
     ``NaN`` and infinite floats. The data is not converted: use
-    ``coola.nested.convert_to_jsonable`` first for the objects that
+    ``coola.jsonable.to_jsonable`` first for the objects that
     ``json`` does not support.
 
     Args:

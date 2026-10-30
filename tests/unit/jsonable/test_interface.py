@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import threading
 import warnings
 from collections import ChainMap, Counter, OrderedDict, UserString, defaultdict, deque, namedtuple
 from dataclasses import dataclass
@@ -285,6 +286,55 @@ def test_to_jsonable_does_not_modify_the_default_registry() -> None:
 def test_to_jsonable_is_deterministic_across_calls() -> None:
     data = {"s": {"b", "a", "c"}}
     assert to_jsonable(data) == to_jsonable(data)
+
+
+class NoCopy:
+    def __deepcopy__(self, memo: dict) -> None:
+        msg = "must not be copied"
+        raise TypeError(msg)
+
+
+@dataclass
+class Wrapper:
+    value: Any
+
+
+def test_to_jsonable_dataclass_does_not_copy_the_fields() -> None:
+    obj = NoCopy()
+    assert to_jsonable(Wrapper(value=obj), on_unsupported="keep")["value"] is obj
+
+
+def test_to_jsonable_dataclass_with_a_lock_raises() -> None:
+    with pytest.raises(TypeError, match=r"Cannot convert an object of type lock"):
+        to_jsonable(Wrapper(value=threading.Lock()))
+
+
+def test_to_jsonable_empty_dataclass() -> None:
+    @dataclass
+    class Empty:
+        pass
+
+    assert to_jsonable({"a": Empty()}) == {"a": {}}
+
+
+def test_to_jsonable_set_in_a_dataclass_is_sorted() -> None:
+    assert to_jsonable(Wrapper(value={"b", "a", "c"})) == {"value": ["a", "b", "c"]}
+
+
+def test_to_jsonable_dataclass_in_a_set_in_a_dataclass() -> None:
+    @dataclass(frozen=True)
+    class Frozen:
+        a: int
+
+    assert to_jsonable(Wrapper(value={Frozen(2), Frozen(1)})) == {"value": [{"a": 1}, {"a": 2}]}
+
+
+def test_to_jsonable_set_of_frozensets() -> None:
+    assert to_jsonable({frozenset({2, 1}), frozenset({0})}) == [[0], [1, 2]]
+
+
+def test_to_jsonable_set_of_mixed_types() -> None:
+    assert to_jsonable({"a", 1, 2}) == [1, 2, "a"]
 
 
 ###############################
