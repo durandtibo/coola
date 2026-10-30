@@ -420,11 +420,15 @@ the sibling `recursive` property does not apply to a conversion whose purpose is
 representation. Alternative: keep tuples and `OrderedDict`; the caller then cannot tell whether the
 result is JSON without calling `json.dumps`, and the property test of section 8 disappears.
 
+Decision: follow recommendation
+
 **D2. An unsupported type raises.** _Recommended: yes._ "Strict and loud" is principle 3 of the
 architecture guide. The error is raised at the leaf, with the type and the remedy. Alternatives:
 return the value unchanged (today, F1); a `default=` keyword like `json.dumps` (a fallback for every
 unknown type; one more option, and the caller has `ConvertTransformer` for a type). A caller who
 wants "anything goes" registers `ConvertTransformer(repr)` for `object` in a copy of the registry.
+
+Decision: support 3 modes: 1) raise error, 2) raise warning and keep object as it, and 3) keep object as it
 
 **D3. Pydantic models: `model_dump()` in Python mode, then the registry.** _Recommended._ The registry
 owns the semantics (principle 4): the sets are sorted, the arrays and the paths are converted, a
@@ -436,21 +440,29 @@ non-deterministic sets, fails on a NumPy field, F6); the fields as children, as 
 `summary` do (ignores `exclude` and every serializer). A model that needs its JSON mode registers
 `ConvertTransformer(lambda m: m.model_dump(mode="json"))` for its class.
 
+Decision: follow recommendation
+
 **D4. `NaN` and infinities are kept.** _Recommended._ The contract is "what `json` accepts by default"
 (as `save_json` documents), and `json.dumps(..., allow_nan=False)` is the one place that enforces
 RFC 8259 and reports the offending value. Alternatives: an `allow_nan` keyword that raises (a second
 check of what `json.dumps` already does), or `NaN` to `None` (silently changes a number into a
 missing value, the kind of loss the properties forbid).
 
+Decision: follow recommendation
+
 **D5. Bytes are Base64.** _Recommended: keep._ It is the existing behaviour and the usual one for
 binary data; it is lossless but indistinguishable from text on reading. Alternatives: raise (strict,
 but the common case of a small blob then needs a registration), or UTF-8 decoding (raises for binary
 data and returns text for text).
 
+Decision: follow recommendation
+
 **D6. A `timedelta` is a number of seconds.** _Recommended: keep._ Simple, no new code (`total_seconds`),
 and the one that most consumers read. It is a `float`, so microseconds are lost above ~285 years.
 Alternative: an ISO 8601 duration (`"P1DT0.000001S"`), lossless and what pydantic writes, but it needs
 a formatter of about ten lines and a parser on the reading side.
+
+Decision: follow recommendation
 
 **D7. Frames and tables are not converted by default.** _Recommended._ A `DataFrame` has at least three
 usual shapes (list of records, dict of columns, split) and none is neutral: a default would be a
@@ -459,6 +471,8 @@ The guide shows the one-line registration for each shape. `polars`, `pyarrow`, `
 the same decision (a jax array is `tolist()` and can be registered in one line, so it is a candidate
 for the second round).
 
+Decision: follow recommendation
+
 **D8. A new package `coola.jsonable`, one function.** _Recommended._ The name avoids `coola.json`
 (which hides the standard library in `from coola import json` and in the reader's head) and echoes
 `to_jsonable`, the name that `pydantic_core` and FastAPI (`jsonable_encoder`) already teach.
@@ -466,15 +480,21 @@ for the second round).
 only fix the code; cheaper, but `nested` then owns a registry, a plugin group and four library
 adapters, and the guide of `nested` stays about two unrelated things.
 
+Decision: follow recommendation
+
 **D9. `register_transformers` and `ConvertTransformer` rather than a new function-based API.**
 _Recommended._ The registry is the extension point of every package, the plugin group needs it, and
 `ConvertTransformer(func)` makes the common case (a value to a JSON-able value) one line. A
 `register_converters({Point: func})` would be a second spelling of the same thing.
 
+Decision: follow recommendation
+
 **D10. The keys go through the registry.** _Recommended._ It is why a `Path`, a `UUID`, an `Enum` or a
 `datetime` key works, with no code in the mapping transformer, and a collision is reported once, at
 the end. Alternative: only `str`, `int`, `float`, `bool` and `None` keys, anything else raises (the
 rule of `json.dumps` itself); simpler, but `{Path("a"): 1}` then needs a pre-pass by the caller.
+
+Decision: follow recommendation
 
 **D11. Subclasses of the JSON scalars are kept.** _Recommended._ A `str` enum member, an `IntEnum`
 member, a `numpy.str_` are `str` or `int` for the MRO, and `json` writes them as their base value.
@@ -484,12 +504,16 @@ would not change what `json` writes. Alternative if a consumer needs exact types
 driver): register the enum class itself, `register_transformers({MyEnum: ConvertTransformer(lambda e:
 e.value)})`, because the MRO then finds it before `str`.
 
+Decision: follow recommendation
+
 **D12. The output of an array is checked.** _Recommended._ The check is what makes "accepted by `json`"
 true for complex numbers, object arrays and `datetime64` (F5), and it costs 0.09 µs per element
 against 0.32 µs for `json.dumps` itself. Alternative if a user converts arrays of tens of millions of
 elements: skip the check for the numeric dtypes (`kind in "biuf"`), a four-line `ArrayTransformer`
 that returns `((), lambda _: data.tolist())`; not included until a benchmark of a real use asks for
 it.
+
+Decision: follow recommendation
 
 **D13. No guard against a converter that never ends, other than its own type.** _Recommended._ The
 engine has no depth limit by design ("Any depth"), so a transformer that returns a value of a type that
@@ -498,6 +522,8 @@ converts to a value of the first type (or a sequence whose elements are sequence
 (the same type); the contract test over the default registry catches the others; the guide states the
 rule "a conversion must reduce the type to simpler ones". A depth counter in the engine would add a
 check to every node for a mistake of a plugin author.
+
+Decision: follow recommendation
 
 ## 10. Not covered
 
