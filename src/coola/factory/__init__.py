@@ -1,4 +1,5 @@
-r"""Provide utilities to import and instantiate objects from configurations.
+r"""Provide utilities to import and instantiate objects from
+configurations.
 
 A configuration is a plain ``dict`` (for example loaded from JSON or YAML)
 that names an object by its fully qualified name, under the key
