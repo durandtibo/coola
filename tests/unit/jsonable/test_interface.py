@@ -10,6 +10,7 @@ from enum import Enum, IntEnum, StrEnum
 from pathlib import PurePosixPath
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
+from unittest.mock import patch
 from uuid import UUID
 
 import pytest
@@ -25,9 +26,14 @@ from coola.jsonable import (
 )
 from coola.recursive import DefaultTransformer, TransformerRegistry
 from coola.registry import AlreadyRegisteredError
+from coola.testing.marks import numpy_available
+from coola.utils.imports import is_numpy_available
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
+if is_numpy_available():
+    import numpy as np
 
 
 @pytest.fixture(autouse=True)
@@ -371,3 +377,18 @@ def test_register_transformers_a_more_specific_type_wins() -> None:
 
     register_transformers({MyList: ConvertTransformer(lambda _: "mine")})
     assert to_jsonable([MyList(), []]) == ["mine", []]
+
+
+@numpy_available
+@patch("coola.jsonable.interface.package_available", lambda _: False)
+def test_register_default_transformers_without_optional_package() -> None:
+    registry = TransformerRegistry()
+    jsonable_interface._register_default_transformers(registry)
+    assert not registry.has(np.ndarray)
+
+
+@numpy_available
+def test_register_default_transformers_with_optional_package() -> None:
+    registry = TransformerRegistry()
+    jsonable_interface._register_default_transformers(registry)
+    assert registry.has(np.ndarray)

@@ -108,6 +108,7 @@ def test_using_the_registries_with_builtin_types_does_not_import_the_optional_li
         "from coola.equality.tester import get_default_registry as f; str(f())",
         "from coola.hashing import get_default_registry as f; repr(f())",
         "from coola.summary import get_default_registry as f; repr(f())",
+        "from coola.jsonable import get_default_registry as f; repr(f())",
     ],
 )
 def test_displaying_a_default_registry_does_not_import_the_optional_libraries(
@@ -125,6 +126,7 @@ def test_displaying_a_default_registry_does_not_import_the_optional_libraries(
         "from coola.equality import objects_are_equal; objects_are_equal(np.ones(2), np.ones(2))",
         "from coola.hashing import hash_object; hash_object(np.ones(2))",
         "from coola.summary import summarize; summarize(np.ones(2))",
+        "from coola.jsonable import to_jsonable; to_jsonable(np.ones(2))",
     ],
 )
 def test_using_the_registries_with_a_numpy_array_imports_only_numpy(statement: str) -> None:

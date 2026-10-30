@@ -20,6 +20,7 @@ from coola.jsonable.transformers import (
 )
 from coola.recursive import DefaultTransformer, TransformerRegistry
 from coola.registry.default import make_default_registry_singleton
+from coola.utils.imports import package_available
 from coola.validation import validate_in
 
 if TYPE_CHECKING:
@@ -28,6 +29,13 @@ if TYPE_CHECKING:
     from coola.recursive.base import Transformer
     from coola.utils.singleton import LazySingleton
 
+# (names of the library in the module of the types, module with the transformers)
+_LAZY_TRANSFORMERS = (
+    (("numpy",), "coola.jsonable.numpy"),
+    (("pandas",), "coola.jsonable.pandas"),
+    (("pydantic",), "coola.jsonable.pydantic"),
+    (("torch",), "coola.jsonable.torch"),
+)
 _SCALARS = (str, int, float, bool, type(None))
 _MODES = ("raise", "warn", "keep")
 
@@ -238,6 +246,11 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
     # ``UserString`` is registered by ``stdlib``: it is a ``Sequence`` of ``UserString``
     registry.register_many(stdlib.get_default_transformers())
     registry.register_fallback(dataclasses.is_dataclass, DataclassTransformer())
+    # The transformers of the optional libraries are loaded the first time the registry needs
+    # a type of the library, so the libraries are not imported with ``coola.jsonable``.
+    for names, module in _LAZY_TRANSFORMERS:
+        if package_available(names[0]):
+            registry.register_lazy(names, f"{module}:get_default_transformers")
 
 
 _default_registry: LazySingleton[TransformerRegistry] = make_default_registry_singleton(
