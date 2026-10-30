@@ -79,7 +79,7 @@ def lazy_exports(
         ```
     """
 
-    def __getattr__(name: str) -> Any:  # noqa: N807
+    def getattr_(name: str) -> Any:
         module_name = exports.get(name)
         if module_name is None:
             msg = f"module {package!r} has no attribute {name!r}"
@@ -88,7 +88,7 @@ def lazy_exports(
         namespace[name] = value
         return value
 
-    def __dir__() -> list[str]:  # noqa: N807
+    def dir_() -> list[str]:
         return sorted({*namespace, *exports})
 
-    return __getattr__, __dir__
+    return getattr_, dir_
