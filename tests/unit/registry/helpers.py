@@ -21,7 +21,7 @@ class FakeEntryPoint:
 
 
 def patch_entry_points(monkeypatch: pytest.MonkeyPatch, eps: list[FakeEntryPoint]) -> None:
-    monkeypatch.setattr(plugins, "entry_points", lambda group: eps)  # noqa: ARG005
+    monkeypatch.setattr(plugins, "entry_points", lambda **_: eps)
 
 
 def noop(registry: Any) -> None:

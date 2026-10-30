@@ -437,7 +437,7 @@ def test_summarize_nested_structure_with_dataframes_polars() -> None:
 @polars_available
 @pyarrow_available
 @xarray_available
-@patch("coola.summary.interface.package_available", lambda name: False)  # noqa: ARG005
+@patch("coola.summary.interface.package_available", lambda _: False)
 def test_register_default_summarizers_without_optional_package(data_type: type) -> None:
     registry = SummarizerRegistry()
     summary_interface._register_default_summarizers(registry)

@@ -296,7 +296,7 @@ def test_remove_keys_if_uses_the_predicate_of_each_call_second_predicate() -> No
 
 def test_remove_keys_if_uses_the_predicate_of_each_call_predicate_that_keeps_all() -> None:
     data = {"a": 1, "b": {"a": 2, "b": 3}}
-    assert remove_keys_if(data, lambda key: False) == data  # noqa: ARG005
+    assert remove_keys_if(data, lambda _: False) == data
 
 
 def test_remove_keys_if_values_equal_to_the_removed_key_are_kept() -> None:
@@ -410,7 +410,7 @@ def test_remove_keys_if_does_not_share_containers_with_the_input() -> None:
 
 def test_remove_keys_if_predicate_that_never_matches_is_the_identity() -> None:
     data = {"b": {"c": [1, (2, {"d": 3})]}, "e": OrderedDict(f=1)}
-    assert remove_keys_if(data, lambda key: False) == data  # noqa: ARG005
+    assert remove_keys_if(data, lambda _: False) == data
 
 
 @pytest.mark.parametrize("data", [[1], 42, "abc", None, [{"a": 1}]])
@@ -533,7 +533,7 @@ def test_add_prefix_suffix_to_keys_options_are_keyword_only() -> None:
 
 def test_key_transformer_expand_rename_collision_raises() -> None:
     with pytest.raises(DuplicateKeyError, match="duplicate keys"):
-        _KeyTransformer(rename=lambda key: "same").expand({"a": 1, "b": 2})  # noqa: ARG005
+        _KeyTransformer(rename=lambda _: "same").expand({"a": 1, "b": 2})
 
 
 def test_key_transformer_expand_drop_and_rename() -> None:
@@ -544,7 +544,7 @@ def test_key_transformer_expand_drop_and_rename() -> None:
 
 
 def test_key_transformer_expand_drop_before_rename_avoids_a_collision() -> None:
-    transformer = _KeyTransformer(rename=lambda key: "k", drop=is_a)  # noqa: ARG005
+    transformer = _KeyTransformer(rename=lambda _: "k", drop=is_a)
     expanded = transformer.expand({"a": 1, "b": 2})
     assert expanded is not None
     children, rebuild = expanded

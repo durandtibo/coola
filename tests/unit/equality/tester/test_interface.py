@@ -249,7 +249,7 @@ def test_get_default_registry_singleton_persists_modifications_across_calls() ->
 
 
 @numpy_available
-@patch("coola.equality.tester.interface.package_available", lambda name: False)  # noqa: ARG005
+@patch("coola.equality.tester.interface.package_available", lambda _: False)
 def test_register_default_equality_testers_skips_the_libraries_that_are_not_installed() -> None:
     registry = EqualityTesterRegistry()
     tester_interface._register_default_equality_testers(registry)

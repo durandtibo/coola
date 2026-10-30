@@ -398,7 +398,7 @@ def test_the_depth_is_not_limited(function: Any, depth: int) -> None:
 @given(value=values)
 def test_remove_keys_if_with_a_predicate_that_never_matches_is_the_identity(value: Any) -> None:
     data = {"root": value}
-    assert objects_are_equal(remove_keys_if(data, lambda key: False), data)  # noqa: ARG005
+    assert objects_are_equal(remove_keys_if(data, lambda _: False), data)
 
 
 @given(value=values)
