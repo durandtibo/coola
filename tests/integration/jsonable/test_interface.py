@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
-import sys
 import threading
 from dataclasses import dataclass
 from typing import Any
@@ -11,7 +9,7 @@ import pytest
 
 from coola.jsonable import to_jsonable
 from coola.testing.marks import pydantic_available
-from tests.integration.helpers import run_python, run_threads
+from tests.integration.helpers import run_interpreter, run_python, run_threads
 
 NUM_THREADS = 8
 
@@ -35,13 +33,7 @@ class Node:
 
 
 def run(seed: str) -> str:
-    return subprocess.run(  # noqa: S603
-        [sys.executable, "-c", SCRIPT],
-        env={"PYTHONHASHSEED": seed, "PATH": ""},
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
+    return run_interpreter("-c", SCRIPT, env={"PYTHONHASHSEED": seed, "PATH": ""}).stdout
 
 
 @pytest.mark.parametrize("seed", ["0", "1", "2", "3", "42"])

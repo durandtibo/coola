@@ -46,6 +46,35 @@ def run_threads(threads: Sequence[threading.Thread]) -> None:
         thread.join()
 
 
+def run_interpreter(
+    *args: str, env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
+    r"""Run the Python interpreter of the tests with arguments.
+
+    It is the only place that starts a subprocess (the rule ``S603``
+    targets untrusted input, and the command here is the interpreter
+    running code written in the tests).
+
+    Args:
+        *args: The arguments of the interpreter, e.g. ``"-c", code``.
+        env: The environment of the interpreter. If ``None``, the
+            environment of this process is used. Defaults to ``None``.
+
+    Returns:
+        The completed process, with the output captured as text.
+
+    Raises:
+        subprocess.CalledProcessError: If the interpreter fails.
+    """
+    return subprocess.run(  # noqa: S603
+        [sys.executable, *args],
+        capture_output=True,
+        text=True,
+        check=True,
+        env=env,
+    )
+
+
 def run_python(code: str, env: dict[str, str] | None = None) -> list[str]:
     r"""Run Python code in a fresh interpreter and return the words it
     prints.
@@ -65,13 +94,7 @@ def run_python(code: str, env: dict[str, str] | None = None) -> list[str]:
         subprocess.CalledProcessError: If the code fails.
     """
     src = str(Path(coola.__file__).parents[1])
-    result = subprocess.run(  # noqa: S603
-        [sys.executable, "-c", code],
-        capture_output=True,
-        text=True,
-        check=True,
-        env={**os.environ, "PYTHONPATH": src, **(env or {})},
-    )
+    result = run_interpreter("-c", code, env={**os.environ, "PYTHONPATH": src, **(env or {})})
     return result.stdout.split()
 
 
