@@ -4,6 +4,7 @@ import os
 import signal
 import subprocess
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -11,7 +12,24 @@ import coola
 
 if TYPE_CHECKING:
     import threading
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable, Generator, Sequence
+
+
+@contextmanager
+def collect_errors(errors: list[BaseException]) -> Generator[None]:
+    r"""Collect the exception raised in the context instead of raising
+    it.
+
+    A worker thread (or a forked process) uses it to forward an error
+    to the main thread, which asserts that the list is empty.
+
+    Args:
+        errors: The list where the exception is appended.
+    """
+    try:
+        yield
+    except BaseException as exc:  # noqa: BLE001
+        errors.append(exc)
 
 
 def run_threads(threads: Sequence[threading.Thread]) -> None:
