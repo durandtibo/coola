@@ -61,8 +61,8 @@ def test_base_random_manager_seed_calls_order() -> None:
 
 def test_base_random_manager_seed_raises_the_exception() -> None:
     manager = CounterRandomManager()
-    with pytest.raises(RuntimeError, match="boom"), manager.seed(42):  # noqa: PT012
-        msg = "boom"
+    msg = "boom"
+    with pytest.raises(RuntimeError, match="boom"), manager.seed(42):
         raise RuntimeError(msg)
 
 

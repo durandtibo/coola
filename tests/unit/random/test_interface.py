@@ -71,9 +71,8 @@ def test_random_seed_restore_random_seed() -> None:
 
 
 def test_random_seed_with_exception_raises_the_error() -> None:
-    with pytest.raises(RuntimeError, match=r"Exception"), random_seed(42):  # noqa: PT012
-        random.uniform(0, 1)  # noqa: S311
-        msg = "Exception"
+    msg = "Exception"
+    with pytest.raises(RuntimeError, match=r"Exception"), random_seed(42):
         raise RuntimeError(msg)
 
 
