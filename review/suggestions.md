@@ -241,7 +241,7 @@ round_values(1.234, decimals=np.int64(1))  # works (inconsistent with the others
 ```
 
 `validate_int` (`validation/type.py`) is `isinstance(value, int) and not isinstance(value, bool)`. A
-library whose raison d'être is NumPy and torch data meets NumPy integers all the time: the seed comes
+library whose reason d'être is NumPy and torch data meets NumPy integers all the time: the seed comes
 from `rng.integers(...)` or from a dataframe row, a timestamp from `df["t"].iloc[0]`. The error message
 ("must be an int, got int64") is also hard to understand.
 
