@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from unittest.mock import Mock
 
 import pytest
 
@@ -11,6 +12,8 @@ from coola.utils.imports import is_torch_available
 
 if is_torch_available():
     import torch
+else:  # pragma: no cover
+    torch = Mock()
 
 ####################################
 #     Tests for round_torch        #

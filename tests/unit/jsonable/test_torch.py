@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -12,6 +12,8 @@ from tests.unit.recursive.helpers import expand_not_none
 
 if is_torch_available():
     import torch
+else:  # pragma: no cover
+    torch = Mock()
 
 
 @torch_available

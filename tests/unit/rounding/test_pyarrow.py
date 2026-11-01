@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from unittest.mock import Mock
 
 import pytest
 
@@ -10,6 +11,8 @@ from coola.utils.imports import MissingPackageError, is_pyarrow_available
 
 if is_pyarrow_available():
     import pyarrow as pa
+else:  # pragma: no cover
+    pa = Mock()
 
 ######################################
 #     Tests for round_pyarrow        #
