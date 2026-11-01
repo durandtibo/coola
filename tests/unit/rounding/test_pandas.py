@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from unittest.mock import Mock
+
 import pytest
 
 from coola.rounding.pandas import get_default_rounders, round_pandas
@@ -9,6 +11,8 @@ from coola.utils.imports import is_pandas_available
 if is_pandas_available():
     import pandas as pd
     from pandas.testing import assert_frame_equal, assert_series_equal
+else:  # pragma: no cover
+    pd = Mock()
 
 #####################################
 #     Tests for round_pandas        #

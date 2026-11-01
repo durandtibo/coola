@@ -114,16 +114,7 @@ if is_pydantic_available():
         def double(self) -> int:
             return self.value * 2
 
-
-##########################################
-#     Tests for is_secret_annotation     #
-##########################################
-
-
-@pydantic_available
-@pytest.mark.parametrize(
-    "annotation",
-    [
+    SECRET_ANNOTATIONS = [
         SecretStr,
         SecretBytes,
         Secret[int],
@@ -133,8 +124,18 @@ if is_pydantic_available():
         list[SecretStr],
         dict[str, list[SecretBytes]],
         Annotated[SecretStr, "meta"],
-    ],
-)
+    ]
+else:  # pragma: no cover
+    SECRET_ANNOTATIONS = []
+
+
+##########################################
+#     Tests for is_secret_annotation     #
+##########################################
+
+
+@pydantic_available
+@pytest.mark.parametrize("annotation", SECRET_ANNOTATIONS)
 def test_is_secret_annotation_true(annotation: object) -> None:
     assert is_secret_annotation(annotation)
 

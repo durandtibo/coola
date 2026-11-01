@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 from typing import TYPE_CHECKING
+from unittest.mock import Mock
 
 import pytest
 
@@ -15,6 +16,8 @@ if TYPE_CHECKING:
 if is_polars_available():
     import polars as pl
     from polars.testing import assert_frame_equal, assert_series_equal
+else:  # pragma: no cover
+    pl = Mock()
 
 #####################################
 #     Tests for round_polars        #

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -11,6 +11,8 @@ from coola.utils.imports import MissingPackageError, is_torch_available
 
 if is_torch_available():
     import torch
+else:  # pragma: no cover
+    torch = Mock()
 
 ########################################
 #     Tests for TorchRandomManager     #

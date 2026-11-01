@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from unittest.mock import Mock
 
 import pytest
 
@@ -10,6 +11,8 @@ from coola.utils.imports import is_numpy_available
 
 if is_numpy_available():
     import numpy as np
+else:  # pragma: no cover
+    np = Mock()
 
 ####################################
 #     Tests for round_numpy        #

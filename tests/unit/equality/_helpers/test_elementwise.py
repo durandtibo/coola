@@ -3,17 +3,23 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import Mock
 
-import numpy as np
 import pytest
 
 from coola.equality._helpers.elementwise import elementwise_close
-from coola.testing.marks import torch_available
-from coola.utils.imports import is_torch_available
+from coola.testing.marks import numpy_available, torch_available
+from coola.utils.imports import is_numpy_available, is_torch_available
+
+if is_numpy_available():
+    import numpy as np
+else:  # pragma: no cover
+    np = Mock()
 
 if is_torch_available():
     import torch
 else:  # pragma: no cover
     torch = Mock()
+
+pytestmark = numpy_available
 
 NAN = float("nan")
 INF = float("inf")
