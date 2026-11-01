@@ -15,7 +15,6 @@ import pandas as pd
 import polars as pl
 import pyarrow as pa
 import pytest
-import torch
 import xarray as xr
 
 from coola.equality import objects_are_allclose, objects_are_equal
@@ -23,6 +22,8 @@ from coola.equality import objects_are_allclose, objects_are_equal
 pytest.importorskip("hypothesis")
 
 from hypothesis import assume, given, strategies as st
+
+torch = pytest.importorskip("torch")
 
 floats = st.floats(allow_nan=False, allow_infinity=False, min_value=-1e6, max_value=1e6)
 # A new NaN object per draw: a shared one is the same object, which the list treats as equal.
