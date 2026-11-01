@@ -15,14 +15,15 @@ import pandas as pd
 import polars as pl
 import pyarrow as pa
 import pytest
-import torch
 import xarray as xr
+from hypothesis import assume, given, strategies as st
 
 from coola.equality import objects_are_allclose, objects_are_equal
+from coola.testing.marks import torch_available
+from coola.utils.imports import is_torch_available
 
-pytest.importorskip("hypothesis")
-
-from hypothesis import assume, given, strategies as st
+if is_torch_available():
+    import torch
 
 floats = st.floats(allow_nan=False, allow_infinity=False, min_value=-1e6, max_value=1e6)
 # A new NaN object per draw: a shared one is the same object, which the list treats as equal.
@@ -50,7 +51,10 @@ INT_BUILDERS = {
     "pyarrow": lambda v: pa.array(v, type=pa.int64()),
     "xarray": lambda v: xr.DataArray(np.array(v, dtype=np.int64)),
 }
-NAMES = sorted(FLOAT_BUILDERS)
+NAMES = [
+    pytest.param(name, marks=torch_available) if name == "torch" else name
+    for name in sorted(FLOAT_BUILDERS)
+]
 OTHERS = [name for name in NAMES if name != "list"]
 
 

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from hypothesis import given, settings, strategies as st
 
 from coola.io import (
     PickleLoader,
@@ -23,10 +24,6 @@ from coola.io import (
     save_pickle,
     save_text,
 )
-
-pytest.importorskip("hypothesis")
-
-from hypothesis import given, settings, strategies as st
 
 # Lone surrogates cannot be encoded in UTF-8.
 texts = st.text(alphabet=st.characters(blacklist_categories=("Cs",)), max_size=50)
