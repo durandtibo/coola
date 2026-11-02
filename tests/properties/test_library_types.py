@@ -16,14 +16,11 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pytest
+from hypothesis import assume, given, strategies as st
 
 from coola.equality import objects_are_equal
 from coola.hashing import hash_object
 from coola.summary import summarize
-
-pytest.importorskip("hypothesis")
-
-from hypothesis import assume, given, strategies as st
 
 floats = st.sampled_from([0.0, -0.0, 1.0, -1.0, float("nan"), -float("nan"), float("inf")])
 # A list of floats and, for each item, whether the sign of the copy is flipped: a zero or a

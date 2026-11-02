@@ -15,6 +15,7 @@ objects_are_equal`` or ``from coola.summary import summarize``.
 # functions (``objects_are_equal``, ``hash_object``, ``summarize``, ...) are not re-exported
 # here, so each one is imported from its own subpackage (``coola.equality``,
 # ``coola.hashing``, ``coola.summary``) and the subpackage is the documented path.
+
 __all__ = ["__version__"]
 
 from typing import Any

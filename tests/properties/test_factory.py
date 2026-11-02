@@ -7,13 +7,9 @@ from __future__ import annotations
 import copy
 from typing import Any
 
-import pytest
+from hypothesis import given, strategies as st
 
 from coola.factory import OBJECT_TARGET, factory, resolve_object
-
-pytest.importorskip("hypothesis")
-
-from hypothesis import given, strategies as st
 
 # A key that is not reserved (`_target_`, `_init_`, `_allowed_prefixes_` start with `_`).
 keys = st.text(min_size=1, max_size=5).filter(lambda key: not key.startswith("_"))

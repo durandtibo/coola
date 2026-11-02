@@ -15,6 +15,7 @@ from pathlib import PurePosixPath
 from typing import Any, NamedTuple
 
 import hypothesis
+import numpy as np
 import pytest
 from hypothesis import (
     assume,
@@ -26,6 +27,7 @@ from hypothesis import (
 from coola.equality import objects_are_equal
 from coola.hashing import HasherRegistry, SequenceHasher, hash_object, tagged
 from coola.hashing.base import BaseHasher
+from coola.testing.marks import numpy_available
 from tests.integration.helpers import run_interpreter
 from tests.properties.strategies import (
     lengths,
@@ -404,9 +406,9 @@ def test_scalar_complex_subclass_hashes_like_complex(x: complex) -> None:
     assert hash_object(MyComplex(x)) == hash_object(x)
 
 
+@numpy_available
 @given(x=st.floats(allow_nan=False))
 def test_scalar_numpy_float64_hashes_like_float(x: float) -> None:
-    np = pytest.importorskip("numpy")
     assert hash_object(np.float64(x)) == hash_object(x)
 
 

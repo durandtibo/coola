@@ -66,7 +66,7 @@ class BaseRandomManager(ABC):
             >>> manager = TorchRandomManager()
             >>> state = manager.get_rng_state()
             >>> state
-            {'torch': tensor([...], dtype=torch.uint8), ...}
+            {'torch': tensor([...], dtype=torch.uint8)...}
 
             ```
         """

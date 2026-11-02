@@ -68,7 +68,7 @@ pyarrow = ["pyarrow>=11.0"]
 pydantic = ["pydantic>=2.0,<3.0"]
 scipy = ["scipy>=1.13"]
 torch = [
-  "torch>=2.0,<3.0; python_full_version < '3.15' and (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))",
+  "torch>=2.0,<3.0; (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))",
 ]
 xarray = ["xarray>=2024.1"]
 

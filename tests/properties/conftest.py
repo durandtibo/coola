@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import os
 
-import pytest
-
-hypothesis = pytest.importorskip("hypothesis")
+import hypothesis
 
 # Hashing a large nested example can be slow on a busy CI machine, and a
 # deadline only makes the tests flaky.
