@@ -1,0 +1,3585 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://durandtibo.github.io/coola/main/dev/utils/">
+      
+      
+        <link rel="prev" href="../testing/">
+      
+      
+        <link rel="next" href="../validation/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>Architecture of coola.utils - coola</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture-of-coolautils" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+  You're not viewing the latest version.
+  <a href="../../..">
+    <strong>Click here to go to latest.</strong>
+  </a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),base=new URL("../.."),outdated=__md_get("__outdated",sessionStorage,base);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="coola" class="md-header__button md-logo" aria-label="coola" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            coola
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture of coola.utils
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/durandtibo/coola" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    durandtibo/coola
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../get_started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Get Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../uguide/display/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../development/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../migration/v0.11_to_v1.0/" class="md-tabs__link">
+          
+  
+  
+  Migration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../refs/display/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://github.com/durandtibo/coola" class="md-tabs__link">
+        
+  
+  
+    
+  
+  GitHub
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="coola" class="md-nav__button md-logo" aria-label="coola" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    coola
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/durandtibo/coola" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    durandtibo/coola
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Get Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Display Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/equality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equality Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/equality_tester/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equality Testers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/extending/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Add Support for a New Type
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/factory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Factory Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/formatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formatting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/hashing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hashing Objects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/identifier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Identifiers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Loaders and Savers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterating Over Nested Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/jsonable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Converting Data to JSON
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/nested/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working with Nested Data Structures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/nested_data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nested Data and Leaves
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/random/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Random Number Generator Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/recursive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recursive Data Transformation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/reducer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reducing Sequences
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/rounding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rounding Values
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Summarizing Nested Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utility Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture and Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.display
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../equality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.equality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../factory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.factory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../formatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.formatting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hashing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.hashing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../identifier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.identifier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.io
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jsonable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.jsonable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nested/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.nested
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../random/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.random
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recursive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.recursive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reducer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.reducer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rounding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.rounding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.utils
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The modules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#imports-one-definition-of-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        imports: one definition of "available"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lazysingleton-and-the-default-registries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LazySingleton and the default registries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#contracts-of-the-helpers-that-stay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contracts of the helpers that stay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rule-for-a-new-helper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rule for a new helper
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decisions-for-the-maintainers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decisions for the maintainers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#not-covered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not covered
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../add_backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Add Support for a New Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Migration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/v0.11_to_v1.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Guide: v0.11 to v1.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/v1.1_to_v2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Guide: v1.1 to v2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Display
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/equality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/factory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Factory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/formatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formatting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/hashing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hashing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/identifier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Identifier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Io
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/jsonable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jsonable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/nested/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nested
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/random/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Random
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/recursive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recursive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/reducer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reducer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/rounding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rounding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/durandtibo/coola" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The modules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#imports-one-definition-of-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        imports: one definition of "available"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lazysingleton-and-the-default-registries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LazySingleton and the default registries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#contracts-of-the-helpers-that-stay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contracts of the helpers that stay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rule-for-a-new-helper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rule for a new helper
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decisions-for-the-maintainers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decisions for the maintainers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#not-covered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not covered
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture-of-coolautils">Architecture of <code>coola.utils</code><a class="headerlink" href="#architecture-of-coolautils" title="Permanent link">&para;</a></h1>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.utils</code> package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the <a href="../../uguide/utils/#properties">user guide</a>; the API is in the <a href="../../refs/utils/">reference</a>.</p>
+<h2 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Simple and easy to maintain.</strong> <code>coola.utils</code> is 4,002 lines in 23 modules and two subpackages
+   (<code>imports</code> 957, <code>fallback</code> 396), tested by 5,561 lines. It mixes the foundation of <code>coola</code>
+   (imports, singletons, introspection) with standalone helpers (Bloom filter, LRU cache, git,
+   dates) that no other package imports. The package removes the repetition (the same four functions
+   were written eleven times) and deletes only what is risky or obsolete. The useful helpers are
+   <strong>kept</strong>, with their tests.</li>
+<li><strong>Major release.</strong> Breaking changes are fine and compatibility is not a design input: no alias, no
+   deprecation period (a moved module is imported from its new path). The release
+   notes and the migration page (<code>docs/docs/migration/v1.1_to_v2.0.md</code>) list the changes.</li>
+<li><strong>The rules of the repository apply to the helpers too.</strong> Options are keyword-only, an argument
+   check goes through <code>coola.validation</code>, a shared helper is public and tested, a lazily built
+   process-wide object is a <code>LazySingleton</code>.</li>
+<li><strong>A leaf of the layering.</strong> <code>utils</code> is below every other package. It may import the standard
+   library and <code>coola.validation</code>, nothing else (the <code>lint-imports</code> contract "Utils must import
+   validation only"). <code>registry</code> depends on <code>utils</code>, never the opposite. The <code>formatting</code> package
+   sits above it (it may import <code>utils</code> and <code>validation</code>).</li>
+<li><strong>Optional libraries stay lazy.</strong> Importing <code>coola.utils</code> or <code>coola.utils.imports</code> imports no
+   optional library, and the availability helpers are the one mechanism the other packages use to
+   ask whether a library is there.</li>
+</ol>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<h3 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>coola/utils/                      the helpers, about 4,000 lines
+├── __init__.py                   docstring only, no re-export
+├── array.py                      to_array
+├── batching.py                   batchify
+├── bloom_filter.py               BloomFilter
+├── date.py                       DEFAULT_DATE_FORMAT, get_today_date, to_date, to_datetime
+├── env_vars.py                   check_env_vars, get_required_env_var, temp_env_vars
+├── file_size.py                  get_file_size
+├── fork.py                       track_fork, ForkAware
+├── git.py                        run_git_command, get_current_branch, get_current_commit_hash,
+│                                 is_git_repo
+├── integer.py                    int_repr
+├── introspection.py              get_qualified_class_name, get_type_constructor, is_same_type,
+│                                 supports_methods, has_generated_dataclass_eq,
+│                                 get_all_child_classes, is_lambda_function, check_not_lambda_function
+├── logging.py                    CaptureHandler
+├── lru.py                        LRUCache
+├── mapping.py                    sort_by_keys, sort_by_values, get_first_value
+├── password.py                   get_password
+├── path.py                       add_uuid_suffix, sanitize_path, find_root_package_parent
+├── recursion.py                  raise_recursion_limit_error
+├── safe.py                       safe_repr, safe_str
+├── selection.py                  smallest_items
+├── singleton.py                  LazySingleton
+├── stats.py                      quantile
+├── tensor.py                     to_tensor, is_cuda_available, is_mps_available,
+│                                 get_available_devices
+├── timing.py                     TimingResult, timeblock
+├── version.py                    compare_version, get_package_version
+├── imports/
+│   ├── __init__.py               re-exports the public names
+│   ├── package.py                MissingPackageError, availability_cache, clear_availability_caches,
+│   │                             package_available, module_available, check_package,
+│   │                             raise_package_missing_error
+│   ├── optional.py               is_&lt;pkg&gt;_available and check_&lt;pkg&gt; for the 12 libraries, and
+│   │                             is_torch_numpy_available / check_torch_numpy
+│   └── lazy.py                   lazy_exports, is_module_imported
+└── fallback/                     one fake module per library; factory.py takes the package name
+
+coola/formatting/                 turning values into text, about 830 lines
+├── __init__.py                   docstring only
+├── structure.py                  str_indent, repr_indent, str_mapping, repr_mapping,
+│                                 str_mapping_line, repr_mapping_line, str_sequence, repr_sequence,
+│                                 str_sequence_line, repr_sequence_line
+├── quantity.py                   str_human_byte_size, find_best_byte_unit, str_time_human, make_bar
+├── text.py                       char_diff_summary, count_lines, remove_empty_lines, slugify,
+│                                 truncate_str
+├── secret.py                     mask_secret
+└── diff.py                       unified_diff
+</code></pre></div>
+<p><code>formatting</code> is a core package next to <code>utils</code>: every function that turns a value into a string
+for a message, a <code>repr</code> or a report is there (before: they were spread over <code>utils.format</code>,
+<code>utils.string</code>, <code>utils.secret</code> and <code>utils.text_diff</code>, and <code>display</code> and <code>registry</code> imported the
+first). It may import <code>utils</code> (<code>sort_by_keys</code>) and <code>validation</code>, and no other package. <code>display</code>,
+<code>registry</code> and the feature packages import from it. The name is decision D1b: <code>coola.format</code> would
+shadow the builtin in <code>from coola import format</code>.</p>
+<p>The modules that no other package imports (<code>array</code>, <code>batching</code>, <code>bloom_filter</code>, <code>date</code>, <code>env_vars</code>,
+<code>file_size</code>, <code>git</code>, <code>logging</code>, <code>lru</code>, <code>password</code>, <code>recursion</code>, <code>timing</code>) stay public and documented
+in the same page as the core helpers (<code>docs/docs/uguide/utils.md</code>, <code>refs/utils.md</code>). They were moved
+to a <code>coola.tools</code> package (decision D1) and then back into <code>coola.utils</code>, so there is one place for
+the helpers and one import path per function.</p>
+<p>Moved elsewhere: <code>coola/registry/default.py</code> (<code>make_default_registry_singleton</code>,
+<code>reset_default_registries</code>, <code>temporary_default_registries</code>), <code>coola/registry/plugins.py</code>
+(<code>load_registry_plugins</code>, <code>get_loaded_plugins</code>, <code>LoadedPlugin</code>, the two environment variable names)
+and <code>coola/nested/conversion.py</code> (<code>to_jsonable</code>, which only <code>nested</code> calls and whose docstring sends
+the reader to <code>nested</code>). Deleted: <code>get_fully_qualified_name</code> (replaced by
+<code>get_qualified_class_name</code>), <code>working_directory</code> (<code>contextlib.chdir</code>) and <code>deprecate_positional_options</code>
+(no caller).</p>
+<h3 id="the-modules">The modules<a class="headerlink" href="#the-modules" title="Permanent link">&para;</a></h3>
+<p>"Callers" are the packages of <code>src/coola</code> that import the module (outside <code>utils</code>). "Test lines" are
+the lines of <code>tests/unit/utils/test_&lt;module&gt;.py</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Lines (test lines)</th>
+<th>Callers</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>array</code></td>
+<td>58 (81)</td>
+<td>none</td>
+<td>Standalone helper.</td>
+</tr>
+<tr>
+<td><code>batching</code></td>
+<td>51 (101)</td>
+<td>none</td>
+<td>Standalone helper.</td>
+</tr>
+<tr>
+<td><code>bloom_filter</code></td>
+<td>228 (174)</td>
+<td>none</td>
+<td>Standalone helper.</td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>99 (139)</td>
+<td>none</td>
+<td>Standalone helper.</td>
+</tr>
+<tr>
+<td><code>env_vars</code></td>
+<td>192 (518)</td>
+<td>none</td>
+<td>Standalone helper. <code>temp_env_vars</code> changes <code>os.environ</code> and says so (not thread-safe); it stays because it is tested, documented and <code>monkeypatch</code> is not available outside pytest.</td>
+</tr>
+<tr>
+<td><code>file_size</code></td>
+<td>55 (74)</td>
+<td>none</td>
+<td>Standalone helper.</td>
+</tr>
+<tr>
+<td><code>fork</code></td>
+<td>76 (50)</td>
+<td><code>identifier</code>, <code>registry</code></td>
+<td>Core. <code>track_fork</code> resets the lock of an object in a forked child.</td>
+</tr>
+<tr>
+<td><code>git</code></td>
+<td>153 (271)</td>
+<td>none</td>
+<td>Standalone helper. The subprocess call is hardened (resolved executable, no shell, documented warning).</td>
+</tr>
+<tr>
+<td><code>integer</code></td>
+<td>49 (68)</td>
+<td><code>hashing</code></td>
+<td>Core. <code>int_repr</code> gives <code>-0x…</code> for a huge negative integer.</td>
+</tr>
+<tr>
+<td><code>introspection</code></td>
+<td>278 (431)</td>
+<td><code>equality</code>, <code>hashing</code>, <code>io</code>, <code>random</code>, <code>recursive</code></td>
+<td>Core. One qualified name: <code>get_qualified_class_name</code>.</td>
+</tr>
+<tr>
+<td><code>logging</code></td>
+<td>64 (167)</td>
+<td>none</td>
+<td>Standalone helper.</td>
+</tr>
+<tr>
+<td><code>lru</code></td>
+<td>267 (308)</td>
+<td>none</td>
+<td>Standalone helper.</td>
+</tr>
+<tr>
+<td><code>mapping</code></td>
+<td>94 (145)</td>
+<td><code>display</code>, <code>formatting</code></td>
+<td>Core.</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td>69 (236)</td>
+<td>none</td>
+<td>Standalone helper (D2: kept for now). It reads and validates credentials; <code>coola</code> has no use for it, so it is the first candidate to remove if it is reported as a risk.</td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td>174 (274)</td>
+<td><code>io</code></td>
+<td>Core.</td>
+</tr>
+<tr>
+<td><code>recursion</code></td>
+<td>46 (37)</td>
+<td>none</td>
+<td>Standalone helper (D2: kept for now). <code>equality</code>, <code>recursive</code> and <code>iterator</code> use explicit stacks, so nothing in <code>coola</code> raises the <code>RecursionError</code> it explains.</td>
+</tr>
+<tr>
+<td><code>safe</code></td>
+<td>85 (127)</td>
+<td><code>equality</code>, <code>summary</code></td>
+<td>Core.</td>
+</tr>
+<tr>
+<td><code>selection</code></td>
+<td>55 (67)</td>
+<td><code>summary</code></td>
+<td>Core. <code>limit</code> is keyword-only and checked with <code>validate_ge</code>.</td>
+</tr>
+<tr>
+<td><code>singleton</code></td>
+<td>184 (355)</td>
+<td><code>equality</code>, <code>hashing</code>, <code>iterator</code>, <code>random</code>, <code>recursive</code>, <code>registry</code>, <code>rounding</code>, <code>summary</code></td>
+<td>Core. <code>LazySingleton</code> only: the default-registry and plugin code is in <code>registry</code>.</td>
+</tr>
+<tr>
+<td><code>stats</code></td>
+<td>65 (146)</td>
+<td><code>reducer</code></td>
+<td>Core. The quantile check uses <code>validate_range</code>.</td>
+</tr>
+<tr>
+<td><code>tensor</code></td>
+<td>123 (183)</td>
+<td><code>reducer</code> (<code>to_tensor</code>), <code>testing</code> (<code>is_cuda_available</code>, <code>is_mps_available</code>)</td>
+<td>Standalone helper that <code>reducer</code> and <code>testing</code> also use. It imports NumPy and PyTorch when they are installed.</td>
+</tr>
+<tr>
+<td><code>timing</code></td>
+<td>105 (181)</td>
+<td>none</td>
+<td>Standalone helper.</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>73 (97)</td>
+<td><code>nested</code></td>
+<td>Core. <code>get_package_version</code> is the building block of <code>compare_version</code>.</td>
+</tr>
+<tr>
+<td><code>imports</code></td>
+<td>957 (714)</td>
+<td>66 files</td>
+<td>Rewritten as <code>package.py</code>, <code>optional.py</code>, <code>lazy.py</code>.</td>
+</tr>
+<tr>
+<td><code>fallback</code></td>
+<td>396 (617)</td>
+<td>46 files</td>
+<td>One module per library; <code>factory.py</code> takes the package name instead of a <code>raise_error</code> callable.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="imports-one-definition-of-available"><code>imports</code>: one definition of "available"<a class="headerlink" href="#imports-one-definition-of-available" title="Permanent link">&para;</a></h3>
+<p>The current design copies one 100-line module per library. The four functions are the same except
+for a string, and two of them are unused or harmful. The target keeps what the 66 files that import it use and
+nothing else.</p>
+<p><code>package.py</code> (was <code>universal.py</code>) defines the mechanism once, with one message:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MissingPackageError</span><span class="p">(</span><span class="ne">ModuleNotFoundError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">):</span> <span class="o">...</span>  <span class="c1"># unchanged</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">availability_cache</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">F</span><span class="p">:</span> <span class="o">...</span>  <span class="c1"># unchanged</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">clear_availability_caches</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>  <span class="c1"># unchanged</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">package_available</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span> <span class="o">...</span>  <span class="c1"># installed, not imported (find_spec)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">module_available</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span> <span class="o">...</span>  <span class="c1"># importable, imported, cached</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_package</span><span class="p">(</span><span class="n">package</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">install</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Raise ``MissingPackageError`` unless ``module_available(package)``."""</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">raise_package_missing_error</span><span class="p">(</span><span class="n">package</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">install</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Never</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The one message: ``'x' package is required ...`` with ``pip install`` and ``uv pip install``.</span>
+<span class="sd">    ``install`` is the pip name when it differs from the import name (the default)."""</span>
+</code></pre></div>
+<p><code>optional.py</code> is the only place that names a library. For each library, two functions with the same
+two lines:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@availability_cache</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_numpy_available</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Indicate if ``numpy`` is installed and can be imported. ..."""</span>
+    <span class="k">return</span> <span class="n">module_available</span><span class="p">(</span><span class="s2">"numpy"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_numpy</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Check that ``numpy`` is available. ..."""</span>
+    <span class="n">check_package</span><span class="p">(</span><span class="s2">"numpy"</span><span class="p">)</span>
+</code></pre></div>
+<p>so that <code>check_numpy()</code> is by definition <code>check_package("numpy")</code>, and <code>is_numpy_available</code> keeps
+its name for the 66 files that import it and for the <code>if TYPE_CHECKING or is_numpy_available():</code>
+idiom, which needs a statically known name. The torch and NumPy pair keeps its compatibility check
+(<code>torch.tensor([1.0]).numpy()</code>), imported inside the function.</p>
+<p>Deleted from the public surface: the eleven decorators <code>x_available</code> and <code>torch_numpy_available</code>
+(no caller, silent <code>None</code>), <code>decorator_package_available</code>, the eleven <code>raise_x_missing_error</code>
+(the fallback modules call <code>raise_package_missing_error</code> through <code>make_fake_class("numpy")</code>),
+<code>LazyModule</code>, <code>lazy_import</code> and <code>import_object</code> (replaced by <code>pkgutil.resolve_name</code>, ). The
+<code>check_package</code> signature loses its positional <code>command</code>: the <code>install</code> keyword is the pip name, and
+the message is the same as for every other package.</p>
+<p><code>lazy.py</code> keeps <code>lazy_exports</code> (eight packages) and <code>is_module_imported</code> (<code>factory</code>).</p>
+<p>Adding a library (<code>docs/docs/dev/add_backend.md</code>) is two functions in <code>optional.py</code>, their names in
+<code>imports/__init__.py</code>, one fake module in <code>fallback/&lt;pkg&gt;.py</code> and one row in <code>testing/marks.py</code>, plus
+<code>pyproject.toml</code>: about 25 added lines instead of a 100-line module copied from <code>pandas.py</code>.</p>
+<h3 id="lazysingleton-and-the-default-registries"><code>LazySingleton</code> and the default registries<a class="headerlink" href="#lazysingleton-and-the-default-registries" title="Permanent link">&para;</a></h3>
+<p><code>utils/singleton.py</code> keeps the primitive and makes the two private test hooks public, so that the
+code that moves out does not need the privates:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">LazySingleton</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span> <span class="o">...</span>  <span class="c1"># unchanged</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_built</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span> <span class="o">...</span>  <span class="c1"># unchanged</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># raises RuntimeError from the factory's own thread</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># new: replaces the cached value, under the lock</span>
+        <span class="o">...</span>
+</code></pre></div>
+<p><code>coola/registry/default.py</code> receives <code>make_default_registry_singleton(registry_cls,
+register_defaults, *, plugin_group=None)</code>, <code>reset_default_registries()</code> and
+<code>temporary_default_registries()</code>; the last one is written with <code>is_built</code>, <code>get</code>, <code>set</code> and
+<code>reset</code>: on entry, <code>set(get().copy())</code> for each registry that is built; on exit, <code>set(original)</code> for
+those registries and <code>reset()</code> for the ones that were built inside the context. The module
+already knows what a registry is (it calls <code>copy</code>), so its place is <code>coola.registry</code>.
+<code>coola/registry/plugins.py</code> receives the entry-point loader, <code>LoadedPlugin</code>, <code>get_loaded_plugins</code> and
+the two environment variable names (<code>COOLA_STRICT_PLUGINS</code>, <code>COOLA_DISABLE_PLUGINS</code>) with their
+two-line <code>_env_flag</code>. Behaviour is unchanged. The six feature packages and <code>coola.testing</code> import
+from <code>coola.registry</code> instead of <code>coola.utils.singleton</code>; <code>coola.random</code> already depends on
+<code>coola.registry</code> (its registry is a <code>Registry</code>).</p>
+<h3 id="contracts-of-the-helpers-that-stay">Contracts of the helpers that stay<a class="headerlink" href="#contracts-of-the-helpers-that-stay" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Signature after the change</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>str_indent</code>, <code>repr_indent</code></td>
+<td><code>(original, *, num_spaces=2)</code></td>
+<td>keyword-only; <code>validate_ge(num_spaces, 0, name="num_spaces")</code></td>
+</tr>
+<tr>
+<td><code>str_mapping</code>, <code>repr_mapping</code></td>
+<td><code>(mapping, *, sorted_keys=False, num_spaces=2)</code></td>
+<td>keyword-only</td>
+</tr>
+<tr>
+<td><code>str_mapping_line</code>, <code>repr_mapping_line</code></td>
+<td><code>(mapping, *, sorted_keys=False, separator=", ")</code></td>
+<td>keyword-only</td>
+</tr>
+<tr>
+<td><code>smallest_items</code></td>
+<td><code>(data: Collection, *, limit=None)</code></td>
+<td>a collection (it is iterated twice when the items cannot be compared); <code>validate_ge(limit, 0)</code></td>
+</tr>
+<tr>
+<td><code>int_repr</code></td>
+<td><code>(value: int)</code></td>
+<td><code>-0x…</code> for a huge negative integer (a hash change, decision D5)</td>
+</tr>
+<tr>
+<td><code>quantile</code></td>
+<td><code>(values, quantiles)</code></td>
+<td>each quantile checked by <code>validate_range(q, 0.0, 1.0, name="quantiles")</code></td>
+</tr>
+<tr>
+<td><code>check_package</code>, <code>raise_package_missing_error</code></td>
+<td><code>(package, *, install=None)</code></td>
+<td>one message, keyword-only <code>install</code></td>
+</tr>
+<tr>
+<td><code>make_default_registry_singleton</code></td>
+<td><code>(registry_cls, register_defaults, *, plugin_group=None)</code></td>
+<td>keyword-only; moves to <code>coola.registry</code></td>
+</tr>
+<tr>
+<td><code>LazySingleton.reset</code></td>
+<td><code>() -&gt; None</code></td>
+<td>raises <code>RuntimeError</code> when called by the thread that builds the value</td>
+</tr>
+<tr>
+<td><code>compare_version</code></td>
+<td><code>(package, op, version)</code></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rule-for-a-new-helper">Rule for a new helper<a class="headerlink" href="#rule-for-a-new-helper" title="Permanent link">&para;</a></h3>
+<p>A helper used by two or more packages of <code>coola</code> goes to <code>coola.utils</code> (<code>CLAUDE.md</code>), public and
+tested. A general-purpose helper that <code>coola</code> does not use also goes to <code>coola.utils</code>. Both are
+generic, and a helper that is a step of one feature lives in that feature. A function that turns a
+value into text goes to <code>coola.formatting</code>. No test enforces the role of <code>utils</code> (decision D4): the
+review and the <code>lint-imports</code> contracts do.</p>
+<h2 id="public-api">Public API<a class="headerlink" href="#public-api" title="Permanent link">&para;</a></h2>
+<p><code>coola.utils</code> (the modules keep all their functions except the ones named in):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.fork</span><span class="w"> </span><span class="kn">import</span> <span class="n">ForkAware</span><span class="p">,</span> <span class="n">track_fork</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.imports</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>  <span class="c1"># same names as before, minus the removed ones</span>
+    <span class="n">MissingPackageError</span><span class="p">,</span>
+    <span class="n">availability_cache</span><span class="p">,</span>
+    <span class="n">check_package</span><span class="p">,</span>
+    <span class="n">clear_availability_caches</span><span class="p">,</span>
+    <span class="n">is_module_imported</span><span class="p">,</span>
+    <span class="n">lazy_exports</span><span class="p">,</span>
+    <span class="n">module_available</span><span class="p">,</span>
+    <span class="n">package_available</span><span class="p">,</span>
+    <span class="n">raise_package_missing_error</span><span class="p">,</span>
+    <span class="c1"># for each of colorlog, jax, numpy, packaging, pandas, polars, pyarrow, pydantic, rich,</span>
+    <span class="c1"># scipy, torch, xarray: is_&lt;pkg&gt;_available, check_&lt;pkg&gt;; and is_torch_numpy_available,</span>
+    <span class="c1"># check_torch_numpy</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.integer</span><span class="w"> </span><span class="kn">import</span> <span class="n">int_repr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.introspection</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">check_not_lambda_function</span><span class="p">,</span>
+    <span class="n">get_all_child_classes</span><span class="p">,</span>
+    <span class="n">get_qualified_class_name</span><span class="p">,</span>
+    <span class="n">get_type_constructor</span><span class="p">,</span>
+    <span class="n">has_generated_dataclass_eq</span><span class="p">,</span>
+    <span class="n">is_lambda_function</span><span class="p">,</span>
+    <span class="n">is_same_type</span><span class="p">,</span>
+    <span class="n">supports_methods</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_first_value</span><span class="p">,</span> <span class="n">sort_by_keys</span><span class="p">,</span> <span class="n">sort_by_values</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.path</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_uuid_suffix</span><span class="p">,</span> <span class="n">find_root_package_parent</span><span class="p">,</span> <span class="n">sanitize_path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.safe</span><span class="w"> </span><span class="kn">import</span> <span class="n">safe_repr</span><span class="p">,</span> <span class="n">safe_str</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">smallest_items</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.singleton</span><span class="w"> </span><span class="kn">import</span> <span class="n">LazySingleton</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">quantile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">compare_version</span><span class="p">,</span> <span class="n">get_package_version</span>
+</code></pre></div>
+<p><code>coola.formatting</code> (the 14 functions of <code>format</code>, <code>str_*</code> and <code>repr_*</code> in <code>structure</code>, the byte, time and bar functions in <code>quantity</code>, with options keyword-only; <code>text.{char_diff_summary, count_lines, remove_empty_lines, slugify, truncate_str}</code>, <code>secret.mask_secret</code>, <code>diff.unified_diff</code>).</p>
+<p>The standalone helpers, which no other package imports except where stated:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.array</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_array</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.batching</span><span class="w"> </span><span class="kn">import</span> <span class="n">batchify</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.bloom_filter</span><span class="w"> </span><span class="kn">import</span> <span class="n">BloomFilter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.date</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_DATE_FORMAT</span><span class="p">,</span> <span class="n">get_today_date</span><span class="p">,</span> <span class="n">to_date</span><span class="p">,</span> <span class="n">to_datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.env_vars</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_env_vars</span><span class="p">,</span> <span class="n">get_required_env_var</span><span class="p">,</span> <span class="n">temp_env_vars</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.file_size</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_file_size</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.git</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_current_branch</span><span class="p">,</span>
+    <span class="n">get_current_commit_hash</span><span class="p">,</span>
+    <span class="n">is_git_repo</span><span class="p">,</span>
+    <span class="n">run_git_command</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">CaptureHandler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.lru</span><span class="w"> </span><span class="kn">import</span> <span class="n">LRUCache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.password</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_password</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.recursion</span><span class="w"> </span><span class="kn">import</span> <span class="n">raise_recursion_limit_error</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.tensor</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>  <span class="c1"># `reducer` and `testing` import from it</span>
+    <span class="n">get_available_devices</span><span class="p">,</span>
+    <span class="n">is_cuda_available</span><span class="p">,</span>
+    <span class="n">is_mps_available</span><span class="p">,</span>
+    <span class="n">to_tensor</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimingResult</span><span class="p">,</span> <span class="n">timeblock</span>
+</code></pre></div>
+<p>Of the 82 public names of the 29 modules of the former <code>utils</code>, 49 stay in <code>utils</code> (24 core helpers
+and 25 standalone helpers), 21 moved to <code>formatting</code>, 9 moved to <code>registry</code> (8) and <code>nested</code> (1), and
+3 were deleted (<code>get_fully_qualified_name</code>, <code>working_directory</code>, <code>deprecate_positional_options</code>).
+<code>coola.utils.imports</code> went from 60 public names to 35: <code>is_x_available</code> and <code>check_x</code> for the twelve
+libraries and the torch/NumPy pair (26), the seven names of <code>package.py</code> and the two of <code>lazy.py</code>.
+The 27 that went are the 12 decorators, the 11 <code>raise_x_missing_error</code>, <code>decorator_package_available</code>,
+<code>LazyModule</code> and <code>lazy_import</code>, and <code>import_object</code>.</p>
+<h2 id="dependents">Dependents<a class="headerlink" href="#dependents" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>display</code>, <code>registry</code></td>
+<td>Import the formatting functions from <code>coola.formatting.structure</code>. None for the keyword-only options: no call site passes <code>sorted_keys</code>, <code>num_spaces</code> or <code>separator</code>, and <code>mapping_line_fn=str_mapping_line</code> passes the function. The import paths are unchanged.</td>
+</tr>
+<tr>
+<td><code>equality</code>, <code>hashing</code>, <code>iterator</code>, <code>random</code>, <code>recursive</code>, <code>summary</code></td>
+<td><code>from coola.registry.default import make_default_registry_singleton</code> (and <code>LazySingleton</code> from <code>coola.utils.singleton</code>); <code>plugin_group=</code> is already a keyword at the six call sites.</td>
+</tr>
+<tr>
+<td><code>testing</code></td>
+<td><code>temporary_default_registries</code> from <code>coola.registry.default</code>; <code>is_cuda_available</code> and <code>is_mps_available</code> from <code>coola.utils.tensor</code> (the lazy <code>import_module</code> of the module name stays, so a test module does not import PyTorch).</td>
+</tr>
+<tr>
+<td><code>reducer</code></td>
+<td><code>to_tensor</code> from <code>coola.utils.tensor</code>; <code>reducer/utils.py</code> and <code>rounding/interface.py</code> call <code>pkgutil.resolve_name("pkg.mod:name")</code>; <code>registry/type.py</code> too.</td>
+</tr>
+<tr>
+<td><code>recursive</code></td>
+<td>The rebuild error uses <code>get_qualified_class_name(type(data))</code>.</td>
+</tr>
+<tr>
+<td><code>nested</code></td>
+<td><code>nested/conversion.py</code> owns the leaf converter that was <code>utils.conversion.to_jsonable</code>.</td>
+</tr>
+<tr>
+<td><code>hashing</code></td>
+<td><code>int_repr</code> returns <code>-0x…</code> for a negative integer with more than 4,300 digits: the hash of such an integer changes.</td>
+</tr>
+<tr>
+<td><code>io</code>, <code>identifier</code>, <code>factory</code>, <code>equality</code>, <code>random</code>, <code>summary</code></td>
+<td>No change: <code>add_uuid_suffix</code>, <code>sanitize_path</code>, <code>track_fork</code>, <code>is_module_imported</code>, <code>supports_methods</code>, <code>has_generated_dataclass_eq</code>, <code>is_same_type</code>, <code>safe_str</code>, <code>smallest_items</code> keep their names. The two calls of <code>smallest_items</code> in <code>summary</code> pass <code>limit=</code> by keyword.</td>
+</tr>
+<tr>
+<td>15 test files outside <code>tests/unit/utils</code></td>
+<td>21 <code>patch("coola.utils.imports.&lt;pkg&gt;.is_&lt;pkg&gt;_available", ...)</code> become <code>patch("coola.utils.imports.optional.is_&lt;pkg&gt;_available", ...)</code>. The tests of the modules that moved to <code>formatting</code>, <code>registry</code> and <code>nested</code> move with their code.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="decisions-for-the-maintainers">Decisions for the maintainers<a class="headerlink" href="#decisions-for-the-maintainers" title="Permanent link">&para;</a></h2>
+<p>Status: all decisions are taken. The recommendation was followed everywhere except two: D2 (only
+<code>working_directory</code> is removed; <code>password</code> and <code>recursion</code> are kept) and D4 (no census
+test for now). D1 was reversed afterwards (see below).</p>
+<p><strong>D1. Name and shape of the new sub-package.</strong> <em>Recommended: <code>coola.tools</code>, one module per theme,
+the modules moved as they are.</em> It keeps the useful helpers, keeps their tests, and lets <code>utils</code> be
+the foundation. Alternatives for the name: <code>coola.helpers</code>, <code>coola.extras</code>. Alternative for the
+shape: group the modules by theme (<code>structures</code>: Bloom filter, LRU, batching; <code>text</code>: string, secret,
+text_diff; <code>system</code>: git, env_vars, file_size, timing), which is a better public API but a rewrite
+of the paths and of the tests, not a rename. Not recommended now; a later step can do it once the
+move is merged.</p>
+<p><strong>Decided:</strong> follow the recommendation. <code>coola.tools</code> was created (#2569), then <strong>moved back into
+<code>coola.utils</code></strong> (#2579): two packages of helpers split the documentation and the import paths for no
+benefit, so the standalone helpers are modules of <code>coola.utils</code> again, in the same user guide page.</p>
+<p><strong>D1b. A <code>coola.formatting</code> sub-package?</strong> <em>Recommended: yes, named <code>coola.formatting</code>.</em> The
+functions that format are in four modules of <code>utils</code> and the formatting is the base of <code>display</code>
+(<code>InlineDisplayMixin</code> builds its <code>repr</code> with <code>str_mapping</code> and <code>repr_indent</code>) and of the error
+messages of <code>registry</code>. One package makes them discoverable and lets <code>utils</code> stay the foundation.
+Alternatives: <code>coola.format</code> (shorter, shadows the builtin when imported as <code>from coola import
+format</code>); <code>coola.text</code> (the byte and time functions are not text); fold it into <code>coola.display</code>
+(<code>display</code> is the user-facing mixin; <code>registry</code> would then depend on <code>display</code>, which the layering
+guide does not allow today). The sequence and mapping functions stay in one module (<code>structure</code>)
+because they share <code>str_indent</code>.</p>
+<p><strong>Decided:</strong> yes, <code>coola.formatting</code>.</p>
+<p><strong>D2. Delete <code>password</code>, <code>recursion</code> and <code>working_directory</code>?</strong> <em>Recommended: yes.</em> They were the
+only three items proposed for removal. <code>password</code> handles credentials (the risk of a bug is a security issue, the
+benefit to <code>coola</code> is nil), <code>working_directory</code> is <code>contextlib.chdir</code>, and <code>recursion</code> explains an
+error that no function raises since the explicit stacks. Alternative: keep <code>password</code>;
+it is tested (233 lines), and the risk is small if nobody calls it, but it is code that a
+comparison library gets asked about in a security review.</p>
+<p><strong>Decided:</strong> remove <code>working_directory</code> only; keep <code>password</code> and <code>recursion</code> for now and re-examine them later.</p>
+<p><strong>D3. Move the default registries and the plugin loader to <code>coola.registry</code>?</strong> <em>Recommended: yes.</em>
+It is registry code (it copies registries, it loads entry points into them), and it is what
+<code>LazySingleton</code> should not know. The cost is a changed import in seven packages, which <code>lint-imports</code>
+checks. Alternative: split <code>singleton.py</code> in <code>singleton.py</code>, <code>default_registry.py</code> and <code>plugins.py</code>
+inside <code>utils</code>; cheaper, but <code>utils</code> would keep a concept it should not know.</p>
+<p><strong>Decided:</strong> follow the recommendation.</p>
+<p><strong>D3b. One <code>optional.py</code> or one module per library?</strong> <em>Recommended: one module.</em> The 11 modules differ
+by a string; a single module makes the repetition visible and a parametrized test covers all of them.
+The cost is 21 patches in tests and the <code>add_backend.md</code> recipe. Alternative: keep one module per
+library with two functions each (about 35 lines): the same patch paths, the same recipe, 400 lines
+instead of 330 and 11 test files instead of one.</p>
+<p><strong>Decided:</strong> follow the recommendation.</p>
+<p><strong>D4. Enforce the role of <code>utils</code> with a test?</strong> <em>Recommended: yes, as an integration test.</em> A rule
+that rests on discipline is the rule that produced : 16 modules were added to <code>utils</code> with their
+tests, each for a reason that was true on the day. The test is 30 lines and fails when a module of
+<code>utils</code> is imported by no other package (it then moves to a package that uses it, or is deleted). It checks
+modules, not names, so nothing useful is deleted. Alternative: only the sentence in the guide and
+<code>CLAUDE.md</code>.</p>
+<p><strong>Decided:</strong> not now. The <code>ast</code> census test is not added; the role of <code>utils</code> is kept by review and by the <code>lint-imports</code> contracts.</p>
+<p><strong>D5. Change the hash of a huge negative integer?</strong> <em>Recommended: yes.</em> <code>0x-1000…</code> is not a
+representation of the number, and a hash is only stable inside a version of <code>coola</code>
+(<code>hashing</code> states that the hashes may change between major versions). Only a negative integer with
+more than 4,300 digits is affected. Alternative: keep the bug and document it; not recommended
+because the fix is the only way to keep <code>int_repr</code> equal to <code>hex(value)</code> for the negative case.</p>
+<p><strong>Decided:</strong> follow the recommendation.</p>
+<p><strong>D6. Replace <code>import_object</code> by <code>pkgutil.resolve_name</code>?</strong> <em>Recommended: yes.</em> Same format
+(<code>"pkg.mod:name"</code>), same errors, and no second function named like the one of <code>coola.factory</code>. The
+only difference is <code>"pkg.mod:"</code>, which returns the module instead of raising; nobody passes it.</p>
+<p><strong>Decided:</strong> follow the recommendation.</p>
+<p><strong>D7. Make <code>_reset_after_fork</code> public?</strong> <em>Recommended: no.</em> It is a hook for the fork handler, not
+part of the API of a registry or of <code>LazySingleton</code>. The protocol (<code>ForkAware</code>) says so. A callback
+passed to <code>track_fork(obj, callback)</code> would need a <code>WeakMethod</code> for the same effect, with more code.</p>
+<p><strong>Decided:</strong> follow the recommendation.</p>
+<h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>The <code>fallback</code> idiom</strong> (<code>if TYPE_CHECKING or is_numpy_available(): import numpy as np else: from
+coola.utils.fallback.numpy import numpy as np</code>) appears in 46 files. It makes <code>isinstance(x,
+np.ndarray)</code> false when NumPy is missing. A different mechanism (a lazy proxy, a typed stub) is a
+  separate design; this one only makes the fakes cheaper to write.</li>
+<li><strong><code>coola.testing</code></strong> (the <code>x_available</code> marks, the fixtures) is only a caller here. The marks keep
+  their one-row-per-dependency table.</li>
+<li><strong><code>coola.display</code></strong> is only a caller here. Removing <code>timing</code> removes its dependency on <code>utils</code> for
+  good, but <code>display</code> keeps importing <code>format</code>, <code>mapping</code> and <code>imports</code>.</li>
+<li><strong>Windows</strong>: <code>os.register_at_fork</code> is absent there, so <code>track_fork</code> is a no-op (documented); the
+  fork behaviour was not run on Windows.</li>
+<li><strong>Performance</strong>: no helper of <code>utils</code> is on a hot path except <code>track_fork</code> (called once per object)
+  and <code>is_&lt;pkg&gt;_available</code> (cached); no benchmark gate is needed for this item.</li>
+<li><strong>Import time of <code>importlib.metadata</code></strong> (7.5 ms) loaded by <code>singleton.py</code> for the plugin loader:
+  it leaves <code>utils</code> with the loader in and is then paid by <code>coola.registry</code>, not by
+  <code>coola.utils</code>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2022 - present Thibaut Durand
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.expand", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"method": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>
