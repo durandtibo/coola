@@ -158,6 +158,7 @@ def test_hash_numpy_void_array_different_sizes() -> None:
     assert hash_object(np.zeros(2, dtype="V8")) != hash_object(np.zeros(2, dtype="V4"))
 
 
+@numpy_available
 def test_hash_numpy_array_nan_differs_from_a_number() -> None:
     assert hash_object(np.array([np.nan])) != hash_object(np.array([0.0]))
 

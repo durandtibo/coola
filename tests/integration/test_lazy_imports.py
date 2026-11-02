@@ -60,6 +60,7 @@ def test_importing_a_utils_module_does_not_import_the_optional_libraries(module:
     assert loaded_libraries(f"import coola.utils.{module}") == []
 
 
+@numpy_available
 def test_importing_a_lazy_name_imports_its_module() -> None:
     """Test that a name that needs an optional library is imported when
     it is used."""
