@@ -45,7 +45,7 @@ def validate_not_empty(value: Sized, *, name: str = "value") -> None:
         raise ValueError(msg)
 
 
-def validate_in(value: Any, valid: Container, *, name: str = "value") -> None:
+def validate_in(value: Any, valid: Container[Any], *, name: str = "value") -> None:
     r"""Validate that ``value`` belongs to ``valid``.
 
     Args:
