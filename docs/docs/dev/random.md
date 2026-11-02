@@ -1,18 +1,15 @@
 # Architecture of `coola.random`
 
-:book: This page describes the design of the `coola.random` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/random.md#properties); the API is in the [reference](../refs/random.md).
+:book: This page describes the design of the `coola.random` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/random.md#properties); the API is in the [reference](../refs/random.md).
 
 ## Constraints
 
-1. **Simple and easy to maintain.** The package is 1,044 lines of source (1,605 of unit tests) to
-   call three seeding functions. About 250 of these lines are wrappers that re-implement
-   `coola.registry.Registry` (`RandomManagerRegistry`) and docstrings of two functions that only
-   rename `Manager().seed()`. The target removes code that exists only because of the shape of the
-   current API, instead of adding code next to it.
-2. **Major release.** Breaking changes are fine and compatibility is not a design input: no alias,
-   no deprecation period. The release notes list the changes. The one exception is deliberate and
-   free: the random numbers produced by a seed that is already accepted before must not change
-   (reproducibility of the user's experiments is the whole point of the package, see D2).
+1. **Simple and easy to maintain.** The package seeds three libraries. The registry of managers reuses
+   `coola.registry.Registry` instead of re-implementing it, and there is one way to scope a seed
+   (`random_seed`, or `Manager().seed`), not one function per library.
+2. **Reproducible.** Reproducibility of the user's experiments is the whole point of the package: the
+   random numbers produced by a seed must not change between versions (see
+   [the NumPy seed](#design-choices-and-trade-offs)).
 3. **Standalone helper.** `coola.random` imports only core packages (`registry`, `utils`,
    `display`). It is not a type-dispatch registry and does not become one (the key of a manager is a
    name, not a type).
@@ -48,23 +45,23 @@ state beyond the key to manager mapping.
 
 ### Public API
 
-| Name                                            | Role                                                                                                 | Change                                         |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `manual_seed(seed)`                             | Seed every manager of the default registry.                                                          | unchanged                                      |
-| `random_seed(seed, *, registry=None)`           | Scoped seed; restores the state of the registry.                                                     | `manager` is now the keyword-only `registry`   |
-| `get_rng_state()` / `set_rng_state(state)`      | Save / restore the state of the default registry.                                                    | `set_rng_state` is strict                      |
-| `register_managers(mapping, *, exist_ok=False)` | Add managers to the default registry.                                                                | `exist_ok` keyword-only                        |
-| `get_default_registry()` and its alias          | The default `RandomManagerRegistry`.                                                                 | unchanged                                      |
-| `validate_seed(seed)`                           | Raise `TypeError` / `ValueError` for a seed out of the domain.                                       | unchanged                                      |
-| `BaseRandomManager`                             | The extension point: three abstract methods and the concrete `seed()`.                               | `seed()` validates; documented contract        |
-| `PythonRandomManager`                           | `random`.                                                                                            | renamed from `RandomRandomManager`             |
-| `NumpyRandomManager`, `TorchRandomManager`      | NumPy, torch (lazy exports).                                                                         | validate; NumPy no longer folds; torch simpler |
-| `RandomManagerRegistry`                         | A registry of managers that is a manager.                                                            | subclass of `Registry`                         |
-| `get_torch_generator(seed, *, device="cpu")`    | A `torch.Generator` seeded with `seed` (lazy export).                                                | exported; `seed`, keyword-only `device`        |
-| `get_random_seed(seed)`                         | A deterministic seed in `[0, 2**63 - 1)` derived from `seed`, valid for `manual_seed` (lazy export). | range fixed, exported                          |
+| Name                                            | Role                                                                                                 |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `manual_seed(seed)`                             | Seed every manager of the default registry.                                                          |
+| `random_seed(seed, *, registry=None)`           | Scoped seed; restores the state of the registry.                                                     |
+| `get_rng_state()` / `set_rng_state(state)`      | Save / restore the state of the default registry. `set_rng_state` is strict.                         |
+| `register_managers(mapping, *, exist_ok=False)` | Add managers to the default registry.                                                                |
+| `get_default_registry()` and its alias          | The default `RandomManagerRegistry`.                                                                 |
+| `validate_seed(seed)`                           | Raise `TypeError` / `ValueError` for a seed out of the domain.                                       |
+| `BaseRandomManager`                             | The extension point: three abstract methods and the concrete `seed()`.                               |
+| `PythonRandomManager`                           | `random`.                                                                                            |
+| `NumpyRandomManager`, `TorchRandomManager`      | NumPy, torch (lazy exports).                                                                         |
+| `RandomManagerRegistry`                         | A registry of managers that is a manager.                                                            |
+| `get_torch_generator(seed, *, device="cpu")`    | A `torch.Generator` seeded with `seed` (lazy export).                                                |
+| `get_random_seed(seed)`                         | A deterministic seed in `[0, 2**63 - 1)` derived from `seed`, valid for `manual_seed` (lazy export). |
 
-Removed: `numpy_seed`, `torch_seed`, `RandomRandomManager`, `RandomManagerRegistry.has_manager`,
-`find_manager`, and the warnings of `set_rng_state`.
+There is no `numpy_seed` or `torch_seed` shortcut: `NumpyRandomManager().seed(42)` is the same context
+manager with the same name as every other manager, and `random_seed(42)` covers the common case.
 
 ### The contract of a manager
 
@@ -76,7 +73,7 @@ Documented in `BaseRandomManager`, and checked for every manager by one parametr
 2. `set_rng_state(get_rng_state())` leaves the draws unchanged.
 3. `manual_seed(seed)` validates the seed with `validate_seed` before it touches a generator, and
    the same seed gives the same draws.
-4. Two different valid seeds give different draws (injective, ).
+4. Two different valid seeds give different draws (injective).
 5. A manager is stateless and cheap to build: it is created once, shared by registries, equal to
    another instance of its class, and hashable (`__eq__` and `__hash__` on the type).
 6. Building a manager of an uninstalled library raises `ImportError` (`check_numpy`, `check_torch`).
@@ -118,7 +115,7 @@ class PythonRandomManager(InlineDisplayMixin, BaseRandomManager):
 class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
     def manual_seed(self, seed: int) -> None:
         validate_seed(seed)
-        if seed < 2**32:  # same numbers as before for every seed that is not folded today
+        if seed < 2**32:  # the scalar form: the numbers of every seed that fits in 32 bits
             np.random.seed(seed)
         else:  # the legacy generator accepts an array of 32-bit words: no folding
             np.random.seed([seed & 0xFFFFFFFF, seed >> 32])
@@ -131,8 +128,8 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
         torch.manual_seed(seed)  # seeds the CPU, CUDA (lazily) and MPS generators
 ```
 
-`get_rng_state` and `set_rng_state` of the torch manager are kept as they are (CPU, CUDA only if
-initialized, MPS; the checks of the CUDA device count and of MPS on restore).
+`get_rng_state` and `set_rng_state` of the torch manager cover the CPU, CUDA (only if initialized) and
+MPS generators, with a check of the CUDA device count and of MPS on restore.
 
 ### `RandomManagerRegistry`
 
@@ -167,10 +164,9 @@ class RandomManagerRegistry(Registry[str, BaseRandomManager], BaseRandomManager)
 
 The registration API is the one of `Registry` (`register`, `register_many`, `unregister`, `copy`,
 `get`, `has`, `in`, `[]`, `clear`, `equal`, `register_lazy`, `keys`, `items`): no wrapper, no
-second spelling, one thread-safe implementation that every package already uses. A probe of this
-class on the previous version shows that `copy()` keeps the class, `equal` compares two copies as equal, and
-`seed()` works; the `repr` is the one of `Registry` (the line `(state): Registry(...)` disappears).
-The class is about 35 lines instead of 272.
+second spelling, one thread-safe implementation that every package uses. `copy()` keeps the class,
+`equal` compares two copies as equal, and `seed()` works; the `repr` is the one of `Registry`. The
+class is about 35 lines.
 
 A registry is a manager, so a registry can be registered in another registry (a project registry
 holding the default one and its own generators). The state is then a nested dict, and the keys rule
@@ -191,10 +187,9 @@ def _register_default_managers(registry: RandomManagerRegistry) -> None:
         registry.register("torch", TorchRandomManager())
 ```
 
-The function-level imports replace `import_object("...")()`: they are the idiom of the rest of the
-package and are visible to type checkers. The two branches are tested by patching
-`is_numpy_available` / `is_torch_available` to `False` and to `True` (unit), and by the existing
-integration test with a real import (no `# pragma: no cover`, ). The first call imports the
+The function-level imports are the idiom of the package and are visible to type checkers. The two
+branches are tested by patching `is_numpy_available` / `is_torch_available` to `False` and to `True`
+(unit), and by an integration test with a real import. The first call imports the
 installed libraries on purpose (a library imported after the first seed would not be seeded): the
 cost is documented in the docstring of `manual_seed` and `random_seed`, and in the user guide.
 
@@ -212,26 +207,25 @@ coola/random/
   interface.py    module functions, default registry
 ```
 
-`random.py` is renamed `python.py`; everything else keeps its place, so the tests keep their
-mirror (`tests/unit/random/test_python.py`).
+The module of the standard-library manager is `python.py` (not `random.py`, which would shadow the
+standard library module), and the tests mirror it (`tests/unit/random/test_python.py`).
 
-## Decisions
+## Design choices and trade-offs
 
-| #   | Decision                                                                                                                       | Why                                                                                                                                                                                                                                                                               | Alternative rejected                                                                                                                                                                        |
-| --- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | `RandomManagerRegistry` subclasses `Registry[str, BaseRandomManager]` and `BaseRandomManager`.                                 | Removes 240 lines of forwarding and docstrings, gives `equal`, `copy`, `register_lazy`, `clear`, locking and fork reset for free, and keeps the composite property (a registry is a manager).                                                                                     | Composition, as before: two spellings of every operation to maintain. A mixin base class for stateless managers: one more class for three `__eq__` / `__hash__` pairs.                      |
-| D2  | NumPy: `seed < 2**32` keeps `np.random.seed(seed)`; larger seeds use `np.random.seed([low, high])`.                            | Injective on the whole domain and **every seed that works before and is not folded gives the same numbers**. Only seeds `>= 2**32`, which silently collided, change. Probe: the array stream differs from the scalar one and from the other array.                                | Always an array: changes the numbers of every user. Keep folding and document: the seed domain would be a lie. Reject seeds `>= 2**32` for NumPy only: one library would decide the domain. |
-| D3  | `set_rng_state` raises `ValueError` if the keys differ and restores all managers before it raises.                             | A restore that does not restore is a reproducibility bug, and a log line is not an error channel. Restoring a state from a machine with torch on a machine without torch is a user error to fix, not to log. A failure of one manager must not leave the others seeded.           | Warn and continue, as before. Strict only for missing keys: asymmetric. `ExceptionGroup` always: forces `except* ValueError` on the common single failure (one error is raised as is).      |
-| D4  | Every public entry validates the seed; `validate_seed` is called by `seed()` and by each built-in manager.                     | One domain `[0, 2**63)` for all libraries is what makes `manual_seed(42)` mean one thing. A custom manager inherits the check through `seed()`. The cost is one `isinstance` and one comparison.                                                                                  | A template method (`manual_seed` concrete calling an abstract `_manual_seed`): a private abstract method is a worse extension point than the public one the users already know.             |
-| D5  | The default registry imports the installed libraries when it is built, on the first use.                                       | A library imported after `manual_seed(42)` would keep its default random seed, which is the failure users cannot see. The cost (about a second for torch) is paid once and documented. A test covers the case.                                                                    | Seed only the libraries already in `sys.modules`: fast, but `manual_seed(42); import torch` silently does nothing. Import-time hooks: fragile.                                              |
-| D6  | `numpy_seed` and `torch_seed` are removed.                                                                                     | `NumpyRandomManager().seed(42)` is the same context manager with the same name as every other manager, and `random_seed(42)` covers the common case. Two functions, two lazy exports and two doc sections less.                                                                   | Keep as shortcuts: they are not used, and a third spelling (`random_seed`, `Manager().seed`, `xxx_seed`) is what the user guide has to explain before.                                      |
-| D7  | `get_torch_generator` and `get_random_seed` stay, are exported lazily, take keyword-only options, and the seed range is fixed. | `get_torch_generator` is the documented way to get a seeded independent generator for threads (the "Not guaranteed" part sends the reader there). `get_random_seed` returns a valid seed `[0, 2**63 - 1)` (`torch.randint` rejects `2**63`), so its output goes to `manual_seed`. | Delete both: leaves threads without a helper. Add NumPy twins: `numpy.random.default_rng(seed)` is already the one-liner, and the package manages global state.                             |
-| D8  | No lock, no thread-local state, no per-thread isolation.                                                                       | The generators are global. A lock inside `random_seed` would not stop other code from drawing, and would give the false impression of safety. The limit is stated in the properties.                                                                                              | A `threading.RLock` in `seed()`: serialises seeded blocks only; deadlock-prone with a `func` that waits for another thread.                                                                 |
-| D9  | `PythonRandomManager` in `python.py`; the keys of the default registry stay `"random"`, `"numpy"`, `"torch"`.                  | The class name says "python", the key says what the user types in `random.seed`. The keys appear in saved states and in the plugin documentation: they do not change.                                                                                                             | `StdlibRandomManager`: not a word the user guide uses.                                                                                                                                      |
-| D10 | `random_seed(seed, *, registry=None)`, `register_managers(mapping, *, exist_ok=False)`.                                        | The rule of the repository and the name says what it is.                                                                                                                                                                                                                          | Keep positional: inconsistent with `hash_object`, `recursive_apply`.                                                                                                                        |
-| D11 | `Registry.register(key, value, exist_ok)` stays positional here.                                                               | It is the primitive of `coola.registry`, shared by every package; its signature is a separate item that this package must not decide alone.                                                                                                                                       | Change it here: breaks the sibling packages in a review about `random`.                                                                                                                     |
+| Choice                                                                                                             | Why                                                                                                                                                                                                                                                                               | Alternative and its cost                                                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RandomManagerRegistry` subclasses `Registry[str, BaseRandomManager]` and `BaseRandomManager`.                     | No forwarding methods, and `equal`, `copy`, `register_lazy`, `clear`, locking and fork reset for free; keeps the composite property (a registry is a manager).                                                                                                                    | Composition: two spellings of every operation to maintain. A mixin base class for stateless managers: one more class for three `__eq__` / `__hash__` pairs.                                                    |
+| NumPy: `seed < 2**32` keeps `np.random.seed(seed)`; larger seeds use `np.random.seed([low, high])`.                | Injective on the whole domain, and **every seed that fits in 32 bits gives the numbers of the scalar form**. Probe: the array stream differs from the scalar one and from the other array.                                                                                        | Always an array: changes the numbers of every user. Folding the seed: two seeds would collide, so the seed domain would be a lie. Reject seeds `>= 2**32` for NumPy only: one library would decide the domain. |
+| `set_rng_state` raises `ValueError` if the keys differ and restores all managers before it raises.                 | A restore that does not restore is a reproducibility bug, and a log line is not an error channel. Restoring a state from a machine with torch on a machine without torch is a user error to fix. A failure of one manager must not leave the others unrestored.                   | Warn and continue. Strict only for missing keys: asymmetric. `ExceptionGroup` always: forces `except* ValueError` on the common single failure (one error is raised as is).                                    |
+| Every public entry validates the seed; `validate_seed` is called by `seed()` and by each built-in manager.         | One domain `[0, 2**63)` for all libraries is what makes `manual_seed(42)` mean one thing. A custom manager inherits the check through `seed()`. The cost is one `isinstance` and one comparison.                                                                                  | A template method (`manual_seed` concrete calling an abstract `_manual_seed`): a private abstract method is a worse extension point than the public one the users already know.                                |
+| The default registry imports the installed libraries when it is built, on the first use.                           | A library imported after `manual_seed(42)` would keep its default random seed, which is the failure users cannot see. The cost (about a second for torch) is paid once and documented. A test covers the case.                                                                    | Seed only the libraries already in `sys.modules`: fast, but `manual_seed(42); import torch` silently does nothing. Import-time hooks: fragile.                                                                 |
+| `get_torch_generator` and `get_random_seed` are exported lazily, with keyword-only options and a fixed seed range. | `get_torch_generator` is the documented way to get a seeded independent generator for threads (the "Not guaranteed" part sends the reader there). `get_random_seed` returns a valid seed `[0, 2**63 - 1)` (`torch.randint` rejects `2**63`), so its output goes to `manual_seed`. | No helper: leaves threads without one. NumPy twins: `numpy.random.default_rng(seed)` is already the one-liner, and the package manages global state.                                                           |
+| No lock, no thread-local state, no per-thread isolation.                                                           | The generators are global. A lock inside `random_seed` would not stop other code from drawing, and would give the false impression of safety. The limit is stated in the properties.                                                                                              | A `threading.RLock` in `seed()`: serialises seeded blocks only; deadlock-prone with a `func` that waits for another thread.                                                                                    |
+| `PythonRandomManager` in `python.py`; the keys of the default registry are `"random"`, `"numpy"`, `"torch"`.       | The class name says "python", the key says what the user types in `random.seed`. The keys appear in saved states and in the plugin documentation.                                                                                                                                 | `StdlibRandomManager`: not a word the user guide uses.                                                                                                                                                         |
+| `random_seed(seed, *, registry=None)`, `register_managers(mapping, *, exist_ok=False)`.                            | Options are keyword-only, as in `hash_object` and `recursive_apply`.                                                                                                                                                                                                              | Positional options: inconsistent with the siblings.                                                                                                                                                            |
+| `Registry.register(key, value, exist_ok)` stays positional here.                                                   | It is the primitive of `coola.registry`, shared by every package; its signature is not this package's decision.                                                                                                                                                                   | Change it here: breaks the sibling packages.                                                                                                                                                                   |
 
-## What is deliberately not changed
+## Not covered
 
 - **No `Generator` management.** Tracking `random.Random`, `default_rng` and `torch.Generator`
   objects would need weak references to every generator and a policy for the ones the package does
@@ -240,9 +234,7 @@ mirror (`tests/unit/random/test_python.py`).
 - **No automatic seeding of other libraries** (JAX uses explicit keys, TensorFlow and others can
   come as plugins through `coola.random.managers`).
 - **No `hash_object`-style cache or engine.** There is nothing to cache.
-- **No change of the aliases** `get_default_random_manager_registry` / `get_default_registry`: it
-  is the convention of the five sibling packages and its fate is a cross-package decision
-  (`review/src-coola-review.md`).
-- **No change of `Registry.register(key, value, exist_ok)`**.
+- **The aliases** `get_default_random_manager_registry` / `get_default_registry` follow the
+  convention of the sibling packages.
 - **The keys of the states** (`"random"`, `"numpy"`, `"torch"`, `"torch.cuda"`, `"torch.mps"`) and
   the range `[0, 2**63)`.

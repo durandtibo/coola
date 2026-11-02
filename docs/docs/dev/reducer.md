@@ -1,24 +1,20 @@
 # Architecture of `coola.reducer`
 
-:book: This page describes the design of the `coola.reducer` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/reducer.md#properties); the API is in the [reference](../refs/reducer.md).
+:book: This page describes the design of the `coola.reducer` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/reducer.md#properties); the API is in the [reference](../refs/reducer.md).
 
 ## Constraints
 
-1. **Simple and easy to maintain.** The package is 725 lines of source and 2,190 lines of tests. The
-   target removes the code that exists only because the contract is spread over the backends (the
-   `BaseReducer` / `BaseBasicReducer` pair with a hole for `sort`, `_is_empty` and the `_check_values`
-   hook, the copies of the overflow rule of the median, two tensor converters) instead of adding code
-   next to it.
-2. **Major release.** Breaking changes are fine and compatibility is not a design input: no adapter,
-   no alias, no deprecation period. A custom reducer written for the current hooks is ported (the
-   migration page lists the change).
-3. **No slower than before**, and faster where a probe shows an easy win (the mean of `NativeReducer`
-   is 15 times slower than `statistics.fmean`, ). A design that is simpler but slower is rejected.
-4. **Consistent with the siblings.** Keyword-only options, strict contracts (an invalid option or
+1. **Simple and easy to maintain.** The contract is written once, in the base class. A backend
+   implements `_prepare` and six computations; the empty check, the quantile check and the dimension
+   check do not exist in the backends, and the overflow rule of the median is stated in one place.
+2. **Fast.** The mean of `NativeReducer` uses `statistics.fmean`, which is much faster than
+   `statistics.mean` (104 ms against 6.8 ms in a probe). A design that is simpler but slower is
+   rejected.
+3. **Consistent with the siblings.** Keyword-only options, strict contracts (an invalid option or
    input raises before any work, with a message that names the remedy), stateless objects that can be
    shared by threads, lazy optional libraries.
-5. **Optional libraries stay lazy.** `import coola.reducer` imports neither NumPy nor PyTorch
-   (`lazy_exports`, as before). `TorchReducer` costs 0.94 s of import, which is why
+4. **Optional libraries stay lazy.** `import coola.reducer` imports neither NumPy nor PyTorch
+   (`lazy_exports`). `TorchReducer` costs 0.94 s of import, which is why
    `auto_reducer` must not choose it by default.
 
 ## Architecture
@@ -94,8 +90,8 @@ three backends, like `NATIVE_SAMPLES` in `equality`):
 4. `_sort` receives a prepared container that can be empty and returns a new `list`.
 5. A backend keeps no state and writes no `__init__` unless it checks that its library is installed.
 
-`descending` becomes keyword-only (`CLAUDE.md`: keep new options keyword-only; `reducer.sort(v, True)`
-is not readable). `EmptySequenceError` derives from `ValueError`.
+`descending` is keyword-only (`reducer.sort(v, True)` is not readable). `EmptySequenceError` derives
+from `ValueError`.
 
 ### The backends
 
@@ -132,8 +128,8 @@ would be a second dispatch mechanism for a package that has three classes.
 
 ```python
 from coola.reducer import (
-    BaseReducer,  # template; BaseBasicReducer is removed
-    EmptySequenceError,  # now a ValueError
+    BaseReducer,  # template
+    EmptySequenceError,  # a ValueError
     NativeReducer,
     NumpyReducer,  # lazy
     TorchReducer,  # lazy
@@ -141,92 +137,53 @@ from coola.reducer import (
 )
 ```
 
-| Change                          | Before                                         | After                                                                    |
-| ------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------ |
-| `BaseBasicReducer`              | exported, with `_is_empty` and six hooks       | removed; `BaseReducer` has `_prepare` and `_max` ... `_sort`, `_std`     |
-| `sort(values, descending)`      | positional or keyword                          | `sort(values, *, descending=False)`                                      |
-| `EmptySequenceError`            | `Exception`                                    | `ValueError`                                                             |
-| Input                           | anything the backend happens to accept         | a sequence of reals, or a 1-D array / tensor for the backend (rule 1)    |
-| Wrong input                     | `AttributeError`, `RuntimeError`, `ValueError` | `TypeError` (type / element), `ValueError` (shape), same text            |
-| `quantile` with an invalid `q`  | `ValueError` or `RuntimeError`                 | `ValueError("quantiles must be in [0, 1], got 2")` in the three backends |
-| `auto_reducer()` with both libs | `TorchReducer`                                 | `NumpyReducer`                                                           |
-| `NativeReducer.mean`            | exact (`statistics.mean`)                      | `statistics.fmean` (15 times faster; the last bit can differ for floats) |
-| Reducer equality                | identity                                       | unchanged                                                                |
+| Behaviour                       | Rule                                                                     |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| Input                           | a sequence of reals, or a 1-D array / tensor for the backend (rule 1)    |
+| Wrong input                     | `TypeError` (type / element), `ValueError` (shape), same text            |
+| `quantile` with an invalid `q`  | `ValueError("quantiles must be in [0, 1], got 2")` in the three backends |
+| `auto_reducer()` with both libs | `NumpyReducer`                                                           |
+| `NativeReducer.mean`            | `statistics.fmean` (the last bit can differ for floats)                  |
+| `sort(values, *, descending)`   | `descending` is keyword-only                                             |
+| Reducer equality                | identity                                                                 |
 
 ## Dependents
 
-| Package / file                             | Change                                                                                                                                                                            |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src` (everything except `coola.reducer`)  | None: no module imports `coola.reducer`. `coola.utils.stats.quantile` is used only by `NativeReducer`; it stays in `coola.utils` (public helper with its own tests, `CLAUDE.md`). |
-| `tests/unit/reducer/`, `tests/properties/` | Ported; the 46 properties keep their meaning.                                                                                                                                     |
+| Package / file                             | Use                                                                                                                                                         |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src` (everything except `coola.reducer`)  | No module imports `coola.reducer`. `coola.utils.stats.quantile` is used only by `NativeReducer`; it is a public helper of `coola.utils` with its own tests. |
+| `tests/unit/reducer/`, `tests/properties/` | The contract test over the three backends, and the properties of the reducers.                                                                              |
 
-## Decisions
+## Design choices and trade-offs
 
-All six decisions are made and follow the recommendations, so the design of stands
-unchanged.
+**One base class, a template.** A pair of base classes (one without checks and one with them) leaves
+the author to choose, and the empty-case property then depends on the class that was picked. With one
+template, a backend that wants to skip a check has to override the public method on purpose.
 
-| Decision | Question                                | Outcome                           | Where it applies               |
-| -------- | --------------------------------------- | --------------------------------- | ------------------------------ |
-| D1       | One base class or two?                  | One (`BaseReducer` as a template) | Section 3.1                    |
-| D2       | How strict is the input?                | Strict                            | Section 1 (input rule)         |
-| D3       | Does `auto_reducer` look at the values? | No                                | Section 3.3                    |
-| D4       | `__eq__` and `__hash__` for reducers?   | No                                | Section 4 (equality unchanged) |
-| D5       | Keep `TorchReducer`?                    | Yes                               | Section 3.2                    |
-| D6       | `NativeReducer.mean` exact or fast?     | `statistics.fmean`                | Section 4                      |
+**Strict input.** A silent flatten of a 2-D array gives a number that looks right and is not, and a
+set is accepted by one backend and not by the others. Being liberal (convert everything with
+`np.asarray` / `torch.as_tensor` and document the differences) gives shorter code, but the same call
+changes meaning with `auto_reducer`. The strictness costs one `isinstance` and one `ndim` check per
+call (nanoseconds against a 2.8 µs call).
 
-The reasoning for each is kept below.
+**`auto_reducer` does not look at the values.** `auto_reducer()` returns NumPy, then native; a tensor
+on a device is a reason to write `TorchReducer()`. An `auto_reducer(values)` that returns
+`TorchReducer` for a tensor, `NumpyReducer` for an array and the default otherwise would be about ten
+lines and a second dispatch mechanism; it can be added without breaking anything once a consumer asks.
+"Torch first" would handle tensors always, but is slower on lists and costs 0.94 s of import.
 
-**D1. One base class or two?** _Recommended: one (`BaseReducer` as a template)._ Today the user must
-choose between a class that carries no checks and a class that carries them for six methods out of
-seven. Nobody needs the first: a backend that wants to skip the checks overrides the public
-method. The price is that a custom reducer is ported once (the migration page). Alternative: keep
-both and fix `sort` in `BaseBasicReducer`; less breaking, but the empty-case property still depends
-on which class the author picked.
+**No `__eq__` and `__hash__` for reducers.** A reducer is stateless, and two of them are rarely
+compared. If an `__eq__` is wanted (for example to cache a function by its reducer), `type(a) is
+type(b)` is one line in the base class. `InlineDisplayMixin` (the `repr`) costs nothing and is kept.
 
-Decision: one
+**`TorchReducer` stays.** It is the only backend for a tensor that lives on a GPU, and tensors are the
+data of the users of the sibling packages (`equality`, `summary`). It is also the most expensive to
+maintain (two converters, a median that is not the library's), which is why it has one converter and
+the shared errors. Dropping it would be a decision about the scope of `coola`, not about this package.
 
-**D2. How strict is the input?** _Recommended: strict (sequence of reals, or 1-D array / tensor of the
-backend; everything else is an error with the same message)._ A silent flatten of a 2-D array
-gives a number that looks right and is not; a set is accepted by one backend and not the others
-. Alternative: be liberal, convert everything with `np.asarray` / `torch.as_tensor` and
-document the differences; shorter code, but the same call changes meaning with `auto_reducer`. The
-strictness costs one `isinstance` and one `ndim` check per call (nanoseconds against a 2.8 µs call).
-
-Decision: strict
-
-**D3. Does `auto_reducer` look at the values?** _Recommended: no._ `auto_reducer()` returns NumPy,
-then native; a tensor on a device is a reason to write `TorchReducer()`. A signature
-`auto_reducer(values)` that returns `TorchReducer` for a tensor, `NumpyReducer` for an array and the
-default otherwise is about ten lines and a second dispatch; it can be added later without breaking
-anything, once a consumer asks. Alternative: keep "torch first" so that tensors are always handled;
-rejected on the measurements of (slower on lists, 0.94 s of import).
-
-Decision: no
-
-**D4. `__eq__` and `__hash__` for reducers?** _Recommended: no._ A reducer is stateless but the user
-rarely compares two of them; the `equal` methods that the summary design deletes (the `summary` design,
-) carry no information either. If an `__eq__` is wanted (for example to cache a function by its
-reducer), `type(a) is type(b)` is one line for the base class and does not change the design.
-`InlineDisplayMixin` (the `repr`) stays: it costs nothing.
-
-Decision: no
-
-**D5. Keep `TorchReducer` at all?** _Recommended: yes._ It is the only backend for a tensor that lives
-on a GPU, and tensors are the data of the users of the sibling packages (`equality`, `summary`
-handle them). It is also the most expensive to maintain (129 lines, two converters, a
-median that is not the library's). The cleanup (one converter, the shared errors) brings it
-down; dropping it would be a decision about the scope of `coola`, not about this package, and
-nothing in `src` depends on it.
-
-Decision: yes
-
-**D6. `NativeReducer.mean` exact or fast?** _Recommended: `statistics.fmean`._ The exact mean of
-`statistics.mean` is irrelevant to the cross-backend tolerance (NumPy and torch already differ in the
-last bit), and the time (104 ms against 6.8 ms) is the largest gap of the package. `fmean` also
-returns a `float` for ints, which is the documented result type. Alternative: keep `mean` and accept
-that the native reducer is 5 times slower than NumPy for the one method that is used the most.
-
-Decision: fmean
+**`NativeReducer.mean` is fast, not exact.** The exact mean of `statistics.mean` is irrelevant to the
+cross-backend tolerance (NumPy and torch already differ in the last bit), and the time gap is the
+largest of the package. `fmean` also returns a `float` for ints, which is the documented result type.
 
 ## Not covered
 
@@ -240,8 +197,8 @@ Decision: fmean
   classes do not justify it (`architecture.md` lists `reducer` outside `registry` on purpose). If
   `auto_reducer(values)` ever dispatches on more than two types, it is the moment to reuse
   `BaseTypeDispatchRegistry`.
-- **Other backends** (pandas `Series`, polars, JAX): `add_backend.md` explains how to add one; the
-  contract test is the acceptance test.
+- **Other backends** (pandas `Series`, polars, JAX): [How to add support for a new library](add_backend.md) explains how to add one; the contract test is
+  the acceptance test.
 - **Lazy / streaming input** (`statistics` of an iterator in one pass): the iterator is rejected on
   purpose (the reducers go over the values several times); the error says to convert it to a list.
 - **Precision beyond float64** (`Decimal`, `Fraction`): `NativeReducer` happens to work; it is not a

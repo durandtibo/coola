@@ -70,8 +70,9 @@ with UUIDs minted by another system for unrelated data:
 
 !!! warning
 
-    The hash format changed in `coola` 2.0 (see the [migration guide](../migration/v1.1_to_v2.0.md)):
-    every identifier changes, and an identifier stored with an older version must be regenerated.
+    The identifiers are built on the hash format of `hash_object`, which is versioned. An identifier
+    stored with another version of the format must be regenerated (the change of the format in
+    `coola` 2.0 is in the [migration guide](../migration/v1.1_to_v2.0.md)).
 
     The UUID `generate_stable_uuid5` returns for a given input is stable only as long as
     `hash_object` (and the hashers resolved for the types in the data) keep producing the same

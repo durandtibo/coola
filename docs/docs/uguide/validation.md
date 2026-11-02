@@ -236,20 +236,19 @@ np.ndarray)` works; a dtype check belongs to the package that owns the array lib
 - **A `validate_callable`, `validate_path` or `validate_enum`**: each is
   `validate_isinstance(x, Callable)` or `validate_in(x, tuple(Enum))`.
 
-## Migration
+## Shortcuts that do not exist
 
-The package had 26 functions. The 16 functions that were synonyms of another one are removed, with
-no alias (`validate_range` is new):
+The package has no function for a check that `isinstance` or one comparison already states. Use:
 
-| Removed                                                                                                                                     | Replacement                                                               |
-| ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `validate_bool`, `validate_float`, `validate_str`, `validate_list`, `validate_tuple`, `validate_dict`, `validate_set`, `validate_frozenset` | `validate_isinstance(x, bool)`, `validate_isinstance(x, float)`, ...      |
-| `validate_mapping(x)`                                                                                                                       | `validate_isinstance(x, Mapping)`                                         |
-| `validate_positive(x)`, `validate_non_negative(x)`                                                                                          | `validate_gt(x, 0)`, `validate_ge(x, 0)`                                  |
-| `validate_negative(x)`, `validate_non_positive(x)`                                                                                          | `validate_lt(x, 0)`, `validate_le(x, 0)`                                  |
-| `validate_closed_range(x, low, high)`                                                                                                       | `validate_range(x, low, high)`                                            |
-| `validate_open_range(x, low, high)`                                                                                                         | `validate_range(x, low, high, low_inclusive=False, high_inclusive=False)` |
-| `validate_half_open_range(x, low, high)`                                                                                                    | `validate_range(x, low, high, high_inclusive=False)`                      |
+| Check                                                 | Use                                                                       |
+| ----------------------------------------------------- | ------------------------------------------------------------------------- |
+| a `bool`, a `float`, a `str`, a `list`, a `dict`, ... | `validate_isinstance(x, bool)`, `validate_isinstance(x, float)`, ...      |
+| a `Mapping`                                           | `validate_isinstance(x, Mapping)`                                         |
+| a positive or a non-negative number                   | `validate_gt(x, 0)`, `validate_ge(x, 0)`                                  |
+| a negative or a non-positive number                   | `validate_lt(x, 0)`, `validate_le(x, 0)`                                  |
+| a closed range                                        | `validate_range(x, low, high)`                                            |
+| an open range                                         | `validate_range(x, low, high, low_inclusive=False, high_inclusive=False)` |
+| a half-open range                                     | `validate_range(x, low, high, high_inclusive=False)`                      |
 
 ## See Also
 

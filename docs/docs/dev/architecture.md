@@ -20,8 +20,9 @@ checklist to implement a new one. The design of each sub-package is on its own p
    rounded by one kernel; a library adapter only says what the structure is (columns, dtype, shape).
 5. **Small and easy to maintain.** Delete code that exists only to work around the design instead of
    adding code next to it. A helper that is one `isinstance` or one comparison is not a function.
-6. **Breaking changes are acceptable in a major release,** compatibility code is not kept: no alias, no
-   deprecation period. The migration guide lists the changes.
+6. **No compatibility code.** A name or a behaviour that is replaced is replaced: there is no alias and
+   no deprecation period, and a breaking change is made in a major release. The
+   [migration guides](../migration/v1.1_to_v2.0.md) list the changes of each major release.
 
 ## Anatomy of a sub-package
 
@@ -234,12 +235,13 @@ A new package ships these pages:
 | ------------------------ | ---------------------------------------------------------------------------- |
 | `uguide/<package>.md`    | Overview, **Properties**, **Not guaranteed**, examples, extension, non-goals |
 | `refs/<package>.md`      | `::: coola.<package>` directives                                             |
-| `dev/<package>.md`       | Constraints, architecture, contracts, public API, dependents, decisions      |
-| `migration/<version>.md` | Breaking changes with a before/after table                                   |
+| `dev/<package>.md`       | Constraints, architecture, contracts, public API, dependents, design choices |
+| `migration/<version>.md` | Breaking changes of a release with a before/after table                      |
 | `mkdocs.yml` navigation  | The three pages above                                                        |
 
-Write down **what the package does not do** and the decisions with the alternatives that were
-rejected; a later reader needs the reason, not only the choice.
+Write down **what the package does not do** and the design choices with the alternatives that were
+not taken and what each would cost; a later reader needs the reason, not only the choice. A design page
+describes the package as it is, not how it got there.
 
 ## Testing blueprint
 
@@ -274,7 +276,7 @@ rejected; a later reader needs the reason, not only the choice.
 ## Design of the Packages
 
 Each sub-package of `coola` has its own page with the invariants, the contracts between the parts,
-the public API, the dependents and the decisions behind the design.
+the public API, the dependents and the trade-offs of the design.
 
 | Package            | Page                                                               |
 | ------------------ | ------------------------------------------------------------------ |

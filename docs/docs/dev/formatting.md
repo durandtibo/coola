@@ -37,8 +37,8 @@ coola/formatting/
 
 ## Why a package of its own
 
-The formatting functions were spread over four modules of `coola.utils` (`format`, `string`, `secret`,
-`text_diff`), and `display` and `registry` imported the first. A package next to `utils` makes them
+The formatting functions share one purpose (values to text) and are used by several packages
+(`display`, `registry`, the error messages of the features). A package next to `utils` makes them
 discoverable and keeps `utils` the foundation. The name is `formatting` because `coola.format` would
 shadow the builtin in `from coola import format`. The sequence and mapping functions stay in one module
 because they share `str_indent`.
