@@ -240,15 +240,15 @@ np.ndarray)` works; a dtype check belongs to the package that owns the array lib
 
 The package has no function for a check that `isinstance` or one comparison already states. Use:
 
-| Check                                                | Use                                                                       |
-| ---------------------------------------------------- | ------------------------------------------------------------------------- |
+| Check                                                 | Use                                                                       |
+| ----------------------------------------------------- | ------------------------------------------------------------------------- |
 | a `bool`, a `float`, a `str`, a `list`, a `dict`, ... | `validate_isinstance(x, bool)`, `validate_isinstance(x, float)`, ...      |
-| a `Mapping`                                          | `validate_isinstance(x, Mapping)`                                         |
-| a positive or a non-negative number                  | `validate_gt(x, 0)`, `validate_ge(x, 0)`                                  |
-| a negative or a non-positive number                  | `validate_lt(x, 0)`, `validate_le(x, 0)`                                  |
-| a closed range                                       | `validate_range(x, low, high)`                                            |
-| an open range                                        | `validate_range(x, low, high, low_inclusive=False, high_inclusive=False)` |
-| a half-open range                                    | `validate_range(x, low, high, high_inclusive=False)`                      |
+| a `Mapping`                                           | `validate_isinstance(x, Mapping)`                                         |
+| a positive or a non-negative number                   | `validate_gt(x, 0)`, `validate_ge(x, 0)`                                  |
+| a negative or a non-positive number                   | `validate_lt(x, 0)`, `validate_le(x, 0)`                                  |
+| a closed range                                        | `validate_range(x, low, high)`                                            |
+| an open range                                         | `validate_range(x, low, high, low_inclusive=False, high_inclusive=False)` |
+| a half-open range                                     | `validate_range(x, low, high, high_inclusive=False)`                      |
 
 ## See Also
 

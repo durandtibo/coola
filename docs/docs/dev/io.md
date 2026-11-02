@@ -143,7 +143,7 @@ Why a lock is not needed:
 | Two `exist_ok=True` saves overwrite the same file | `os.replace` is atomic: the file is the whole content of the last one. A lock only orders the same two. |
 | A reader opens the file while it is replaced      | It opens the old inode or the new one, both complete.                                                   |
 | Two saves write at the same time                  | They write different temporary files (the name has a uuid), so the data does not mix.                   |
-| A save is killed                                  | The target is untouched; a hidden temporary file may stay (documented).                               |
+| A save is killed                                  | The target is untouched; a hidden temporary file may stay (documented).                                 |
 
 A caller that needs **mutual exclusion** (a read-modify-write of one file) needs a lock around the
 read and the write, which `save` could never give; it uses a lock library of its choice. The
@@ -182,14 +182,14 @@ from coola.io import (
 )
 ```
 
-| Signature                                                                | Note                                                                                                          |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `save_*(to_save, path, *, exist_ok=False, fsync=False, **format_kwargs)` | No lock. `save_text` and `TextSaver` accept a `str` only.                                                     |
-| `BaseFileSaver.save(to_save, path, *, exist_ok=False, fsync=False)`      | No lock.                                                                                                      |
-| `BaseLoader._load(path: Path)`                                           | Abstract; `load` is concrete.                                                                                 |
-| `BaseLoader.equal` / `BaseSaver.equal`                                   | Concrete in the base class.                                                                                   |
-| `TorchLoader(*, weights_only=True, **kwargs)`                            | `weights_only` is a named argument, shown in the repr and compared by `equal()`.                              |
-| `add_uuid_suffix`                                                        | A path function: it lives in `coola.utils.path`, not in `coola.io`.                                           |
+| Signature                                                                | Note                                                                             |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `save_*(to_save, path, *, exist_ok=False, fsync=False, **format_kwargs)` | No lock. `save_text` and `TextSaver` accept a `str` only.                        |
+| `BaseFileSaver.save(to_save, path, *, exist_ok=False, fsync=False)`      | No lock.                                                                         |
+| `BaseLoader._load(path: Path)`                                           | Abstract; `load` is concrete.                                                    |
+| `BaseLoader.equal` / `BaseSaver.equal`                                   | Concrete in the base class.                                                      |
+| `TorchLoader(*, weights_only=True, **kwargs)`                            | `weights_only` is a named argument, shown in the repr and compared by `equal()`. |
+| `add_uuid_suffix`                                                        | A path function: it lives in `coola.utils.path`, not in `coola.io`.              |
 
 Adding a format stays small. A NumPy `.npy` saver (a library `coola.io` does not import) is:
 
@@ -209,11 +209,11 @@ and gets the atomic write, `exist_ok`, `fsync`, `equal()`, `repr` from the bases
 
 ## Dependents
 
-| Package            | Use                                                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `coola.factory`    | `resolve_loader` and `resolve_saver` call `resolve_object` / `is_object_config`.                              |
-| `coola.utils.path` | `add_uuid_suffix`, used by the saver for the temporary file name.                                             |
-| `coola.equality`   | `equal()` calls `objects_are_equal` on the fields.                                                            |
+| Package            | Use                                                                              |
+| ------------------ | -------------------------------------------------------------------------------- |
+| `coola.factory`    | `resolve_loader` and `resolve_saver` call `resolve_object` / `is_object_config`. |
+| `coola.utils.path` | `add_uuid_suffix`, used by the saver for the temporary file name.                |
+| `coola.equality`   | `equal()` calls `objects_are_equal` on the fields.                               |
 
 ## Design choices and trade-offs
 
@@ -243,7 +243,7 @@ method.
 - **Async (`aload`, `asave`)**: out of scope. The sync core holds no lock, no thread and no global
   state, and a loader or a saver holds its configuration only, so it is safe to call from a worker
   thread. A layer can be added without touching the core: `aload` / `asave` as `await
-  asyncio.to_thread(self.load, ...)` in the base classes (no dependency; `aiofiles` and `anyio.Path`
+asyncio.to_thread(self.load, ...)` in the base classes (no dependency; `aiofiles` and `anyio.Path`
   use threads too). What a probe showed (macOS, Python 3.14): a save of 400 ms called in a coroutine
   froze a 5 ms ticker for 414 ms (6 ms with `to_thread`); `wait_for(asyncio.to_thread(save), 0.1)`
   raises `TimeoutError` and the file appears 0.4 s later, so a layer needs a cancellation flag that

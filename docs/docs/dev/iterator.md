@@ -228,12 +228,12 @@ keyword-only `exist_ok`. The plugin group is `coola.iterator.child_finders`, lik
 
 ## Dependents
 
-| Package or page            | Use                                                                                                                                                         |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `coola.recursive`          | The order of the calls of `func` equals the order of `dfs_iterate` (a property test ties the two).                                                          |
-| `coola.nested`             | Built on the engines of `recursive` and `iterator`.                                                                                                         |
-| `pyproject.toml`           | `coola.iterator` is in the list of the modules that the core must not import.                                                                               |
-| Third-party plugins        | Register a `ChildFinder` in the plugin group `coola.iterator.child_finders`. A finder returns the children instead of recursing (reversing a list is `return reversed(data)`). |
+| Package or page     | Use                                                                                                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `coola.recursive`   | The order of the calls of `func` equals the order of `dfs_iterate` (a property test ties the two).                                                                             |
+| `coola.nested`      | Built on the engines of `recursive` and `iterator`.                                                                                                                            |
+| `pyproject.toml`    | `coola.iterator` is in the list of the modules that the core must not import.                                                                                                  |
+| Third-party plugins | Register a `ChildFinder` in the plugin group `coola.iterator.child_finders`. A finder returns the children instead of recursing (reversing a list is `return reversed(data)`). |
 
 ## Design choices and trade-offs
 

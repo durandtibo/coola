@@ -65,7 +65,7 @@ The package has three kinds of content with one rule each:
    `import coola.display.rich.print_` therefore never fails.
 
 3. **The fallback fails at the first use**, with a `MissingPackageError` whose message says that the
-   `rich` package is required and gives the hint ``pip install coola[rich]`` (the message of
+   `rich` package is required and gives the hint `pip install coola[rich]` (the message of
    `raise_package_missing_error`). `coola/utils/fallback/rich.py` (about 25 lines, built with
    `make_fake_class` and `make_fake_function`) defines `get_console`, `RichHandler`, `Markdown`,
    `Panel`, `Pretty`, `Progress` and the six columns as fakes and `MINIMAL`, `ROUNDED` as `None`.
@@ -204,25 +204,25 @@ from coola.display.rich import (
 
 Behaviours worth knowing:
 
-| Situation                                                       | Behaviour                                                                                         |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `import coola.display.rich` without `rich`                      | the import works; the first call raises `MissingPackageError` (`pip install coola[rich]`)          |
-| `import coola.display.rich` with `rich`                         | it imports no `rich` module until a name is used                                                  |
-| `configure_colorlog_logging(logging.INFO, True)`                | `TypeError`: `force` is keyword-only                                                              |
-| `str_pydantic_model(P(c=C(...)))`                               | shows `c=C(name=a)`: a nested model has its name, with the options of the root                    |
-| a field with `Field(repr=False)`                                | hidden, like in pydantic's `repr`; no user code runs                                              |
-| a `computed_field`                                              | not shown (it is not a field)                                                                     |
-| `print_markdown(msg, max_length=-1)`                            | `ValueError` for `max_length < 1`; the cut prefers paragraph and line breaks and closes a fence   |
-| `configure_rich_logging`, `make_*`                              | write to `get_console()` unless `console=` chooses another one                                    |
+| Situation                                        | Behaviour                                                                                       |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `import coola.display.rich` without `rich`       | the import works; the first call raises `MissingPackageError` (`pip install coola[rich]`)       |
+| `import coola.display.rich` with `rich`          | it imports no `rich` module until a name is used                                                |
+| `configure_colorlog_logging(logging.INFO, True)` | `TypeError`: `force` is keyword-only                                                            |
+| `str_pydantic_model(P(c=C(...)))`                | shows `c=C(name=a)`: a nested model has its name, with the options of the root                  |
+| a field with `Field(repr=False)`                 | hidden, like in pydantic's `repr`; no user code runs                                            |
+| a `computed_field`                               | not shown (it is not a field)                                                                   |
+| `print_markdown(msg, max_length=-1)`             | `ValueError` for `max_length < 1`; the cut prefers paragraph and line breaks and closes a fence |
+| `configure_rich_logging`, `make_*`               | write to `get_console()` unless `console=` chooses another one                                  |
 
 ## Dependents
 
-| Package                                  | Use                                                                                    |
-| ---------------------------------------- | -------------------------------------------------------------------------------------- |
-| `io`, `recursive`, `hashing`, `registry` | `InlineDisplayMixin` and `_display_fields`.                                            |
-| `summary.pydantic`                       | `secret_field_names`.                                                                  |
-| `coola.utils.fallback`                   | `rich.py` holds the fakes.                                                             |
-| `coola.testing.marks`                    | `rich_available` and `colorlog_available` skip the `rich` and `colorlog` tests.        |
+| Package                                  | Use                                                                             |
+| ---------------------------------------- | ------------------------------------------------------------------------------- |
+| `io`, `recursive`, `hashing`, `registry` | `InlineDisplayMixin` and `_display_fields`.                                     |
+| `summary.pydantic`                       | `secret_field_names`.                                                           |
+| `coola.utils.fallback`                   | `rich.py` holds the fakes.                                                      |
+| `coola.testing.marks`                    | `rich_available` and `colorlog_available` skip the `rich` and `colorlog` tests. |
 
 ## Not covered
 

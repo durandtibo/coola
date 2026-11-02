@@ -105,7 +105,7 @@ def _apply(data, **options):
 - **What `nested` needs from `dfs_items`**: (1) the path is a tuple of raw labels from which the key,
   index or field name can be read (`str(label)` of a key is the flat segment; the escape is applied to
   it); (2) the keyword-only option `empty=True`, which also yields an empty container as `(path,
-  container)`, because an empty container is kept as the value of its key (`{"a": {}}` gives
+container)`, because an empty container is kept as the value of its key (`{"a": {}}` gives
   `{"a": {}}`) and the round trip must not lose it (without the option `dfs_items` follows the rule of
   the package: an empty container has no leaf); (3) the `registry` keyword of the other functions.
 - **The containers are the ones of `iterator`**: mappings, sequences, deques, named tuples, ranges and
@@ -195,12 +195,12 @@ the package root is.
 
 ## Dependents
 
-| Package                      | Use                                                                                                                                |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `coola.recursive`            | The engine, `get_default_registry`, `BaseTransformer` and `rebuild_mapping` (the public helper that `nested.keys` imports).        |
-| `coola.iterator`             | `dfs_items`, with the raw labels and the `empty` option.                                                                           |
-| `coola.utils.mapping`        | `get_first_value`.                                                                                                                 |
-| `coola.io.json` (`save_json`) | The docstring points to `coola.jsonable.to_jsonable` for the conversion to JSON data.                                             |
+| Package                       | Use                                                                                                                         |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `coola.recursive`             | The engine, `get_default_registry`, `BaseTransformer` and `rebuild_mapping` (the public helper that `nested.keys` imports). |
+| `coola.iterator`              | `dfs_items`, with the raw labels and the `empty` option.                                                                    |
+| `coola.utils.mapping`         | `get_first_value`.                                                                                                          |
+| `coola.io.json` (`save_json`) | The docstring points to `coola.jsonable.to_jsonable` for the conversion to JSON data.                                       |
 
 ## Design choices and trade-offs
 

@@ -235,12 +235,12 @@ are not re-exported from `coola.rounding`. `get_scale`, `MAX_EXACT` and `validat
 
 ## Dependents
 
-| Package                                  | Use                                                                                                                                                                 |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `coola.recursive`                        | `round_values(recursive=True)` calls `recursive_apply(data, func)` with the default registry of `recursive`; dataclasses are entered.                                |
+| Package                                  | Use                                                                                                                                                                               |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `coola.recursive`                        | `round_values(recursive=True)` calls `recursive_apply(data, func)` with the default registry of `recursive`; dataclasses are entered.                                             |
 | `coola.utils.singleton`                  | `make_default_registry_singleton` and the plugin loader; `temporary_default_registries` knows the rounding singleton (checked by `tests/integration/test_default_registries.py`). |
-| `tests/integration/test_lazy_imports.py` | Checks that importing `coola.rounding` imports no optional library.                                                                                                  |
-| `import-linter`                          | `coola.rounding` is forbidden to the core packages; it imports `coola.registry`, `coola.recursive` and `coola.utils` only.                                           |
+| `tests/integration/test_lazy_imports.py` | Checks that importing `coola.rounding` imports no optional library.                                                                                                               |
+| `import-linter`                          | `coola.rounding` is forbidden to the core packages; it imports `coola.registry`, `coola.recursive` and `coola.utils` only.                                                        |
 
 ## Design choices and trade-offs
 

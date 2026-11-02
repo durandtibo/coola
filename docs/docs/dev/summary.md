@@ -370,12 +370,12 @@ entry point, as `registry.objects_are_equal` is for `equality`.
 Nothing in `src` imports `coola.summary` (the mentions in `equality` and `utils.singleton` are
 docstrings). The package is a leaf.
 
-| Dependent                                                                                        | Use                                                                                                      |
-| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `tests/properties/test_summary_random.py`, `test_cross_module`, `test_library_types`             | Properties of `summarize(data, max_depth=...)`.                                                          |
-| `tests/integration/test_lazy_imports.py`, `test_support_matrix.py`, `test_default_registries.py` | Lazy loading, the support matrix and the registered types.                                               |
-| `pyproject.toml` import-linter contracts                                                         | `coola.summary` imports only `coola.registry`, `coola.utils`, `coola.validation`.                        |
-| Plugins of `coola.summary.summarizers`                                                           | Implement `summarize(data, config, *, compact)`; a plugin that returns a string is a leaf.               |
+| Dependent                                                                                        | Use                                                                                        |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `tests/properties/test_summary_random.py`, `test_cross_module`, `test_library_types`             | Properties of `summarize(data, max_depth=...)`.                                            |
+| `tests/integration/test_lazy_imports.py`, `test_support_matrix.py`, `test_default_registries.py` | Lazy loading, the support matrix and the registered types.                                 |
+| `pyproject.toml` import-linter contracts                                                         | `coola.summary` imports only `coola.registry`, `coola.utils`, `coola.validation`.          |
+| Plugins of `coola.summary.summarizers`                                                           | Implement `summarize(data, config, *, compact)`; a plugin that returns a string is a leaf. |
 
 ## Design choices and trade-offs
 
@@ -400,4 +400,3 @@ The choices that shape the package, with the alternative each was preferred to:
 - **Summaries of the elements of an array** (min, max, mean, number of NaN): a metadata summarizer
   can compute them for the types that want it; the default stays shape and dtype (cheap, no copy,
   no device transfer).
-

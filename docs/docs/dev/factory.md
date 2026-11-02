@@ -187,9 +187,7 @@ def _build(config, cls, *, allowed_prefixes, strict):
     if cls is not object and init == "__init__":
         built = builds(target, cls)
         if built is False or (built is None and strict):
-            raise TypeError(
-                ...
-            )  # the two messages name the target and say that it was not called
+            raise TypeError(...)  # the two messages name the target and say that it was not called
     return instantiate_object(target, _init_=init, **kwargs)
 
 
@@ -250,28 +248,28 @@ from coola.factory import (
 
 Behaviours worth knowing:
 
-| Situation                                                                                     | Behaviour                                                                  |
-| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| A target that takes a parameter named `obj` or `cls`                                          | works: the API parameters never shadow the target's keywords               |
-| `_init_="__new__"` or a name that starts with `_`                                             | `TypeError`                                                                |
-| `_allowed_prefixes_` in the configuration of `resolve_object`                                 | ignored: the policy is the caller's                                        |
-| `factory(..., _allowed_prefixes_=[...])` with an argument that is `{"_target_": ...}`         | `ValueError`                                                               |
-| a `dict` with `_target_` and a `dict` subclass `cls`                                          | built                                                                      |
-| a `dict` without `_target_`                                                                   | returned if it is an instance of `cls`, else `TypeError`                   |
-| a `dict` subclass instance that has a `_target_` key (for example `Counter({"_target_": 2})`) | resolved as a configuration (the key is reserved)                          |
-| missing module or attribute, any `cls`                                                        | `ImportError: The target object does not exist: ...`                       |
-| target that returns `A \| B` with no subclass of `cls`                                        | refused before the call                                                    |
-| `is_object_config({"_target_": 5}, int)`                                                      | `False`                                                                    |
-| explicit `_init_="__init__"` with `resolve_object`                                            | target checked, like the default                                           |
+| Situation                                                                                     | Behaviour                                                    |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| A target that takes a parameter named `obj` or `cls`                                          | works: the API parameters never shadow the target's keywords |
+| `_init_="__new__"` or a name that starts with `_`                                             | `TypeError`                                                  |
+| `_allowed_prefixes_` in the configuration of `resolve_object`                                 | ignored: the policy is the caller's                          |
+| `factory(..., _allowed_prefixes_=[...])` with an argument that is `{"_target_": ...}`         | `ValueError`                                                 |
+| a `dict` with `_target_` and a `dict` subclass `cls`                                          | built                                                        |
+| a `dict` without `_target_`                                                                   | returned if it is an instance of `cls`, else `TypeError`     |
+| a `dict` subclass instance that has a `_target_` key (for example `Counter({"_target_": 2})`) | resolved as a configuration (the key is reserved)            |
+| missing module or attribute, any `cls`                                                        | `ImportError: The target object does not exist: ...`         |
+| target that returns `A \| B` with no subclass of `cls`                                        | refused before the call                                      |
+| `is_object_config({"_target_": 5}, int)`                                                      | `False`                                                      |
+| explicit `_init_="__init__"` with `resolve_object`                                            | target checked, like the default                             |
 
 ## Dependents
 
-| Package                                           | Use                                                                                                                                          |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Package                                           | Use                                                                                                                                                       |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `io.base` (`resolve_loader`, `resolve_saver`)     | A dict without `_target_` fails with `Received object is not a BaseLoader instance (received: <class 'dict'>; a configuration needs the `_target_` key)`. |
-| `io.base` (`is_loader_config`, `is_saver_config`) | Their docstrings point to `is_object_config`, which has the contract for `allowed_prefixes` and `import_target`.                              |
-| `utils.imports.import_object`                     | A different function with the same name (colon syntax, for the lazy registries). Both docstrings cross-reference each other and state the path syntax. |
-| `pyproject.toml` (import-linter)                  | `coola.factory` imports `coola.utils.imports` only.                                                                                          |
+| `io.base` (`is_loader_config`, `is_saver_config`) | Their docstrings point to `is_object_config`, which has the contract for `allowed_prefixes` and `import_target`.                                          |
+| `utils.imports.import_object`                     | A different function with the same name (colon syntax, for the lazy registries). Both docstrings cross-reference each other and state the path syntax.    |
+| `pyproject.toml` (import-linter)                  | `coola.factory` imports `coola.utils.imports` only.                                                                                                       |
 
 ## Design choices and trade-offs
 

@@ -459,12 +459,12 @@ See the [extending guide](../uguide/extending.md) for more details.
 Checklist:
 
 - Return a verdict (`ctx.fail(reason)` for a difference) or the child pairs `(actual, expected,
-  path part)`; never recurse: the engine checks the identity, the type, the depth and the cycles.
+path part)`; never recurse: the engine checks the identity, the type, the depth and the cycles.
 - Use `AttributeName` for an attribute and `ctx.fail(reason, *path)` for the location inside a leaf
   (the index in an array).
 - Build the reason lazily (a callable), so `objects_are_equal` formats nothing.
 - Honour `ctx.equal_nan` and the tolerance (`ctx.rtol`, `ctx.atol`: `|a - e| <= atol + rtol *
-  max(|a|, |e|)`), or document that your tester ignores them.
+max(|a|, |e|)`), or document that your tester ignores them.
 - Check the cheap properties first (metadata such as shape, dtype, device), then the values.
 
 ## Strict types
@@ -533,16 +533,16 @@ The property "equal objects have the same `hash_object`" holds with this equalit
 allowed to be coarser than equality (different values may share a hash), never finer. The cases that
 need care:
 
-| Case                                                  | Equality                                | Hasher                                                              |
-| ----------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------- |
-| pandas `object` column, `None` against `NaN`          | equal (the library's `equals`)          | must hash a `None` and a `NaN` of an `object` column the same       |
-| `NaN` inside nested cells (lists, structs) of a frame | equal without `equal_nan` (the library) | the hash of nested `NaN` must not depend on the NaN bit pattern     |
-| Nested floats of a frame, tolerance                   | exact (no tolerance)                    | nothing to do: equal values have equal hashes                       |
+| Case                                                  | Equality                                | Hasher                                                               |
+| ----------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------- |
+| pandas `object` column, `None` against `NaN`          | equal (the library's `equals`)          | must hash a `None` and a `NaN` of an `object` column the same        |
+| `NaN` inside nested cells (lists, structs) of a frame | equal without `equal_nan` (the library) | the hash of nested `NaN` must not depend on the NaN bit pattern      |
+| Nested floats of a frame, tolerance                   | exact (no tolerance)                    | nothing to do: equal values have equal hashes                        |
 | Masked array, data under the mask                     | compared                                | ignored by the hasher; allowed, because different values may collide |
-| Integers above 2^53 in arrays, `bool` and enums       | exact                                   | the hash is exact (no `float64` conversion)                         |
-| `IntEnum` member against `int`                        | different types                         | the hashes may be equal: allowed                                    |
-| `MappingProxyType`, `array.array`                     | compared as a mapping and a sequence    | hashed consistently with a `dict` and a `list` of the same content  |
-| Time resolution (`timedelta64[s]` against `[ns]`)     | different dtypes                        | allowed to share a hash                                             |
+| Integers above 2^53 in arrays, `bool` and enums       | exact                                   | the hash is exact (no `float64` conversion)                          |
+| `IntEnum` member against `int`                        | different types                         | the hashes may be equal: allowed                                     |
+| `MappingProxyType`, `array.array`                     | compared as a mapping and a sequence    | hashed consistently with a `dict` and a `list` of the same content   |
+| Time resolution (`timedelta64[s]` against `[ns]`)     | different dtypes                        | allowed to share a hash                                              |
 
 The hashing property tests (`tests/properties/test_hashing*.py`) take the equal pairs that the
 equality tests generate and check that they hash equally. Where the hasher needs a rule that is not
@@ -551,8 +551,8 @@ obvious, the rule is taken from the equality guide, not the other way round. See
 
 ## Packages that depend on the equality API
 
-| Package                                       | Use                                                                          |
-| --------------------------------------------- | ---------------------------------------------------------------------------- |
+| Package                                       | Use                                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------------------ |
 | `coola.io`, `coola.nested`                    | import `objects_are_equal` from `coola.equality`, not from its private modules |
-| `coola.registry` (equality of two registries) | testers are compared with their `__eq__`                                     |
-| `coola.testing`                               | fixtures and helpers compare with `compare` and `assert_*`                   |
+| `coola.registry` (equality of two registries) | testers are compared with their `__eq__`                                       |
+| `coola.testing`                               | fixtures and helpers compare with `compare` and `assert_*`                     |

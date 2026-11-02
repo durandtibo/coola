@@ -149,10 +149,10 @@ from coola.reducer import (
 
 ## Dependents
 
-| Package / file                             | Use                                                                                                                                                                       |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src` (everything except `coola.reducer`)  | No module imports `coola.reducer`. `coola.utils.stats.quantile` is used only by `NativeReducer`; it is a public helper of `coola.utils` with its own tests.                |
-| `tests/unit/reducer/`, `tests/properties/` | The contract test over the three backends, and the properties of the reducers.                                                                                            |
+| Package / file                             | Use                                                                                                                                                         |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src` (everything except `coola.reducer`)  | No module imports `coola.reducer`. `coola.utils.stats.quantile` is used only by `NativeReducer`; it is a public helper of `coola.utils` with its own tests. |
+| `tests/unit/reducer/`, `tests/properties/` | The contract test over the three backends, and the properties of the reducers.                                                                              |
 
 ## Design choices and trade-offs
 

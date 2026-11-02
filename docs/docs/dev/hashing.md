@@ -232,17 +232,17 @@ Design points:
 | `StringHasher`                                      | leaf `tagged("str", data)`; `UserString` is a leaf `tagged("UserString", str(data))`                                                                                      | `str`, `UserString`                                                   |
 | `BytesHasher`                                       | leaf `tagged(tag, digest(raw))` with the tag `bytes`, `bytearray` or `memoryview`                                                                                         | `bytes`, `bytearray`, `memoryview`                                    |
 | `EnumHasher`                                        | leaf `tagged("Enum", "module.Class.NAME")`; the member name, or the `repr` of the value for a combined flag                                                               | `Enum` (the enum-mixin rule is in the registry)                       |
-| `DatetimeHasher`                                    | leaf; tag `date`, `datetime` or `time`; ISO form, aware values in UTC                                                                     | `date`, `datetime`, `time`                                            |
+| `DatetimeHasher`                                    | leaf; tag `date`, `datetime` or `time`; ISO form, aware values in UTC                                                                                                     | `date`, `datetime`, `time`                                            |
 | `ReprHasher("timedelta")`, `StrHasher("UUID")`, ... | leaf with an **explicit** tag chosen at registration: `timedelta`, `timezone`, `UUID`, `ZoneInfo`                                                                         | `timedelta`, `timezone`, `UUID`, `ZoneInfo`                           |
-| `DecimalHasher`, `FractionHasher`, `RangeHasher`    | leaf with the canonical form                                                                                                                                            | `Decimal`, `Fraction`, `range`                                        |
+| `DecimalHasher`, `FractionHasher`, `RangeHasher`    | leaf with the canonical form                                                                                                                                              | `Decimal`, `Fraction`, `range`                                        |
 | `PathHasher`, `ResolvedPathHasher`                  | leaf `tagged("Path", posix form)`; the resolved variant is an opt-in                                                                                                      | `PurePath`                                                            |
 | `SequenceHasher(tag)`                               | `Node(tag, data)`; a named tuple has the tag `tuple:Class(f1,f2)`                                                                                                         | `list`, `tuple`, `deque`, `Sequence`                                  |
 | `MappingHasher(tag, ordered=False)`                 | `Node(tag, chain(k1, v1, k2, v2, ...), ordered, group=2)`                                                                                                                 | `dict`, `OrderedDict` (`ordered=True`), `Mapping`, `MappingProxyType` |
 | `SetHasher(tag)`                                    | `Node(tag, data, ordered=False)`                                                                                                                                          | `set`, `frozenset`                                                    |
 | `DataclassHasher`                                   | `Node("dataclass:module.Class", chain(name, value, ...), ordered=False, group=2)` over the fields with `compare=True`                                                     | fallback: `dataclasses.is_dataclass`                                  |
 | `ContentHasher`                                     | `Node("custom:module.Class", [data.__coola_hash__()])`                                                                                                                    | fallback: the type has a `__coola_hash__` method                      |
-| NumPy, torch, JAX, pandas, polars, pyarrow, xarray  | a leaf `tagged(tag, header + digest(raw values))` for numeric buffers, otherwise a `Node` whose children are plain values (names, dtype strings, arrays, lists)           | lazy groups                                                |
-| `PydanticModelHasher`, `SecretHasher(on_secret)`    | `Node("pydantic:module.Class", chain(field, value, ...), ordered=False, group=2)`; a secret is a leaf or an error                                                         | lazy group                                                 |
+| NumPy, torch, JAX, pandas, polars, pyarrow, xarray  | a leaf `tagged(tag, header + digest(raw values))` for numeric buffers, otherwise a `Node` whose children are plain values (names, dtype strings, arrays, lists)           | lazy groups                                                           |
+| `PydanticModelHasher`, `SecretHasher(on_secret)`    | `Node("pydantic:module.Class", chain(field, value, ...), ordered=False, group=2)`; a secret is a leaf or an error                                                         | lazy group                                                            |
 
 There are no public leaf functions such as `hash_string` or `hash_bytes`: `hash_object("x")` is the
 supported way to hash a value, and `tagged` and `digest` are the building blocks of a hasher. The
@@ -310,15 +310,15 @@ and is the registry of `generate_stable_content_id` and `generate_stable_uuid5`.
 The hashers of the optional libraries have no registry plumbing. They return a `Node` whose children
 are plain values, or a leaf; the engine hashes each child with the hasher of its type:
 
-| Library | `encode(data)`                                                                                                                                                                                                                            |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| NumPy   | numeric dtype: leaf `tagged("numpy.ndarray", f"{dtype}\0{shape}\0" + digest(canonical bytes))` (masked arrays add the digest of the mask); `object` dtype: `Node("numpy.ndarray", [dtype, shape, items])`                                 |
-| torch   | leaf as NumPy with the tag `torch.Tensor`, the dense CPU values, no device and no `requires_grad`                                                                                                                                         |
-| JAX     | leaf as NumPy with the tag `jax.Array`                                                                                                                                                                                                    |
+| Library | `encode(data)`                                                                                                                                                                                                                     |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NumPy   | numeric dtype: leaf `tagged("numpy.ndarray", f"{dtype}\0{shape}\0" + digest(canonical bytes))` (masked arrays add the digest of the mask); `object` dtype: `Node("numpy.ndarray", [dtype, shape, items])`                          |
+| torch   | leaf as NumPy with the tag `torch.Tensor`, the dense CPU values, no device and no `requires_grad`                                                                                                                                  |
+| JAX     | leaf as NumPy with the tag `jax.Array`                                                                                                                                                                                             |
 | pandas  | `Node("pandas.DataFrame", [columns key, index key, dtype and values of each column])`; a key is `(names, dtype, values)`; a categorical dtype adds its categories and `ordered`; a missing value is `None`; a `NaN` name is `None` |
-| polars  | `Node("polars.DataFrame", [name, str(dtype), values, ...])` per column; numeric columns without nulls pass the NumPy array                                                                                                                |
-| pyarrow | the fixed-width types as NumPy leaves with the digest of the validity bitmap; the other types as a `Node` over `to_pylist()`                                                                                                              |
-| xarray  | `Node("xarray.DataArray", [name, dims, values, coords, attrs])`                                                                                                                                          |
+| polars  | `Node("polars.DataFrame", [name, str(dtype), values, ...])` per column; numeric columns without nulls pass the NumPy array                                                                                                         |
+| pyarrow | the fixed-width types as NumPy leaves with the digest of the validity bitmap; the other types as a `Node` over `to_pylist()`                                                                                                       |
+| xarray  | `Node("xarray.DataArray", [name, dims, values, coords, attrs])`                                                                                                                                                                    |
 
 The semantics of every library hasher follow the rules of the guide: dtype, shape and values count;
 the memory layout does not; `-0.0` and NaN are canonical. The helpers that three modules share
@@ -439,13 +439,13 @@ hashers live in `coola.hashing.canonical` (public but not re-exported).
 
 ## Dependents
 
-| Package                                 | Use                                                                                                                                                  |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `identifier.generate_stable_content_id` | `hash_object(data, registry=get_stable_registry(), length=...)`. Every identifier changes with the format version.                                      |
-| `identifier.generate_stable_uuid5`      | Hashes at `length=128`, the whole digest.                                                                                                            |
-| `equality`                              | The property "equal implies same hash" is tested from `tests/properties`; the known gaps are listed in the test matrix.                                |
-| User code with a custom hasher          | Implements `encode`. A class that cannot be a dataclass defines `__coola_hash__`.                                                                     |
-| Plugins of `coola.hashing.hashers`      | Their hashers implement `encode`.                                                                                                                    |
+| Package                                 | Use                                                                                                                     |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `identifier.generate_stable_content_id` | `hash_object(data, registry=get_stable_registry(), length=...)`. Every identifier changes with the format version.      |
+| `identifier.generate_stable_uuid5`      | Hashes at `length=128`, the whole digest.                                                                               |
+| `equality`                              | The property "equal implies same hash" is tested from `tests/properties`; the known gaps are listed in the test matrix. |
+| User code with a custom hasher          | Implements `encode`. A class that cannot be a dataclass defines `__coola_hash__`.                                       |
+| Plugins of `coola.hashing.hashers`      | Their hashers implement `encode`.                                                                                       |
 
 ## Design choices and trade-offs
 

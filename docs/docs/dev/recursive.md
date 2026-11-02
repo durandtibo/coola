@@ -134,14 +134,14 @@ Design points:
 
 ### Built-in transformers
 
-| Transformer                           | `expand(data)`                                                                                                                                                                                                                                          | Default registration                                             |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `DefaultTransformer`                  | `None` (leaf)                                                                                                                                                                                                                                           | `object`, `str`, `UserString`, `int`, `float`, `complex`, `bool` |
-| `IdentityTransformer`                 | `((), lambda _: data)`: no leaf, `func` never called, the value is kept as is (use for a type that must be preserved, or to skip a subtree)                                                                                                             | none                                                             |
-| `SequenceTransformer`                 | `(list(data), lambda xs: rebuild_sequence(data, xs))`                                                                                                                                                                                                   | `list`, `tuple`, `deque`, `Sequence`                             |
-| `SetTransformer`                      | `(list(data), lambda xs: rebuild_set(data, xs))`                                                                                                                                                                                                        | `set`, `frozenset`                                               |
-| `MappingTransformer`                  | `(list(data.values()), lambda xs: rebuild_mapping(data, dict(zip(data, xs))))`                                                                                                                                                                          | `dict`, `Mapping`, `MappingProxyType`                            |
-| `DataclassTransformer`                | `([getattr(data, f.name) for f in fields(data)], lambda xs: clone with the fields set)`                                                                                                                                                                 | fallback: `dataclasses.is_dataclass`                             |
+| Transformer            | `expand(data)`                                                                                                                              | Default registration                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `DefaultTransformer`   | `None` (leaf)                                                                                                                               | `object`, `str`, `UserString`, `int`, `float`, `complex`, `bool` |
+| `IdentityTransformer`  | `((), lambda _: data)`: no leaf, `func` never called, the value is kept as is (use for a type that must be preserved, or to skip a subtree) | none                                                             |
+| `SequenceTransformer`  | `(list(data), lambda xs: rebuild_sequence(data, xs))`                                                                                       | `list`, `tuple`, `deque`, `Sequence`                             |
+| `SetTransformer`       | `(list(data), lambda xs: rebuild_set(data, xs))`                                                                                            | `set`, `frozenset`                                               |
+| `MappingTransformer`   | `(list(data.values()), lambda xs: rebuild_mapping(data, dict(zip(data, xs))))`                                                              | `dict`, `Mapping`, `MappingProxyType`                            |
+| `DataclassTransformer` | `([getattr(data, f.name) for f in fields(data)], lambda xs: clone with the fields set)`                                                     | fallback: `dataclasses.is_dataclass`                             |
 
 The registry API is `TransformerRegistry` with `register`, `register_many`, `find_transformer`,
 `has_transformer`, `get_default_registry` (and its alias `get_default_transformer_registry`) and
@@ -218,13 +218,13 @@ the registry-level entry point and calls the engine.
 
 ## Dependents
 
-| Package                             | Use                                                                                                                                                                                  |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `nested.keys`                       | A private `_KeyTransformer` registered in a copy of the default registry, and `rebuild_mapping`. `recursive` itself never transforms keys.                                           |
-| `nested.flat`                       | A private transformer for the nodes built by `from_flat_dict`.                                                                                                                       |
-| `jsonable`                          | A `TransformerRegistry` on this engine (`ConvertTransformer`, a `SetTransformer` that sorts, ...).                                                                                   |
-| `rounding.round_values(recursive=True)` | A dataclass is entered: its fields are rounded and the instance is rebuilt.                                                                                                      |
-| `iterator`                          | The order of the calls of `func` equals the order of `dfs_iterate` (a property test ties the two); the three traversal packages share the container table.                          |
+| Package                                 | Use                                                                                                                                                        |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nested.keys`                           | A private `_KeyTransformer` registered in a copy of the default registry, and `rebuild_mapping`. `recursive` itself never transforms keys.                 |
+| `nested.flat`                           | A private transformer for the nodes built by `from_flat_dict`.                                                                                             |
+| `jsonable`                              | A `TransformerRegistry` on this engine (`ConvertTransformer`, a `SetTransformer` that sorts, ...).                                                         |
+| `rounding.round_values(recursive=True)` | A dataclass is entered: its fields are rounded and the instance is rebuilt.                                                                                |
+| `iterator`                              | The order of the calls of `func` equals the order of `dfs_iterate` (a property test ties the two); the three traversal packages share the container table. |
 
 ## Design choices and trade-offs
 

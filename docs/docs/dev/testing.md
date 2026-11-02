@@ -102,7 +102,7 @@ Design points:
   would give.
 - **`requires(is_available, name)` is public.** It is the documented way for a downstream suite to
   define its own pair (`dask_available, dask_not_available = requires(package_available("dask"),
-  "Dask")`).
+"Dask")`).
 - `__dir__` returns `__all__` so that completion in an editor shows the marks.
 - **The device marks** (`torch_cuda_*`, `torch_mps_*`, `torch_numpy_*`) are in the table, so a test
   does not rebuild the condition by hand. Without them, the MPS probe (1.2 s) would be paid at the
@@ -120,7 +120,7 @@ Design points:
   `pytestmark = [a, b]` and `pytest.param(marks=...)`. The module `__getattr__` costs 10 lines and keeps
   the property "Standard pytest".
 - **No friendly error for a missing `pytest`.** `import pytest` raises `ModuleNotFoundError: No module
-  named 'pytest'`, which a test author understands at once; the package docstring and the guide name the
+named 'pytest'`, which a test author understands at once; the package docstring and the guide name the
   `testing` extra.
 
 ### `coola.testing.fixtures`
@@ -175,14 +175,14 @@ it contains.
 
 ## Dependents
 
-| Dependent                       | Use                                                                                                                         |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| The test files of the repository | `from coola.testing.marks import numpy_available, ...`                                                                      |
-| `tests/conftest.py`             | `pytest_plugins = ["coola.testing.fixtures"]`.                                                                              |
-| `tests/unit/summary/test_torch.py`, `tests/integration/random/test_torch.py` | `torch_cuda_available` / `torch_mps_available` instead of hand-written conditions.            |
-| `pyproject.toml`                | The comment of the `testing` extra names the modules. The import-linter contract (`coola.testing` is forbidden for the library) keeps `pytest` out of the library. |
-| `tests/TESTING_GUIDE.md`        | Documents the marks and the fixture.                                                                                        |
-| Downstream suites               | Import the marks from `coola.testing.marks` and load the fixtures with `pytest_plugins`.                                    |
+| Dependent                                                                    | Use                                                                                                                                                                |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| The test files of the repository                                             | `from coola.testing.marks import numpy_available, ...`                                                                                                             |
+| `tests/conftest.py`                                                          | `pytest_plugins = ["coola.testing.fixtures"]`.                                                                                                                     |
+| `tests/unit/summary/test_torch.py`, `tests/integration/random/test_torch.py` | `torch_cuda_available` / `torch_mps_available` instead of hand-written conditions.                                                                                 |
+| `pyproject.toml`                                                             | The comment of the `testing` extra names the modules. The import-linter contract (`coola.testing` is forbidden for the library) keeps `pytest` out of the library. |
+| `tests/TESTING_GUIDE.md`                                                     | Documents the marks and the fixture.                                                                                                                               |
+| Downstream suites                                                            | Import the marks from `coola.testing.marks` and load the fixtures with `pytest_plugins`.                                                                           |
 
 ## Not covered
 

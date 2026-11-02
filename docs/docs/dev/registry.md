@@ -117,12 +117,12 @@ def _lookup(self, dtype):
 
 `TypeRegistry._fallbacks` is a `dict[Callable[[type], bool], V]`, replaced on write like `_state`.
 
-| Method                                                     | Behaviour                                                                                                                                     |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Method                                                     | Behaviour                                                                                                                                 |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `register_fallback(predicate, handler, *, exist_ok=False)` | Appends the pair. A predicate already registered raises `AlreadyRegisteredError` (`exist_ok=True` replaces it, and its position is kept). |
-| `unregister_fallback(predicate) -> handler`                | Removes the pair and returns the handler; `KeyNotRegisteredError` (a `KeyError`) if absent.                                                   |
-| `fallbacks() -> ItemsView`                                 | The `(predicate, handler)` pairs in order, as a snapshot.                                                                                     |
-| `clear()`                                                  | Removes the types, the fallbacks and the pending lazy groups. `copy()` and `repr` include the fallbacks.                                      |
+| `unregister_fallback(predicate) -> handler`                | Removes the pair and returns the handler; `KeyNotRegisteredError` (a `KeyError`) if absent.                                               |
+| `fallbacks() -> ItemsView`                                 | The `(predicate, handler)` pairs in order, as a snapshot.                                                                                 |
+| `clear()`                                                  | Removes the types, the fallbacks and the pending lazy groups. `copy()` and `repr` include the fallbacks.                                  |
 
 The dataclass rule of each package is one registration in its `get_default_registry`:
 
@@ -235,15 +235,15 @@ keyword-only everywhere.
 
 ## Dependents
 
-| Package / file                                | Use                                                                                                                                                       |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Package / file                                | Use                                                                                                                                                                                  |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `equality/tester/registry.py`, `interface.py` | `EqualityTesterRegistry(TypeRegistry[...])`; the default registry registers the dataclass tester as a fallback on `has_generated_dataclass_eq`. `find_equality_tester` is `resolve`. |
 | `hashing/registry.py`, `interface.py`         | `HasherRegistry(TypeRegistry[...])`; the enum rule is `_find_enum_hasher`; `hash` calls the engine. The fallbacks are `dataclasses.is_dataclass` and the `__coola_hash__` predicate. |
-| `summary`, `iterator`, `recursive`            | The same shape, with `dataclasses.is_dataclass` as the predicate of the dataclass fallback.                                                              |
-| `jsonable`                                    | `TransformerRegistry` of `recursive`; a dataclass is entered through the fallback.                                                                       |
-| `random/registry.py`                          | `RandomManagerRegistry(Registry[str, BaseRandomManager], BaseRandomManager)`: a registry keyed by name, not by type.                                      |
-| `utils/singleton.py`, `testing/registries.py` | `temporary_default_registries` uses `copy()`; a copy contains the fallbacks.                                                                              |
-| `pyproject.toml` (import-linter)              | `registry` is a core package: it imports no feature package.                                                                                              |
+| `summary`, `iterator`, `recursive`            | The same shape, with `dataclasses.is_dataclass` as the predicate of the dataclass fallback.                                                                                          |
+| `jsonable`                                    | `TransformerRegistry` of `recursive`; a dataclass is entered through the fallback.                                                                                                   |
+| `random/registry.py`                          | `RandomManagerRegistry(Registry[str, BaseRandomManager], BaseRandomManager)`: a registry keyed by name, not by type.                                                                 |
+| `utils/singleton.py`, `testing/registries.py` | `temporary_default_registries` uses `copy()`; a copy contains the fallbacks.                                                                                                         |
+| `pyproject.toml` (import-linter)              | `registry` is a core package: it imports no feature package.                                                                                                                         |
 
 ## Design choices and trade-offs
 

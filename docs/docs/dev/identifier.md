@@ -245,14 +245,14 @@ Options are keyword-only (`timestamp_ms`, `timestamp_s`, `worker_id`, `length`, 
 The package deliberately has no generator for a one-line wrapper of the standard library or for a
 primitive that looks like encryption. What to use instead:
 
-| Need                         | Use                                                                            |
-| ---------------------------- | ------------------------------------------------------------------------------ |
-| a random UUID4               | `str(uuid.uuid4())`                                                            |
-| a random URL-safe string     | `secrets.token_urlsafe(16)`, or `"".join(secrets.choice(a) for _ in range(n))` |
-| a prefixed identifier        | `f"cus_{generate_ulid()}"`                                                     |
-| an opaque public identifier  | a library made for it (`sqids`), or a keyed permutation; never an affine map   |
-| a Snowflake identifier       | `SnowflakeIdGenerator(worker_id=...)` created once per process                 |
-| a deterministic ObjectId     | `generate_object_id(timestamp_s=...)`                                          |
+| Need                        | Use                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| a random UUID4              | `str(uuid.uuid4())`                                                            |
+| a random URL-safe string    | `secrets.token_urlsafe(16)`, or `"".join(secrets.choice(a) for _ in range(n))` |
+| a prefixed identifier       | `f"cus_{generate_ulid()}"`                                                     |
+| an opaque public identifier | a library made for it (`sqids`), or a keyed permutation; never an affine map   |
+| a Snowflake identifier      | `SnowflakeIdGenerator(worker_id=...)` created once per process                 |
+| a deterministic ObjectId    | `generate_object_id(timestamp_s=...)`                                          |
 
 An obfuscated identifier (an affine permutation of an integer) looks like encryption, leaks the parity
 and is broken by two pairs, so it needs a long list of caveats; a user who needs an opaque public
@@ -260,19 +260,19 @@ identifier should get one from a library made for it.
 
 ## Dependents
 
-| Where                                                             | Use                                                                                                          |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Where                                                             | Use                                                                                                                     |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `tests/unit/hashing/test_golden.py`, `tests/integration/hashing/` | They use the stable identifiers, which keep their values. `test_content.py` has golden vectors for the two identifiers. |
 
 ## Design choices and trade-offs
 
-| Choice                                                                                      | Reason                                                                   |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Keep the stable identifiers, the four time-ordered formats and the checksummed identifier   | hard to write correctly and safe                                         |
-| The clock rule never raises or blocks                                                       | a burst or a backward step costs accuracy, never order or uniqueness     |
-| ObjectId: 4 bytes of seconds and a 64-bit incremented random counter                        | strictly increasing within a process, fork-safe through the engine       |
-| `SnowflakeIdGenerator(*, worker_id)`, no module-level function                              | the wrong code (a shared `worker_id`) does not exist                     |
-| Checksummed identifier with rejection sampling                                              | the output is usable in a shell, a URL and a spreadsheet                 |
+| Choice                                                                                    | Reason                                                               |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Keep the stable identifiers, the four time-ordered formats and the checksummed identifier | hard to write correctly and safe                                     |
+| The clock rule never raises or blocks                                                     | a burst or a backward step costs accuracy, never order or uniqueness |
+| ObjectId: 4 bytes of seconds and a 64-bit incremented random counter                      | strictly increasing within a process, fork-safe through the engine   |
+| `SnowflakeIdGenerator(*, worker_id)`, no module-level function                            | the wrong code (a shared `worker_id`) does not exist                 |
+| Checksummed identifier with rejection sampling                                            | the output is usable in a shell, a URL and a spreadsheet             |
 
 **How much of the package exists.** The rule is "a generator stays if it is hard to write correctly and
 safe". A UUID4, a prefixed identifier or a nano ID is a line of the standard library and would cost a
