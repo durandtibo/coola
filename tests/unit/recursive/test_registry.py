@@ -16,7 +16,7 @@ from coola.recursive import (
     get_default_registry,
 )
 from coola.registry import AlreadyRegisteredError
-from tests.helpers import nest
+from tests.helpers import nest, unnest_list
 
 if TYPE_CHECKING:
     from coola.recursive.base import Transformer
@@ -303,7 +303,7 @@ def test_transformer_registry_transform_works_after_a_cycle(registry: Transforme
 
 
 def test_transformer_registry_transform_deep_structure(registry: TransformerRegistry) -> None:
-    assert registry.transform(nest(1, 5000), str) == nest("1", 5000)
+    assert unnest_list(registry.transform(nest(1, 5000), str)) == ("1", 5000)
 
 
 def test_transformer_registry_find_transformer_dataclass_uses_the_fallback() -> None:
