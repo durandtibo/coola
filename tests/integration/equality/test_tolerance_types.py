@@ -13,7 +13,6 @@ from types import MappingProxyType
 from typing import Any
 from unittest.mock import Mock
 
-import numpy as np
 import pytest
 
 from coola.equality import compare, objects_are_allclose, objects_are_equal
@@ -25,11 +24,17 @@ from coola.testing.marks import (
     torch_available,
 )
 from coola.utils.imports import (
+    is_numpy_available,
     is_pandas_available,
     is_polars_available,
     is_pyarrow_available,
     is_torch_available,
 )
+
+if is_numpy_available():
+    import numpy as np
+else:  # pragma: no cover
+    np = Mock()
 
 if is_pandas_available():
     import pandas as pd

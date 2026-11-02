@@ -308,6 +308,7 @@ def test_importing_the_fixtures_does_not_import_the_packages() -> None:
     assert run_python(code) == ["False", "False", "False", "False"]
 
 
+@numpy_available
 def test_accessing_a_marker_imports_only_what_it_needs() -> None:
     code = (
         "import sys; from coola.testing.marks import numpy_available; "

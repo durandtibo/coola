@@ -838,6 +838,7 @@ def test_flatten_frame_two_lists_of_structs_with_same_lengths() -> None:
     )
 
 
+@polars_available
 def test_expand_list_columns_existing_column_raises() -> None:
     frame = pl.DataFrame(
         {"l": [[1, 2], [3]], "l.0": [9, 9]},
