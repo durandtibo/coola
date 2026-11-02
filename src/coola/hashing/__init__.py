@@ -65,7 +65,7 @@ __all__ = [
     "tagged",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.hashing.base import BaseHasher, Hasher, Node, digest, tagged
 from coola.hashing.datetime import DatetimeHasher
@@ -86,6 +86,8 @@ from coola.hashing.set import SetHasher
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.hashing.jax import JaxArrayHasher
     from coola.hashing.numpy import NumpyArrayHasher
     from coola.hashing.pandas import PandasDataFrameHasher, PandasSeriesHasher
@@ -113,4 +115,6 @@ _LAZY_EXPORTS = {
     "SecretHasher": "coola.hashing.pydantic",
     "get_secret_hashers": "coola.hashing.pydantic",
 }
+__getattr__: Callable[[str], Any]
+__dir__: Callable[[], list[str]]
 __getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())

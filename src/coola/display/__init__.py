@@ -23,7 +23,7 @@ __all__ = [
     "str_pydantic_model",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.display.mixin import (
     BaseDisplayMixin,
@@ -33,6 +33,8 @@ from coola.display.mixin import (
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.display.pydantic import repr_pydantic_model, str_pydantic_model
 
 
@@ -42,4 +44,6 @@ _LAZY_EXPORTS = {
     "repr_pydantic_model": "coola.display.pydantic",
     "str_pydantic_model": "coola.display.pydantic",
 }
+__getattr__: Callable[[str], Any]
+__dir__: Callable[[], list[str]]
 __getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())

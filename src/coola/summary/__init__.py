@@ -63,7 +63,7 @@ __all__ = [
     "summarize",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.summary.base import BaseSummarizer, Node, Summarizer
 from coola.summary.config import SummaryConfig
@@ -83,6 +83,8 @@ from coola.summary.set import SetSummarizer
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.summary.jax import JaxArraySummarizer
     from coola.summary.numpy import NDArraySummarizer
     from coola.summary.pandas import PandasDataFrameSummarizer, PandasSeriesSummarizer
@@ -119,4 +121,6 @@ _LAZY_EXPORTS = {
     "XarrayDatasetSummarizer": "coola.summary.xarray",
     "XarrayVariableSummarizer": "coola.summary.xarray",
 }
+__getattr__: Callable[[str], Any]
+__dir__: Callable[[], list[str]]
 __getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())

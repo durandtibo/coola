@@ -21,9 +21,12 @@ __all__ = [
     "get_console",
 ]
 
-from typing import Any
+from typing import TYPE_CHECKING, Any, Never
 
 from coola.utils.fallback.factory import make_fake_class, make_fake_function
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 FakeClass: type = make_fake_class("rich")
 
@@ -39,7 +42,7 @@ TaskProgressColumn = FakeClass
 TextColumn = FakeClass
 TimeElapsedColumn = FakeClass
 TimeRemainingColumn = FakeClass
-get_console = make_fake_function("rich")
+get_console: Callable[..., Never] = make_fake_function("rich")
 
 # The boxes are not called, they are passed to ``Panel``, which raises the error.
 MINIMAL: Any = None
