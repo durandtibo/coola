@@ -1,0 +1,3473 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://durandtibo.github.io/coola/main/dev/summary/">
+      
+      
+        <link rel="prev" href="../rounding/">
+      
+      
+        <link rel="next" href="../testing/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>Architecture of coola.summary - coola</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture-of-coolasummary" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+  You're not viewing the latest version.
+  <a href="../../..">
+    <strong>Click here to go to latest.</strong>
+  </a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),base=new URL("../.."),outdated=__md_get("__outdated",sessionStorage,base);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="coola" class="md-header__button md-logo" aria-label="coola" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            coola
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture of coola.summary
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/durandtibo/coola" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    durandtibo/coola
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../get_started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Get Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../uguide/display/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../development/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../migration/v0.11_to_v1.0/" class="md-tabs__link">
+          
+  
+  
+  Migration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../refs/display/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://github.com/durandtibo/coola" class="md-tabs__link">
+        
+  
+  
+    
+  
+  GitHub
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="coola" class="md-nav__button md-logo" aria-label="coola" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    coola
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/durandtibo/coola" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    durandtibo/coola
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Get Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Display Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/equality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equality Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/equality_tester/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equality Testers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/extending/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Add Support for a New Type
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/factory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Factory Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/formatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formatting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/hashing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hashing Objects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/identifier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Identifiers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Loaders and Savers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterating Over Nested Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/jsonable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Converting Data to JSON
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/nested/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working with Nested Data Structures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/nested_data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nested Data and Leaves
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/random/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Random Number Generator Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/recursive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recursive Data Transformation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/reducer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reducing Sequences
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/rounding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rounding Values
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Summarizing Nested Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utility Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture and Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.display
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../equality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.equality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../factory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.factory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../formatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.formatting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hashing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.hashing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../identifier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.identifier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.io
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jsonable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.jsonable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nested/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.nested
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../random/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.random
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recursive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.recursive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reducer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.reducer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rounding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.rounding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.summary
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-in-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture in detail
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture in detail">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-summarizer-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The summarizer contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-compact-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The compact form
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-layout-of-the-text" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The layout of the text
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#built-in-summarizers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in summarizers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#not-covered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not covered
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../add_backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Add Support for a New Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Migration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/v0.11_to_v1.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Guide: v0.11 to v1.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/v1.1_to_v2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Guide: v1.1 to v2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Display
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/equality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/factory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Factory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/formatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formatting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/hashing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hashing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/identifier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Identifier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Io
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/jsonable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jsonable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/nested/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nested
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/random/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Random
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/recursive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recursive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/reducer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reducer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/rounding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rounding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/durandtibo/coola" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-in-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture in detail
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture in detail">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-summarizer-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The summarizer contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-compact-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The compact form
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-layout-of-the-text" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The layout of the text
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#built-in-summarizers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in summarizers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#not-covered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not covered
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture-of-coolasummary">Architecture of <code>coola.summary</code><a class="headerlink" href="#architecture-of-coolasummary" title="Permanent link">&para;</a></h1>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.summary</code> package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the <a href="../../uguide/summary/#properties">user guide</a>; the API is in the <a href="../../refs/summary/">reference</a>.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p><code>summarize</code> uses one engine (<code>coola.summary.engine</code>), one extension point and one option object
+(<code>SummaryConfig</code>). A summarizer only describes one type: <code>summarize(data, config, *, compact)</code>
+returns a <code>str</code> for a leaf, or a <code>Node</code> (a header, the lazy <code>(label, child)</code> pairs and their number)
+for a container. The engine owns the invariants: the summarizer lookup (by MRO), the display depth,
+<code>max_items</code> and <code>max_characters</code>, the cycle check, the layout, and the errors (a summarizer that
+raises is replaced by a placeholder). It walks the nodes with an explicit stack, so there is no
+<code>RecursionError</code>. A container at the display depth is shown on one line by <code>CompactRepr</code>, whose work
+is bounded by <code>max_items</code>, so the cost depends on the size of the summary and not on the size of the
+data. This is the same split as the equality and the recursive engines.</p>
+<h2 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Simple and easy to maintain.</strong> The package is 2,397 lines and 4,020 lines of unit tests for one
+   function. The target removes the code that exists only to work around the design (the three
+   <code>_get_preview</code>, the translation of <code>RecursionError</code>, the constructors, <code>__repr__</code> and <code>equal</code> of
+   every summarizer, the three base classes of the metadata summarizers) instead of adding code next
+   to it.</li>
+<li><strong>Major release.</strong> Breaking changes are fine and compatibility is not a design input: no adapter,
+   no alias, no deprecation period. The deprecated positional options are removed. The release notes
+   list the changes, including the new layout of the text.</li>
+<li><strong>Not slower where it matters.</strong> <code>summarize</code> is called to build a log line. Small inputs (tens of
+   microseconds) may cost a little more for the fixed cost of the engine, but a huge input must not
+   cost more than a small one.</li>
+<li><strong>Consistent with the siblings.</strong> Same engine shape as <code>equality</code> (the engine owns the invariants,
+   a plugin describes one type), same registry, same option rules as <code>recursive</code> and <code>equality</code>
+   (keyword-only, validated, one frozen config).</li>
+<li><strong>Optional libraries stay lazy.</strong> The package imports no optional library with
+   <code>import coola.summary</code>; the summarizers of NumPy, torch, pandas, ... are loaded the first time the
+   registry needs a type of the library (<code>register_lazy</code>, as before). The plugin group
+   <code>coola.summary.summarizers</code> is kept.</li>
+</ol>
+<h2 id="architecture-in-detail">Architecture in detail<a class="headerlink" href="#architecture-in-detail" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>summarize(data, *, max_depth=1, max_items=5, max_characters=1000, show_data=False, registry=None)
+        |   one SummaryConfig (frozen, validated), one registry (default: the singleton)
+        v
+render(data, registry, config)                coola/summary/engine.py   (about 70 lines)
+        |   explicit stack of frames; ids of the nodes being expanded; lines are appended once
+        |
+        |-- summarizer = registry.find_summarizer(type(obj))            MRO, DataclassMarker
+        |-- result     = summarizer.summarize(obj, config, compact=...)  pure, no recursion
+        |        str                        -&gt; a leaf: the text, cut at max_characters
+        |        Node(header, children, n)  -&gt; a container:
+        |              compact (depth &gt;= max_depth)  one bounded line (CompactRepr)
+        |              already open (cycle)          "&lt;cycle&gt;"
+        |              otherwise                     header, then at most max_items children,
+        |                                            then "... (+N more)"
+        |-- an exception of the summarizer or of the children iterator -&gt; a placeholder line
+        v
+the text (lines joined once)
+</code></pre></div>
+<p>The engine owns the invariants (bounded output, bounded work, depth, cycles, totality, layout). A
+summarizer <strong>only describes one type</strong>: a string for a leaf, or a header and lazy children for a
+container. That is the same split as <code>equality</code> (the engine owns identity, type, depth and cycles; a
+tester returns a verdict or the child pairs) and as <code>recursive</code> (a transformer returns the children).
+<code>registry</code>, <code>depth</code> and <code>max_depth</code> are no longer arguments of the summarizer, so a summarizer
+cannot forget a protection and cannot recurse.</p>
+<h3 id="the-summarizer-contract">The summarizer contract<a class="headerlink" href="#the-summarizer-contract" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">:</span>
+    <span class="n">header</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># the first line: "&lt;class 'list'&gt; (length=3)"</span>
+    <span class="n">children</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>  <span class="c1"># lazy (label, child) pairs, in display order</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># the number of children, to announce "... (+N more)"</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Summarizer</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">T_contra</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summarize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">T_contra</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">SummaryConfig</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">compact</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Node</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""A string (a leaf) or a ``Node`` (a container)."""</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseSummarizer</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>  <span class="c1"># convenience base class, as before</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summarize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">T</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">SummaryConfig</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">compact</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Node</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">equal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>  <span class="c1"># concrete: same type (all the built-ins are stateless)</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+<p>Rules of the contract (documented in <code>BaseSummarizer</code>, checked by one parametrised unit test over the
+default registry, like <code>NATIVE_SAMPLES</code> in <code>equality</code>):</p>
+<ol>
+<li><code>summarize</code> is pure and cheap: it does not call the registry, does not recurse, does not modify
+   <code>data</code>, and does not iterate the whole data. For a container it reads <code>len(data)</code> and returns the
+   children <strong>lazily</strong> (<code>enumerate(data)</code>, <code>data.items()</code>, a generator): the engine takes at most
+   <code>max_items</code> of them. A set is the exception: it returns the smallest <code>max_items</code> items.</li>
+<li><code>compact</code> is <code>True</code> when the node is at the display depth. A leaf may use it (the default summarizer
+   shows the type only when <code>compact</code> is <code>False</code>); a container ignores it (the engine uses
+   <code>CompactRepr</code>).</li>
+<li>A leaf returns a <code>str</code>, which may have several lines. The engine cuts it at <code>max_characters</code>, so a
+   leaf does not have to.</li>
+<li>Labels are anything: the engine writes <code>safe_str(label)</code> cut at <code>max_characters</code>.</li>
+<li>An exception (of <code>summarize</code>, of the children iterator, of a label's <code>str</code>) is the engine's
+   problem: it prints a placeholder, the summarizer does not guard itself.</li>
+</ol>
+<p><code>Node</code> is a dataclass and not a tuple so that the contract is readable and a later field (for example
+a closing line) can be added without breaking the plugins.</p>
+<h3 id="the-config">The config<a class="headerlink" href="#the-config" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SummaryConfig</span><span class="p">:</span>  <span class="c1"># shareable, hashable, thread-safe; validated in __post_init__</span>
+    <span class="n">max_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># non-negative int, not a bool</span>
+    <span class="n">max_items</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># non-negative int, or None for no limit</span>
+    <span class="n">max_characters</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">1000</span>  <span class="c1"># non-negative int, or None for no limit</span>
+    <span class="n">show_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># metadata summarizers show a bounded repr of the values</span>
+</code></pre></div>
+<p>All the options of the package are here, in one place, with one validation. <code>None</code> replaces the
+negative sentinel (<code>-1</code> was "no limit" for <code>max_items</code> and <code>max_characters</code> but <code>max_depth=-1</code> was an
+error). <code>num_spaces</code> and <code>max_fields</code> are deleted (decisions D2, D7).</p>
+<h3 id="the-engine">The engine<a class="headerlink" href="#the-engine" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">INDENT</span> <span class="o">=</span> <span class="s2">"  "</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">registry</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ancestors</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># ids of the nodes being expanded</span>
+    <span class="n">stack</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frame</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># Frame: children iterator, depth, total, shown, id</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">cut</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>  <span class="c1"># the character limit, for a leaf and for a label</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">max_characters</span>
+        <span class="k">return</span> <span class="n">text</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">n</span> <span class="k">else</span> <span class="n">text</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span> <span class="o">+</span> <span class="s2">"..."</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">visit</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">depth</span><span class="p">):</span>
+        <span class="n">compact</span> <span class="o">=</span> <span class="n">depth</span> <span class="o">&gt;=</span> <span class="n">config</span><span class="o">.</span><span class="n">max_depth</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">INDENT</span> <span class="o">*</span> <span class="n">depth</span>
+        <span class="n">head</span> <span class="o">=</span> <span class="n">prefix</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">cut</span><span class="p">(</span><span class="n">safe_str</span><span class="p">(</span><span class="n">label</span><span class="p">))</span><span class="si">}</span><span class="s2">): "</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">find_summarizer</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">compact</span><span class="o">=</span><span class="n">compact</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Node</span><span class="p">):</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">cut</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">compact</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">CompactRepr</span><span class="p">(</span><span class="n">config</span><span class="p">)</span><span class="o">.</span><span class="n">repr</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>  <span class="c1"># one bounded line</span>
+            <span class="k">elif</span> <span class="nb">id</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ancestors</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="s2">"&lt;cycle&gt;"</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">header</span>
+                <span class="n">ancestors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+                <span class="n">children</span> <span class="o">=</span> <span class="n">islice</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">children</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">max_items</span><span class="p">)</span>
+                <span class="n">stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Frame</span><span class="p">(</span><span class="n">children</span><span class="p">,</span> <span class="n">depth</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">total</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="n">obj</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># the data is broken, not the summary</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2"> &lt;summary failed: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&gt;"</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">head</span> <span class="o">+</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">INDENT</span><span class="p">))</span>
+
+    <span class="n">visit</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">stack</span><span class="p">:</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">label</span><span class="p">,</span> <span class="n">child</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="n">stack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">ancestors</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">frame</span><span class="o">.</span><span class="n">total</span> <span class="o">&gt;</span> <span class="n">frame</span><span class="o">.</span><span class="n">shown</span><span class="p">:</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">INDENT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">frame</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2">... (+</span><span class="si">{</span><span class="n">frame</span><span class="o">.</span><span class="n">total</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">frame</span><span class="o">.</span><span class="n">shown</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> more)"</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># a property that raises, a broken __iter__</span>
+            <span class="n">frame</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(())</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">INDENT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">frame</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2">&lt;summary failed: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&gt;"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">frame</span><span class="o">.</span><span class="n">shown</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">visit</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">frame</span><span class="o">.</span><span class="n">depth</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+</code></pre></div>
+<p>Design points:</p>
+<ul>
+<li><strong>No <code>RecursionError</code>, no thread-local, no lock.</strong> The state (stack, ancestors, lines) is local to
+  the call. <code>raise_recursion_limit_error</code> is not used by the package any more, and the <code>RecursionError</code>
+  paragraphs of the docstrings and of the guide are deleted.</li>
+<li><strong><code>summarize</code> of a container runs at the boundary too.</strong> It is cheap by contract (rule 1), and it
+  keeps the engine free of a "is this a container?" question that only the summarizer can answer.</li>
+<li><strong>The cycle check is on the open nodes only</strong> (<code>ancestors</code>), so a DAG is not reported as a cycle, and
+  a leaf (a string, an array) never enters the set.</li>
+<li><strong>The layout is one rule</strong>: a node at depth <code>d</code> is written with <code>2 * d</code> spaces, and a text with
+  several lines is aligned under its first character. Nothing is re-indented.</li>
+<li><strong>A failure is local.</strong> A node that fails prints its type and the exception name (never the message,
+  which may carry data) and the rest of the summary is intact.</li>
+</ul>
+<h3 id="the-compact-form">The compact form<a class="headerlink" href="#the-compact-form" title="Permanent link">&para;</a></h3>
+<p>The compact form is what the engine prints for a container at the display depth: <strong>one line, with
+bounded work</strong>. It is a <code>reprlib.Repr</code> configured from the config and with two overrides:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CompactRepr</span><span class="p">(</span><span class="n">reprlib</span><span class="o">.</span><span class="n">Repr</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxlevel</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxlist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxtuple</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxdict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxset</span> <span class="o">=</span> <span class="o">...</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">max_items</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxstring</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxother</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">max_characters</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">repr_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>  <span class="c1"># keeps the insertion order: reprlib sorts the keys</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">repr_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>  <span class="c1"># the smallest items, as SetSummarizer (reprlib sorts everything)</span>
+        <span class="o">...</span>
+</code></pre></div>
+<ul>
+<li><code>list</code>, <code>tuple</code>, <code>deque</code>, <code>dict</code>, <code>set</code>, <code>frozenset</code> and <code>array</code> are cut at <code>max_items</code>
+  (<code>[0, 1, 2, 3, 4, ...]</code>) in <code>O(max_items)</code>, nested containers are cut at 3 levels (<code>[...]</code>), and a
+  string is shortened in the middle (<code>'abc...xyz'</code>). This replaces <code>_get_preview</code> ×3, <code>_first_items</code>
+  and <code>safe_str(data)</code> of .</li>
+<li>Any other type (a subclass such as <code>Counter</code>, a dataclass, an array) is shown with its <code>repr</code>, cut
+  at <code>max_characters</code>. It is computed in full, which is the documented exception of "Bounded work".</li>
+<li>It is built only when a container is at the boundary (lazy), so a flat summary pays nothing.</li>
+<li>Fast path (required by the benchmark of the appendix): a container with at most <code>max_items</code> scalar
+  entries is shown with <code>repr()</code> directly, because <code>reprlib</code> is slower than <code>repr</code> on small
+  containers.</li>
+</ul>
+<p>The alternative that was considered, "header only" (<code>&lt;class 'list'&gt; (length=100) ...</code>), is bounded
+and needs no <code>reprlib</code>, but it hides the content of a small nested configuration, which is the most
+common use of the default <code>max_depth=1</code>.</p>
+<h3 id="the-layout-of-the-text">The layout of the text<a class="headerlink" href="#the-layout-of-the-text" title="Permanent link">&para;</a></h3>
+<p>Rules (the examples are the output of the prototype):</p>
+<div class="highlight"><pre><span></span><code>&gt;&gt;&gt; from coola.summary import summarize
+&gt;&gt;&gt; print(summarize({"a": [1, 2, 3, 4, 5, 6, 7], "b": {"c": {1, 2}, "d": "x\ny"}}, max_depth=3))
+&lt;class 'dict'&gt; (length=2)
+  (a): &lt;class 'list'&gt; (length=7)
+    (0): &lt;class 'int'&gt; 1
+    (1): &lt;class 'int'&gt; 2
+    (2): &lt;class 'int'&gt; 3
+    (3): &lt;class 'int'&gt; 4
+    (4): &lt;class 'int'&gt; 5
+    ... (+2 more)
+  (b): &lt;class 'dict'&gt; (length=2)
+    (c): &lt;class 'set'&gt; (length=2)
+      (0): 1
+      (1): 2
+    (d): &lt;class 'str'&gt; x
+      y
+&gt;&gt;&gt; print(summarize([1, "a", [1, 2]]))           # max_depth=1: the items are on one line
+&lt;class 'list'&gt; (length=3)
+  (0): 1
+  (1): a
+  (2): [1, 2]
+&gt;&gt;&gt; a = [1]; a.append(a); print(summarize(a, max_depth=3))
+&lt;class 'list'&gt; (length=2)
+  (0): &lt;class 'int'&gt; 1
+  (1): &lt;cycle&gt;
+</code></pre></div>
+<ul>
+<li>A node is <code>header</code>, then its children one level deeper, then <code>... (+N more)</code> if some are not shown.
+  An empty container is its header alone: <code>&lt;class 'list'&gt; (length=0)</code>.</li>
+<li>A child is <code>(label): text</code>. The label of a sequence or a set is the position, of a mapping the <code>str</code>
+  of the key, of a dataclass or a pydantic model the field name, of a named tuple the field name
+  .</li>
+<li><strong>The type is shown for the nodes that are expanded and for their leaves; the boundary shows
+  values.</strong> A leaf shows <code>&lt;class 'int'&gt; 1</code> when <code>compact</code> is <code>False</code> and <code>1</code> when it is <code>True</code>. This
+  is the previous rule, kept: <code>summarize(42)</code> is <code>&lt;class 'int'&gt; 42</code>, and the items of
+  <code>summarize([1, "a"])</code> are bare because they are at the display depth.</li>
+<li>A metadata summarizer always shows its type: <code>&lt;class 'numpy.ndarray'&gt; | shape=(3,) | dtype=float64</code>.</li>
+<li>Indentation is a fixed 2 spaces per level.</li>
+</ul>
+<p>Differences with the previous version, to list in the release notes: the nested levels are indented by 2 (not 4),
+the marker of the hidden entries is <code>... (+N more)</code> (was <code>...</code>), an empty container is
+<code>(length=0)</code> (was <code>&lt;class 'list'&gt; []</code>), a list at the boundary is <code>[0, 1, 2, 3, 4, ...]</code> (was
+<code>[0, 1, 2, 3, 4] ...</code>), a dict at the boundary keeps its order but a <code>Counter</code> or other subclass is
+its <code>repr</code>, and <code>num_spaces</code> is gone.</p>
+<h3 id="built-in-summarizers">Built-in summarizers<a class="headerlink" href="#built-in-summarizers" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Summarizer</th>
+<th><code>summarize(data, config, compact=...)</code></th>
+<th>Default registration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DefaultSummarizer</code></td>
+<td><code>safe_str(data)</code>, preceded by <code>&lt;class ...&gt;</code> unless <code>compact</code>; a leaf</td>
+<td><code>object</code>, <code>UserString</code></td>
+</tr>
+<tr>
+<td><code>SequenceSummarizer</code></td>
+<td><code>Node("&lt;type&gt; (length=n)", enumerate(data), n)</code> (the field names for a named tuple)</td>
+<td><code>list</code>, <code>tuple</code>, <code>deque</code>, <code>Sequence</code></td>
+</tr>
+<tr>
+<td><code>SetSummarizer</code></td>
+<td><code>Node("&lt;type&gt; (length=n)", enumerate(smallest(data, config.max_items)), n)</code></td>
+<td><code>set</code>, <code>frozenset</code></td>
+</tr>
+<tr>
+<td><code>MappingSummarizer</code></td>
+<td><code>Node("&lt;type&gt; (length=n)", data.items(), n)</code></td>
+<td><code>dict</code>, <code>Mapping</code>, <code>MappingProxyType</code></td>
+</tr>
+<tr>
+<td><code>DataclassSummarizer</code></td>
+<td><code>Node("&lt;type&gt; (fields=n)", ((f.name, getattr(data, f.name)) for f in fields(data) if f.repr), n)</code></td>
+<td><code>DataclassMarker</code></td>
+</tr>
+<tr>
+<td><code>PydanticModelSummarizer</code></td>
+<td>the same with <code>model_fields</code> without the secrets, plus <code>model_extra</code></td>
+<td><code>pydantic.BaseModel</code> (lazy)</td>
+</tr>
+<tr>
+<td><code>NDArraySummarizer</code>, <code>TensorSummarizer</code>, <code>JaxArraySummarizer</code>, <code>Pandas*</code>, <code>Polars*</code>, <code>Pyarrow*</code>, <code>Xarray*</code></td>
+<td><code>" \| ".join([type, *self._describe(data, config)])</code>, or <code>safe_repr(data)</code> if <code>config.show_data</code></td>
+<td>by library (lazy), as before</td>
+</tr>
+</tbody>
+</table>
+<p>Container summarizers are three one-line classes on a common helper; the dataclass and pydantic
+summarizers share <code>BaseObjectFieldsSummarizer</code> (one abstract method <code>_get_fields</code>). All of them are
+stateless: no constructor, no <code>__repr__</code>, no <code>equal</code>, no <code>InlineDisplayMixin</code>.</p>
+<p>The metadata base class keeps one job: <code>BaseMetadataSummarizer</code> (<code>_describe(data, config)</code> returns the
+fields, <code>_check_dependencies</code> raises <code>MissingPackageError</code> at construction if the library is
+missing). <code>BaseFieldsSummarizer</code> is deleted: the summarizers of frames and tables call
+<code>format_fields(items, config.max_items)</code> (<code>a: int64, b: float64, ... (+3 more)</code>) themselves.</p>
+<p>Removed from the default registry: <code>str</code>, <code>int</code>, <code>float</code>, <code>complex</code>, <code>bool</code> (resolved through <code>object</code>,
+the comment of <code>_get_native_summarizers</code> says so). Added: <code>UserString</code> and <code>MappingProxyType</code>.
+Kept as they are: <code>get_default_registry</code>, <code>get_default_summarizer_registry</code> (alias),
+<code>register_summarizers</code>, the plugin group.</p>
+<p>The extension example of the guide becomes:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">PointSummarizer</span><span class="p">(</span><span class="n">BaseSummarizer</span><span class="p">[</span><span class="n">Point</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summarize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">compact</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"Point(x=</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">x</span><span class="si">}</span><span class="s2">, y=</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">y</span><span class="si">}</span><span class="s2">)"</span>  <span class="c1"># a leaf</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">NodeSummarizer</span><span class="p">(</span><span class="n">BaseSummarizer</span><span class="p">[</span><span class="n">Tree</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summarize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">compact</span><span class="p">):</span>  <span class="c1"># a container</span>
+        <span class="k">return</span> <span class="n">Node</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> (children=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+            <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">children</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">children</span><span class="p">),</span>
+        <span class="p">)</span>
+
+
+<span class="n">register_summarizers</span><span class="p">({</span><span class="n">Point</span><span class="p">:</span> <span class="n">PointSummarizer</span><span class="p">(),</span> <span class="n">Tree</span><span class="p">:</span> <span class="n">NodeSummarizer</span><span class="p">()})</span>
+</code></pre></div>
+<h2 id="public-api">Public API<a class="headerlink" href="#public-api" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">coola.summary</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">summarize</span><span class="p">,</span>  <span class="c1"># (data, *, max_depth=1, max_items=5, max_characters=1000, show_data=False, registry=None)</span>
+    <span class="n">SummaryConfig</span><span class="p">,</span>
+    <span class="n">SummarizerRegistry</span><span class="p">,</span>  <span class="c1"># find_summarizer, has_summarizer, summarize(data, config=None)</span>
+    <span class="n">get_default_registry</span><span class="p">,</span>
+    <span class="n">get_default_summarizer_registry</span><span class="p">,</span>  <span class="c1"># alias, unchanged</span>
+    <span class="n">register_summarizers</span><span class="p">,</span>  <span class="c1"># (mapping, *, exist_ok=False)</span>
+    <span class="n">Summarizer</span><span class="p">,</span>  <span class="c1"># protocol: summarize(data, config, *, compact) -&gt; str | Node</span>
+    <span class="n">BaseSummarizer</span><span class="p">,</span>
+    <span class="n">Node</span><span class="p">,</span>
+    <span class="n">DefaultSummarizer</span><span class="p">,</span>
+    <span class="n">SequenceSummarizer</span><span class="p">,</span>
+    <span class="n">SetSummarizer</span><span class="p">,</span>
+    <span class="n">MappingSummarizer</span><span class="p">,</span>
+    <span class="n">DataclassSummarizer</span><span class="p">,</span>
+    <span class="n">BaseMetadataSummarizer</span><span class="p">,</span>
+    <span class="n">format_fields</span><span class="p">,</span>  <span class="c1"># (fields, max_fields) -&gt; str</span>
+    <span class="c1"># lazy: NDArraySummarizer, TensorSummarizer, JaxArraySummarizer, PandasDataFrameSummarizer,</span>
+    <span class="c1"># PandasSeriesSummarizer, PolarsDataFrameSummarizer, PolarsLazyFrameSummarizer,</span>
+    <span class="c1"># PolarsSeriesSummarizer, PyarrowArraySummarizer, PyarrowTableSummarizer,</span>
+    <span class="c1"># XarrayDataArraySummarizer, XarrayDatasetSummarizer, XarrayVariableSummarizer,</span>
+    <span class="c1"># PydanticModelSummarizer</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Removed: <code>BaseCollectionSummarizer</code>, <code>BaseFieldsSummarizer</code>, <code>MAX_FIELDS</code>, the positional options of
+<code>summarize</code>, the <code>depth</code> and <code>max_depth</code> arguments of <code>SummarizerRegistry.summarize</code> and of
+<code>Summarizer.summarize</code>, the constructor arguments of every summarizer, <code>RecursionError</code> from the
+documented exceptions.</p>
+<p><code>summarize(...)</code> builds a <code>SummaryConfig</code> (so the options are validated in one place) and calls
+<code>registry.summarize(data, config)</code>, which calls the engine; <code>registry.summarize</code> stays the
+registry-level entry point, as <code>registry.objects_are_equal</code> is for <code>equality</code>.</p>
+<h2 id="dependents">Dependents<a class="headerlink" href="#dependents" title="Permanent link">&para;</a></h2>
+<p>Nothing in <code>src</code> imports <code>coola.summary</code> (the mentions in <code>equality</code> and <code>utils.singleton</code> are
+docstrings). The package is a leaf, which is why the contract can change in one step.</p>
+<table>
+<thead>
+<tr>
+<th>Dependent</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tests/properties/test_summary_random.py</code>, <code>test_cross_module</code>, <code>test_library_types</code></td>
+<td>Keep, add the properties of. They use only <code>summarize(data, max_depth=...)</code>.</td>
+</tr>
+<tr>
+<td><code>tests/integration/test_lazy_imports.py</code>, <code>test_support_matrix.py</code>, <code>test_default_registries.py</code></td>
+<td>Keep (lazy loading, the support matrix). Update the expected registered types (<code>UserString</code>, <code>MappingProxyType</code>).</td>
+</tr>
+<tr>
+<td><code>pyproject.toml</code> import-linter contracts</td>
+<td>Unchanged: <code>coola.summary</code> still imports only <code>coola.registry</code>, <code>coola.utils</code>, <code>coola.validation</code>.</td>
+</tr>
+<tr>
+<td>Plugins of <code>coola.summary.summarizers</code></td>
+<td>Must be ported to the new <code>summarize(data, config, *, compact)</code> (migration page). A plugin that returned a string only needs the new signature.</td>
+</tr>
+</tbody>
+</table>
+<p><code>SummarizerRegistry.find_summarizer</code> copies the <code>DataclassMarker</code> fallback that <code>EqualityTesterRegistry</code>,
+<code>HasherRegistry</code>, <code>TransformerRegistry</code> and <code>ChildFinderRegistry</code> also copy. Moving it to
+<code>BaseTypeDispatchRegistry</code> is a cleanup for all five packages, outside this design.</p>
+<h2 id="decisions">Decisions<a class="headerlink" href="#decisions" title="Permanent link">&para;</a></h2>
+<p>All ten decisions were taken as recommended. The design above is final on these points; the text of
+each decision is kept for the reasoning and for the alternatives that were rejected.</p>
+<p><strong>D1. Options in a config, not in the constructors?</strong> <em>Decided: yes (recommended).</em> A person who wants three
+items writes <code>summarize(data, max_items=3)</code>; before they build a registry, register <code>object</code> and <code>list</code>,
+and lose the other types. The summarizers become stateless, so <code>__init__</code>, <code>__repr__</code>, <code>equal</code>
+and the display mixin disappear, and the package matches <code>EqualityConfig</code>. Cost: no per-type
+option (<code>max_items=3</code> for lists and 10 for dicts); the user who needs it registers their own
+summarizer (a one-line subclass that returns a <code>Node</code> with a smaller <code>total</code>).</p>
+<p>Decision: <strong>accepted as recommended.</strong></p>
+<p><strong>D2. One limit for items, fields and columns?</strong> <em>Decided (recommended): yes, <code>max_items</code> (default 5).</em>
+<code>MAX_FIELDS=10</code> and <code>max_items=5</code> count the same thing (entries shown). Consequence: a frame lists 5
+columns by default instead of 10; <code>summarize(df, max_items=20)</code> lists more. Alternative: keep
+<code>max_fields</code> as a second option, or default <code>max_items</code> to 10 (a list of 20 shows 10 lines).</p>
+<p>Decision: <strong>accepted as recommended.</strong></p>
+<p><strong>D3. Keep the name <code>max_depth</code>?</strong> <em>Decided: yes (recommended).</em> It is a display depth here and a limit that
+raises in <code>objects_are_equal</code>; the docs say so in both places. Renaming to
+<code>expand_depth</code> removes the ambiguity, but <code>max_depth</code> is the name every user of <code>summarize</code> knows, and
+the cost of the ambiguity is a documentation sentence.</p>
+<p>Decision: <strong>accepted as recommended.</strong></p>
+<p><strong>D4. What is the compact form?</strong> <em>Decided (recommended): a <code>reprlib</code>-based one line (4.4).</em> It keeps the content
+of a small nested structure, which is the point of the default <code>max_depth=1</code>, and it is bounded.
+Alternatives (rejected): the header only (simplest, hides small configs); asking the summarizer for an
+inline form (<code>Node.inline</code>), which is exact for every type but doubles the contract.</p>
+<p>Decision: <strong>accepted as recommended.</strong> Consequence: the benchmark appendix shows that <code>reprlib</code> makes
+<code>tree[1]</code> 2.5x slower than the previous version, so must meet the gate of with a fast path in
+<code>CompactRepr</code> (<code>repr()</code> directly when the container has at most <code>max_items</code> scalar entries) and
+re-measure. The gate stays "up to 2x and at most 10 µs more" for inputs under 50 µs; relaxing it is not
+part of the decision.</p>
+<p><strong>D5. Total summarizing?</strong> <em>Decided (recommended): yes, catch <code>Exception</code> in the engine.</em> A summary is for logs
+and error messages; raising there hides the original problem. The cost is that a bug in a custom
+summarizer shows as <code>&lt;summary failed: ValueError&gt;</code> instead of a traceback; the exception type is in
+the text and the tests of the plugin show it. Alternative: let the exceptions propagate and only keep
+<code>safe_str</code>.</p>
+<p>Decision: <strong>accepted as recommended.</strong></p>
+<p><strong>D6. Hide the <code>field(repr=False)</code> fields of a dataclass?</strong> <em>Decided: yes (recommended).</em> It is how a dataclass
+author declares "do not print this" (tokens, large buffers), and the pydantic summarizer already hides
+secrets. The summary is not a comparison, so unlike <code>equality</code> and <code>hashing</code> it does not need every
+field. Alternative: show them (today), and document that a dataclass is printed in full.</p>
+<p>Decision: <strong>accepted as recommended.</strong></p>
+<p><strong>D7. Fixed indentation?</strong> <em>Decided (recommended): yes, 2 spaces, no <code>num_spaces</code>.</em> The option exists to fix a
+layout that was irregular; a regular layout does not need it. Adding it back is one field of the
+config.</p>
+<p>Decision: <strong>accepted as recommended.</strong></p>
+<p><strong>D8. Keep the rule "type shown inside the expansion, values at the boundary"?</strong> <em>Decided (recommended): keep.</em>
+It is the documented behaviour of <code>summarize(42)</code> and of every example, and it needs one flag
+(<code>compact</code>). Alternative: always show the type of a leaf (<code>(a): &lt;class 'int'&gt; 1</code> everywhere): a
+simpler rule, but twice as long on the default output.</p>
+<p>Decision: <strong>accepted as recommended.</strong></p>
+<p><strong>D9. One protocol or two?</strong> <em>Decided (recommended): keep <code>Summarizer</code> (protocol) and <code>BaseSummarizer</code> (ABC).</em>
+Same as <code>Hasher</code>/<code>BaseHasher</code> and <code>Transformer</code>/<code>BaseTransformer</code>; the cost is a few lines and the
+benefit is that a summarizer from another library needs no import of <code>coola</code>.</p>
+<p>Decision: <strong>accepted as recommended.</strong></p>
+<p><strong>D10. Named tuple labels?</strong> <em>Decided: yes (recommended).</em> One line in <code>SequenceSummarizer</code> (<code>data._fields</code>),
+consistent with dataclasses. Alternative: positions only (today).</p>
+<p>Decision: <strong>accepted as recommended.</strong></p>
+<h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Plain objects with <code>__dict__</code>, <code>attrs</code> classes, <code>__slots__</code>:</strong> leaves, as before. <code>equality</code> has
+  <code>ObjectAttributesEqualityTester</code>; a summarizer of the attributes is a separate item.</li>
+<li><strong>A machine-readable form</strong> (JSON, a tree of <code>Node</code>): the package produces text for humans. A
+  <code>summary_tree(...)</code> that returns the nodes is possible later, since the engine already walks them.</li>
+<li><strong>Width-aware or colored output</strong>, a <code>str.format</code>-style template, and options per type.</li>
+<li><strong>Summaries of the elements of an array</strong> (min, max, mean, number of NaN): a metadata summarizer
+  can compute them for the types that want it; the default stays shape and dtype (cheap, no copy,
+  no device transfer).</li>
+<li><strong>The <code>DataclassMarker</code> fallback</strong> that five registries copy: it belongs in
+  <code>BaseTypeDispatchRegistry</code> (one PR for the five packages).</li>
+<li><strong><code>dfs_iterate</code> and <code>recursive_apply</code> explicit stacks:</strong> same technique, separate designs
+  (the <code>recursive</code> design).</li>
+<li>The entry-point plugin group <code>coola.summary.summarizers</code> keeps its name; a plugin that implements
+  <code>summarize(data, registry, depth, max_depth)</code> must be ported (migration page).</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2022 - present Thibaut Durand
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.expand", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"method": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>
