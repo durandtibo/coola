@@ -10,7 +10,6 @@ from coola.equality import compare, objects_are_allclose, objects_are_equal
 from coola.equality.tester import TableEqualityTester
 from coola.equality.tester.polars import (
     PolarsFrameTable,
-    PolarsLazyFrameTable,
     PolarsSeriesTable,
     get_default_testers,
 )
@@ -129,110 +128,6 @@ POLARS_DATAFRAME_EQUAL_TOLERANCE = [
     ),
 ]
 
-POLARS_LAZYFRAME_EQUAL = [
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({}),
-            expected=pl.LazyFrame({}),
-        ),
-        id="0 column",
-    ),
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({"col": [1, 2, 3]}),
-            expected=pl.LazyFrame({"col": [1, 2, 3]}),
-        ),
-        id="1 column",
-    ),
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
-            expected=pl.LazyFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]}),
-        ),
-        id="2 columns",
-    ),
-]
-
-POLARS_LAZYFRAME_NOT_EQUAL = [
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({"col": [1, 2, 3]}),
-            expected=pl.LazyFrame({"col": [1, 2, 4]}),
-            expected_message="tables have",
-        ),
-        id="different values",
-    ),
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({"col1": [1, 2, 3]}),
-            expected=pl.LazyFrame({"col2": [1, 2, 3]}),
-            expected_message="tables have",
-        ),
-        id="different column names",
-    ),
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({"col1": [1, 2, 3]}),
-            expected=pl.Series([1, 2, 3]),
-            expected_message="objects have different types:",
-        ),
-        id="different column names",
-    ),
-]
-
-POLARS_LAZYFRAME_EQUAL_TOLERANCE = [
-    # atol
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
-            expected=pl.LazyFrame({"col": [1.5, 1.5, 0.5]}),
-            atol=1.0,
-        ),
-        id="atol=1",
-    ),
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
-            expected=pl.LazyFrame({"col": [1.0, 1.05, 0.95]}),
-            atol=0.1,
-        ),
-        id="atol=0.1",
-    ),
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
-            expected=pl.LazyFrame({"col": [1.0, 1.005, 0.995]}),
-            atol=0.01,
-        ),
-        id="atol=0.01",
-    ),
-    # rtol
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
-            expected=pl.LazyFrame({"col": [1.0, 1.5, 0.5]}),
-            rtol=1.0,
-        ),
-        id="rtol=1",
-    ),
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
-            expected=pl.LazyFrame({"col": [1.0, 1.05, 0.95]}),
-            rtol=0.1,
-        ),
-        id="rtol=0.1",
-    ),
-    pytest.param(
-        ExamplePair(
-            actual=pl.LazyFrame({"col": [1.0, 1.0, 1.0]}),
-            expected=pl.LazyFrame({"col": [1.0, 1.005, 0.995]}),
-            rtol=0.01,
-        ),
-        id="rtol=0.01",
-    ),
-]
-
 POLARS_SERIES_EQUAL = [
     pytest.param(
         ExamplePair(
@@ -336,13 +231,9 @@ POLARS_SERIES_EQUAL_TOLERANCE = [
     ),
 ]
 
-POLARS_EQUAL = POLARS_SERIES_EQUAL + POLARS_DATAFRAME_EQUAL + POLARS_LAZYFRAME_EQUAL
-POLARS_NOT_EQUAL = POLARS_SERIES_NOT_EQUAL + POLARS_DATAFRAME_NOT_EQUAL + POLARS_LAZYFRAME_NOT_EQUAL
-POLARS_EQUAL_TOLERANCE = (
-    POLARS_SERIES_EQUAL_TOLERANCE
-    + POLARS_DATAFRAME_EQUAL_TOLERANCE
-    + POLARS_LAZYFRAME_EQUAL_TOLERANCE
-)
+POLARS_EQUAL = POLARS_SERIES_EQUAL + POLARS_DATAFRAME_EQUAL
+POLARS_NOT_EQUAL = POLARS_SERIES_NOT_EQUAL + POLARS_DATAFRAME_NOT_EQUAL
+POLARS_EQUAL_TOLERANCE = POLARS_SERIES_EQUAL_TOLERANCE + POLARS_DATAFRAME_EQUAL_TOLERANCE
 
 FRAME_EQUAL = [
     pytest.param(pl.DataFrame({}), pl.DataFrame({}), id="0 column"),
@@ -527,66 +418,6 @@ def test_frame_compare_the_whole_result() -> None:
     )
 
 
-###########################################
-#     Tests for the polars LazyFrames     #
-###########################################
-
-
-@polars_available
-def test_lazy_frame_equal() -> None:
-    assert objects_are_equal(pl.LazyFrame({"a": [1, 2]}), pl.LazyFrame({"a": [1, 2]}))
-
-
-@polars_available
-def test_lazy_frame_not_equal_values() -> None:
-    assert not objects_are_equal(pl.LazyFrame({"a": [1, 2]}), pl.LazyFrame({"a": [1, 3]}))
-
-
-@polars_available
-def test_lazy_frame_not_equal_schema() -> None:
-    assert not objects_are_equal(pl.LazyFrame({"a": [1]}), pl.LazyFrame({"a": [1.0]}))
-
-
-@polars_available
-def test_lazy_frame_not_equal_height() -> None:
-    assert not objects_are_equal(pl.LazyFrame({"a": [1]}), pl.LazyFrame({"a": [1, 2]}))
-
-
-@polars_available
-def test_lazy_frame_ignores_the_query_plan() -> None:
-    assert objects_are_equal(
-        pl.LazyFrame({"a": [1, 2]}).select(pl.col("a")), pl.LazyFrame({"a": [1, 2]})
-    )
-
-
-@polars_available
-def test_lazy_frame_tolerance() -> None:
-    assert objects_are_allclose(pl.LazyFrame({"a": [1.0]}), pl.LazyFrame({"a": [1.05]}), atol=0.1)
-
-
-@polars_available
-def test_lazy_frame_not_equal_to_a_data_frame() -> None:
-    assert not objects_are_equal(pl.LazyFrame({"a": [1]}), pl.DataFrame({"a": [1]}))
-
-
-@polars_available
-def test_lazy_frame_compare_different_values() -> None:
-    result = compare(pl.LazyFrame({"a": [1]}), pl.LazyFrame({"a": [2]}))
-    assert result.reason == "tables have different values: column 'a' differs"
-
-
-@polars_available
-def test_lazy_frame_compare_different_schema() -> None:
-    result = compare(pl.LazyFrame({"a": [1]}), pl.LazyFrame({"a": [1.0]}))
-    assert result.reason == "tables have a different structure"
-
-
-@polars_available
-def test_lazy_frame_collects_each_frame_once() -> None:
-    table = PolarsLazyFrameTable(pl.LazyFrame({"a": [1]}))
-    assert table.collect() is table.collect()
-
-
 ########################################
 #     Tests for the polars Series     #
 ########################################
@@ -645,7 +476,6 @@ def test_series_compare_different_structure() -> None:
     ("table", "name"),
     [
         (PolarsFrameTable(pl.DataFrame()), "tables"),
-        (PolarsLazyFrameTable(pl.LazyFrame()), "tables"),
         (PolarsSeriesTable(pl.Series([1])), "series"),
     ],
 )
@@ -654,7 +484,7 @@ def test_kind_name(table: Any, name: str) -> None:
 
 
 @polars_available
-@pytest.mark.parametrize("dtype", [pl.DataFrame, pl.LazyFrame, pl.Series])
+@pytest.mark.parametrize("dtype", [pl.DataFrame, pl.Series])
 def test_get_default_testers(dtype: type) -> None:
     assert isinstance(get_default_testers()[dtype], TableEqualityTester)
 

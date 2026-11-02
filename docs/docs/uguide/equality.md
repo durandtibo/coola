@@ -841,9 +841,8 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   [`pandas.Series`](https://pandas.pydata.org/): a `NaN` in a float or complex column is governed
   by `equal_nan`, whereas a null (`None`, `pd.NA`, `NaT`) in any other column is equal to a null,
   whatever `equal_nan`, so a copy of a frame is equal to the frame
-- [`polars.DataFrame`](https://www.pola.rs/), [`polars.Series`](https://www.pola.rs/) and
-  `polars.LazyFrame`: `null` is always equal to `null`, and a `LazyFrame` is collected, so the
-  comparison runs the query
+- [`polars.DataFrame`](https://www.pola.rs/) and [`polars.Series`](https://www.pola.rs/): `null` is
+  always equal to `null`. A `polars.LazyFrame` is not supported: call `collect()` first
 - [`pyarrow.Array`](https://arrow.apache.org/docs/python/generated/pyarrow.Array.html),
   `pyarrow.ChunkedArray`, `pyarrow.RecordBatch` and
   [`pyarrow.Table`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html)
@@ -1606,7 +1605,7 @@ summarizes what each type does with them (it was checked for each type with `obj
 | `torch.nn.utils.rnn.PackedSequence`                     | Honored                                                                                     | Honored                                                                                                | `batch_sizes`, `sorted_indices`, `unsorted_indices`      |
 | `jax.numpy.ndarray`                                     | Honored                                                                                     | Honored                                                                                                | dtype, shape                                             |
 | `pandas.DataFrame`, `pandas.Series`                     | A float `NaN` follows `equal_nan`; a null (`None`, `NaT`, `pd.NA`) is always equal          | Honored for the integer and floating-point columns (NumPy rule)                                        | dtype, index, columns                                    |
-| `polars.DataFrame`, `polars.Series`, `polars.LazyFrame` | Honored for float `NaN`. **`null` is always equal to `null`**                               | Honored for the integer and floating-point columns (NumPy rule)                                        | dtype, schema; a `LazyFrame` is collected                |
+| `polars.DataFrame`, `polars.Series`                     | Honored for float `NaN`. **`null` is always equal to `null`**                               | Honored for the integer and floating-point columns (NumPy rule)                                        | dtype, schema                                            |
 | `xarray.DataArray`, `xarray.Dataset`, `xarray.Variable` | Honored                                                                                     | Honored                                                                                                | dimensions, coordinates, attributes                      |
 | `pyarrow.Array`, `pyarrow.Table`                        | Honored for the floating-point columns; `null` is equal to `null`                           | Honored for the integer and floating-point columns; the other types are compared exactly               | Type, length, `null` positions, schema for tables        |
 

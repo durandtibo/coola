@@ -383,7 +383,7 @@ of a library to a table. The default registry registers one `TableEqualityTester
 | Library | Types                                                                |
 | ------- | -------------------------------------------------------------------- |
 | pandas  | `DataFrame`, `Series`, `Index` (also `MultiIndex`), extension arrays |
-| polars  | `DataFrame`, `LazyFrame`, `Series`                                   |
+| polars  | `DataFrame`, `Series`                                                |
 | PyArrow | `Array`, `ChunkedArray`, `RecordBatch`, `Table`                      |
 
 The numbers (integers, floats, durations) go through the numeric kernel: the tolerance and

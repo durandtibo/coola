@@ -354,13 +354,6 @@ def test_objects_are_allclose_polars_and_numpy_agree_on_atol_and_rtol() -> None:
     ) == objects_are_allclose(np.array([0.0]), np.array([0.9]), **kwargs)
 
 
-@polars_available
-def test_objects_are_allclose_polars_lazy_frame_integers() -> None:
-    assert objects_are_allclose(
-        pl.LazyFrame({"a": [100]}), pl.LazyFrame({"a": [101]}), rtol=0.01, atol=0.0
-    )
-
-
 @pandas_available
 def test_objects_are_allclose_pandas_frame_in_a_dict() -> None:
     assert objects_are_allclose(

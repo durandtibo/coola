@@ -144,7 +144,6 @@ def polars_types() -> dict[str, Callable[[], Any]]:
     return {
         "pl.Series": lambda: pl.Series([1]),
         "pl.DataFrame": lambda: pl.DataFrame({"a": [1]}),
-        "pl.LazyFrame": lambda: pl.LazyFrame({"a": [1]}),
     }
 
 
@@ -210,7 +209,6 @@ HASH_GAPS = {
     "pd.DatetimeIndex",
     "pd.RangeIndex",
     "pd.Categorical",
-    "pl.LazyFrame",
     "pa.Schema",
     "pa.DataType",
     "pa.Scalar",
