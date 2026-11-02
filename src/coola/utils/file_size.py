@@ -44,7 +44,7 @@ def get_file_size(path: Path) -> int:
     for dirpath, _, filenames in os.walk(path, followlinks=False):
         for name in filenames:
             try:
-                info = (Path(dirpath) / name).lstat()
+                info = os.lstat(Path(dirpath) / name)
             except OSError:  # the file vanished during the scan
                 continue
             if stat.S_ISREG(info.st_mode):  # a regular file, not a symlink

@@ -875,7 +875,7 @@ def test_to_flat_dict_to_str_abstract_sequence_type() -> None:
 
 
 def test_to_flat_dict_to_str_subclass_of_a_registered_type() -> None:
-    assert to_flat_dict([OrderedDict(b=1)], to_str=dict) == {"0": "OrderedDict({'b': 1})"}
+    assert to_flat_dict([OrderedDict(b=1)], to_str=dict) == {"0": repr(OrderedDict(b=1))}
 
 
 def test_to_flat_dict_to_str_scalar_type() -> None:

@@ -73,6 +73,26 @@ def nest(leaf: Any, depth: int) -> Any:
     return data
 
 
+def unnest_list(data: Any) -> tuple[Any, int]:
+    r"""Unwrap deeply nested lists without recursion.
+
+    Comparing two deeply nested lists with ``==`` recurses in C, and
+    before Python 3.12 that recursion counts against the recursion limit.
+
+    Args:
+        data: The data created by ``nest``.
+
+    Returns:
+        The innermost value and the number of lists that wrap it, for
+            example ``unnest_list([[1]])`` returns ``(1, 2)``.
+    """
+    depth = 0
+    while isinstance(data, list):
+        data = data[0]
+        depth += 1
+    return data, depth
+
+
 def draw_python_random() -> float:
     r"""Draw a number from the global generator of the ``random`` module.
 

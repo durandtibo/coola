@@ -711,7 +711,7 @@ def test_compact_repr_subclass_is_shown_with_its_repr() -> None:
 
 
 def test_compact_repr_ordered_dict_is_shown_with_its_repr() -> None:
-    assert compact(OrderedDict(a=1)) == "OrderedDict({'a': 1})"
+    assert compact(OrderedDict(a=1)) == repr(OrderedDict(a=1))
 
 
 def test_compact_repr_other_type_is_cut_at_max_characters() -> None:

@@ -84,7 +84,7 @@ def test_validate_in_long_container_message_listing() -> None:
 
 
 def test_validate_in_not_a_container_raises_type_error() -> None:
-    with pytest.raises(TypeError, match="not a container or iterable"):
+    with pytest.raises(TypeError, match=r"is not (a container or )?iterable"):
         validate_in(1, 5)  # ty: ignore[invalid-argument-type]
 
 
