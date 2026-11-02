@@ -1,0 +1,3528 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://durandtibo.github.io/coola/main/dev/factory/">
+      
+      
+        <link rel="prev" href="../equality/">
+      
+      
+        <link rel="next" href="../formatting/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>Architecture of coola.factory - coola</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture-of-coolafactory" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+  You're not viewing the latest version.
+  <a href="../../..">
+    <strong>Click here to go to latest.</strong>
+  </a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),base=new URL("../.."),outdated=__md_get("__outdated",sessionStorage,base);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="coola" class="md-header__button md-logo" aria-label="coola" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            coola
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture of coola.factory
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/durandtibo/coola" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    durandtibo/coola
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../get_started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Get Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../uguide/display/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../development/" class="md-tabs__link">
+          
+  
+  
+  Developer Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../migration/v0.11_to_v1.0/" class="md-tabs__link">
+          
+  
+  
+  Migration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../refs/display/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://github.com/durandtibo/coola" class="md-tabs__link">
+        
+  
+  
+    
+  
+  GitHub
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="coola" class="md-nav__button md-logo" aria-label="coola" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    coola
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/durandtibo/coola" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    durandtibo/coola
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Get Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Display Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/equality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equality Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/equality_tester/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equality Testers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/extending/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Add Support for a New Type
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/factory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Factory Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/formatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formatting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/hashing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hashing Objects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/identifier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Identifiers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Loaders and Savers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterating Over Nested Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/jsonable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Converting Data to JSON
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/nested/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working with Nested Data Structures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/nested_data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nested Data and Leaves
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/random/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Random Number Generator Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/recursive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recursive Data Transformation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/reducer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reducing Sequences
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/rounding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rounding Values
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Summarizing Nested Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utility Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../uguide/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture and Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.display
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../equality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.equality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.factory
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.factory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-in-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture in detail
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture in detail">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#constantspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        constants.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#import_object-instantiationpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        import_object (instantiation.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instantiate_object-instantiationpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        instantiate_object (instantiation.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#builds-new-module-targetpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        builds (new module target.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#factory-resolve_object-is_object_config-resolvepy-configpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        factory, resolve_object, is_object_config (resolve.py, config.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-summary-the-contract-that-the-tests-assert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error summary (the contract that the tests assert)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-record-settled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision record (settled)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#not-covered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not covered
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../formatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.formatting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hashing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.hashing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../identifier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.identifier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.io
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jsonable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.jsonable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nested/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.nested
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../random/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.random
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recursive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.recursive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reducer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.reducer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rounding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.rounding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture of coola.validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../add_backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Add Support for a New Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Migration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/v0.11_to_v1.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Guide: v0.11 to v1.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/v1.1_to_v2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Guide: v1.1 to v2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Display
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/equality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/factory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Factory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/formatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formatting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/hashing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hashing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/identifier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Identifier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Io
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/jsonable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jsonable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/nested/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nested
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/random/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Random
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/recursive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recursive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/reducer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reducer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/rounding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rounding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../refs/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/durandtibo/coola" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-in-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture in detail
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture in detail">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#constantspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        constants.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#import_object-instantiationpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        import_object (instantiation.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instantiate_object-instantiationpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        instantiate_object (instantiation.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#builds-new-module-targetpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        builds (new module target.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#factory-resolve_object-is_object_config-resolvepy-configpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        factory, resolve_object, is_object_config (resolve.py, config.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-summary-the-contract-that-the-tests-assert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error summary (the contract that the tests assert)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-record-settled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision record (settled)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#not-covered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not covered
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture-of-coolafactory">Architecture of <code>coola.factory</code><a class="headerlink" href="#architecture-of-coolafactory" title="Permanent link">&para;</a></h1>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.factory</code> package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the <a href="../../uguide/factory/#properties">user guide</a>; the API is in the <a href="../../refs/factory/">reference</a>.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The package builds an object from a fully qualified name. It is small on purpose and has no state:
+it keeps no registry, cache or singleton, and it imports the standard library and
+<code>coola.utils.imports</code> only. A configuration names the code to run, so every change is judged first
+by what the data can make the process do. The three entry points (<code>factory</code>, <code>resolve_object</code> and
+<code>is_object_config</code>) are compositions of functions that each own one invariant: <code>import_object</code> is the
+only place that imports a target (allow-list checked before the import, one <code>ImportError</code> for a
+missing target), and <code>instantiate_object</code> is the only place that calls one (abstract classes
+refused, the <code>_init_</code> rule, the target's keywords never shadowed by a parameter of the API). The
+allow-list is a filter on a path and always comes from the caller's code, never from the data. See
+the <a href="../../uguide/factory/#properties">user guide</a> for the properties of the package.</p>
+<h2 id="design-constraints">Design constraints<a class="headerlink" href="#design-constraints" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Simple and easy to maintain.</strong> The package is 649 lines, 214 of them code. The target removes
+   duplicated logic (three copies of "what does this target build", two imports of the same target,
+   the dict-subclass special case, the <code>__new__</code> branch) instead of adding code next to it.</li>
+<li><strong>Major release.</strong> Breaking changes are fine and compatibility is not a design input: no adapter,
+   no alias, no deprecation period. The release notes list the changes
+   (<code>docs/docs/migration/v1.1_to_v2.0.md</code>).</li>
+<li><strong>Security is the reason the package exists.</strong> A configuration names the code to run. Every
+   change is judged first by "what can the data make the process do", then by simplicity.</li>
+<li><strong>No new dependency, no state, no optional library.</strong> The package imports the standard library
+   and <code>coola.utils.imports</code> only. It keeps no registry, no cache and no singleton: there is nothing
+   to lock, reset or fork.</li>
+<li><strong>Same errors from every entry point.</strong> <code>factory</code>, <code>resolve_object</code> and <code>is_object_config</code> must
+   report the same cause with the same exception and the same message.</li>
+</ol>
+<h2 id="architecture-in-detail">Architecture in detail<a class="headerlink" href="#architecture-in-detail" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>factory(_target_, *args, _init_="__init__", _allowed_prefixes_=None, **kwargs)
+resolve_object(obj, cls=object, *, allowed_prefixes=None, strict=False)
+is_object_config(config, cls, *, allowed_prefixes=None, import_target=False)
+        |  three entry points; none of them imports, checks or calls on its own
+        v
+import_object(path, *, allowed_prefixes)     coola/factory/instantiation.py
+        |  the only place that imports a target; one "does not exist" error
+        v
+builds(target, cls) -&gt; True | False | None   coola/factory/target.py
+        |  the only place that reads a return hint: class, function, union, generic
+        v
+instantiate_object(target, /, *args, _init_, **kwargs)     coola/factory/instantiation.py
+           the only place that calls a target: class (constructor or public class method) or callable
+</code></pre></div>
+<p>The three entry points are compositions of three functions, each of which owns one invariant:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Owns</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>import_object</code></td>
+<td>the allow-list (before the import), the <code>ImportError</code> for a missing module or attribute (and only for the target itself)</td>
+<td>the three entry points</td>
+</tr>
+<tr>
+<td><code>builds</code></td>
+<td>the answer to "does this target build a <code>cls</code>?": <code>True</code>, <code>False</code>, or <code>None</code> when it cannot be known</td>
+<td><code>resolve_object</code> (refuse), <code>is_object_config</code></td>
+</tr>
+<tr>
+<td><code>instantiate_object</code></td>
+<td>how a target is called: abstract classes refused, <code>_init_</code> rule, result type of an alternative constructor, positional-only</td>
+<td><code>factory</code>, <code>resolve_object</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="constantspy"><code>constants.py</code><a class="headerlink" href="#constantspy" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">OBJECT_INIT</span> <span class="o">=</span> <span class="s2">"_init_"</span>
+<span class="n">OBJECT_PREFIXES</span> <span class="o">=</span> <span class="s2">"_allowed_prefixes_"</span>  <span class="c1"># new: the literal was repeated in three places</span>
+<span class="n">OBJECT_TARGET</span> <span class="o">=</span> <span class="s2">"_target_"</span>
+</code></pre></div>
+<h3 id="import_object-instantiationpy"><code>import_object</code> (<code>instantiation.py</code>)<a class="headerlink" href="#import_object-instantiationpy" title="Permanent link">&para;</a></h3>
+<p>One change in behaviour: the translation that <code>factory</code> does before moves into the function, so that
+every caller gets the same error.</p>
+<div class="highlight"><pre><span></span><code><span class="n">module_name</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">attr</span> <span class="o">=</span> <span class="n">object_path</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span> <span class="ow">or</span> <span class="n">attr</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="c1"># Only the module of the target (or one of its parents) is "missing". A dependency of the</span>
+    <span class="c1"># target module that is not installed keeps its own error.</span>
+    <span class="k">if</span> <span class="n">err</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="p">(</span><span class="n">object_path</span> <span class="o">==</span> <span class="n">err</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="n">object_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">"."</span><span class="p">)):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"The target object does not exist: </span><span class="si">{</span><span class="n">object_path</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">err</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+    <span class="k">raise</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">module_name</span><span class="p">:</span>  <span class="c1"># "collections": a module</span>
+    <span class="k">return</span> <span class="n">module</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"The target object does not exist: </span><span class="si">{</span><span class="n">object_path</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">object_path</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+</code></pre></div>
+<p>The checks before the import (not a string, allow-list, empty module name) are unchanged. <code>factory</code>
+loses its <code>try/except ImportError</code> block (12 lines).</p>
+<h3 id="instantiate_object-instantiationpy"><code>instantiate_object</code> (<code>instantiation.py</code>)<a class="headerlink" href="#instantiate_object-instantiationpy" title="Permanent link">&para;</a></h3>
+<p>One public function, no private <code>_instantiate_class_object</code>, the first parameter positional-only
+, the <code>_init_</code> rule:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">instantiate_object</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">type</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">_init_</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"__init__"</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Incorrect type: </span><span class="si">{</span><span class="n">obj</span><span class="si">}</span><span class="s2">. The valid types are class and callable"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># function, partial, callable instance: `_init_` is ignored</span>
+    <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isabstract</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Cannot instantiate the class </span><span class="si">{</span><span class="n">obj</span><span class="si">}</span><span class="s2"> because it is an abstract class."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_init_</span> <span class="o">==</span> <span class="s2">"__init__"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_init_</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_init_</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"_"</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"`_init_` must be '__init__' or the name of a public class method (received: </span><span class="si">{</span><span class="n">_init_</span><span class="si">!r}</span><span class="s2">)"</span>
+        <span class="p">)</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">_init_</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">obj</span><span class="si">}</span><span class="s2"> does not have a callable `</span><span class="si">{</span><span class="n">_init_</span><span class="si">}</span><span class="s2">` attribute"</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">_init_</span><span class="si">}</span><span class="s2">` of </span><span class="si">{</span><span class="n">obj</span><span class="si">}</span><span class="s2"> did not return an instance of </span><span class="si">{</span><span class="n">obj</span><span class="si">}</span><span class="s2"> (received: </span><span class="si">{</span><span class="n">result</span><span class="si">!r}</span><span class="s2">)"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+</code></pre></div>
+<p>The positional-only <code>obj</code> makes <code>instantiate_object(C, obj=1, cls=2)</code> work: both go to the target. The
+<code>"__new__"</code> branch and its <code>Warning</code> are deleted.</p>
+<h3 id="builds-new-module-targetpy"><code>builds</code> (new module <code>target.py</code>)<a class="headerlink" href="#builds-new-module-targetpy" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">builds</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Indicate if calling ``target`` builds an instance of ``cls``, from the types only.</span>
+
+<span class="sd">    Returns ``True`` if the classes that ``target`` builds include a subclass of ``cls``, ``False``</span>
+<span class="sd">    if none of them is, and ``None`` if it cannot be known (a built-in function, a function without</span>
+<span class="sd">    return hint, a hint that cannot be resolved or that is not a class, a union with such a member).</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isfunction</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">get_type_hints</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"return"</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">NameError</span><span class="p">,</span> <span class="ne">SyntaxError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">members</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="k">if</span> <span class="n">get_origin</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Union</span><span class="p">,</span> <span class="n">UnionType</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="n">target</span><span class="p">,)</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">get_origin</span><span class="p">(</span><span class="n">member</span><span class="p">)</span> <span class="ow">or</span> <span class="n">member</span> <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">members</span><span class="p">)</span>  <span class="c1"># list[int] -&gt; list</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="nb">issubclass</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">)</span>
+</code></pre></div>
+<p>It is a public function of a module (not <code>_builds</code> imported across modules: <code>CLAUDE.md</code>), with its
+own tests, and it is <strong>not</strong> exported by <code>coola.factory</code> (an implementation helper shared by two
+modules of the package). It replaces <code>_check_target</code>'s hint code and the second half of
+<code>is_object_config</code>.</p>
+<h3 id="factory-resolve_object-is_object_config-resolvepy-configpy"><code>factory</code>, <code>resolve_object</code>, <code>is_object_config</code> (<code>resolve.py</code>, <code>config.py</code>)<a class="headerlink" href="#factory-resolve_object-is_object_config-resolvepy-configpy" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">factory</span><span class="p">(</span>
+    <span class="n">_target_</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+    <span class="n">_init_</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"__init__"</span><span class="p">,</span>
+    <span class="n">_allowed_prefixes_</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">_allowed_prefixes_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_refuse_nested_configurations</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">import_object</span><span class="p">(</span><span class="n">_target_</span><span class="p">,</span> <span class="n">allowed_prefixes</span><span class="o">=</span><span class="n">_allowed_prefixes_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">instantiate_object</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">_init_</span><span class="o">=</span><span class="n">_init_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_object</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="nb">object</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">allowed_prefixes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">OBJECT_TARGET</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>  <span class="c1"># the key is reserved: it is a configuration</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">_build</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">allowed_prefixes</span><span class="o">=</span><span class="n">allowed_prefixes</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">_not_an_instance_message</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">obj</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_build</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">allowed_prefixes</span><span class="p">,</span> <span class="n">strict</span><span class="p">):</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_RESERVED</span><span class="p">}</span>  <span class="c1"># the input is not modified</span>
+    <span class="n">init</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">OBJECT_INIT</span><span class="p">,</span> <span class="s2">"__init__"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">allowed_prefixes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_refuse_nested_configurations</span><span class="p">((),</span> <span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">import_object</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="n">OBJECT_TARGET</span><span class="p">],</span> <span class="n">allowed_prefixes</span><span class="o">=</span><span class="n">allowed_prefixes</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">object</span> <span class="ow">and</span> <span class="n">init</span> <span class="o">==</span> <span class="s2">"__init__"</span><span class="p">:</span>
+        <span class="n">built</span> <span class="o">=</span> <span class="n">builds</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">built</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">or</span> <span class="p">(</span><span class="n">built</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">strict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="o">...</span>
+            <span class="p">)</span>  <span class="c1"># the two messages of the previous version, naming the target; "it was not called"</span>
+    <span class="k">return</span> <span class="n">instantiate_object</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">_init_</span><span class="o">=</span><span class="n">init</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">is_object_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">allowed_prefixes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">import_target</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">OBJECT_TARGET</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="n">OBJECT_TARGET</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">import_target</span> <span class="ow">or</span> <span class="n">allowed_prefixes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">is_module_imported</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">builds</span><span class="p">(</span><span class="n">import_object</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">allowed_prefixes</span><span class="o">=</span><span class="n">allowed_prefixes</span><span class="p">),</span> <span class="bp">cls</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span>
+</code></pre></div>
+<p>Notes on the sketch:</p>
+<ul>
+<li><code>resolve_object</code> no longer calls <code>factory</code>. <code>factory</code> is the <code>**</code>-friendly API for code that has
+  the arguments; <code>resolve_object</code> is the API for configurations, and the check between the import and
+  the call needs the imported object. The duplication is the four lines of <code>_build</code>.</li>
+<li><code>_RESERVED = (OBJECT_TARGET, OBJECT_INIT, OBJECT_PREFIXES)</code>. <code>_allowed_prefixes_</code> in a configuration
+  is dropped silently (documented): the policy is the caller's.</li>
+<li><code>_refuse_nested_configurations(args, kwargs)</code> raises <code>ValueError</code> if a value of the arguments is a
+  <code>dict</code> with <code>_target_</code>. Only the top level is scanned.</li>
+<li><code>_not_an_instance_message</code> adds, for a <code>dict</code>, "(a configuration needs the <code>_target_</code> key)", so
+  the useful part of the previous "missing the <code>_target_</code> key" error is kept in the single <code>TypeError</code>.</li>
+<li>An explicit <code>_init_="__init__"</code> is checked like the default (before: the presence of the key skips the
+  check).</li>
+<li>The <code>logger.info("Initializing a ...")</code> line is kept (the siblings log at the same level).</li>
+</ul>
+<h3 id="error-summary-the-contract-that-the-tests-assert">Error summary (the contract that the tests assert)<a class="headerlink" href="#error-summary-the-contract-that-the-tests-assert" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Exception</th>
+<th>Raised before the call?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_target_</code> not a string (<code>factory</code>, <code>resolve_object</code>)</td>
+<td><code>TypeError</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>_target_</code> not a string (<code>is_object_config</code>)</td>
+<td>none: <code>False</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>_target_</code> outside <code>allowed_prefixes</code></td>
+<td><code>ImportError</code></td>
+<td>yes, before the import</td>
+</tr>
+<tr>
+<td>module or attribute of the target missing</td>
+<td><code>ImportError</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>dependency of the target module missing</td>
+<td>the original</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>argument that is a configuration, with an allow-list</td>
+<td><code>ValueError</code></td>
+<td>yes, before the import</td>
+</tr>
+<tr>
+<td>target is a class / function that does not build <code>cls</code></td>
+<td><code>TypeError</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>unknown result type with <code>strict=True</code></td>
+<td><code>TypeError</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>abstract class, non-callable, bad <code>_init_</code></td>
+<td><code>TypeError</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>exception of the target</td>
+<td>propagates</td>
+<td>no</td>
+</tr>
+<tr>
+<td>result is not an instance of <code>cls</code></td>
+<td><code>TypeError</code></td>
+<td>no (after the call)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="public-api">Public API<a class="headerlink" href="#public-api" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">coola.factory</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">OBJECT_INIT</span><span class="p">,</span>  <span class="c1"># "_init_"</span>
+    <span class="n">OBJECT_PREFIXES</span><span class="p">,</span>  <span class="c1"># "_allowed_prefixes_" (new)</span>
+    <span class="n">OBJECT_TARGET</span><span class="p">,</span>  <span class="c1"># "_target_"</span>
+    <span class="n">factory</span><span class="p">,</span>  <span class="c1"># (_target_, *args, _init_="__init__", _allowed_prefixes_=None, **kwargs)</span>
+    <span class="n">import_object</span><span class="p">,</span>  <span class="c1"># (object_path, *, allowed_prefixes=None)</span>
+    <span class="n">instantiate_object</span><span class="p">,</span>  <span class="c1"># (obj, /, *args, _init_="__init__", **kwargs)</span>
+    <span class="n">is_object_config</span><span class="p">,</span>  <span class="c1"># (config, cls, *, allowed_prefixes=None, import_target=False)</span>
+    <span class="n">resolve_object</span><span class="p">,</span>  <span class="c1"># (obj, cls=object, *, allowed_prefixes=None, strict=False)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Behaviour changes (for the migration page):</p>
+<table>
+<thead>
+<tr>
+<th>Change</th>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A target can receive <code>obj</code> or <code>cls</code></td>
+<td><code>TypeError</code> from the API</td>
+<td>works</td>
+</tr>
+<tr>
+<td><code>_init_="__new__"</code> or a name that starts with <code>_</code></td>
+<td>accepted</td>
+<td><code>TypeError</code></td>
+</tr>
+<tr>
+<td><code>_allowed_prefixes_</code> in the configuration of <code>resolve_object</code></td>
+<td>used when the caller passes no list</td>
+<td>ignored</td>
+</tr>
+<tr>
+<td><code>factory(..., _allowed_prefixes_=[...])</code> with an argument that is <code>{"_target_": ...}</code></td>
+<td>passed to the target</td>
+<td><code>ValueError</code></td>
+</tr>
+<tr>
+<td>a <code>dict</code> with <code>_target_</code> and a <code>dict</code> subclass <code>cls</code></td>
+<td>returned unbuilt</td>
+<td>built</td>
+</tr>
+<tr>
+<td>a <code>dict</code> without <code>_target_</code></td>
+<td><code>TypeError</code> ("missing the <code>_target_</code> key")</td>
+<td>returned if it is an instance of <code>cls</code>, else <code>TypeError</code></td>
+</tr>
+<tr>
+<td>a <code>dict</code> subclass instance that has a <code>_target_</code> key (for example <code>Counter({"_target_": 2})</code>)</td>
+<td>returned if it is an instance of <code>cls</code></td>
+<td>resolved as a configuration (the key is reserved)</td>
+</tr>
+<tr>
+<td>missing module or attribute, any <code>cls</code></td>
+<td><code>ModuleNotFoundError</code> / <code>ImportError: Module ... has no attr</code></td>
+<td><code>ImportError: The target object does not exist: ...</code></td>
+</tr>
+<tr>
+<td>target that returns <code>A \| B</code> with no subclass of <code>cls</code></td>
+<td>called, then rejected</td>
+<td>refused before the call</td>
+</tr>
+<tr>
+<td><code>is_object_config({"_target_": 5}, int)</code></td>
+<td><code>TypeError</code></td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td>explicit <code>_init_="__init__"</code> with <code>resolve_object</code></td>
+<td>target not checked</td>
+<td>target checked</td>
+</tr>
+</tbody>
+</table>
+<h2 id="dependents">Dependents<a class="headerlink" href="#dependents" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>io.base</code> (<code>resolve_loader</code>, <code>resolve_saver</code>)</td>
+<td>Unchanged code. A dict without <code>_target_</code> now fails with <code>Received object is not a BaseLoader instance (received: &lt;class 'dict'&gt;; a configuration needs the</code><em>target</em><code>key)</code> instead of "missing the <code>_target_</code> key". No test of <code>io</code> matches the old message; the two tests of <code>tests/unit/factory/test_resolve.py</code> that do (lines 465 and 502) are updated.</td>
+</tr>
+<tr>
+<td><code>io.base</code> (<code>is_loader_config</code>, <code>is_saver_config</code>)</td>
+<td>Unchanged code. Their docstrings point to <code>is_object_config</code>, which keeps the same contract for <code>allowed_prefixes</code> and <code>import_target</code>.</td>
+</tr>
+<tr>
+<td><code>utils.imports.import_object</code></td>
+<td>Unchanged. Both docstrings cross-reference each other and state the path syntax.</td>
+</tr>
+<tr>
+<td><code>pyproject.toml</code> (import-linter)</td>
+<td>No change: <code>coola.factory</code> imports <code>coola.utils.imports</code> only, as before.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="decision-record-settled">Decision record (settled)<a class="headerlink" href="#decision-record-settled" title="Permanent link">&para;</a></h2>
+<p>Summary (every decision follows the recommendation):</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Decision</th>
+<th>Outcome</th>
+<th>Steps</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>A dict with <code>_target_</code> is always a configuration</td>
+<td>yes</td>
+<td>6</td>
+</tr>
+<tr>
+<td>D2</td>
+<td><code>_init_</code>: no <code>__new__</code>, no name that starts with <code>_</code></td>
+<td>yes</td>
+<td>4</td>
+</tr>
+<tr>
+<td>D3</td>
+<td>The allow-list is never read from the data</td>
+<td>yes</td>
+<td>3</td>
+</tr>
+<tr>
+<td>D4</td>
+<td>Refuse a nested configuration under an allow-list</td>
+<td>yes</td>
+<td>3</td>
+</tr>
+<tr>
+<td>D5</td>
+<td>Configurations are <code>dict</code>, not <code>Mapping</code></td>
+<td><code>dict</code></td>
+<td>6</td>
+</tr>
+<tr>
+<td>D6</td>
+<td>Check the defining module of the target</td>
+<td>no (the list filters paths)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>D7</td>
+<td>Rename one of the two <code>import_object</code></td>
+<td>no, cross-reference</td>
+<td>2</td>
+</tr>
+<tr>
+<td>D8</td>
+<td>Attribute paths (<code>pkg.module.Class.method</code>)</td>
+<td>no</td>
+<td>none</td>
+</tr>
+<tr>
+<td>D9</td>
+<td>Location of <code>builds</code></td>
+<td><code>coola/factory/target.py</code>, not exported</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p><strong>D1. A <code>dict</code> with the key <code>_target_</code> is always a configuration.</strong> <strong>Decided: yes.</strong> It replaces
+the rule that depends on <code>cls</code>. The key is reserved, as in Hydra: a dict that has it cannot be
+passed through <code>resolve_object</code> as data, and the guide says so. Consequence: the dict-subclass tests
+and the guide warning are deleted, <code>Mapping</code>, <code>dict</code> and <code>object</code> work the same, and the explanation
+of the rule is one sentence. Rejected alternative: keep the previous rule; it needs the <code>issubclass</code> special case,
+fails for generics, and leaves open.</p>
+<p><strong>D2. Remove <code>_init_="__new__"</code> and the underscore names.</strong> <strong>Decided: yes.</strong> <code>cls(...)</code> runs
+<code>__new__</code> and <code>__init__</code>; <code>cls.__new__(cls, ...)</code> alone gives a partially initialised object, and the
+data can choose it. A public class method (<code>from_config</code>, <code>fromkeys</code>, <code>now</code>) is what <code>_init_</code> is for.
+Breaking for anybody who wrote <code>_init_: __new__</code> (the migration page says to use a class method).</p>
+<p><strong>D3. The allow-list is never read from the data.</strong> <strong>Decided: yes.</strong> The key
+<code>_allowed_prefixes_</code> stays as a keyword of <code>factory</code> (so <code>factory(**config, ...)</code> keeps working), but
+<code>resolve_object</code> ignores it in a configuration. A policy that the data can narrow looks like a
+feature, and it is a hole in the day somebody lets the data widen it. Rejected alternative: keep reading it
+when the caller passes none (today); costs nothing, keeps the smell.</p>
+<p><strong>D4. Refuse a nested configuration when an allow-list is active.</strong> <strong>Decided: yes.</strong> It closes the
+exact case of (an allowed function that resolves its arguments) in 5 lines, and it fails closed:
+whoever needs the nested object resolves it first, with the same list, as the guide already tells.
+Limits: it scans the top level of the arguments only (a configuration deeper in a list is not found),
+and it does not help against a prefix that contains <code>import_object</code>. It is a mitigation, not a proof;
+the guide says which prefixes must never be allowed. Rejected alternative: documentation only; cheaper, but the
+fix of then exposes .</p>
+<p><strong>D5. <code>dict</code> or <code>Mapping</code> for configurations?</strong> <strong>Decided: <code>dict</code>.</strong> JSON and YAML load into
+<code>dict</code>; a <code>DictConfig</code> is converted by the caller (<code>to_container</code>). Accepting any <code>Mapping</code> costs one
+word but widens what counts as "a configuration" in a security-relevant check.</p>
+<p><strong>D6. Check the module that defines the target?</strong> <strong>Decided: no.</strong> Comparing <code>target.__module__</code> to
+the prefixes would stop a re-export from another package, but it does not close (the functions
+of <code>coola.factory</code> are defined under <code>coola</code>), and it rejects legitimate aliases (<code>os.path.join</code> is
+defined in <code>posixpath</code>, <code>numpy</code> functions in private modules of other names). The guide states that
+the list filters paths.</p>
+<p><strong>D7. Rename one of the two <code>import_object</code>?</strong> <strong>Decided: no, cross-reference.</strong> The colon form is
+the internal syntax of the lazy registries, the dotted form is the user-facing one; renaming
+<code>coola.utils.imports.import_object</code> touches <code>registry</code>, <code>random</code>, <code>reducer</code> and their tests for a
+naming gain. Both docstrings state the path syntax and link to each other.</p>
+<p><strong>D8. Support attribute paths (<code>pkg.module.Class.method</code>)?</strong> <strong>Decided: no.</strong> It needs a
+loop over prefixes with the "does not exist" detection of at each step. A class method
+is reached with <code>_init_</code>, a nested class is rare. (<code>import_object("collections.OrderedDict.fromkeys")</code>
+raises <code>ImportError: The target object does not exist</code>, with the prototype.) Three reasons: (1) the
+fallback loop must tell an expected failure (<code>collections.OrderedDict</code> is not a module) from a real
+one (a module that exists but whose own dependency is missing), which is the <code>err.name</code> rule of
+repeated at every step; (2) <code>_init_</code> already reaches class methods, and D2 keeps it
+public; (3) walking attributes widens what a prefix reaches: <code>"mypkg"</code> would allow
+<code>mypkg.module.Class.helper.os.system</code>, whereas before only the last segment goes through <code>getattr</code>.
+Cost accepted: a nested class (<code>pkg.Outer.Inner</code>) needs a module-level alias.</p>
+<p><strong>D9. Where does <code>builds</code> live?</strong> <strong>Decided: <code>coola/factory/target.py</code>, public name, not
+exported.</strong> It is a helper of two modules of one package; <code>coola.utils</code> is for helpers shared by
+several packages (<code>CLAUDE.md</code>), and <code>builds</code> has no other user.</p>
+<h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Nested resolution</strong> (<code>recursive=True</code>, Hydra's <code>_recursive_</code>): each level would need the
+  allow-list, the <code>strict</code> check and the cycle/depth rules of <code>recursive</code>. The nested object is
+  resolved by the caller.</li>
+<li><strong>Positional arguments in a configuration</strong> (<code>_args_</code>): a configuration is keyword-only. <code>factory</code>
+  accepts <code>*args</code> for code that has them.</li>
+<li><strong>Partial application</strong> (<code>_partial_</code>) and interpolation (<code>${...}</code>): out of scope; use
+  <code>functools.partial</code> on the result.</li>
+<li><strong>A registry of aliases</strong> (<code>"loader": "coola.io.JsonLoader"</code>): that is <code>coola.registry</code>.</li>
+<li><strong>Sandboxing</strong> the target: not possible in-process. The allow-list is a filter on a path.</li>
+<li><strong><code>strict</code> by default</strong>: the check after the call stays the contract for a target without a hint;
+  <code>io</code> users who want the strict mode pass it.</li>
+<li><strong>Entry points for targets</strong>: none exist before and none are proposed.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2022 - present Thibaut Durand
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.expand", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"method": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>
