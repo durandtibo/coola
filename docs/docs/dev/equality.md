@@ -428,7 +428,7 @@ everywhere, much slower). Recommendation: A and C. Decision: C
 ### Q9. What stays ignored (no step)
 
 `requires_grad`, pandas `attrs` and `flags`, Arrow schema metadata, `pydantic` private attributes,
-LazyFrame query plan (collected). Options: keep ignored and document each (recommended), or add
+Options: keep ignored and document each (recommended), or add
 opt-in flags. Decision: keep ignored and document each
 
 ### Q10. Strictness of enums and labels

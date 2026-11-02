@@ -134,7 +134,6 @@ if is_polars_available():
     TESTER_TYPES.extend(
         [
             (pl.DataFrame, TableEqualityTester, True),
-            (pl.LazyFrame, TableEqualityTester, True),
             (pl.Series, TableEqualityTester, True),
         ]
     )

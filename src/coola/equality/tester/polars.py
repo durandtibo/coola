@@ -1,18 +1,16 @@
 r"""Implement the adapters of the polars objects.
 
-This module provides the adapters that convert a ``polars.DataFrame``,
-``polars.LazyFrame`` or ``polars.Series`` to a table, which is compared
-by the ``TableEqualityTester``.
+This module provides the adapters that convert a ``polars.DataFrame`` or
+``polars.Series`` to a table, which is compared by the
+``TableEqualityTester``.
 """
 
 from __future__ import annotations
 
 __all__ = [
     "PolarsFrameTable",
-    "PolarsLazyFrameTable",
     "PolarsSeriesTable",
     "polars_frame",
-    "polars_lazy_frame",
     "polars_series",
 ]
 
@@ -83,69 +81,6 @@ class PolarsFrameTable:
             yield _column(name, self._frame[name])
 
 
-class PolarsLazyFrameTable:
-    r"""Adapt a ``polars.LazyFrame`` to a table.
-
-    The schemas are compared first, without collecting the data. The
-    frames are then collected and compared as data frames. The query
-    plan is ignored.
-
-    Args:
-        frame: The lazy frame.
-
-    Example:
-        ```pycon
-        >>> import polars as pl
-        >>> from coola.equality.tester.polars import PolarsLazyFrameTable
-        >>> table = PolarsLazyFrameTable(pl.LazyFrame({"a": [1, 2]}))
-        >>> table.kind_name
-        'tables'
-
-        ```
-    """
-
-    kind_name = "tables"
-
-    def __init__(self, frame: pl.LazyFrame) -> None:
-        self._frame = frame
-        self._collected: pl.DataFrame | None = None
-
-    def same_structure(self, other: PolarsLazyFrameTable, ctx: Engine) -> bool:
-        r"""Indicate if two lazy frames have the same structure.
-
-        Args:
-            other: The other table.
-            ctx: The ``Engine`` of the comparison.
-
-        Returns:
-            ``True`` if the structures are the same, otherwise
-                ``False``.
-        """
-        if self._frame.collect_schema() != other._frame.collect_schema():
-            return False
-        return PolarsFrameTable(self.collect()).same_structure(
-            PolarsFrameTable(other.collect()), ctx
-        )
-
-    def collect(self) -> pl.DataFrame:
-        r"""Collect the lazy frame (once).
-
-        Returns:
-            The collected data frame.
-        """
-        if self._collected is None:
-            self._collected = self._frame.collect()
-        return self._collected
-
-    def columns(self) -> Iterator[Column]:
-        r"""Iterate over the columns.
-
-        Yields:
-            The column of each column of the collected frame.
-        """
-        return PolarsFrameTable(self.collect()).columns()
-
-
 class PolarsSeriesTable:
     r"""Adapt a ``polars.Series`` to a table with one column.
 
@@ -203,18 +138,6 @@ def polars_frame(frame: pl.DataFrame) -> PolarsFrameTable:
         The table.
     """
     return PolarsFrameTable(frame)
-
-
-def polars_lazy_frame(frame: pl.LazyFrame) -> PolarsLazyFrameTable:
-    r"""Adapt a ``polars.LazyFrame`` to a table.
-
-    Args:
-        frame: The lazy frame to adapt.
-
-    Returns:
-        The table.
-    """
-    return PolarsLazyFrameTable(frame)
 
 
 def polars_series(series: pl.Series) -> PolarsSeriesTable:
@@ -289,6 +212,5 @@ def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
 
     return {
         pl.DataFrame: TableEqualityTester(polars_frame),
-        pl.LazyFrame: TableEqualityTester(polars_lazy_frame),
         pl.Series: TableEqualityTester(polars_series),
     }
