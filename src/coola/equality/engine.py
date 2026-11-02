@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
     from coola.equality.config import EqualityConfig
     from coola.equality.tester.base import BaseEqualityTester
+    from coola.equality.tester.registry import EqualityTesterRegistry
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,12 +85,12 @@ class Engine:
     """
 
     def __init__(self, config: EqualityConfig, *, explaining: bool = False) -> None:
-        self.registry = config.registry
+        self.registry: EqualityTesterRegistry = config.registry
         self.config = config
-        self.atol = config.atol
-        self.rtol = config.rtol
-        self.equal_nan = config.equal_nan
-        self.max_depth = config.max_depth
+        self.atol: float = config.atol
+        self.rtol: float = config.rtol
+        self.equal_nan: bool = config.equal_nan
+        self.max_depth: int = config.max_depth
         self.explaining = explaining
         self.failure: tuple[tuple[object, ...], str | None] | None = None
         self._testers: dict[type, BaseEqualityTester[Any]] = {}

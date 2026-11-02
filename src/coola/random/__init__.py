@@ -34,7 +34,7 @@ __all__ = [
     "validate_seed",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.random.base import BaseRandomManager
 from coola.random.interface import (
@@ -52,6 +52,8 @@ from coola.random.seed import validate_seed
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.random.numpy import NumpyRandomManager
     from coola.random.torch import TorchRandomManager, get_random_seed, get_torch_generator
 
@@ -64,4 +66,6 @@ _LAZY_EXPORTS = {
     "get_random_seed": "coola.random.torch",
     "get_torch_generator": "coola.random.torch",
 }
+__getattr__: Callable[[str], Any]
+__dir__: Callable[[], list[str]]
 __getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())

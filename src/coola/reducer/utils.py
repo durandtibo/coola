@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["auto_reducer"]
 
 import pkgutil
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.reducer.native import NativeReducer
 from coola.utils.imports import is_numpy_available
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from coola.reducer.base import BaseReducer
 
 
-def auto_reducer() -> BaseReducer:
+def auto_reducer() -> BaseReducer[Any]:
     r"""Find the "best" reducer to used based on the installed packages.
 
     The "best" reducer is the fastest one that is installed for plain

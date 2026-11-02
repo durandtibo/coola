@@ -12,7 +12,7 @@ from __future__ import annotations
 __all__ = ["BaseEqualityTester"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
 
 from coola.display import InlineDisplayMixin
 
@@ -66,7 +66,7 @@ class BaseEqualityTester(InlineDisplayMixin, ABC, Generic[T]):
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self) and vars(self) == vars(other)
 
-    __hash__ = None
+    __hash__: ClassVar[None] = None
 
     @abstractmethod
     def objects_are_equal(

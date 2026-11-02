@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["TorchRandomManager", "get_random_seed", "get_torch_generator"]
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
@@ -16,6 +16,9 @@ if is_torch_available():
     import torch
 else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
+
+if TYPE_CHECKING:
+    from torch import Generator, device
 
 
 class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
@@ -134,7 +137,7 @@ def get_random_seed(seed: int) -> int:
     return torch.randint(0, 2**63 - 1, size=(1,), generator=get_torch_generator(seed)).item()
 
 
-def get_torch_generator(seed: int, *, device: torch.device | str | None = "cpu") -> torch.Generator:
+def get_torch_generator(seed: int, *, device: device | str | None = "cpu") -> Generator:
     r"""Create a ``torch.Generator`` initialized with a given seed.
 
     The generator is independent from the default generators of

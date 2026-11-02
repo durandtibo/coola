@@ -10,11 +10,13 @@ __all__ = [
     "print_pretty",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.display.rich.logging import configure_rich_logging
     from coola.display.rich.print_ import print_markdown, print_pretty
     from coola.display.rich.progressbar import make_progressbar, make_spinner
@@ -28,4 +30,6 @@ _LAZY_EXPORTS = {
     "print_markdown": "coola.display.rich.print_",
     "print_pretty": "coola.display.rich.print_",
 }
+__getattr__: Callable[[str], Any]
+__dir__: Callable[[], list[str]]
 __getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())

@@ -49,7 +49,7 @@ __all__ = [
     "save_torch",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.io.base import (
     BaseFileSaver,
@@ -66,6 +66,8 @@ from coola.io.text import TextLoader, TextSaver, load_text, save_text
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.io.torch import TorchLoader, TorchSaver, load_torch, save_torch
 
 
@@ -77,4 +79,6 @@ _LAZY_EXPORTS = {
     "load_torch": "coola.io.torch",
     "save_torch": "coola.io.torch",
 }
+__getattr__: Callable[[str], Any]
+__dir__: Callable[[], list[str]]
 __getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())

@@ -51,7 +51,7 @@ __all__ = [
     "register_equality_testers",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.equality._helpers.utils import AttributeName, MaxDepthExceededError
 from coola.equality.config import EqualityConfig
@@ -86,6 +86,8 @@ from coola.equality.tolerance import Tolerance
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.equality.tester import (
         JaxArrayEqualityTester,
         NumpyArrayEqualityTester,
@@ -115,4 +117,6 @@ _LAZY_EXPORTS = {
     "XarrayDatasetEqualityTester": "coola.equality.tester.xarray",
     "XarrayVariableEqualityTester": "coola.equality.tester.xarray",
 }
+__getattr__: Callable[[str], Any]
+__dir__: Callable[[], list[str]]
 __getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())

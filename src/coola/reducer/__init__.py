@@ -14,6 +14,8 @@ sums that exceed the range of a ``float``, and number types other than
 ``int`` and ``float``.
 """
 
+from __future__ import annotations
+
 __all__ = [
     "BaseReducer",
     "EmptySequenceError",
@@ -23,7 +25,7 @@ __all__ = [
     "auto_reducer",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.reducer.base import BaseReducer, EmptySequenceError
 from coola.reducer.native import NativeReducer
@@ -31,6 +33,8 @@ from coola.reducer.utils import auto_reducer
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.reducer.numpy import NumpyReducer
     from coola.reducer.torch import TorchReducer
 
@@ -41,4 +45,6 @@ _LAZY_EXPORTS = {
     "NumpyReducer": "coola.reducer.numpy",
     "TorchReducer": "coola.reducer.torch",
 }
+__getattr__: Callable[[str], Any]
+__dir__: Callable[[], list[str]]
 __getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())

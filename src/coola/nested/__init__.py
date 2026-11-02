@@ -68,7 +68,7 @@ __all__ = [
     "to_flat_dict",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from coola.nested.flat import from_flat_dict, to_flat_dict
 from coola.nested.keys import (
@@ -86,9 +86,13 @@ from coola.nested.records import convert_to_dict_of_lists, convert_to_list_of_di
 from coola.utils.imports import lazy_exports
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from coola.nested.polars import flatten_frame
 
 # The names defined in the modules that import an optional library are imported the first time they
 # are used, so the library is not imported with the package.
 _LAZY_EXPORTS = {"flatten_frame": "coola.nested.polars"}
+__getattr__: Callable[[str], Any]
+__dir__: Callable[[], list[str]]
 __getattr__, __dir__ = lazy_exports(__name__, _LAZY_EXPORTS, globals())
