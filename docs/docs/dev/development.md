@@ -172,8 +172,7 @@ coola/
 ├── src/                 # Source code
 │   └── coola/
 │       ├── equality/             # Equality comparison
-│       │   ├── tester/           # Type-specific testers and the registry
-│       │   └── handler/          # Comparison handlers
+│       │   └── tester/           # Type-specific testers and the registry
 │       ├── registry/, summary/, hashing/, recursive/, iterator/, nested/, ...
 │       └── utils/                # Utility functions
 ├── tests/               # Test files

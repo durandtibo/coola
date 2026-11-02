@@ -1,6 +1,6 @@
 # Architecture of `coola.factory`
 
-:book: This page describes the design of the `coola.factory` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/factory.md#properties); the API is in the [reference](../refs/factory.md).
+:book: This page describes the design of the `coola.factory` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/factory.md#properties); the API is in the [reference](../refs/factory.md).
 
 ## Overview
 
@@ -17,19 +17,16 @@ the [user guide](../uguide/factory.md#properties) for the properties of the pack
 
 ## Design constraints
 
-1. **Simple and easy to maintain.** The package is 649 lines, 214 of them code. The target removes
-   duplicated logic (three copies of "what does this target build", two imports of the same target,
-   the dict-subclass special case, the `__new__` branch) instead of adding code next to it.
-2. **Major release.** Breaking changes are fine and compatibility is not a design input: no adapter,
-   no alias, no deprecation period. The release notes list the changes
-   (`docs/docs/migration/v1.1_to_v2.0.md`).
-3. **Security is the reason the package exists.** A configuration names the code to run. Every
+1. **Simple and easy to maintain.** The package is small: each fact ("what does this target build",
+   "how is a target imported", "how is a target called") is written in one place, with no duplicated
+   logic.
+2. **Security is the reason the package exists.** A configuration names the code to run. Every
    change is judged first by "what can the data make the process do", then by simplicity.
-4. **No new dependency, no state, no optional library.** The package imports the standard library
+3. **No new dependency, no state, no optional library.** The package imports the standard library
    and `coola.utils.imports` only. It keeps no registry, no cache and no singleton: there is nothing
    to lock, reset or fork.
-5. **Same errors from every entry point.** `factory`, `resolve_object` and `is_object_config` must
-   report the same cause with the same exception and the same message.
+4. **Same errors from every entry point.** `factory`, `resolve_object` and `is_object_config` report
+   the same cause with the same exception and the same message.
 
 ## Architecture in detail
 
@@ -61,14 +58,14 @@ The three entry points are compositions of three functions, each of which owns o
 
 ```python
 OBJECT_INIT = "_init_"
-OBJECT_PREFIXES = "_allowed_prefixes_"  # new: the literal was repeated in three places
+OBJECT_PREFIXES = "_allowed_prefixes_"
 OBJECT_TARGET = "_target_"
 ```
 
 ### `import_object` (`instantiation.py`)
 
-One change in behaviour: the translation that `factory` does before moves into the function, so that
-every caller gets the same error.
+The function translates a missing target into one `ImportError`, so that every caller gets the same
+error.
 
 ```python
 module_name, _, attr = object_path.rpartition(".")
@@ -90,13 +87,12 @@ except AttributeError as err:
     raise ImportError(msg, name=object_path) from err
 ```
 
-The checks before the import (not a string, allow-list, empty module name) are unchanged. `factory`
-loses its `try/except ImportError` block (12 lines).
+The checks before the import (not a string, allow-list, empty module name) come first, so a target
+outside the allow-list is never imported.
 
 ### `instantiate_object` (`instantiation.py`)
 
-One public function, no private `_instantiate_class_object`, the first parameter positional-only
-, the `_init_` rule:
+One public function. The first parameter is positional-only, and the `_init_` rule is:
 
 ```python
 def instantiate_object(
@@ -125,10 +121,11 @@ def instantiate_object(
     return result
 ```
 
-The positional-only `obj` makes `instantiate_object(C, obj=1, cls=2)` work: both go to the target. The
-`"__new__"` branch and its `Warning` are deleted.
+The positional-only `obj` makes `instantiate_object(C, obj=1, cls=2)` work: both go to the target.
+There is no `"__new__"` branch: `cls(...)` runs `__new__` and `__init__`, whereas `cls.__new__(cls,
+...)` alone gives a partially initialised object that the data could choose.
 
-### `builds` (new module `target.py`)
+### `builds` (`target.py`)
 
 ```python
 def builds(target: Any, cls: type | tuple[type, ...]) -> bool | None:
@@ -152,10 +149,10 @@ def builds(target: Any, cls: type | tuple[type, ...]) -> bool | None:
     return any(issubclass(c, cls) for c in classes)
 ```
 
-It is a public function of a module (not `_builds` imported across modules: `CLAUDE.md`), with its
-own tests, and it is **not** exported by `coola.factory` (an implementation helper shared by two
-modules of the package). It replaces `_check_target`'s hint code and the second half of
-`is_object_config`.
+It is a public function of a module (not a private function imported across modules), with its own
+tests, and it is **not** exported by `coola.factory`: it is an implementation helper shared by two
+modules of the package, and `coola.utils` is for helpers shared by several packages. It is the only
+place that reads a return hint.
 
 ### `factory`, `resolve_object`, `is_object_config` (`resolve.py`, `config.py`)
 
@@ -192,7 +189,7 @@ def _build(config, cls, *, allowed_prefixes, strict):
         if built is False or (built is None and strict):
             raise TypeError(
                 ...
-            )  # the two messages of the previous version, naming the target; "it was not called"
+            )  # the two messages name the target and say that it was not called
     return instantiate_object(target, _init_=init, **kwargs)
 
 
@@ -207,18 +204,18 @@ def is_object_config(config, cls, *, allowed_prefixes=None, import_target=False)
 
 Notes on the sketch:
 
-- `resolve_object` no longer calls `factory`. `factory` is the `**`-friendly API for code that has
-  the arguments; `resolve_object` is the API for configurations, and the check between the import and
-  the call needs the imported object. The duplication is the four lines of `_build`.
+- `resolve_object` does not call `factory`. `factory` is the `**`-friendly API for code that has the
+  arguments; `resolve_object` is the API for configurations, and the check between the import and the
+  call needs the imported object. The duplication is the four lines of `_build`.
 - `_RESERVED = (OBJECT_TARGET, OBJECT_INIT, OBJECT_PREFIXES)`. `_allowed_prefixes_` in a configuration
   is dropped silently (documented): the policy is the caller's.
 - `_refuse_nested_configurations(args, kwargs)` raises `ValueError` if a value of the arguments is a
   `dict` with `_target_`. Only the top level is scanned.
-- `_not_an_instance_message` adds, for a `dict`, "(a configuration needs the `_target_` key)", so
-  the useful part of the previous "missing the `_target_` key" error is kept in the single `TypeError`.
-- An explicit `_init_="__init__"` is checked like the default (before: the presence of the key skips the
-  check).
-- The `logger.info("Initializing a ...")` line is kept (the siblings log at the same level).
+- `_not_an_instance_message` adds, for a `dict`, "(a configuration needs the `_target_` key)", so a
+  dict without `_target_` gets a useful single `TypeError`.
+- An explicit `_init_="__init__"` is checked like the default.
+- `resolve_object` logs "Initializing a ... instance from its configuration" at `INFO` level, as the
+  sibling packages do.
 
 ### Error summary (the contract that the tests assert)
 
@@ -241,7 +238,7 @@ Notes on the sketch:
 ```python
 from coola.factory import (
     OBJECT_INIT,  # "_init_"
-    OBJECT_PREFIXES,  # "_allowed_prefixes_" (new)
+    OBJECT_PREFIXES,  # "_allowed_prefixes_"
     OBJECT_TARGET,  # "_target_"
     factory,  # (_target_, *args, _init_="__init__", _allowed_prefixes_=None, **kwargs)
     import_object,  # (object_path, *, allowed_prefixes=None)
@@ -251,102 +248,92 @@ from coola.factory import (
 )
 ```
 
-Behaviour changes (for the migration page):
+Behaviours worth knowing:
 
-| Change                                                                                        | Before                                                        | After                                                    |
-| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------- |
-| A target can receive `obj` or `cls`                                                           | `TypeError` from the API                                      | works                                                    |
-| `_init_="__new__"` or a name that starts with `_`                                             | accepted                                                      | `TypeError`                                              |
-| `_allowed_prefixes_` in the configuration of `resolve_object`                                 | used when the caller passes no list                           | ignored                                                  |
-| `factory(..., _allowed_prefixes_=[...])` with an argument that is `{"_target_": ...}`         | passed to the target                                          | `ValueError`                                             |
-| a `dict` with `_target_` and a `dict` subclass `cls`                                          | returned unbuilt                                              | built                                                    |
-| a `dict` without `_target_`                                                                   | `TypeError` ("missing the `_target_` key")                    | returned if it is an instance of `cls`, else `TypeError` |
-| a `dict` subclass instance that has a `_target_` key (for example `Counter({"_target_": 2})`) | returned if it is an instance of `cls`                        | resolved as a configuration (the key is reserved)        |
-| missing module or attribute, any `cls`                                                        | `ModuleNotFoundError` / `ImportError: Module ... has no attr` | `ImportError: The target object does not exist: ...`     |
-| target that returns `A \| B` with no subclass of `cls`                                        | called, then rejected                                         | refused before the call                                  |
-| `is_object_config({"_target_": 5}, int)`                                                      | `TypeError`                                                   | `False`                                                  |
-| explicit `_init_="__init__"` with `resolve_object`                                            | target not checked                                            | target checked                                           |
+| Situation                                                                                     | Behaviour                                                                  |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| A target that takes a parameter named `obj` or `cls`                                          | works: the API parameters never shadow the target's keywords               |
+| `_init_="__new__"` or a name that starts with `_`                                             | `TypeError`                                                                |
+| `_allowed_prefixes_` in the configuration of `resolve_object`                                 | ignored: the policy is the caller's                                        |
+| `factory(..., _allowed_prefixes_=[...])` with an argument that is `{"_target_": ...}`         | `ValueError`                                                               |
+| a `dict` with `_target_` and a `dict` subclass `cls`                                          | built                                                                      |
+| a `dict` without `_target_`                                                                   | returned if it is an instance of `cls`, else `TypeError`                   |
+| a `dict` subclass instance that has a `_target_` key (for example `Counter({"_target_": 2})`) | resolved as a configuration (the key is reserved)                          |
+| missing module or attribute, any `cls`                                                        | `ImportError: The target object does not exist: ...`                       |
+| target that returns `A \| B` with no subclass of `cls`                                        | refused before the call                                                    |
+| `is_object_config({"_target_": 5}, int)`                                                      | `False`                                                                    |
+| explicit `_init_="__init__"` with `resolve_object`                                            | target checked, like the default                                           |
 
 ## Dependents
 
-| Package                                           | Change                                                                                                                                                                                                                                                                                                                                                        |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `io.base` (`resolve_loader`, `resolve_saver`)     | Unchanged code. A dict without `_target_` now fails with `Received object is not a BaseLoader instance (received: <class 'dict'>; a configuration needs the `_target_` key)` instead of "missing the `_target_` key". No test of `io` matches the old message; the two tests of `tests/unit/factory/test_resolve.py` that do (lines 465 and 502) are updated. |
-| `io.base` (`is_loader_config`, `is_saver_config`) | Unchanged code. Their docstrings point to `is_object_config`, which keeps the same contract for `allowed_prefixes` and `import_target`.                                                                                                                                                                                                                       |
-| `utils.imports.import_object`                     | Unchanged. Both docstrings cross-reference each other and state the path syntax.                                                                                                                                                                                                                                                                              |
-| `pyproject.toml` (import-linter)                  | No change: `coola.factory` imports `coola.utils.imports` only, as before.                                                                                                                                                                                                                                                                                     |
+| Package                                           | Use                                                                                                                                          |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `io.base` (`resolve_loader`, `resolve_saver`)     | A dict without `_target_` fails with `Received object is not a BaseLoader instance (received: <class 'dict'>; a configuration needs the `_target_` key)`. |
+| `io.base` (`is_loader_config`, `is_saver_config`) | Their docstrings point to `is_object_config`, which has the contract for `allowed_prefixes` and `import_target`.                              |
+| `utils.imports.import_object`                     | A different function with the same name (colon syntax, for the lazy registries). Both docstrings cross-reference each other and state the path syntax. |
+| `pyproject.toml` (import-linter)                  | `coola.factory` imports `coola.utils.imports` only.                                                                                          |
 
-## Decision record (settled)
+## Design choices and trade-offs
 
-Summary (every decision follows the recommendation):
+| Choice                                               | Outcome                                 |
+| ---------------------------------------------------- | --------------------------------------- |
+| A dict with `_target_` is always a configuration     | yes                                     |
+| `_init_`: no `__new__`, no name that starts with `_` | yes                                     |
+| The allow-list is never read from the data           | yes                                     |
+| Refuse a nested configuration under an allow-list    | yes                                     |
+| Configurations are `dict`, not `Mapping`             | `dict`                                  |
+| Check the defining module of the target              | no (the list filters paths)             |
+| Rename one of the two `import_object`                | no, cross-reference                     |
+| Attribute paths (`pkg.module.Class.method`)          | no                                      |
+| Location of `builds`                                 | `coola/factory/target.py`, not exported |
 
-| #   | Decision                                             | Outcome                                 | Steps |
-| --- | ---------------------------------------------------- | --------------------------------------- | ----- |
-| D1  | A dict with `_target_` is always a configuration     | yes                                     | 6     |
-| D2  | `_init_`: no `__new__`, no name that starts with `_` | yes                                     | 4     |
-| D3  | The allow-list is never read from the data           | yes                                     | 3     |
-| D4  | Refuse a nested configuration under an allow-list    | yes                                     | 3     |
-| D5  | Configurations are `dict`, not `Mapping`             | `dict`                                  | 6     |
-| D6  | Check the defining module of the target              | no (the list filters paths)             | none  |
-| D7  | Rename one of the two `import_object`                | no, cross-reference                     | 2     |
-| D8  | Attribute paths (`pkg.module.Class.method`)          | no                                      | none  |
-| D9  | Location of `builds`                                 | `coola/factory/target.py`, not exported | 5     |
+**A `dict` with the key `_target_` is always a configuration.** The rule does not depend on `cls`. The
+key is reserved, as in Hydra: a dict that has it cannot be passed through `resolve_object` as data,
+and the guide says so. As a consequence `Mapping`, `dict` and `object` work the same, and the rule is
+one sentence. A rule that depends on `cls` needs an `issubclass` special case for dict subclasses and
+fails for generics.
 
-**D1. A `dict` with the key `_target_` is always a configuration.** **Decided: yes.** It replaces
-the rule that depends on `cls`. The key is reserved, as in Hydra: a dict that has it cannot be
-passed through `resolve_object` as data, and the guide says so. Consequence: the dict-subclass tests
-and the guide warning are deleted, `Mapping`, `dict` and `object` work the same, and the explanation
-of the rule is one sentence. Rejected alternative: keep the previous rule; it needs the `issubclass` special case,
-fails for generics, and leaves open.
+**No `_init_="__new__"` and no underscore names.** `cls(...)` runs `__new__` and `__init__`;
+`cls.__new__(cls, ...)` alone gives a partially initialised object, and the data can choose it. A
+public class method (`from_config`, `fromkeys`, `now`) is what `_init_` is for.
 
-**D2. Remove `_init_="__new__"` and the underscore names.** **Decided: yes.** `cls(...)` runs
-`__new__` and `__init__`; `cls.__new__(cls, ...)` alone gives a partially initialised object, and the
-data can choose it. A public class method (`from_config`, `fromkeys`, `now`) is what `_init_` is for.
-Breaking for anybody who wrote `_init_: __new__` (the migration page says to use a class method).
+**The allow-list is never read from the data.** The key `_allowed_prefixes_` is a keyword of
+`factory` (so `factory(**config, ...)` works), but `resolve_object` ignores it in a configuration. A
+policy that the data can narrow looks like a feature, and it is a hole the day somebody lets the data
+widen it.
 
-**D3. The allow-list is never read from the data.** **Decided: yes.** The key
-`_allowed_prefixes_` stays as a keyword of `factory` (so `factory(**config, ...)` keeps working), but
-`resolve_object` ignores it in a configuration. A policy that the data can narrow looks like a
-feature, and it is a hole in the day somebody lets the data widen it. Rejected alternative: keep reading it
-when the caller passes none (today); costs nothing, keeps the smell.
+**A nested configuration is refused when an allow-list is active.** It closes the case of an allowed
+function that resolves its arguments (for example one that calls `resolve_object` on them), and it
+fails closed: whoever needs the nested object resolves it first, with the same list, as the guide
+tells. Limits: it scans the top level of the arguments only (a configuration deeper in a list is not
+found), and it does not help against a prefix that contains `import_object`. It is a mitigation, not a
+proof; the guide says which prefixes must never be allowed. Documentation alone would be cheaper but
+would leave the hole open.
 
-**D4. Refuse a nested configuration when an allow-list is active.** **Decided: yes.** It closes the
-exact case of (an allowed function that resolves its arguments) in 5 lines, and it fails closed:
-whoever needs the nested object resolves it first, with the same list, as the guide already tells.
-Limits: it scans the top level of the arguments only (a configuration deeper in a list is not found),
-and it does not help against a prefix that contains `import_object`. It is a mitigation, not a proof;
-the guide says which prefixes must never be allowed. Rejected alternative: documentation only; cheaper, but the
-fix of then exposes .
+**`dict`, not `Mapping`, for configurations.** JSON and YAML load into `dict`; a `DictConfig` is
+converted by the caller (`to_container`). Accepting any `Mapping` costs one word but widens what counts
+as "a configuration" in a security-relevant check.
 
-**D5. `dict` or `Mapping` for configurations?** **Decided: `dict`.** JSON and YAML load into
-`dict`; a `DictConfig` is converted by the caller (`to_container`). Accepting any `Mapping` costs one
-word but widens what counts as "a configuration" in a security-relevant check.
+**The module that defines the target is not checked.** Comparing `target.__module__` to the prefixes
+would stop a re-export from another package, but it does not close the nested-configuration case (the
+functions of `coola.factory` are defined under `coola`), and it rejects legitimate aliases
+(`os.path.join` is defined in `posixpath`, `numpy` functions in private modules of other names). The
+guide states that the list filters paths.
 
-**D6. Check the module that defines the target?** **Decided: no.** Comparing `target.__module__` to
-the prefixes would stop a re-export from another package, but it does not close (the functions
-of `coola.factory` are defined under `coola`), and it rejects legitimate aliases (`os.path.join` is
-defined in `posixpath`, `numpy` functions in private modules of other names). The guide states that
-the list filters paths.
+**Two `import_object` functions.** The colon form is the internal syntax of the lazy registries, the
+dotted form is the user-facing one. Renaming `coola.utils.imports.import_object` would touch
+`registry`, `random`, `reducer` and their tests for a naming gain, so the docstrings link to each
+other.
 
-**D7. Rename one of the two `import_object`?** **Decided: no, cross-reference.** The colon form is
-the internal syntax of the lazy registries, the dotted form is the user-facing one; renaming
-`coola.utils.imports.import_object` touches `registry`, `random`, `reducer` and their tests for a
-naming gain. Both docstrings state the path syntax and link to each other.
+**No attribute paths (`pkg.module.Class.method`).** `import_object("collections.OrderedDict.fromkeys")`
+raises `ImportError: The target object does not exist`. Three reasons: (1) a fallback loop over
+prefixes must tell an expected failure (`collections.OrderedDict` is not a module) from a real one (a
+module that exists but whose own dependency is missing), which is the `err.name` rule repeated at every
+step; (2) `_init_` already reaches class methods; (3) walking attributes widens what a prefix reaches:
+`"mypkg"` would allow `mypkg.module.Class.helper.os.system`, whereas now only the last segment goes
+through `getattr`. The cost is that a nested class (`pkg.Outer.Inner`) needs a module-level alias.
 
-**D8. Support attribute paths (`pkg.module.Class.method`)?** **Decided: no.** It needs a
-loop over prefixes with the "does not exist" detection of at each step. A class method
-is reached with `_init_`, a nested class is rare. (`import_object("collections.OrderedDict.fromkeys")`
-raises `ImportError: The target object does not exist`, with the prototype.) Three reasons: (1) the
-fallback loop must tell an expected failure (`collections.OrderedDict` is not a module) from a real
-one (a module that exists but whose own dependency is missing), which is the `err.name` rule of
-repeated at every step; (2) `_init_` already reaches class methods, and D2 keeps it
-public; (3) walking attributes widens what a prefix reaches: `"mypkg"` would allow
-`mypkg.module.Class.helper.os.system`, whereas before only the last segment goes through `getattr`.
-Cost accepted: a nested class (`pkg.Outer.Inner`) needs a module-level alias.
-
-**D9. Where does `builds` live?** **Decided: `coola/factory/target.py`, public name, not
-exported.** It is a helper of two modules of one package; `coola.utils` is for helpers shared by
-several packages (`CLAUDE.md`), and `builds` has no other user.
+**`builds` is not exported.** It is a helper of two modules of one package and has no other user.
 
 ## Not covered
 
@@ -361,4 +348,4 @@ several packages (`CLAUDE.md`), and `builds` has no other user.
 - **Sandboxing** the target: not possible in-process. The allow-list is a filter on a path.
 - **`strict` by default**: the check after the call stays the contract for a target without a hint;
   `io` users who want the strict mode pass it.
-- **Entry points for targets**: none exist before and none are proposed.
+- **Entry points for targets**: not supported.

@@ -379,7 +379,7 @@ This is useful when you want to preserve certain data types as strings in the fl
 ## JSON Conversion
 
 The conversion of a nested structure to JSON data is in [`coola.jsonable`](jsonable.md):
-`to_jsonable(data)` replaces the former `convert_to_jsonable`.
+`to_jsonable(data)` converts the data, and its registry is the extension point for other types.
 
 ## Flattening a polars DataFrame
 

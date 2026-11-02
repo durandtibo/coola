@@ -1,6 +1,6 @@
 # Architecture of `coola.validation`
 
-:book: This page describes the design of the `coola.validation` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/validation.md#properties); the API is in the [reference](../refs/validation.md).
+:book: This page describes the design of the `coola.validation` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/validation.md#properties); the API is in the [reference](../refs/validation.md).
 
 ## Overview
 
@@ -23,23 +23,20 @@ The rule for the whole project: validate an argument with `coola.validation`; do
 
 ## Design constraints
 
-1. **Simple and easy to maintain.** The package is 804 lines for 26 functions, 13 of which are
-   one-line wrappers (nine type checks are `validate_isinstance(value, X)`, four sign checks are
-   `validate_ge/gt/le/lt(value, 0)`) and three are one range with two flags. Eight of the 26
-   functions have no caller in `src`. Each wrapper costs a docstring, an export, a doc entry and tests. The target
-   keeps a function only if it adds behaviour that the caller would otherwise have to write.
-2. **Major release.** Breaking changes are fine and compatibility is not a design input: no alias,
-   no deprecation period. The release notes list the removed names and the call-site rewrite.
-3. **Core package.** `coola.validation` imports only the standard library (import-linter contract
+1. **Simple and easy to maintain.** A function is kept only if it adds behaviour that the caller would
+   otherwise have to write. A wrapper such as `validate_str(x)` (which is `validate_isinstance(x, str)`)
+   or `validate_positive(x)` (which is `validate_gt(x, 0)`) would cost a docstring, an export, a doc
+   entry and tests each, and the list of names would grow one wrapper at a time.
+2. **Core package.** `coola.validation` imports only the standard library (import-linter contract
    "Core packages must not import feature packages"). It imports NumPy or any optional library
    **never**; NumPy scalars are supported through the `numbers` ABCs they register with.
-4. **Cheap.** Validators run in constructors and in the entry points of `hash_object`,
-   `round_values`, `convert_to_jsonable`, ... A call costs 70 to 240 ns before. The
-   target must not be slower on the success path.
-5. **One home for argument checks.** The checks that are re-implemented next to their caller
-   (`validate_seed`, `validate_hash_length`, `rounding.common.validate_arguments`,
-   `_validate_on_duplicate`, `_validate_sep`, `_validate_key`) use the validators of this package
-   where they can, so the same mistake gives the same message everywhere.
+3. **Cheap.** Validators run in constructors and in the entry points of `hash_object`,
+   `round_values`, `to_jsonable`, ... A call costs 70 to 240 ns, and the success path must not be
+   slower.
+4. **One home for argument checks.** The checks that sit next to their caller (`validate_seed`,
+   `validate_hash_length`, `rounding.common.validate_arguments`, `_validate_on_duplicate`,
+   `_validate_sep`) use the validators of this package where they can, so the same mistake gives the
+   same message everywhere.
 
 ## Architecture in detail
 
@@ -88,36 +85,34 @@ def _compare(test: Callable[[Any], Any], value, bounds: str, name: str, requirem
         raise ValueError(msg)
 ```
 
-`_compare` replaces `_check` **and** `_check_range`. The four bound checks, the range and the
-finiteness check call it with a `lambda`/`operator.partial` test; the closure costs about 40 ns
-, below the margin of the gate. Both helpers stay private in `coola.validation`: they are
-an implementation detail, and a package that wants the same format writes a call to a validator.
+`_compare` is the one evaluation. The four bound checks, the range and the finiteness check call it
+with a `lambda`/`operator.partial` test; the closure costs about 40 ns, below the margin of the gate.
+Both helpers are private to `coola.validation`: they are an implementation detail, and a package that
+wants the same format writes a call to a validator.
 
-### The functions (target API)
+### The functions
 
-`from coola.validation import ...` (14 names, down from 26):
+`from coola.validation import ...` (14 names):
 
 | Family    | Function                                                                             | Raises                                   | Notes                                                                                                                |
 | --------- | ------------------------------------------------------------------------------------ | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | Type      | `validate_isinstance(value, cls, *, name)`                                           | `TypeError`                              | general; `cls` is a type, a tuple of types or a union; `bool` is an `int` here (documented)                          |
-| Type      | `validate_int(value, *, name)`                                                       | `TypeError`                              | the only shortcut with its own rule: `bool` rejected; `numpy.int64` rejected (strict, decision D2)                   |
+| Type      | `validate_int(value, *, name)`                                                       | `TypeError`                              | the only shortcut with its own rule: `bool` rejected; `numpy.int64` rejected (strict)                   |
 | Type      | `validate_number(value, *, name)`                                                    | `TypeError`                              | `numbers.Real`, `bool` rejected; NumPy scalars, `Fraction` accepted; `Decimal` rejected (not a `Real`)               |
 | Bound     | `validate_ge`, `validate_gt`, `validate_le`, `validate_lt` `(value, bound, *, name)` | `TypeError` (incomparable), `ValueError` | duck-typed; the sign checks are `validate_ge(x, 0)` ...                                                              |
-| Range     | `validate_range(value, low, high, *, low_inclusive=True, high_inclusive=True, name)` | `TypeError`, `ValueError`                | replaces `open`, `closed` and `half_open`; closed by default (the form all 10 call sites of the range functions use) |
+| Range     | `validate_range(value, low, high, *, low_inclusive=True, high_inclusive=True, name)` | `TypeError`, `ValueError`                | one function for open, closed and half-open ranges; closed by default (the form most call sites use) |
 | Finite    | `validate_finite(value, *, name)`                                                    | `TypeError` (not a number), `ValueError` | calls `validate_number` first: `bool`, `None`, `str`, arrays give a named `TypeError`                                |
 | Container | `validate_not_empty(value, *, name)`                                                 | `TypeError` (no `len`), `ValueError`     | `len(value) == 0`; an iterator or a generator has no `len` and is a `TypeError`, not consumed                        |
 | Container | `validate_in(value, valid, *, name)`                                                 | `ValueError`                             | an unhashable value is not in a `set`: `ValueError`, not a raw `TypeError`; listing bounded                          |
 
-Removed: `validate_bool`, `validate_float`, `validate_str`, `validate_list`, `validate_tuple`,
-`validate_dict`, `validate_mapping`, `validate_set`, `validate_frozenset` (replaced by
-`validate_isinstance(value, X)`, ); `validate_positive`, `validate_non_negative`,
-`validate_negative`, `validate_non_positive` (replaced by `validate_gt/ge/lt/le(value, 0)`);
-`validate_open_range`, `validate_closed_range`, `validate_half_open_range` (replaced by
-`validate_range`). Kept as they are: `validate_isinstance`, `validate_int`, `validate_number`,
-`validate_ge`, `validate_gt`, `validate_le`, `validate_lt`, `validate_finite`, `validate_not_empty`,
-`validate_in`.
+There are no type shortcuts such as `validate_str` or `validate_list` (use `validate_isinstance(value,
+X)`), no sign shortcuts such as `validate_positive` (use `validate_gt(value, 0)`), and no separate
+`open`, `closed` and `half_open` range functions (use `validate_range`). The synonyms are the part of
+a package that grows one name at a time; without them the list of names can be read in ten seconds and
+the rule to add one is written down. Keeping `validate_positive` and `validate_non_negative` only would
+need an explanation for the missing `negative`.
 
-The rule to add a function in the future (written in the module docstring and in the guide): _a
+The rule to add a function (written in the module docstring and in the guide): _a
 validator exists only if it states a constraint that `isinstance` or one comparison cannot state
 without a special case_. `validate_int` exists for the `bool` case; `validate_number` for the
 `numbers.Real` plus `bool` case; `validate_finite` for the overflow of `math.isfinite` and the
@@ -125,7 +120,7 @@ NaN. `validate_str` does not: `validate_isinstance(x, str)` is the same line.
 
 ### Modules
 
-Three modules instead of four, named by what the function checks:
+Three modules, named by what the function checks:
 
 | Module          | Contains                                                                | Why                                                      |
 | --------------- | ----------------------------------------------------------------------- | -------------------------------------------------------- |
@@ -133,92 +128,59 @@ Three modules instead of four, named by what the function checks:
 | `comparison.py` | `_compare`, `validate_ge/gt/le/lt`, `validate_range`, `validate_finite` | what a value **compares** to (finite = `-inf < x < inf`) |
 | `container.py`  | `validate_not_empty`, `validate_in`                                     | what a value **holds** or belongs to                     |
 
-`numeric.py` is deleted. `__init__.py` re-exports the 14 names; the order of `__all__` stays
-alphabetical. `docs/docs/refs/validation.md` already lists three submodules and is unchanged.
+`__init__.py` re-exports the 14 names; `__all__` is alphabetical. `docs/docs/refs/validation.md` lists
+the three submodules.
 
 ## Dependents
 
-The migration of the call sites is mechanical and each rewrite is a pure rename. The messages change
-(the unified format), so the tests of the callers that match a message change with them.
+The messages have one format, so the tests of the callers that match a message match this format.
 
-| Package                                                                      | Change                                                                                                                                                                                                                                                                                                 |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `utils` (`bloom_filter`, `batching`, `text_diff`, `format`, `secret`, `lru`) | `validate_positive(x)` becomes `validate_gt(x, 0)`, `validate_non_negative(x)` becomes `validate_ge(x, 0)`. Nothing else.                                                                                                                                                                              |
-| `equality.config`, `equality.tolerance`, `summary.config`                    | Same rename. `Tolerance` keeps `validate_number`, bound, `validate_finite`.                                                                                                                                                                                                                            |
-| `identifier` (`objectid`, `ulid`, `uuid7`, `snowflake`, `checksummed`)       | `validate_closed_range(...)` becomes `validate_range(...)`; `validate_str(x)` becomes `validate_isinstance(x, str)`; `validate_positive(x)` becomes `validate_gt(x, 0)`. `_validate_sep` keeps its own checks (the Crockford rule) and calls `validate_isinstance(sep, str)`.                          |
-| `nested.keys`, `nested.mapping`                                              | `validate_mapping(x)` becomes `validate_isinstance(x, Mapping)`. `_validate_on_duplicate` is deleted: `validate_in(on_duplicate, ("raise", "first", "last", "prefix"), name="on_duplicate")` (the valid values become a tuple, so the message is stable). `nested.polars`, `nested.flat`: rename only. |
-| `random.seed.validate_seed`                                                  | Becomes `validate_int(seed, name="seed")` then `validate_range(seed, 0, MAX_SEED, high_inclusive=False, name="seed")`, behind the same public function (it keeps its place in `coola.random`, which owns the 2**63 bound).                                                                             |
-| `hashing.engine.validate_hash_length`                                        | `validate_int` + `validate_range(length, 2, 128)`; the parity rule (`length % 2`) stays local. The hot-path fast test stays first, as before (it is measured).                                                                                                                                         |
-| `rounding.common.validate_arguments`                                         | `validate_in(mode, MODES, name="mode")`, `validate_int(decimals)`, `validate_ge(decimals, 0)`: the private `bool` test and the hand-made messages are deleted.                                                                                                                                         |
-| `registry.registry`, `registry.type` (`_validate_key`)                       | Not changed: `registry` is a core package and a `validate_isinstance(key, type)` call would need no more code, but the message `Expected a type as key` is part of its own contract and tests. Candidate for a later item.                                                                             |
+| Package                                                                      | Use                                                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `utils` (`bloom_filter`, `batching`, `text_diff`, `format`, `secret`, `lru`) | `validate_gt(x, 0)`, `validate_ge(x, 0)`.                                                                                                                                                                           |
+| `equality.config`, `equality.tolerance`, `summary.config`                    | The same, and `Tolerance` uses `validate_number`, a bound and `validate_finite`.                                                                                                                                    |
+| `identifier` (`objectid`, `ulid`, `uuid7`, `snowflake`, `checksummed`)       | `validate_range(...)`, `validate_isinstance(x, str)`, `validate_gt(x, 0)`. `_validate_sep` has its own checks (the Crockford rule) and calls `validate_isinstance(sep, str)`.                                       |
+| `nested.keys`, `nested.mapping`                                              | `validate_isinstance(x, Mapping)`; `validate_in(on_duplicate, ("raise", "first", "last", "prefix"), name="on_duplicate")` (the valid values are a tuple, so the message is stable).                                  |
+| `random.seed.validate_seed`                                                  | `validate_int(seed, name="seed")` then `validate_range(seed, 0, MAX_SEED, high_inclusive=False, name="seed")`; it lives in `coola.random`, which owns the 2**63 bound.                                              |
+| `hashing.engine.validate_hash_length`                                        | `validate_int` and `validate_range(length, 2, 128)`; the parity rule (`length % 2`) is local, and the hot-path fast test comes first (it is measured).                                                              |
+| `rounding.common.validate_arguments`                                         | `validate_in(mode, MODES, name="mode")`, `validate_int(decimals)`, `validate_ge(decimals, 0)`.                                                                                                                      |
+| `registry.registry`, `registry.type` (`_validate_key`)                       | Not migrated: the message `Expected a type as key` is part of its own contract and tests. A candidate for a later item.                                                                                             |
 
 No dependent imports anything private from `coola.validation`.
 
-## Decision record
+## Design choices and trade-offs
 
-All seven decisions are settled: D1 to D6 follow the recommendation, D7 is "no". The design above
-is the decided design; the text of each decision is kept as the reason.
+**`numpy.int64` and `numpy.float32` are not ints and floats for the type validators, but numbers for
+`validate_number`.** A type annotation `int` rejects `numpy.int64` for a type checker, `validate_int`
+follows the annotation, and a caller that accepts NumPy scalars writes `validate_isinstance(x, (int,
+np.integer))` or uses `validate_number`. `numbers.Integral` for `validate_int` would accept NumPy ints
+(still rejecting `bool` by the explicit test) with a one-line change, but it makes the strictness
+depend on the registration of the ABCs, and an `int` argument that is later used as `range(n)` or a
+shift accepts `numpy.int64` anyway. The strict rule can be revisited if a user reports a real case.
 
-**D1. Delete the synonyms?** _Recommended: yes._ Thirteen of the 26 functions are a one-line wrapper
-and eight have no caller. They are the part of the package that grows (the range functions
-and the type shortcuts were added one by one) and each one needs a docstring, a doc entry, an
-export and tests. The cost for a user is writing `validate_isinstance(x, str)` instead of
-`validate_str(x)`, and `validate_gt(x, 0)` instead of `validate_positive(x)`; the gain is a package
-where the list of names can be read in ten seconds and the rule to add one is written down.
-Alternative: keep `validate_positive` and `validate_non_negative` (the two most used of the sign
-checks, 12 call sites) and drop the symmetric pair; cheaper to migrate, but then `negative` is
-missing and the list needs an explanation. The full set is not kept: the package is not a public toolbox for
-other libraries, which the user guide does not claim.
+**"Type then bound" is two calls.** `validate_int(x, min=0)` would remove 8 lines at the call sites and
+add options to the most used function, with a second message path. Two calls are explicit, and the
+order of the errors (a `TypeError` for `"a"` before a `ValueError` for `-1`) is visible. Revisit if a
+call site needs three constraints on one argument.
 
-Decision: **adopted**.
+**An empty range raises.** `validate_range(x, 1, 0)` cannot succeed; it is a programming error, and
+blaming the value would send the reader to the wrong argument. The `ValueError` about the bounds costs
+one comparison.
 
-**D2. Are `numpy.int64` and `numpy.float32` ints and floats?** _Recommended: no, for the type
-validators; yes through `validate_number`._ A type annotation `int` rejects `numpy.int64` for a type
-checker, `validate_int` follows the annotation, and a caller that accepts NumPy scalars writes
-`validate_isinstance(x, (int, np.integer))` or uses `validate_number`. The alternative is
-`numbers.Integral` for `validate_int` (accepts NumPy ints, still rejects `bool` by the explicit
-test); it is a one-line change, but it makes the strictness depend on the registration of the ABCs,
-and an `int` argument that is later used as `range(n)` or a shift accepts `numpy.int64` anyway.
-Settled: the strict rule stays; revisit only if a user reports a real case.
+**`validate_in` with an unhashable value is a `ValueError`.** From the point of view of the caller, `[]`
+is not one of the valid modes; the fact that the container is a `set` is an implementation detail. A
+`TypeError` would be right only if `valid` were not a container, and that case still raises (the bug of
+the caller). A `valid` that is a string with a non-string value (`1 in "abc"` raises `TypeError`) is
+reported as a value error, and the message shows both.
 
-Decision: **adopted**.
+**The project-wide rule lives in this package's docstring, the guide and `CLAUDE.md`:** "Validate an
+argument with `coola.validation`; do not write `raise ValueError` for a type, range or membership check,
+and do not add a validator that is one `isinstance` or one comparison." Without the rule, each package
+grows private copies with their own messages.
 
-**D3. Merge "type then bound" into one call?** _Recommended: no._ `validate_int(x, min=0)` would
-remove 8 lines at the call sites and add options to the most used function, with a second
-message path. Two calls are explicit, and the order of the errors (a `TypeError` for `"a"` before a
-`ValueError` for `-1`) is visible. Revisit if a call site needs three constraints on one argument.
-
-Decision: **adopted**.
-
-**D4. Raise on an empty range?** _Recommended: yes._ `validate_range(x, 1, 0)` cannot succeed;
-it is a programming error and the current message blames the value. A `ValueError` about the bounds
-costs one comparison. Alternative (rejected): leave it and document, because the failing message sends
-the reader to the wrong argument.
-
-Decision: **adopted**.
-
-**D5. `validate_in` with an unhashable value: `ValueError` or `TypeError`?** _Recommended:
-`ValueError`._ From the point of view of the caller, `[]` is not one of the valid modes; the fact that
-the container is a `set` is an implementation detail. A `TypeError` would be right only if `valid`
-were not a container, and that case still raises (the bug of the caller). The cost is that a
-`valid` that is a string with a non-string value (`1 in "abc"` raises `TypeError`) is reported as a
-value error: acceptable, the message shows both.
-
-Decision: **adopted**.
-
-**D6. Where does the project-wide rule live?** _Recommended: in this package's docstring and the
-guide, plus a sentence in `CLAUDE.md`._ "Validate an argument with `coola.validation`; do not write
-`raise ValueError` for a type, range or membership check, and do not add a validator that is one
-`isinstance` or one comparison." shows what happens without the rule: six private copies with
-their own messages.
-
-Decision: **adopted**.
-
-**D7. Make `validate_*` available as a decorator or an `Annotated` metadata?** _Recommended: no._ A
-schema layer (pydantic, attrs validators, beartype) does it better, and none of the call sites needs
-it. The package stays a set of functions that a constructor calls.
-
-Decision: **no**, the package stays a set of functions.
+**No decorator or `Annotated` metadata.** A schema layer (pydantic, attrs validators, beartype) does it
+better, and none of the call sites needs it. The package is a set of functions that a constructor
+calls.
 
 ## Not covered
 
@@ -228,7 +190,7 @@ Decision: **no**, the package stays a set of functions.
 - **Validation of nested structures and of array shapes or dtypes.** `validate_isinstance(x,
 np.ndarray)` works; a dtype check belongs to the package that owns the array library (lazy import).
 - **Coercion** (`ensure_int`, `to_float`). Validators never convert (property "silent on success").
-- **`registry._validate_key`**: kept local, a candidate for a later item.
+- **`registry._validate_key`**: local to `registry`.
 - **A `validate_callable`, `validate_path`, `validate_enum`, ...**: each is
   `validate_isinstance(x, Callable)` or `validate_in(x, tuple(Enum))`; they are added only if they
-  carry a rule of their own (rule of).
+  carry a rule of their own (see the rule above).

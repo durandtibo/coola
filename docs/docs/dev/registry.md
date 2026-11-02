@@ -1,6 +1,6 @@
 # Architecture of `coola.registry`
 
-:book: This page describes the design of the `coola.registry` package for contributors: the invariants, the contracts between the parts, and the decisions behind them. The rules that users rely on are in the [user guide](../uguide/registry.md#properties); the API is in the [reference](../refs/registry.md).
+:book: This page describes the design of the `coola.registry` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/registry.md#properties); the API is in the [reference](../refs/registry.md).
 
 ## Architecture
 
@@ -23,9 +23,9 @@ domain          HasherRegistry, EqualityTesterRegistry, SummarizerRegistry,
                 |   has_<x>, find_<x> (one line each), the domain entry point
 ```
 
-`BaseRegistry`, `BaseTypeDispatchRegistry` and `DataclassMarker` disappear; `vanilla.py` and
-`dispatch.py` are deleted. Two classes remain. A domain registry **is** a `TypeRegistry` (it
-inherits, it does not wrap), so it has no `_state` wrapper and one display.
+Two classes carry everything. A domain registry **is** a `TypeRegistry` (it inherits, it does not
+wrap), so it has no `_state` wrapper and one display. The dataclass rule is a fallback predicate, not
+a marker type.
 
 ### State: replaced, never mutated
 
@@ -50,19 +50,18 @@ class Registry(Generic[K, V]):
 ```
 
 - **Readers take no lock**: they read `self._state` once. A mutation builds a new dict (`O(n)`, `n`
-  is about 50 and a registration is rare) and swaps the reference, which is atomic. This replaces
-  `_snapshot`, `_get_snapshot`, `_invalidate`, `_on_change` and the per-method `with self._lock`.
+  is about 50 and a registration is rare) and swaps the reference, which is atomic, so no method needs
+  its own snapshot or invalidation logic.
 - `register_many` builds one dict for the whole mapping and publishes it once: atomic by
   construction, including for readers.
 - `_publish(state)` assigns `_state` and calls `_changed()`, a hook that `TypeRegistry` overrides to
   empty the cache. Three hooks exist for the subclass, all no-ops in `Registry`: `_validate_key`,
-  `_load_for(key)`, `_load_all()`. (Today: `_validate_key`, `_on_change`, `_lazy_names` and
-  the three `_load_lazy*`.)
+  `_load_for(key)`, `_load_all()`.
 - `exist_ok` is keyword-only everywhere (`register`, `register_many`, `register_fallback`).
 
 ### Fork and pickle
 
-`_reset_after_fork` recreates the (only) lock, as before. `__getstate__` returns `__dict__` without
+`_reset_after_fork` recreates the (only) lock. `__getstate__` returns `__dict__` without
 `_lock` and `_cache`; `__setstate__` recreates them and calls `track_fork`. Ten lines in
 `Registry`; `TypeRegistry` adds nothing because its other attributes are immutable containers.
 A registry holding lambdas (a predicate, a lazy factory) is not picklable, like any object holding
@@ -99,18 +98,20 @@ def _lookup(self, dtype):
     raise TypeNotRegisteredError(self._not_registered_msg(dtype))
 ```
 
-- A plain `dict` replaces the `WeakKeyDictionary` and the copy on write. The miss path is
-  under the lock, as the registration is, so a stale value cannot be written after a registration
-  has emptied the cache. The cache is bounded (1,024) and emptied by any change (`register`,
-  `unregister`, `clear`, `register_fallback`, a lazy load).
-- The fallbacks sit between the types and `object`. This is the rule of `DataclassMarker` today
-  ("used only if the lookup ended on `object`") without the identity test, and it keeps the
-  rule of `HasherRegistry` ("a type registered always wins"), except for the corner case "a hasher
-  registered for `object` makes the fallbacks unreachable": `object` is now the **last** resort
-  everywhere. `resolve(object)` checks the fallbacks too (no predicate of the repository accepts
-  `object`).
-- `resolve_or` and `find` are deleted: the former exists to skip the message of the error for a
-  fallback (the fallbacks are now in the lookup), the latter is a second name of `resolve`.
+- The cache is a plain strong `dict`, bounded (1,024 classes) and emptied by any change (`register`,
+  `unregister`, `clear`, `register_fallback`, a lazy load). The miss path is under the lock, as the
+  registration is, so a stale value cannot be written after a registration has emptied the cache. A
+  program that creates classes dynamically keeps at most 1,024 of them alive (a few MB) until the next
+  registration. A weak dictionary would not keep them, but is the more expensive structure; no cache
+  at all is simpler by about 12 lines, but the dataclass fallback predicates would run on every
+  lookup.
+- The fallbacks sit between the types and `object`: a registered type always wins, then the first
+  predicate that accepts the type, then `object`. `object` is the **last** resort in every registry,
+  so a handler registered for `object` never hides a fallback. `resolve(object)` checks the fallbacks
+  too (no predicate of the repository accepts `object`). A predicate also solves the virtual-subclass
+  limit of the MRO lookup (a user can register `lambda t: issubclass(t, Sequence)`).
+- `resolve` is the only lookup name. The domain aliases `has_<x>` and `find_<x>` are public API of
+  five packages and read well at the call site: they are one-line delegations.
 
 ### Fallbacks
 
@@ -118,21 +119,23 @@ def _lookup(self, dtype):
 
 | Method                                                     | Behaviour                                                                                                                                     |
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `register_fallback(predicate, handler, *, exist_ok=False)` | Appends the pair. A predicate already registered raises `AlreadyRegisteredError` (today: a duplicate is silently appended and never reached). |
+| `register_fallback(predicate, handler, *, exist_ok=False)` | Appends the pair. A predicate already registered raises `AlreadyRegisteredError` (`exist_ok=True` replaces it, and its position is kept). |
 | `unregister_fallback(predicate) -> handler`                | Removes the pair and returns the handler; `KeyNotRegisteredError` (a `KeyError`) if absent.                                                   |
 | `fallbacks() -> ItemsView`                                 | The `(predicate, handler)` pairs in order, as a snapshot.                                                                                     |
 | `clear()`                                                  | Removes the types, the fallbacks and the pending lazy groups. `copy()` and `repr` include the fallbacks.                                      |
 
-The dataclass rule of each package becomes one registration in its `get_default_registry`:
+The dataclass rule of each package is one registration in its `get_default_registry`:
 
 ```python
 registry.register_fallback(dataclasses.is_dataclass, DataclassSummarizer())
 # equality: the dataclass must use the __eq__ generated by @dataclass
-registry.register_fallback(_has_generated_eq, DataclassEqualityTester())
-# hashing: unchanged
+registry.register_fallback(has_generated_dataclass_eq, DataclassEqualityTester())
+# hashing
 registry.register_fallback(dataclasses.is_dataclass, DataclassHasher())
-registry.register_fallback(_has_hash_method, HashableHasher())
+registry.register_fallback(_has_coola_hash_method, ContentHasher())
 ```
+
+The dataclass handler is therefore not a visible "type" entry of `items()` / `len()`.
 
 ### Lazy groups (`TypeRegistry` only)
 
@@ -154,24 +157,24 @@ self._lazy: tuple[_LazyGroup, ...] = ()  # replaced on write
   `values`).
 - Loading runs under the writer lock: remove the group, call the factory, `setdefault` each entry
   after `_validate_key`, publish. If the factory raises, the group is put back and the error
-  propagates (as today), so the next call fails the same way.
+  propagates, so the next call fails the same way.
 - A lazy factory may call `register` on the same registry (the lock is reentrant).
 - `repr` lists the pending groups by package name and loads nothing; `copy()` copies the tuple and
   loads nothing.
 - `register(key, ...)`, `unregister(key)`, `has(key)`, `get(key)` and `[key]` call `_load_for(key)`,
   so `has(np.ndarray)` does not depend on whether numpy was already looked up. Registering over a
-  lazy default therefore needs `exist_ok=True`; this stays and is documented.
+  lazy default therefore needs `exist_ok=True`; this is documented.
 
 ### Errors
 
 ```python
-class KeyNotRegisteredError(KeyError):  # __str__ is not repr()'d, as before
+class KeyNotRegisteredError(KeyError):  # __str__ is not repr()'d
 class TypeNotRegisteredError(KeyNotRegisteredError): ...
-class AlreadyRegisteredError(ValueError): ...  # RuntimeError is dropped
+class AlreadyRegisteredError(ValueError): ...  # the value is not acceptable in the current state
 ```
 
-The message builders stay (`Type '<class ...>' is not registered (MRO: ...). Registered types:
-...`), as module-level functions of `type.py` because the hashing registry no longer calls them.
+The message builders (`Type '<class ...>' is not registered (MRO: ...). Registered types: ...`) are
+module-level functions of `type.py`.
 
 ### What a domain registry looks like
 
@@ -183,16 +186,15 @@ class HasherRegistry(TypeRegistry[Hasher[Any]]):
     def find_hasher(self, data_type: type) -> Hasher[Any]:
         return self.resolve(data_type)
 
-    def hash(self, data, length=64, ignore_unhashable=False): ...  # unchanged
+    def hash(self, data, length=64, ignore_unhashable=False): ...
 ```
 
-`HasherRegistry` loses `__init__`, `copy`, `_reset_after_fork`, `_display_fields`,
-`register_fallback`, `unregister_fallback`, `clear` and `equal` (about 110 lines; `equal` is inherited, see 3.8): the base class
-does them. `EqualityTesterRegistry` loses `_accepts_dataclass_marker`.
+The domain registry defines only the aliases and its entry point: `__init__`, `copy`, the fork reset,
+the display, the fallbacks, `clear` and `equal` are inherited from the base classes.
 
 ### `equal`
 
-`equal(other)` stays, rewritten so that it is right and needs no feature package:
+`equal(other)` compares two registries without any feature package:
 
 ```python
 def equal(self, other: object) -> bool:
@@ -203,15 +205,13 @@ def equal(self, other: object) -> bool:
     return self._state == other._state and self._fallbacks == other._fallbacks
 ```
 
-- The states are replaced, never mutated, so the comparison needs **no lock** (the two-lock,
-  `id`-ordered code and the deferred `coola.equality` import are deleted, and with them the
-  import-linter exception).
+- The states are replaced, never mutated, so the comparison needs **no lock** and no import of
+  `coola.equality` (so `registry` stays a core package with no exception in the import-linter
+  contract).
 - Handlers are compared with `==`: a handler without `__eq__` is equal to itself only. A `copy()` is
-  therefore equal to its source (the handlers are shared), which fixes for the hashing and summary
-  registries. Two registries built separately with handlers of the same class are equal only if the
-  handlers define `__eq__`.
-- `equal_nan` is dropped (it had no meaning for `==`). `HasherRegistry.equal` is deleted: the base
-  compares the fallbacks too.
+  therefore equal to its source (the handlers are shared). Two registries built separately with
+  handlers of the same class are equal only if the handlers define `__eq__`.
+- There is no `equal_nan` argument (it has no meaning for `==`).
 
 ## Public API
 
@@ -230,84 +230,43 @@ from coola.registry import (
 | `Registry`     | `register(key, value, *, exist_ok=False)`, `register_many(mapping, *, exist_ok=False)`, `unregister(key) -> value`, `clear()`, `copy()`, `get(key, default=None)`, `has(key)`, `[]`, `[]=`, `del`, `in`, `len`, `iter`, `keys()`, `values()`, `items()`, `equal(other)` |
 | `TypeRegistry` | all of `Registry`, plus `resolve(dtype)`, `register_fallback(predicate, handler, *, exist_ok=False)`, `unregister_fallback(predicate)`, `fallbacks()`, `register_lazy(packages, factory)`                                                                               |
 
-Removed: `BaseTypeDispatchRegistry`, `DataclassMarker`, `find`, `resolve_or`, the `equal_nan` argument of `equal`,
-the `RuntimeError` base of `AlreadyRegisteredError`, the positional `exist_ok`, `_snapshot` and the
-other private hooks listed in 3.1. Changed: the display of the dispatch registries, the order of
-precedence of `object` against the fallbacks of the hashing registry.
+Registering twice raises `AlreadyRegisteredError` (a `ValueError`) unless `exist_ok=True`, which is
+keyword-only everywhere.
 
 ## Dependents
 
-| Package / file                                | Change                                                                                                                                                                                                                                                                                                                                                     |
-| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `equality/tester/registry.py`, `interface.py` | `EqualityTesterRegistry(TypeRegistry[...])`; delete `_accepts_dataclass_marker` and the `DataclassMarker` export; the default registry calls `register_fallback(_has_generated_eq, DataclassEqualityTester())`, where `_has_generated_eq` is the current condition (`__dataclass_params__.eq and _has_generated_eq`). `find_equality_tester` is `resolve`. |
-| `hashing/registry.py`, `interface.py`         | `HasherRegistry(TypeRegistry[...])`; delete the fallback code, `copy`, `clear`, `equal`, `_display_fields`, the lock and the access to `_state`; keep `_find_enum_hasher`, `hash` and the thread-local cycle state (outside this design). `register_fallback` keeps its signature (+ `exist_ok`); `unregister_fallback` now returns the hasher.            |
-| `summary/registry.py`, `interface.py`         | Same as equality, with `dataclasses.is_dataclass` as the predicate.                                                                                                                                                                                                                                                                                        |
-| `iterator/registry.py`, `interface.py`        | Same, `DataclassChildFinder`. `enter_dataclasses` (opt-in) registers the fallback instead of the marker; its fate is decided by the `iterator` design and the `recursive` design (D1 there).                                                                                                                                                               |
-| `recursive/registry.py`, `interface.py`       | Same, `DataclassTransformer`. the `recursive` design must read "register the fallback `dataclasses.is_dataclass`" where it says "register `DataclassTransformer` on `DataclassMarker`". `recursive/dataclass.py` and the guide mention the marker.                                                                                                         |
-| `nested/conversion.py`                        | `registry.register(DataclassMarker, DefaultTransformer(), exist_ok=True)` becomes `registry.register_fallback(dataclasses.is_dataclass, DefaultTransformer(), exist_ok=True)`: a dataclass is a leaf for `to_jsonable`.                                                                                                                                    |
-| `random/registry.py`                          | `RandomManagerRegistry(Registry[str, BaseRandomManager], BaseRandomManager)` is unchanged; it gains pickling and `exist_ok` as keyword-only (check the callers).                                                                                                                                                                                           |
-| `utils/singleton.py`, `testing/registries.py` | `temporary_default_registries` uses `copy()` and `_replace_with_copy`; no change of code, the docs say what a copy contains (fallbacks).                                                                                                                                                                                                                   |
-| `pyproject.toml` (import-linter)              | Delete `ignore_imports = ["coola.registry.base -> coola.equality"]`. `docs/docs/dev/architecture.md` ("Package Layering") loses the sentence about the exception.                                                                                                                                                                                          |
-| Tests that read `registry._state`             | `tests/unit/recursive/test_registry.py`, `tests/unit/hashing/test_registry.py`: `_state` is still a `dict` of types to handlers, so they keep running, but they should use the public `registry[list]`, `list in registry`, `len(registry)`.                                                                                                               |
+| Package / file                                | Use                                                                                                                                                       |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `equality/tester/registry.py`, `interface.py` | `EqualityTesterRegistry(TypeRegistry[...])`; the default registry registers the dataclass tester as a fallback on `has_generated_dataclass_eq`. `find_equality_tester` is `resolve`. |
+| `hashing/registry.py`, `interface.py`         | `HasherRegistry(TypeRegistry[...])`; the enum rule is `_find_enum_hasher`; `hash` calls the engine. The fallbacks are `dataclasses.is_dataclass` and the `__coola_hash__` predicate. |
+| `summary`, `iterator`, `recursive`            | The same shape, with `dataclasses.is_dataclass` as the predicate of the dataclass fallback.                                                              |
+| `jsonable`                                    | `TransformerRegistry` of `recursive`; a dataclass is entered through the fallback.                                                                       |
+| `random/registry.py`                          | `RandomManagerRegistry(Registry[str, BaseRandomManager], BaseRandomManager)`: a registry keyed by name, not by type.                                      |
+| `utils/singleton.py`, `testing/registries.py` | `temporary_default_registries` uses `copy()`; a copy contains the fallbacks.                                                                              |
+| `pyproject.toml` (import-linter)              | `registry` is a core package: it imports no feature package.                                                                                              |
 
-## Decisions for the maintainers
+## Design choices and trade-offs
 
-**D1. Replace `DataclassMarker` and the hashing fallbacks by one fallback mechanism?**
-_Recommended: yes._ It is one idea implemented twice, the marker's identity test is a bug
-, and a predicate also solves the virtual-subclass limit of the MRO lookup (a user can register
-`lambda t: issubclass(t, Sequence)`). Consequences: `object` is the last resort in the hashing
-registry too (nobody registers `object` there), and the dataclass handler is no longer a visible
-"type" entry of `items()` / `len()`. Alternative: keep the marker and only fix the identity test;
-cheaper, but the five registries keep a second mechanism and the hashing registry keeps its own.
+**One fallback mechanism instead of a marker type.** Before the fallbacks, the dataclass rule needed a
+marker type in the registry and an identity test. A predicate is one idea implemented once, and it also
+solves the virtual-subclass limit of the MRO lookup. The consequence is that the dataclass handler is
+not a visible entry of `items()`. Keeping a marker type would leave each registry with a second
+mechanism.
 
-**Decision: yes.**
+**A generic `Registry` is kept.** `RandomManagerRegistry` uses it and `TypeRegistry` extends it, so it
+costs nothing: it is the storage class. Making it private would only change the guide (a "plugin
+system" or "factory" example is not what `coola` is for).
 
-**D2. Keep the generic `Registry`?** _Recommended: yes._ `RandomManagerRegistry` uses it and
-`TypeRegistry` extends it, so it costs nothing: it is the storage class. Alternative: make it
-private (`_Registry`) and drop it from the guide (the "plugin system", "factory" and "configuration"
-examples are not what `coola` is for); this only changes the guide.
+**`equal()` is kept.** It is the documented way to compare two registries, it needs no feature
+package, and the alternative (`dict(a.items()) == dict(b.items())`) forgets the fallbacks.
 
-**Decision: yes.**
+**`AlreadyRegisteredError` is a `ValueError`.** The value is not acceptable in the current state; it is
+not a `RuntimeError`.
 
-**D3. A strong bounded cache instead of a weak one?** _Recommended: yes._ The weak dictionary is the
-cost. The cache holds at most 1,024 classes and is emptied by any change, so a program that
-creates classes dynamically keeps at most 1,024 of them alive (a few MB) until the next
-registration, instead of the last reference. Alternative: no cache; simpler by about 12 lines, but
-the dataclass fallback predicates run on every lookup.
+**Registries are picklable.** Ten lines remove a failure that only shows with `spawn`. The alternative
+is to document that a registry is not picklable and to pass the arguments that build it.
 
-**Decision: yes.**
-
-**D4. Delete `equal()`?** _Recommended: yes. Answered: no, it is kept (rewritten as the alternative below, see 3.8)._ Nothing in `src` uses it, it is wrong for two default
-registries, and it is the only reason `registry` depends on `equality`. A test that needs to
-compare two registries compares `dict(a.items()) == dict(b.items())`. Alternative: keep
-`equal(other)` as `type(a) is type(b) and a._state == b._state and a._fallbacks == b._fallbacks`
-(handlers compare by `==`, so a copy is equal), without `equal_nan` and without the second lock.
-
-**Decision: no.** `equal` stays; it is rewritten without the `equality` import and without `equal_nan`.
-
-**D5. Drop the `RuntimeError` base of `AlreadyRegisteredError`?** _Recommended: yes._ It is a
-`ValueError` (the value is not acceptable in the current state). `except RuntimeError` code is
-rare; the release notes say so. Alternative: keep it for one more major release.
-
-**Decision: yes.**
-
-**D6. Keep `resolve` as the only lookup name?** _Recommended: yes._ It is the name of the guide and
-of `TypeRegistry`; `find` only exists in `BaseTypeDispatchRegistry`. The domain aliases `has_<x>` and
-`find_<x>` stay (they read well at the call site and are public API of five packages): they become
-one-line delegations. Dropping them is a change of five packages, not of this one.
-
-**Decision: yes.**
-
-**D7. Registries are picklable?** _Recommended: yes._ Ten lines, and it removes a failure that only
-shows with `spawn`. Alternative: document that a registry is not picklable and pass the arguments
-that build it.
-
-**Decision: yes.**
-
-**D8. A duplicate fallback predicate is an error?** _Recommended: yes_ (`exist_ok=True` to replace,
-the position is kept). Today a duplicate is silently appended and never reached.
-
-**Decision: yes.**
+**A duplicate fallback predicate is an error.** A silent duplicate would be appended and never reached.
 
 ## Not covered
 
@@ -315,12 +274,9 @@ the position is kept). Today a duplicate is silently appended and never reached.
   (the reason in the current docstring). The fallbacks are the opt-in way.
 - **Entry-point plugins**: how plugins are listed or disabled is a
   question of the packages that load them, not of the registry.
-- **Scoped overrides** (`temporary_default_registries`): in `coola.utils.singleton`; unchanged.
+- **Scoped overrides** (`temporary_default_registries`): in `coola.utils.singleton`.
 - **Handler protocol check at registration.** The registry stays generic; the domain registries
   could validate their handlers, which is a separate item.
 - **A registry shared between processes.** Out of scope; a copy per process is the model.
-- **The per-call caches of the engines** (`recursive`, `iterator`, `equality`): they keep their
-  design; this review makes the registry lookup they call cheaper but does not change them. The
-  hashing registry has no per-call cache and benefits most.
-- **The thread-local cycle state of `HasherRegistry.hash`**: tracked separately
-  (hashing), outside this design.
+- **The per-call caches of the engines** (`recursive`, `iterator`, `equality`, `hashing`): they
+  belong to the engines; the registry cache makes the lookup they call cheap.
