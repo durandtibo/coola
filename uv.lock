@@ -276,8 +276,6 @@ pandas = [
     { name = "pandas" },
 ]
 polars = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "numpy", version = "2.5.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "polars" },
 ]
 pyarrow = [
@@ -337,7 +335,6 @@ requires-dist = [
     { name = "colorlog", marker = "extra == 'colorlog'", specifier = ">=6.9,<7.0" },
     { name = "jax", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'jax') or (sys_platform == 'linux' and extra == 'jax')", specifier = ">=0.6.0,<1.0" },
     { name = "numpy", marker = "extra == 'numpy'", specifier = ">=1.24,<3.0" },
-    { name = "numpy", marker = "extra == 'polars'", specifier = ">=1.24,<3.0" },
     { name = "packaging", marker = "extra == 'packaging'", specifier = ">=22.0" },
     { name = "pandas", marker = "extra == 'pandas'", specifier = ">=2.0,<4.0" },
     { name = "polars", marker = "extra == 'polars'", specifier = ">=1.0,<3.0" },
