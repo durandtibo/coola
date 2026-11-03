@@ -127,7 +127,7 @@ def test_pandas_dataframe_summarizer_summarize_max_items_none_shows_all_columns(
 def test_pandas_dataframe_summarizer_summarize_max_items_zero_hides_all_columns() -> None:
     frame = pd.DataFrame({"a": [1], "b": [2]})
     result = PandasDataFrameSummarizer().summarize(frame, SummaryConfig(max_items=0), compact=False)
-    assert result == "<class 'pandas.DataFrame'> | shape=(1, 2) | columns=... (+2 more)"
+    assert result == f"{type(frame)} | shape=(1, 2) | columns=... (+2 more)"
 
 
 @pandas_available

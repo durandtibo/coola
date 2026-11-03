@@ -113,7 +113,7 @@ def test_golden_vector_pandas_series() -> None:
 
 @pandas_available
 def test_golden_vector_pandas_dataframe() -> None:
-    assert hash_object(pd.DataFrame({"a": [1, 2]}), length=16) == "08143bc5fe7b5cab"
+    assert hash_object(pd.DataFrame({0: [1, 2]}), length=16) == "4460388db54bf470"
 
 
 @polars_available
