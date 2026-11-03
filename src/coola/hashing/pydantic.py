@@ -17,9 +17,8 @@ if TYPE_CHECKING:
 
 if TYPE_CHECKING or is_pydantic_available():
     import pydantic
-    from pydantic import SecretBytes, SecretStr
 else:  # pragma: no cover
-    from coola.utils.fallback.pydantic import SecretBytes, SecretStr, pydantic
+    from coola.utils.fallback.pydantic import pydantic
 
 # The policies are compared and defaulted by name: a string literal assigned or compared to
 # a name that contains "secret" is reported by the rules S105 and S107.
@@ -76,7 +75,7 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
         )
 
 
-class SecretHasher(InlineDisplayMixin, BaseHasher["SecretStr | SecretBytes"]):
+class SecretHasher(InlineDisplayMixin, BaseHasher["pydantic.SecretStr | pydantic.SecretBytes"]):
     r"""Hasher for ``SecretStr`` and ``SecretBytes`` values.
 
     A secret is a value with a hasher, so the policy is the one of the
@@ -127,7 +126,7 @@ class SecretHasher(InlineDisplayMixin, BaseHasher["SecretStr | SecretBytes"]):
     def _display_fields(self) -> dict[str, Any]:
         return {"on_secret": self._on_secret}
 
-    def encode(self, data: SecretStr | SecretBytes) -> Encoding:
+    def encode(self, data: pydantic.SecretStr | pydantic.SecretBytes) -> Encoding:
         r"""Describe a secret.
 
         Args:
@@ -188,7 +187,7 @@ def get_secret_hashers(
         ```
     """
     hasher = SecretHasher(on_secret)
-    return {SecretStr: hasher, SecretBytes: hasher}
+    return {pydantic.SecretStr: hasher, pydantic.SecretBytes: hasher}
 
 
 def get_default_hashers() -> dict[type, Hasher[Any]]:
