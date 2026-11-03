@@ -15,7 +15,6 @@ from coola.equality._helpers.jax import array_close, array_equal
 from coola.equality.tester._array import check_dtype_and_shape
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.imports import check_jax, is_jax_available
-from coola.utils.jax import get_jax_array_types
 
 if TYPE_CHECKING or is_jax_available():
     import jax.numpy as jnp
@@ -91,4 +90,5 @@ def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
         return {}
 
     tester = JaxArrayEqualityTester()
-    return dict.fromkeys(get_jax_array_types(), tester)
+    # ``jnp.ndarray`` is ``jax.Array``, which is in the MRO of the concrete array classes.
+    return {jnp.ndarray: tester}

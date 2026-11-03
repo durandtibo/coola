@@ -10,16 +10,18 @@ from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher, Encoding, digest
 from coola.hashing.numpy import canonicalize_floats, hash_array_content
 from coola.utils.imports import is_jax_available, is_numpy_available
-from coola.utils.jax import get_jax_array_types
 
 if TYPE_CHECKING or is_numpy_available():
     import numpy as np
 else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np
 
-if TYPE_CHECKING:
+if TYPE_CHECKING or is_jax_available():
     import jax
+else:  # pragma: no cover
+    from coola.utils.fallback.jax import jax
 
+if TYPE_CHECKING:
     from coola.hashing.base import Hasher
 
 
@@ -74,5 +76,4 @@ def get_default_hashers() -> dict[type, Hasher[Any]]:
     """
     if not is_jax_available():
         return {}
-    hasher = JaxArrayHasher()
-    return dict.fromkeys(get_jax_array_types(), hasher)
+    return {jax.Array: JaxArrayHasher()}
