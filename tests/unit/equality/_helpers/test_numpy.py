@@ -7,6 +7,7 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality._helpers.numpy import (
+    _have_comparable_dtypes,
     array_close,
     array_equal,
     is_numeric_array,
@@ -438,6 +439,14 @@ def test_array_equal_bool_equal_with_tolerance() -> None:
 
 
 @numpy_available
+def test_array_close_non_numeric_array1(config: EqualityConfig) -> None:
+    result = array_close(
+        np.array(["polar", "bear"]), np.array([1, 0], dtype=np.int64), config=config
+    )
+    assert result.tolist() == [False, False]
+
+
+@numpy_available
 def test_array_close_exact() -> None:
     assert array_close(np.array([1.0, 2.0]), np.array([1.0, 3.0]), EqualityConfig()).tolist() == [
         True,
@@ -493,3 +502,35 @@ def test_array_close_booleans_have_no_tolerance() -> None:
         np.array([False, False]),
         EqualityConfig(tolerance=Tolerance(atol=1.0)),
     ).tolist() == [False, True]
+
+
+#############################################
+#     Tests for _have_comparable_dtypes     #
+#############################################
+
+
+@numpy_available
+@pytest.mark.parametrize(
+    ("array1", "array2"),
+    [
+        pytest.param(np.array(["a"]), np.array(["b"]), id="str str"),
+        pytest.param(np.array([b"a"]), np.array(["b"]), id="bytes str"),
+        pytest.param(np.array([1]), np.array([1.5]), id="int float"),
+        pytest.param(np.array([True]), np.array([1]), id="bool int"),
+    ],
+)
+def test_have_comparable_dtypes_true(array1: np.ndarray, array2: np.ndarray) -> None:
+    assert _have_comparable_dtypes(array1, array2)
+
+
+@numpy_available
+@pytest.mark.parametrize(
+    ("array1", "array2"),
+    [
+        pytest.param(np.array(["a"]), np.array([1]), id="str int"),
+        pytest.param(np.array([1.0]), np.array(["a"]), id="float str"),
+        pytest.param(np.array([b"a"]), np.array([True]), id="bytes bool"),
+    ],
+)
+def test_have_comparable_dtypes_false(array1: np.ndarray, array2: np.ndarray) -> None:
+    assert not _have_comparable_dtypes(array1, array2)
