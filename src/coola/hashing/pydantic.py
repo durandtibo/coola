@@ -76,7 +76,7 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
         )
 
 
-class SecretHasher(InlineDisplayMixin, BaseHasher["SecretStr | SecretBytes"]):
+class SecretHasher(InlineDisplayMixin, BaseHasher[Any]):
     r"""Hasher for ``SecretStr`` and ``SecretBytes`` values.
 
     A secret is a value with a hasher, so the policy is the one of the
@@ -127,7 +127,7 @@ class SecretHasher(InlineDisplayMixin, BaseHasher["SecretStr | SecretBytes"]):
     def _display_fields(self) -> dict[str, Any]:
         return {"on_secret": self._on_secret}
 
-    def encode(self, data: SecretStr | SecretBytes) -> Encoding:
+    def encode(self, data: Any) -> Encoding:
         r"""Describe a secret.
 
         Args:

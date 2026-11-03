@@ -18,7 +18,7 @@ else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
 
 if TYPE_CHECKING:
-    from torch import Generator, device
+    from torch import Generator
 
 
 class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
@@ -137,7 +137,7 @@ def get_random_seed(seed: int) -> int:
     return torch.randint(0, 2**63 - 1, size=(1,), generator=get_torch_generator(seed)).item()
 
 
-def get_torch_generator(seed: int, *, device: device | str | None = "cpu") -> Generator:
+def get_torch_generator(seed: int, *, device: Any = "cpu") -> Generator:
     r"""Create a ``torch.Generator`` initialized with a given seed.
 
     The generator is independent from the default generators of
@@ -146,7 +146,8 @@ def get_torch_generator(seed: int, *, device: device | str | None = "cpu") -> Ge
 
     Args:
         seed: A random seed.
-        device: The desired device for the generator.
+        device: The desired device for the generator, a ``torch.device``,
+            a string or ``None``.
 
     Returns:
         A ``torch.Generator`` object.
