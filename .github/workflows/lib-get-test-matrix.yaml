@@ -38,7 +38,7 @@ jobs:
       test_matrix: ${{ steps.build-matrix.outputs.test_matrix }}
     steps:
       - name: Load workflow config
-        uses: durandtibo/workflow-config-action@441bf07bb3f562e831e40b673cf34e7bddc5812f # ratchet:durandtibo/workflow-config-action@v0.2.1
+        uses: durandtibo/workflow-config-action@293a1c5eff18a9c485359d32d3035fdaaddcb955 # ratchet:durandtibo/workflow-config-action@v0.3.0
         id: cfg
 
       - name: Build test matrix
