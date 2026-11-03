@@ -151,6 +151,6 @@ def test_to_jsonable_string_array() -> None:
 @numpy_available
 def test_to_jsonable_long_double_array_raises() -> None:
     with pytest.raises(
-        TypeError, match=r"The converter of longdouble returned a value of the same type"
+        TypeError, match=r"The converter of (longdouble|float128) returned a value of the same type"
     ):
         to_jsonable(np.zeros(1, dtype="longdouble"))
