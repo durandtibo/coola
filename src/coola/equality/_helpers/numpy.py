@@ -48,6 +48,8 @@ def array_equal(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
 
         ```
     """
+    if not _have_comparable_dtypes(array1, array2):
+        return False
     if _uses_tolerance(array1, array2, config):
         return array1.shape == array2.shape and bool(array_close(array1, array2, config).all())
     # ``np.isnan`` is not defined for string/object/void dtypes, so
@@ -82,6 +84,8 @@ def array_close(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
 
         ```
     """
+    if not _have_comparable_dtypes(array1, array2):
+        return np.zeros(array1.shape, dtype=bool)
     if _uses_tolerance(array1, array2, config):
         with np.errstate(invalid="ignore", over="ignore"):  # ``inf - inf``
             if array1.dtype.kind == "m":
@@ -98,6 +102,24 @@ def array_close(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) 
     if config.equal_nan and _supports_nan(array1) and _supports_nan(array2):
         close = close | (_is_nan_like(array1) & _is_nan_like(array2))
     return np.asarray(close)
+
+
+def _have_comparable_dtypes(array1: np.ndarray, array2: np.ndarray) -> bool:
+    r"""Indicate if the elements of two arrays can be compared.
+
+    A string is never equal to a number. NumPy 1.x does not compare
+    them elementwise: it emits a ``FutureWarning`` (or raises) and
+    returns a scalar.
+
+    Args:
+        array1: The first array.
+        array2: The second array.
+
+    Returns:
+        ``False`` if one array has a string dtype and the other has
+            not, otherwise ``True``.
+    """
+    return (array1.dtype.kind in "US") == (array2.dtype.kind in "US")
 
 
 def _uses_tolerance(array1: np.ndarray, array2: np.ndarray, config: EqualityConfig) -> bool:

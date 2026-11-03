@@ -94,13 +94,14 @@ def test_ndarray_summarizer_summarize_large_ndarray() -> None:
 def test_ndarray_summarizer_summarize_masked_array() -> None:
     array = np.ma.masked_array([1, 2, 3], mask=[0, 1, 1])
     result = NDArraySummarizer().summarize(array, CONFIG, compact=False)
-    assert result == "<class 'numpy.ma.MaskedArray'> | shape=(3,) | dtype=int64 | num_masked=2"
+    assert result == f"{type(array)} | shape=(3,) | dtype=int64 | num_masked=2"
 
 
 @numpy_available
 def test_ndarray_summarizer_summarize_masked_array_without_mask() -> None:
-    result = NDArraySummarizer().summarize(np.ma.masked_array([1, 2]), CONFIG, compact=False)
-    assert result == "<class 'numpy.ma.MaskedArray'> | shape=(2,) | dtype=int64 | num_masked=0"
+    array = np.ma.masked_array([1, 2])
+    result = NDArraySummarizer().summarize(array, CONFIG, compact=False)
+    assert result == f"{type(array)} | shape=(2,) | dtype=int64 | num_masked=0"
 
 
 @numpy_available
