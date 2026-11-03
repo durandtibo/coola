@@ -134,7 +134,7 @@ def get_random_seed(seed: int) -> int:
 
         ```
     """
-    return torch.randint(0, 2**63 - 1, size=(1,), generator=get_torch_generator(seed)).item()
+    return int(torch.randint(0, 2**63 - 1, size=(1,), generator=get_torch_generator(seed)).item())
 
 
 def get_torch_generator(seed: int, *, device: torch.device | str | None = "cpu") -> Generator:
