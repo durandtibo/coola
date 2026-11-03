@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -15,6 +16,7 @@ from coola.testing.marks import (
     xarray_available,
 )
 from coola.utils.imports import (
+    MissingPackageError,
     is_jax_available,
     is_numpy_available,
     is_pandas_available,
@@ -473,6 +475,7 @@ def test_hash_polars_dataframe_equal_frames() -> None:
 
 
 @polars_available
+@numpy_available
 def test_hash_polars_dataframe_differs_by_value() -> None:
     frame = pl.DataFrame({"a": [1, None], "b": ["x", "y"]})
     assert hash_object(frame) != hash_object(pl.DataFrame({"a": [1, 2], "b": ["x", "y"]}))
@@ -485,11 +488,13 @@ def test_hash_polars_dataframe_differs_by_column_name() -> None:
 
 
 @polars_available
+@numpy_available
 def test_hash_polars_series_equal_series() -> None:
     assert hash_object(pl.Series("a", [1.5])) == hash_object(pl.Series("a", [1.5]))
 
 
 @polars_available
+@numpy_available
 def test_hash_polars_series_differs_by_name() -> None:
     assert hash_object(pl.Series("a", [1.5])) != hash_object(pl.Series("b", [1.5]))
 
@@ -816,3 +821,23 @@ def test_hash_numpy_masked_object_array_ignores_the_masked_values() -> None:
     first = np.ma.array(np.array(["a", "b"], dtype=object), mask=[False, True])
     second = np.ma.array(np.array(["a", "c"], dtype=object), mask=[False, True])
     assert hash_object(first) == hash_object(second)
+
+
+def _raise_missing_numpy() -> None:
+    msg = "'numpy' package is required but not installed."
+    raise MissingPackageError(msg)
+
+
+@polars_available
+def test_hash_polars_numeric_series_requires_numpy() -> None:
+    with (
+        patch("coola.hashing.polars.check_numpy", _raise_missing_numpy),
+        pytest.raises(MissingPackageError, match=r"numpy"),
+    ):
+        hash_object(pl.Series("a", [1.5]))
+
+
+@polars_available
+def test_hash_polars_string_series_does_not_require_numpy() -> None:
+    with patch("coola.hashing.polars.check_numpy", _raise_missing_numpy):
+        assert isinstance(hash_object(pl.Series("a", ["x"])), str)

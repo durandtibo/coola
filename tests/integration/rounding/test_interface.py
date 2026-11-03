@@ -69,6 +69,7 @@ def test_round_values_pandas_end_to_end() -> None:
 
 
 @polars_available
+@numpy_available
 def test_round_values_polars_end_to_end() -> None:
     assert round_values(pl.Series([-4.822, 12.0]), decimals=1).to_list() == [-4.8, 12.0]
 

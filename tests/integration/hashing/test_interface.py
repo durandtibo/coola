@@ -146,6 +146,7 @@ def test_hash_object_pandas_dataframe_with_nested_values() -> None:
 
 
 @polars_available
+@numpy_available
 def test_hash_object_polars_dataframe() -> None:
     assert hash_object(pl.DataFrame({"a": [1, 2]})) == hash_object(pl.DataFrame({"a": [1, 2]}))
 

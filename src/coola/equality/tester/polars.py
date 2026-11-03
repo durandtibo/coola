@@ -18,7 +18,7 @@ from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from coola.equality.tester.table import Column, TableEqualityTester
-from coola.utils.imports import is_polars_available
+from coola.utils.imports import check_numpy, is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
     import polars as pl
@@ -169,11 +169,18 @@ def _column(name: object, series: pl.Series) -> Column:
 
     Returns:
         The column.
+
+    Raises:
+        MissingPackageError: If ``numpy`` is not installed and the
+            series has a numeric or duration data type: the values are
+            converted to NumPy arrays.
     """
     dtype = series.dtype
     if dtype.is_integer() or dtype.is_float():
+        check_numpy()
         return Column(name, "numeric", series.fill_null(0).to_numpy(), series.is_null().to_numpy())
     if isinstance(dtype, pl.Duration):
+        check_numpy()
         return Column(
             name,
             "duration",

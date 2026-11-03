@@ -156,6 +156,7 @@ def test_round_values_pandas_dataframe() -> None:
 
 
 @polars_available
+@numpy_available
 def test_round_values_polars_dataframe() -> None:
     result = round_values(pl.DataFrame({"a": [1.234], "b": ["x"]}), decimals=1)
     assert result.to_dict(as_series=False) == {"a": [1.2], "b": ["x"]}

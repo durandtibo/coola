@@ -183,7 +183,7 @@ TYPES: dict[str, Callable[[], Any]] = builtin_types()
 for available, getter in [
     (is_numpy_available(), numpy_types),
     (is_pandas_available(), pandas_types),
-    (is_polars_available(), polars_types),
+    (is_polars_available() and is_numpy_available(), polars_types),
     (is_pyarrow_available(), pyarrow_types),
     (is_torch_available(), torch_types),
     (is_jax_available(), jax_types),

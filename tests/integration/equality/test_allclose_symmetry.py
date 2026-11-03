@@ -119,5 +119,6 @@ def test_objects_are_allclose_pandas_opposite_directions() -> None:
 
 
 @polars_available
+@numpy_available
 def test_objects_are_allclose_polars_opposite_directions() -> None:
     assert objects_are_allclose(pl.Series(OPPOSITE_X), pl.Series(OPPOSITE_Y), **KWARGS)
