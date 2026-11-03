@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.summary.metadata import BaseMetadataSummarizer, Field
 from coola.utils.imports import check_jax, is_jax_available
+from coola.utils.jax import get_jax_array_types
 
 if TYPE_CHECKING or is_jax_available():
     import jax.numpy as jnp
@@ -63,6 +64,4 @@ def get_default_summarizers() -> dict[type, Summarizer[Any]]:
     if not is_jax_available():
         return {}
 
-    # ``jnp.ndarray`` is ``jax.Array``, in the MRO of the concrete array class. Creating an
-    # array to get this class would initialize the JAX backend as a side effect.
-    return {jnp.ndarray: JaxArraySummarizer()}
+    return dict.fromkeys(get_jax_array_types(), JaxArraySummarizer())
