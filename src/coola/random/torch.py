@@ -12,7 +12,7 @@ from coola.random.seed import validate_seed
 from coola.utils.imports import check_torch, is_torch_available
 from coola.utils.introspection import is_same_type
 
-if is_torch_available():
+if TYPE_CHECKING or is_torch_available():
     import torch
 else:  # pragma: no cover
     from coola.utils.fallback.torch import torch
@@ -137,7 +137,7 @@ def get_random_seed(seed: int) -> int:
     return torch.randint(0, 2**63 - 1, size=(1,), generator=get_torch_generator(seed)).item()
 
 
-def get_torch_generator(seed: int, *, device: Any = "cpu") -> Generator:
+def get_torch_generator(seed: int, *, device: torch.device | str | None = "cpu") -> Generator:
     r"""Create a ``torch.Generator`` initialized with a given seed.
 
     The generator is independent from the default generators of

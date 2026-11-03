@@ -6,7 +6,7 @@ from __future__ import annotations
 __all__ = ["PydanticModelHasher", "SecretHasher", "get_secret_hashers"]
 
 from itertools import chain
-from typing import TYPE_CHECKING, Any, Final, Literal
+from typing import TYPE_CHECKING, Any, Final, Literal, TypeVar
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher, Encoding, Node, tagged
@@ -76,7 +76,10 @@ class PydanticModelHasher(InlineDisplayMixin, BaseHasher[pydantic.BaseModel]):
         )
 
 
-class SecretHasher(InlineDisplayMixin, BaseHasher[Any]):
+T = TypeVar("T", "pydantic.SecretStr", "pydantic.SecretBytes")
+
+
+class SecretHasher(InlineDisplayMixin, BaseHasher[T]):
     r"""Hasher for ``SecretStr`` and ``SecretBytes`` values.
 
     A secret is a value with a hasher, so the policy is the one of the
@@ -127,7 +130,7 @@ class SecretHasher(InlineDisplayMixin, BaseHasher[Any]):
     def _display_fields(self) -> dict[str, Any]:
         return {"on_secret": self._on_secret}
 
-    def encode(self, data: Any) -> Encoding:
+    def encode(self, data: T) -> Encoding:
         r"""Describe a secret.
 
         Args:
