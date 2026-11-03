@@ -68,6 +68,7 @@ def _bits(values: list[float]) -> list[tuple[float, float]]:
     return [(v, math.copysign(1.0, v)) for v in values]
 
 
+@numpy_available
 @pytest.mark.parametrize(("backend", "mode", "decimals"), CASES_BY_BACKEND)
 def test_round_values_hard_values_match_oracle(
     backend: str, mode: RoundMode, decimals: int
@@ -84,6 +85,7 @@ def test_round_values_backend_matches_numpy(backend: str, mode: RoundMode, decim
 
 
 @polars_available
+@numpy_available
 def test_round_values_polars_column_matches_oracle() -> None:
     values = [-4.822, 1.2, 4.8, 0.225, -0.4]
     result = round_values(pl.Series(values), mode="round", decimals=1).to_list()

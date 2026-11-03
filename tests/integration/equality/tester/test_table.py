@@ -5,7 +5,12 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality import assert_objects_equal, compare, objects_are_allclose, objects_are_equal
-from coola.testing.marks import pandas_available, polars_available, pyarrow_available
+from coola.testing.marks import (
+    numpy_available,
+    pandas_available,
+    polars_available,
+    pyarrow_available,
+)
 from coola.utils.imports import is_pandas_available, is_polars_available, is_pyarrow_available
 
 if is_pandas_available():
@@ -38,6 +43,7 @@ def test_the_location_of_a_pandas_frame_is_the_path_to_the_frame() -> None:
 
 
 @polars_available
+@numpy_available
 def test_the_location_of_a_polars_frame_is_the_path_to_the_frame() -> None:
     result = compare({"prices": [pl.DataFrame({"a": [1]})]}, {"prices": [pl.DataFrame({"a": [2]})]})
     assert result.path == ("prices", 0)

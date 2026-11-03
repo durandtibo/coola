@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher, Encoding, Node
-from coola.utils.imports import is_polars_available
+from coola.utils.imports import check_numpy, is_polars_available
 
 if TYPE_CHECKING or is_polars_available():
     import polars as pl
@@ -46,8 +46,14 @@ class PolarsSeriesHasher(InlineDisplayMixin, BaseHasher["pl.Series"]):
 
         Returns:
             The ``Node`` of the name, the dtype and the values.
+
+        Raises:
+            MissingPackageError: If ``numpy`` is not installed and the
+                series is numeric without null: the values are
+                converted to a NumPy array.
         """
         if data.dtype.is_numeric() and data.null_count() == 0:
+            check_numpy()
             values = data.to_numpy()  # fast path, no Python objects
         else:
             values = data.to_list()

@@ -329,11 +329,13 @@ def test_allclose_atol_and_rtol_add_up_is_symmetric(pair: tuple) -> None:
 
 
 @polars_available
+@numpy_available
 def test_objects_are_allclose_polars_integers_follow_rtol() -> None:
     assert objects_are_allclose(pl.Series([100]), pl.Series([101]), rtol=0.01, atol=0.0)
 
 
 @polars_available
+@numpy_available
 def test_objects_are_allclose_polars_integers_follow_atol() -> None:
     assert objects_are_allclose(pl.Series([1]), pl.Series([2]), atol=2.0)
 
@@ -347,6 +349,7 @@ def test_objects_are_allclose_pandas_and_numpy_agree_on_atol_and_rtol() -> None:
 
 
 @polars_available
+@numpy_available
 def test_objects_are_allclose_polars_and_numpy_agree_on_atol_and_rtol() -> None:
     kwargs: dict[str, Any] = {"atol": 0.5, "rtol": 0.5}
     assert objects_are_allclose(
@@ -599,6 +602,7 @@ def test_objects_are_allclose_large_ints_in_a_pandas_frame_differ() -> None:
 
 
 @polars_available
+@numpy_available
 def test_objects_are_allclose_large_ints_in_a_polars_series_differ() -> None:
     assert not objects_are_allclose(pl.Series([BIG]), pl.Series([BIG + 1]), atol=0.5, rtol=0.0)
 
@@ -623,6 +627,7 @@ def test_objects_are_allclose_small_torch_floats_at_the_edge_of_the_range(dtype:
 
 
 @polars_available
+@numpy_available
 def test_objects_are_allclose_polars_durations_have_tolerance() -> None:
     assert objects_are_allclose(
         pl.Series([timedelta(seconds=1)]), pl.Series([timedelta(seconds=1.5)]), atol=1.0

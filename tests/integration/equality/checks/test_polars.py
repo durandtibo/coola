@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from coola.equality import objects_are_allclose
-from coola.testing.marks import polars_available
+from coola.testing.marks import numpy_available, polars_available
 from tests.integration.equality.checks.utils import EQUALITY_TESTER_FUNCTIONS, reported_messages
 from tests.unit.equality.tester.test_polars import (
     POLARS_EQUAL,
@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", POLARS_EQUAL)
 def test_objects_are_equal_true(
@@ -31,6 +32,7 @@ def test_objects_are_equal_true(
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", POLARS_EQUAL)
 def test_objects_are_equal_true_does_not_log(
@@ -44,6 +46,7 @@ def test_objects_are_equal_true_does_not_log(
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", POLARS_NOT_EQUAL)
 def test_objects_are_equal_false(function: Callable, example: ExamplePair) -> None:
@@ -51,6 +54,7 @@ def test_objects_are_equal_false(function: Callable, example: ExamplePair) -> No
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize("function", EQUALITY_TESTER_FUNCTIONS)
 @pytest.mark.parametrize("example", POLARS_NOT_EQUAL)
 def test_objects_are_equal_false_does_not_log(
@@ -62,6 +66,7 @@ def test_objects_are_equal_false_does_not_log(
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize("example", POLARS_NOT_EQUAL)
 def test_objects_are_equal_false_reports_the_difference(example: ExamplePair) -> None:
     assert reported_messages(example.actual, example.expected)[0].startswith(
@@ -70,6 +75,7 @@ def test_objects_are_equal_false_reports_the_difference(example: ExamplePair) ->
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize("example", POLARS_EQUAL_TOLERANCE)
 def test_objects_are_allclose_true_tolerance(example: ExamplePair) -> None:
     assert objects_are_allclose(

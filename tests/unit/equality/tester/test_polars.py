@@ -11,10 +11,11 @@ from coola.equality.tester import TableEqualityTester
 from coola.equality.tester.polars import (
     PolarsFrameTable,
     PolarsSeriesTable,
+    _column,
     get_default_testers,
 )
-from coola.testing.marks import polars_available
-from coola.utils.imports import is_polars_available
+from coola.testing.marks import numpy_available, polars_available
+from coola.utils.imports import MissingPackageError, is_polars_available
 from tests.unit.equality.utils import ExamplePair
 
 if is_polars_available():
@@ -300,18 +301,21 @@ SERIES_NOT_EQUAL = [
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize(("actual", "expected"), FRAME_EQUAL)
 def test_frame_equal(actual: pl.DataFrame, expected: pl.DataFrame) -> None:
     assert objects_are_equal(actual, expected)
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize(("actual", "expected"), FRAME_NOT_EQUAL)
 def test_frame_not_equal(actual: pl.DataFrame, expected: pl.DataFrame) -> None:
     assert not objects_are_equal(actual, expected)
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize(("actual", "expected"), FRAME_NOT_EQUAL)
 def test_frame_not_equal_symmetric(actual: pl.DataFrame, expected: pl.DataFrame) -> None:
     assert not objects_are_equal(expected, actual)
@@ -323,16 +327,19 @@ def test_frame_not_equal_to_a_series() -> None:
 
 
 @polars_available
+@numpy_available
 def test_frame_nan_is_not_equal_by_default() -> None:
     assert not objects_are_equal(pl.DataFrame({"a": [NAN]}), pl.DataFrame({"a": [NAN]}))
 
 
 @polars_available
+@numpy_available
 def test_frame_nan_is_equal_with_equal_nan() -> None:
     assert objects_are_equal(pl.DataFrame({"a": [NAN]}), pl.DataFrame({"a": [NAN]}), equal_nan=True)
 
 
 @polars_available
+@numpy_available
 def test_frame_null_is_not_nan() -> None:
     assert not objects_are_equal(
         pl.DataFrame({"a": [None]}, schema={"a": pl.Float64}), pl.DataFrame({"a": [NAN]})
@@ -340,6 +347,7 @@ def test_frame_null_is_not_nan() -> None:
 
 
 @polars_available
+@numpy_available
 def test_frame_tolerance_true() -> None:
     assert objects_are_allclose(
         pl.DataFrame({"a": [1.0, 2.0]}), pl.DataFrame({"a": [1.0, 2.05]}), atol=0.1, rtol=0.0
@@ -347,6 +355,7 @@ def test_frame_tolerance_true() -> None:
 
 
 @polars_available
+@numpy_available
 def test_frame_tolerance_false() -> None:
     assert not objects_are_allclose(
         pl.DataFrame({"a": [1.0]}), pl.DataFrame({"a": [1.5]}), atol=0.1, rtol=0.0
@@ -354,6 +363,7 @@ def test_frame_tolerance_false() -> None:
 
 
 @polars_available
+@numpy_available
 def test_frame_tolerance_with_nulls() -> None:
     assert objects_are_allclose(
         pl.DataFrame({"a": [1.0, None]}), pl.DataFrame({"a": [1.05, None]}), atol=0.1
@@ -361,6 +371,7 @@ def test_frame_tolerance_with_nulls() -> None:
 
 
 @polars_available
+@numpy_available
 def test_frame_tolerance_on_durations_is_in_seconds() -> None:
     assert objects_are_allclose(
         pl.DataFrame({"a": [timedelta(seconds=1)]}),
@@ -384,6 +395,7 @@ def test_frame_tolerance_does_not_apply_to_booleans() -> None:
 
 
 @polars_available
+@numpy_available
 def test_frame_integers_above_2_53_are_exact() -> None:
     assert not objects_are_allclose(
         pl.DataFrame({"a": [2**62]}), pl.DataFrame({"a": [2**62 + 1]}), atol=0.5, rtol=0.0
@@ -391,6 +403,7 @@ def test_frame_integers_above_2_53_are_exact() -> None:
 
 
 @polars_available
+@numpy_available
 def test_frame_compare_different_values() -> None:
     result = compare(pl.DataFrame({"a": [1], "b": [1]}), pl.DataFrame({"a": [1], "b": [2]}))
     assert result.reason == "tables have different values: column 'b' differs"
@@ -403,12 +416,14 @@ def test_frame_compare_different_structure() -> None:
 
 
 @polars_available
+@numpy_available
 def test_frame_compare_in_a_dict() -> None:
     result = compare({"k": pl.DataFrame({"a": [1]})}, {"k": pl.DataFrame({"a": [2]})})
     assert result.path == ("k",)
 
 
 @polars_available
+@numpy_available
 def test_frame_compare_the_whole_result() -> None:
     result = compare(pl.DataFrame({"a": [1]}), pl.DataFrame({"a": [2]}))
     assert (result.equal, result.path, result.reason) == (
@@ -424,39 +439,46 @@ def test_frame_compare_the_whole_result() -> None:
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize(("actual", "expected"), SERIES_EQUAL)
 def test_series_equal(actual: pl.Series, expected: pl.Series) -> None:
     assert objects_are_equal(actual, expected)
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize(("actual", "expected"), SERIES_NOT_EQUAL)
 def test_series_not_equal(actual: pl.Series, expected: pl.Series) -> None:
     assert not objects_are_equal(actual, expected)
 
 
 @polars_available
+@numpy_available
 @pytest.mark.parametrize(("actual", "expected"), SERIES_NOT_EQUAL)
 def test_series_not_equal_symmetric(actual: pl.Series, expected: pl.Series) -> None:
     assert not objects_are_equal(expected, actual)
 
 
 @polars_available
+@numpy_available
 def test_series_nan_is_not_equal_by_default() -> None:
     assert not objects_are_equal(pl.Series([NAN]), pl.Series([NAN]))
 
 
 @polars_available
+@numpy_available
 def test_series_nan_is_equal_with_equal_nan() -> None:
     assert objects_are_equal(pl.Series([NAN]), pl.Series([NAN]), equal_nan=True)
 
 
 @polars_available
+@numpy_available
 def test_series_tolerance() -> None:
     assert objects_are_allclose(pl.Series([1.0, 2.0]), pl.Series([1.0, 2.05]), atol=0.1)
 
 
 @polars_available
+@numpy_available
 def test_series_compare_different_values() -> None:
     assert compare(pl.Series([1]), pl.Series([2])).reason == "series have different values"
 
@@ -492,3 +514,43 @@ def test_get_default_testers(dtype: type) -> None:
 def test_get_default_testers_without_polars() -> None:
     with patch("coola.equality.tester.polars.is_polars_available", return_value=False):
         assert get_default_testers() == {}
+
+
+#############################
+#     Tests for _column     #
+#############################
+
+
+def _raise_missing_numpy() -> None:
+    msg = "'numpy' package is required but not installed."
+    raise MissingPackageError(msg)
+
+
+@polars_available
+@pytest.mark.parametrize(
+    "series",
+    [
+        pytest.param(pl.Series([1, 2]), id="integer"),
+        pytest.param(pl.Series([1.5, 2.5]), id="float"),
+        pytest.param(pl.Series([timedelta(seconds=1)]), id="duration"),
+    ],
+)
+def test_column_requires_numpy(series: Any) -> None:
+    with (
+        patch("coola.equality.tester.polars.check_numpy", _raise_missing_numpy),
+        pytest.raises(MissingPackageError, match=r"numpy"),
+    ):
+        _column("a", series)
+
+
+@polars_available
+@pytest.mark.parametrize(
+    "series",
+    [
+        pytest.param(pl.Series(["a", "b"]), id="string"),
+        pytest.param(pl.Series([True, False]), id="boolean"),
+    ],
+)
+def test_column_exact_does_not_require_numpy(series: Any) -> None:
+    with patch("coola.equality.tester.polars.check_numpy", _raise_missing_numpy):
+        assert _column("a", series).kind == "exact"

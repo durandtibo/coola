@@ -167,23 +167,27 @@ def test_hash_of_the_sample_is_deterministic(sample: Any) -> None:
     assert hash_object(sample) == hash_object(sample)
 
 
+@numpy_available
 @pytest.mark.parametrize("factory", LIBRARY_SAMPLES)
 def test_library_encode_returns_bytes_or_a_node(factory: Any) -> None:
     assert isinstance(encode(factory()), bytes | Node)
 
 
+@numpy_available
 @pytest.mark.parametrize("factory", LIBRARY_SAMPLES)
 def test_library_encode_is_the_same_twice(factory: Any) -> None:
     sample = factory()
     assert describe(encode(sample)) == describe(encode(sample))
 
 
+@numpy_available
 @pytest.mark.parametrize("factory", LIBRARY_SAMPLES)
 def test_library_node_has_a_tag_and_a_valid_group(factory: Any) -> None:
     encoding = encode(factory())
     assert isinstance(encoding, bytes) or (encoding.tag != "" and encoding.group >= 1)
 
 
+@numpy_available
 @pytest.mark.parametrize("factory", LIBRARY_SAMPLES)
 def test_library_hash_is_deterministic(factory: Any) -> None:
     assert hash_object(factory()) == hash_object(factory())

@@ -117,6 +117,7 @@ def test_golden_vector_pandas_dataframe() -> None:
 
 
 @polars_available
+@numpy_available
 def test_golden_vector_polars_series() -> None:
     assert hash_object(pl.Series("a", [1, 2]), length=16) == "9504a6522469a81f"
 
