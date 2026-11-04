@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -52,7 +53,7 @@ if is_pydantic_available():
     class WithArray(BaseModel):
         model_config = ConfigDict(arbitrary_types_allowed=True)
 
-        x: np.ndarray
+        x: Any
 
 
 @pytest.fixture
