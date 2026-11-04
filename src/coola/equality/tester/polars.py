@@ -71,6 +71,30 @@ class PolarsFrameTable:
         """
         return self._frame.shape == other._frame.shape and self._frame.schema == other._frame.schema
 
+    def structure_difference(self, other: PolarsFrameTable, ctx: Engine) -> str:  # noqa: ARG002
+        r"""Say what differs in the structure of two data frames.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            A short text, for example ``"shapes differ: (3, 2) vs (2, 2)"``.
+        """
+        df1, df2 = self._frame, other._frame
+        if df1.shape != df2.shape:
+            return f"shapes differ: {df1.shape} vs {df2.shape}"
+        if df1.columns != df2.columns:
+            return f"columns differ: {df1.columns} vs {df2.columns}"
+        pairs = [
+            f"{name}: {dtype} vs {df2.schema[name]}"
+            for name, dtype in df1.schema.items()
+            if dtype != df2.schema[name]
+        ]
+        shown = ", ".join(pairs[:3])
+        more = f" (+{len(pairs) - 3} more)" if len(pairs) > 3 else ""
+        return f"dtypes differ: {shown}{more}"
+
     def columns(self) -> Iterator[Column]:
         r"""Iterate over the columns.
 
@@ -118,6 +142,23 @@ class PolarsSeriesTable:
         """
         s1, s2 = self._series, other._series
         return s1.shape == s2.shape and s1.name == s2.name and s1.dtype == s2.dtype
+
+    def structure_difference(self, other: PolarsSeriesTable, ctx: Engine) -> str:  # noqa: ARG002
+        r"""Say what differs in the structure of two series.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            A short text, for example ``"names differ: 'a' vs 'b'"``.
+        """
+        s1, s2 = self._series, other._series
+        if s1.shape != s2.shape:
+            return f"shapes differ: {s1.shape} vs {s2.shape}"
+        if s1.name != s2.name:
+            return f"names differ: {s1.name!r} vs {s2.name!r}"
+        return f"dtypes differ: {s1.dtype} vs {s2.dtype}"
 
     def columns(self) -> Iterator[Column]:
         r"""Iterate over the columns.
@@ -187,7 +228,7 @@ def _column(name: object, series: pl.Series) -> Column:
             series.fill_null(timedelta(0)).to_numpy(),
             series.is_null().to_numpy(),
         )
-    return Column(name, "exact", series, equals=_series_equals)
+    return Column(name, "exact", series, equals=_series_equals, difference=_series_difference)
 
 
 def _series_equals(series1: pl.Series, series2: pl.Series) -> bool:
@@ -202,6 +243,27 @@ def _series_equals(series1: pl.Series, series2: pl.Series) -> bool:
             otherwise ``False``. A null is equal to a null.
     """
     return bool(series1.equals(series2, check_dtypes=True, check_names=True, null_equal=True))
+
+
+def _series_difference(series1: pl.Series, series2: pl.Series) -> tuple[int, Any, Any] | None:
+    r"""Find the first row where two series differ.
+
+    Args:
+        series1: The first series.
+        series2: The second series, with the same dtype and length.
+
+    Returns:
+        ``(row, value, other value)`` for the first row that differs, or
+            ``None`` if the row cannot be found (the nested values are
+            not searched).
+    """
+    if series1.dtype.is_nested():
+        return None
+    different = ~series1.eq_missing(series2)
+    row = different.arg_true().head(1).to_list()
+    if not row:
+        return None
+    return row[0], series1[row[0]], series2[row[0]]
 
 
 def get_default_testers() -> dict[type, BaseEqualityTester[Any]]:
