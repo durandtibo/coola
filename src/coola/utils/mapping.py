@@ -7,6 +7,8 @@ __all__ = ["get_first_value", "sort_by_keys", "sort_by_values"]
 import operator
 from typing import TYPE_CHECKING, Any, TypeVar
 
+from coola.utils.selection import sort_items
+
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
@@ -36,16 +38,7 @@ def sort_by_keys(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
 
         ```
     """
-    try:
-        return dict(sorted(mapping.items(), key=operator.itemgetter(0)))
-    except TypeError:
-        pass
-    try:
-        return dict(sorted(mapping.items(), key=lambda item: (type(item[0]).__name__, item[0])))
-    except TypeError:
-        return dict(
-            sorted(mapping.items(), key=lambda item: (type(item[0]).__name__, repr(item[0])))
-        )
+    return dict(sort_items(mapping.items(), key=operator.itemgetter(0)))
 
 
 def sort_by_values(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
