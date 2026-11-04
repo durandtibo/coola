@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from unittest.mock import Mock, patch
 
@@ -12,6 +12,9 @@ from coola.equality.tester import TableEqualityTester
 from coola.equality.tester.pyarrow import (
     PyarrowArrayTable,
     PyarrowTableTable,
+    _nulls,
+    _to_numpy,
+    _values,
     get_default_testers,
 )
 from coola.testing.marks import numpy_available, pyarrow_available
@@ -677,3 +680,81 @@ def test_get_default_testers(dtype: type) -> None:
 def test_get_default_testers_without_pyarrow() -> None:
     with patch("coola.equality.tester.pyarrow.is_pyarrow_available", return_value=False):
         assert get_default_testers() == {}
+
+
+#######################################
+#     Tests for the NumPy helpers     #
+#######################################
+
+
+@pyarrow_available
+@numpy_available
+def test_to_numpy_array() -> None:
+    assert _to_numpy(pa.array([1, 2, 3])).tolist() == [1, 2, 3]
+
+
+@pyarrow_available
+@numpy_available
+def test_to_numpy_array_with_nulls() -> None:
+    assert _to_numpy(pa.array([True, None, False])).tolist() == [True, None, False]
+
+
+@pyarrow_available
+@numpy_available
+def test_to_numpy_chunked_array() -> None:
+    assert _to_numpy(pa.chunked_array([[1, 2], [3]])).tolist() == [1, 2, 3]
+
+
+@pyarrow_available
+@numpy_available
+def test_nulls_array() -> None:
+    assert _nulls(pa.array([1, None, 3])).tolist() == [False, True, False]
+
+
+@pyarrow_available
+@numpy_available
+def test_nulls_chunked_array() -> None:
+    assert _nulls(pa.chunked_array([[1, None], [None]])).tolist() == [False, True, True]
+
+
+@pyarrow_available
+@numpy_available
+def test_values_integers_fill_the_nulls_with_zero() -> None:
+    array = pa.array([1, None, 3], type=pa.int64())
+    assert _values(array, array.type).tolist() == [1, 0, 3]
+
+
+@pyarrow_available
+@numpy_available
+def test_values_floats_fill_the_nulls_with_zero() -> None:
+    array = pa.array([1.5, None], type=pa.float32())
+    assert _values(array, array.type).tolist() == [1.5, 0.0]
+
+
+@pyarrow_available
+@numpy_available
+def test_values_chunked_array() -> None:
+    array = pa.chunked_array([[1, None], [3]], type=pa.int64())
+    assert _values(array, array.type).tolist() == [1, 0, 3]
+
+
+@pyarrow_available
+@numpy_available
+def test_values_durations_fill_the_nulls_with_zero() -> None:
+    array = pa.array([1, None], type=pa.duration("s"))
+    assert _values(array, array.type).tolist() == [timedelta(seconds=1), timedelta(0)]
+
+
+@pyarrow_available
+@numpy_available
+@pytest.mark.parametrize("unit", ["s", "ms", "us", "ns"])
+def test_values_durations_keep_the_unit(unit: str) -> None:
+    array = pa.array([1, None], type=pa.duration(unit))
+    assert str(_values(array, array.type).dtype) == f"timedelta64[{unit}]"
+
+
+@pyarrow_available
+@numpy_available
+def test_values_chunked_durations() -> None:
+    array = pa.chunked_array([[1], [None]], type=pa.duration("s"))
+    assert _values(array, array.type).tolist() == [timedelta(seconds=1), timedelta(0)]
