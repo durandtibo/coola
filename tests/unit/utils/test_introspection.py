@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -419,7 +419,7 @@ def test_get_qualified_class_name_builtin() -> None:
 
 
 def test_get_qualified_class_name_standard_library() -> None:
-    assert get_qualified_class_name(Path) == "pathlib.Path"
+    assert get_qualified_class_name(OrderedDict) == "collections.OrderedDict"
 
 
 def test_get_qualified_class_name_nested_class() -> None:
