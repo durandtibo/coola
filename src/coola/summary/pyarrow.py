@@ -78,7 +78,7 @@ class PyarrowTableSummarizer(BaseMetadataSummarizer["pa.Table | pa.RecordBatch"]
 
     def _describe(self, data: pa.Table | pa.RecordBatch) -> list[Field]:
         fields = [(field.name, field.type) for field in data.schema]
-        return [f"shape={data.shape}", ("columns", fields)]
+        return [f"shape=({data.num_rows}, {data.num_columns})", ("columns", fields)]
 
 
 def get_default_summarizers() -> dict[type, Summarizer[Any]]:
