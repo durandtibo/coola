@@ -419,7 +419,11 @@ TABLE_EQUAL = [
         pa.table({"a": [1, 2], "b": ["x", None]}),
         id="2 columns",
     ),
-    pytest.param(pa.record_batch({"a": [1, 2]}), pa.record_batch({"a": [1, 2]}), id="record batch"),
+    pytest.param(
+        pa.RecordBatch.from_pydict({"a": [1, 2]}),
+        pa.RecordBatch.from_pydict({"a": [1, 2]}),
+        id="record batch",
+    ),
     pytest.param(
         pa.table({"a": [1]}).replace_schema_metadata({"k": "v"}),
         pa.table({"a": [1]}),
@@ -432,8 +436,14 @@ TABLE_NOT_EQUAL = [
     pytest.param(pa.table({"a": [1, 2]}), pa.table({"b": [1, 2]}), id="column names"),
     pytest.param(pa.table({"a": [1, 2]}), pa.table({"a": [1.0, 2.0]}), id="types"),
     pytest.param(pa.table({"a": [1, 2]}), pa.table({"a": [1]}), id="rows"),
-    pytest.param(pa.record_batch({"a": [1]}), pa.record_batch({"a": [2]}), id="record batch"),
-    pytest.param(pa.table({"a": [1]}), pa.record_batch({"a": [1]}), id="table and batch"),
+    pytest.param(
+        pa.RecordBatch.from_pydict({"a": [1]}),
+        pa.RecordBatch.from_pydict({"a": [2]}),
+        id="record batch",
+    ),
+    pytest.param(
+        pa.table({"a": [1]}), pa.RecordBatch.from_pydict({"a": [1]}), id="table and batch"
+    ),
 ]
 
 
@@ -567,7 +577,9 @@ def test_table_nan_is_equal_with_equal_nan() -> None:
 
 @pyarrow_available
 def test_table_chunked_columns() -> None:
-    table = pa.Table.from_batches([pa.record_batch({"a": [1]}), pa.record_batch({"a": [2]})])
+    table = pa.Table.from_batches(
+        [pa.RecordBatch.from_pydict({"a": [1]}), pa.RecordBatch.from_pydict({"a": [2]})]
+    )
     assert objects_are_equal(table, pa.table({"a": [1, 2]}))
 
 

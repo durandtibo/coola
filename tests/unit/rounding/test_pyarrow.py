@@ -166,7 +166,7 @@ def test_round_pyarrow_chunked_array_no_chunk() -> None:
 
 @pyarrow_available
 def test_round_pyarrow_record_batch_exact_output() -> None:
-    batch = pa.record_batch({"a": [2.675, 0.125], "b": [1, 2], "c": ["x", "y"]})
+    batch = pa.RecordBatch.from_pydict({"a": [2.675, 0.125], "b": [1, 2], "c": ["x", "y"]})
     assert round_pyarrow(batch, "round", 2).to_pydict() == {
         "a": [2.68, 0.12],
         "b": [1, 2],
@@ -176,7 +176,9 @@ def test_round_pyarrow_record_batch_exact_output() -> None:
 
 @pyarrow_available
 def test_round_pyarrow_record_batch_type_kept() -> None:
-    assert isinstance(round_pyarrow(pa.record_batch({"a": [1.26]}), "floor", 1), pa.RecordBatch)
+    assert isinstance(
+        round_pyarrow(pa.RecordBatch.from_pydict({"a": [1.26]}), "floor", 1), pa.RecordBatch
+    )
 
 
 @pyarrow_available
