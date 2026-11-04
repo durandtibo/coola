@@ -484,6 +484,7 @@ def test_array_nan_is_not_equal_by_default() -> None:
 
 
 @pyarrow_available
+@numpy_available
 def test_array_nan_is_equal_with_equal_nan() -> None:
     assert objects_are_equal(pa.array([NAN]), pa.array([NAN]), equal_nan=True)
 
@@ -499,21 +500,25 @@ def test_array_nested_nan_is_not_equal() -> None:
 
 
 @pyarrow_available
+@numpy_available
 def test_array_tolerance_true() -> None:
     assert objects_are_allclose(pa.array([1.0, 2.0]), pa.array([1.0, 2.05]), atol=0.1, rtol=0.0)
 
 
 @pyarrow_available
+@numpy_available
 def test_array_tolerance_false() -> None:
     assert not objects_are_allclose(pa.array([1.0]), pa.array([1.5]), atol=0.1, rtol=0.0)
 
 
 @pyarrow_available
+@numpy_available
 def test_array_tolerance_with_nulls() -> None:
     assert objects_are_allclose(pa.array([1.0, None]), pa.array([1.05, None]), atol=0.1)
 
 
 @pyarrow_available
+@numpy_available
 def test_array_tolerance_on_durations_is_in_seconds() -> None:
     assert objects_are_allclose(
         pa.array([1], type=pa.duration("s")), pa.array([2], type=pa.duration("s")), atol=1.5
@@ -531,6 +536,7 @@ def test_array_tolerance_does_not_apply_to_booleans() -> None:
 
 
 @pyarrow_available
+@numpy_available
 def test_array_integers_above_2_53_are_exact() -> None:
     assert not objects_are_allclose(pa.array([2**62]), pa.array([2**62 + 1]), atol=0.5, rtol=0.0)
 
@@ -569,11 +575,13 @@ def test_table_not_equal_symmetric(actual: pa.Table, expected: pa.Table) -> None
 
 
 @pyarrow_available
+@numpy_available
 def test_table_tolerance() -> None:
     assert objects_are_allclose(pa.table({"a": [1.0]}), pa.table({"a": [1.05]}), atol=0.1)
 
 
 @pyarrow_available
+@numpy_available
 def test_table_nan_is_equal_with_equal_nan() -> None:
     assert objects_are_equal(pa.table({"a": [NAN]}), pa.table({"a": [NAN]}), equal_nan=True)
 
