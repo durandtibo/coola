@@ -313,6 +313,47 @@ def test_hash_torch_sparse_tensor() -> None:
 
 @torch_available
 @numpy_available
+def test_hash_torch_sparse_tensor_differs_from_the_dense_tensor() -> None:
+    assert hash_object(torch.eye(2).to_sparse()) != hash_object(torch.eye(2))
+
+
+@torch_available
+@numpy_available
+def test_hash_torch_sparse_tensor_differs_by_values() -> None:
+    assert hash_object(torch.eye(2).to_sparse()) != hash_object((2 * torch.eye(2)).to_sparse())
+
+
+@torch_available
+@numpy_available
+def test_hash_torch_sparse_tensor_differs_by_layout() -> None:
+    assert hash_object(torch.eye(2).to_sparse()) != hash_object(torch.eye(2).to_sparse_csr())
+
+
+@torch_available
+@numpy_available
+def test_hash_torch_sparse_tensor_differs_by_positions() -> None:
+    t1 = torch.sparse_coo_tensor(torch.tensor([[0]]), torch.tensor([1.0]), (2,))
+    t2 = torch.sparse_coo_tensor(torch.tensor([[1]]), torch.tensor([1.0]), (2,))
+    assert hash_object(t1) != hash_object(t2)
+
+
+@torch_available
+@numpy_available
+def test_hash_torch_sparse_tensor_huge_shape_does_not_allocate_a_dense_tensor() -> None:
+    tensor = torch.sparse_coo_tensor(torch.tensor([[0], [1]]), torch.ones(1), (10**7, 10**7))
+    assert hash_object(tensor) == hash_object(tensor.clone())
+
+
+@torch_available
+@numpy_available
+@pytest.mark.parametrize("convert", ["to_sparse_csr", "to_sparse_csc"])
+def test_hash_torch_sparse_compressed_tensor(convert: str) -> None:
+    eye = torch.eye(2)
+    assert hash_object(getattr(eye, convert)()) == hash_object(getattr(eye, convert)())
+
+
+@torch_available
+@numpy_available
 def test_hash_torch_tensor_differs_from_numpy_array() -> None:
     assert hash_object(torch.arange(3)) != hash_object(np.arange(3))
 
