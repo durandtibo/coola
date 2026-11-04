@@ -27,7 +27,7 @@ class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
     and ``requires_grad`` are not part of the hash, so a tensor and its
     copy on another device hash the same. ``-0.0`` hashes like ``0.0``.
     A sparse tensor is hashed in its dense form. A ``meta`` tensor has
-    no values and raises an error.
+    no values and raises a ``TypeError``.
 
     Example:
         ```pycon
@@ -53,8 +53,14 @@ class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
 
         Returns:
             The leaf that describes ``data``.
+
+        Raises:
+            TypeError: If ``data`` is on the ``meta`` device.
         """
         tensor = data.detach()
+        if tensor.device.type == "meta":
+            msg = "Cannot hash a tensor on the meta device: it has no data"
+            raise TypeError(msg)
         if tensor.layout != torch.strided:
             tensor = tensor.to_dense()
         tensor = tensor.cpu()

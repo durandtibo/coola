@@ -73,6 +73,18 @@ def test_to_jsonable_complex_tensor_raises() -> None:
 
 
 @torch_available
+def test_to_jsonable_sparse_tensor_raises() -> None:
+    with pytest.raises(TypeError, match=r"layout torch\.sparse_coo to JSON: convert it with"):
+        to_jsonable(torch.eye(2).to_sparse())
+
+
+@torch_available
+def test_to_jsonable_meta_tensor_raises() -> None:
+    with pytest.raises(TypeError, match=r"tensor on the meta device to JSON: it has no data"):
+        to_jsonable(torch.empty(2, device="meta"))
+
+
+@torch_available
 def test_tensor_transformer_repr() -> None:
     assert repr(TensorTransformer()) == "TensorTransformer()"
 

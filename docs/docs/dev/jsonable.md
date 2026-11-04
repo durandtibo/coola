@@ -31,7 +31,7 @@ converter calls another one, no converter knows the registry, and nothing is ret
 3. **Consistent with the siblings.** Same containers, same dispatch (`TransformerRegistry`), same lazy
    loading (`register_lazy`), same plugin mechanism (`make_default_registry_singleton` with a
    `plugin_group`), same keyword-only options.
-4. **Optional libraries stay lazy.** NumPy, PyTorch, pandas and pydantic are imported by their module
+4. **Optional libraries stay lazy.** NumPy, PyTorch, JAX, pandas, polars, pyarrow, xarray and pydantic are imported by their module
    only, never by `import coola.jsonable`.
 
 ## Architecture in detail
@@ -44,8 +44,12 @@ coola/jsonable/
                       DataclassTransformer
     stdlib.py         get_default_transformers(): the standard library types
     numpy.py          get_default_transformers(): ndarray (NDArrayTransformer), generic
-    torch.py          get_default_transformers(): Tensor (TensorTransformer)
+    torch.py          get_default_transformers(): Tensor (TensorTransformer; a sparse or meta tensor is a TypeError)
+    jax.py            get_default_transformers(): Array
     pandas.py         get_default_transformers(): Series, Index, NaT, NA
+    polars.py         get_default_transformers(): Series
+    pyarrow.py        get_default_transformers(): Array, ChunkedArray
+    xarray.py         get_default_transformers(): DataArray, Dataset, Variable
     pydantic.py       get_default_transformers(): BaseModel, SecretStr, SecretBytes
 ```
 

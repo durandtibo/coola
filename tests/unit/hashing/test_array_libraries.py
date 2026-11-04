@@ -853,3 +853,10 @@ def test_hash_polars_numeric_series_requires_numpy() -> None:
 def test_hash_polars_string_series_does_not_require_numpy() -> None:
     with patch("coola.hashing.polars.check_numpy", _raise_missing_numpy):
         assert isinstance(hash_object(pl.Series("a", ["x"])), str)
+
+
+@torch_available
+@numpy_available
+def test_hash_torch_meta_tensor_raises_a_type_error() -> None:
+    with pytest.raises(TypeError, match=r"Cannot hash a tensor on the meta device"):
+        hash_object(torch.empty(2, device="meta"))

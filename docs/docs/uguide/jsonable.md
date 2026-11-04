@@ -25,7 +25,7 @@ is `dict` with `str` keys, `list`, `str`, `int`, `float`, `bool` and `None`.
 ```
 
 The conversion is chosen from the type of each value, along the Method Resolution Order. The
-containers are entered at any depth, and the optional libraries (NumPy, PyTorch, pandas, pydantic) are
+containers are entered at any depth, and the optional libraries (NumPy, PyTorch, JAX, pandas, polars, pyarrow, xarray, pydantic) are
 imported only when a value of that library is converted.
 
 | Type                                                  | JSON value                                              |
@@ -42,8 +42,26 @@ imported only when a value of that library is converted.
 | `enum.Enum`                                           | its value, converted                                    |
 | `numpy.ndarray`, NumPy scalar                         | nested `list`, Python value                             |
 | `torch.Tensor`                                        | nested `list`                                           |
+| `jax.Array`                                           | nested `list`                                           |
 | `pandas.Series`, `pandas.Index`; `pd.NaT`, `pd.NA`    | `list`; `None`                                          |
+| `polars.Series`                                       | `list`                                                  |
+| `pyarrow.Array`, `pyarrow.ChunkedArray`               | `list`                                                  |
+| `xarray.DataArray`, `Dataset`, `Variable`             | `dict` of `to_dict(data="list")`                        |
 | `pydantic.BaseModel`; `SecretStr`, `SecretBytes`      | `dict` of `model_dump()`, converted; `"**********"`     |
+
+The following types are **not** converted, and raise a `TypeError` that names the type (register a
+`ConvertTransformer` to choose a shape, or pass `on_unsupported`):
+
+- the tables, which have no single JSON shape: `pandas.DataFrame`, `polars.DataFrame`,
+  `pyarrow.Table` (for example `ConvertTransformer(lambda df: df.to_dict(orient="records"))`);
+- `complex`, `Fraction`, `datetime.timezone`, `re.Pattern`, `slice`, `Ellipsis`, `array.array` and
+  the views of a dictionary (`dict_keys`, `dict_values`, `dict_items`);
+- `pandas.Categorical`, `pandas.Interval`, `pandas.Period`, the pyarrow schemas, types and scalars;
+- `torch.dtype`, `torch.device`, and the sparse and `meta` tensors (convert a sparse tensor with
+  `to_dense()` first; a `meta` tensor has no data).
+
+The list is kept in `JSON_GAPS` of `tests/integration/test_support_matrix.py`: a gap that is fixed
+makes the test fail until the type is removed from the list.
 
 ## Properties
 
