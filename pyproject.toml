@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 sources = ["src"]
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src"]
+only-include = ["src", "tests"]
 
 [tool.hatch.metadata.hooks.autoextras]
 
