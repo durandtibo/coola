@@ -640,6 +640,7 @@ def test_hash_pyarrow_table_with_null() -> None:
 
 
 @pyarrow_available
+@numpy_available
 @pytest.mark.parametrize(
     "array",
     [

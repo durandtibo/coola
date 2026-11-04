@@ -123,6 +123,7 @@ def test_golden_vector_polars_series() -> None:
 
 
 @pyarrow_available
+@numpy_available
 def test_golden_vector_pyarrow_array() -> None:
     assert hash_object(pa.array([1, 2]), length=16) == "95c31fa472871168"
 
