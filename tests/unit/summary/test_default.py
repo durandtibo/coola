@@ -73,3 +73,24 @@ def test_default_summarizer_equal_different_type() -> None:
 
 def test_default_summarizer_repr() -> None:
     assert repr(DefaultSummarizer()) == "DefaultSummarizer()"
+
+
+def test_default_summarizer_summarize_cuts_the_value_and_keeps_the_header() -> None:
+    assert (
+        DefaultSummarizer().summarize("abcdefghij", SummaryConfig(max_characters=20), compact=False)
+        == "<class 'str'> abc..."
+    )
+
+
+def test_default_summarizer_summarize_short_value_is_not_cut() -> None:
+    assert (
+        DefaultSummarizer().summarize("abc", SummaryConfig(max_characters=20), compact=False)
+        == "<class 'str'> abc"
+    )
+
+
+def test_default_summarizer_summarize_limit_smaller_than_the_header() -> None:
+    assert (
+        DefaultSummarizer().summarize("abcdef", SummaryConfig(max_characters=3), compact=False)
+        == "<class 'str'> "
+    )

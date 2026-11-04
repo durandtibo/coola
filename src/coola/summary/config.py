@@ -24,7 +24,10 @@ class SummaryConfig:
             columns) shown for a node. The other ones are announced
             with ``... (+N more)``. ``None`` shows all of them.
             Must be a non-negative ``int`` or ``None``.
-        max_characters: The maximum number of characters of a text.
+        max_characters: The maximum number of characters of a text,
+            including the ``...`` that marks a cut. A leaf keeps its
+            type and cuts the value, unless the limit is shorter than
+            the type.
             ``None`` does not cut the texts. Must be a non-negative
             ``int`` or ``None``.
         show_data: If ``True``, the summarizers of arrays, tensors and
