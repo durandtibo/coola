@@ -297,6 +297,7 @@ def check_equality_pandas() -> None:
 def check_equality_polars() -> None:
     r"""Check equality operations for Polars DataFrames."""
     require("polars")
+    require("numpy")  # the numeric columns of a Polars DataFrame are compared as NumPy arrays
     pl = importlib.import_module("polars")
 
     df = pl.DataFrame(
