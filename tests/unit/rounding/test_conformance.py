@@ -93,6 +93,7 @@ def test_round_values_polars_column_matches_oracle() -> None:
 
 
 @pyarrow_available
+@numpy_available
 def test_round_values_pyarrow_table_matches_oracle() -> None:
     table = pa.table({"a": [2.675, 0.125], "b": [1, 2]})
     assert round_values(table, decimals=2).to_pydict() == {"a": [2.68, 0.12], "b": [1, 2]}
