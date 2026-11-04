@@ -93,7 +93,7 @@ def tensor_close(
     if torch.bool not in (tensor1.dtype, tensor2.dtype) and (
         config.equal_nan or config.atol > 0 or config.rtol > 0
     ):
-        if tensor1.dtype == torch.uint64:
+        if _is_uint64(tensor1):
             tensor1, tensor2 = tensor1.to(torch.float64), tensor2.to(torch.float64)
         return elementwise_close(
             tensor1,
@@ -120,7 +120,7 @@ def _tensors_close(tensor1: torch.Tensor, tensor2: torch.Tensor, config: Equalit
     """
     if tensor1.shape != tensor2.shape or tensor1.dtype != tensor2.dtype:
         return False
-    if tensor1.dtype == torch.uint64:
+    if _is_uint64(tensor1):
         # ``torch.maximum`` is not implemented for ``uint64``: converted, like before.
         tensor1, tensor2 = tensor1.to(torch.float64), tensor2.to(torch.float64)
     close = elementwise_close(
@@ -132,3 +132,19 @@ def _tensors_close(tensor1: torch.Tensor, tensor2: torch.Tensor, config: Equalit
         xp=torch,
     )
     return bool(close.all().item())
+
+
+def _is_uint64(tensor: torch.Tensor) -> bool:
+    r"""Indicate if a tensor has the ``uint64`` data type.
+
+    ``torch.uint64`` exists only in torch 2.3 and later: a tensor of an
+    older torch never has this data type.
+
+    Args:
+        tensor: The tensor.
+
+    Returns:
+        ``True`` if the data type of the tensor is ``torch.uint64``,
+            otherwise ``False``.
+    """
+    return tensor.dtype == getattr(torch, "uint64", None)
