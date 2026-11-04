@@ -922,7 +922,7 @@ def test_unnest_one_level_checks_the_version_of_polars_for_explode() -> None:
     with (
         patch(
             "coola.nested.polars.compare_version",
-            side_effect=lambda package, op, version: version == "1.36.0",
+            side_effect=lambda *args: args[2] == "1.36.0",
         ) as compare,
         patch.object(pl.DataFrame, "explode", explode_requiring_empty_as_null),
     ):
