@@ -25,6 +25,10 @@ if is_torch_available():
 else:
     torch = Mock()
 
+uint64_available = pytest.mark.skipif(
+    not hasattr(torch, "uint64"), reason="Requires torch 2.3 or later"
+)
+
 
 @pytest.fixture
 def config() -> EqualityConfig:
@@ -798,6 +802,7 @@ def test_torch_tensor_compare_path_of_an_integer_tensor_with_a_tolerance() -> No
 
 
 @torch_available
+@uint64_available
 def test_torch_tensor_compare_path_of_a_uint64_tensor_with_a_tolerance() -> None:
     assert compare(
         torch.tensor([1, 2], dtype=torch.uint64), torch.tensor([1, 5], dtype=torch.uint64), atol=1.0
