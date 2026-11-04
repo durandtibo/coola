@@ -182,9 +182,11 @@ def _column(name: object, array: Any) -> Column:
     """
     kind = array.type
     if is_numpy_available() and _is_quantity(kind):
-        values = pc.fill_null(array, pa.scalar(0, type=kind)).to_numpy(zero_copy_only=False)
         return Column(
-            name, "duration" if pa.types.is_duration(kind) else "numeric", values, _nulls(array)
+            name,
+            "duration" if pa.types.is_duration(kind) else "numeric",
+            _values(array, kind),
+            _nulls(array),
         )
     return Column(name, "exact", array, equals=_arrow_equals)
 
@@ -204,6 +206,45 @@ def _is_quantity(kind: Any) -> bool:
     )
 
 
+def _to_numpy(array: Any) -> Any:
+    r"""Convert an array or a chunked array to a NumPy array.
+
+    ``ChunkedArray.to_numpy`` does not accept ``zero_copy_only`` in the
+    old versions of pyarrow.
+
+    Args:
+        array: The array or chunked array, without null values for
+            the types that cannot hold them in NumPy.
+
+    Returns:
+        The NumPy array.
+    """
+    if isinstance(array, pa.ChunkedArray):
+        return array.to_numpy()
+    return array.to_numpy(zero_copy_only=False)
+
+
+def _values(array: Any, kind: Any) -> Any:
+    r"""Return the values of an array as a NumPy array, where the null
+    values are replaced by zero.
+
+    The durations are filled as integers, because the old versions of
+    pyarrow have no ``coalesce`` kernel for the duration type.
+
+    Args:
+        array: The array or chunked array.
+        kind: The Arrow type of the array: an integer, floating-point
+            or duration type.
+
+    Returns:
+        The NumPy array.
+    """
+    if pa.types.is_duration(kind):
+        values = _to_numpy(pc.fill_null(array.cast(pa.int64()), 0))
+        return values.astype(f"timedelta64[{kind.unit}]")
+    return _to_numpy(pc.fill_null(array, pa.scalar(0, type=kind)))
+
+
 def _nulls(array: Any) -> Any:
     r"""Return the mask of the null values of an array.
 
@@ -213,7 +254,7 @@ def _nulls(array: Any) -> Any:
     Returns:
         A NumPy boolean array that is ``True`` at the null values.
     """
-    return array.is_null().to_numpy(zero_copy_only=False)
+    return _to_numpy(array.is_null())
 
 
 def _arrow_equals(array1: Any, array2: Any) -> bool:
