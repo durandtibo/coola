@@ -70,7 +70,7 @@ def test_equality_config_zero_rtol() -> None:
 
 def test_equality_config_max_depth_default() -> None:
     config = EqualityConfig()
-    assert config.max_depth == 100
+    assert config.max_depth is None
 
 
 def test_equality_config_max_depth_custom() -> None:
@@ -114,7 +114,7 @@ def test_equality_config_eq_false_different_max_depth() -> None:
     assert EqualityConfig() != EqualityConfig(max_depth=50)
 
 
-@pytest.mark.parametrize("value", [True, 1.5, "a", None])
+@pytest.mark.parametrize("value", [True, 1.5, "a"])
 def test_equality_config_max_depth_wrong_type(value: object) -> None:
     with pytest.raises(TypeError, match="max_depth must be an int"):
         EqualityConfig(max_depth=value)  # ty: ignore[invalid-argument-type]
@@ -123,3 +123,7 @@ def test_equality_config_max_depth_wrong_type(value: object) -> None:
 @pytest.mark.parametrize("name", ["atol", "rtol"])
 def test_equality_config_tolerance_int(name: str) -> None:
     assert getattr(EqualityConfig(tolerance=Tolerance(**{name: 1})), name) == 1
+
+
+def test_equality_config_max_depth_none() -> None:
+    assert EqualityConfig(max_depth=None).max_depth is None

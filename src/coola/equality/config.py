@@ -45,13 +45,15 @@ class EqualityConfig:
         max_depth: The nesting limit: the maximum nesting level of the
             compared objects. A deeper structure raises
             ``MaxDepthExceededError`` (it is not a display depth like
-            the ``max_depth`` of ``summarize``). Must be positive.
-            See the "Common options" section of the equality user
-            guide. Defaults to 100.
+            the ``max_depth`` of ``summarize``). Must be positive, or
+            ``None`` for no limit: the engine uses an explicit stack, so
+            a deep structure does not raise a ``RecursionError``. See
+            the "Common options" section of the equality user guide.
+            Defaults to ``None``.
 
     Raises:
-        TypeError: if ``max_depth`` is not an ``int`` (a ``bool`` is
-            rejected).
+        TypeError: if ``max_depth`` is neither ``None`` nor an ``int``
+            (a ``bool`` is rejected).
         ValueError: if ``max_depth`` is not positive.
 
     Example:
@@ -70,7 +72,7 @@ class EqualityConfig:
     registry: EqualityTesterRegistry = field(default_factory=create_default_registry)
     tolerance: Tolerance = field(default_factory=Tolerance)
     equal_nan: bool = False
-    max_depth: int = 100
+    max_depth: int | None = None
 
     def __post_init__(self) -> None:
         r"""Validate the configuration parameters after initialization.
@@ -79,8 +81,9 @@ class EqualityConfig:
             TypeError: If ``max_depth`` is not an int.
             ValueError: If ``max_depth`` is not positive.
         """
-        validate_int(self.max_depth, name="max_depth")
-        validate_gt(self.max_depth, 0, name="max_depth")
+        if self.max_depth is not None:
+            validate_int(self.max_depth, name="max_depth")
+            validate_gt(self.max_depth, 0, name="max_depth")
 
     @property
     def atol(self) -> float:

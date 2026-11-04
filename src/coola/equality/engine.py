@@ -90,7 +90,7 @@ class Engine:
         self.atol: float = config.atol
         self.rtol: float = config.rtol
         self.equal_nan: bool = config.equal_nan
-        self.max_depth: int = config.max_depth
+        self.max_depth: int | None = config.max_depth
         self.explaining = explaining
         self.failure: tuple[tuple[object, ...], str | None] | None = None
         self._testers: dict[type, BaseEqualityTester[Any]] = {}
@@ -238,7 +238,7 @@ class Engine:
         Raises:
             MaxDepthExceededError: If ``depth`` reaches ``max_depth``.
         """
-        if depth >= self.max_depth:
+        if self.max_depth is not None and depth >= self.max_depth:
             msg = (
                 f"Maximum recursion depth ({self.max_depth}) exceeded. "
                 "Consider increasing max_depth parameter or simplifying the data structure."
