@@ -129,5 +129,6 @@ def test_golden_vector_pyarrow_array() -> None:
 
 
 @torch_available
+@numpy_available
 def test_golden_vector_torch_tensor() -> None:
     assert hash_object(torch.arange(4, dtype=torch.float32), length=16) == "9bd680607be34c1d"

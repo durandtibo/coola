@@ -230,37 +230,44 @@ def test_hash_numpy_array_in_container() -> None:
 
 
 @torch_available
+@numpy_available
 def test_hash_torch_tensor_equal_tensors() -> None:
     assert hash_object(torch.arange(4.0)) == hash_object(torch.arange(4.0))
 
 
 @torch_available
+@numpy_available
 def test_hash_torch_tensor_differs_by_dtype() -> None:
     assert hash_object(torch.arange(4.0)) != hash_object(torch.arange(4))
 
 
 @torch_available
+@numpy_available
 def test_hash_torch_tensor_differs_by_shape() -> None:
     assert hash_object(torch.zeros(2, 3)) != hash_object(torch.zeros(3, 2))
 
 
 @torch_available
+@numpy_available
 def test_hash_torch_tensor_negative_zero() -> None:
     assert hash_object(torch.tensor([0.0])) == hash_object(torch.tensor([-0.0]))
 
 
 @torch_available
+@numpy_available
 def test_hash_torch_tensor_nan_sign() -> None:
     nan = torch.tensor([float("nan")])
     assert hash_object(nan) == hash_object(-nan)
 
 
 @torch_available
+@numpy_available
 def test_hash_torch_tensor_nan_differs_from_a_number() -> None:
     assert hash_object(torch.tensor([float("nan")])) != hash_object(torch.tensor([0.0]))
 
 
 @torch_available
+@numpy_available
 def test_hash_torch_tensor_complex_nan_sign() -> None:
     first = torch.tensor([complex(float("nan"), 1.0)])
     second = torch.tensor([complex(-float("nan"), 1.0)])
@@ -268,6 +275,7 @@ def test_hash_torch_tensor_complex_nan_sign() -> None:
 
 
 @torch_available
+@numpy_available
 def test_hash_torch_tensor_complex_nan_keeps_the_other_part() -> None:
     first = torch.tensor([complex(float("nan"), 1.0)])
     second = torch.tensor([complex(float("nan"), 2.0)])
@@ -275,12 +283,14 @@ def test_hash_torch_tensor_complex_nan_keeps_the_other_part() -> None:
 
 
 @torch_available
+@numpy_available
 def test_hash_torch_tensor_bfloat16_nan_sign() -> None:
     nan = torch.tensor([float("nan")]).bfloat16()
     assert hash_object(nan) == hash_object(-nan)
 
 
 @torch_available
+@numpy_available
 @pytest.mark.parametrize(
     "tensor",
     [
@@ -296,6 +306,7 @@ def test_hash_torch_tensor_dtypes(tensor: Any) -> None:
 
 
 @torch_available
+@numpy_available
 def test_hash_torch_sparse_tensor() -> None:
     assert hash_object(torch.eye(2).to_sparse()) == hash_object(torch.eye(2).to_sparse())
 

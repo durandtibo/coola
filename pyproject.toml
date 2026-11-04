@@ -156,7 +156,11 @@ addopts = [
 ]
 xfail_strict = true
 timeout = 300
-filterwarnings = ["error"]
+filterwarnings = [
+  "error",
+  # torch 2.4 and later warn at import if NumPy is not installed, which is a supported setup.
+  "ignore:Failed to initialize NumPy:UserWarning",
+]
 # Configuration of the short test summary info
 # https://docs.pytest.org/en/stable/usage.html#detailed-summary-report
 
