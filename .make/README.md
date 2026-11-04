@@ -201,7 +201,7 @@ include self.mk
 `update-subtree` adds the `$(SHARED_MAKEFILES_REMOTE_NAME)` remote if missing, fetches
 `$(SHARED_MAKEFILES_BRANCH)`, and runs `git subtree pull --prefix=$(SHARED_MAKEFILES_PREFIX)
 $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash` to sync the subtree. It then
-removes the `.github/` and `testdata/` folders from within `$(SHARED_MAKEFILES_PREFIX)` (not
+removes the `.github/`, `testdata/` and `tests/` folders from within `$(SHARED_MAKEFILES_PREFIX)` (not
 needed in consuming projects) and commits the removal.
 
 ### `help.mk`
