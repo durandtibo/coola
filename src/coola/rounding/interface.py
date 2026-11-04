@@ -5,7 +5,9 @@ from __future__ import annotations
 __all__ = ["get_default_registry", "register_rounders", "round_values"]
 
 import warnings
-from typing import TYPE_CHECKING, Any
+from datetime import date, time, timedelta
+from enum import Enum
+from typing import TYPE_CHECKING, Any, Literal
 
 from coola.recursive.interface import recursive_apply
 from coola.registry import TypeNotRegisteredError, TypeRegistry
@@ -19,11 +21,15 @@ from coola.rounding.common import (
 )
 from coola.rounding.native import get_default_rounders as get_native_rounders
 from coola.utils.imports import MissingPackageError, package_available
+from coola.validation import validate_in
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from coola.utils.singleton import LazySingleton
+
+# The leaves that are never an error with ``on_unsupported="raise"``: they are not numbers.
+_NON_NUMERIC_LEAVES = (type(None), str, bytes, bool, date, time, timedelta, Enum)
 
 # (names of the library in the module of the types, module with the rounders)
 _LAZY_ROUNDERS = (
@@ -41,6 +47,7 @@ def round_values(
     mode: RoundMode = "round",
     decimals: int = 0,
     recursive: bool = False,
+    on_unsupported: Literal["raise", "ignore"] = "ignore",
     on_missing_package: MissingPackagePolicy = "raise",
     registry: TypeRegistry[Rounder] | None = None,
 ) -> Any:
@@ -85,7 +92,18 @@ def round_values(
             as handled by ``coola.recursive.recursive_apply``) and
             every leaf is rounded. A leaf that is not supported (a
             string, ``None``, a date, ...) is kept as it is instead of
-            raising an error. Defaults to ``False``.
+            raising an error, see ``on_unsupported``. Defaults to
+            ``False``.
+        on_unsupported: What to do with a leaf that has no rounder
+            when ``recursive=True``. ``"ignore"`` keeps the leaf as it
+            is. ``"raise"`` raises an ``UnsupportedTypeError``, except
+            for the leaves that are not numbers (``None``, ``str``,
+            ``bytes``, ``bool``, dates, times, ``timedelta`` and
+            enums), which are always kept. Use ``"raise"`` so that a
+            number that cannot be rounded (a JAX array, a ``Decimal``,
+            a complex number, ...) is not left unrounded without a
+            signal. It has no effect with ``recursive=False``, which
+            always raises. Defaults to ``"ignore"``.
         on_missing_package: What to do when the rounder of an object
             needs a package that is not installed (NumPy for the
             polars and pyarrow objects). ``"raise"`` raises an
@@ -105,12 +123,14 @@ def round_values(
 
     Raises:
         ValueError: If ``mode`` is not ``"round"``, ``"floor"`` or
-            ``"ceil"``, if ``decimals`` is negative, or if
-            ``on_missing_package`` is not ``"raise"``, ``"warn"`` or
+            ``"ceil"``, if ``decimals`` is negative, if
+            ``on_unsupported`` is not ``"raise"`` or ``"ignore"``, or
+            if ``on_missing_package`` is not ``"raise"``, ``"warn"`` or
             ``"ignore"``.
         TypeError: If ``decimals`` is not an integer.
         UnsupportedTypeError: If ``data`` is not supported (with
-            ``recursive=False``), or if its rounder needs a package
+            ``recursive=False``), if a numeric leaf is not supported
+            (with ``on_unsupported="raise"``), or if its rounder needs a package
             that is not installed and ``on_missing_package`` is
             ``"raise"``. It is a ``TypeError``.
 
@@ -161,11 +181,15 @@ def round_values(
         ```
     """
     decimals = validate_arguments(mode, decimals, on_missing_package)
+    validate_in(on_unsupported, ("raise", "ignore"), name="on_unsupported")
     if registry is None:
         registry = get_default_registry()
     if recursive:
         return recursive_apply(
-            data, lambda x: _round_leaf(x, registry, mode, decimals, on_missing_package)
+            data,
+            lambda x: _round_leaf(
+                x, registry, mode, decimals, on_missing_package, on_unsupported=on_unsupported
+            ),
         )
     return _round_object(data, registry, mode, decimals, on_missing_package)
 
@@ -234,10 +258,13 @@ def _round_leaf(
     mode: RoundMode,
     decimals: int,
     on_missing_package: MissingPackagePolicy,
+    *,
+    on_unsupported: Literal["raise", "ignore"] = "ignore",
 ) -> Any:
     r"""Round a leaf of a nested structure.
 
-    An unsupported leaf is returned as it is.
+    An unsupported leaf is returned as it is, unless it is a number and
+    ``on_unsupported`` is ``"raise"``.
 
     Args:
         data: The leaf.
@@ -246,13 +273,17 @@ def _round_leaf(
         decimals: The number of decimals.
         on_missing_package: What to do when a rounder needs a package
             that is not installed.
+        on_unsupported: What to do with a numeric leaf that has no
+            rounder.
 
     Returns:
         The rounded leaf, or ``data`` if its type is not supported.
 
     Raises:
         UnsupportedTypeError: If the package of the rounder is missing
-            and ``on_missing_package`` is ``"raise"``.
+            and ``on_missing_package`` is ``"raise"``, or if the leaf
+            is a number with no rounder and ``on_unsupported`` is
+            ``"raise"``.
     """
     # Only an unsupported leaf is kept: the other errors are bugs and must not be hidden. A leaf
     # whose package is missing is not unsupported: with ``"raise"`` the error stops the walk.
@@ -260,6 +291,8 @@ def _round_leaf(
         return _round_object(data, registry, mode, decimals, on_missing_package)
     except UnsupportedTypeError as exc:
         if isinstance(exc.__cause__, MissingPackageError):
+            raise
+        if on_unsupported == "raise" and not isinstance(data, _NON_NUMERIC_LEAVES):
             raise
         return data
 
