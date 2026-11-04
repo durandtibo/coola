@@ -8,6 +8,7 @@ import json
 from typing import TYPE_CHECKING, Any
 
 from coola.io.base import BaseFileSaver, BaseLoader
+from coola.jsonable import to_jsonable
 
 if TYPE_CHECKING:
     import os
@@ -62,14 +63,20 @@ class JsonSaver(BaseFileSaver[Any]):
     Args:
         encoding: The file encoding to use when writing the file.
             Defaults to ``"utf-8"``.
+        allow_nan: If ``False`` (the default), ``NaN`` and infinite
+            floats raise a ``ValueError``, because the file would not be
+            valid JSON. If ``True``, they are written as the
+            non-standard ``NaN``/``Infinity`` tokens.
+        jsonable: If ``True``, the data is converted with
+            ``coola.jsonable.to_jsonable`` before it is written, so the
+            objects that ``json`` does not support (tuples are lists,
+            NumPy arrays, ...) are converted. Defaults to ``False``.
         **kwargs: Additional arguments passed to ``json.dump``, e.g.
             ``indent`` or ``sort_keys``.
 
     Note:
         JSON has only string keys: ``int`` keys are loaded back as
-        ``str``. ``NaN`` and infinite floats are written as the
-        non-standard ``NaN``/``Infinity`` tokens unless
-        ``allow_nan=False`` is passed (which raises a ``ValueError``).
+        ``str``.
 
     Example:
         ```pycon
@@ -87,16 +94,32 @@ class JsonSaver(BaseFileSaver[Any]):
         ```
     """
 
-    def __init__(self, encoding: str = DEFAULT_ENCODING, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        encoding: str = DEFAULT_ENCODING,
+        *,
+        allow_nan: bool = False,
+        jsonable: bool = False,
+        **kwargs: Any,
+    ) -> None:
         self._encoding = encoding
+        self._allow_nan = allow_nan
+        self._jsonable = jsonable
         self._kwargs = kwargs
 
     def _display_fields(self) -> dict[str, Any]:
-        return {"encoding": self._encoding, **self._kwargs}
+        return {
+            "encoding": self._encoding,
+            "allow_nan": self._allow_nan,
+            "jsonable": self._jsonable,
+            **self._kwargs,
+        }
 
     def _save_file(self, to_save: Any, path: Path) -> None:
+        if self._jsonable:
+            to_save = to_jsonable(to_save)
         with path.open(mode="w", encoding=self._encoding) as file:
-            json.dump(to_save, file, **self._kwargs)
+            json.dump(to_save, file, allow_nan=self._allow_nan, **self._kwargs)
 
 
 def load_json(path: str | os.PathLike[str], encoding: str | None = None) -> Any:
@@ -135,19 +158,20 @@ def save_json(
     encoding: str = DEFAULT_ENCODING,
     exist_ok: bool = False,
     fsync: bool = False,
+    allow_nan: bool = False,
+    jsonable: bool = False,
     **kwargs: Any,
 ) -> None:
     r"""Save the given data in a JSON file.
 
-    The file is what ``json.dump`` writes, so the output follows the
-    Python ``json`` module and is not strict JSON by default:
-    ``NaN`` and infinite floats are written as the non-standard tokens
-    ``NaN`` and ``Infinity``, and the keys that are not strings (for
-    example ``int``) are written as strings, so they are strings after
-    ``load_json``. Pass ``allow_nan=False`` to raise an error for
-    ``NaN`` and infinite floats. The data is not converted: use
-    ``coola.jsonable.to_jsonable`` first for the objects that
-    ``json`` does not support.
+    The file is what ``json.dump`` writes: the keys that are not
+    strings (for example ``int``) are written as strings, so they are
+    strings after ``load_json``. ``NaN`` and infinite floats are not
+    valid JSON, so they raise a ``ValueError`` unless ``allow_nan=True``
+    (they are then written as the non-standard tokens ``NaN`` and
+    ``Infinity``). The data is not converted unless ``jsonable=True``:
+    the objects that ``json`` does not support (NumPy arrays, ...) raise
+    a ``TypeError``.
 
     Args:
         to_save: Anyhe data to write in a JSON file.
@@ -165,11 +189,19 @@ def save_json(
             It is slower. Defaults to ``False``: the file is replaced
             atomically, but its content may be lost if the machine
             crashes right after the call.
+        allow_nan: If ``False`` (the default), ``NaN`` and infinite
+            floats raise a ``ValueError``. If ``True``, they are
+            written as the non-standard ``NaN``/``Infinity`` tokens.
+        jsonable: If ``True``, convert the data with
+            ``coola.jsonable.to_jsonable`` before it is written.
+            Defaults to ``False``.
         **kwargs: Additional arguments passed to ``json.dump``, e.g.
             ``indent`` or ``sort_keys``.
 
     Raises:
         FileExistsError: if the file already exists.
+        ValueError: if the data has a ``NaN`` or an infinite float and
+            ``allow_nan`` is ``False``.
 
     Example:
         ```pycon
@@ -186,4 +218,6 @@ def save_json(
 
         ```
     """
-    JsonSaver(encoding=encoding, **kwargs).save(to_save, path, exist_ok=exist_ok, fsync=fsync)
+    JsonSaver(encoding=encoding, allow_nan=allow_nan, jsonable=jsonable, **kwargs).save(
+        to_save, path, exist_ok=exist_ok, fsync=fsync
+    )
