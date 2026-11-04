@@ -366,7 +366,9 @@ def _column(name: object, series: pd.Series) -> Column:
             return Column(name, "numeric", series.to_numpy(dtype="float64", na_value=float("nan")))
         nulls = series.isna().to_numpy()
         # The integers stay integers: a conversion to ``float64`` rounds the large ones.
-        values = series.fillna(0).to_numpy() if nulls.any() else series.to_numpy()
+        # pandas < 2.2 converts a nullable integer array to ``object`` unless the dtype is given.
+        numpy_dtype = getattr(dtype, "numpy_dtype", None)
+        values = series.fillna(0).to_numpy(dtype=numpy_dtype)
         return Column(name, "numeric", values, nulls)
     if getattr(dtype, "kind", None) == "m":
         nulls = series.isna().to_numpy()
