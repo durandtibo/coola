@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
@@ -643,3 +644,20 @@ def test_objects_are_equal_set_and_frozenset_are_different() -> None:
 def test_max_depth_error_message() -> None:
     with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(10\) exceeded"):
         objects_are_equal(nest([], 50), nest([], 50), max_depth=10)
+
+
+#################################################
+#     Tests for the identity shortcut (NaN)     #
+#################################################
+
+
+def test_objects_are_equal_the_same_nan_object_is_equal() -> None:
+    assert objects_are_equal([math.nan], [math.nan])
+
+
+def test_objects_are_equal_distinct_nan_objects_are_different() -> None:
+    assert not objects_are_equal([float("nan")], [float("nan")])
+
+
+def test_objects_are_equal_distinct_nan_objects_are_equal_with_equal_nan() -> None:
+    assert objects_are_equal([float("nan")], [float("nan")], equal_nan=True)
