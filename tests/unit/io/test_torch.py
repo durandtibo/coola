@@ -96,6 +96,8 @@ def test_torch_loader_load(path_torch: Path) -> None:
 
 
 @torch_available
+# torch 2.0 warns from its own weights-only unpickler when it loads a tensor.
+@pytest.mark.filterwarnings("ignore:TypedStorage is deprecated:UserWarning")
 def test_torch_loader_load_tensor(tmp_path: Path) -> None:
     path = tmp_path.joinpath("tensor.pt")
     tensor = torch.ones(2, 3)
