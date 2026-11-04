@@ -368,6 +368,18 @@ def test_registry_len_operator() -> None:
     assert len(Registry[str, int]()) == 0
 
 
+def test_registry_bool_empty() -> None:
+    assert not Registry[str, int]()
+
+
+def test_registry_bool_not_empty() -> None:
+    assert Registry[str, int]({"a": 1})
+
+
+def test_registry_has_pending_entries() -> None:
+    assert not Registry[str, int]()._has_pending_entries()
+
+
 def test_registry_len_operator_one_item() -> None:
     registry = Registry[str, int]()
     registry.register("a", 1)

@@ -120,6 +120,24 @@ def test_displaying_a_default_registry_does_not_import_the_optional_libraries(
     assert loaded_libraries(statement) == []
 
 
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "from coola.equality.tester import get_default_registry as f; bool(f())",
+        "from coola.hashing import get_default_registry as f; bool(f())",
+        "from coola.summary import get_default_registry as f; bool(f())",
+        "from coola.jsonable import get_default_registry as f; bool(f())",
+        "from coola.rounding import get_default_registry as f; bool(f())",
+    ],
+)
+def test_bool_of_a_default_registry_does_not_import_the_optional_libraries(
+    statement: str,
+) -> None:
+    """Test that the truth value of a default registry does not load the
+    entries of the optional libraries."""
+    assert loaded_libraries(statement) == []
+
+
 @numpy_available
 @pytest.mark.parametrize(
     "statement",
