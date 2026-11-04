@@ -44,6 +44,10 @@ def sort_by_keys(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
 def sort_by_values(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
     r"""Sort a dictionary by values.
 
+    If the values cannot be compared with each other (for example ``1``
+    and ``"a"``), they are sorted as in
+    [`sort_by_keys`][coola.utils.mapping.sort_by_keys].
+
     Args:
         mapping: The dictionary to sort.
 
@@ -58,7 +62,7 @@ def sort_by_values(mapping: Mapping[Any, Any]) -> dict[Any, Any]:
 
         ```
     """
-    return dict(sorted(mapping.items(), key=operator.itemgetter(1)))
+    return dict(sort_items(mapping.items(), key=operator.itemgetter(1)))
 
 
 def get_first_value(data: Mapping[Any, T]) -> T:

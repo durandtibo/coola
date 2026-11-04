@@ -283,5 +283,25 @@ def test_str_human_byte_size_rounds_up_to_the_next_unit() -> None:
     assert str_human_byte_size(1048575) == "1.00 MB"
 
 
+def test_str_human_byte_size_terabytes() -> None:
+    assert str_human_byte_size(1024**4 * 2) == "2.00 TB"
+
+
+def test_str_human_byte_size_petabytes() -> None:
+    assert str_human_byte_size(2**50) == "1.00 PB"
+
+
+def test_str_human_byte_size_exabytes() -> None:
+    assert str_human_byte_size(2**60) == "1.00 EB"
+
+
 def test_str_human_byte_size_largest_unit_is_not_promoted() -> None:
-    assert str_human_byte_size(1024**4 * 2000) == "2,000.00 TB"
+    assert str_human_byte_size(1024**6 * 2000) == "2,000.00 EB"
+
+
+def test_str_human_byte_size_rounds_up_to_petabytes() -> None:
+    assert str_human_byte_size(2**50 - 1) == "1.00 PB"
+
+
+def test_find_best_byte_unit_petabytes() -> None:
+    assert find_best_byte_unit(2**50) == "PB"

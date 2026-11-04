@@ -15,7 +15,8 @@ def get_file_size(path: Path) -> int:
     If ``path`` is a directory, returns the total size of all files
     it contains (recursively). Symlinks inside the directory are
     neither followed nor counted, and files deleted while the directory
-    is being scanned are skipped.
+    is being scanned are skipped. If ``path`` itself is a symlink to a
+    file, the size of the file is returned (the link is followed).
 
     Args:
         path: The path to the file or directory.

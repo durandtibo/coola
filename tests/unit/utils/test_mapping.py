@@ -71,6 +71,16 @@ def test_sort_by_values_single_item() -> None:
     assert sort_by_values({"key": 1}) == {"key": 1}
 
 
+def test_sort_by_values_not_comparable_values_are_sorted_by_type_name() -> None:
+    data = sort_by_values({"a": "x", "b": 1, "c": 0})
+    assert list(data.items()) == [("c", 0), ("b", 1), ("a", "x")]
+
+
+def test_sort_by_values_not_comparable_values_of_the_same_type() -> None:
+    data = sort_by_values({"a": ("b",), "b": (1,), "c": ("a",)})
+    assert list(data) == ["c", "a", "b"]
+
+
 def test_sort_by_values_string_values() -> None:
     """Test sort_by_values with string values."""
     data = sort_by_values({"a": "zebra", "b": "apple", "c": "banana"})
