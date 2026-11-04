@@ -192,3 +192,13 @@ def test_rounding_a_float_does_not_import_the_optional_libraries() -> None:
         loaded_libraries("from coola.rounding import round_values; round_values(1.5, decimals=1)")
         == []
     )
+
+
+def test_importing_the_equality_package_does_not_import_coola_io() -> None:
+    """Test that ``coola.equality`` is usable without ``coola.io``."""
+    code = (
+        "import sys; from coola.equality import objects_are_equal; objects_are_equal(1, 1); "
+        "from coola.equality.tester import get_default_registry; get_default_registry(); "
+        "print('coola.io' in sys.modules)"
+    )
+    assert run_python(code) == ["False"]

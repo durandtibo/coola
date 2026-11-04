@@ -405,6 +405,18 @@ source_modules = ["coola.validation"]
 forbidden_modules = ["coola.utils"]
 
 [[tool.importlinter.contracts]]
+name = "Low-level features must not import io"
+type = "forbidden"
+source_modules = [
+  "coola.equality",
+  "coola.hashing",
+  "coola.summary",
+  "coola.recursive",
+  "coola.iterator",
+]
+forbidden_modules = ["coola.io"]
+
+[[tool.importlinter.contracts]]
 name = "Hashing must not import identifier"
 type = "forbidden"
 source_modules = ["coola.hashing"]
