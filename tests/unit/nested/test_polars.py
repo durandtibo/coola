@@ -291,7 +291,10 @@ def test_unnest_one_level_list_of_struct_empty_as_null_supported() -> None:
         {"id": [1, 2], "items": [[{"name": "a"}], [{"name": "b"}, {"name": "c"}]]},
         schema={"id": pl.Int64, "items": pl.List(pl.Struct({"name": pl.String}))},
     )
-    with patch.object(pl.DataFrame, "explode", explode_requiring_empty_as_null):
+    with (
+        patch("coola.nested.polars._EXPLODE_EMPTY_AS_NULL_VERSION", "0.0.0"),
+        patch.object(pl.DataFrame, "explode", explode_requiring_empty_as_null),
+    ):
         assert_frame_equal(
             _unnest_one_level(frame, separator="."),
             pl.DataFrame(
@@ -905,7 +908,10 @@ def test_flatten_frame_unrelated_type_error_of_explode_propagates() -> None:
 @polars_available
 def test_unnest_with_separator_checks_the_version_of_polars() -> None:
     frame = pl.DataFrame({"coords": [{"x": 1}]})
-    with patch("coola.nested.polars.compare_version", return_value=True) as compare:
+    with (
+        patch("coola.nested.polars.compare_version", return_value=True) as compare,
+        patch.object(pl.DataFrame, "unnest", return_value=frame),
+    ):
         _unnest_with_separator(frame, ["coords"], separator=".")
     compare.assert_called_once_with("polars", operator.ge, "1.35.0")
 
@@ -913,6 +919,12 @@ def test_unnest_with_separator_checks_the_version_of_polars() -> None:
 @polars_available
 def test_unnest_one_level_checks_the_version_of_polars_for_explode() -> None:
     frame = pl.DataFrame({"items": [[{"name": "a"}]]})
-    with patch("coola.nested.polars.compare_version", return_value=True) as compare:
+    with (
+        patch(
+            "coola.nested.polars.compare_version",
+            side_effect=lambda package, op, version: version == "1.36.0",
+        ) as compare,
+        patch.object(pl.DataFrame, "explode", explode_requiring_empty_as_null),
+    ):
         _unnest_one_level(frame, separator=".")
     assert compare.call_args_list[0].args == ("polars", operator.ge, "1.36.0")
