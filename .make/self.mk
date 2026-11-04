@@ -8,11 +8,13 @@ SELF_MK_INCLUDED := 1
 #   SHARED_MAKEFILES_REMOTE_URL  ?= https://github.com/durandtibo/shared-makefiles.git # git remote URL
 #   SHARED_MAKEFILES_BRANCH      ?= main                                               # branch to pull
 #   SHARED_MAKEFILES_PREFIX      ?= .make                                              # subtree prefix
+#   SHARED_MAKEFILES_CLEANUP     ?= .github testdata .gitignore CONTRIBUTING.md ...   # files removed after sync
 
 SHARED_MAKEFILES_REMOTE_NAME ?= shared-makefiles
 SHARED_MAKEFILES_REMOTE_URL ?= https://github.com/durandtibo/shared-makefiles.git
 SHARED_MAKEFILES_BRANCH ?= main
 SHARED_MAKEFILES_PREFIX ?= .make
+SHARED_MAKEFILES_CLEANUP ?= .github testdata tests .gitignore CODE_OF_CONDUCT.md CONTRIBUTING.md README.md SECURITY.md
 
 .PHONY: update-subtree
 update-subtree:
@@ -29,11 +31,17 @@ update-subtree:
 	else \
 		git subtree pull --prefix=$(SHARED_MAKEFILES_PREFIX) $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash -m "chore: sync shared Makefile subtree" || true; \
 	fi
-	@if [ -d "$(SHARED_MAKEFILES_PREFIX)/.github" ] || [ -d "$(SHARED_MAKEFILES_PREFIX)/testdata" ] || [ -f "$(SHARED_MAKEFILES_PREFIX)/.gitignore" ]; then \
-		echo "🧹 Removing .github/, testdata/, and .gitignore from $(SHARED_MAKEFILES_PREFIX)..."; \
-		git rm -rq --ignore-unmatch $(SHARED_MAKEFILES_PREFIX)/.github $(SHARED_MAKEFILES_PREFIX)/testdata $(SHARED_MAKEFILES_PREFIX)/.gitignore; \
-		rm -rf $(SHARED_MAKEFILES_PREFIX)/.github $(SHARED_MAKEFILES_PREFIX)/testdata $(SHARED_MAKEFILES_PREFIX)/.gitignore; \
-		git commit -m "chore: remove .github, testdata, and .gitignore from synced subtree" || true; \
+	@removed=""; \
+	for f in $(SHARED_MAKEFILES_CLEANUP); do \
+		if [ -e "$(SHARED_MAKEFILES_PREFIX)/$$f" ]; then \
+			git rm -rq --ignore-unmatch "$(SHARED_MAKEFILES_PREFIX)/$$f"; \
+			rm -rf "$(SHARED_MAKEFILES_PREFIX)/$$f"; \
+			removed="$$removed $$f"; \
+		fi; \
+	done; \
+	if [ -n "$$removed" ]; then \
+		echo "🧹 Removed from $(SHARED_MAKEFILES_PREFIX):$$removed"; \
+		git commit -m "chore: remove unnecessary files from synced subtree" || true; \
 	fi
 	@echo "✅ Subtree sync complete"
 
