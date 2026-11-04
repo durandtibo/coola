@@ -5,6 +5,7 @@ from collections.abc import Generator, Iterable, Iterator
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -262,3 +263,17 @@ def test_dfs_items_uses_the_given_registry_leaf_rule(registry: ChildFinderRegist
 def test_dfs_items_with_a_registry_without_the_type_as_a_leaf() -> None:
     registry = ChildFinderRegistry({object: DefaultChildFinder()})
     assert list(dfs_items([1], registry=registry)) == [((), [1])]
+
+
+def test_register_default_child_finders_registers_the_pydantic_models_lazily() -> None:
+    registry = ChildFinderRegistry()
+    with patch("coola.iterator.interface.package_available", lambda _: True):
+        interface._register_default_child_finders(registry)
+    assert "<not loaded: pydantic>" in repr(registry)
+
+
+def test_register_default_child_finders_without_pydantic_registers_no_lazy_group() -> None:
+    registry = ChildFinderRegistry()
+    with patch("coola.iterator.interface.package_available", lambda _: False):
+        interface._register_default_child_finders(registry)
+    assert "<not loaded" not in repr(registry)

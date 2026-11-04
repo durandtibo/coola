@@ -142,6 +142,7 @@ Design points:
 | `SetTransformer`       | `(list(data), lambda xs: rebuild_set(data, xs))`                                                                                            | `set`, `frozenset`                                               |
 | `MappingTransformer`   | `(list(data.values()), lambda xs: rebuild_mapping(data, dict(zip(data, xs))))`                                                              | `dict`, `Mapping`, `MappingProxyType`                            |
 | `DataclassTransformer` | `([getattr(data, f.name) for f in fields(data)], lambda xs: clone with the fields set)`                                                     | fallback: `dataclasses.is_dataclass`                             |
+| `PydanticModelTransformer` | `([getattr(data, n) for n in model_fields + extra], lambda xs: data.model_copy(update=...))`, lazy: `coola.recursive.pydantic`        | `pydantic.BaseModel`                                             |
 
 The registry API is `TransformerRegistry` with `register`, `register_many`, `find_transformer`,
 `has_transformer`, `get_default_registry` (and its alias `get_default_transformer_registry`) and

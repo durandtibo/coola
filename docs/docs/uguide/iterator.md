@@ -213,6 +213,12 @@ of their definition (`DataclassChildFinder`):
 
 ```
 
+### Pydantic models
+
+The pydantic models are entered too (`coola.iterator.pydantic.PydanticChildFinder`): the children
+are the values of the declared fields, in the order of their definition, then the extra fields of a
+model with `extra="allow"`. A computed field is not a child.
+
 A child finder registered for the type of the dataclass has priority over the default one. To keep
 a dataclass as a leaf, register `DefaultChildFinder()` for its type:
 

@@ -192,3 +192,18 @@ def test_rounding_a_float_does_not_import_the_optional_libraries() -> None:
         loaded_libraries("from coola.rounding import round_values; round_values(1.5, decimals=1)")
         == []
     )
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "from coola.recursive import recursive_apply; recursive_apply([1, {'a': 2}], lambda x: x)",
+        "from coola.iterator import dfs_iterate; list(dfs_iterate([1, {'a': 2}]))",
+    ],
+)
+def test_using_recursive_and_iterator_with_builtin_types_does_not_import_pydantic(
+    statement: str,
+) -> None:
+    """Test that the default registries do not import pydantic for the
+    builtin types."""
+    assert loaded_libraries(statement) == []

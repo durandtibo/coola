@@ -25,6 +25,7 @@ from coola.iterator.iterable import IterableChildFinder
 from coola.iterator.mapping import MappingChildFinder
 from coola.iterator.registry import ChildFinderRegistry
 from coola.registry.default import make_default_registry_singleton
+from coola.utils.imports import package_available
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -248,6 +249,10 @@ def _register_default_child_finders(registry: ChildFinderRegistry) -> None:
     )
     # Dataclasses without their own child finder
     registry.register_fallback(dataclasses.is_dataclass, DataclassChildFinder())
+    # The pydantic models are entered like the dataclasses. The child finder is loaded the first
+    # time the registry needs a type of pydantic, so pydantic is not imported with ``coola.iterator``.
+    if package_available("pydantic"):
+        registry.register_lazy("pydantic", "coola.iterator.pydantic:get_default_child_finders")
 
 
 _default_registry: LazySingleton[ChildFinderRegistry] = make_default_registry_singleton(

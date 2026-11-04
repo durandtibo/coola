@@ -25,6 +25,7 @@ from coola.recursive.registry import TransformerRegistry
 from coola.recursive.sequence import SequenceTransformer
 from coola.recursive.set import SetTransformer
 from coola.registry.default import make_default_registry_singleton
+from coola.utils.imports import package_available
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -163,6 +164,7 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
         - Sets use SetTransformer for recursive set processing
         - Mappings use MappingTransformer for recursive dict processing
         - Dataclasses use DataclassTransformer (the fields are transformed)
+        - Pydantic models use PydanticModelTransformer (the fields are transformed)
 
     Args:
         registry: The registry to populate with default transformers
@@ -205,6 +207,10 @@ def _register_default_transformers(registry: TransformerRegistry) -> None:
     )
     # Dataclasses without their own transformer - the fields are transformed
     registry.register_fallback(dataclasses.is_dataclass, DataclassTransformer())
+    # The pydantic models are entered like the dataclasses. The transformer is loaded the first
+    # time the registry needs a type of pydantic, so pydantic is not imported with ``coola.recursive``.
+    if package_available("pydantic"):
+        registry.register_lazy("pydantic", "coola.recursive.pydantic:get_default_transformers")
 
 
 _default_registry: LazySingleton[TransformerRegistry] = make_default_registry_singleton(
