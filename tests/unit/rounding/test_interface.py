@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal
 from enum import Enum
 
@@ -533,7 +533,7 @@ def test_round_values_on_unsupported_raise_rejects_a_complex_number() -> None:
         pytest.param(None, id="None"),
         pytest.param(True, id="bool"),
         pytest.param(date(2020, 1, 2), id="date"),
-        pytest.param(datetime(2020, 1, 2, 3, tzinfo=timezone.utc), id="datetime"),
+        pytest.param(datetime(2020, 1, 2, 3, tzinfo=UTC), id="datetime"),
         pytest.param(time(1, 2), id="time"),
         pytest.param(timedelta(days=1), id="timedelta"),
         pytest.param(Color.RED, id="enum"),

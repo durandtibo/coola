@@ -41,7 +41,7 @@ recursive walk and the error contract (`UnsupportedTypeError`, `on_missing_packa
 
 ```
 round_values(data, *, mode="round", decimals=0, recursive=False, on_unsupported="ignore", on_missing_package="raise", registry=None)
-        |   validate mode, decimals and on_missing_package once; one registry (default: the singleton)
+        |   validate mode, decimals, on_unsupported and on_missing_package once; one registry (default: the singleton)
         |   recursive ? recursive_apply(data, leaf) : leaf(data)
         v
 leaf(x): rounder = registry.resolve(type(x))                  MRO, lazy libraries
