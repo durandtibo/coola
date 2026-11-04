@@ -4,10 +4,14 @@ from __future__ import annotations
 
 __all__ = ["get_available_devices", "is_cuda_available", "is_mps_available", "to_tensor"]
 
-from functools import cache
 from typing import TYPE_CHECKING, Any, cast
 
-from coola.utils.imports import check_torch, is_numpy_available, is_torch_available
+from coola.utils.imports import (
+    availability_cache,
+    check_torch,
+    is_numpy_available,
+    is_torch_available,
+)
 
 if TYPE_CHECKING or is_numpy_available():
     import numpy as np
@@ -23,12 +27,15 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-@cache
+@availability_cache
 def get_available_devices() -> tuple[str, ...]:
     r"""Get the available PyTorch devices on the machine.
 
+    The result is cached until ``clear_availability_caches`` is called.
+
     Returns:
-        The available devices.
+        The available devices: ``"cpu"``, ``"cuda:<i>"`` for each CUDA
+            device and ``"mps:0"`` if MPS is available.
 
     Example:
         ```pycon
@@ -40,13 +47,13 @@ def get_available_devices() -> tuple[str, ...]:
     """
     devices = ["cpu"]
     if is_cuda_available():
-        devices.append("cuda:0")
+        devices.extend(f"cuda:{i}" for i in range(torch.cuda.device_count()))
     if is_mps_available():
         devices.append("mps:0")
     return tuple(devices)
 
 
-@cache
+@availability_cache
 def is_cuda_available() -> bool:
     r"""Indicate if CUDA is currently available.
 
@@ -63,9 +70,11 @@ def is_cuda_available() -> bool:
     return is_torch_available() and torch.cuda.is_available()
 
 
-@cache
+@availability_cache
 def is_mps_available() -> bool:
     r"""Indicate if MPS is currently available.
+
+    It does not allocate a tensor on the device.
 
     Returns:
         A boolean indicating if MPS is currently available.
@@ -77,13 +86,7 @@ def is_mps_available() -> bool:
 
         ```
     """
-    if not is_torch_available():
-        return False
-    try:
-        torch.ones(1, device="mps")
-    except RuntimeError:
-        return False
-    return True
+    return is_torch_available() and torch.backends.mps.is_available()
 
 
 def to_tensor(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> torch.Tensor:

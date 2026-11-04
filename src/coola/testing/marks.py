@@ -112,8 +112,7 @@ def _is_mps_available() -> bool:
 
 # The availability of a package is checked when its marks are first accessed, not when this
 # module is imported: the checks import the packages (``torch``, ``jax``...) and
-# ``is_mps_available`` allocates a tensor on the device, which is slow and initializes a GPU
-# context. A test module that only needs ``numpy_available`` does not pay for them.
+# ``is_torch_available`` imports torch, which is slow. A test module that only needs ``numpy_available`` does not pay for them.
 # One row per dependency: the only place to edit to support a new one.
 _DEPENDENCIES: dict[str, _Dependency] = {
     "colorlog": _Dependency(is_colorlog_available, "colorlog"),
