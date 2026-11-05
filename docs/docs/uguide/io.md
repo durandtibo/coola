@@ -44,8 +44,8 @@ designed around the following properties.
 
 Not guaranteed:
 
-- Round trip beyond the format: JSON turns tuples into lists and non-string keys into strings and
-  writes `NaN` as a non-standard token, and a text file stores a `str`.
+- Round trip beyond the format: JSON turns tuples into lists and non-string keys into strings (`NaN`
+  and the infinities raise a `ValueError` unless `allow_nan=True`), and a text file stores a `str`.
 - Durability without `fsync=True`, and which of several concurrent saves wins.
 - A hidden `.<name>-<uuid><ext>` file after a crash: a process killed (SIGKILL, power loss) between
   the write and the commit leaves its temporary file. It is hidden, never taken for the target, and
@@ -58,6 +58,23 @@ Not guaranteed:
 - Streaming, compression and remote storage: one value per call, local files only.
 
 ## Loading and Saving Data
+
+`load(path)` and `save(data, path)` pick the loader or the saver from the suffix of the path (`.json`,
+`.pkl` and `.pickle`, `.pt` and `.pth`, `.txt`, case-insensitive) and raise a `ValueError` for another
+suffix. The keyword arguments are given to the loader or the saver. As with `PickleLoader`, `load`
+of a `.pkl` file executes the code of the file: only load a pickle file that you trust.
+
+```pycon
+>>> import tempfile
+>>> from pathlib import Path
+>>> from coola.io import load, save
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     path = Path(tmpdir).joinpath("data.json")
+...     save({"key": [1, 2, 3]}, path)
+...     load(path)
+{'key': [1, 2, 3]}
+
+```
 
 Each supported format has a loader class, a saver class, and two convenience functions.
 
@@ -91,7 +108,10 @@ The class-based equivalent is `JsonLoader` and `JsonSaver`:
 
 ```
 
-`JsonSaver` forwards extra keyword arguments to `json.dump`, e.g. `indent` or `sort_keys`:
+`JsonSaver` forwards extra keyword arguments to `json.dump`, e.g. `indent` or `sort_keys`. `NaN` and
+the infinite floats raise a `ValueError` (the file would not be valid JSON) unless `allow_nan=True`,
+and `jsonable=True` converts the data with `coola.jsonable.to_jsonable` first (sets, NumPy arrays,
+dataclasses, ...):
 
 ```pycon
 >>> import tempfile

@@ -2,7 +2,13 @@ r"""Implement some utility functions for ``torch.Tensor``s."""
 
 from __future__ import annotations
 
-__all__ = ["get_available_devices", "is_cuda_available", "is_mps_available", "to_tensor"]
+__all__ = [
+    "get_available_devices",
+    "is_cuda_available",
+    "is_mps_available",
+    "sparse_components",
+    "to_tensor",
+]
 
 from typing import TYPE_CHECKING, Any, cast
 
@@ -124,3 +130,44 @@ def to_tensor(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> torch.
     if not torch.is_tensor(data):
         return torch.as_tensor(data)
     return data
+
+
+def sparse_components(tensor: torch.Tensor) -> tuple[torch.Tensor, ...]:
+    r"""Return the strided tensors that store a sparse tensor.
+
+    The positions are returned first, then the values. A COO tensor is
+    coalesced first, so two COO tensors that hold the same values have
+    the same components. No dense copy is made.
+
+    Args:
+        tensor: The sparse tensor (COO, CSR, CSC, BSR or BSC layout).
+
+    Returns:
+        The positions (one or two tensors) followed by the values.
+
+    Raises:
+        TypeError: If the layout of the tensor is not supported.
+
+    Example:
+        ```pycon
+        >>> import torch
+        >>> from coola.utils.tensor import sparse_components
+        >>> indices, values = sparse_components(torch.eye(2).to_sparse())
+        >>> indices
+        tensor([[0, 1],
+                [0, 1]])
+        >>> values
+        tensor([1., 1.])
+
+        ```
+    """
+    layout = tensor.layout
+    if layout == torch.sparse_coo:
+        tensor = tensor.coalesce()
+        return tensor.indices(), tensor.values()
+    if layout in (torch.sparse_csr, torch.sparse_bsr):
+        return tensor.crow_indices(), tensor.col_indices(), tensor.values()
+    if layout in (torch.sparse_csc, torch.sparse_bsc):
+        return tensor.ccol_indices(), tensor.row_indices(), tensor.values()
+    msg = f"Unsupported tensor layout: {layout}"
+    raise TypeError(msg)

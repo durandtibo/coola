@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass
+from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal
+from enum import Enum
 
 import pytest
 
@@ -492,3 +494,90 @@ def test_register_default_rounders_registers_native_rounders() -> None:
     registry = TypeRegistry()
     _register_default_rounders(registry)
     assert registry.resolve(float) is round_float
+
+
+###################################
+#     Tests for on_unsupported     #
+###################################
+
+
+class Color(Enum):
+    RED = 1
+
+
+def test_round_values_on_unsupported_default_keeps_a_numeric_leaf() -> None:
+    assert round_values([Decimal("1.26")], decimals=1, recursive=True) == [Decimal("1.26")]
+
+
+def test_round_values_on_unsupported_ignore_keeps_a_numeric_leaf() -> None:
+    assert round_values([Decimal("1.26")], decimals=1, recursive=True, on_unsupported="ignore") == [
+        Decimal("1.26")
+    ]
+
+
+def test_round_values_on_unsupported_raise_rejects_a_decimal() -> None:
+    with pytest.raises(UnsupportedTypeError, match=r"Cannot round an object of type Decimal"):
+        round_values([Decimal("1.26")], recursive=True, on_unsupported="raise")
+
+
+def test_round_values_on_unsupported_raise_rejects_a_complex_number() -> None:
+    with pytest.raises(UnsupportedTypeError, match=r"Cannot round an object of type complex"):
+        round_values({"a": 1.5 + 1j}, recursive=True, on_unsupported="raise")
+
+
+@pytest.mark.parametrize(
+    "leaf",
+    [
+        pytest.param("abc", id="str"),
+        pytest.param(b"abc", id="bytes"),
+        pytest.param(None, id="None"),
+        pytest.param(True, id="bool"),
+        pytest.param(date(2020, 1, 2), id="date"),
+        pytest.param(datetime(2020, 1, 2, 3, tzinfo=UTC), id="datetime"),
+        pytest.param(time(1, 2), id="time"),
+        pytest.param(timedelta(days=1), id="timedelta"),
+        pytest.param(Color.RED, id="enum"),
+    ],
+)
+def test_round_values_on_unsupported_raise_keeps_a_non_numeric_leaf(leaf: object) -> None:
+    assert round_values([leaf], recursive=True, on_unsupported="raise") == [leaf]
+
+
+def test_round_values_on_unsupported_raise_rounds_a_supported_leaf() -> None:
+    assert round_values([1.26, "a"], decimals=1, recursive=True, on_unsupported="raise") == [
+        1.3,
+        "a",
+    ]
+
+
+def test_round_values_on_unsupported_raise_without_recursive_still_raises() -> None:
+    with pytest.raises(UnsupportedTypeError, match=r"Cannot round an object of type Decimal"):
+        round_values(Decimal("1.26"), on_unsupported="raise")
+
+
+def test_round_values_on_unsupported_invalid() -> None:
+    with pytest.raises(ValueError, match=r"on_unsupported"):
+        round_values(1.5, recursive=True, on_unsupported="warn")  # ty: ignore[invalid-argument-type]
+
+
+def test_round_values_on_unsupported_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match=r"positional argument"):
+        round_values(1.5, "round", 0, False, "raise")  # ty: ignore[too-many-positional-arguments]
+
+
+def test_round_leaf_raise_rejects_a_numeric_leaf() -> None:
+    with pytest.raises(UnsupportedTypeError, match=r"Cannot round an object of type Decimal"):
+        _round_leaf(
+            Decimal("1.5"),
+            get_default_registry(),
+            "round",
+            0,
+            "raise",
+            on_unsupported="raise",
+        )
+
+
+def test_round_leaf_ignore_keeps_a_numeric_leaf() -> None:
+    assert _round_leaf(Decimal("1.5"), get_default_registry(), "round", 0, "raise") == Decimal(
+        "1.5"
+    )

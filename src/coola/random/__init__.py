@@ -24,6 +24,7 @@ __all__ = [
     "TorchRandomManager",
     "get_default_random_manager_registry",
     "get_default_registry",
+    "get_numpy_generator",
     "get_random_seed",
     "get_rng_state",
     "get_torch_generator",
@@ -54,7 +55,7 @@ from coola.utils.imports import lazy_exports
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from coola.random.numpy import NumpyRandomManager
+    from coola.random.numpy import NumpyRandomManager, get_numpy_generator
     from coola.random.torch import TorchRandomManager, get_random_seed, get_torch_generator
 
 
@@ -64,6 +65,7 @@ _LAZY_EXPORTS = {
     "NumpyRandomManager": "coola.random.numpy",
     "TorchRandomManager": "coola.random.torch",
     "get_random_seed": "coola.random.torch",
+    "get_numpy_generator": "coola.random.numpy",
     "get_torch_generator": "coola.random.torch",
 }
 __getattr__: Callable[[str], Any]

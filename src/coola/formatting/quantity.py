@@ -21,6 +21,8 @@ BYTE_UNITS = {
     "MB": 1024 * 1024,
     "GB": 1024 * 1024 * 1024,
     "TB": 1024 * 1024 * 1024 * 1024,
+    "PB": 1024 * 1024 * 1024 * 1024 * 1024,
+    "EB": 1024 * 1024 * 1024 * 1024 * 1024 * 1024,
 }
 
 
@@ -109,7 +111,8 @@ def str_human_byte_size(size: int, unit: str | None = None) -> str:
         size: The size in bytes.
         unit: The unit to use to show the byte size. If ``None``, the
             best unit is found automatically. The supported units
-            are: ``'B'``, ``'KB'``, ``'MB'``, ``'GB'``, ``'TB'``.
+            are: ``'B'``, ``'KB'``, ``'MB'``, ``'GB'``, ``'TB'``, ``'PB'``,
+            ``'EB'`` (units of 1024 bytes).
 
     Returns:
         The byte size in a human-readable format.
@@ -128,6 +131,8 @@ def str_human_byte_size(size: int, unit: str | None = None) -> str:
         '2.00 MB'
         >>> str_human_byte_size(2048, unit="B")
         '2,048.00 B'
+        >>> str_human_byte_size(2**50)
+        '1.00 PB'
 
         ```
     """
@@ -153,7 +158,7 @@ def find_best_byte_unit(size: int) -> str:
 
     Returns:
         The best unit. The supported units are: ``'B'``, ``'KB'``,
-            ``'MB'``, ``'GB'``, ``'TB'``.
+            ``'MB'``, ``'GB'``, ``'TB'``, ``'PB'``, ``'EB'``.
 
     Raises:
         ValueError: if size is negative.

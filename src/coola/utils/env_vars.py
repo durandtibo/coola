@@ -127,7 +127,9 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None]:
     Changes are automatically reverted when exiting the context, even
     if an exception occurs. If a variable already exists, its
     original value is saved and restored on exit. If a variable
-    doesn't exist, it is created temporarily and removed on exit. All
+    doesn't exist, it is created temporarily and removed on exit. A
+    value of ``None`` unsets the variable for the block (it is
+    restored on exit if it existed). All
     operations are guaranteed to execute via ``try``/``finally``, even
     if an exception is raised inside the ``with`` block.
 
@@ -138,7 +140,7 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None]:
     Args:
         env_vars: The environment variables to set, as a mapping of
             variable name to value. Values are automatically converted
-            to strings.
+            to strings, except ``None``, which unsets the variable.
 
     Yields:
         ``None``. The environment variables are restored when the block
@@ -165,6 +167,13 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None]:
         true
         >>> print(os.environ.get("TEMP_API_KEY"))
         None
+        >>> # Temporarily unset a variable
+        >>> with temp_env_vars({"MY_HOME": None}):
+        ...     print(os.environ.get("MY_HOME"))
+        ...
+        None
+        >>> print(os.environ["MY_HOME"])
+        /original/home
 
         ```
 
@@ -179,7 +188,10 @@ def temp_env_vars(env_vars: dict[str, Any]) -> Generator[None]:
     try:
         # Set new values (inside ``try`` so a failure halfway still restores)
         for key, value in env_vars.items():
-            os.environ[key] = str(value)
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = str(value)
         yield
     finally:
         # Restore original state

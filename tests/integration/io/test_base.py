@@ -87,13 +87,14 @@ def test_importing_coola_io_does_not_modify_the_default_equality_registry() -> N
     assert run_python(code) == ["True"]
 
 
-def test_default_equality_registry_has_the_io_testers_after_importing_coola_io() -> None:
+def test_default_equality_registry_finds_the_io_testers_after_importing_coola_io() -> None:
     code = (
         "import coola.io; "
-        "from coola.equality.tester import get_default_registry; "
+        "from coola.equality.tester import EqualNanEqualityTester, get_default_registry; "
         "registry = get_default_registry(); "
-        "print(registry.has_equality_tester(coola.io.BaseLoader), "
-        "registry.has_equality_tester(coola.io.BaseSaver))"
+        "print(isinstance(registry.find_equality_tester(coola.io.BaseLoader), "
+        "EqualNanEqualityTester), "
+        "isinstance(registry.find_equality_tester(coola.io.BaseSaver), EqualNanEqualityTester))"
     )
     assert run_python(code) == ["True", "True"]
 
