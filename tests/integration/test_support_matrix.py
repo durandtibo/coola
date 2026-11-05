@@ -1,9 +1,9 @@
-r"""Check that ``equality``, ``hashing`` and ``summary`` support the same
-types.
+r"""Check that ``equality``, ``hashing``, ``summary`` and ``jsonable``
+support the same types.
 
-Each row is a type with a factory that builds equal objects. The three
+Each row is a type with a factory that builds equal objects. The
 modules are called on two objects built by the factory. The known gaps
-are listed in ``HASH_GAPS`` and are ``xfail(strict=True)``: fixing a gap
+are listed in ``HASH_GAPS`` and ``JSON_GAPS`` and are ``xfail(strict=True)``: fixing a gap
 makes the test fail until the type is removed from the list, and a new
 type must be added to ``TYPES``.
 """
@@ -27,6 +27,7 @@ import pytest
 
 from coola.equality import objects_are_equal
 from coola.hashing import hash_object
+from coola.jsonable import to_jsonable
 from coola.summary import summarize
 from coola.utils.imports import (
     is_jax_available,
@@ -218,6 +219,36 @@ HASH_GAPS = {
 }
 
 
+# The types that equality, hashing and summary support, but ``to_jsonable`` does not. Some have no
+# single JSON shape (the tables), the others have no JSON value (a pattern, a data type) or no
+# data (a sparse or meta tensor).
+JSON_GAPS = {
+    "complex",
+    "slice",
+    "Ellipsis",
+    "dict_keys",
+    "dict_values",
+    "dict_items",
+    "array.array",
+    "Fraction",
+    "timezone",
+    "Pattern",
+    "pd.DataFrame",
+    "pd.Categorical",
+    "pd.Interval",
+    "pd.Period",
+    "pl.DataFrame",
+    "pa.Table",
+    "pa.Schema",
+    "pa.DataType",
+    "pa.Scalar",
+    "torch.dtype",
+    "torch.device",
+    "torch.meta",
+    "torch.sparse",
+}
+
+
 def params(gaps: AbstractSet[str] = frozenset()) -> list[Any]:
     return [
         pytest.param(
@@ -242,3 +273,8 @@ def test_support_matrix_hash(factory: Callable[[], Any]) -> None:
 @pytest.mark.parametrize("factory", params())
 def test_support_matrix_summarize(factory: Callable[[], Any]) -> None:
     assert isinstance(summarize(factory()), str)
+
+
+@pytest.mark.parametrize("factory", params(JSON_GAPS))
+def test_support_matrix_to_jsonable(factory: Callable[[], Any]) -> None:
+    assert to_jsonable(factory()) == to_jsonable(factory())

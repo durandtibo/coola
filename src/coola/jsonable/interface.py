@@ -31,10 +31,14 @@ if TYPE_CHECKING:
 
 # (names of the library in the module of the types, module with the transformers)
 _LAZY_TRANSFORMERS = (
+    (("jax", "jaxlib"), "coola.jsonable.jax"),
     (("numpy",), "coola.jsonable.numpy"),
     (("pandas",), "coola.jsonable.pandas"),
+    (("polars",), "coola.jsonable.polars"),
+    (("pyarrow",), "coola.jsonable.pyarrow"),
     (("pydantic",), "coola.jsonable.pydantic"),
     (("torch",), "coola.jsonable.torch"),
+    (("xarray",), "coola.jsonable.xarray"),
 )
 _SCALARS = (str, int, float, bool, type(None))
 _MODES = ("raise", "warn", "keep")

@@ -30,7 +30,7 @@ class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
     A sparse tensor is hashed from its layout, its positions and its
     stored values, without a dense copy, so it does not hash like the
     dense tensor with the same values. A ``meta`` tensor has no values
-    and raises an error.
+    and raises a ``TypeError``.
 
     Example:
         ```pycon
@@ -56,8 +56,14 @@ class TorchTensorHasher(InlineDisplayMixin, BaseHasher["torch.Tensor"]):
 
         Returns:
             The leaf that describes ``data``.
+
+        Raises:
+            TypeError: If ``data`` is on the ``meta`` device.
         """
         tensor = data.detach()
+        if tensor.device.type == "meta":
+            msg = "Cannot hash a tensor on the meta device: it has no data"
+            raise TypeError(msg)
         if tensor.layout != torch.strided:
             # The stored components are hashed: a dense copy would need the
             # memory of the product of the shape.

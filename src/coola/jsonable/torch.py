@@ -29,6 +29,10 @@ class TensorTransformer(InlineDisplayMixin, BaseTransformer["torch.Tensor"]):
     complex tensor gives a list that is converted in turn, so the
     complex numbers are reported.
 
+    Raises:
+        TypeError: If the tensor is sparse or on the ``meta`` device
+            (when it is expanded).
+
     Example:
         ```pycon
         >>> import torch
@@ -46,6 +50,15 @@ class TensorTransformer(InlineDisplayMixin, BaseTransformer["torch.Tensor"]):
         self._convert = ConvertTransformer(lambda tensor: tensor.tolist())
 
     def expand(self, data: torch.Tensor) -> Expansion | None:
+        if data.layout != torch.strided:
+            msg = (
+                f"Cannot convert a tensor with the layout {data.layout} to JSON: "
+                "convert it with to_dense() first"
+            )
+            raise TypeError(msg)
+        if data.device.type == "meta":
+            msg = "Cannot convert a tensor on the meta device to JSON: it has no data"
+            raise TypeError(msg)
         if data.is_complex():
             return self._convert.expand(data)
         return (), lambda _: data.tolist()
