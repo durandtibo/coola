@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from coola.equality._helpers import comparison_key, is_exact_scalar_sequence
+from coola.equality._helpers import comparison_key, is_exact_scalar_sequence, is_float_sequence
 from coola.equality.config import EqualityConfig
 
 ###############################################
@@ -27,6 +27,35 @@ def test_is_exact_scalar_sequence_subclass_of_list() -> None:
         pass
 
     assert not is_exact_scalar_sequence(MyList([1]))
+
+
+###########################################
+#     Tests for is_float_sequence         #
+###########################################
+
+
+@pytest.mark.parametrize("seq", [[1.0], (1.0, float("nan")), [0.0, -0.0, float("inf")]])
+def test_is_float_sequence_true(seq: Any) -> None:
+    assert is_float_sequence(seq)
+
+
+@pytest.mark.parametrize("seq", [[], (), [1.0, 2], [1], ["a"], [[1.0]], {1.0}, "abc", range(3)])
+def test_is_float_sequence_false(seq: Any) -> None:
+    assert not is_float_sequence(seq)
+
+
+def test_is_float_sequence_subclass_of_list() -> None:
+    class MyList(list):
+        pass
+
+    assert not is_float_sequence(MyList([1.0]))
+
+
+def test_is_float_sequence_subclass_of_float() -> None:
+    class MyFloat(float):
+        pass
+
+    assert not is_float_sequence([MyFloat(1.0)])
 
 
 ###########################################
