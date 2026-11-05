@@ -5,6 +5,7 @@ from collections.abc import Generator, Mapping, Sequence
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -353,3 +354,17 @@ def test_default_registry_leaf_has_no_expansion(data: Any) -> None:
 def test_default_registry_rebuild_of_the_unchanged_children_is_equal(data: Any) -> None:
     children, rebuild = expand_not_none(get_default_registry().find_transformer(type(data)), data)
     assert rebuild(list(children)) == data
+
+
+def test_register_default_transformers_registers_the_pydantic_models_lazily() -> None:
+    registry = TransformerRegistry()
+    with patch("coola.recursive.interface.package_available", lambda _: True):
+        recursive_interface._register_default_transformers(registry)
+    assert "<not loaded: pydantic>" in repr(registry)
+
+
+def test_register_default_transformers_without_pydantic_registers_no_lazy_group() -> None:
+    registry = TransformerRegistry()
+    with patch("coola.recursive.interface.package_available", lambda _: False):
+        recursive_interface._register_default_transformers(registry)
+    assert "<not loaded" not in repr(registry)

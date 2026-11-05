@@ -180,6 +180,16 @@ registering `DefaultTransformer()` for its type:
 
 ```
 
+### Pydantic models
+
+A pydantic model is entered like a dataclass (when pydantic is installed): the function is applied to
+the values of the fields, the declared fields first and then the extra fields of a model with
+`extra="allow"`. A computed field is not a child. The model is rebuilt with `model_copy(update=...)`
+(`coola.recursive.pydantic.PydanticModelTransformer`): the input is not modified, a frozen model is
+supported and the validators do not run again, so the new values are not validated. A transformer
+registered for the type of the model has priority; register `DefaultTransformer()` to keep a model
+as a leaf.
+
 ## Available Transformers
 
 The `coola.recursive` package provides several built-in transformers:

@@ -152,6 +152,7 @@ Design points:
 | `IterableChildFinder`  | `data` (the container is its own iterable of children)      | `list`, `tuple`, `deque`, `Sequence`, `set`, `frozenset`                  |
 | `MappingChildFinder`   | `data.values()`                                             | `dict`, `Mapping`, `MappingProxyType`                                     |
 | `DataclassChildFinder` | `(getattr(data, f.name) for f in dataclasses.fields(data))` | fallback: `dataclasses.is_dataclass`                                      |
+| `PydanticChildFinder` | the values of `model_fields` then the extra fields; lazy: `coola.iterator.pydantic` | `pydantic.BaseModel`                                                      |
 
 `DefaultChildFinder` keeps the explicit `str`, `bytes` and `UserString` registrations: `object` would
 be enough through the MRO, but `str` and `bytes` are `Sequence`s and `UserString` would never end,
