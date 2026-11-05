@@ -36,7 +36,10 @@ jobs:
 
       - name: Run benchmarks
         # Save the results and fail if a benchmark is more than 50% slower than in the previous
-        # run (the runners are noisy, so the threshold is loose).
+        # run (the runners are noisy, so the threshold is loose). The GitHub runners do not
+        # always have the same CPU, so pytest-benchmark warns that the machine info is different
+        # from the saved one. The repository turns warnings into errors, which crashed pytest
+        # before it compared and saved the results, so this warning is ignored.
         run: |
           compare=()
           if [ -n "$(find .benchmarks -name '*.json' 2>/dev/null)" ]; then
@@ -44,7 +47,8 @@ jobs:
           fi
           python -m pytest tests/benchmarks/ --benchmark-only \
             --ignore=tests/benchmarks/test_import_benchmark.py \
-            --benchmark-storage=.benchmarks --benchmark-save=nightly "${compare[@]}"
+            --benchmark-storage=.benchmarks --benchmark-save=nightly \
+            -W "ignore::pytest_benchmark.logger.PytestBenchmarkWarning" "${compare[@]}"
 
       - name: Show the trend over the past 3 months
         # The artifact keeps the results of all the previous runs: show their trend and delete
