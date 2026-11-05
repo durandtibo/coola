@@ -7,7 +7,12 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.testing.marks import numpy_available, torch_available
-from coola.utils.imports import MissingPackageError, is_numpy_available, is_torch_available
+from coola.utils.imports import (
+    MissingPackageError,
+    clear_availability_caches,
+    is_numpy_available,
+    is_torch_available,
+)
 from coola.utils.tensor import (
     get_available_devices,
     is_cuda_available,
@@ -28,14 +33,14 @@ else:  # pragma: no cover
 
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Iterator, Sequence
 
 
 @pytest.fixture(autouse=True)
-def _reset() -> None:
-    get_available_devices.cache_clear()
-    is_cuda_available.cache_clear()
-    is_mps_available.cache_clear()
+def _reset() -> Iterator[None]:
+    clear_availability_caches()
+    yield
+    clear_availability_caches()
 
 
 ###########################################
@@ -56,6 +61,14 @@ def test_get_available_devices_cpu() -> None:
 @patch("coola.utils.tensor.is_mps_available", lambda: False)
 def test_get_available_devices_cpu_and_gpu() -> None:
     assert get_available_devices() == ("cpu", "cuda:0")
+
+
+@torch_available
+@patch("torch.cuda.is_available", lambda: True)
+@patch("torch.cuda.device_count", lambda: 2)
+@patch("coola.utils.tensor.is_mps_available", lambda: False)
+def test_get_available_devices_one_entry_per_cuda_device() -> None:
+    assert get_available_devices() == ("cpu", "cuda:0", "cuda:1")
 
 
 @torch_available
@@ -112,16 +125,23 @@ def test_is_mps_available() -> None:
 
 @torch_available
 @patch("coola.utils.tensor.is_torch_available", lambda: True)
+@patch("torch.backends.mps.is_available", lambda: True)
 def test_is_mps_available_with_mps() -> None:
-    with patch("coola.utils.tensor.torch.ones", Mock(return_value=torch.ones(1))):
-        assert is_mps_available()
+    assert is_mps_available()
 
 
 @torch_available
 @patch("coola.utils.tensor.is_torch_available", lambda: True)
+@patch("torch.backends.mps.is_available", lambda: False)
 def test_is_mps_available_without_mps() -> None:
-    with patch("coola.utils.tensor.torch.ones", Mock(side_effect=RuntimeError)):
-        assert not is_mps_available()
+    assert not is_mps_available()
+
+
+@torch_available
+@patch("coola.utils.tensor.is_torch_available", lambda: True)
+def test_is_mps_available_does_not_allocate_a_tensor() -> None:
+    with patch("coola.utils.tensor.torch.ones", Mock(side_effect=RuntimeError("allocated"))):
+        assert isinstance(is_mps_available(), bool)
 
 
 @patch("coola.utils.tensor.is_torch_available", lambda: False)
@@ -182,6 +202,44 @@ def test_to_tensor_numpy_negative_strides() -> None:
 def test_to_tensor_no_torch() -> None:
     with pytest.raises(MissingPackageError, match=r"'torch' package is required"):
         to_tensor([1, 2, 3])
+
+
+###############################################
+#     Tests for clear_availability_caches     #
+###############################################
+
+
+@torch_available
+def test_clear_availability_caches_resets_is_cuda_available() -> None:
+    with patch("torch.cuda.is_available", lambda: True):
+        assert is_cuda_available()
+    clear_availability_caches()
+    with patch("torch.cuda.is_available", lambda: False):
+        assert not is_cuda_available()
+
+
+@torch_available
+def test_clear_availability_caches_resets_is_mps_available() -> None:
+    with patch("torch.backends.mps.is_available", lambda: True):
+        assert is_mps_available()
+    clear_availability_caches()
+    with patch("torch.backends.mps.is_available", lambda: False):
+        assert not is_mps_available()
+
+
+@torch_available
+def test_clear_availability_caches_resets_get_available_devices() -> None:
+    with (
+        patch("torch.cuda.is_available", lambda: False),
+        patch("torch.backends.mps.is_available", lambda: False),
+    ):
+        assert get_available_devices() == ("cpu",)
+    clear_availability_caches()
+    with (
+        patch("torch.cuda.is_available", lambda: False),
+        patch("torch.backends.mps.is_available", lambda: True),
+    ):
+        assert get_available_devices() == ("cpu", "mps:0")
 
 
 #######################################
