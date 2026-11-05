@@ -51,24 +51,24 @@ surprising behaviour, **P3** cleanup or design.
 
 ## Summary
 
-| ID   | P   | Area         | Finding                                                                                                      |
-| ---- | --- | ------------ | ------------------------------------------------------------------------------------------------------------ |
-| 53   | P1  | tests        | _Carried over_ 39.1: red on `main`; docformatter rewrites the string, and it will do it again                |
-| 54.1 | P2  | hashing      | `Series(["a", None])` equals `Series(["a", nan])` but the hashes differ (a `DataFrame` hashes the same)      |
-| 54.2 | P2  | equality     | _Carried over_ 34.1: categoricals with a different order of categories are equal; they must not be          |
-| 54.3 | P3  | equality     | `attrs` are compared for xarray, ignored for pandas and Arrow metadata: no stated rule                       |
-| 55   | P2  | hashing      | `hash_object` rejects classes, functions, `re.Pattern`, `slice`, `Ellipsis`, `array.array`                   |
-| 56   | -   | -            | Withdrawn by the maintainer                                                                                  |
-| 57   | P3  | registry     | `summarize` and `recursive_apply` keep up to 1024 dynamically created classes alive                          |
-| 58   | P3  | api          | 5 packages export two names for the same registry getter; `Transformer` and `Node` mean two things          |
-| 59   | P3  | api          | 12 public functions take options positionally; `load_json` and `save_json` disagree                          |
-| 60   | -   | -            | Withdrawn by the maintainer                                                                                  |
-| 61   | -   | -            | Withdrawn by the maintainer                                                                                  |
-| 62   | P3  | small gaps   | `factory` prefix with a trailing dot; `summarize(max_characters=0)`; rounding modes; `LazyFrame` message     |
-| 63   | P3  | ci           | SciPy is missing from `dev/config/package_versions.json`: its lower bound is never tested                    |
-| 64   | P3  | tests        | 117 unit tests with several assertions, 18 with a loop; the property tests have no object column (54.1)      |
-| 65   | P3  | performance  | Measured costs, and the three places worth a profile                                                         |
-| 66   | -   | follow-up    | Proposed order of the work                                                                                   |
+| ID   | P   | Area        | Finding                                                                                                  |
+| ---- | --- | ----------- | -------------------------------------------------------------------------------------------------------- |
+| 53   | P1  | tests       | _Carried over_ 39.1: red on `main`; docformatter rewrites the string, and it will do it again            |
+| 54.1 | P2  | hashing     | `Series(["a", None])` equals `Series(["a", nan])` but the hashes differ (a `DataFrame` hashes the same)  |
+| 54.2 | P2  | equality    | _Carried over_ 34.1: categoricals with a different order of categories are equal; they must not be       |
+| 54.3 | P3  | equality    | `attrs` are compared for xarray, ignored for pandas and Arrow metadata: no stated rule                   |
+| 55   | P2  | hashing     | `hash_object` rejects classes, functions, `re.Pattern`, `slice`, `Ellipsis`, `array.array`               |
+| 56   | -   | -           | Withdrawn by the maintainer                                                                              |
+| 57   | P3  | registry    | `summarize` and `recursive_apply` keep up to 1024 dynamically created classes alive                      |
+| 58   | P3  | api         | 5 packages export two names for the same registry getter; `Transformer` and `Node` mean two things       |
+| 59   | P3  | api         | 12 public functions take options positionally; `load_json` and `save_json` disagree                      |
+| 60   | -   | -           | Withdrawn by the maintainer                                                                              |
+| 61   | -   | -           | Withdrawn by the maintainer                                                                              |
+| 62   | P3  | small gaps  | `factory` prefix with a trailing dot; `summarize(max_characters=0)`; rounding modes; `LazyFrame` message |
+| 63   | P3  | ci          | SciPy is missing from `dev/config/package_versions.json`: its lower bound is never tested                |
+| 64   | P3  | tests       | 117 unit tests with several assertions, 18 with a loop; the property tests have no object column (54.1)  |
+| 65   | P3  | performance | Measured costs, and the three places worth a profile                                                     |
+| 66   | -   | follow-up   | Proposed order of the work                                                                               |
 
 ## 53. The red test is a formatter problem, and it will come back (P1, _carried over_ 39.1) **[verified]**
 
@@ -164,13 +164,13 @@ one with the same categories in the same order (`True`) and one with `ordered` d
 
 ### 54.3 Metadata is compared or ignored depending on the library (P3) **[verified]**
 
-| Library | `attrs` / metadata                                  | Compared by `objects_are_equal` |
-| ------- | --------------------------------------------------- | ------------------------------- |
-| xarray  | `DataArray.attrs`                                   | yes                             |
-| xarray  | `DataArray.encoding`                                | no                              |
-| pandas  | `DataFrame.attrs`                                   | **no**                          |
-| Arrow   | `Table` schema metadata                             | **no**                          |
-| polars  | (no metadata)                                       | -                               |
+| Library | `attrs` / metadata      | Compared by `objects_are_equal` |
+| ------- | ----------------------- | ------------------------------- |
+| xarray  | `DataArray.attrs`       | yes                             |
+| xarray  | `DataArray.encoding`    | no                              |
+| pandas  | `DataFrame.attrs`       | **no**                          |
+| Arrow   | `Table` schema metadata | **no**                          |
+| polars  | (no metadata)           | -                               |
 
 Each choice is defensible; the missing piece is the rule. Add one sentence per library to the user
 guide ("equality compares what the library's own `equals` compares, plus names and dtypes") and a
@@ -233,8 +233,8 @@ is needed.
 2. **Same name, two meanings.** `coola.recursive` and `coola.jsonable` both define `Transformer`,
    `TransformerRegistry`, `DataclassTransformer`, `MappingTransformer`, `SequenceTransformer`,
    `SetTransformer` and `register_transformers`; they are different protocols (`transform(data,
-   func)` vs a converter to JSON). `from coola.recursive import TransformerRegistry` and `from
-   coola.jsonable import TransformerRegistry` give two unrelated classes, and an IDE import suggestion
+func)` vs a converter to JSON). `from coola.recursive import TransformerRegistry` and `from
+coola.jsonable import TransformerRegistry` give two unrelated classes, and an IDE import suggestion
    picks one at random. Rename the `jsonable` ones to `Converter`, `ConverterRegistry`,
    `register_converters`. Same for `Node`, exported by both `hashing` and `summary` with different fields
    (`hashing.Node`, `summary.Node`): rename to `HashNode` and `SummaryNode`, or stop exporting them
@@ -248,7 +248,7 @@ is needed.
    (`round_values`, `flatten_mapping`, `merge_mappings`, `get_secret_hashers`).
 5. **`__all__` of `utils`, `testing`, `formatting` is empty** by design (import from the module). It is
    the only place where `from coola.formatting import truncate_str` does not work while `from
-   coola.nested import flatten_mapping` does. Either re-export the formatting functions (they are
+coola.nested import flatten_mapping` does. Either re-export the formatting functions (they are
    documented as user-facing in `uguide/formatting.md`) or say it in the first line of the page.
 
 ## 59. Options that are still positional (P3) **[verified]**
@@ -256,19 +256,19 @@ is needed.
 `CLAUDE.md`: "Keep new options keyword-only (`*`), as `hash_object` does." A scan of the public
 functions with a default value that is not keyword-only gives:
 
-| Function                                       | Positional option(s)                         |
-| ---------------------------------------------- | -------------------------------------------- |
-| `io.load_json`, `io.load_text`                 | `encoding`                                   |
-| `nested.add_prefix_suffix_to_keys`             | `prefix`, `suffix` (both default to `""`)    |
-| `nested.flatten_frame`                         | `separator`, `depth`, `expand_lists`         |
-| `hashing.tagged`                               | `payload`                                    |
-| `hashing.get_secret_hashers`                   | `on_secret`                                  |
-| `formatting.mask_secret`                       | `show_first`, `show_last`                    |
-| `formatting.truncate_str`                      | `max_len`, `suffix`                          |
-| `formatting.unified_diff`                      | `label_a`, `label_b`, `context_lines`        |
-| `formatting.make_bar`, `str_human_byte_size`   | `length`, `unit`                             |
-| `factory.resolve_object`                       | `cls` (default `object`)                     |
-| `summary.format_fields`                        | `max_fields` (no default, but unnamed at the call sites) |
+| Function                                     | Positional option(s)                                     |
+| -------------------------------------------- | -------------------------------------------------------- |
+| `io.load_json`, `io.load_text`               | `encoding`                                               |
+| `nested.add_prefix_suffix_to_keys`           | `prefix`, `suffix` (both default to `""`)                |
+| `nested.flatten_frame`                       | `separator`, `depth`, `expand_lists`                     |
+| `hashing.tagged`                             | `payload`                                                |
+| `hashing.get_secret_hashers`                 | `on_secret`                                              |
+| `formatting.mask_secret`                     | `show_first`, `show_last`                                |
+| `formatting.truncate_str`                    | `max_len`, `suffix`                                      |
+| `formatting.unified_diff`                    | `label_a`, `label_b`, `context_lines`                    |
+| `formatting.make_bar`, `str_human_byte_size` | `length`, `unit`                                         |
+| `factory.resolve_object`                     | `cls` (default `object`)                                 |
+| `summary.format_fields`                      | `max_fields` (no default, but unnamed at the call sites) |
 
 The asymmetry that bites a user is `save_json(obj, path, *, encoding=..., allow_nan=...)` against
 `load_json(path, encoding=None)`: the two functions that are used together have a different calling
@@ -302,7 +302,7 @@ Withdrawn by the maintainer; the number is kept so that the IDs of the other ite
    the value; apply it to the value only, or reject a limit under the header length with the
    `validate_*` helpers.
 3. **`round_values` modes** **[verified]**. `mode="trunc"` raises (`must be one of ('round', 'floor',
-   'ceil')`), `decimals=-2` still raises (item 45.4 listed it; #2729 did not change it), and
+'ceil')`), `decimals=-2` still raises (item 45.4 listed it; #2729 did not change it), and
    `round_values(2.5)` is `2.0` and `round_values(0.5)` is `0.0` (half to even, as `round` and NumPy). The
    docs should say "half to even" next to `mode="round"`, and `"trunc"` is a three-line rounder for each
    backend. Negative `decimals` is the missing one for large numbers (`round_values(1234.5, decimals=-2)`).
@@ -356,19 +356,19 @@ cannot be forgotten. Today the sparse-matrix tester has never been run against `
 
 Best of 3, Apple M-series, Python 3.14. `ref` is the plain library call.
 
-| Operation                                          | coola    | ref        | ratio |
-| -------------------------------------------------- | -------- | ---------- | ----- |
-| `objects_are_equal`, list of 2e5 ints              | 7.7 ms   | 0.1 ms     | 77x   |
-| `objects_are_equal`, dict of 2e5 str -> int        | 33.6 ms  | 3.5 ms     | 10x   |
-| `objects_are_equal`, 5e4 small nested dicts        | 138 ms   | 2.2 ms     | 63x   |
-| `objects_are_equal`, ndarray 1e6 / DataFrame 1e6   | 0.4 / 1.3 ms | 0.4 / 0.4 ms | 1x / 3x |
-| `objects_are_equal`, torch 1e6 / polars 1e6        | 0.1 / 2.7 ms | 0.1 / 0.3 ms | 1x / 9x |
-| `hash_object`, 5e4 small nested dicts              | 423 ms   | -          | 8.4 us per dict |
-| `hash_object`, list of 2e5 floats / str            | 139 / 84 ms | -       | 0.7 / 0.4 us per item |
-| `hash_object`, ndarray / DataFrame / tensor 1e6    | 8.8 / 9.5 / 4.4 ms | - | memory bound |
-| `round_values(recursive=True)`, 5e4 small dicts    | 359 ms   | `recursive_apply` 103 ms | 3.5x |
-| `to_flat_dict`, 5e4 small dicts                    | 177 ms   | -          |       |
-| `summarize`, 5e4 small dicts                       | < 1 ms   | -          | bounded, as designed |
+| Operation                                        | coola              | ref                      | ratio                 |
+| ------------------------------------------------ | ------------------ | ------------------------ | --------------------- |
+| `objects_are_equal`, list of 2e5 ints            | 7.7 ms             | 0.1 ms                   | 77x                   |
+| `objects_are_equal`, dict of 2e5 str -> int      | 33.6 ms            | 3.5 ms                   | 10x                   |
+| `objects_are_equal`, 5e4 small nested dicts      | 138 ms             | 2.2 ms                   | 63x                   |
+| `objects_are_equal`, ndarray 1e6 / DataFrame 1e6 | 0.4 / 1.3 ms       | 0.4 / 0.4 ms             | 1x / 3x               |
+| `objects_are_equal`, torch 1e6 / polars 1e6      | 0.1 / 2.7 ms       | 0.1 / 0.3 ms             | 1x / 9x               |
+| `hash_object`, 5e4 small nested dicts            | 423 ms             | -                        | 8.4 us per dict       |
+| `hash_object`, list of 2e5 floats / str          | 139 / 84 ms        | -                        | 0.7 / 0.4 us per item |
+| `hash_object`, ndarray / DataFrame / tensor 1e6  | 8.8 / 9.5 / 4.4 ms | -                        | memory bound          |
+| `round_values(recursive=True)`, 5e4 small dicts  | 359 ms             | `recursive_apply` 103 ms | 3.5x                  |
+| `to_flat_dict`, 5e4 small dicts                  | 177 ms             | -                        |                       |
+| `summarize`, 5e4 small dicts                     | < 1 ms             | -                        | bounded, as designed  |
 
 Nothing is a problem for the documented use (test assertions, identifiers of configs), and the array
 and table paths are at the speed of the library call. Three places are worth a profile if the goal is
