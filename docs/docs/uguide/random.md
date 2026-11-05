@@ -24,7 +24,7 @@ the base class knows the scoped context.
 | Property                | Statement                                                                                                                                                                                                                         |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | One call, all libraries | `manual_seed` seeds `random`, and NumPy and PyTorch when they are installed. A library that is not installed is skipped, not an error.                                                                                            |
-| One seed domain         | A seed is an `int` in `[0, 2**63)` (`bool` is rejected). Every entry that takes a seed (`manual_seed`, `random_seed`, `Manager.manual_seed`, `Manager.seed`, `get_torch_generator`) validates it before any generator is touched. |
+| One seed domain         | A seed is an `int` in `[0, 2**63)` (`bool` is rejected). Every entry that takes a seed (`manual_seed`, `random_seed`, `Manager.manual_seed`, `Manager.seed`, `get_torch_generator`, `get_numpy_generator`) validates it before any generator is touched. |
 | Seed injective          | For `random` and NumPy, two different valid seeds give different numbers: a NumPy seed `>= 2**32` is split in two 32-bit words, not folded. PyTorch's CPU generator folds the seeds modulo `2**32` itself (see below).            |
 | Global generators only  | Only `random.seed`, `numpy.random.seed` (the legacy generator) and `torch.manual_seed` (all the default generators of torch) are managed. `random.Random()`, `default_rng()` and `torch.Generator()` are not.                     |
 | Restorable              | `get_rng_state` then `set_rng_state` brings every managed generator back to where it was. The state is opaque: give it back to the registry that produced it, in the same process.                                                |
@@ -478,7 +478,7 @@ Each manager implements the `BaseRandomManager` interface with three methods:
 
 The generators are process-global and `coola.random` does not lock them: it cannot, because other
 code draws from the same generators. In threads, use independent generators
-(`numpy.random.default_rng(seed)`, `get_torch_generator(seed)`) instead of `random_seed`.
+(`get_numpy_generator(seed)`, `get_torch_generator(seed)`) instead of `random_seed`.
 
 The CUDA state is read only if CUDA is already initialized, so `get_rng_state` can be called in a
 forked worker. A child process restores a state with `set_rng_state`.
