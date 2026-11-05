@@ -6,12 +6,19 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.equality import compare, objects_are_allclose, objects_are_equal
+from coola.equality.config import EqualityConfig
+from coola.equality.engine import Engine
 from coola.equality.tester import TableEqualityTester, get_default_registry
 from coola.equality.tester.pandas import (
     PandasArrayTable,
     PandasFrameTable,
     PandasIndexTable,
     PandasSeriesTable,
+    _dtypes_difference,
+    _index_difference,
+    _index_difference_row,
+    _series_difference,
+    _short_list,
     get_default_testers,
 )
 from coola.testing.marks import pandas_available
@@ -461,7 +468,7 @@ def test_frame_does_not_modify_the_inputs() -> None:
 @pandas_available
 def test_frame_compare_different_values() -> None:
     result = compare(pd.DataFrame({"a": [1], "b": [1]}), pd.DataFrame({"a": [1], "b": [2]}))
-    assert result.reason == "tables have different values: column 'b' differs"
+    assert result.reason == "tables have different values: column 'b' differs at row 0: 1 vs 2"
 
 
 @pandas_available
@@ -473,7 +480,7 @@ def test_frame_compare_different_values_is_a_leaf() -> None:
 @pandas_available
 def test_frame_compare_different_structure() -> None:
     result = compare(pd.DataFrame({"a": [1]}), pd.DataFrame({"b": [1]}))
-    assert result.reason == "tables have a different structure"
+    assert result.reason == "tables have a different structure: columns differ: ['a'] vs ['b']"
 
 
 @pandas_available
@@ -488,7 +495,7 @@ def test_frame_compare_the_whole_result() -> None:
     assert (result.equal, result.path, result.reason) == (
         False,
         (),
-        "tables have different values: column 'a' differs",
+        "tables have different values: column 'a' differs at row 0: 1 vs 2",
     )
 
 
@@ -498,12 +505,12 @@ def test_frame_stops_at_the_first_column_that_differs() -> None:
         pd.DataFrame({"a": [1], "b": [1], "c": [1]}),
         pd.DataFrame({"a": [2], "b": [2], "c": [2]}),
     )
-    assert result.reason == "tables have different values: column 'a' differs"
+    assert result.reason == "tables have different values: column 'a' differs at row 0: 1 vs 2"
 
 
-##########################################
+#######################################
 #     Tests for the pandas Series     #
-##########################################
+#######################################
 
 
 @pandas_available
@@ -556,17 +563,22 @@ def test_series_tolerance_rtol() -> None:
 
 @pandas_available
 def test_series_compare_different_values() -> None:
-    assert compare(pd.Series([1]), pd.Series([2])).reason == "series have different values"
+    assert (
+        compare(pd.Series([1]), pd.Series([2])).reason
+        == "series have different values at row 0: 1 vs 2"
+    )
 
 
 @pandas_available
 def test_series_compare_different_structure() -> None:
-    assert compare(pd.Series([1]), pd.Series([1, 2])).reason == "series have a different structure"
+    assert compare(pd.Series([1]), pd.Series([1, 2])).reason == (
+        "series have a different structure: shapes differ: (1,) vs (2,)"
+    )
 
 
-########################################
+######################################
 #     Tests for the pandas Index     #
-########################################
+######################################
 
 
 @pandas_available
@@ -635,17 +647,22 @@ def test_index_has_no_tolerance() -> None:
 
 @pandas_available
 def test_index_compare_different_values() -> None:
-    assert compare(pd.Index([1]), pd.Index([2])).reason == "indexes have different values"
+    assert (
+        compare(pd.Index([1]), pd.Index([2])).reason
+        == "indexes have different values at row 0: 1 vs 2"
+    )
 
 
 @pandas_available
 def test_index_compare_different_structure() -> None:
-    assert compare(pd.Index([1]), pd.Index([1, 2])).reason == "indexes have a different structure"
+    assert compare(pd.Index([1]), pd.Index([1, 2])).reason == (
+        "indexes have a different structure: index shapes differ: (1,) vs (2,)"
+    )
 
 
-#########################################
+#######################################
 #     Tests for the pandas arrays     #
-#########################################
+#######################################
 
 
 @pandas_available
@@ -702,18 +719,18 @@ def test_array_nullable_floats_follow_equal_nan() -> None:
 @pandas_available
 def test_array_compare_different_values() -> None:
     result = compare(pd.array([1], dtype="Int64"), pd.array([2], dtype="Int64"))
-    assert result.reason == "arrays have different values"
+    assert result.reason == "arrays have different values at row 0: 1 vs 2"
 
 
 @pandas_available
 def test_array_compare_different_structure() -> None:
     result = compare(pd.array([1], dtype="Int64"), pd.array([1, 2], dtype="Int64"))
-    assert result.reason == "arrays have a different structure"
+    assert result.reason == "arrays have a different structure: shapes differ: (1,) vs (2,)"
 
 
-###################################
+##################################
 #     Tests for the adapters     #
-###################################
+##################################
 
 
 @pandas_available
@@ -750,3 +767,299 @@ def test_the_default_registry_finds_a_multi_index() -> None:
 def test_get_default_testers_without_pandas() -> None:
     with patch("coola.equality.tester.pandas.is_pandas_available", return_value=False):
         assert get_default_testers() == {}
+
+
+###################################################
+#     Tests for the reason of the differences     #
+###################################################
+
+STRUCTURE_REASONS = [
+    pytest.param(
+        pd.DataFrame({"a": [1, 2]}),
+        pd.DataFrame({"a": [1]}),
+        "tables have a different structure: shapes differ: (2, 1) vs (1, 1)",
+        id="frame shape",
+    ),
+    pytest.param(
+        pd.DataFrame({"a": [1], "b": [1]}),
+        pd.DataFrame({"a": [1.0], "b": [1]}),
+        "tables have a different structure: dtypes differ: a: int64 vs float64",
+        id="frame dtype",
+    ),
+    pytest.param(
+        pd.DataFrame({"a": [1], "b": [1]}),
+        pd.DataFrame({"b": [1], "a": [1]}),
+        "tables have a different structure: columns differ: ['a', 'b'] vs ['b', 'a']",
+        id="frame column order",
+    ),
+    pytest.param(
+        pd.DataFrame({"a": [1, 2]}),
+        pd.DataFrame({"a": [1, 2]}, index=[5, 6]),
+        "tables have a different structure: index classes differ: RangeIndex vs Index",
+        id="frame index class",
+    ),
+    pytest.param(
+        pd.DataFrame({"a": [1, 2]}, index=[3, 4]),
+        pd.DataFrame({"a": [1, 2]}, index=[5, 6]),
+        "tables have a different structure: index values differ: [3, 4] vs [5, 6]",
+        id="frame index values",
+    ),
+    pytest.param(
+        pd.DataFrame({"a": [1, 2]}, index=pd.Index([3, 4], name="i")),
+        pd.DataFrame({"a": [1, 2]}, index=[3, 4]),
+        "tables have a different structure: index names differ: ['i'] vs [None]",
+        id="frame index name",
+    ),
+    pytest.param(
+        pd.DataFrame({"a": [1, 2]}, index=[3, 4]),
+        pd.DataFrame({"a": [1, 2]}, index=[3.0, 4.0]),
+        "tables have a different structure: index dtypes differ: int64 vs float64",
+        id="frame index dtype",
+    ),
+    pytest.param(
+        pd.DataFrame({"a": [1.0]}, index=[NAN]),
+        pd.DataFrame({"a": [1.0]}, index=[NAN]),
+        "tables have a different structure: index has a NaN, which is not equal to NaN "
+        "(use equal_nan=True)",
+        id="frame index nan",
+    ),
+    pytest.param(
+        pd.Series([1, 2]),
+        pd.Series([1]),
+        "series have a different structure: shapes differ: (2,) vs (1,)",
+        id="series shape",
+    ),
+    pytest.param(
+        pd.Series([1]),
+        pd.Series([1.0]),
+        "series have a different structure: dtypes differ: int64 vs float64",
+        id="series dtype",
+    ),
+    pytest.param(
+        pd.Series([1], name="a"),
+        pd.Series([1], name="b"),
+        "series have a different structure: names differ: 'a' vs 'b'",
+        id="series name",
+    ),
+    pytest.param(
+        pd.Series([1], index=[3]),
+        pd.Series([1], index=[4]),
+        "series have a different structure: index values differ: [3] vs [4]",
+        id="series index",
+    ),
+    pytest.param(
+        pd.array([1], dtype="Int64"),
+        pd.array([1, 2], dtype="Int64"),
+        "arrays have a different structure: shapes differ: (1,) vs (2,)",
+        id="array shape",
+    ),
+    pytest.param(
+        pd.Categorical(["a"]),
+        pd.Categorical(["a"], categories=["a", "b"]),
+        "arrays have a different structure: dtypes differ: category vs category",
+        id="array dtype",
+    ),
+    pytest.param(
+        pd.Index([1]),
+        pd.Index([1, 2]),
+        "indexes have a different structure: index shapes differ: (1,) vs (2,)",
+        id="index shape",
+    ),
+    pytest.param(
+        pd.Index([1], name="a"),
+        pd.Index([1], name="b"),
+        "indexes have a different structure: index names differ: ['a'] vs ['b']",
+        id="index name",
+    ),
+]
+
+
+@pandas_available
+@pytest.mark.parametrize(("actual", "expected", "reason"), STRUCTURE_REASONS)
+def test_compare_says_what_differs_in_the_structure(
+    actual: Any, expected: Any, reason: str
+) -> None:
+    assert compare(actual, expected).reason == reason
+
+
+VALUE_REASONS = [
+    pytest.param(
+        pd.DataFrame({"a": [1.0, 2.0, 3.0]}),
+        pd.DataFrame({"a": [1.0, 2.0, 4.0]}),
+        "tables have different values: column 'a' differs at row 2: 3.0 vs 4.0",
+        id="float column",
+    ),
+    pytest.param(
+        pd.DataFrame({"a": [1, 2], "b": ["x", "y"]}),
+        pd.DataFrame({"a": [1, 2], "b": ["x", "z"]}),
+        "tables have different values: column 'b' differs at row 1: 'y' vs 'z'",
+        id="string column",
+    ),
+    pytest.param(
+        pd.DataFrame({"a": pd.array([1, None], dtype="Int64")}),
+        pd.DataFrame({"a": pd.array([1, 2], dtype="Int64")}),
+        "tables have different values: column 'a' differs at row 1: None vs 2",
+        id="nullable integer column",
+    ),
+    pytest.param(
+        pd.Series([True, False]),
+        pd.Series([True, True]),
+        "series have different values at row 1: False vs True",
+        id="bool series",
+    ),
+    pytest.param(
+        pd.Index(["a", "b"]),
+        pd.Index(["a", "c"]),
+        "indexes have different values at row 1: 'b' vs 'c'",
+        id="index",
+    ),
+]
+
+
+@pandas_available
+@pytest.mark.parametrize(("actual", "expected", "reason"), VALUE_REASONS)
+def test_compare_says_the_first_row_that_differs(actual: Any, expected: Any, reason: str) -> None:
+    assert compare(actual, expected).reason == reason
+
+
+@pandas_available
+def test_objects_are_equal_does_not_look_for_the_row() -> None:
+    assert not objects_are_equal(pd.Series(["a", "b"]), pd.Series(["a", "c"]))
+
+
+@pandas_available
+def test_structure_difference_frame_more_than_three_dtypes() -> None:
+    frame = pd.DataFrame({name: [1] for name in "abcde"})
+    other = frame.astype("float64")
+    engine = Engine(EqualityConfig())
+    assert PandasFrameTable(frame).structure_difference(PandasFrameTable(other), engine) == (
+        "dtypes differ: a: int64 vs float64, b: int64 vs float64, c: int64 vs float64 (+2 more)"
+    )
+
+
+@pandas_available
+def test_structure_difference_index_table_nan() -> None:
+    engine = Engine(EqualityConfig())
+    index = pd.Index([1.0, NAN])
+    assert PandasIndexTable(index).structure_difference(PandasIndexTable(index), engine) == (
+        "index has a NaN, which is not equal to NaN (use equal_nan=True)"
+    )
+
+
+@pandas_available
+def test_structure_difference_array_dtype() -> None:
+    engine = Engine(EqualityConfig())
+    table = PandasArrayTable(pd.array([1], dtype="Int64"))
+    other = PandasArrayTable(pd.array([1], dtype="Int32"))
+    assert table.structure_difference(other, engine) == "dtypes differ: Int64 vs Int32"
+
+
+@pandas_available
+def test_structure_difference_series_dtype_is_checked_before_the_name() -> None:
+    engine = Engine(EqualityConfig())
+    table = PandasSeriesTable(pd.Series([1], name="a"))
+    other = PandasSeriesTable(pd.Series([1.0], name="b"))
+    assert table.structure_difference(other, engine) == "dtypes differ: int64 vs float64"
+
+
+####################################################
+#     Tests for the helpers of the differences     #
+####################################################
+
+
+@pandas_available
+def test_dtypes_difference_lists_the_columns_that_differ() -> None:
+    frame, other = pd.DataFrame({"a": [1], "b": [1]}), pd.DataFrame({"a": [1], "b": [1.0]})
+    assert _dtypes_difference(frame.columns, frame.dtypes, other.dtypes) == (
+        "dtypes differ: b: int64 vs float64"
+    )
+
+
+@pandas_available
+def test_dtypes_difference_shows_three_columns() -> None:
+    frame = pd.DataFrame({name: [1] for name in "abcd"})
+    text = _dtypes_difference(frame.columns, frame.dtypes, frame.astype("float64").dtypes)
+    assert (
+        text
+        == "dtypes differ: a: int64 vs float64, b: int64 vs float64, c: int64 vs float64 (+1 more)"
+    )
+
+
+@pandas_available
+def test_index_difference_columns_wording() -> None:
+    engine = Engine(EqualityConfig())
+    assert _index_difference("columns", pd.Index(["a"]), pd.Index(["b"]), engine) == (
+        "columns differ: ['a'] vs ['b']"
+    )
+
+
+@pandas_available
+def test_index_difference_index_wording() -> None:
+    engine = Engine(EqualityConfig())
+    assert _index_difference("index", pd.Index(["a"]), pd.Index(["b"]), engine) == (
+        "index values differ: ['a'] vs ['b']"
+    )
+
+
+@pandas_available
+def test_index_difference_equal_nan_does_not_report_the_nan() -> None:
+    engine = Engine(EqualityConfig(equal_nan=True))
+    assert _index_difference("index", pd.Index([NAN]), pd.Index([NAN]), engine) == (
+        "index values differ: [nan] vs [nan]"
+    )
+
+
+@pandas_available
+def test_index_difference_multi_index_dtypes() -> None:
+    engine = Engine(EqualityConfig())
+    index = pd.MultiIndex.from_arrays([[1], ["a"]])
+    other = pd.MultiIndex.from_arrays([[1.0], ["a"]])
+    assert _index_difference("index", index, other, engine).startswith("index dtypes differ")
+
+
+@pandas_available
+def test_short_list_short_index() -> None:
+    assert _short_list(pd.Index([1, 2, 3])) == "[1, 2, 3]"
+
+
+@pandas_available
+def test_short_list_long_index() -> None:
+    assert _short_list(pd.Index(range(10))) == "[0, 1, 2, 3, 4, ...]"
+
+
+@pandas_available
+def test_short_list_limit() -> None:
+    assert _short_list(pd.Index(range(10)), limit=2) == "[0, 1, ...]"
+
+
+@pandas_available
+def test_series_difference_first_row() -> None:
+    assert _series_difference(pd.Series(["a", "b", "c"]), pd.Series(["a", "x", "y"])) == (
+        1,
+        "b",
+        "x",
+    )
+
+
+@pandas_available
+def test_series_difference_ignores_the_index() -> None:
+    assert _series_difference(pd.Series(["a", "b"], index=[5, 6]), pd.Series(["a", "c"])) == (
+        1,
+        "b",
+        "c",
+    )
+
+
+@pandas_available
+def test_series_difference_equal_series() -> None:
+    assert _series_difference(pd.Series(["a", None]), pd.Series(["a", None])) is None
+
+
+@pandas_available
+def test_index_difference_row_first_position() -> None:
+    assert _index_difference_row(pd.Index(["a", "b"]), pd.Index(["a", "c"])) == (1, "b", "c")
+
+
+@pandas_available
+def test_index_difference_row_equal_indexes() -> None:
+    assert _index_difference_row(pd.Index(["a"]), pd.Index(["a"])) is None

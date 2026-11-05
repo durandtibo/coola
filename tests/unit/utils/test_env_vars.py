@@ -189,6 +189,32 @@ def test_get_required_env_var_with_special_characters() -> None:
 ###################################
 
 
+@mock.patch.dict(os.environ, {"TEST_VAR": "original"}, clear=True)
+def test_temp_env_vars_none_unsets_an_existing_variable() -> None:
+    with temp_env_vars({"TEST_VAR": None}):
+        assert "TEST_VAR" not in os.environ
+
+
+@mock.patch.dict(os.environ, {"TEST_VAR": "original"}, clear=True)
+def test_temp_env_vars_none_restores_the_variable_after_the_context() -> None:
+    with temp_env_vars({"TEST_VAR": None}):
+        pass
+    assert os.environ["TEST_VAR"] == "original"
+
+
+@mock.patch.dict(os.environ, {}, clear=True)
+def test_temp_env_vars_none_for_a_missing_variable_keeps_it_missing() -> None:
+    with temp_env_vars({"TEST_VAR": None}):
+        pass
+    assert "TEST_VAR" not in os.environ
+
+
+@mock.patch.dict(os.environ, {"TEST_VAR": "original"}, clear=True)
+def test_temp_env_vars_none_does_not_set_the_string_none() -> None:
+    with temp_env_vars({"TEST_VAR": None, "OTHER_VAR": "x"}):
+        assert dict(os.environ) == {"OTHER_VAR": "x"}
+
+
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_temp_env_vars_set_new_variable() -> None:
     """Test setting a new environment variable that doesn't exist."""

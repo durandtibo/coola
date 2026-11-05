@@ -120,6 +120,24 @@ def test_displaying_a_default_registry_does_not_import_the_optional_libraries(
     assert loaded_libraries(statement) == []
 
 
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "from coola.equality.tester import get_default_registry as f; bool(f())",
+        "from coola.hashing import get_default_registry as f; bool(f())",
+        "from coola.summary import get_default_registry as f; bool(f())",
+        "from coola.jsonable import get_default_registry as f; bool(f())",
+        "from coola.rounding import get_default_registry as f; bool(f())",
+    ],
+)
+def test_bool_of_a_default_registry_does_not_import_the_optional_libraries(
+    statement: str,
+) -> None:
+    """Test that the truth value of a default registry does not load the
+    entries of the optional libraries."""
+    assert loaded_libraries(statement) == []
+
+
 @numpy_available
 @pytest.mark.parametrize(
     "statement",
@@ -207,3 +225,13 @@ def test_using_recursive_and_iterator_with_builtin_types_does_not_import_pydanti
     """Test that the default registries do not import pydantic for the
     builtin types."""
     assert loaded_libraries(statement) == []
+
+
+def test_importing_the_equality_package_does_not_import_coola_io() -> None:
+    """Test that ``coola.equality`` is usable without ``coola.io``."""
+    code = (
+        "import sys; from coola.equality import objects_are_equal; objects_are_equal(1, 1); "
+        "from coola.equality.tester import get_default_registry; get_default_registry(); "
+        "print('coola.io' in sys.modules)"
+    )
+    assert run_python(code) == ["False"]

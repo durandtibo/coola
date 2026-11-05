@@ -73,7 +73,10 @@ def summarize(
         max_items: The maximum number of children (items, fields,
             columns) shown for a node. The other ones are announced
             with ``... (+N more)``. ``None`` shows all of them.
-        max_characters: The maximum number of characters of a text.
+        max_characters: The maximum number of characters of a text,
+            including the ``...`` that marks a cut. A leaf keeps its
+            type and cuts the value, unless the limit is shorter than
+            the type.
             ``None`` does not cut the texts.
         show_data: If ``True``, the arrays, tensors and frames show a
             bounded ``repr`` of their values instead of their metadata.

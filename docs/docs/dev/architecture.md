@@ -64,7 +64,7 @@ The allowed imports are:
 | `formatting` | `utils` and `validation`                                           |
 | `display`    | `utils`, `validation` and `formatting`                             |
 | `registry`   | core packages (`utils`, `validation`, `formatting`)                |
-| a feature    | core packages and the features it is built on; never the `testing` |
+| a feature    | core packages and the features it is built on; never the `testing`; `equality`, `hashing`, `summary`, `recursive` and `iterator` never import `io` |
 
 The contract is enforced with [import-linter](https://import-linter.readthedocs.io/) (configured in
 `pyproject.toml`), without exception. Run it with `lint-imports`. A new package adds its place in the

@@ -72,11 +72,11 @@ def test_json_loader_load(path_json: Path) -> None:
 
 
 def test_json_saver_repr() -> None:
-    assert repr(JsonSaver()) == "JsonSaver(encoding='utf-8')"
+    assert repr(JsonSaver()) == "JsonSaver(encoding='utf-8', allow_nan=False, jsonable=False)"
 
 
 def test_json_saver_str() -> None:
-    assert str(JsonSaver()) == "JsonSaver(encoding=utf-8)"
+    assert str(JsonSaver()) == "JsonSaver(encoding=utf-8, allow_nan=False, jsonable=False)"
 
 
 def test_json_saver_equal_true() -> None:
@@ -291,3 +291,97 @@ def test_json_loader_str_path(str_path: str) -> None:
 def test_json_loader_str_path_with_encoding(str_path: str) -> None:
     JsonSaver(encoding="utf-8").save(["é"], str_path)
     assert JsonLoader(encoding="utf-8").load(str_path) == ["é"]
+
+
+################################
+#     Tests for allow_nan      #
+################################
+
+
+def test_json_saver_save_nan_raises_by_default(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match=r"Out of range float values are not JSON compliant"):
+        JsonSaver().save({"a": float("nan")}, tmp_path.joinpath("data.json"))
+
+
+def test_json_saver_save_infinity_raises_by_default(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match=r"Out of range float values are not JSON compliant"):
+        JsonSaver().save([float("inf")], tmp_path.joinpath("data.json"))
+
+
+def test_json_saver_save_nan_failure_leaves_no_file(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.json")
+    with contextlib.suppress(ValueError):
+        JsonSaver().save([float("nan")], path)
+    assert not path.exists()
+
+
+def test_json_saver_save_allow_nan(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.json")
+    JsonSaver(allow_nan=True).save([float("inf")], path)
+    assert path.read_text() == "[Infinity]"
+
+
+def test_save_json_nan_raises_by_default(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match=r"Out of range float values are not JSON compliant"):
+        save_json([float("nan")], tmp_path.joinpath("data.json"))
+
+
+def test_save_json_allow_nan(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.json")
+    save_json([float("nan")], path, allow_nan=True)
+    assert path.read_text() == "[NaN]"
+
+
+def test_json_saver_allow_nan_is_keyword_only() -> None:
+    with pytest.raises(TypeError, match=r"positional argument"):
+        JsonSaver("utf-8", True)  # ty: ignore[too-many-positional-arguments]
+
+
+def test_json_saver_repr_shows_allow_nan() -> None:
+    assert "allow_nan=False" in repr(JsonSaver())
+
+
+def test_json_saver_equal_false_allow_nan() -> None:
+    assert not JsonSaver(allow_nan=True).equal(JsonSaver())
+
+
+###############################
+#     Tests for jsonable      #
+###############################
+
+
+def test_json_saver_save_without_jsonable_a_tuple_key_value_is_a_list(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.json")
+    JsonSaver().save({"a": (1, 2)}, path)
+    assert load_json(path) == {"a": [1, 2]}
+
+
+def test_json_saver_save_without_jsonable_a_set_raises(tmp_path: Path) -> None:
+    with pytest.raises(TypeError, match=r"Object of type set is not JSON serializable"):
+        JsonSaver().save({"a": {1}}, tmp_path.joinpath("data.json"))
+
+
+def test_json_saver_save_jsonable(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.json")
+    JsonSaver(jsonable=True).save({"a": {2, 1}}, path)
+    assert load_json(path) == {"a": [1, 2]}
+
+
+def test_json_saver_save_jsonable_unsupported_type_raises(tmp_path: Path) -> None:
+    with pytest.raises(TypeError, match=r"Cannot convert an object of type object to JSON"):
+        JsonSaver(jsonable=True).save(object(), tmp_path.joinpath("data.json"))
+
+
+def test_save_json_jsonable(tmp_path: Path) -> None:
+    path = tmp_path.joinpath("data.json")
+    save_json({"a": {2, 1}}, path, jsonable=True)
+    assert load_json(path) == {"a": [1, 2]}
+
+
+def test_save_json_without_jsonable_a_set_raises(tmp_path: Path) -> None:
+    with pytest.raises(TypeError, match=r"Object of type set is not JSON serializable"):
+        save_json({"a": {1}}, tmp_path.joinpath("data.json"))
+
+
+def test_json_saver_equal_false_jsonable() -> None:
+    assert not JsonSaver(jsonable=True).equal(JsonSaver())

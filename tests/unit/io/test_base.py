@@ -93,14 +93,6 @@ def test_resolve_saver_incorrect_type() -> None:
         resolve_saver({OBJECT_TARGET: "coola.io.JsonLoader"})
 
 
-def test_equality_tester_registry_has_equality_tester_loader() -> None:
-    assert get_default_registry().has_equality_tester(BaseLoader)
-
-
-def test_equality_tester_registry_has_equality_tester_saver() -> None:
-    assert get_default_registry().has_equality_tester(BaseSaver)
-
-
 ##################################################
 #     Tests for the equality tester registry     #
 ##################################################

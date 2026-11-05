@@ -40,6 +40,11 @@ def objects_are_allclose(
         objects that contain ``NaN`` are equal only with
         ``equal_nan=True``.
 
+        This also holds for ``np.nan`` and ``math.nan``, which are
+        single objects: ``[math.nan]`` equals ``[math.nan]``, while
+        ``[float("nan")]`` does not equal another ``[float("nan")]``.
+        Use ``equal_nan=True`` if the data can contain a ``NaN``.
+
     Args:
         actual: The actual object.
         expected: The expected object.
@@ -112,6 +117,11 @@ def objects_are_equal(
         ``n = float("nan")``, but not ``[float("nan")]``. Two distinct
         objects that contain ``NaN`` are equal only with
         ``equal_nan=True``.
+
+        This also holds for ``np.nan`` and ``math.nan``, which are
+        single objects: ``[math.nan]`` equals ``[math.nan]``, while
+        ``[float("nan")]`` does not equal another ``[float("nan")]``.
+        Use ``equal_nan=True`` if the data can contain a ``NaN``.
 
     Args:
         actual: The actual object.

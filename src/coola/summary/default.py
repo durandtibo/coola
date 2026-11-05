@@ -7,6 +7,7 @@ __all__ = ["DefaultSummarizer"]
 from typing import TYPE_CHECKING
 
 from coola.summary.base import BaseSummarizer
+from coola.summary.engine import cut_text
 from coola.utils.safe import safe_str
 
 if TYPE_CHECKING:
@@ -19,7 +20,9 @@ class DefaultSummarizer(BaseSummarizer[object]):
 
     The summarizer is a leaf: it shows the type and the ``str`` of the
     data, and only the ``str`` when the data is at the display depth.
-    The text is cut by the engine at ``max_characters``. It is
+    The text is cut so that the type is kept: the line has at most
+    ``max_characters`` characters, and the type is only cut if the limit
+    is shorter than the type followed by ``...``. It is
     registered for ``object``, so it is used for the types that have no
     other summarizer (numbers, strings, iterators, ...).
 
@@ -35,8 +38,11 @@ class DefaultSummarizer(BaseSummarizer[object]):
         ```
     """
 
-    def summarize(self, data: object, config: SummaryConfig, *, compact: bool) -> str:  # noqa: ARG002
+    def summarize(self, data: object, config: SummaryConfig, *, compact: bool) -> str:
         text = safe_str(data)
         if compact:
             return text
-        return f"{type(data)} {text}"
+        header = f"{type(data)} "
+        if config.max_characters is not None:
+            text = cut_text(text, max(config.max_characters - len(header), 0))
+        return header + text

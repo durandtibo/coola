@@ -2,7 +2,7 @@ r"""Implement a random manager for NumPy."""
 
 from __future__ import annotations
 
-__all__ = ["NumpyRandomManager"]
+__all__ = ["NumpyRandomManager", "get_numpy_generator"]
 
 from typing import Any
 
@@ -76,3 +76,38 @@ class NumpyRandomManager(InlineDisplayMixin, BaseRandomManager):
 
     def set_rng_state(self, state: tuple[Any, ...]) -> None:
         np.random.set_state(state)
+
+
+def get_numpy_generator(seed: int) -> np.random.Generator:
+    r"""Create a ``numpy.random.Generator`` initialized with a given seed.
+
+    The generator is independent from the global generator of NumPy: it
+    is the way to get reproducible random numbers in a thread, where
+    ``random_seed`` must not be used.
+
+    Args:
+        seed: A random seed.
+
+    Returns:
+        A ``numpy.random.Generator`` object.
+
+    Raises:
+        TypeError: If the seed is not an ``int``.
+        ValueError: If the seed is not in the range ``[0, 2**63)``.
+        MissingPackageError: If ``numpy`` is not installed.
+
+    Example:
+        ```pycon
+        >>> from coola.random import get_numpy_generator
+        >>> generator = get_numpy_generator(42)
+        >>> generator.random(2)
+        array([0.77395605, 0.43887844])
+        >>> generator = get_numpy_generator(42)
+        >>> generator.random(2)
+        array([0.77395605, 0.43887844])
+
+        ```
+    """
+    check_numpy()
+    validate_seed(seed)
+    return np.random.default_rng(seed)
