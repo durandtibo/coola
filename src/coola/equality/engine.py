@@ -182,6 +182,12 @@ class Engine:
         keys: list[tuple[int, int]] = []
         parts: list[object] = []
         visiting: set[tuple[int, int]] = set()
+        # The pairs that were proved equal. A failure ends the run at once, so a pair whose
+        # children are all visited is equal, and a shared sub-structure (a chain of lists that
+        # appear twice in their parent) is compared once, not once per reference. The objects
+        # are kept alive in ``held``, so no ``id`` is reused by a temporary object of a tester.
+        done: set[tuple[int, int]] = set()
+        held: list[tuple[object, object]] = []
         pair: tuple[object, object, object] = (actual, expected, None)
         while True:
             actual, expected, part = pair
@@ -200,9 +206,10 @@ class Engine:
             if result is not True:
                 # Child pairs. A pair that is already on the stack is equal (a cycle).
                 key = (id(actual), id(expected))
-                if key not in visiting:
+                if key not in visiting and key not in done:
                     self._check_depth(len(stack))
                     visiting.add(key)
+                    held.append((actual, expected))
                     stack.append(iter(result))
                     keys.append(key)
                     parts.append(part)
@@ -212,7 +219,9 @@ class Engine:
                     pair = nxt
                     break
                 stack.pop()
-                visiting.discard(keys.pop())
+                key = keys.pop()
+                visiting.discard(key)
+                done.add(key)
                 parts.pop()
             else:
                 return True
