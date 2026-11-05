@@ -58,7 +58,7 @@ class BadRepr:
     __str__ = __repr__
 
 
-@pytest.mark.xfail(reason="NaN bit patterns (14.3)", strict=False)
+@pytest.mark.xfail(reason="NaN bit patterns (14.3)")
 @given(pairs=float_pairs)
 def test_equal_float_arrays_have_the_same_hash(pairs: list[tuple[float, bool]]) -> None:
     first = np.array([x for x, _ in pairs])
@@ -72,7 +72,6 @@ def test_equal_structured_arrays_have_the_same_hash(spec: tuple[str, str], size:
     assert hash_object(make_structured(spec, size)) == hash_object(make_structured(spec, size))
 
 
-@pytest.mark.xfail(reason="structured dtypes (14.1)", strict=False)
 @given(first=field_specs, second=field_specs)
 def test_different_structured_arrays_have_different_hashes(
     first: tuple[str, str], second: tuple[str, str]
@@ -87,7 +86,7 @@ def test_equal_frames_have_the_same_hash(spec: tuple[Any, ...]) -> None:
     assert hash_object(make_frame(spec)) == hash_object(make_frame(spec))
 
 
-@pytest.mark.xfail(reason="pandas metadata (14.2)", strict=False)
+@pytest.mark.xfail(reason="pandas metadata (14.2)")
 @given(first=frame_specs, second=frame_specs)
 def test_different_frames_have_different_hashes(
     first: tuple[Any, ...], second: tuple[Any, ...]
