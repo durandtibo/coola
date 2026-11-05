@@ -27,7 +27,7 @@ def test_import_object_benchmark(benchmark: BenchmarkFixture) -> None:
 
 
 def test_import_object_with_prefixes_benchmark(benchmark: BenchmarkFixture) -> None:
-    assert benchmark(import_object, PATH, allowed_prefixes=["collections."]) is OrderedDict
+    assert benchmark(import_object, PATH, allowed_prefixes=["collections"]) is OrderedDict
 
 
 def test_instantiate_object_class_benchmark(benchmark: BenchmarkFixture) -> None:
