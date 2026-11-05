@@ -4,6 +4,9 @@ authors:
 - family-names: "Durand"
   given-names: "Thibaut"
 
-title: "COOLA: A Python library to check if two complex/nested objects are equal or not."
-date-released: 2023-01-01
+title: "coola: Library to compare, hash and summarize complex/nested objects"
+version: 2.0.0a1
+date-released: 2026-11-05
+license: BSD-3-Clause
 url: "https://github.com/durandtibo/coola"
+repository-code: "https://github.com/durandtibo/coola"
