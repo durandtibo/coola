@@ -5,9 +5,9 @@ from __future__ import annotations
 from invoke import Context, Task
 from invoke_tasklib import make_ns
 
-ns = make_ns()
-
 __all__ = ["ns"]
+
+ns = make_ns()
 
 
 def benchmark_import(c: Context) -> None:
