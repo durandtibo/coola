@@ -237,6 +237,67 @@ def test_run_same_pair_twice_in_siblings_is_compared_each_time(
     assert not _engine(registry).run([shared_a, shared_b], [[1], [3]])
 
 
+###############################
+#     Tests shared pairs      #
+###############################
+
+
+def _shared_chain(depth: int) -> list[Any]:
+    obj: list[Any] = []
+    for _ in range(depth):
+        obj = [obj, obj]
+    return obj
+
+
+def test_run_shared_chain_is_equal(registry: EqualityTesterRegistry) -> None:
+    assert _engine(registry).run(_shared_chain(40), _shared_chain(40))
+
+
+def test_run_shared_chain_calls_the_tester_a_linear_number_of_times() -> None:
+    calls = []
+
+    def count(actual: Any, expected: Any, ctx: Any) -> Any:
+        calls.append(1)
+        return ListTester().objects_are_equal(actual, expected, ctx)
+
+    reg = EqualityTesterRegistry()
+    reg.register(object, LeafTester())
+    reg.register(list, FuncTester(count))
+    _engine(reg).run(_shared_chain(10), _shared_chain(10))
+    assert len(calls) == 21
+
+
+def test_run_shared_chain_with_a_difference_at_the_bottom_is_different(
+    registry: EqualityTesterRegistry,
+) -> None:
+    a, b = _shared_chain(30), _shared_chain(30)
+    node = b
+    for _ in range(30):
+        node = node[0]
+    node.append(1)
+    assert not _engine(registry).run(a, b)
+
+
+def test_run_shared_pair_inside_a_cycle_is_equal(registry: EqualityTesterRegistry) -> None:
+    shared_a: list[Any] = [1]
+    shared_b: list[Any] = [1]
+    a: list[Any] = [shared_a, shared_a]
+    b: list[Any] = [shared_b, shared_b]
+    shared_a.append(a)
+    shared_b.append(b)
+    assert _engine(registry).run(a, b)
+
+
+def test_run_shared_pair_difference_is_reported_when_explaining(
+    registry: EqualityTesterRegistry,
+) -> None:
+    shared_a, shared_b = [1], [1]
+    engine = _engine(registry, explaining=True)
+    engine.run([shared_a, shared_a, [2]], [shared_b, shared_b, [3]])
+    assert engine.failure is not None
+    assert engine.failure[0] == (2, 0)
+
+
 ##################################
 #     Tests depth and stack      #
 ##################################
