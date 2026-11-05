@@ -125,6 +125,11 @@ class Registry(Generic[K, V]):
         self._load_lazy_all()
         return len(self._state)
 
+    def __bool__(self) -> bool:
+        # The truth value must not import the optional libraries: a registry with entries that are
+        # not loaded yet is not empty.
+        return bool(self._state) or self._has_pending_entries()
+
     def __repr__(self) -> str:
         # Displaying a registry must not import the optional libraries: the entries that
         # are not loaded yet are listed by group name instead.
@@ -151,6 +156,17 @@ class Registry(Generic[K, V]):
         self.__dict__.update(state)
         self._lock = threading.RLock()
         track_fork(self)
+
+    def _has_pending_entries(self) -> bool:
+        r"""Indicate if some entries are not loaded yet.
+
+        The default implementation returns ``False``.
+
+        Returns:
+            ``True`` if some entries are not loaded yet, otherwise
+                ``False``.
+        """
+        return False
 
     def _pending_msg(self) -> str:
         r"""Return the lines that complete the display of the entries

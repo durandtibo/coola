@@ -45,7 +45,7 @@ described [below](#type-specific-behavior).
 | Recursive               | Containers are compared item by item, at any depth. Containers must have the same length (or the same keys).                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | Order rules             | Sequences are order-sensitive (`[1, 2]` differs from `[2, 1]`). `dict` and other mappings ignore the order of the keys: `{"a": 1, "b": 2}` equals `{"b": 2, "a": 1}`. `OrderedDict` is the exception: the order of its keys is compared, like in Python. See [Ordered dictionaries](#ordered-dictionaries).                                                                                                                                                                                                                                     |
 | Value semantics         | The values are compared with `==` unless a tester exists for the type. Arrays, tensors and data frames also compare dtype, shape and so on (see [Type-Specific Behavior](#type-specific-behavior)).                                                                                                                                                                                                                                                                                                                                             |
-| NaN                     | `NaN` is not equal to `NaN`, unless `equal_nan=True` or both are the same object. See [Behavior by Type](#behavior-by-type-nan-and-tolerance).                                                                                                                                                                                                                                                                                                                                                                                                  |
+| NaN                     | `NaN` is not equal to `NaN`, unless `equal_nan=True` or both are the same object (`np.nan` and `math.nan` are single objects, see the [warning](#behavior-by-type-nan-and-tolerance)). See [Behavior by Type](#behavior-by-type-nan-and-tolerance).                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Signed zero             | `-0.0` is equal to `0.0`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Time zones              | Aware datetimes compare by the instant they represent: 12:00 UTC equals 13:00 UTC+1. A naive datetime (no time zone) never equals an aware one.                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Tolerance               | Only the `*_allclose` functions and `compare(..., rtol=..., atol=...)` use `rtol` and `atol`. `objects_are_equal` and `assert_objects_equal` are exact (no tolerance), `objects_are_allclose` and `assert_objects_allclose` default to `rtol=1e-5, atol=1e-8` (the NumPy defaults), and `compare` is exact unless `rtol` or `atol` is given. The tolerance applies only for numbers, arrays, tensors and data frames. Every other value is compared exactly, and the types must still match: `objects_are_allclose(1, 1.0, atol=1)` is `False`. |
@@ -1614,6 +1614,25 @@ summarizes what each type does with them (it was checked for each type with `obj
 \* Python short-circuits on identity, so `x is x` is always equal. Two distinct `NaN` floats are
 not equal unless `equal_nan=True`.
 
+!!! warning "`np.nan` and `math.nan` are the same object"
+
+    The identity shortcut makes the result depend on the objects, not only on the values.
+    `np.nan` and `math.nan` are single objects, so an expected value written with them passes, while
+    a `NaN` computed at run time (a distinct object) does not:
+
+    ```python
+    objects_are_equal(float("nan"), float("nan"))  # False: two distinct objects
+    objects_are_equal(np.nan, np.nan)  # True: the same object
+    objects_are_equal({"a": np.nan}, {"a": np.nan})  # True
+    objects_are_equal([math.nan], [math.nan])  # True
+    objects_are_equal({"a": float("nan")}, {"a": float("nan")})  # False
+    a = np.array([np.nan])
+    objects_are_equal(a, a), objects_are_equal(a, a.copy())  # (True, False)
+    ```
+
+    A test that compares a computed value with `np.nan` can start to fail when the value is computed
+    by another code path. Use `equal_nan=True` whenever the data can contain a `NaN`.
+
 Details:
 
 - **pandas**: with `equal_nan=False` (the default), a data frame or a series that contains a float
@@ -1659,9 +1678,12 @@ message, for the tests.
 
 The path is read as follows: a key or a position is itself (`['a']`, `[3]`), a field or an attribute
 is `.x`, an element of a set is `{2}`, and an array reports its index (`[1][2]`). A pandas, polars or
-PyArrow table is reported as a whole, with the first differing column in the reason (for example
-`tables have different values: column 'a' differs`); use the library (`DataFrame.compare`,
-`polars.testing`, `Table.equals`) to find the row. The design behind this is described in
+PyArrow table is reported as a whole (the path is the location of the table), and the reason says
+what differs: a difference of structure names the part that differs (for example
+`tables have a different structure: dtypes differ: a: int64 vs float64`), and a difference of
+values gives the first differing column, the first differing row and the two values (for example
+`tables have different values: column 'a' differs at row 999: 999 vs 0`). The row is not given for
+a nested column. The design behind this is described in
 [Architecture](../dev/equality.md).
 
 - `compare` and the assert functions do not log and do not change the logging configuration, so they

@@ -72,8 +72,8 @@ There is one record, the first failure `(path, reason)`: no list of reports and 
 level. Values in a reason go through one bounded formatter, so a failure in a million-element array
 formats a few values, not the array. A path part is a key or a position (`['a']`, `[3]`),
 `AttributeName("x")` (`.x`) or `Element(2)` (`{2}`). An array reports its index. A table is a leaf
-and names only the first differing column; the user finds the row with the library (for example
-`DataFrame.compare`).
+(the path stops at the table); its reason names the part of the structure that differs or the first
+differing column, row and values.
 
 ### The numeric kernel
 
@@ -143,7 +143,7 @@ after the table give the longer arguments.
 | Masked arrays compare the data under the mask, the mask and fill value | no hidden difference                                  | ignoring the masked data matches how the array prints                      |
 | Small floats are cast to `float64`                                     | no overflow of the tolerance at the edge of the range | keeping the dtype is faster for large `float32` arrays but wrong at edges  |
 | Integer difference is exact                                            | no rounding of large integers                         | exact `Fraction` arithmetic is exact everywhere but much slower            |
-| Tables are one leaf, reported by column                                | simple and fast; the library finds the row            | a second pass to find the row costs code and time for a rare need          |
+| Tables are one leaf, reported by column and row                        | simple and fast to compare; the row is found only when explaining | a second pass per library, and no row for a nested column |
 | Time resolution is part of the dtype                                   | as in NumPy                                           | casting to the finer resolution is friendlier but hides a dtype difference |
 | Library testers are public                                             | users can compose, subclass or register them          | private testers shrink the public surface                                  |
 | `max_depth` (default `None`) and `MaxDepthExceededError`               | opt-in guard on pathological structures; a deep valid structure is compared | by default, no limit runs until memory is exhausted on an infinite structure |
@@ -243,11 +243,14 @@ a user can compose, subclass or register them. Pandas, polars and PyArrow share 
 small. `Engine` is the public type of `ctx`, and `Element` and `AttributeName` are exported because
 they appear in `ComparisonResult.path`. The helpers are private, except the kernel `close`.
 
-### Tables are reported by column
+### Tables are reported by column and row
 
-A table is a leaf. The loop over the columns knows the name of the first differing column at no cost,
-so the reason names it (never a row). Finding the row would need a second, explaining-only pass per
-library, and nested columns could not provide it. The user finds the row with the library.
+A table is a leaf, so the path stops at the table. The loop over the columns knows the name of the
+first differing column at no cost, so the reason always names it. The row and the two values are found
+by a second pass, only when the comparison explains a difference (`ctx.explaining`): the numeric and
+duration columns use the NumPy kernel, the other columns use a function of the adapter
+(`Column.difference`). A nested column has none, so its reason has no row. An adapter can say what
+differs in the structure with `structure_difference`, which is called only to explain.
 
 ### Lookup cache
 

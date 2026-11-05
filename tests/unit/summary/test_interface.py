@@ -570,7 +570,7 @@ def test_summarize_max_items_applies_to_every_container_type() -> None:
 
 
 def test_summarize_max_characters() -> None:
-    assert summarize("abcdef", max_characters=4) == "<cla..."
+    assert summarize("abcdef", max_characters=4) == "<..."
 
 
 def test_summarize_max_characters_none_does_not_cut() -> None:
@@ -596,3 +596,12 @@ def test_summarize_negative_limit_raises(name: str) -> None:
 def test_summarize_show_data_not_bool_raises() -> None:
     with pytest.raises(TypeError, match="show_data"):
         summarize([1], show_data="yes")  # ty: ignore[invalid-argument-type]
+
+
+def test_summarize_max_characters_keeps_the_header_and_cuts_the_value() -> None:
+    """Regression test: the header was cut and the value never shown."""
+    assert summarize("x" * 50, max_characters=20) == "<class 'str'> xxx..."
+
+
+def test_summarize_max_characters_is_an_upper_bound() -> None:
+    assert len(summarize("x" * 50, max_characters=10)) == 10

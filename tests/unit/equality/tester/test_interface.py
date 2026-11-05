@@ -21,6 +21,7 @@ from coola.equality.tester import (
     DataclassEqualityTester,
     DefaultEqualityTester,
     EqualityTesterRegistry,
+    EqualNanEqualityTester,
     JaxArrayEqualityTester,
     MappingEqualityTester,
     NumpyArrayEqualityTester,
@@ -38,8 +39,8 @@ from coola.equality.tester import (
     interface as tester_interface,
     register_equality_testers,
 )
+from coola.equality.tester.interface import _has_equal_nan_method
 from coola.io import TextLoader, TextSaver
-from coola.io.base import BaseLoader, BaseSaver
 from coola.registry import AlreadyRegisteredError
 from coola.testing.marks import numpy_available
 from coola.utils.imports import (
@@ -255,9 +256,9 @@ def test_register_default_equality_testers_skips_the_libraries_that_are_not_inst
     assert not registry.has(np.ndarray)
 
 
-#############################################
+###############################################
 #     Tests for the lazy equality testers     #
-#############################################
+###############################################
 
 LAZY_MODULES = [
     pytest.param("coola.equality.tester.jax", ("jax", "jaxlib"), id="jax"),
@@ -340,8 +341,6 @@ NATIVE_SAMPLES: dict[type, Any] = {
     OrderedDict: OrderedDict(a=1, b=2),
     MappingProxyType: MappingProxyType({"a": [1, 2]}),
     Mapping: {"a": 1},
-    BaseLoader: TextLoader(),
-    BaseSaver: TextSaver(),
 }
 
 
@@ -386,5 +385,80 @@ def test_default_registry_dataclass_uses_the_dataclass_tester() -> None:
 
 def test_default_registry_has_the_dataclass_fallback() -> None:
     assert [handler for _, handler in get_default_registry().fallbacks()] == [
-        DataclassEqualityTester()
+        EqualNanEqualityTester(),
+        DataclassEqualityTester(),
     ]
+
+
+###########################################
+#     Tests for _has_equal_nan_method     #
+###########################################
+
+
+class WithEqualNan:
+    def equal(self, other: object, equal_nan: bool = False) -> bool:
+        return other is self and not equal_nan
+
+
+class WithEqualOnly:
+    def equal(self, other: object) -> bool:
+        return other is self
+
+
+class WithoutEqual:
+    pass
+
+
+class WithNonCallableEqual:
+    equal = 1
+
+
+def test_has_equal_nan_method_true() -> None:
+    assert _has_equal_nan_method(WithEqualNan)
+
+
+def test_has_equal_nan_method_equal_without_equal_nan() -> None:
+    assert not _has_equal_nan_method(WithEqualOnly)
+
+
+def test_has_equal_nan_method_without_equal() -> None:
+    assert not _has_equal_nan_method(WithoutEqual)
+
+
+def test_has_equal_nan_method_equal_is_not_callable() -> None:
+    assert not _has_equal_nan_method(WithNonCallableEqual)
+
+
+def test_has_equal_nan_method_builtin_without_signature() -> None:
+    assert not _has_equal_nan_method(type("WithBuiltinEqual", (), {"equal": max}))
+
+
+def test_has_equal_nan_method_text_loader() -> None:
+    assert _has_equal_nan_method(TextLoader)
+
+
+##############################################################
+#     Tests for the classes with equal(other, equal_nan)     #
+##############################################################
+
+
+def test_default_registry_resolves_a_class_with_equal_nan_to_the_equal_nan_tester() -> None:
+    assert isinstance(get_default_registry().resolve(WithEqualNan), EqualNanEqualityTester)
+
+
+def test_default_registry_does_not_resolve_a_class_with_equal_only_to_the_equal_nan_tester() -> (
+    None
+):
+    assert not isinstance(get_default_registry().resolve(WithEqualOnly), EqualNanEqualityTester)
+
+
+def test_default_registry_loader_is_reflexive() -> None:
+    assert Engine(EqualityConfig()).run(TextLoader(), TextLoader())
+
+
+def test_default_registry_saver_is_reflexive() -> None:
+    assert Engine(EqualityConfig()).run(TextSaver(), TextSaver())
+
+
+def test_default_registry_loaders_of_different_classes_are_different() -> None:
+    assert not Engine(EqualityConfig()).run(TextLoader(), TextSaver())

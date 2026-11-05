@@ -664,7 +664,7 @@ def resolve_saver(
         >>> from coola.io import resolve_saver
         >>> saver = resolve_saver({"_target_": "coola.io.JsonSaver"})
         >>> saver
-        JsonSaver(encoding='utf-8')
+        JsonSaver(encoding='utf-8', allow_nan=False, jsonable=False)
 
         ```
     """

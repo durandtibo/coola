@@ -2,7 +2,8 @@ r"""Provide loaders and savers to read and write data to files.
 
 A loader reads one value from a file (``load(path)``) and a saver writes
 one value to a file (``save(data, path, exist_ok=False)``), with the same
-interface for every format: JSON, pickle, text and PyTorch. Each format
+interface for every format: JSON, pickle, text and PyTorch. ``load`` and ``save`` pick the
+loader or the saver from the suffix of the path. Each format
 has a class (``JsonLoader``, ``JsonSaver``, ...) and a function shortcut
 (``load_json``, ``save_json``, ...).
 
@@ -37,12 +38,14 @@ __all__ = [
     "TorchSaver",
     "is_loader_config",
     "is_saver_config",
+    "load",
     "load_json",
     "load_pickle",
     "load_text",
     "load_torch",
     "resolve_loader",
     "resolve_saver",
+    "save",
     "save_json",
     "save_pickle",
     "save_text",
@@ -60,6 +63,7 @@ from coola.io.base import (
     resolve_loader,
     resolve_saver,
 )
+from coola.io.interface import load, save
 from coola.io.json import JsonLoader, JsonSaver, load_json, save_json
 from coola.io.pickle import PickleLoader, PickleSaver, load_pickle, save_pickle
 from coola.io.text import TextLoader, TextSaver, load_text, save_text

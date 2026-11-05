@@ -72,6 +72,32 @@ class PyarrowTableTable:
             and self._table.num_rows == other._table.num_rows
         )
 
+    def structure_difference(self, other: PyarrowTableTable, ctx: Engine) -> str:  # noqa: ARG002
+        r"""Say what differs in the structure of two tables.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            A short text, for example ``"numbers of rows differ: 3 vs 2"``.
+        """
+        t1, t2 = self._table, other._table
+        if t1.num_rows != t2.num_rows:
+            return f"numbers of rows differ: {t1.num_rows} vs {t2.num_rows}"
+        if t1.schema.names != t2.schema.names:
+            return f"columns differ: {t1.schema.names} vs {t2.schema.names}"
+        pairs = [
+            f"{field.name}: {field.type} vs {other_field.type}"
+            for field, other_field in zip(t1.schema, t2.schema, strict=True)
+            if field.type != other_field.type
+        ]
+        if not pairs:
+            return "the nullable flags of the columns differ"
+        shown = ", ".join(pairs[:3])
+        more = f" (+{len(pairs) - 3} more)" if len(pairs) > 3 else ""
+        return f"types differ: {shown}{more}"
+
     def columns(self) -> Iterator[Column]:
         r"""Iterate over the columns.
 
@@ -120,6 +146,21 @@ class PyarrowArrayTable:
         """
         _warn_ignored(ctx, [self._array.type], self._array)
         return bool(self._array.type == other._array.type and len(self._array) == len(other._array))
+
+    def structure_difference(self, other: PyarrowArrayTable, ctx: Engine) -> str:  # noqa: ARG002
+        r"""Say what differs in the structure of two arrays.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            A short text, for example ``"types differ: int64 vs double"``.
+        """
+        a1, a2 = self._array, other._array
+        if len(a1) != len(a2):
+            return f"lengths differ: {len(a1)} vs {len(a2)}"
+        return f"types differ: {a1.type} vs {a2.type}"
 
     def columns(self) -> Iterator[Column]:
         r"""Iterate over the columns.
@@ -188,7 +229,7 @@ def _column(name: object, array: Any) -> Column:
             _values(array, kind),
             _nulls(array),
         )
-    return Column(name, "exact", array, equals=_arrow_equals)
+    return Column(name, "exact", array, equals=_arrow_equals, difference=_arrow_difference)
 
 
 def _is_quantity(kind: Any) -> bool:
@@ -268,6 +309,34 @@ def _arrow_equals(array1: Any, array2: Any) -> bool:
         ``True`` if the arrays are equal, otherwise ``False``.
     """
     return bool(array1.equals(array2))
+
+
+def _arrow_difference(array1: Any, array2: Any) -> tuple[int, Any, Any] | None:
+    r"""Find the first row where two arrays differ.
+
+    Args:
+        array1: The first array.
+        array2: The second array, with the same type and length.
+
+    Returns:
+        ``(row, value, other value)`` for the first row that differs, or
+            ``None`` if the row cannot be found (the nested values are
+            not searched).
+    """
+    if pa.types.is_nested(array1.type):
+        return None
+    # The kernels are called by name: pyarrow generates their Python wrappers at import.
+    different = pc.call_function(
+        "or",
+        [
+            pc.fill_null(pc.call_function("not_equal", [array1, array2]), False),
+            pc.call_function("xor", [array1.is_null(), array2.is_null()]),
+        ],
+    )
+    row = pc.index(different, True).as_py()
+    if row < 0:
+        return None
+    return row, array1[row].as_py(), array2[row].as_py()
 
 
 def _warn_ignored(ctx: Engine, kinds: list[Any], obj: Any) -> None:

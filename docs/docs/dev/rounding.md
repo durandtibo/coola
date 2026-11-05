@@ -40,8 +40,8 @@ recursive walk and the error contract (`UnsupportedTypeError`, `on_missing_packa
 ## Architecture in detail
 
 ```
-round_values(data, *, mode="round", decimals=0, recursive=False, on_missing_package="raise", registry=None)
-        |   validate mode, decimals and on_missing_package once; one registry (default: the singleton)
+round_values(data, *, mode="round", decimals=0, recursive=False, on_unsupported="ignore", on_missing_package="raise", registry=None)
+        |   validate mode, decimals, on_unsupported and on_missing_package once; one registry (default: the singleton)
         |   recursive ? recursive_apply(data, leaf) : leaf(data)
         v
 leaf(x): rounder = registry.resolve(type(x))                  MRO, lazy libraries
@@ -188,13 +188,17 @@ register_rounders(
 
 ```python
 def round_values(
-    data, *, mode="round", decimals=0, recursive=False, on_missing_package="raise", registry=None
+    data, *, mode="round", decimals=0, recursive=False, on_unsupported="ignore",
+    on_missing_package="raise", registry=None
 ):
     validate_arguments(mode, decimals, on_missing_package)
+    validate_in(on_unsupported, ("raise", "ignore"), name="on_unsupported")
     registry = get_default_registry() if registry is None else registry
     if recursive:
         return recursive_apply(
-            data, lambda x: _round_leaf(x, registry, mode, decimals, on_missing_package)
+            data, lambda x: _round_leaf(
+                x, registry, mode, decimals, on_missing_package, on_unsupported=on_unsupported
+            ),
         )
     return _round_object(data, registry, mode, decimals, on_missing_package)
 ```
@@ -210,7 +214,10 @@ def round_values(
   polars or pyarrow leaf and `"warn"` warns once per leaf (the default warning filter shows one per
   location).
 - `_round_leaf` calls it and catches **only** `UnsupportedTypeError`. A string, `None` or a date
-  inside a nested structure is kept; a bug in a rounder is not hidden.
+  inside a nested structure is kept; a bug in a rounder is not hidden. With
+  `on_unsupported="raise"` a leaf that has no rounder and is not a non-numeric value (`None`, `str`,
+  `bytes`, `bool`, dates, times, `timedelta`, enums) raises too, so that a `Decimal`, a complex
+  number or a JAX array is not left unrounded without a signal. The default is `"ignore"`.
 - `validate_arguments` also checks `on_missing_package` (`"raise"`, `"warn"` or `"ignore"`) before
   any work. It accepts any integer (`operator.index`), so `np.int64(2)` works, and still
   rejects `bool` and `float`. The messages do not change.
@@ -219,7 +226,7 @@ def round_values(
 
 ```python
 from coola.rounding import (
-    round_values,  # (data, *, mode="round", decimals=0, recursive=False, on_missing_package="raise", registry=None)
+    round_values,  # (data, *, mode="round", decimals=0, recursive=False, on_unsupported="ignore", on_missing_package="raise", registry=None)
     RoundMode,  # Literal["round", "floor", "ceil"]
     Rounder,  # Callable[[Any, RoundMode, int], Any]
     UnsupportedTypeError,  # TypeError

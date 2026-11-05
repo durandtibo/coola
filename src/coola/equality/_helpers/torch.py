@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from coola.equality._helpers.elementwise import elementwise_close
 from coola.utils.imports import is_torch_available
+from coola.utils.tensor import sparse_components
 
 if TYPE_CHECKING or is_torch_available():
     import torch
@@ -49,8 +50,10 @@ def tensor_equal(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityC
     if tensor1.layout != tensor2.layout:
         return False
     if tensor1.layout != torch.strided:
-        # ``equal`` and ``allclose`` are not implemented for sparse layouts.
-        tensor1, tensor2 = tensor1.to_dense(), tensor2.to_dense()
+        # ``equal`` and ``allclose`` are not implemented for sparse layouts. The
+        # stored components are compared: a dense copy would need the memory of
+        # the product of the shape.
+        return _sparse_tensors_equal(tensor1, tensor2, config)
     if torch.bool in (tensor1.dtype, tensor2.dtype):
         # A boolean is a label, not a quantity: no tolerance (and no NaN).
         return tensor1.equal(tensor2)
@@ -89,6 +92,7 @@ def tensor_close(
         ```
     """
     if tensor1.layout != torch.strided:
+        # The mask has one element per position, so the tensors are densified.
         tensor1, tensor2 = tensor1.to_dense(), tensor2.to_dense()
     if torch.bool not in (tensor1.dtype, tensor2.dtype) and (
         config.equal_nan or config.atol > 0 or config.rtol > 0
@@ -104,6 +108,34 @@ def tensor_close(
             xp=torch,
         )
     return tensor1 == tensor2
+
+
+def _sparse_tensors_equal(
+    tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig
+) -> bool:
+    r"""Indicate if two sparse tensors of the same layout are equal
+    within a tolerance.
+
+    The positions of the stored values must be equal and the stored
+    values must be equal within the tolerance. An explicitly stored zero
+    is a stored value.
+
+    Args:
+        tensor1: The first sparse tensor.
+        tensor2: The second sparse tensor, with the same layout.
+        config: The equality configuration.
+
+    Returns:
+        ``True`` if the two tensors have the same shape, dtype, positions
+            and values, otherwise ``False``.
+    """
+    if tensor1.shape != tensor2.shape or tensor1.dtype != tensor2.dtype:
+        return False
+    *positions1, values1 = sparse_components(tensor1)
+    *positions2, values2 = sparse_components(tensor2)
+    return all(p1.equal(p2) for p1, p2 in zip(positions1, positions2, strict=True)) and (
+        tensor_equal(values1, values2, config)
+    )
 
 
 def _tensors_close(tensor1: torch.Tensor, tensor2: torch.Tensor, config: EqualityConfig) -> bool:
