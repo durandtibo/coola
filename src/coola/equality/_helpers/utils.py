@@ -7,6 +7,7 @@ __all__ = [
     "MaxDepthExceededError",
     "comparison_key",
     "is_exact_scalar_sequence",
+    "is_float_sequence",
 ]
 
 from collections import Counter
@@ -118,3 +119,37 @@ def is_exact_scalar_sequence(seq: Sequence[Any]) -> bool:
         ```
     """
     return type(seq) in (list, tuple) and set(map(type, seq)) <= _EXACT_SCALAR_TYPES
+
+
+def is_float_sequence(seq: Sequence[Any]) -> bool:
+    r"""Indicate if ``seq`` is a non-empty list or tuple containing only
+    ``float`` values.
+
+    The type of ``seq`` and the types of its items are compared exactly
+    (no subclass), so a subclass of ``list`` is not accepted, and neither
+    is a NumPy float or an ``int``. The floats can be NaN, so they are
+    not exact scalars: the ``==`` of two sequences of floats is the
+    equality of the engine only without ``equal_nan`` and without
+    tolerance.
+
+    Args:
+        seq: The sequence to check.
+
+    Returns:
+        ``True`` if ``seq`` is a ``list`` or a ``tuple`` with at least
+            one item and all its items are ``float``, otherwise
+            ``False``.
+
+    Example:
+        ```pycon
+        >>> from coola.equality._helpers import is_float_sequence
+        >>> is_float_sequence([1.0, float("nan")])
+        True
+        >>> is_float_sequence([1.0, 2])
+        False
+        >>> is_float_sequence([])
+        False
+
+        ```
+    """
+    return type(seq) in (list, tuple) and set(map(type, seq)) == {float}

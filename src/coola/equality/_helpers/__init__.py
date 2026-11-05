@@ -10,6 +10,7 @@ __all__ = [
     "comparison_key",
     "get_object_attributes",
     "is_exact_scalar_sequence",
+    "is_float_sequence",
 ]
 
 from coola.equality._helpers.object import get_object_attributes
@@ -18,4 +19,5 @@ from coola.equality._helpers.utils import (
     MaxDepthExceededError,
     comparison_key,
     is_exact_scalar_sequence,
+    is_float_sequence,
 )

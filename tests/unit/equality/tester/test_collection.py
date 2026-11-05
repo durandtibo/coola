@@ -784,6 +784,62 @@ def test_sequence_equality_tester_exact_scalars_different_does_not_visit_the_ite
     assert result is False
 
 
+@pytest.mark.parametrize(
+    ("actual", "expected"),
+    [([1.0, 2.5], [1.0, 2.5]), ((1.0, 2.5), (1.0, 2.5)), ([0.0], [-0.0])],
+)
+def test_sequence_equality_tester_floats_equal(
+    config: EqualityConfig, actual: Sequence, expected: Sequence
+) -> None:
+    assert run_tester(SequenceEqualityTester(), actual, expected, config)
+
+
+def test_sequence_equality_tester_floats_different(config: EqualityConfig) -> None:
+    assert not run_tester(SequenceEqualityTester(), [1.0, 2.0], [1.0, 3.0], config)
+
+
+def test_sequence_equality_tester_floats_different_does_not_visit_the_items() -> None:
+    tester = SequenceEqualityTester()
+    assert tester.objects_are_equal([1.0, 2.0], [1.0, 3.0], Engine(EqualityConfig())) is False
+
+
+def test_sequence_equality_tester_floats_different_with_tolerance(config: EqualityConfig) -> None:
+    config = replace(config, tolerance=Tolerance(atol=1.0))
+    assert run_tester(SequenceEqualityTester(), [1.0, 2.0], [1.0, 2.5], config)
+
+
+def test_sequence_equality_tester_floats_different_explaining_path(config: EqualityConfig) -> None:
+    config = explaining(config)
+    run_tester(SequenceEqualityTester(), [1.0, 2.0], [1.0, 3.0], config)
+    assert config.reports[-1][1] == (1,)
+
+
+def test_sequence_equality_tester_floats_different_with_equal_nan_visits_the_items() -> None:
+    tester = SequenceEqualityTester()
+    result = tester.objects_are_equal(
+        [1.0, 2.0], [1.0, 3.0], Engine(EqualityConfig(equal_nan=True))
+    )
+    assert not isinstance(result, bool)
+
+
+def test_sequence_equality_tester_floats_distinct_nan(config: EqualityConfig) -> None:
+    assert not run_tester(SequenceEqualityTester(), [float("nan")], [float("nan")], config)
+
+
+def test_sequence_equality_tester_floats_same_nan_object(config: EqualityConfig) -> None:
+    nan = float("nan")
+    assert run_tester(SequenceEqualityTester(), [nan], [nan], config)
+
+
+def test_sequence_equality_tester_floats_distinct_nan_equal_nan(config: EqualityConfig) -> None:
+    config = replace(config, equal_nan=True)
+    assert run_tester(SequenceEqualityTester(), [1.0, float("nan")], [1.0, float("nan")], config)
+
+
+def test_sequence_equality_tester_floats_against_ints(config: EqualityConfig) -> None:
+    assert not run_tester(SequenceEqualityTester(), [1.0], [1], config)
+
+
 def test_mapping_equality_tester_string_keys_in_a_different_order(config: EqualityConfig) -> None:
     assert run_tester(MappingEqualityTester(), {"a": 1, "b": 2}, {"b": 2, "a": 1}, config)
 

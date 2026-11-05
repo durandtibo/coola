@@ -20,7 +20,11 @@ from itertools import count
 from typing import TYPE_CHECKING, Any
 
 from coola.equality._helpers.format import format_mapping_difference
-from coola.equality._helpers.utils import comparison_key, is_exact_scalar_sequence
+from coola.equality._helpers.utils import (
+    comparison_key,
+    is_exact_scalar_sequence,
+    is_float_sequence,
+)
 from coola.equality.engine import Element
 from coola.equality.tester.base import BaseEqualityTester
 from coola.utils.safe import safe_repr
@@ -170,6 +174,15 @@ class SequenceEqualityTester(BaseEqualityTester["Sequence[Any]"]):
             if actual == expected:
                 return True
             if not ctx.explaining and ctx.atol == 0.0 and ctx.rtol == 0.0:
+                return False
+        # The same for the floats, which can be NaN. Like the engine, ``==`` treats an identical
+        # NaN as equal and two distinct NaNs as different. Equal sequences are equal with any
+        # tolerance and with ``equal_nan``. Different sequences are different only if
+        # ``equal_nan`` is ``False`` and there is no tolerance.
+        elif is_float_sequence(actual) and is_float_sequence(expected):
+            if actual == expected:
+                return True
+            if not ctx.explaining and not ctx.equal_nan and ctx.atol == 0.0 and ctx.rtol == 0.0:
                 return False
         return zip(actual, expected, count(), strict=False)
 

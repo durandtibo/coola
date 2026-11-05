@@ -131,6 +131,12 @@ def test_objects_are_equal_large_float_list_benchmark(benchmark: BenchmarkFixtur
     assert benchmark(objects_are_equal, data, other)
 
 
+def test_objects_are_equal_large_distinct_float_list_benchmark(benchmark: BenchmarkFixture) -> None:
+    data = [i + 0.5 for i in range(100_000)]
+    other = [i + 0.5 for i in range(100_000)]
+    assert benchmark(objects_are_equal, data, other)
+
+
 def test_objects_are_equal_records_benchmark(benchmark: BenchmarkFixture) -> None:
     data, other = make_records(5_000), make_records(5_000)
     assert benchmark(objects_are_equal, data, other)
