@@ -44,7 +44,7 @@ independent of `PYTHONHASHSEED`, the CI covers the lowest and highest version of
 dependency but one (item 63). The findings are narrow: **two pandas cases where `objects_are_equal` is
 `True` and `hash_object` differs** (54.1, 54.2), **a red test whose cause is the formatter** (53),
 **`hash_object` that cannot hash what `objects_are_equal` compares** (55), and an **API surface that
-has drifted** (58, 59).
+has drifted** (58 to 61).
 
 Priority: **P1** wrong result, crash on realistic input or a red test on `main`, **P2** inconsistent or
 surprising behaviour, **P3** cleanup or design.
@@ -55,15 +55,15 @@ surprising behaviour, **P3** cleanup or design.
 | ---- | --- | ------------ | ------------------------------------------------------------------------------------------------------------ |
 | 53   | P1  | tests        | _Carried over_ 39.1: red on `main`; docformatter rewrites the string, and it will do it again                |
 | 54.1 | P2  | hashing      | `Series(["a", None])` equals `Series(["a", nan])` but the hashes differ (a `DataFrame` hashes the same)      |
-| 54.2 | P2  | equality     | _Carried over_ 34.1: categoricals with a different order of categories are equal; they must not be          |
+| 54.2 | P2  | hashing      | _Carried over_ 34.1: categoricals with the same values and a different order of categories                   |
 | 54.3 | P3  | equality     | `attrs` are compared for xarray, ignored for pandas and Arrow metadata: no stated rule                       |
 | 55   | P2  | hashing      | `hash_object` rejects classes, functions, `re.Pattern`, `slice`, `Ellipsis`, `array.array`                   |
-| 56   | -   | -            | Withdrawn by the maintainer                                                                                  |
+| 56   | P3  | iterator     | `dfs_iterate`, `bfs_iterate`, `dfs_items` depend on `PYTHONHASHSEED` for a set                               |
 | 57   | P3  | registry     | `summarize` and `recursive_apply` keep up to 1024 dynamically created classes alive                          |
 | 58   | P3  | api          | 5 packages export two names for the same registry getter; `Transformer` and `Node` mean two things          |
 | 59   | P3  | api          | 12 public functions take options positionally; `load_json` and `save_json` disagree                          |
-| 60   | -   | -            | Withdrawn by the maintainer                                                                                  |
-| 61   | -   | -            | Withdrawn by the maintainer                                                                                  |
+| 60   | P3  | utils        | 12 modules of `coola.utils` (1303 lines, about 2300 lines of tests) are used by nothing in the library       |
+| 61   | P3  | jsonable     | `to_jsonable` cannot convert a data frame or a table; the tuple-key error names the wrong type               |
 | 62   | P3  | small gaps   | `factory` prefix with a trailing dot; `summarize(max_characters=0)`; rounding modes; `LazyFrame` message     |
 | 63   | P3  | ci           | SciPy is missing from `dev/config/package_versions.json`: its lower bound is never tested                    |
 | 64   | P3  | tests        | 117 unit tests with several assertions, 18 with a loop; the property tests have no object column (54.1)      |
@@ -150,17 +150,13 @@ objects_are_equal(a, b)  # True  (a.equals(b) is True)
 hash_object(a) == hash_object(b)  # False
 ```
 
-Still open since round 6. **Decision: two categoricals are equal only if their categories are in the
-same order** (for ordered and unordered ones). The change is in the equality tester of pandas
-(compare `dtype.categories` in order, and `dtype.ordered`), not in the hasher, which already hashes
-the order. `a.equals(b)` of pandas is `True` for this pair, so the docstring and the user guide must
-say that `coola` is stricter than `equals` here (as `assert_series_equal` with `check_categorical`
-is). The strict xfail `test_different_frames_have_different_hashes` ("pandas metadata") in
-`tests/properties/test_library_types.py` is exactly this case: I enumerated its 72 specs pair by pair,
-and the only 4 pairs where equality and hash disagree differ by the order of the categories of an
-unordered categorical (`["a", "b"]` against `["b", "a"]`). The test is right; once the tester is
-strict it passes, so remove the xfail. Add a unit test of the tester with the pair above (`False`),
-one with the same categories in the same order (`True`) and one with `ordered` different (`False`).
+Still open since round 6. The strict xfail `test_different_frames_have_different_hashes` ("pandas
+metadata") in `tests/properties/test_library_types.py` is exactly this case: I enumerated its 72 specs
+pair by pair, and the only 4 pairs where equality and hash disagree are the pairs that differ by the
+order of the categories of an unordered categorical (`["a", "b"]` against `["b", "a"]`). So the test
+is right and its reason is misleading. Pick the side where the change is smallest: for an **unordered**
+categorical, hash the decoded values and the sorted categories; for an **ordered** one, keep the order
+(the order is part of the meaning). Then remove the xfail, and rename its reason to "34.1".
 
 ### 54.3 Metadata is compared or ignored depending on the library (P3) **[verified]**
 
@@ -197,9 +193,21 @@ Add them to the default registry as small `ContentHasher`-style classes, and doc
 `uguide/hashing.md` the list of what is rejected on purpose (locks, iterators, plain objects).
 `ignore_unhashable=True` should skip a value (today it also hides the three cases above).
 
-## 56. Traversal order of a set (withdrawn)
+## 56. Traversal order of a set depends on `PYTHONHASHSEED` (P3) **[verified]**
 
-Withdrawn by the maintainer; the number is kept so that the IDs of the other items stay stable.
+```text
+PYTHONHASHSEED=1  list(dfs_iterate({"a", "b", "c", "d"}))  ->  ['a', 'd', 'b', 'c']
+PYTHONHASHSEED=2                                           ->  ['c', 'b', 'a', 'd']
+PYTHONHASHSEED=3                                           ->  ['c', 'b', 'd', 'a']
+```
+
+`dfs_items` gives the same instability in the paths (`('k', 'c')` first or last). The user guide says
+"the order inside a set is not specified", so this is documented, but it is now the only package whose
+output changes between runs: `hashing`, `summary` (43.1) and `jsonable` order a set. `smallest_items`
+and `sort_by_keys` already exist; use a `sorted_or_insertion_order(set)` for the child finder of
+`set` and `frozenset`. Cost: a sort of the set, only for sets. It also makes `round_values` and
+`recursive_apply` deterministic for a set of unorderable items (they rebuild a set, so only the
+iteration order of the callback changes).
 
 ## 57. Registries keep dynamically created classes alive (P3) **[verified]**
 
@@ -277,13 +285,47 @@ convention, and `load_json(path, "utf-8")` works while `save_json(obj, path, "ut
 (`add_prefix_suffix_to_keys("x_")` is the only one where the positional form is the documented
 example; keep `prefix` positional-or-keyword and make `suffix` keyword-only.)
 
-## 60. Unused `coola.utils` modules (withdrawn)
+## 60. A tenth of `coola.utils` is not used by the library (P3) **[verified]**
 
-Withdrawn by the maintainer; the number is kept so that the IDs of the other items stay stable.
+An AST scan of every public function of `src/coola/utils/` for a use outside its own module gives no
+use at all for: `bloom_filter` (224 lines), `logging` (50), `git` (153), `batching` (51), `file_size`
+(53), `env_vars` (204), `timing` (92), `lru` (204), `password` (69), `recursion` (46), `array` (58),
+`date` (99): **1303 lines of source, about 2300 lines of unit tests, a 449-line user guide page and a
+page of the developer guide**, for helpers that have nothing to do with comparing, hashing or
+summarizing. They are exported as public API (`utils/__init__.py` lists them as "standalone helpers"),
+so each is a promise: `get_password` and `run_git_command` in particular are the kind of function
+whose behaviour a user will rely on. The cost of keeping them is the CI time, the 100%-coverage rule,
+the docs and the review time of every change to the registry or imports they never use.
 
-## 61. `to_jsonable` and the data frames (withdrawn)
+Options, from the smallest: (1) keep and declare them **private** (`coola.utils._standalone`) so that
+no promise is made, (2) move them to a separate package (`coola-utils`) and depend on it only in the
+dev group, (3) delete. With a major release open, (3) for `git`, `password`, `date`, `env_vars`,
+`lru`, `bloom_filter`, `timing`, `logging`, `batching`, `file_size` and (1) for `array`/`recursion` if
+a test fixture needs them. Check with `grep -rn "coola.utils"` in the dependent projects of the author
+before the deletion.
 
-Withdrawn by the maintainer; the number is kept so that the IDs of the other items stay stable.
+## 61. `to_jsonable` and the data frames (P3) **[verified]**
+
+13 cells of `tests/integration/test_support_matrix.py::test_support_matrix_to_jsonable` are `xfail`
+("known gap"): `pd.DataFrame`, `pl.DataFrame`, `pa.Table`, `pd.Categorical`, `pd.Period`,
+`pd.Interval`, `re.Pattern`, `slice`, `timezone`, `torch.dtype`, `torch.device`, `torch.sparse`,
+`torch.meta`. The data frames are the ones a user actually puts in a result dict before `save_json`.
+The pattern of the existing converters (`ndarray` -> nested list) suggests
+`DataFrame -> {"columns": [...], "data": [[...]]}` (or `dict` of columns, one choice documented), a
+`Categorical`/`Period`/`Interval` -> its string or list, a dtype or device -> `str(x)`, a `Pattern` ->
+`.pattern`. At minimum, `on_unsupported="repr"` as a third value is a one-line escape that makes
+`save_json` of a result dict possible for the 13 types.
+
+Also, in a dict with a tuple key the error is wrong about the type the user passed:
+
+```python
+to_jsonable({(1, 2): 3})
+# TypeError: A JSON key must be a str, bool, int, float or None after the conversion,
+#            but received a key of type list
+```
+
+The key was a `tuple`, converted to a `list` before the check. Report both the original and the
+converted type, and say that the key was converted.
 
 ## 62. Small gaps (P3)
 
@@ -386,12 +428,14 @@ for a homogeneous list, as #2735 did for equality.
 One branch and one pull request each, as `CLAUDE.md` asks:
 
 1. `test/fix-generated-module-source` - item 53 (turns the CI green; do this first).
-2. `bugfix/pandas-na-hash-and-category-order` - items 54.1 and 54.2, with the pair-based property tests (the
-   xfail of 54.2 is removed, 64.2 adds 54.1) as the regression tests (check that they fail on `main`).
+2. `bugfix/hash-pandas-na-and-categories` - items 54.1 and 54.2, with the pair-based property tests (the
+   xfail of 54.2 becomes a plain test, 64.2 adds 54.1) as the regression tests (check that they fail on `main`).
 3. `ci/add-scipy-to-versions` - item 63.
 4. `feat/hash-classes-functions-patterns` - item 55.
 5. `refactor/api-names` - items 58, 59 together (one breaking change and one migration note); then
-6. `perf/weak-registry-cache` (57), then the small gaps of 62, one PR per numbered point.
+   `refactor/remove-unused-utils` - item 60.
+6. `bugfix/deterministic-set-traversal` (56), `perf/weak-registry-cache` (57), then the small gaps
+   of 61 and 62, one PR per numbered point.
 7. `test/split-multi-assert-tests` - 64.1, in one PR per directory.
 
 Not changed by this review: nothing in `src`, `tests` or `docs`. Only this file.
