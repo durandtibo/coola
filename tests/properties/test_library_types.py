@@ -58,7 +58,7 @@ class BadRepr:
     __str__ = __repr__
 
 
-@pytest.mark.xfail(reason="NaN bit patterns (14.3)")
+@pytest.mark.xfail(reason="NaN bit patterns")
 @given(pairs=float_pairs)
 def test_equal_float_arrays_have_the_same_hash(pairs: list[tuple[float, bool]]) -> None:
     first = np.array([x for x, _ in pairs])
