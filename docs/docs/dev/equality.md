@@ -134,21 +134,21 @@ coola/equality/
 Each row is a choice the current design makes, with the alternative it was preferred to. The sections
 after the table give the longer arguments.
 
-| Choice                                                                 | Reason                                                | Alternative and its cost                                                   |
-| ---------------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------- |
-| Iterative engine                                                       | constant stack, one place for depth, cycles and path  | a recursive engine is faster, but needs a `try/finally` per level          |
-| One tester method returns a verdict or an iterator                     | one extension point                                   | two methods (`equal`, `expand`) are explicit, but one can be forgotten     |
-| No `show_difference` and no logger; `compare` and `assert_*` explain   | no cost on the fast path, thread safe                 | a flag on the fast function makes it format messages                       |
-| `bool` and every `Enum` are exact                                      | they are labels, not quantities                       | a "label" list for `str` and `bytes` is more to maintain                   |
-| Masked arrays compare the data under the mask, the mask and fill value | no hidden difference                                  | ignoring the masked data matches how the array prints                      |
-| Small floats are cast to `float64`                                     | no overflow of the tolerance at the edge of the range | keeping the dtype is faster for large `float32` arrays but wrong at edges  |
-| Integer difference is exact                                            | no rounding of large integers                         | exact `Fraction` arithmetic is exact everywhere but much slower            |
-| Tables are one leaf, reported by column and row                        | simple and fast to compare; the row is found only when explaining | a second pass per library, and no row for a nested column |
-| Time resolution is part of the dtype                                   | as in NumPy                                           | casting to the finer resolution is friendlier but hides a dtype difference |
-| Library testers are public                                             | users can compose, subclass or register them          | private testers shrink the public surface                                  |
+| Choice                                                                 | Reason                                                                      | Alternative and its cost                                                     |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Iterative engine                                                       | constant stack, one place for depth, cycles and path                        | a recursive engine is faster, but needs a `try/finally` per level            |
+| One tester method returns a verdict or an iterator                     | one extension point                                                         | two methods (`equal`, `expand`) are explicit, but one can be forgotten       |
+| No `show_difference` and no logger; `compare` and `assert_*` explain   | no cost on the fast path, thread safe                                       | a flag on the fast function makes it format messages                         |
+| `bool` and every `Enum` are exact                                      | they are labels, not quantities                                             | a "label" list for `str` and `bytes` is more to maintain                     |
+| Masked arrays compare the data under the mask, the mask and fill value | no hidden difference                                                        | ignoring the masked data matches how the array prints                        |
+| Small floats are cast to `float64`                                     | no overflow of the tolerance at the edge of the range                       | keeping the dtype is faster for large `float32` arrays but wrong at edges    |
+| Integer difference is exact                                            | no rounding of large integers                                               | exact `Fraction` arithmetic is exact everywhere but much slower              |
+| Tables are one leaf, reported by column and row                        | simple and fast to compare; the row is found only when explaining           | a second pass per library, and no row for a nested column                    |
+| Time resolution is part of the dtype                                   | as in NumPy                                                                 | casting to the finer resolution is friendlier but hides a dtype difference   |
+| Library testers are public                                             | users can compose, subclass or register them                                | private testers shrink the public surface                                    |
 | `max_depth` (default `None`) and `MaxDepthExceededError`               | opt-in guard on pathological structures; a deep valid structure is compared | by default, no limit runs until memory is exhausted on an infinite structure |
-| `compare(rtol, atol)` instead of a `Tolerance` argument                | the five functions share the same keywords            | a `Tolerance` argument is reusable, but unlike the array libraries         |
-| No root `repr` in `ComparisonResult`                                   | the failure path does not depend on the size of roots | `repr` of the roots costs 20x on a failing million-element comparison      |
+| `compare(rtol, atol)` instead of a `Tolerance` argument                | the five functions share the same keywords                                  | a `Tolerance` argument is reusable, but unlike the array libraries           |
+| No root `repr` in `ComparisonResult`                                   | the failure path does not depend on the size of roots                       | `repr` of the roots costs 20x on a failing million-element comparison        |
 
 ### Iterative or recursive engine
 

@@ -536,8 +536,7 @@ def _series_equals(series1: pd.Series, series2: pd.Series) -> bool:
 
 
 def _series_difference(series1: pd.Series, series2: pd.Series) -> tuple[int, Any, Any] | None:
-    r"""Find the first row where two series differ, ignoring their
-    index.
+    r"""Find the first row where two series differ, ignoring their index.
 
     Args:
         series1: The first series.

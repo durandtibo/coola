@@ -188,15 +188,22 @@ register_rounders(
 
 ```python
 def round_values(
-    data, *, mode="round", decimals=0, recursive=False, on_unsupported="ignore",
-    on_missing_package="raise", registry=None
+    data,
+    *,
+    mode="round",
+    decimals=0,
+    recursive=False,
+    on_unsupported="ignore",
+    on_missing_package="raise",
+    registry=None,
 ):
     validate_arguments(mode, decimals, on_missing_package)
     validate_in(on_unsupported, ("raise", "ignore"), name="on_unsupported")
     registry = get_default_registry() if registry is None else registry
     if recursive:
         return recursive_apply(
-            data, lambda x: _round_leaf(
+            data,
+            lambda x: _round_leaf(
                 x, registry, mode, decimals, on_missing_package, on_unsupported=on_unsupported
             ),
         )
