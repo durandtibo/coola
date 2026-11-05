@@ -80,6 +80,25 @@ class PandasFrameTable:
             and _same_index(df1.columns, df2.columns, ctx)
         )
 
+    def structure_difference(self, other: PandasFrameTable, ctx: Engine) -> str:
+        r"""Say what differs in the structure of two data frames.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            A short text, for example ``"shapes differ: (3, 2) vs (2, 2)"``.
+        """
+        df1, df2 = self._frame, other._frame
+        if df1.shape != df2.shape:
+            return f"shapes differ: {df1.shape} vs {df2.shape}"
+        if not _same_dtypes(df1, df2):
+            return _dtypes_difference(df1.columns, df1.dtypes, df2.dtypes)
+        if not _same_index(df1.index, df2.index, ctx):
+            return _index_difference("index", df1.index, df2.index, ctx)
+        return _index_difference("columns", df1.columns, df2.columns, ctx)
+
     def columns(self) -> Iterator[Column]:
         r"""Iterate over the columns.
 
@@ -133,6 +152,25 @@ class PandasSeriesTable:
             and _same_index(s1.index, s2.index, ctx)
         )
 
+    def structure_difference(self, other: PandasSeriesTable, ctx: Engine) -> str:
+        r"""Say what differs in the structure of two series.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            A short text, for example ``"names differ: 'a' vs 'b'"``.
+        """
+        s1, s2 = self._series, other._series
+        if s1.shape != s2.shape:
+            return f"shapes differ: {s1.shape} vs {s2.shape}"
+        if s1.dtype != s2.dtype:
+            return f"dtypes differ: {s1.dtype} vs {s2.dtype}"
+        if not _same_label(s1.name, s2.name):
+            return f"names differ: {s1.name!r} vs {s2.name!r}"
+        return _index_difference("index", s1.index, s2.index, ctx)
+
     def columns(self) -> Iterator[Column]:
         r"""Iterate over the columns.
 
@@ -181,6 +219,21 @@ class PandasArrayTable:
         return bool(
             self._array.shape == other._array.shape and self._array.dtype == other._array.dtype
         )
+
+    def structure_difference(self, other: PandasArrayTable, ctx: Engine) -> str:  # noqa: ARG002
+        r"""Say what differs in the structure of two extension arrays.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            A short text, for example ``"dtypes differ: Int64 vs Float64"``.
+        """
+        a1, a2 = self._array, other._array
+        if a1.shape != a2.shape:
+            return f"shapes differ: {a1.shape} vs {a2.shape}"
+        return f"dtypes differ: {a1.dtype} vs {a2.dtype}"
 
     def columns(self) -> Iterator[Column]:
         r"""Iterate over the columns.
@@ -237,13 +290,27 @@ class PandasIndexTable:
             and (ctx.equal_nan or not _index_has_nan(i1))
         )
 
+    def structure_difference(self, other: PandasIndexTable, ctx: Engine) -> str:
+        r"""Say what differs in the structure of two indexes.
+
+        Args:
+            other: The other table.
+            ctx: The ``Engine`` of the comparison.
+
+        Returns:
+            A short text, for example ``"index names differ: ['i'] vs [None]"``.
+        """
+        return _index_difference("index", self._index, other._index, ctx)
+
     def columns(self) -> Iterator[Column]:
         r"""Iterate over the columns.
 
         Yields:
             The column of the index, compared exactly.
         """
-        yield Column(None, "exact", self._index, equals=_index_equals)
+        yield Column(
+            None, "exact", self._index, equals=_index_equals, difference=_index_difference_row
+        )
 
 
 def pandas_frame(frame: pd.DataFrame) -> PandasFrameTable:
@@ -310,6 +377,84 @@ def _same_index(index1: pd.Index, index2: pd.Index, ctx: Engine) -> bool:
     )
 
 
+def _index_difference_row(index1: pd.Index, index2: pd.Index) -> tuple[int, Any, Any] | None:
+    r"""Find the first position where two indexes differ.
+
+    Args:
+        index1: The first index.
+        index2: The second index, with the same type and length.
+
+    Returns:
+        ``(position, label, other label)`` for the first position that
+            differs, or ``None`` if it cannot be found.
+    """
+    return _series_difference(pd.Series(index1.to_numpy()), pd.Series(index2.to_numpy()))
+
+
+def _dtypes_difference(names: Any, dtypes1: Any, dtypes2: Any) -> str:
+    r"""Describe the columns that have different dtypes.
+
+    Args:
+        names: The names of the columns.
+        dtypes1: The dtypes of the first columns.
+        dtypes2: The dtypes of the second columns.
+
+    Returns:
+        A text that lists the first columns with different dtypes.
+    """
+    pairs = [
+        f"{name}: {dtype1} vs {dtype2}"
+        for name, dtype1, dtype2 in zip(names, dtypes1, dtypes2, strict=True)
+        if dtype1 != dtype2
+    ]
+    shown = ", ".join(pairs[:3])
+    more = f" (+{len(pairs) - 3} more)" if len(pairs) > 3 else ""
+    return f"dtypes differ: {shown}{more}"
+
+
+def _index_difference(label: str, index1: pd.Index, index2: pd.Index, ctx: Engine) -> str:
+    r"""Say what differs between two indexes.
+
+    Args:
+        label: The word that names the indexes in the text, for example
+            ``"index"`` or ``"columns"``.
+        index1: The first index.
+        index2: The second index.
+        ctx: The ``Engine`` of the comparison.
+
+    Returns:
+        A short text.
+    """
+    if type(index1) is not type(index2):
+        return f"{label} classes differ: {type(index1).__name__} vs {type(index2).__name__}"
+    if index1.shape != index2.shape:
+        return f"{label} shapes differ: {index1.shape} vs {index2.shape}"
+    if index1.names != index2.names:
+        return f"{label} names differ: {list(index1.names)} vs {list(index2.names)}"
+    if not _same_dtypes(index1, index2):
+        return f"{label} dtypes differ: {index1.dtype} vs {index2.dtype}"
+    if not ctx.equal_nan and _index_has_nan(index1):
+        return f"{label} has a NaN, which is not equal to NaN (use equal_nan=True)"
+    verb = "differ" if label == "columns" else "values differ"
+    return f"{label} {verb}: {_short_list(index1)} vs {_short_list(index2)}"
+
+
+def _short_list(index: pd.Index, limit: int = 5) -> str:
+    r"""Return the first labels of an index as a text.
+
+    Args:
+        index: The index.
+        limit: The maximum number of labels shown.
+
+    Returns:
+        The labels as a list, followed by ``...`` if some are not shown.
+    """
+    labels = list(index[:limit])
+    if len(index) > limit:
+        return f"{str(labels)[:-1]}, ...]"
+    return str(labels)
+
+
 def _index_equals(index1: pd.Index, index2: pd.Index) -> bool:
     r"""Indicate if two indexes are equal.
 
@@ -373,7 +518,7 @@ def _column(name: object, series: pd.Series) -> Column:
     if getattr(dtype, "kind", None) == "m":
         nulls = series.isna().to_numpy()
         return Column(name, "duration", series.fillna(pd.Timedelta(0)).to_numpy(), nulls)
-    return Column(name, "exact", series, equals=_series_equals)
+    return Column(name, "exact", series, equals=_series_equals, difference=_series_difference)
 
 
 def _series_equals(series1: pd.Series, series2: pd.Series) -> bool:
@@ -388,6 +533,27 @@ def _series_equals(series1: pd.Series, series2: pd.Series) -> bool:
         ``True`` if the series are equal, otherwise ``False``.
     """
     return bool(series1.equals(series2.set_axis(series1.index)))
+
+
+def _series_difference(series1: pd.Series, series2: pd.Series) -> tuple[int, Any, Any] | None:
+    r"""Find the first row where two series differ, ignoring their
+    index.
+
+    Args:
+        series1: The first series.
+        series2: The second series, with the same dtype and length.
+
+    Returns:
+        ``(row, value, other value)`` for the first row that differs, or
+            ``None`` if the row cannot be found.
+    """
+    values2 = series2.set_axis(series1.index)
+    different = ~(series1.eq(values2) | (series1.isna() & values2.isna()))
+    rows = different.to_numpy().nonzero()[0]
+    if len(rows) == 0:
+        return None
+    row = int(rows[0])
+    return row, series1.iloc[row], series2.iloc[row]
 
 
 def _is_numeric_dtype(dtype: Any) -> bool:

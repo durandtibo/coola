@@ -1676,9 +1676,12 @@ message, for the tests.
 
 The path is read as follows: a key or a position is itself (`['a']`, `[3]`), a field or an attribute
 is `.x`, an element of a set is `{2}`, and an array reports its index (`[1][2]`). A pandas, polars or
-PyArrow table is reported as a whole, with the first differing column in the reason (for example
-`tables have different values: column 'a' differs`); use the library (`DataFrame.compare`,
-`polars.testing`, `Table.equals`) to find the row. The design behind this is described in
+PyArrow table is reported as a whole (the path is the location of the table), and the reason says
+what differs: a difference of structure names the part that differs (for example
+`tables have a different structure: dtypes differ: a: int64 vs float64`), and a difference of
+values gives the first differing column, the first differing row and the two values (for example
+`tables have different values: column 'a' differs at row 999: 999 vs 0`). The row is not given for
+a nested column. The design behind this is described in
 [Architecture](../dev/equality.md).
 
 - `compare` and the assert functions do not log and do not change the logging configuration, so they

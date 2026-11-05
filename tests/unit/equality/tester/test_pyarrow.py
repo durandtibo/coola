@@ -8,10 +8,13 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.equality import compare, objects_are_allclose, objects_are_equal
+from coola.equality.config import EqualityConfig
+from coola.equality.engine import Engine
 from coola.equality.tester import TableEqualityTester
 from coola.equality.tester.pyarrow import (
     PyarrowArrayTable,
     PyarrowTableTable,
+    _arrow_difference,
     _nulls,
     _to_numpy,
     _values,
@@ -543,12 +546,17 @@ def test_array_integers_above_2_53_are_exact() -> None:
 
 @pyarrow_available
 def test_array_compare_different_values() -> None:
-    assert compare(pa.array([1]), pa.array([2])).reason == "arrays have different values"
+    assert (
+        compare(pa.array([1]), pa.array([2])).reason
+        == "arrays have different values at row 0: 1 vs 2"
+    )
 
 
 @pyarrow_available
 def test_array_compare_different_structure() -> None:
-    assert compare(pa.array([1]), pa.array([1, 2])).reason == "arrays have a different structure"
+    assert compare(pa.array([1]), pa.array([1, 2])).reason == (
+        "arrays have a different structure: lengths differ: 1 vs 2"
+    )
 
 
 ########################################
@@ -597,13 +605,13 @@ def test_table_chunked_columns() -> None:
 @pyarrow_available
 def test_table_compare_different_values() -> None:
     result = compare(pa.table({"a": [1], "b": [1]}), pa.table({"a": [1], "b": [2]}))
-    assert result.reason == "tables have different values: column 'b' differs"
+    assert result.reason == "tables have different values: column 'b' differs at row 0: 1 vs 2"
 
 
 @pyarrow_available
 def test_table_compare_different_structure() -> None:
     result = compare(pa.table({"a": [1]}), pa.table({"b": [1]}))
-    assert result.reason == "tables have a different structure"
+    assert result.reason == "tables have a different structure: columns differ: ['a'] vs ['b']"
 
 
 @pyarrow_available
@@ -618,13 +626,13 @@ def test_table_compare_the_whole_result() -> None:
     assert (result.equal, result.path, result.reason) == (
         False,
         (),
-        "tables have different values: column 'a' differs",
+        "tables have different values: column 'a' differs at row 0: 1 vs 2",
     )
 
 
-############################################
+###########################################
 #     Tests for pyarrow without NumPy     #
-#########################################
+###########################################
 
 
 @pyarrow_available
@@ -662,9 +670,9 @@ def test_columns_are_compared_by_arrow_without_numpy() -> None:
         assert not objects_are_allclose(pa.array([1.0]), pa.array([1.05]), atol=0.1)
 
 
-###################################
+##################################
 #     Tests for the adapters     #
-###################################
+##################################
 
 
 @pyarrow_available
@@ -766,3 +774,131 @@ def test_values_durations_keep_the_unit(unit: str) -> None:
 def test_values_chunked_durations() -> None:
     array = pa.chunked_array([[1], [None]], type=pa.duration("s"))
     assert _values(array, array.type).tolist() == [timedelta(seconds=1), timedelta(0)]
+
+
+###################################################
+#     Tests for the reason of the differences     #
+###################################################
+
+STRUCTURE_REASONS = [
+    pytest.param(
+        pa.table({"a": [1, 2]}),
+        pa.table({"a": [1]}),
+        "tables have a different structure: numbers of rows differ: 2 vs 1",
+        id="table rows",
+    ),
+    pytest.param(
+        pa.table({"a": [1], "b": [1]}),
+        pa.table({"b": [1], "a": [1]}),
+        "tables have a different structure: columns differ: ['a', 'b'] vs ['b', 'a']",
+        id="table column order",
+    ),
+    pytest.param(
+        pa.table({"a": [1], "b": [1]}),
+        pa.table({"a": [1.0], "b": [1]}),
+        "tables have a different structure: types differ: a: int64 vs double",
+        id="table type",
+    ),
+    pytest.param(
+        pa.table({"a": [1]}, schema=pa.schema([pa.field("a", pa.int64(), nullable=False)])),
+        pa.table({"a": [1]}),
+        "tables have a different structure: the nullable flags of the columns differ",
+        id="table nullable flag",
+    ),
+    pytest.param(
+        pa.array([1, 2]),
+        pa.array([1]),
+        "arrays have a different structure: lengths differ: 2 vs 1",
+        id="array length",
+    ),
+    pytest.param(
+        pa.chunked_array([[1]]),
+        pa.chunked_array([[1.0]]),
+        "arrays have a different structure: types differ: int64 vs double",
+        id="chunked array type",
+    ),
+]
+
+
+@pyarrow_available
+@pytest.mark.parametrize(("actual", "expected", "reason"), STRUCTURE_REASONS)
+def test_compare_says_what_differs_in_the_structure(
+    actual: Any, expected: Any, reason: str
+) -> None:
+    assert compare(actual, expected).reason == reason
+
+
+VALUE_REASONS = [
+    pytest.param(
+        pa.table({"a": [1.0, 2.0, 3.0]}),
+        pa.table({"a": [1.0, 2.0, 4.0]}),
+        "tables have different values: column 'a' differs at row 2: 3.0 vs 4.0",
+        id="float column",
+    ),
+    pytest.param(
+        pa.table({"a": [1, 2], "b": ["x", "y"]}),
+        pa.table({"a": [1, 2], "b": ["x", "z"]}),
+        "tables have different values: column 'b' differs at row 1: 'y' vs 'z'",
+        id="string column",
+    ),
+    pytest.param(
+        pa.table({"a": ["x", "y"]}),
+        pa.table({"a": ["x", None]}),
+        "tables have different values: column 'a' differs at row 1: 'y' vs None",
+        id="string column with a null",
+    ),
+    pytest.param(
+        pa.table({"a": [1, None]}),
+        pa.table({"a": [1, 2]}),
+        "tables have different values: column 'a' differs at row 1: None vs 2",
+        id="integer column with a null",
+    ),
+    pytest.param(
+        pa.chunked_array([["x"], ["y"]]),
+        pa.chunked_array([["x", "z"]]),
+        "arrays have different values at row 1: 'y' vs 'z'",
+        id="chunked array",
+    ),
+    pytest.param(
+        pa.array([[1], [2]]),
+        pa.array([[1], [3]]),
+        "arrays have different values",
+        id="nested array: the row is not searched",
+    ),
+]
+
+
+@pyarrow_available
+@pytest.mark.parametrize(("actual", "expected", "reason"), VALUE_REASONS)
+def test_compare_says_the_first_row_that_differs(actual: Any, expected: Any, reason: str) -> None:
+    assert compare(actual, expected).reason == reason
+
+
+@pyarrow_available
+def test_structure_difference_table_more_than_three_types() -> None:
+    table = pa.table({name: [1] for name in "abcde"})
+    other = pa.table({name: [1.0] for name in "abcde"})
+    engine = Engine(EqualityConfig())
+    assert PyarrowTableTable(table).structure_difference(PyarrowTableTable(other), engine) == (
+        "types differ: a: int64 vs double, b: int64 vs double, c: int64 vs double (+2 more)"
+    )
+
+
+@pyarrow_available
+def test_arrow_difference_first_row() -> None:
+    assert _arrow_difference(pa.array(["a", "b", "c"]), pa.array(["a", "x", "y"])) == (1, "b", "x")
+
+
+@pyarrow_available
+def test_arrow_difference_null_is_equal_to_null() -> None:
+    assert _arrow_difference(pa.array(["a", None]), pa.array(["a", None])) is None
+
+
+@pyarrow_available
+def test_arrow_difference_null_against_a_value() -> None:
+    assert _arrow_difference(pa.array([None, "a"]), pa.array(["x", "a"])) == (0, None, "x")
+
+
+@pyarrow_available
+def test_arrow_difference_nested_array() -> None:
+    assert _arrow_difference(pa.array([[1]]), pa.array([[2]])) is None
