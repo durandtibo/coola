@@ -201,7 +201,7 @@ def test_str_human_byte_size_exact_gb_boundary() -> None:
 
 
 def test_str_human_byte_size_incorrect_unit() -> None:
-    with pytest.raises(ValueError, match=r"Incorrect unit ''. The available units are"):
+    with pytest.raises(ValueError, match=r"unit must be one of"):
         str_human_byte_size(1, "")
 
 

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal
 from coola.display import InlineDisplayMixin
 from coola.hashing.base import BaseHasher, Encoding, Node, tagged
 from coola.utils.imports import is_pydantic_available
+from coola.validation import validate_in
 
 if TYPE_CHECKING:
     from coola.hashing.base import Hasher
@@ -118,9 +119,7 @@ class SecretHasher(InlineDisplayMixin, BaseHasher["pydantic.SecretStr | pydantic
         self,
         on_secret: Literal["reveal", "exclude", "error"] = _ERROR,
     ) -> None:
-        if on_secret not in {"reveal", "exclude", "error"}:
-            msg = f"on_secret must be 'reveal', 'exclude' or 'error', got {on_secret!r}."
-            raise ValueError(msg)
+        validate_in(on_secret, ("reveal", "exclude", "error"), name="on_secret")
         self._on_secret: Literal["reveal", "exclude", "error"] = on_secret
 
     def _display_fields(self) -> dict[str, Any]:

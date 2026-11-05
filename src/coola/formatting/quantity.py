@@ -11,9 +11,8 @@ __all__ = [
 ]
 
 import datetime
-import math
 
-from coola.validation import validate_ge, validate_gt
+from coola.validation import validate_finite, validate_ge, validate_gt, validate_in, validate_range
 
 BYTE_UNITS = {
     "B": 1,
@@ -53,9 +52,7 @@ def make_bar(value: float, length: int = 10) -> str:
 
         ```
     """
-    if not 0.0 <= value <= 1.0:
-        msg = f"value must be in [0, 1], but got {value}"
-        raise ValueError(msg)
+    validate_range(value, 0.0, 1.0)
     validate_gt(length, 0, name="length")
 
     filled = round(value * length)
@@ -93,9 +90,7 @@ def str_time_human(seconds: float) -> str:
 
         ```
     """
-    if not math.isfinite(seconds):
-        msg = f"seconds must be finite, got {seconds}"
-        raise ValueError(msg)
+    validate_finite(seconds, name="seconds")
     sign = "-" if seconds < 0 else ""
     try:
         return sign + str(datetime.timedelta(seconds=abs(seconds)))
@@ -144,9 +139,7 @@ def str_human_byte_size(size: int, unit: str | None = None) -> str:
         index = units.index(unit)
         if index + 1 < len(units) and round(size / BYTE_UNITS[unit], 2) >= 1024:
             unit = units[index + 1]
-    if unit not in BYTE_UNITS:
-        msg = f"Incorrect unit '{unit}'. The available units are {list(BYTE_UNITS.keys())}"
-        raise ValueError(msg)
+    validate_in(unit, tuple(BYTE_UNITS), name="unit")
     return f"{size / BYTE_UNITS.get(unit, 1):,.2f} {unit}"
 
 

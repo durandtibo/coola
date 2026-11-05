@@ -4,10 +4,11 @@ from __future__ import annotations
 
 __all__ = ["BaseReducer", "EmptySequenceError"]
 
-import math
 from abc import ABC, abstractmethod
 from collections.abc import Iterator, Set as AbstractSet, Sized
 from typing import TYPE_CHECKING, Any, Generic, NoReturn, TypeVar
+
+from coola.validation import validate_range
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -399,6 +400,4 @@ def _check_quantiles(quantiles: Sequence[float]) -> None:
             is ``NaN``.
     """
     for q in quantiles:
-        if math.isnan(q) or not 0 <= q <= 1:
-            msg = f"quantiles must be in [0, 1], got {q}"
-            raise ValueError(msg)
+        validate_range(q, 0, 1, name="quantiles")
