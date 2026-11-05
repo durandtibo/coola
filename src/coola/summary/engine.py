@@ -10,7 +10,7 @@ no ``RecursionError``, whatever the depth.
 
 from __future__ import annotations
 
-__all__ = ["CompactRepr", "render"]
+__all__ = ["CompactRepr", "cut_text", "render"]
 
 import sys
 from collections import deque
@@ -35,22 +35,39 @@ _FILL = "..."
 _LITERALS = (int, float, bool, type(None))
 
 
-def _cut(text: str, max_characters: int | None) -> str:
-    r"""Cut a text to ``max_characters`` characters, followed by ``...``
-    if it is cut.
+def cut_text(text: str, max_characters: int | None) -> str:
+    r"""Cut a text to at most ``max_characters`` characters.
+
+    The limit includes the ``...`` that marks the cut, as for
+    ``coola.formatting.text.truncate_str``. A limit smaller than the
+    length of ``...`` keeps the first characters of ``...``.
 
     Args:
         text: The text.
-        max_characters: The maximum number of characters, or ``None``
-            for no limit.
+        max_characters: The maximum number of characters of the result,
+            or ``None`` for no limit.
 
     Returns:
-        The text, or its first ``max_characters`` characters followed by
-            ``...``.
+        The text if it has at most ``max_characters`` characters,
+            otherwise its first characters followed by ``...``.
+
+    Example:
+        ```pycon
+        >>> from coola.summary.engine import cut_text
+        >>> cut_text("abcdefgh", 6)
+        'abc...'
+        >>> cut_text("abcdefgh", 8)
+        'abcdefgh'
+        >>> cut_text("abcdefgh", 2)
+        '..'
+
+        ```
     """
     if max_characters is None or len(text) <= max_characters:
         return text
-    return text[:max_characters] + "..."
+    if max_characters < len(_FILL):
+        return _FILL[:max_characters]
+    return text[: max_characters - len(_FILL)] + _FILL
 
 
 _METHODS = {
@@ -125,7 +142,7 @@ class CompactRepr:
             return repr(data)
         method = _METHODS.get(kind)
         if method is None:
-            return _cut(safe_repr(data), self._max_characters)
+            return cut_text(safe_repr(data), self._max_characters)
         return getattr(self, method)(data, level)
 
     def _repr_str(self, data: str, level: int) -> str:  # noqa: ARG002
@@ -366,7 +383,7 @@ class _Renderer:
             head = prefix
         else:
             text = label if type(label) is str else safe_str(label)
-            head = f"{prefix}({_cut(text, max_characters)}): "
+            head = f"{prefix}({cut_text(text, max_characters)}): "
         summarizer = self._registry.find_summarizer(type(obj))
         try:
             text = self._describe(summarizer, obj, depth)
@@ -399,7 +416,7 @@ class _Renderer:
         compact = depth >= config.max_depth
         result = summarizer.summarize(obj, config, compact=compact)
         if isinstance(result, str):
-            return _cut(result, config.max_characters)
+            return cut_text(result, config.max_characters)
         if not isinstance(result, Node):
             msg = f"a summarizer must return a str or a Node, but got {type(result)}"
             raise TypeError(msg)

@@ -92,7 +92,7 @@ default registry, like `NATIVE_SAMPLES` in `equality`):
 2. `compact` is `True` when the node is at the display depth. A leaf may use it (the default summarizer
    shows the type only when `compact` is `False`); a container ignores it (the engine uses
    `CompactRepr`).
-3. A leaf returns a `str`, which may have several lines. The engine cuts it at `max_characters`, so a
+3. A leaf returns a `str`, which may have several lines. The engine cuts it to at most `max_characters` characters (the `...` is part of the limit, as in `truncate_str`), so a
    leaf does not have to.
 4. Labels are anything: the engine writes `safe_str(label)` cut at `max_characters`.
 5. An exception (of `summarize`, of the children iterator, of a label's `str`) is the engine's

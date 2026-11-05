@@ -18,7 +18,7 @@ from coola.summary import (
     SummaryConfig,
     get_default_registry,
 )
-from coola.summary.engine import CompactRepr, render
+from coola.summary.engine import CompactRepr, cut_text, render
 from tests.helpers import DEEP_NESTING_DEPTH, nest
 
 REGISTRY = get_default_registry()
@@ -321,19 +321,29 @@ def test_render_hidden_items_of_a_nested_node() -> None:
 
 
 def test_render_max_characters_cuts_a_leaf() -> None:
-    assert run("abcdef", max_characters=3) == "<cl..."
+    assert run("abcdefghij", max_characters=20) == "<class 'str'> abc..."
+
+
+def test_render_max_characters_cuts_a_leaf_to_at_most_max_characters() -> None:
+    assert len(run("a" * 50, max_characters=20)) == 20
+
+
+def test_render_max_characters_smaller_than_the_header_cuts_the_header() -> None:
+    assert run("abcdef", max_characters=10) == "<class ..."
 
 
 def test_render_max_characters_cuts_the_text_of_a_leaf_child() -> None:
-    assert run(["abcdef"], max_characters=3) == "<class 'list'> (length=1)\n  (0): abc..."
+    assert run(["abcdefghijklmnopqrstuvwxyz"], max_characters=20) == (
+        "<class 'list'> (length=1)\n  (0): abcdefghijklmnopq..."
+    )
 
 
 def test_render_max_characters_cuts_a_label() -> None:
-    assert run({"abcdef": 1}, max_characters=3) == "<class 'dict'> (length=1)\n  (abc...): 1"
+    assert run({"abcdef": 1}, max_characters=5) == "<class 'dict'> (length=1)\n  (ab...): 1"
 
 
 def test_render_max_characters_zero() -> None:
-    assert run("abc", max_characters=0) == "..."
+    assert run("abc", max_characters=0) == ""
 
 
 def test_render_max_characters_none_does_not_cut() -> None:
@@ -341,7 +351,7 @@ def test_render_max_characters_none_does_not_cut() -> None:
 
 
 def test_render_default_max_characters_cuts_at_1000() -> None:
-    assert run("a" * 2000) == ("<class 'str'> " + "a" * 2000)[:1000] + "..."
+    assert run("a" * 2000) == "<class 'str'> " + "a" * 983 + "..."
 
 
 def test_render_max_characters_shortens_a_string_of_the_compact_form() -> None:
@@ -715,7 +725,7 @@ def test_compact_repr_ordered_dict_is_shown_with_its_repr() -> None:
 
 
 def test_compact_repr_other_type_is_cut_at_max_characters() -> None:
-    assert compact([Counter(range(100))], max_characters=10) == "[Counter({0...]"
+    assert compact([Counter(range(100))], max_characters=10) == "[Counter...]"
 
 
 def test_compact_repr_dataclass() -> None:
@@ -728,3 +738,33 @@ def test_compact_repr_failing_repr() -> None:
 
 def test_compact_repr_is_bounded_for_a_huge_list() -> None:
     assert compact(list(range(2_000_000)), max_items=3) == "[0, 1, 2, ...]"
+
+
+##############################
+#     Tests for cut_text     #
+##############################
+
+
+def test_cut_text_short_text_is_kept() -> None:
+    assert cut_text("abc", 3) == "abc"
+
+
+def test_cut_text_none_does_not_cut() -> None:
+    assert cut_text("a" * 100, None) == "a" * 100
+
+
+def test_cut_text_long_text_has_max_characters() -> None:
+    assert cut_text("abcdefgh", 6) == "abc..."
+
+
+def test_cut_text_limit_equal_to_the_fill() -> None:
+    assert cut_text("abcdefgh", 3) == "..."
+
+
+@pytest.mark.parametrize(("max_characters", "expected"), [(0, ""), (1, "."), (2, "..")])
+def test_cut_text_limit_smaller_than_the_fill(max_characters: int, expected: str) -> None:
+    assert cut_text("abcdefgh", max_characters) == expected
+
+
+def test_cut_text_empty_text() -> None:
+    assert cut_text("", 0) == ""
