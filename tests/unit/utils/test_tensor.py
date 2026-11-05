@@ -12,6 +12,7 @@ from coola.utils.tensor import (
     get_available_devices,
     is_cuda_available,
     is_mps_available,
+    sparse_components,
     to_tensor,
 )
 
@@ -181,3 +182,62 @@ def test_to_tensor_numpy_negative_strides() -> None:
 def test_to_tensor_no_torch() -> None:
     with pytest.raises(MissingPackageError, match=r"'torch' package is required"):
         to_tensor([1, 2, 3])
+
+
+#######################################
+#     Tests for sparse_components     #
+#######################################
+
+
+@torch_available
+def test_sparse_components_coo() -> None:
+    indices, values = sparse_components(torch.eye(2).to_sparse())
+    assert indices.tolist() == [[0, 1], [0, 1]]
+    assert values.tolist() == [1.0, 1.0]
+
+
+@torch_available
+def test_sparse_components_coo_is_coalesced() -> None:
+    indices, values = sparse_components(
+        torch.sparse_coo_tensor(torch.tensor([[1, 1]]), torch.tensor([1.0, 2.0]), (2,))
+    )
+    assert indices.tolist() == [[1]]
+    assert values.tolist() == [3.0]
+
+
+@torch_available
+def test_sparse_components_csr() -> None:
+    crow, col, values = sparse_components(torch.eye(2).to_sparse_csr())
+    assert crow.tolist() == [0, 1, 2]
+    assert col.tolist() == [0, 1]
+    assert values.tolist() == [1.0, 1.0]
+
+
+@torch_available
+def test_sparse_components_csc() -> None:
+    ccol, row, values = sparse_components(torch.eye(2).to_sparse_csc())
+    assert ccol.tolist() == [0, 1, 2]
+    assert row.tolist() == [0, 1]
+    assert values.tolist() == [1.0, 1.0]
+
+
+@torch_available
+def test_sparse_components_bsr() -> None:
+    crow, col, values = sparse_components(torch.eye(4).to_sparse_bsr((2, 2)))
+    assert crow.tolist() == [0, 1, 2]
+    assert col.tolist() == [0, 1]
+    assert values.shape == (2, 2, 2)
+
+
+@torch_available
+def test_sparse_components_bsc() -> None:
+    ccol, row, values = sparse_components(torch.eye(4).to_sparse_bsc((2, 2)))
+    assert ccol.tolist() == [0, 1, 2]
+    assert row.tolist() == [0, 1]
+    assert values.shape == (2, 2, 2)
+
+
+@torch_available
+def test_sparse_components_strided_tensor_is_not_supported() -> None:
+    with pytest.raises(TypeError, match=r"Unsupported tensor layout: torch\.strided"):
+        sparse_components(torch.eye(2))
