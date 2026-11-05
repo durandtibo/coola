@@ -489,8 +489,7 @@ def _same_dtypes(obj1: pd.Index | pd.DataFrame, obj2: pd.Index | pd.DataFrame) -
 
 
 def _same_dtype_list(dtypes1: Any, dtypes2: Any) -> bool:
-    r"""Indicate if two sequences of dtypes are the same, dtype by
-    dtype.
+    r"""Indicate if two sequences of dtypes are the same, dtype by dtype.
 
     Args:
         dtypes1: The first dtypes.
