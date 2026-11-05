@@ -1,11 +1,11 @@
 r"""Check that ``equality``, ``hashing``, ``summary`` and ``jsonable``
 support the same types.
 
-Each row is a type with a factory that builds equal objects. The
-modules are called on two objects built by the factory. The known gaps
-are listed in ``HASH_GAPS`` and ``JSON_GAPS`` and are ``xfail(strict=True)``: fixing a gap
-makes the test fail until the type is removed from the list, and a new
-type must be added to ``TYPES``.
+Each row is a type with a factory that builds equal objects. The modules
+are called on two objects built by the factory. The known gaps are
+listed in ``HASH_GAPS`` and ``JSON_GAPS`` and are
+``xfail(strict=True)``: fixing a gap makes the test fail until the type
+is removed from the list, and a new type must be added to ``TYPES``.
 """
 
 from __future__ import annotations

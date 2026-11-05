@@ -81,13 +81,13 @@ The simplest way to create a summary is using the `summarize()` function:
 
 All the options are keyword arguments of `summarize()`:
 
-| Option           | Default | Meaning                                                                                 |
-| ---------------- | ------- | --------------------------------------------------------------------------------------- |
-| `max_depth`      | `1`     | The number of levels that are expanded. The deeper nodes are shown on one line.         |
-| `max_items`      | `5`     | The maximum number of items, fields or columns shown for a node. `None` shows them all. |
+| Option           | Default | Meaning                                                                                    |
+| ---------------- | ------- | ------------------------------------------------------------------------------------------ |
+| `max_depth`      | `1`     | The number of levels that are expanded. The deeper nodes are shown on one line.            |
+| `max_items`      | `5`     | The maximum number of items, fields or columns shown for a node. `None` shows them all.    |
 | `max_characters` | `1000`  | The maximum number of characters of a text, `...` included. `None` does not cut the texts. |
-| `show_data`      | `False` | Show a bounded `repr` of the values of arrays, tensors and frames, not their metadata.  |
-| `registry`       | `None`  | The registry that gives the summarizer of each type (the default registry if `None`).   |
+| `show_data`      | `False` | Show a bounded `repr` of the values of arrays, tensors and frames, not their metadata.     |
+| `registry`       | `None`  | The registry that gives the summarizer of each type (the default registry if `None`).      |
 
 The options are validated before any work: a negative number raises a `ValueError`, and a value of
 the wrong type (a `bool` for `max_depth`, ...) raises a `TypeError`.

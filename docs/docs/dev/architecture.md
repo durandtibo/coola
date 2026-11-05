@@ -57,13 +57,13 @@ Packages fall into two groups:
 
 The allowed imports are:
 
-| Package      | May import                                                         |
-| ------------ | ------------------------------------------------------------------ |
-| `validation` | the standard library                                               |
-| `utils`      | the standard library and `validation`                              |
-| `formatting` | `utils` and `validation`                                           |
-| `display`    | `utils`, `validation` and `formatting`                             |
-| `registry`   | core packages (`utils`, `validation`, `formatting`)                |
+| Package      | May import                                                                                                                                         |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `validation` | the standard library                                                                                                                               |
+| `utils`      | the standard library and `validation`                                                                                                              |
+| `formatting` | `utils` and `validation`                                                                                                                           |
+| `display`    | `utils`, `validation` and `formatting`                                                                                                             |
+| `registry`   | core packages (`utils`, `validation`, `formatting`)                                                                                                |
 | a feature    | core packages and the features it is built on; never the `testing`; `equality`, `hashing`, `summary`, `recursive` and `iterator` never import `io` |
 
 The contract is enforced with [import-linter](https://import-linter.readthedocs.io/) (configured in

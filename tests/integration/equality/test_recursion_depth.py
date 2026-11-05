@@ -96,8 +96,8 @@ def test_objects_are_equal_max_depth_is_reached_before_the_interpreter_limit(
 def test_objects_are_equal_default_has_no_depth_limit(
     nest: Callable[[int], object],
 ) -> None:
-    """Test that a structure nested deeper than the former default
-    limit of 100 is compared, from a caller that is 100 frames deep."""
+    """Test that a structure nested deeper than the former default limit
+    of 100 is compared, from a caller that is 100 frames deep."""
     assert call_from_a_deep_caller(
         CALLER_FRAMES, lambda: objects_are_equal(nest(5_000), nest(5_000))
     )
