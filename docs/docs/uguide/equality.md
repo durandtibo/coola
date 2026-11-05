@@ -1082,6 +1082,11 @@ The columns are compared one by one, and the comparison stops at the first colum
 The numeric and duration columns follow the numeric rule (tolerance and `equal_nan`); the other
 columns, including the nested and `object` columns, are compared by the `equals` of pandas.
 
+`coola` is stricter than `equals` for categorical dtypes: two categoricals are equal only if
+their categories are in the same order and they have the same `ordered` flag (`equals` and `==`
+ignore the order of the categories of an unordered categorical). The order changes the codes,
+and the hash of the data depends on it.
+
 The time resolution is part of the dtype, as in NumPy: `timedelta64[s]` and `timedelta64[ns]` (or
 `datetime64[s]` and `datetime64[ns]`) are different dtypes, so two frames that hold the same instants
 with different resolutions are different. pandas 3 infers the resolution from how the values are

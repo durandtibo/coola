@@ -14,9 +14,12 @@ from coola.equality.tester.pandas import (
     PandasFrameTable,
     PandasIndexTable,
     PandasSeriesTable,
+    _dtype_label,
     _dtypes_difference,
     _index_difference,
     _index_difference_row,
+    _same_dtype,
+    _same_dtype_list,
     _series_difference,
     _short_list,
     get_default_testers,
@@ -31,6 +34,9 @@ else:
     pd = Mock()
 
 NAN = float("nan")
+
+CAT_AB = pd.CategoricalDtype(["a", "b"])
+CAT_BA = pd.CategoricalDtype(["b", "a"])
 
 PANDAS_DATAFRAME_EQUAL = [
     pytest.param(
@@ -856,7 +862,11 @@ STRUCTURE_REASONS = [
     pytest.param(
         pd.Categorical(["a"]),
         pd.Categorical(["a"], categories=["a", "b"]),
-        "arrays have a different structure: dtypes differ: category vs category",
+        (
+            "arrays have a different structure: dtypes differ: "
+            "category(categories=['a'], ordered=False) vs "
+            "category(categories=['a', 'b'], ordered=False)"
+        ),
         id="array dtype",
     ),
     pytest.param(
@@ -1063,3 +1073,132 @@ def test_index_difference_row_first_position() -> None:
 @pandas_available
 def test_index_difference_row_equal_indexes() -> None:
     assert _index_difference_row(pd.Index(["a"]), pd.Index(["a"])) is None
+
+
+##############################################
+#     Tests for the order of the categories  #
+##############################################
+
+
+@pandas_available
+def test_objects_are_equal_categorical_series_same_categories_same_order() -> None:
+    assert objects_are_equal(pd.Series(["a"], dtype=CAT_AB), pd.Series(["a"], dtype=CAT_AB))
+
+
+@pandas_available
+def test_objects_are_equal_categorical_series_different_order_of_categories() -> None:
+    assert not objects_are_equal(pd.Series(["a"], dtype=CAT_AB), pd.Series(["a"], dtype=CAT_BA))
+
+
+@pandas_available
+def test_objects_are_equal_categorical_series_different_ordered_flag() -> None:
+    assert not objects_are_equal(
+        pd.Series(["a"], dtype=CAT_AB),
+        pd.Series(["a"], dtype=pd.CategoricalDtype(["a", "b"], ordered=True)),
+    )
+
+
+@pandas_available
+def test_objects_are_equal_categorical_frame_different_order_of_categories() -> None:
+    assert not objects_are_equal(
+        pd.DataFrame({"a": pd.Series(["a"], dtype=CAT_AB)}),
+        pd.DataFrame({"a": pd.Series(["a"], dtype=CAT_BA)}),
+    )
+
+
+@pandas_available
+def test_objects_are_equal_categorical_array_different_order_of_categories() -> None:
+    assert not objects_are_equal(
+        pd.Categorical(["a"], dtype=CAT_AB), pd.Categorical(["a"], dtype=CAT_BA)
+    )
+
+
+@pandas_available
+def test_objects_are_equal_categorical_index_different_order_of_categories() -> None:
+    assert not objects_are_equal(
+        pd.CategoricalIndex(["a"], dtype=CAT_AB), pd.CategoricalIndex(["a"], dtype=CAT_BA)
+    )
+
+
+@pandas_available
+def test_objects_are_equal_multi_index_with_categorical_level_different_order() -> None:
+    assert not objects_are_equal(
+        pd.MultiIndex.from_arrays([pd.Categorical(["a"], dtype=CAT_AB)]),
+        pd.MultiIndex.from_arrays([pd.Categorical(["a"], dtype=CAT_BA)]),
+    )
+
+
+@pandas_available
+def test_same_dtype_same_categories_same_order() -> None:
+    assert _same_dtype(CAT_AB, pd.CategoricalDtype(["a", "b"]))
+
+
+@pandas_available
+def test_same_dtype_different_order_of_categories() -> None:
+    assert not _same_dtype(CAT_AB, CAT_BA)
+
+
+@pandas_available
+def test_same_dtype_different_ordered_flag() -> None:
+    assert not _same_dtype(CAT_AB, pd.CategoricalDtype(["a", "b"], ordered=True))
+
+
+@pandas_available
+def test_same_dtype_different_categories() -> None:
+    assert not _same_dtype(CAT_AB, pd.CategoricalDtype(["a", "c"]))
+
+
+@pandas_available
+def test_same_dtype_categorical_and_object() -> None:
+    assert not _same_dtype(CAT_AB, pd.Series(["a"]).dtype)
+
+
+@pandas_available
+def test_same_dtype_equal_numpy_dtypes() -> None:
+    assert _same_dtype(pd.Series([1]).dtype, pd.Series([2]).dtype)
+
+
+@pandas_available
+def test_same_dtype_different_numpy_dtypes() -> None:
+    assert not _same_dtype(pd.Series([1]).dtype, pd.Series([1.0]).dtype)
+
+
+@pandas_available
+def test_same_dtype_list_same_dtypes() -> None:
+    assert _same_dtype_list([CAT_AB, "int64"], [CAT_AB, "int64"])
+
+
+@pandas_available
+def test_same_dtype_list_different_order_of_categories() -> None:
+    assert not _same_dtype_list([CAT_AB], [CAT_BA])
+
+
+@pandas_available
+def test_same_dtype_list_different_lengths() -> None:
+    assert not _same_dtype_list([CAT_AB], [CAT_AB, CAT_AB])
+
+
+@pandas_available
+def test_dtype_label_categorical() -> None:
+    assert _dtype_label(CAT_BA) == "category(categories=['b', 'a'], ordered=False)"
+
+
+@pandas_available
+def test_dtype_label_ordered_categorical() -> None:
+    assert (
+        _dtype_label(pd.CategoricalDtype(["a"], ordered=True))
+        == "category(categories=['a'], ordered=True)"
+    )
+
+
+@pandas_available
+def test_dtype_label_other_dtype() -> None:
+    assert _dtype_label(pd.Series([1]).dtype) == "int64"
+
+
+@pandas_available
+def test_dtypes_difference_categorical_order() -> None:
+    assert _dtypes_difference(["a"], [CAT_AB], [CAT_BA]) == (
+        "dtypes differ: a: category(categories=['a', 'b'], ordered=False) vs "
+        "category(categories=['b', 'a'], ordered=False)"
+    )

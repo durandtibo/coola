@@ -86,7 +86,6 @@ def test_equal_frames_have_the_same_hash(spec: tuple[Any, ...]) -> None:
     assert hash_object(make_frame(spec)) == hash_object(make_frame(spec))
 
 
-@pytest.mark.xfail(reason="pandas metadata")
 @given(first=frame_specs, second=frame_specs)
 def test_different_frames_have_different_hashes(
     first: tuple[Any, ...], second: tuple[Any, ...]

@@ -76,8 +76,32 @@ def _column_values(column: Any) -> Any:
     """
     dtype = column.dtype
     if isinstance(dtype, (np.dtype, pd.CategoricalDtype, pd.SparseDtype)):
-        return column.to_numpy()
+        return _normalize_missing(column.to_numpy())
     return column.to_numpy(dtype=object, na_value=None)
+
+
+def _normalize_missing(values: np.ndarray) -> np.ndarray:
+    r"""Replace the missing values of an object array by ``None``.
+
+    ``None``, ``NaN``, ``NaT`` and ``pandas.NA`` in an ``object``
+    array are equal for ``objects_are_equal`` (as for
+    ``pandas.Series.equals``), so they must have the same hash.
+
+    Args:
+        values: The values. Only an ``object`` array is changed.
+
+    Returns:
+        The values, where a missing value of an ``object`` array is
+            ``None``. The input is not modified.
+    """
+    if values.dtype != object:
+        return values
+    mask = pd.isna(values)
+    if not mask.any():
+        return values
+    values = values.copy()
+    values[mask] = None
+    return values
 
 
 def _index_key(index: pd.Index) -> list[Any]:

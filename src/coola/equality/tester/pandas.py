@@ -147,7 +147,7 @@ class PandasSeriesTable:
         s1, s2 = self._series, other._series
         return (
             s1.shape == s2.shape
-            and s1.dtype == s2.dtype
+            and _same_dtype(s1.dtype, s2.dtype)
             and _same_label(s1.name, s2.name)
             and _same_index(s1.index, s2.index, ctx)
         )
@@ -165,8 +165,8 @@ class PandasSeriesTable:
         s1, s2 = self._series, other._series
         if s1.shape != s2.shape:
             return f"shapes differ: {s1.shape} vs {s2.shape}"
-        if s1.dtype != s2.dtype:
-            return f"dtypes differ: {s1.dtype} vs {s2.dtype}"
+        if not _same_dtype(s1.dtype, s2.dtype):
+            return f"dtypes differ: {_dtype_label(s1.dtype)} vs {_dtype_label(s2.dtype)}"
         if not _same_label(s1.name, s2.name):
             return f"names differ: {s1.name!r} vs {s2.name!r}"
         return _index_difference("index", s1.index, s2.index, ctx)
@@ -217,7 +217,8 @@ class PandasArrayTable:
                 ``False``.
         """
         return bool(
-            self._array.shape == other._array.shape and self._array.dtype == other._array.dtype
+            self._array.shape == other._array.shape
+            and _same_dtype(self._array.dtype, other._array.dtype)
         )
 
     def structure_difference(self, other: PandasArrayTable, ctx: Engine) -> str:  # noqa: ARG002
@@ -233,7 +234,7 @@ class PandasArrayTable:
         a1, a2 = self._array, other._array
         if a1.shape != a2.shape:
             return f"shapes differ: {a1.shape} vs {a2.shape}"
-        return f"dtypes differ: {a1.dtype} vs {a2.dtype}"
+        return f"dtypes differ: {_dtype_label(a1.dtype)} vs {_dtype_label(a2.dtype)}"
 
     def columns(self) -> Iterator[Column]:
         r"""Iterate over the columns.
@@ -403,9 +404,9 @@ def _dtypes_difference(names: Any, dtypes1: Any, dtypes2: Any) -> str:
         A text that lists the first columns with different dtypes.
     """
     pairs = [
-        f"{name}: {dtype1} vs {dtype2}"
+        f"{name}: {_dtype_label(dtype1)} vs {_dtype_label(dtype2)}"
         for name, dtype1, dtype2 in zip(names, dtypes1, dtypes2, strict=True)
-        if dtype1 != dtype2
+        if not _same_dtype(dtype1, dtype2)
     ]
     shown = ", ".join(pairs[:3])
     more = f" (+{len(pairs) - 3} more)" if len(pairs) > 3 else ""
@@ -432,7 +433,9 @@ def _index_difference(label: str, index1: pd.Index, index2: pd.Index, ctx: Engin
     if index1.names != index2.names:
         return f"{label} names differ: {list(index1.names)} vs {list(index2.names)}"
     if not _same_dtypes(index1, index2):
-        return f"{label} dtypes differ: {index1.dtype} vs {index2.dtype}"
+        return (
+            f"{label} dtypes differ: {_dtype_label(index1.dtype)} vs {_dtype_label(index2.dtype)}"
+        )
     if not ctx.equal_nan and _index_has_nan(index1):
         return f"{label} has a NaN, which is not equal to NaN (use equal_nan=True)"
     verb = "differ" if label == "columns" else "values differ"
@@ -479,10 +482,70 @@ def _same_dtypes(obj1: pd.Index | pd.DataFrame, obj2: pd.Index | pd.DataFrame) -
         ``True`` if the dtypes are the same, otherwise ``False``.
     """
     if isinstance(obj1, pd.MultiIndex):
-        return list(obj1.dtypes) == list(cast("pd.MultiIndex", obj2).dtypes)
+        return _same_dtype_list(obj1.dtypes, cast("pd.MultiIndex", obj2).dtypes)
     if isinstance(obj1, pd.DataFrame):
-        return list(obj1.dtypes) == list(cast("pd.DataFrame", obj2).dtypes)
-    return bool(obj1.dtype == obj2.dtype)
+        return _same_dtype_list(obj1.dtypes, cast("pd.DataFrame", obj2).dtypes)
+    return _same_dtype(obj1.dtype, obj2.dtype)
+
+
+def _same_dtype_list(dtypes1: Any, dtypes2: Any) -> bool:
+    r"""Indicate if two sequences of dtypes are the same, dtype by
+    dtype.
+
+    Args:
+        dtypes1: The first dtypes.
+        dtypes2: The second dtypes.
+
+    Returns:
+        ``True`` if the sequences have the same length and the dtypes
+            are pairwise the same (see ``_same_dtype``), otherwise
+            ``False``.
+    """
+    dtypes1, dtypes2 = list(dtypes1), list(dtypes2)
+    return len(dtypes1) == len(dtypes2) and all(
+        _same_dtype(d1, d2) for d1, d2 in zip(dtypes1, dtypes2, strict=True)
+    )
+
+
+def _same_dtype(dtype1: Any, dtype2: Any) -> bool:
+    r"""Indicate if two dtypes are the same.
+
+    It is stricter than ``==`` for the categorical dtypes: two
+    categorical dtypes are the same only if their categories are in
+    the same order, ordered or not, and they have the same ``ordered``
+    flag (``==`` ignores the order of the categories of an unordered
+    categorical dtype, and so does ``pandas.Series.equals``).
+
+    Args:
+        dtype1: The first dtype.
+        dtype2: The second dtype.
+
+    Returns:
+        ``True`` if the dtypes are the same, otherwise ``False``.
+    """
+    if not dtype1 == dtype2:  # noqa: SIM201
+        return False
+    if isinstance(dtype1, pd.CategoricalDtype) and isinstance(dtype2, pd.CategoricalDtype):
+        return dtype1.ordered == dtype2.ordered and list(dtype1.categories) == list(
+            dtype2.categories
+        )
+    return True
+
+
+def _dtype_label(dtype: Any) -> str:
+    r"""Return a text that describes a dtype in a message.
+
+    Args:
+        dtype: The dtype.
+
+    Returns:
+        ``category(categories=[...], ordered=...)`` for a categorical
+            dtype, which shows the categories and their order, and
+            ``str(dtype)`` otherwise.
+    """
+    if isinstance(dtype, pd.CategoricalDtype):
+        return f"category(categories={list(dtype.categories)}, ordered={dtype.ordered})"
+    return str(dtype)
 
 
 def _column(name: object, series: pd.Series) -> Column:
