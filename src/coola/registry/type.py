@@ -304,6 +304,9 @@ class TypeRegistry(Registry[type, T], Generic[T]):
             "Use different types or set exist_ok=True to override."
         )
 
+    def _has_pending_entries(self) -> bool:
+        return bool(self._lazy)
+
     def _pending_msg(self) -> str:
         lines = [
             f"(fallback) {predicate!r}: {handler}" for predicate, handler in self._fallbacks.items()
