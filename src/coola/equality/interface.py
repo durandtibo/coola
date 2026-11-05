@@ -22,7 +22,7 @@ def objects_are_allclose(
     rtol: float = 1e-5,
     atol: float = 1e-8,
     equal_nan: bool = False,
-    max_depth: int = 100,
+    max_depth: int | None = None,
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
     r"""Indicate if two objects are equal within a tolerance.
@@ -54,9 +54,11 @@ def objects_are_allclose(
         max_depth: The nesting limit: the maximum nesting level of the
             compared objects. A deeper structure raises
             ``MaxDepthExceededError`` (it is not a display depth like
-            the ``max_depth`` of ``summarize``). Must be positive.
-            See the "Common options" section of the equality user
-            guide. Defaults to 100.
+            the ``max_depth`` of ``summarize``). Must be positive, or
+            ``None`` for no limit: the engine uses an explicit stack, so
+            a deep structure does not raise a ``RecursionError``. See
+            the "Common options" section of the equality user guide.
+            Defaults to ``None``.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
 
@@ -102,7 +104,7 @@ def objects_are_equal(
     expected: object,
     *,
     equal_nan: bool = False,
-    max_depth: int = 100,
+    max_depth: int | None = None,
     registry: EqualityTesterRegistry | None = None,
 ) -> bool:
     r"""Indicate if two objects are equal or not.
@@ -130,9 +132,11 @@ def objects_are_equal(
         max_depth: The nesting limit: the maximum nesting level of the
             compared objects. A deeper structure raises
             ``MaxDepthExceededError`` (it is not a display depth like
-            the ``max_depth`` of ``summarize``). Must be positive.
-            See the "Common options" section of the equality user
-            guide. Defaults to 100.
+            the ``max_depth`` of ``summarize``). Must be positive, or
+            ``None`` for no limit: the engine uses an explicit stack, so
+            a deep structure does not raise a ``RecursionError``. See
+            the "Common options" section of the equality user guide.
+            Defaults to ``None``.
         registry: Registry used to resolve type-specific equality testers.
             If ``None``, the default registry is used.
 

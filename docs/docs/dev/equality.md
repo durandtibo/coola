@@ -57,7 +57,7 @@ iteration order is the one reported). For each pair:
    a type is met, so the registry lookup is paid once per type. A registration made during a
    comparison is seen by the next call.
 4. The tester is called. A `bool` is the verdict. An iterator is a container: if its pair is already
-   on the stack the pair is equal (cycle); if the stack is `max_depth` deep, `MaxDepthExceededError`
+   on the stack the pair is equal (cycle); if `max_depth` is set and the stack is that deep, `MaxDepthExceededError`
    is raised; otherwise it is pushed and the loop continues with its first child.
 5. On `False`, the path is built once from the path parts of the stack, the part of the failing pair
    and the parts given to `ctx.fail`.
@@ -146,7 +146,7 @@ after the table give the longer arguments.
 | Tables are one leaf, reported by column and row                        | simple and fast to compare; the row is found only when explaining | a second pass per library, and no row for a nested column |
 | Time resolution is part of the dtype                                   | as in NumPy                                           | casting to the finer resolution is friendlier but hides a dtype difference |
 | Library testers are public                                             | users can compose, subclass or register them          | private testers shrink the public surface                                  |
-| `max_depth=100` and `MaxDepthExceededError`                            | bound the work on pathological structures             | no limit runs until memory is exhausted on an infinite structure           |
+| `max_depth` (default `None`) and `MaxDepthExceededError`               | opt-in guard on pathological structures; a deep valid structure is compared | by default, no limit runs until memory is exhausted on an infinite structure |
 | `compare(rtol, atol)` instead of a `Tolerance` argument                | the five functions share the same keywords            | a `Tolerance` argument is reusable, but unlike the array libraries         |
 | No root `repr` in `ComparisonResult`                                   | the failure path does not depend on the size of roots | `repr` of the roots costs 20x on a failing million-element comparison      |
 
@@ -261,11 +261,11 @@ call is seen by the next call. A lock-free immutable snapshot inside the registr
 ## Public API
 
 ```python
-objects_are_equal(actual, expected, *, equal_nan=False, max_depth=100, registry=None) -> bool
-objects_are_allclose(actual, expected, *, rtol=1e-5, atol=1e-8, equal_nan=False, max_depth=100, registry=None) -> bool
-compare(actual, expected, *, rtol=0.0, atol=0.0, equal_nan=False, max_depth=100, registry=None) -> ComparisonResult
-assert_objects_equal(actual, expected, *, equal_nan=False, max_depth=100, registry=None, root="actual") -> None
-assert_objects_allclose(actual, expected, *, rtol=1e-5, atol=1e-8, equal_nan=False, max_depth=100, registry=None, root="actual") -> None
+objects_are_equal(actual, expected, *, equal_nan=False, max_depth=None, registry=None) -> bool
+objects_are_allclose(actual, expected, *, rtol=1e-5, atol=1e-8, equal_nan=False, max_depth=None, registry=None) -> bool
+compare(actual, expected, *, rtol=0.0, atol=0.0, equal_nan=False, max_depth=None, registry=None) -> ComparisonResult
+assert_objects_equal(actual, expected, *, equal_nan=False, max_depth=None, registry=None, root="actual") -> None
+assert_objects_allclose(actual, expected, *, rtol=1e-5, atol=1e-8, equal_nan=False, max_depth=None, registry=None, root="actual") -> None
 ```
 
 The five functions have the same keywords with the same meaning. `compare` is exact unless `rtol` or
@@ -283,7 +283,7 @@ class EqualityConfig:  # shareable, hashable, thread-safe
     registry: EqualityTesterRegistry
     tolerance: Tolerance = Tolerance()
     equal_nan: bool = False
-    max_depth: int = 100  # validated: positive int, not a bool
+    max_depth: int | None = None  # validated: None (no limit) or a positive int, not a bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -509,7 +509,7 @@ def run(self, a, e):  # Engine.run
                 if result is True or result is False:
                     ok = result
                 elif (key := (id(a), id(e))) not in visiting:  # a pair on the stack is equal
-                    if len(stack) >= self.max_depth:
+                    if self.max_depth is not None and len(stack) >= self.max_depth:
                         raise MaxDepthExceededError
                     visiting.add(key)
                     stack.append(result)

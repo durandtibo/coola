@@ -646,6 +646,18 @@ def test_max_depth_error_message() -> None:
         objects_are_equal(nest([], 50), nest([], 50), max_depth=10)
 
 
+def test_objects_are_equal_max_depth_none_does_not_limit_the_nesting() -> None:
+    assert objects_are_equal(nest(1, 1_000), nest(1, 1_000), max_depth=None)
+
+
+def test_objects_are_equal_default_does_not_limit_the_nesting() -> None:
+    assert objects_are_equal(nest(1, 1_000), nest(1, 1_000))
+
+
+def test_objects_are_allclose_default_does_not_limit_the_nesting() -> None:
+    assert objects_are_allclose(nest(1, 1_000), nest(1, 1_000))
+
+
 #################################################
 #     Tests for the identity shortcut (NaN)     #
 #################################################

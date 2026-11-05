@@ -247,6 +247,10 @@ def test_run_depth_exceeded_raises(registry: EqualityTesterRegistry) -> None:
         _engine(registry, max_depth=5).run(_nested(10), _nested(10))
 
 
+def test_run_depth_none_has_no_limit(registry: EqualityTesterRegistry) -> None:
+    assert _engine(registry, max_depth=None).run(_nested(1_000), _nested(1_000))
+
+
 def test_run_depth_at_the_limit_is_accepted(registry: EqualityTesterRegistry) -> None:
     assert _engine(registry, max_depth=10).run(_nested(10), _nested(10))
 

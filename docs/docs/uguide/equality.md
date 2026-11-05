@@ -727,7 +727,7 @@ and `assert_objects_allclose`) share the same options, with the same meaning:
 | Option      | Meaning                                                                                                                                                                                          |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `equal_nan` | Treat `NaN` as equal to `NaN`. See [Handling NaN Values](#handling-nan-values).                                                                                                                  |
-| `max_depth` | The nesting limit (default 100): a deeper structure raises `MaxDepthExceededError`. See [Controlling Recursion Depth](#controlling-recursion-depth). It is not the display depth of `summarize`. |
+| `max_depth` | The nesting limit (default `None`, no limit): a deeper structure raises `MaxDepthExceededError`. See [Controlling Recursion Depth](#controlling-recursion-depth). It is not the display depth of `summarize`. |
 | `registry`  | The registry that maps a type to its tester (default: the default registry). See [Using Custom Registries](#using-custom-registries).                                                            |
 
 The `*_allclose` functions also take `rtol` and `atol`. `compare` takes `rtol` and `atol` too, and is
@@ -747,7 +747,7 @@ There are two special cases, and only the second raises:
 | Cycle (a container that contains itself) | No error: a pair that is already being compared is considered equal                  |
 | Nesting deeper than `max_depth`          | `coola.equality.MaxDepthExceededError`, a plain `Exception` (not a `RecursionError`) |
 
-`max_depth` must be a positive `int` (not a `bool`), otherwise a `ValueError` (not positive) or a
+`max_depth` must be `None` (the default, no limit) or a positive `int` (not a `bool`), otherwise a `ValueError` (not positive) or a
 `TypeError` (not an `int`) is raised. `rtol` and `atol` must be non-negative finite real numbers
 (not `bool`).
 
@@ -755,7 +755,8 @@ The comparison does not recurse: the engine keeps the child iterators on an expl
 `RecursionError` cannot happen whatever the nesting (100 000 nested dictionaries compare under the
 default interpreter limit). `max_depth` is therefore a policy, not a safety net: it bounds the work
 and the memory on a pathological structure, for example an object that creates a new child each time
-an attribute is read. The `max_depth` parameter sets the maximum nesting level that will be compared. It is a
+an attribute is read. By default there is no limit, so a deep but valid structure is compared. The
+`max_depth` parameter sets the maximum nesting level that will be compared. It is a
 **limit that raises** (`MaxDepthExceededError`) for a deeper structure, unlike the `max_depth` of
 `summarize`, which is a **display depth** that truncates the output:
 
@@ -774,8 +775,9 @@ True
 
 ```
 
-The default `max_depth` is 100, which is more than the nesting of usual data (JSON-like documents,
-configurations, model outputs). Raise it if a legitimate structure is deeper.
+The default `max_depth` is `None`: the nesting is not limited. Set it to a number (for example `100`)
+to guard against a structure that is deeper than expected, such as an object that creates a new child
+each time an attribute is read.
 
 ### Using Custom Registries
 

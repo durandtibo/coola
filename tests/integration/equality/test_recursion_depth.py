@@ -81,19 +81,34 @@ def call_from_a_deep_caller(frames: int, function: Callable[[], bool]) -> bool:
 
 
 @pytest.mark.parametrize("nest", CASES)
-def test_objects_are_equal_default_max_depth_is_reached_before_the_interpreter_limit(
+def test_objects_are_equal_max_depth_is_reached_before_the_interpreter_limit(
     nest: Callable[[int], object],
 ) -> None:
-    """Test that the default ``max_depth`` of 100 is below the
+    """Test that an explicit ``max_depth`` of 100 is below the
     interpreter limit, from a caller that is 100 frames deep."""
     with pytest.raises(MaxDepthExceededError, match=r"Maximum recursion depth \(100\) exceeded"):
-        call_from_a_deep_caller(CALLER_FRAMES, lambda: objects_are_equal(nest(102), nest(102)))
+        call_from_a_deep_caller(
+            CALLER_FRAMES, lambda: objects_are_equal(nest(102), nest(102), max_depth=100)
+        )
 
 
 @pytest.mark.parametrize("nest", CASES)
-def test_objects_are_equal_default_max_depth_accepts_100_levels(
+def test_objects_are_equal_default_has_no_depth_limit(
     nest: Callable[[int], object],
 ) -> None:
-    """Test that 100 nested levels are compared with the default
-    ``max_depth``, from a caller that is 100 frames deep."""
-    assert call_from_a_deep_caller(CALLER_FRAMES, lambda: objects_are_equal(nest(100), nest(100)))
+    """Test that a structure nested deeper than the former default
+    limit of 100 is compared, from a caller that is 100 frames deep."""
+    assert call_from_a_deep_caller(
+        CALLER_FRAMES, lambda: objects_are_equal(nest(5_000), nest(5_000))
+    )
+
+
+@pytest.mark.parametrize("nest", CASES)
+def test_objects_are_equal_max_depth_accepts_100_levels(
+    nest: Callable[[int], object],
+) -> None:
+    """Test that 100 nested levels are compared with ``max_depth=100``,
+    from a caller that is 100 frames deep."""
+    assert call_from_a_deep_caller(
+        CALLER_FRAMES, lambda: objects_are_equal(nest(100), nest(100), max_depth=100)
+    )
