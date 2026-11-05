@@ -19,7 +19,7 @@ def test_bloom_filter_incorrect_expected_items(expected_items: int) -> None:
 
 @pytest.mark.parametrize("fp_rate", [0.0, 1.0, -0.1, 1.1])
 def test_bloom_filter_incorrect_fp_rate(fp_rate: float) -> None:
-    with pytest.raises(ValueError, match=r"fp_rate must be in \(0, 1\)"):
+    with pytest.raises(ValueError, match=r"fp_rate must be in the range \(0, 1\)"):
         BloomFilter(expected_items=100, fp_rate=fp_rate)
 
 

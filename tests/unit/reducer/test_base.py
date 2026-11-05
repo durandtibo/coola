@@ -93,7 +93,7 @@ def test_base_reducer_quantile_calls_prepare_then_the_computation(
 def test_base_reducer_quantile_validates_the_quantiles_before_prepare(
     reducer: RecordingReducer,
 ) -> None:
-    with pytest.raises(ValueError, match=r"quantiles must be in \[0, 1\], got 2"):
+    with pytest.raises(ValueError, match=r"quantiles must be in the range \[0, 1\], got 2"):
         reducer.quantile([1, 2], [2])
     assert reducer.calls == []
 

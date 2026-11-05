@@ -462,14 +462,14 @@ def test_reducers_empty_sequence_error_is_a_value_error(reducer: BaseReducer) ->
 def test_reducers_quantile_invalid_quantiles_raise(
     reducer: BaseReducer, quantiles: list[float]
 ) -> None:
-    with pytest.raises(ValueError, match=r"quantiles must be in \[0, 1\]"):
+    with pytest.raises(ValueError, match=r"quantiles must be in the range \[0, 1\]"):
         reducer.quantile([1, 2, 3], quantiles)
 
 
 def test_reducers_quantile_invalid_quantiles_are_checked_before_the_values(
     reducer: BaseReducer,
 ) -> None:
-    with pytest.raises(ValueError, match=r"quantiles must be in \[0, 1\], got 2"):
+    with pytest.raises(ValueError, match=r"quantiles must be in the range \[0, 1\], got 2"):
         reducer.quantile([], [2])
 
 

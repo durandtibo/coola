@@ -8,7 +8,7 @@ import hashlib
 import math
 from typing import TYPE_CHECKING
 
-from coola.validation import validate_gt
+from coola.validation import validate_gt, validate_range
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -32,6 +32,21 @@ class BloomFilter:
         ``add_and_check`` calls can lose bits. Protect it with a lock if
         it is shared between threads.
 
+    Args:
+        expected_items: Approximate number of unique items the
+            filter is expected to hold. Used to size the bit array
+            for the requested false-positive rate; overestimating
+            is safe and simply uses more memory, while
+            underestimating raises the effective false-positive
+            rate as more items are added than planned for.
+        fp_rate: Target false-positive probability once
+            approximately ``expected_items`` unique items have been
+            added, expressed as a value in ``(0, 1)``.
+
+    Raises:
+        ValueError: if ``expected_items`` is not positive or
+            ``fp_rate`` is not in ``(0, 1)``.
+
     Example:
         ```pycon
         >>> from coola.utils.bloom_filter import BloomFilter
@@ -49,27 +64,8 @@ class BloomFilter:
     """
 
     def __init__(self, expected_items: int = 1_000_000, fp_rate: float = 0.01) -> None:
-        r"""Initialize the filter's bit array and hash count.
-
-        Args:
-            expected_items: Approximate number of unique items the
-                filter is expected to hold. Used to size the bit array
-                for the requested false-positive rate; overestimating
-                is safe and simply uses more memory, while
-                underestimating raises the effective false-positive
-                rate as more items are added than planned for.
-            fp_rate: Target false-positive probability once
-                approximately ``expected_items`` unique items have been
-                added, expressed as a value in ``(0, 1)``.
-
-        Raises:
-            ValueError: if ``expected_items`` is not positive or
-                ``fp_rate`` is not in ``(0, 1)``.
-        """
         validate_gt(expected_items, 0, name="expected_items")
-        if not 0 < fp_rate < 1:
-            msg = f"fp_rate must be in (0, 1), but received {fp_rate}"
-            raise ValueError(msg)
+        validate_range(fp_rate, 0, 1, low_inclusive=False, high_inclusive=False, name="fp_rate")
         self.size: int = self._optimal_size(expected_items, fp_rate)
         self.hash_count: int = self._optimal_hash_count(self.size, expected_items)
         self.bits: bytearray = bytearray(self.size // 8 + 1)
