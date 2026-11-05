@@ -3,7 +3,9 @@ r"""Define the tasks that are executed with invoke."""
 from __future__ import annotations
 
 from invoke import Context, Task
-from invoke_tasklib import ns
+from invoke_tasklib import make_ns
+
+ns = make_ns()
 
 __all__ = ["ns"]
 
