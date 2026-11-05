@@ -7,11 +7,14 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.equality import compare, objects_are_allclose, objects_are_equal
+from coola.equality.config import EqualityConfig
+from coola.equality.engine import Engine
 from coola.equality.tester import TableEqualityTester
 from coola.equality.tester.polars import (
     PolarsFrameTable,
     PolarsSeriesTable,
     _column,
+    _series_difference,
     get_default_testers,
 )
 from coola.testing.marks import numpy_available, polars_available
@@ -406,13 +409,13 @@ def test_frame_integers_above_2_53_are_exact() -> None:
 @numpy_available
 def test_frame_compare_different_values() -> None:
     result = compare(pl.DataFrame({"a": [1], "b": [1]}), pl.DataFrame({"a": [1], "b": [2]}))
-    assert result.reason == "tables have different values: column 'b' differs"
+    assert result.reason == "tables have different values: column 'b' differs at row 0: 1 vs 2"
 
 
 @polars_available
 def test_frame_compare_different_structure() -> None:
     result = compare(pl.DataFrame({"a": [1]}), pl.DataFrame({"b": [1]}))
-    assert result.reason == "tables have a different structure"
+    assert result.reason == "tables have a different structure: columns differ: ['a'] vs ['b']"
 
 
 @polars_available
@@ -429,13 +432,13 @@ def test_frame_compare_the_whole_result() -> None:
     assert (result.equal, result.path, result.reason) == (
         False,
         (),
-        "tables have different values: column 'a' differs",
+        "tables have different values: column 'a' differs at row 0: 1 vs 2",
     )
 
 
-########################################
+#######################################
 #     Tests for the polars Series     #
-########################################
+#######################################
 
 
 @polars_available
@@ -480,17 +483,22 @@ def test_series_tolerance() -> None:
 @polars_available
 @numpy_available
 def test_series_compare_different_values() -> None:
-    assert compare(pl.Series([1]), pl.Series([2])).reason == "series have different values"
+    assert (
+        compare(pl.Series([1]), pl.Series([2])).reason
+        == "series have different values at row 0: 1 vs 2"
+    )
 
 
 @polars_available
 def test_series_compare_different_structure() -> None:
-    assert compare(pl.Series([1]), pl.Series([1, 2])).reason == "series have a different structure"
+    assert compare(pl.Series([1]), pl.Series([1, 2])).reason == (
+        "series have a different structure: shapes differ: (1,) vs (2,)"
+    )
 
 
-###################################
+##################################
 #     Tests for the adapters     #
-###################################
+##################################
 
 
 @polars_available
@@ -554,3 +562,130 @@ def test_column_requires_numpy(series: Any) -> None:
 def test_column_exact_does_not_require_numpy(series: Any) -> None:
     with patch("coola.equality.tester.polars.check_numpy", _raise_missing_numpy):
         assert _column("a", series).kind == "exact"
+
+
+###################################################
+#     Tests for the reason of the differences     #
+###################################################
+
+STRUCTURE_REASONS = [
+    pytest.param(
+        pl.DataFrame({"a": [1, 2]}),
+        pl.DataFrame({"a": [1]}),
+        "tables have a different structure: shapes differ: (2, 1) vs (1, 1)",
+        id="frame shape",
+    ),
+    pytest.param(
+        pl.DataFrame({"a": [1], "b": [1]}),
+        pl.DataFrame({"b": [1], "a": [1]}),
+        "tables have a different structure: columns differ: ['a', 'b'] vs ['b', 'a']",
+        id="frame column order",
+    ),
+    pytest.param(
+        pl.DataFrame({"a": [1], "b": [1]}),
+        pl.DataFrame({"a": [1.0], "b": [1]}),
+        "tables have a different structure: dtypes differ: a: Int64 vs Float64",
+        id="frame dtype",
+    ),
+    pytest.param(
+        pl.Series("a", [1, 2]),
+        pl.Series("a", [1]),
+        "series have a different structure: shapes differ: (2,) vs (1,)",
+        id="series shape",
+    ),
+    pytest.param(
+        pl.Series("a", [1]),
+        pl.Series("b", [1]),
+        "series have a different structure: names differ: 'a' vs 'b'",
+        id="series name",
+    ),
+    pytest.param(
+        pl.Series("a", [1]),
+        pl.Series("a", [1.0]),
+        "series have a different structure: dtypes differ: Int64 vs Float64",
+        id="series dtype",
+    ),
+]
+
+
+@polars_available
+@pytest.mark.parametrize(("actual", "expected", "reason"), STRUCTURE_REASONS)
+def test_compare_says_what_differs_in_the_structure(
+    actual: Any, expected: Any, reason: str
+) -> None:
+    assert compare(actual, expected).reason == reason
+
+
+VALUE_REASONS = [
+    pytest.param(
+        pl.DataFrame({"a": [1.0, 2.0, 3.0]}),
+        pl.DataFrame({"a": [1.0, 2.0, 4.0]}),
+        "tables have different values: column 'a' differs at row 2: 3.0 vs 4.0",
+        id="float column",
+    ),
+    pytest.param(
+        pl.DataFrame({"a": [1, 2], "b": ["x", "y"]}),
+        pl.DataFrame({"a": [1, 2], "b": ["x", "z"]}),
+        "tables have different values: column 'b' differs at row 1: 'y' vs 'z'",
+        id="string column",
+    ),
+    pytest.param(
+        pl.DataFrame({"a": ["x", "y"]}),
+        pl.DataFrame({"a": ["x", None]}),
+        "tables have different values: column 'a' differs at row 1: 'y' vs None",
+        id="string column with a null",
+    ),
+    pytest.param(
+        pl.DataFrame({"a": [1, None]}),
+        pl.DataFrame({"a": [1, 2]}),
+        "tables have different values: column 'a' differs at row 1: None vs 2",
+        id="integer column with a null",
+    ),
+    pytest.param(
+        pl.Series([True, False]),
+        pl.Series([True, True]),
+        "series have different values at row 1: False vs True",
+        id="bool series",
+    ),
+    pytest.param(
+        pl.DataFrame({"a": [[1], [2]]}),
+        pl.DataFrame({"a": [[1], [3]]}),
+        "tables have different values: column 'a' differs",
+        id="nested column: the row is not searched",
+    ),
+]
+
+
+@polars_available
+@pytest.mark.parametrize(("actual", "expected", "reason"), VALUE_REASONS)
+def test_compare_says_the_first_row_that_differs(actual: Any, expected: Any, reason: str) -> None:
+    assert compare(actual, expected).reason == reason
+
+
+@polars_available
+def test_structure_difference_frame_more_than_three_dtypes() -> None:
+    frame = pl.DataFrame({name: [1] for name in "abcde"})
+    other = frame.cast(pl.Float64)
+    engine = Engine(EqualityConfig())
+    assert PolarsFrameTable(frame).structure_difference(PolarsFrameTable(other), engine) == (
+        "dtypes differ: a: Int64 vs Float64, b: Int64 vs Float64, c: Int64 vs Float64 (+2 more)"
+    )
+
+
+@polars_available
+def test_series_difference_first_row() -> None:
+    assert _series_difference(pl.Series(["a", "b", "c"]), pl.Series(["a", "x", "y"])) == (
+        1,
+        "b",
+        "x",
+    )
+
+
+@polars_available
+def test_series_difference_null_is_equal_to_null() -> None:
+    assert _series_difference(pl.Series(["a", None]), pl.Series(["a", None])) is None
+
+
+@polars_available
+def test_series_difference_nested_series() -> None:
+    assert _series_difference(pl.Series([[1]]), pl.Series([[2]])) is None

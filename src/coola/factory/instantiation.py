@@ -18,7 +18,10 @@ def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None
     This function dynamically imports a class, function, or other
     Python object using its fully qualified name. The object path
     should have the structure ``module_path.object_name`` (e.g.,
-    "collections.Counter" or "math.isclose").
+    "collections.Counter" or "math.isclose"). The object can also be
+    an attribute of a class (``"collections.Counter.fromkeys"``): the
+    longest prefix that is a module is imported and the rest of the path
+    is read with ``getattr``.
 
     Args:
         object_path: The fully qualified path of the object to import.
@@ -94,23 +97,75 @@ def import_object(object_path: object, *, allowed_prefixes: Sequence[str] | None
         msg = f"Invalid object path {object_path!r}: empty module name"
         raise ImportError(msg)
 
-    module_name, _, attr = object_path.rpartition(".")
+    return _resolve(object_path)
+
+
+def _resolve(object_path: str) -> Any:
+    r"""Import the object of a path.
+
+    The module is the longest prefix of the path that can be imported,
+    and the rest of the path is read with ``getattr``, so an attribute
+    of a class (``"module.Class.attribute"``) is found.
+
+    Args:
+        object_path: The path of the object.
+
+    Returns:
+        The object.
+
+    Raises:
+        ImportError: If the object does not exist. The error is the one
+            of the longest prefix.
+    """
+    parts = object_path.split(".")
+    failures: list[tuple[str | None, BaseException | None]] = []
+    for end in range(max(len(parts) - 1, 1), 0, -1):
+        try:
+            obj = _import_module(".".join(parts[:end]), object_path)
+            for attr in parts[end:]:
+                obj = getattr(obj, attr)
+        except _TargetNotFoundError as err:
+            failures.append((err.name, err.__cause__))
+        except AttributeError as err:
+            failures.append((object_path, err))
+        else:
+            return obj
+    name, cause = failures[0]
+    msg = f"The target object does not exist: {object_path}"
+    raise ImportError(msg, name=name) from cause
+
+
+class _TargetNotFoundError(ImportError):
+    r"""Raised when the module of the target of ``import_object`` does
+    not exist."""
+
+
+def _import_module(module_name: str, object_path: str) -> Any:
+    r"""Import a module for ``import_object``.
+
+    Args:
+        module_name: The name of the module to import.
+        object_path: The path of the object that is imported, used in
+            the error.
+
+    Returns:
+        The module.
+
+    Raises:
+        _TargetNotFoundError: If the module (or one of its parents)
+            does not exist. It is an ``ImportError``. A dependency of
+            the module that is not installed keeps its own
+            ``ModuleNotFoundError``.
+    """
     try:
-        module = importlib.import_module(module_name or attr)
+        return importlib.import_module(module_name)
     except ModuleNotFoundError as err:
         # Only the module of the target (or one of its parents) is "missing". A dependency of the
         # target module that is not installed keeps its own error.
         if err.name and (object_path == err.name or object_path.startswith(err.name + ".")):
             msg = f"The target object does not exist: {object_path}"
-            raise ImportError(msg, name=err.name) from err
+            raise _TargetNotFoundError(msg, name=err.name) from err
         raise
-    if not module_name:  # No dot: the path is a module/package.
-        return module
-    try:
-        return getattr(module, attr)
-    except AttributeError as err:
-        msg = f"The target object does not exist: {object_path}"
-        raise ImportError(msg, name=object_path) from err
 
 
 def instantiate_object(

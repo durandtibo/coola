@@ -674,6 +674,39 @@ def test_type_registry_len_operator() -> None:
     assert len(TypeRegistry[str]()) == 0
 
 
+def test_type_registry_bool_empty() -> None:
+    assert not TypeRegistry[str]()
+
+
+def test_type_registry_bool_not_empty() -> None:
+    assert TypeRegistry[str]({int: "integer"})
+
+
+def test_type_registry_bool_with_a_pending_group_does_not_load_it() -> None:
+    factory = Mock(return_value={Decimal: "decimal"})
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", factory)
+    assert registry
+    factory.assert_not_called()
+
+
+def test_type_registry_has_pending_entries_empty() -> None:
+    assert not TypeRegistry[str]()._has_pending_entries()
+
+
+def test_type_registry_has_pending_entries_with_a_pending_group() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    assert registry._has_pending_entries()
+
+
+def test_type_registry_has_pending_entries_after_the_group_is_loaded() -> None:
+    registry = TypeRegistry[str]()
+    registry.register_lazy("decimal", lambda: {Decimal: "decimal"})
+    len(registry)
+    assert not registry._has_pending_entries()
+
+
 def test_type_registry_len_operator_one_item() -> None:
     registry = TypeRegistry[str]()
     registry[int] = "integer"

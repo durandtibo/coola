@@ -6,6 +6,7 @@ import pytest
 
 from coola.equality._helpers.torch import (
     _is_uint64,
+    _sparse_tensors_equal,
     tensor_equal,
 )
 from coola.equality.config import EqualityConfig
@@ -43,6 +44,66 @@ def test_tensor_equal_sparse(config: EqualityConfig) -> None:
 def test_tensor_equal_sparse_different(config: EqualityConfig) -> None:
     eye = torch.eye(2)
     assert not tensor_equal(eye.to_sparse(), (2 * eye).to_sparse(), config)
+
+
+@torch_available
+def test_tensor_equal_sparse_huge_shape_does_not_allocate_a_dense_tensor(
+    config: EqualityConfig,
+) -> None:
+    def make() -> torch.Tensor:
+        return torch.sparse_coo_tensor(
+            torch.tensor([[0, 5], [1, 7]]), torch.ones(2), (10**7, 10**7)
+        )
+
+    assert tensor_equal(make(), make(), config)
+
+
+@torch_available
+def test_tensor_equal_sparse_coo_uncoalesced_equals_coalesced(config: EqualityConfig) -> None:
+    uncoalesced = torch.sparse_coo_tensor(torch.tensor([[0, 0]]), torch.tensor([1.0, 2.0]), (2,))
+    coalesced = torch.sparse_coo_tensor(torch.tensor([[0]]), torch.tensor([3.0]), (2,))
+    assert tensor_equal(uncoalesced, coalesced, config)
+
+
+@torch_available
+def test_tensor_equal_sparse_coo_different_positions(config: EqualityConfig) -> None:
+    t1 = torch.sparse_coo_tensor(torch.tensor([[0]]), torch.tensor([1.0]), (2,))
+    t2 = torch.sparse_coo_tensor(torch.tensor([[1]]), torch.tensor([1.0]), (2,))
+    assert not tensor_equal(t1, t2, config)
+
+
+@torch_available
+def test_tensor_equal_sparse_coo_tolerance() -> None:
+    t1 = torch.tensor([1.0, 0.0]).to_sparse()
+    t2 = torch.tensor([1.0 + 1e-9, 0.0]).to_sparse()
+    assert tensor_equal(t1, t2, EqualityConfig(tolerance=Tolerance(atol=1e-6)))
+
+
+@torch_available
+def test_tensor_equal_sparse_coo_nan() -> None:
+    tensor = torch.tensor([float("nan"), 0.0]).to_sparse()
+    assert tensor_equal(tensor, tensor.clone(), EqualityConfig(equal_nan=True))
+
+
+@torch_available
+@pytest.mark.parametrize("convert", ["to_sparse_csr", "to_sparse_csc"])
+def test_tensor_equal_sparse_compressed(convert: str, config: EqualityConfig) -> None:
+    eye = torch.eye(2)
+    assert tensor_equal(getattr(eye, convert)(), getattr(eye, convert)(), config)
+
+
+@torch_available
+@pytest.mark.parametrize("convert", ["to_sparse_csr", "to_sparse_csc"])
+def test_tensor_equal_sparse_compressed_different(convert: str, config: EqualityConfig) -> None:
+    eye = torch.eye(2)
+    assert not tensor_equal(getattr(eye, convert)(), getattr(2 * eye, convert)(), config)
+
+
+@torch_available
+@pytest.mark.parametrize("convert", ["to_sparse_bsr", "to_sparse_bsc"])
+def test_tensor_equal_sparse_blocked(convert: str, config: EqualityConfig) -> None:
+    eye = torch.eye(4)
+    assert tensor_equal(getattr(eye, convert)((2, 2)), getattr(eye, convert)((2, 2)), config)
 
 
 @torch_available
@@ -204,3 +265,36 @@ def test_is_uint64_false(dtype: torch.dtype) -> None:
 def test_is_uint64_without_uint64_in_torch(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delattr(torch, "uint64", raising=False)
     assert not _is_uint64(torch.zeros(1, dtype=torch.int64))
+
+
+##########################################
+#     Tests for _sparse_tensors_equal     #
+##########################################
+
+
+@torch_available
+def test_sparse_tensors_equal_different_shape(config: EqualityConfig) -> None:
+    assert not _sparse_tensors_equal(torch.zeros(2).to_sparse(), torch.zeros(3).to_sparse(), config)
+
+
+@torch_available
+def test_sparse_tensors_equal_different_dtype(config: EqualityConfig) -> None:
+    assert not _sparse_tensors_equal(
+        torch.ones(2).to_sparse(), torch.ones(2, dtype=torch.float64).to_sparse(), config
+    )
+
+
+@torch_available
+def test_sparse_tensors_equal_same_tensor(config: EqualityConfig) -> None:
+    assert _sparse_tensors_equal(torch.ones(2).to_sparse(), torch.ones(2).to_sparse(), config)
+
+
+@torch_available
+def test_sparse_tensors_equal_different_values(config: EqualityConfig) -> None:
+    assert not _sparse_tensors_equal(torch.ones(2).to_sparse(), torch.zeros(2).to_sparse(), config)
+
+
+@torch_available
+def test_sparse_tensors_equal_explicit_zero_is_a_stored_value(config: EqualityConfig) -> None:
+    explicit = torch.sparse_coo_tensor(torch.tensor([[0]]), torch.tensor([0.0]), (2,))
+    assert not _sparse_tensors_equal(explicit, torch.zeros(2).to_sparse(), config)

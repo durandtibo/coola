@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections.abc
 import functools
 import math
 from abc import ABC, abstractmethod
@@ -52,6 +53,11 @@ def fake_func(arg1: int, arg2: str = "abc") -> Fake:
     return Fake(arg1=arg1, arg2=arg2)
 
 
+class Outer:
+    class Inner:
+        value = 3
+
+
 ###################################
 #     Tests for import_object     #
 ###################################
@@ -71,6 +77,41 @@ def test_import_object() -> None:
 
 def test_import_object_package() -> None:
     assert import_object("math") is math
+
+
+def test_import_object_attribute_of_a_class() -> None:
+    assert import_object("collections.Counter.fromkeys") == Counter.fromkeys
+
+
+def test_import_object_attribute_of_a_nested_class() -> None:
+    assert import_object("tests.unit.factory.test_instantiation.Outer.Inner") is Outer.Inner
+
+
+def test_import_object_attribute_of_a_nested_class_attribute() -> None:
+    assert import_object("tests.unit.factory.test_instantiation.Outer.Inner.value") == 3
+
+
+def test_import_object_submodule() -> None:
+    assert import_object("collections.abc") is collections.abc
+
+
+def test_import_object_attribute_of_a_class_does_not_exist() -> None:
+    with pytest.raises(
+        ImportError, match=r"The target object does not exist: collections.Counter.nope"
+    ):
+        import_object("collections.Counter.nope")
+
+
+def test_import_object_attribute_of_a_class_does_not_exist_name() -> None:
+    with pytest.raises(ImportError, match=r"collections.Counter.nope") as exc_info:
+        import_object("collections.Counter.nope")
+    assert exc_info.value.name == "collections.Counter"
+
+
+def test_import_object_attribute_of_a_non_module_does_not_exist_name() -> None:
+    with pytest.raises(ImportError, match=r"math.pi.nope") as exc_info:
+        import_object("math.pi.nope")
+    assert exc_info.value.name == "math.pi"
 
 
 def test_import_object_incorrect_invalid_qualified_name() -> None:

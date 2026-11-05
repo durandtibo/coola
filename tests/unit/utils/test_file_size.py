@@ -72,3 +72,10 @@ def test_get_file_size_ignores_a_file_that_vanishes_during_the_scan(tmp_path: Pa
     (tmp_path / "a.txt").write_bytes(b"12345")
     with patch("coola.utils.file_size.Path.lstat", side_effect=FileNotFoundError):
         assert get_file_size(tmp_path) == 0
+
+
+def test_get_file_size_follows_a_symlink_to_a_file(tmp_path: Path) -> None:
+    tmp_path.joinpath("a.txt").write_text("abcde")
+    link = tmp_path / "link.txt"
+    link.symlink_to(tmp_path.joinpath("a.txt"))
+    assert get_file_size(link) == 5

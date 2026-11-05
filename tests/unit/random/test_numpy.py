@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from coola.equality import objects_are_equal
-from coola.random import NumpyRandomManager
+from coola.random import NumpyRandomManager, get_numpy_generator
 from coola.testing.marks import numpy_available
 from coola.utils.imports import MissingPackageError, is_numpy_available
 from tests.helpers import draw_numpy_rand, draw_numpy_randint, draw_numpy_randn, get_numpy_state
@@ -219,3 +219,63 @@ def test_numpy_random_manager_manual_seed_invalid_value_raises(seed: int) -> Non
 def test_numpy_random_manager_manual_seed_invalid_type_raises(seed: object) -> None:
     with pytest.raises(TypeError, match=r"seed must be an int"):
         NumpyRandomManager().manual_seed(seed)  # ty: ignore[invalid-argument-type]
+
+
+#########################################
+#     Tests for get_numpy_generator     #
+#########################################
+
+
+@numpy_available
+def test_get_numpy_generator_returns_generator() -> None:
+    assert isinstance(get_numpy_generator(42), np.random.Generator)
+
+
+@numpy_available
+def test_get_numpy_generator_same_seed() -> None:
+    assert objects_are_equal(get_numpy_generator(1).random(6), get_numpy_generator(1).random(6))
+
+
+@numpy_available
+def test_get_numpy_generator_different_seeds() -> None:
+    assert not objects_are_equal(get_numpy_generator(1).random(6), get_numpy_generator(2).random(6))
+
+
+@numpy_available
+def test_get_numpy_generator_values() -> None:
+    assert np.allclose(get_numpy_generator(42).random(2), [0.77395605, 0.43887844], atol=1e-8)
+
+
+@numpy_available
+def test_get_numpy_generator_does_not_change_the_global_generator() -> None:
+    state = get_numpy_state()
+    get_numpy_generator(42).random(2)
+    assert objects_are_equal(state, get_numpy_state())
+
+
+@numpy_available
+@pytest.mark.parametrize("seed", [-1, 2**63])
+def test_get_numpy_generator_invalid_value_raises(seed: int) -> None:
+    with pytest.raises(ValueError, match=r"seed must be in the range"):
+        get_numpy_generator(seed)
+
+
+@numpy_available
+@pytest.mark.parametrize("seed", ["a", 1.5, True])
+def test_get_numpy_generator_invalid_type_raises(seed: object) -> None:
+    with pytest.raises(TypeError, match=r"seed must be an int"):
+        get_numpy_generator(seed)  # ty: ignore[invalid-argument-type]
+
+
+@numpy_available
+def test_get_numpy_generator_seed_is_required() -> None:
+    with pytest.raises(TypeError, match="seed"):
+        get_numpy_generator()  # ty: ignore[missing-argument]
+
+
+def test_get_numpy_generator_without_numpy() -> None:
+    with (
+        patch("coola.utils.imports.optional.is_numpy_available", lambda: False),
+        pytest.raises(MissingPackageError, match=r"'numpy' package is required but not installed."),
+    ):
+        get_numpy_generator(42)

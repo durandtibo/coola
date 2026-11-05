@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from datetime import timedelta
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
@@ -10,7 +11,13 @@ from coola.equality import compare, objects_are_allclose
 from coola.equality.config import EqualityConfig
 from coola.equality.engine import Engine
 from coola.equality.tester import EqualityTesterRegistry, TableEqualityTester, get_default_registry
-from coola.equality.tester.table import Column, column_close
+from coola.equality.tester.table import (
+    Column,
+    _item,
+    _plain,
+    column_close,
+    column_difference,
+)
 from coola.equality.tolerance import Tolerance
 from coola.testing.marks import numpy_available
 from coola.utils.imports import is_numpy_available
@@ -49,8 +56,17 @@ class GridTable:
             yield column
 
 
+class DescribedGridTable(GridTable):
+    def structure_difference(self, other: GridTable, ctx: Engine) -> str:  # noqa: ARG002
+        return "the structures are not the same"
+
+
 def grid_table(grid: Grid) -> GridTable:
     return GridTable(grid)
+
+
+def described_grid_table(grid: Grid) -> DescribedGridTable:
+    return DescribedGridTable(grid)
 
 
 def numeric(name: object, values: list[float]) -> Column:
@@ -65,6 +81,12 @@ def engine() -> Engine:
 def grid_registry() -> EqualityTesterRegistry:
     registry = get_default_registry().copy()
     registry.register(Grid, TableEqualityTester(grid_table), exist_ok=True)
+    return registry
+
+
+def described_registry() -> EqualityTesterRegistry:
+    registry = get_default_registry().copy()
+    registry.register(Grid, TableEqualityTester(described_grid_table), exist_ok=True)
     return registry
 
 
@@ -168,7 +190,7 @@ def test_table_equality_tester_reason_names_the_first_column_that_differs() -> N
             Grid([numeric("a", [1]), numeric("b", [1]), numeric("c", [1])]),
             Grid([numeric("a", [1]), numeric("b", [2]), numeric("c", [2])]),
         )
-        == "grids have different values: column 'b' differs"
+        == "grids have different values: column 'b' differs at row 0: 1 vs 2"
     )
 
 
@@ -176,7 +198,7 @@ def test_table_equality_tester_reason_names_the_first_column_that_differs() -> N
 def test_table_equality_tester_reason_without_column_name() -> None:
     assert (
         reason(Grid([numeric(None, [1])]), Grid([numeric(None, [2])]))
-        == "grids have different values"
+        == "grids have different values at row 0: 1 vs 2"
     )
 
 
@@ -262,3 +284,202 @@ def test_objects_are_allclose_with_a_registered_table() -> None:
         Grid([numeric("a", [1.0000001])]),
         registry=grid_registry(),
     )
+
+
+@numpy_available
+def test_table_equality_tester_reason_says_what_differs_in_the_structure() -> None:
+    result = compare(
+        Grid([numeric("a", [1])]),
+        Grid([numeric("a", [1])], structure="other"),
+        registry=described_registry(),
+    )
+    assert result.reason == ("grids have a different structure: the structures are not the same")
+
+
+@numpy_available
+def test_table_equality_tester_reason_row_of_a_later_row() -> None:
+    assert (
+        reason(Grid([numeric("a", [1, 2, 3])]), Grid([numeric("a", [1, 2, 4])]))
+        == "grids have different values: column 'a' differs at row 2: 3 vs 4"
+    )
+
+
+@numpy_available
+def test_table_equality_tester_exact_column_without_difference_does_not_report_the_row() -> None:
+    assert (
+        reason(
+            Grid([Column("a", "exact", [1])]),
+            Grid([Column("a", "exact", [2])]),
+        )
+        == "grids have different values: column 'a' differs"
+    )
+
+
+def test_table_equality_tester_exact_column_difference_reports_the_row() -> None:
+    def difference(values: list[int], other: list[int]) -> tuple[int, int, int]:
+        return 1, values[1], other[1]
+
+    assert (
+        reason(
+            Grid([Column("a", "exact", [1, 2], difference=difference)]),
+            Grid([Column("a", "exact", [1, 3], difference=difference)]),
+        )
+        == "grids have different values: column 'a' differs at row 1: 2 vs 3"
+    )
+
+
+def test_table_equality_tester_does_not_look_for_the_row_if_it_does_not_explain() -> None:
+    difference = Mock(return_value=(0, 1, 2))
+    run(
+        Grid([Column("a", "exact", [1], difference=difference)]),
+        Grid([Column("a", "exact", [2], difference=difference)]),
+    )
+    difference.assert_not_called()
+
+
+#######################################
+#     Tests for column_difference     #
+#######################################
+
+
+@numpy_available
+def test_column_difference_numeric(engine: Engine) -> None:
+    assert column_difference(
+        Column("a", "numeric", np.array([1.0, 2.0, 3.0])),
+        Column("a", "numeric", np.array([1.0, 5.0, 6.0])),
+        engine,
+    ) == (1, 2.0, 5.0)
+
+
+@numpy_available
+def test_column_difference_numeric_equal_columns(engine: Engine) -> None:
+    assert (
+        column_difference(
+            Column("a", "numeric", np.array([1.0])), Column("a", "numeric", np.array([1.0])), engine
+        )
+        is None
+    )
+
+
+@numpy_available
+def test_column_difference_numeric_uses_the_tolerance() -> None:
+    engine = Engine(EqualityConfig(tolerance=Tolerance(atol=0.5)))
+    assert column_difference(
+        Column("a", "numeric", np.array([1.0, 2.0])),
+        Column("a", "numeric", np.array([1.2, 3.0])),
+        engine,
+    ) == (1, 2.0, 3.0)
+
+
+@numpy_available
+def test_column_difference_numeric_nan(engine: Engine) -> None:
+    result = column_difference(
+        Column("a", "numeric", np.array([1.0, float("nan")])),
+        Column("a", "numeric", np.array([1.0, float("nan")])),
+        engine,
+    )
+    assert result is not None
+    assert result[0] == 1
+
+
+@numpy_available
+def test_column_difference_numeric_nulls(engine: Engine) -> None:
+    assert column_difference(
+        Column("a", "numeric", np.array([1, 0]), np.array([False, True])),
+        Column("a", "numeric", np.array([1, 0]), np.array([False, False])),
+        engine,
+    ) == (1, None, 0)
+
+
+@numpy_available
+def test_column_difference_numeric_values_of_the_nulls_are_ignored(engine: Engine) -> None:
+    assert (
+        column_difference(
+            Column("a", "numeric", np.array([1, 0]), np.array([False, True])),
+            Column("a", "numeric", np.array([1, 0]), np.array([False, True])),
+            engine,
+        )
+        is None
+    )
+
+
+@numpy_available
+def test_column_difference_duration(engine: Engine) -> None:
+    assert column_difference(
+        Column("a", "duration", np.array([1, 2], dtype="timedelta64[s]")),
+        Column("a", "duration", np.array([1, 3], dtype="timedelta64[s]")),
+        engine,
+    ) == (1, timedelta(seconds=2), timedelta(seconds=3))
+
+
+def test_column_difference_exact_without_difference(engine: Engine) -> None:
+    assert column_difference(Column("a", "exact", [1]), Column("a", "exact", [2]), engine) is None
+
+
+def test_column_difference_exact_with_difference_returns_its_result(engine: Engine) -> None:
+    assert column_difference(
+        Column("a", "exact", [1], difference=lambda _a, _b: (0, "x", "y")),
+        Column("a", "exact", [2]),
+        engine,
+    ) == (0, "x", "y")
+
+
+def test_column_difference_exact_with_difference_that_finds_nothing(engine: Engine) -> None:
+    assert (
+        column_difference(
+            Column("a", "exact", [1], difference=lambda _a, _b: None),
+            Column("a", "exact", [2]),
+            engine,
+        )
+        is None
+    )
+
+
+@numpy_available
+def test_column_difference_exact_converts_the_numpy_scalars(engine: Engine) -> None:
+    result = column_difference(
+        Column("a", "exact", [1], difference=lambda _a, _b: (0, np.int64(1), np.int64(2))),
+        Column("a", "exact", [2]),
+        engine,
+    )
+    assert result is not None
+    assert type(result[1]) is int
+
+
+############################
+#     Tests for _plain     #
+############################
+
+
+@numpy_available
+def test_plain_numpy_scalar() -> None:
+    assert type(_plain(np.float64(1.5))) is float
+
+
+def test_plain_python_scalar() -> None:
+    assert _plain("abc") == "abc"
+
+
+###########################
+#     Tests for _item     #
+###########################
+
+
+@numpy_available
+def test_item_value() -> None:
+    assert _item(Column("a", "numeric", np.array([1.5, 2.5])), 1) == 2.5
+
+
+@numpy_available
+def test_item_value_is_a_python_scalar() -> None:
+    assert type(_item(Column("a", "numeric", np.array([1.5])), 0)) is float
+
+
+@numpy_available
+def test_item_null() -> None:
+    assert _item(Column("a", "numeric", np.array([0]), np.array([True])), 0) is None
+
+
+@numpy_available
+def test_item_not_null_with_a_mask() -> None:
+    assert _item(Column("a", "numeric", np.array([4]), np.array([False])), 0) == 4
