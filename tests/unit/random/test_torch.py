@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.equality import objects_are_equal
-from coola.random import TorchRandomManager, make_torch_generator, make_torch_seed, validate_seed
+from coola.random import TorchRandomManager, make_torch_generator, sample_torch_seed, validate_seed
 from coola.testing.marks import torch_available
 from coola.utils.imports import MissingPackageError, is_torch_available
 
@@ -260,41 +260,41 @@ def test_torch_random_manager_does_not_manage_generator_objects() -> None:
     assert objects_are_equal(values, expected)
 
 
-#####################################
-#     Tests for make_torch_seed     #
-#####################################
+#######################################
+#     Tests for sample_torch_seed     #
+#######################################
 
 
 @torch_available
-def test_make_torch_seed_returns_int() -> None:
-    assert isinstance(make_torch_seed(42), int)
+def test_sample_torch_seed_returns_int() -> None:
+    assert isinstance(sample_torch_seed(42), int)
 
 
 @torch_available
-def test_make_torch_seed_same_seed() -> None:
-    assert make_torch_seed(42) == make_torch_seed(42)
+def test_sample_torch_seed_same_seed() -> None:
+    assert sample_torch_seed(42) == sample_torch_seed(42)
 
 
 @torch_available
-def test_make_torch_seed_different_seeds() -> None:
-    assert make_torch_seed(1) != make_torch_seed(42)
+def test_sample_torch_seed_different_seeds() -> None:
+    assert sample_torch_seed(1) != sample_torch_seed(42)
 
 
 @torch_available
-def test_make_torch_seed_value() -> None:
-    assert make_torch_seed(44) == 6176747449835261348
+def test_sample_torch_seed_value() -> None:
+    assert sample_torch_seed(44) == 6176747449835261348
 
 
 @torch_available
-def test_make_torch_seed_does_not_change_the_default_generator() -> None:
+def test_sample_torch_seed_does_not_change_the_default_generator() -> None:
     state = torch.get_rng_state()
-    make_torch_seed(42)
+    sample_torch_seed(42)
     assert objects_are_equal(state, torch.get_rng_state())
 
 
 @torch_available
-def test_make_torch_seed_in_range() -> None:
-    assert 0 <= make_torch_seed(42) < 2**63 - 1
+def test_sample_torch_seed_in_range() -> None:
+    assert 0 <= sample_torch_seed(42) < 2**63 - 1
 
 
 ##########################################
@@ -393,11 +393,11 @@ def test_make_torch_generator_invalid_type_raises() -> None:
 
 
 @torch_available
-def test_make_torch_seed_is_a_valid_seed() -> None:
-    validate_seed(make_torch_seed(42))
+def test_sample_torch_seed_is_a_valid_seed() -> None:
+    validate_seed(sample_torch_seed(42))
 
 
 @torch_available
-def test_make_torch_seed_invalid_value_raises() -> None:
+def test_sample_torch_seed_invalid_value_raises() -> None:
     with pytest.raises(ValueError, match="seed must be in the range"):
-        make_torch_seed(-1)
+        sample_torch_seed(-1)

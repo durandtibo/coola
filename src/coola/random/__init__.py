@@ -27,10 +27,10 @@ __all__ = [
     "get_numpy_generator",
     "get_rng_state",
     "make_torch_generator",
-    "make_torch_seed",
     "manual_seed",
     "random_seed",
     "register_managers",
+    "sample_torch_seed",
     "set_rng_state",
     "validate_seed",
 ]
@@ -56,7 +56,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from coola.random.numpy import NumpyRandomManager, get_numpy_generator
-    from coola.random.torch import TorchRandomManager, make_torch_generator, make_torch_seed
+    from coola.random.torch import TorchRandomManager, make_torch_generator, sample_torch_seed
 
 
 # The names defined in the modules that import an optional library are imported the first time they
@@ -64,7 +64,7 @@ if TYPE_CHECKING:
 _LAZY_EXPORTS = {
     "NumpyRandomManager": "coola.random.numpy",
     "TorchRandomManager": "coola.random.torch",
-    "make_torch_seed": "coola.random.torch",
+    "sample_torch_seed": "coola.random.torch",
     "get_numpy_generator": "coola.random.numpy",
     "make_torch_generator": "coola.random.torch",
 }
