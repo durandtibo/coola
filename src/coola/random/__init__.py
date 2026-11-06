@@ -27,7 +27,7 @@ __all__ = [
     "get_numpy_generator",
     "get_random_seed",
     "get_rng_state",
-    "get_torch_generator",
+    "make_torch_generator",
     "manual_seed",
     "random_seed",
     "register_managers",
@@ -56,7 +56,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from coola.random.numpy import NumpyRandomManager, get_numpy_generator
-    from coola.random.torch import TorchRandomManager, get_random_seed, get_torch_generator
+    from coola.random.torch import TorchRandomManager, get_random_seed, make_torch_generator
 
 
 # The names defined in the modules that import an optional library are imported the first time they
@@ -66,7 +66,7 @@ _LAZY_EXPORTS = {
     "TorchRandomManager": "coola.random.torch",
     "get_random_seed": "coola.random.torch",
     "get_numpy_generator": "coola.random.numpy",
-    "get_torch_generator": "coola.random.torch",
+    "make_torch_generator": "coola.random.torch",
 }
 __getattr__: Callable[[str], Any]
 __dir__: Callable[[], list[str]]

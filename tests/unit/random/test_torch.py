@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from coola.equality import objects_are_equal
-from coola.random import TorchRandomManager, get_random_seed, get_torch_generator, validate_seed
+from coola.random import TorchRandomManager, get_random_seed, make_torch_generator, validate_seed
 from coola.testing.marks import torch_available
 from coola.utils.imports import MissingPackageError, is_torch_available
 
@@ -297,59 +297,59 @@ def test_get_random_seed_in_range() -> None:
     assert 0 <= get_random_seed(42) < 2**63 - 1
 
 
-#########################################
-#     Tests for get_torch_generator     #
-#########################################
+##########################################
+#     Tests for make_torch_generator     #
+##########################################
 
 
 @torch_available
-def test_get_torch_generator_returns_generator() -> None:
-    assert isinstance(get_torch_generator(42), torch.Generator)
+def test_make_torch_generator_returns_generator() -> None:
+    assert isinstance(make_torch_generator(42), torch.Generator)
 
 
 @torch_available
-def test_get_torch_generator_same_seed() -> None:
-    assert torch.randn(4, 6, generator=get_torch_generator(1)).equal(
-        torch.randn(4, 6, generator=get_torch_generator(1))
+def test_make_torch_generator_same_seed() -> None:
+    assert torch.randn(4, 6, generator=make_torch_generator(1)).equal(
+        torch.randn(4, 6, generator=make_torch_generator(1))
     )
 
 
 @torch_available
-def test_get_torch_generator_different_seeds() -> None:
-    assert not torch.randn(4, 6, generator=get_torch_generator(1)).equal(
-        torch.randn(4, 6, generator=get_torch_generator(2))
+def test_make_torch_generator_different_seeds() -> None:
+    assert not torch.randn(4, 6, generator=make_torch_generator(1)).equal(
+        torch.randn(4, 6, generator=make_torch_generator(2))
     )
 
 
 @torch_available
-def test_get_torch_generator_initial_seed() -> None:
-    assert get_torch_generator(42).initial_seed() == 42
+def test_make_torch_generator_initial_seed() -> None:
+    assert make_torch_generator(42).initial_seed() == 42
 
 
 @torch_available
-def test_get_torch_generator_default_device_is_cpu() -> None:
-    assert get_torch_generator(42).device == torch.device("cpu")
+def test_make_torch_generator_default_device_is_cpu() -> None:
+    assert make_torch_generator(42).device == torch.device("cpu")
 
 
 @torch_available
 @pytest.mark.parametrize("device", ["cpu", torch.device("cpu")])
-def test_get_torch_generator_device(device: torch.device | str) -> None:
-    assert get_torch_generator(42, device=device).device == torch.device("cpu")
+def test_make_torch_generator_device(device: torch.device | str) -> None:
+    assert make_torch_generator(42, device=device).device == torch.device("cpu")
 
 
 @torch_available
-def test_get_torch_generator_values() -> None:
+def test_make_torch_generator_values() -> None:
     assert torch.allclose(
-        torch.rand(2, 4, generator=get_torch_generator(42)),
+        torch.rand(2, 4, generator=make_torch_generator(42)),
         torch.tensor([[0.8823, 0.9150, 0.3829, 0.9593], [0.3904, 0.6009, 0.2566, 0.7936]]),
         atol=1e-4,
     )
 
 
 @torch_available
-def test_get_torch_generator_does_not_change_the_default_generator() -> None:
+def test_make_torch_generator_does_not_change_the_default_generator() -> None:
     state = torch.get_rng_state()
-    get_torch_generator(42)
+    make_torch_generator(42)
     assert objects_are_equal(state, torch.get_rng_state())
 
 
@@ -368,28 +368,28 @@ def test_torch_random_manager_manual_seed_invalid_type_raises(seed: object) -> N
 
 
 @torch_available
-def test_get_torch_generator_seed_is_required() -> None:
+def test_make_torch_generator_seed_is_required() -> None:
     with pytest.raises(TypeError, match="seed"):
-        get_torch_generator()  # ty: ignore[missing-argument]
+        make_torch_generator()  # ty: ignore[missing-argument]
 
 
 @torch_available
-def test_get_torch_generator_device_is_keyword_only() -> None:
+def test_make_torch_generator_device_is_keyword_only() -> None:
     with pytest.raises(TypeError, match="positional"):
-        get_torch_generator(42, "cpu")  # ty: ignore[too-many-positional-arguments]
+        make_torch_generator(42, "cpu")  # ty: ignore[too-many-positional-arguments]
 
 
 @torch_available
 @pytest.mark.parametrize("seed", [-1, 2**63, 2**64])
-def test_get_torch_generator_invalid_value_raises(seed: int) -> None:
+def test_make_torch_generator_invalid_value_raises(seed: int) -> None:
     with pytest.raises(ValueError, match="seed must be in the range"):
-        get_torch_generator(seed)
+        make_torch_generator(seed)
 
 
 @torch_available
-def test_get_torch_generator_invalid_type_raises() -> None:
+def test_make_torch_generator_invalid_type_raises() -> None:
     with pytest.raises(TypeError, match="seed must be an int"):
-        get_torch_generator(1.5)  # ty: ignore[invalid-argument-type]
+        make_torch_generator(1.5)  # ty: ignore[invalid-argument-type]
 
 
 @torch_available
