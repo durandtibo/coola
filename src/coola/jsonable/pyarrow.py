@@ -45,5 +45,5 @@ def get_default_transformers() -> dict[type, Transformer[Any]]:
     if not is_pyarrow_available():
         return {}
     pyarrow = cast("Any", pa)
-    to_list = ConvertTransformer(lambda array: array.to_pylist())
+    to_list: ConvertTransformer[Any] = ConvertTransformer(lambda array: array.to_pylist())
     return {pyarrow.Array: to_list, pyarrow.ChunkedArray: to_list}

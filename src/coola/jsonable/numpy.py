@@ -45,7 +45,9 @@ class NDArrayTransformer(InlineDisplayMixin, BaseTransformer["np.ndarray"]):
     """
 
     def __init__(self) -> None:
-        self._convert = ConvertTransformer(lambda array: array.tolist())
+        self._convert: ConvertTransformer[np.ndarray] = ConvertTransformer(
+            lambda array: array.tolist()
+        )
 
     def expand(self, data: np.ndarray) -> Expansion | None:
         dtype = data.dtype

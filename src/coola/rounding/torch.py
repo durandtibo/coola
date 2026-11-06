@@ -4,12 +4,12 @@ from __future__ import annotations
 
 __all__ = ["get_default_rounders", "round_torch"]
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from coola.rounding.common import MAX_EXACT, Rounder, RoundMode, UnsupportedTypeError, get_scale
 from coola.utils.imports import is_torch_available
 
-if is_torch_available():
+if TYPE_CHECKING or is_torch_available():
     import torch
 else:  # pragma: no cover
     from coola.utils.fallback.torch import torch

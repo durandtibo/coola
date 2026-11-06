@@ -91,10 +91,12 @@ class Table(Protocol):
             ``True`` if the structures are the same, otherwise
                 ``False``.
         """
+        ...
 
     def columns(self) -> Iterator[Column]:
         r"""Iterate over the columns, converted lazily: a column is
         converted only when it is reached."""
+        ...
 
 
 class TableEqualityTester(BaseEqualityTester[Any]):

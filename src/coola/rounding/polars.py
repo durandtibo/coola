@@ -13,7 +13,7 @@ from coola.utils.imports import check_numpy, is_polars_available
 if TYPE_CHECKING:
     from coola.rounding.common import Rounder, RoundMode
 
-if is_polars_available():
+if TYPE_CHECKING or is_polars_available():
     import polars as pl
 else:  # pragma: no cover
     from coola.utils.fallback.polars import polars as pl

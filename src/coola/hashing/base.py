@@ -131,6 +131,7 @@ class Hasher(Protocol[T_contra]):
         Returns:
             The ``bytes`` of a leaf, or a ``Node`` for a container.
         """
+        ...
 
 
 class BaseHasher(ABC, Generic[T]):

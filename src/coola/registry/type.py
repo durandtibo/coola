@@ -711,6 +711,7 @@ class TypeRegistry(Registry[type, T], Generic[T]):
             TypeError: If ``dtype`` is not a type.
         """
         # Lock-free fast path: a hit is a single dict lookup.
+        value: Any
         try:
             value = self._cache.get(dtype, _MISSING)
         except TypeError:  # Unhashable, rejected by _validate_key

@@ -43,5 +43,5 @@ def get_default_transformers() -> dict[type, Transformer[Any]]:
     """
     if not is_xarray_available():
         return {}
-    to_dict = ConvertTransformer(lambda data: data.to_dict(data="list"))
+    to_dict: ConvertTransformer[Any] = ConvertTransformer(lambda data: data.to_dict(data="list"))
     return {xr.DataArray: to_dict, xr.Dataset: to_dict, xr.Variable: to_dict}

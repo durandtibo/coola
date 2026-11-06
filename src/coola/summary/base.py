@@ -78,6 +78,7 @@ class Summarizer(Protocol[T_contra]):
             A ``str`` for a leaf, or a ``Node`` (a header and lazy
             children) for a container.
         """
+        ...
 
 
 class BaseSummarizer(ABC, Generic[T]):
