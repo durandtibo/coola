@@ -2,7 +2,7 @@ r"""Implement a random manager for PyTorch."""
 
 from __future__ import annotations
 
-__all__ = ["TorchRandomManager", "get_random_seed", "get_torch_generator"]
+__all__ = ["TorchRandomManager", "get_random_seed", "make_torch_generator"]
 
 from typing import TYPE_CHECKING, Any
 
@@ -28,7 +28,7 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
     ones and the MPS one if it is available) are managed. The
     generators created with ``torch.Generator()`` are independent
     objects: they are not seeded, and their state is not saved nor
-    restored. Use ``get_torch_generator`` to create a seeded generator.
+    restored. Use ``make_torch_generator`` to create a seeded generator.
     The CUDA state is saved only if CUDA is already initialized:
     reading it would initialize CUDA, which fails in a forked worker,
     and an uninitialized CUDA has no state to save.
@@ -134,10 +134,10 @@ def get_random_seed(seed: int) -> int:
 
         ```
     """
-    return int(torch.randint(0, 2**63 - 1, size=(1,), generator=get_torch_generator(seed)).item())
+    return int(torch.randint(0, 2**63 - 1, size=(1,), generator=make_torch_generator(seed)).item())
 
 
-def get_torch_generator(seed: int, *, device: torch.device | str | None = "cpu") -> Generator:
+def make_torch_generator(seed: int, *, device: torch.device | str | None = "cpu") -> Generator:
     r"""Create a ``torch.Generator`` initialized with a given seed.
 
     The generator is independent from the default generators of
@@ -159,12 +159,12 @@ def get_torch_generator(seed: int, *, device: torch.device | str | None = "cpu")
     Example:
         ```pycon
         >>> import torch
-        >>> from coola.random import get_torch_generator
-        >>> generator = get_torch_generator(42)
+        >>> from coola.random import make_torch_generator
+        >>> generator = make_torch_generator(42)
         >>> torch.rand(2, 4, generator=generator)
         tensor([[0.8823, 0.9150, 0.3829, 0.9593],
                 [0.3904, 0.6009, 0.2566, 0.7936]])
-        >>> generator = get_torch_generator(42)
+        >>> generator = make_torch_generator(42)
         >>> torch.rand(2, 4, generator=generator)
         tensor([[0.8823, 0.9150, 0.3829, 0.9593],
                 [0.3904, 0.6009, 0.2566, 0.7936]])
