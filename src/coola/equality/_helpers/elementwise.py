@@ -7,6 +7,8 @@ __all__ = ["elementwise_close"]
 
 from typing import Any
 
+_MPS_DTYPES = {"float64": "float32", "complex128": "complex64"}
+
 
 def elementwise_close(
     array1: Any, array2: Any, *, atol: float, rtol: float, equal_nan: bool, xp: Any
@@ -34,7 +36,9 @@ def elementwise_close(
     2^53 and equal to the tolerance (a measure-zero case). The arrays
     must have the same shape and dtype. A boolean has no subtraction:
     the caller compares it exactly. If ``jax`` does not enable 64-bit
-    values, ``float64`` is ``float32`` for JAX.
+    values, ``float64`` is ``float32`` for JAX. On the ``mps`` device of
+    PyTorch, which has no ``float64``, the comparison is made in
+    ``float32`` (``complex64`` for the complex tensors).
 
     Args:
         array1: The first array (NumPy, PyTorch or JAX).
@@ -126,9 +130,12 @@ def _cast(array: Any, name: str, xp: Any) -> Any:
     Returns:
         The cast array.
     """
-    dtype = getattr(xp, name)
     if _is_torch(xp):
-        return array.to(dtype)
+        if array.device.type == "mps":
+            # The MPS backend has no ``float64`` and no ``complex128``: use the widest it has.
+            name = _MPS_DTYPES.get(name, name)
+        return array.to(getattr(xp, name))
+    dtype = getattr(xp, name)
     if xp.__name__.startswith("jax"):
         # Without 64-bit mode, JAX has no ``float64``: use the widest dtype it has.
         import jax  # noqa: PLC0415

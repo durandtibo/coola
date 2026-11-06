@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from coola.equality._helpers.elementwise import elementwise_close
+from coola.equality._helpers.elementwise import _cast, elementwise_close
 from coola.testing.marks import numpy_available, torch_available
 from coola.utils.imports import is_numpy_available, is_torch_available
 
@@ -308,3 +308,26 @@ def test_elementwise_close_torch_small_float_does_not_overflow(dtype: Any) -> No
         xp=torch,
     )
     assert result.tolist() == [False]
+
+
+#################################
+#     Tests for the MPS cast    #
+#################################
+
+
+@torch_available
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [("float64", torch.float32), ("complex128", torch.complex64), ("int64", torch.int64)],
+)
+def test_cast_mps_uses_dtype_supported_by_mps(name: str, expected: Any) -> None:
+    array = Mock(device=Mock(type="mps"))
+    _cast(array, name, torch)
+    array.to.assert_called_once_with(expected)
+
+
+@torch_available
+def test_cast_cpu_keeps_float64() -> None:
+    array = Mock(device=Mock(type="cpu"))
+    _cast(array, "float64", torch)
+    array.to.assert_called_once_with(torch.float64)
