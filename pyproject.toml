@@ -276,8 +276,17 @@ polars = "pl"
 pyarrow = "pa"
 xarray = "xr"
 
+[tool.pyright]
+include = ["src"]
+pythonVersion = "3.11"
+venvPath = "."
+venv = ".venv"
+
 [tool.ty.src]
 include = ["src", "tests", "dev", "examples"]
+
+[tool.ty.environment]
+python-version = "3.11"
 
 [tool.importlinter]
 root_package = "coola"
