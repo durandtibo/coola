@@ -4,12 +4,12 @@ from __future__ import annotations
 
 __all__ = ["get_default_rounders", "round_numpy"]
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from coola.rounding.common import MAX_EXACT, Rounder, RoundMode, UnsupportedTypeError, get_scale
 from coola.utils.imports import is_numpy_available
 
-if is_numpy_available():
+if TYPE_CHECKING or is_numpy_available():
     import numpy as np
 else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np

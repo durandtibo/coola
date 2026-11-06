@@ -55,6 +55,8 @@ def difference_close(actual: Any, expected: Any, config: EqualityConfig) -> bool
         return True
     if config.atol <= 0.0 and config.rtol <= 0.0:
         return False
+    atol: Any
+    rtol: Any
     if isinstance(actual, Decimal):
         if not (actual.is_finite() and expected.is_finite()):
             return False  # Two different values, and one is infinite

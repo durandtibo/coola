@@ -61,7 +61,7 @@ class NDArraySummarizer(BaseMetadataSummarizer[np.ndarray]):
         check_numpy()
 
     def _describe(self, data: np.ndarray) -> list[Field]:
-        fields = [f"shape={data.shape}", f"dtype={data.dtype}"]
+        fields: list[Field] = [f"shape={data.shape}", f"dtype={data.dtype}"]
         if isinstance(data, np.ma.MaskedArray):
             # The mask is part of the value: two arrays with a different mask are different.
             fields.append(f"num_masked={int(np.ma.getmaskarray(data).sum())}")

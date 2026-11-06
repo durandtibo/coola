@@ -39,8 +39,10 @@ def get_default_transformers() -> dict[type, Transformer[Any]]:
         ```
     """
     to_str = ConvertTransformer(str)
-    to_iso = ConvertTransformer(lambda value: value.isoformat())
-    to_base64 = ConvertTransformer(lambda value: base64.b64encode(value).decode("ascii"))
+    to_iso: ConvertTransformer[Any] = ConvertTransformer(lambda value: value.isoformat())
+    to_base64: ConvertTransformer[bytes | bytearray] = ConvertTransformer(
+        lambda value: base64.b64encode(value).decode("ascii")
+    )
     return {
         # ``UserString`` is a ``Sequence`` of ``UserString``: it must not be a list of characters
         UserString: to_str,

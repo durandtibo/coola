@@ -12,7 +12,7 @@ from __future__ import annotations
 __all__ = ["BaseEqualityTester"]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from coola.display import InlineDisplayMixin
 
@@ -66,7 +66,9 @@ class BaseEqualityTester(InlineDisplayMixin, ABC, Generic[T]):
     def __eq__(self, other: object) -> bool:
         return type(other) is type(self) and vars(self) == vars(other)
 
-    __hash__: ClassVar[None] = None
+    def __hash__(self) -> int:
+        msg = f"unhashable type: {type(self).__name__!r}"
+        raise TypeError(msg)
 
     @abstractmethod
     def objects_are_equal(

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 __all__ = ["NumpyRandomManager", "get_numpy_generator"]
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from coola.display import InlineDisplayMixin
 from coola.random.base import BaseRandomManager
@@ -12,7 +12,7 @@ from coola.random.seed import validate_seed
 from coola.utils.imports import check_numpy, is_numpy_available
 from coola.utils.introspection import is_same_type
 
-if is_numpy_available():
+if TYPE_CHECKING or is_numpy_available():
     import numpy as np
 else:  # pragma: no cover
     from coola.utils.fallback.numpy import numpy as np

@@ -18,7 +18,11 @@ objects_are_equal`` or ``from coola.summary import summarize``.
 
 __all__ = ["__version__"]
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    # Resolved lazily by ``__getattr__``; declared for the type checkers.
+    __version__: str
 
 
 def __getattr__(name: str) -> Any:

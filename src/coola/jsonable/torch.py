@@ -47,7 +47,9 @@ class TensorTransformer(InlineDisplayMixin, BaseTransformer["torch.Tensor"]):
     """
 
     def __init__(self) -> None:
-        self._convert = ConvertTransformer(lambda tensor: tensor.tolist())
+        self._convert: ConvertTransformer[torch.Tensor] = ConvertTransformer(
+            lambda tensor: tensor.tolist()
+        )
 
     def expand(self, data: torch.Tensor) -> Expansion | None:
         if data.layout != torch.strided:

@@ -151,8 +151,8 @@ def canonicalize_floats(data: np.ndarray) -> np.ndarray:
         return np.where(np.isnan(data), np.array(np.nan, dtype=data.dtype), data + 0)
     if kind == "c":
         out = np.empty_like(data)
-        out.real = canonicalize_floats(data.real)
-        out.imag = canonicalize_floats(data.imag)
+        np.real(out)[...] = canonicalize_floats(np.real(data))
+        np.imag(out)[...] = canonicalize_floats(np.imag(data))
         return out
     return data
 

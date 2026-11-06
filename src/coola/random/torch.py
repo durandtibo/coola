@@ -55,7 +55,7 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
         return hash(type(self))
 
     def get_rng_state(self) -> dict[str, Any]:
-        state = {"torch": torch.get_rng_state()}
+        state: dict[str, Any] = {"torch": torch.get_rng_state()}
         # ``get_rng_state_all`` initializes CUDA, which fails in a forked worker. A CUDA
         # that is not initialized has no generator state to save.
         if torch.cuda.is_initialized():

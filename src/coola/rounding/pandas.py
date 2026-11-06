@@ -13,7 +13,7 @@ from coola.utils.imports import is_pandas_available
 if TYPE_CHECKING:
     from coola.rounding.common import Rounder, RoundMode
 
-if is_pandas_available():
+if TYPE_CHECKING or is_pandas_available():
     import pandas as pd
 else:  # pragma: no cover
     from coola.utils.fallback.pandas import pandas as pd
