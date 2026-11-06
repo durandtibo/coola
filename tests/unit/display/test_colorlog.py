@@ -225,7 +225,7 @@ def test_configure_colorlog_logging_kwargs_forwarded_tty() -> None:
 @colorlog_available
 def test_configure_colorlog_logging_tty_stream_is_used_by_handler() -> None:
     stream = io.StringIO()
-    stream.isatty = lambda: True  # ty: ignore[invalid-assignment]
+    stream.isatty = lambda: True
     with (
         patch(f"{MODULE}.is_colorlog_available", return_value=True),
         patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,
@@ -237,7 +237,7 @@ def test_configure_colorlog_logging_tty_stream_is_used_by_handler() -> None:
 @colorlog_available
 def test_configure_colorlog_logging_tty_stream_is_not_forwarded() -> None:
     stream = io.StringIO()
-    stream.isatty = lambda: True  # ty: ignore[invalid-assignment]
+    stream.isatty = lambda: True
     with (
         patch(f"{MODULE}.is_colorlog_available", return_value=True),
         patch(f"{MODULE}.logging.basicConfig") as mock_basicconfig,

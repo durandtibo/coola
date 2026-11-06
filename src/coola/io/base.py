@@ -20,7 +20,7 @@ import os
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import PurePath
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from coola.display import InlineDisplayMixin
 from coola.equality import objects_are_equal
@@ -621,10 +621,7 @@ def resolve_loader(
 
         ```
     """
-    return cast(
-        "BaseLoader[T]",
-        resolve_object(loader, BaseLoader, allowed_prefixes=allowed_prefixes, strict=strict),
-    )
+    return resolve_object(loader, BaseLoader, allowed_prefixes=allowed_prefixes, strict=strict)
 
 
 def resolve_saver(
@@ -668,7 +665,4 @@ def resolve_saver(
 
         ```
     """
-    return cast(
-        "BaseSaver[T]",
-        resolve_object(saver, BaseSaver, allowed_prefixes=allowed_prefixes, strict=strict),
-    )
+    return resolve_object(saver, BaseSaver, allowed_prefixes=allowed_prefixes, strict=strict)
