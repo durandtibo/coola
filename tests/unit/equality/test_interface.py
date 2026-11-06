@@ -14,6 +14,7 @@ from coola.equality.tester import (
     EqualityTesterRegistry,
 )
 from coola.testing.marks import numpy_available, torch_available
+from coola.utils.tensor import get_available_devices
 from tests.helpers import nest
 
 if TYPE_CHECKING:
@@ -673,3 +674,74 @@ def test_objects_are_equal_distinct_nan_objects_are_different() -> None:
 
 def test_objects_are_equal_distinct_nan_objects_are_equal_with_equal_nan() -> None:
     assert objects_are_equal([float("nan")], [float("nan")], equal_nan=True)
+
+
+#########################################################
+#     Tests for objects_are_allclose on torch devices   #
+#########################################################
+
+DEVICES = get_available_devices() if torch is not None else ()
+
+
+@torch_available
+@pytest.mark.parametrize("device", DEVICES)
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32])
+def test_objects_are_allclose_torch_float_within_atol(device: str, dtype: Any) -> None:
+    x = torch.tensor([1.0, 2.0], dtype=dtype, device=device)
+    assert objects_are_allclose(x, x + 0.01, atol=0.1)
+
+
+@torch_available
+@pytest.mark.parametrize("device", DEVICES)
+def test_objects_are_allclose_torch_float_outside_atol(device: str) -> None:
+    x = torch.tensor([1.0, 2.0], device=device)
+    assert not objects_are_allclose(x, x + 1.0, atol=0.1)
+
+
+@torch_available
+@pytest.mark.parametrize("device", DEVICES)
+def test_objects_are_allclose_torch_float_rtol(device: str) -> None:
+    x = torch.tensor([100.0, 200.0], device=device)
+    assert objects_are_allclose(x, x + 1.0, rtol=0.1)
+
+
+@torch_available
+@pytest.mark.parametrize("device", DEVICES)
+def test_objects_are_allclose_torch_float_equal_nan(device: str) -> None:
+    x = torch.tensor([1.0, float("nan")], device=device)
+    assert objects_are_allclose(x, x.clone(), equal_nan=True)
+
+
+@torch_available
+@pytest.mark.parametrize("device", DEVICES)
+def test_objects_are_allclose_torch_float_nan_not_equal(device: str) -> None:
+    x = torch.tensor([1.0, float("nan")], device=device)
+    assert not objects_are_allclose(x, x.clone())
+
+
+@torch_available
+@pytest.mark.parametrize("device", DEVICES)
+def test_objects_are_allclose_torch_int_within_atol(device: str) -> None:
+    x = torch.tensor([1, 2], device=device)
+    assert objects_are_allclose(x, x + 1, atol=1)
+
+
+@torch_available
+@pytest.mark.parametrize("device", DEVICES)
+def test_objects_are_allclose_torch_int_outside_atol(device: str) -> None:
+    x = torch.tensor([1, 2], device=device)
+    assert not objects_are_allclose(x, x + 2, atol=1)
+
+
+@torch_available
+@pytest.mark.parametrize("device", DEVICES)
+def test_objects_are_allclose_torch_complex_within_atol(device: str) -> None:
+    x = torch.tensor([1 + 1j], device=device)
+    assert objects_are_allclose(x, x + 0.01, atol=0.1)
+
+
+@torch_available
+@pytest.mark.parametrize("device", DEVICES)
+def test_objects_are_allclose_torch_nested(device: str) -> None:
+    x = torch.tensor([1.0, 2.0], device=device)
+    assert objects_are_allclose({"a": [x]}, {"a": [x + 0.01]}, atol=0.1)
