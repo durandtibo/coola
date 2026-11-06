@@ -13,9 +13,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from coola.random import (
-    get_random_seed,
     get_rng_state,
     make_torch_generator,
+    make_torch_seed,
     random_seed,
     set_rng_state,
 )
@@ -34,8 +34,8 @@ def test_random_seed_benchmark(benchmark: BenchmarkFixture) -> None:
     benchmark(seeded)
 
 
-def test_get_random_seed_benchmark(benchmark: BenchmarkFixture) -> None:
-    assert benchmark(get_random_seed, 42) == get_random_seed(42)
+def test_make_torch_seed_benchmark(benchmark: BenchmarkFixture) -> None:
+    assert benchmark(make_torch_seed, 42) == make_torch_seed(42)
 
 
 def test_get_rng_state_benchmark(benchmark: BenchmarkFixture) -> None:

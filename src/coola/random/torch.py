@@ -2,7 +2,7 @@ r"""Implement a random manager for PyTorch."""
 
 from __future__ import annotations
 
-__all__ = ["TorchRandomManager", "get_random_seed", "make_torch_generator"]
+__all__ = ["TorchRandomManager", "make_torch_generator", "make_torch_seed"]
 
 from typing import TYPE_CHECKING, Any
 
@@ -108,7 +108,7 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
             torch.mps.set_rng_state(state["torch.mps"])
 
 
-def get_random_seed(seed: int) -> int:
+def make_torch_seed(seed: int) -> int:
     r"""Get a random seed derived from a given seed.
 
     The value is drawn from a ``torch.Generator`` seeded with ``seed``,
@@ -128,8 +128,8 @@ def get_random_seed(seed: int) -> int:
 
     Example:
         ```pycon
-        >>> from coola.random import get_random_seed
-        >>> get_random_seed(44)
+        >>> from coola.random import make_torch_seed
+        >>> make_torch_seed(44)
         6176747449835261348
 
         ```
