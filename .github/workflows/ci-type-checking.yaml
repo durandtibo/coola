@@ -1,5 +1,5 @@
 # Type checking workflow.
-# Validates type annotations using ty to ensure type safety.
+# Validates type annotations using ty and pyright to ensure type safety.
 # Helps catch type-related bugs before runtime.
 
 name: Type Checking
@@ -23,12 +23,7 @@ jobs:
         with:
           install-args: "--groups dev,docs,property"
 
-      # Type-check the source code and the tests with ty (see ``[tool.ty.src]`` in pyproject.toml)
+      # Type-check the source code and the tests with ty and pyright
       - name: Check types
         run: |
-          ty check
-
-      # Verify the type completeness of the public API
-      - name: Verify public API types
-        run: |
-          inv types.check
+          inv types.check --complete
