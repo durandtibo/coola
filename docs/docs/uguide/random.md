@@ -199,20 +199,20 @@ tensor([...])
 
 The generators created with `random.Random()`, `numpy.random.default_rng()` and `torch.Generator()`
 are not managed. Seed them explicitly. `make_torch_generator` creates a seeded `torch.Generator`
-(`device` is keyword-only), and `get_random_seed` derives a seed that is valid for `manual_seed`
+(`device` is keyword-only), and `sample_torch_seed` derives a seed that is valid for `manual_seed`
 from another seed:
 
 ```pycon
 >>> import numpy as np
 >>> import torch
->>> from coola.random import get_random_seed, make_torch_generator
+>>> from coola.random import sample_torch_seed, make_torch_generator
 >>> rng = np.random.default_rng(42)
 >>> rng.random(3)
 array([...])
 >>> generator = make_torch_generator(42)
 >>> torch.rand(3, generator=generator)
 tensor([...])
->>> 0 <= get_random_seed(42) < 2**63 - 1
+>>> 0 <= sample_torch_seed(42) < 2**63 - 1
 True
 
 ```
