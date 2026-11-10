@@ -11,13 +11,14 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   # Get the extra names from pyproject.toml, and their version bounds from
   # dev/config/package_versions.json.
   get-deps:
+    permissions:
+      contents: read
     uses: ./.github/workflows/lib-get-package-deps.yaml
 
   # One job per optional dependency, driven by get-deps instead of a
@@ -25,6 +26,8 @@ jobs:
   # pyproject.toml (and dev/config/package_versions.json, kept up to date by
   # bot-generate-package-versions.yaml).
   test-dep:
+    permissions:
+      contents: read
     needs: get-deps
     strategy:
       fail-fast: false

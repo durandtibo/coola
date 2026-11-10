@@ -10,11 +10,12 @@ on:
     - cron: "20 9 * * *" # Run daily at 9:20 AM UTC
   workflow_dispatch: # to trigger manually
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   examples:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

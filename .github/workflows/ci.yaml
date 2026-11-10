@@ -32,18 +32,21 @@ on:
   workflow_dispatch: # to trigger manually
   workflow_call: # the release workflows run the CI before publishing
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   # Load the shared python-version/OS matrix from the default config of
   # durandtibo/workflow-config-action
   # once, and pass it down to every job below that needs it.
   get-matrix:
+    permissions:
+      contents: read
     uses: ./.github/workflows/lib-get-test-matrix.yaml
 
   # Validate package can be built and installed correctly
   build:
+    permissions:
+      contents: read
     needs: get-matrix
     uses: ./.github/workflows/ci-build.yaml
     with:
@@ -51,28 +54,40 @@ jobs:
 
   # Check for circular import dependencies
   cyclic-imports:
+    permissions:
+      contents: read
     uses: ./.github/workflows/ci-cyclic-imports.yaml
 
   # Run doctests on code examples
   doctest:
+    permissions:
+      contents: read
     uses: ./.github/workflows/ci-doctest.yaml
     secrets: inherit
 
   # Verify code formatting and linting
   format:
+    permissions:
+      contents: read
     uses: ./.github/workflows/ci-format.yaml
 
   # Check type annotations with ty
   type-checking:
+    permissions:
+      contents: read
     uses: ./.github/workflows/ci-type-checking.yaml
 
   # Run pre-commit hooks for code quality
   pre-commit:
+    permissions:
+      contents: read
     uses: ./.github/workflows/ci-pre-commit.yaml
 
   # Run unit and integration tests across multiple Python versions and OS.
   # secrets: inherit is required so the "all" job can upload coverage to Codecov.
   test:
+    permissions:
+      contents: read
     needs: get-matrix
     uses: ./.github/workflows/ci-test.yaml
     with:
@@ -81,6 +96,8 @@ jobs:
 
   # Run the property-based tests (Hypothesis) on ubuntu-latest for all the Python versions
   test-properties:
+    permissions:
+      contents: read
     needs: get-matrix
     uses: ./.github/workflows/ci-test-properties.yaml
     with:
@@ -88,6 +105,8 @@ jobs:
 
   # Test compatibility with different dependency versions
   test-deps:
+    permissions:
+      contents: read
     needs: get-matrix
     uses: ./.github/workflows/ci-test-deps.yaml
     with:

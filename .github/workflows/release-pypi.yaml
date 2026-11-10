@@ -13,16 +13,19 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   # Nothing is published unless the whole CI passes on the released commit.
   ci:
+    permissions:
+      contents: read
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
 
   build:
+    permissions:
+      contents: read
     needs: ci
     # Manual runs are only allowed from main; tag pushes are always allowed.
     if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'

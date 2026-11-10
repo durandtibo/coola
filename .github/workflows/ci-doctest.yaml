@@ -7,12 +7,13 @@ on:
   workflow_call:
   workflow_dispatch: # to trigger manually
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   # Run doctests embedded in source code docstrings
   doctest:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -30,6 +31,8 @@ jobs:
 
   # Verify documentation can be built without errors
   build:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
 

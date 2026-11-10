@@ -10,12 +10,13 @@ on:
     - cron: "40 9 * * *" # Run daily at 9:40 AM UTC, after the other benchmarks
   workflow_dispatch: # to trigger manually
 
-permissions:
-  contents: read
-  actions: read # to download the results of the previous run
+permissions: {}
 
 jobs:
   benchmark-import:
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

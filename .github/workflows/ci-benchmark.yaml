@@ -10,12 +10,13 @@ on:
     - cron: "10 9 * * *" # Run nightly at 9:10 AM UTC, alongside CI's nightly run
   workflow_dispatch: # to trigger manually
 
-permissions:
-  contents: read
-  actions: read # to download the results of the previous run
+permissions: {}
 
 jobs:
   benchmark:
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

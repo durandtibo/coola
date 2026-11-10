@@ -13,12 +13,13 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   # Test with all dependencies across multiple Python versions and operating systems
   all:
+    permissions:
+      contents: read
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10 # free-threaded and macOS cells are slow
     strategy:
@@ -60,6 +61,8 @@ jobs:
 
   # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
+    permissions:
+      contents: read
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10 # free-threaded and macOS cells are slow
     strategy:
