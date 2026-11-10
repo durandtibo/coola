@@ -134,6 +134,37 @@ check. Cover, where applicable:
 Prefer many small, precisely named tests (one behavior per test) over a few broad ones, so a
 failure points at the specific behavior that broke.
 
+## GitHub Actions workflows
+
+The workflows are in `.github/workflows/`; the composite actions are in `.github/actions/`.
+`.github/GUIDELINES.md` has the full table of workflows, triggers and conventions: read it
+and keep it up to date when you add, rename or remove a workflow.
+
+- The file name starts with a prefix that gives the role of the workflow:
+  - `ci-`: quality and test checks of the repository source. Most are reusable workflows
+    (`workflow_call`, plus `workflow_dispatch` to run one alone) called from `ci.yaml`.
+    `ci-benchmark*.yaml` (scheduled) and `ci-verify-workflows.yaml` (every PR) are standalone
+    and not called from `ci.yaml`.
+  - `lib-`: reusable helpers that compute an output for other workflows (test matrix, package
+    dependencies, extras, versions).
+  - `nightly-`: scheduled tests of the _published_ PyPI package, not of the source.
+    `nightly-package.yaml` is the entry point; the other `nightly-test-*` are called by it.
+  - `bot-`: scheduled automation that opens pull requests (dependency updates, pinning
+    actions, formatting, ...) with the `ci-bot` GitHub App token.
+  - `release-`: publishing to PyPI and the documentation, triggered by version tags
+    (`v*.*.*`) or manually; they run `ci.yaml` before publishing.
+  - `security-`: dependency review of PRs, scheduled dependency audit and scorecard.
+- `ci.yaml` is the single entry point of the checks (pull request, push to `main`, nightly).
+  It calls `lib-get-test-matrix.yaml` once and passes the matrix (`test-matrix` input) to the
+  test workflows, so the Python versions and OS are defined in one place. To add a check,
+  create a `ci-<name>.yaml` reusable workflow and add a job in `ci.yaml`.
+- Conventions: a header comment that says what the workflow does and when it runs; top-level
+  `permissions: {}` or `contents: read` and the minimum permissions per job; `timeout-minutes`
+  on every job; actions pinned to a commit SHA with a `# ratchet:` comment (`bot-pin-action.yaml`
+  maintains them).
+- `ci-verify-workflows.yaml` lints the workflows: check your changes with `actionlint` when
+  available.
+
 ## Reporting
 
 - Report faithfully: say which tests were run, which were not, and that CI was not awaited.
