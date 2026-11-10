@@ -33,13 +33,16 @@ on:
 
   workflow_dispatch: # Allows manual triggering for testing purposes
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   # Get the extra names from pyproject.toml, and their version bounds from
   # dev/config/package_versions.json.
   get-extras:
+    permissions:
+      contents: read
     uses: ./.github/workflows/lib-get-package-extras.yaml
   get-versions:
+    permissions:
+      contents: read
     uses: ./.github/workflows/lib-get-package-versions.yaml

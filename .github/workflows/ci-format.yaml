@@ -7,11 +7,12 @@ on:
   workflow_call:
   workflow_dispatch: # to trigger manually
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   python:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -30,6 +31,8 @@ jobs:
           inv lint.check-python
 
   shell:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
 

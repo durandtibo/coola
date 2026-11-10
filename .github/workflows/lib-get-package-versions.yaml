@@ -24,11 +24,12 @@ on:
 
   workflow_dispatch: # Allows manual triggering for testing purposes
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   get-versions:
+    permissions:
+      contents: read
     runs-on: ubuntu-slim
     timeout-minutes: 2
     outputs:

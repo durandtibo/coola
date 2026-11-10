@@ -11,13 +11,14 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   # Load the extras from pyproject.toml's [project.optional-dependencies],
   # plus "" for a baseline "no extra" build.
   get-extras:
+    permissions:
+      contents: read
     uses: ./.github/workflows/lib-get-package-extras.yaml
     with:
       extra-values: '[""]'
@@ -28,6 +29,8 @@ jobs:
   # two into one matrix would need an `include:` fan-out plus conditional
   # steps for little gain, since the two jobs vary orthogonal axes.
   build:
+    permissions:
+      contents: read
     needs: get-extras
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -60,6 +63,8 @@ jobs:
           echo "✅ Package checks passed"
 
   build-all:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:

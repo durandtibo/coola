@@ -40,11 +40,12 @@ on:
         type: string
         default: "[]"
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   get-extras:
+    permissions:
+      contents: read
     runs-on: ubuntu-slim
     timeout-minutes: 2
     outputs:

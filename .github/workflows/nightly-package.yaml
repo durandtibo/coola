@@ -4,21 +4,26 @@ on:
     - cron: "30 10 * * *" # run at 10:30 AM UTC
   workflow_dispatch: # to trigger manually
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   # Get the extra names from pyproject.toml, and their version bounds from
   # dev/config/package_versions.json.
   get-deps:
+    permissions:
+      contents: read
     uses: ./.github/workflows/lib-get-package-deps.yaml
   # Load the shared python-version/OS matrix from the default config of
   # durandtibo/workflow-config-action
   # once, and pass it down to every job below that needs it.
   get-matrix:
+    permissions:
+      contents: read
     uses: ./.github/workflows/lib-get-test-matrix.yaml
 
   stable:
+    permissions:
+      contents: read
     needs: get-matrix
     uses: ./.github/workflows/nightly-test-package.yaml
     with:
@@ -26,6 +31,8 @@ jobs:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
 
   stable-all:
+    permissions:
+      contents: read
     needs: get-matrix
     uses: ./.github/workflows/nightly-test-package.yaml
     with:
@@ -33,12 +40,16 @@ jobs:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
 
   stable-extras:
+    permissions:
+      contents: read
     needs: get-matrix
     uses: ./.github/workflows/nightly-test-package-extras.yaml
     with:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
 
   latest:
+    permissions:
+      contents: read
     needs: get-matrix
     uses: ./.github/workflows/nightly-test-package.yaml
     with:
@@ -46,6 +57,8 @@ jobs:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
 
   latest-all:
+    permissions:
+      contents: read
     needs: get-matrix
     uses: ./.github/workflows/nightly-test-package.yaml
     with:
@@ -53,6 +66,8 @@ jobs:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
 
   latest-extras:
+    permissions:
+      contents: read
     needs: get-matrix
     uses: ./.github/workflows/nightly-test-package-extras.yaml
     with:
@@ -68,6 +83,8 @@ jobs:
   # pyproject.toml (and dev/config/package_versions.json, kept up to date by
   # bot-generate-package-versions.yaml).
   test-dep:
+    permissions:
+      contents: read
     needs: [get-deps, get-matrix]
     strategy:
       fail-fast: false

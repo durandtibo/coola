@@ -12,11 +12,12 @@ on:
       - main
   workflow_dispatch: # to trigger manually
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   verify-workflows:
+    permissions:
+      contents: read
     runs-on: ubuntu-slim
     timeout-minutes: 5
 
