@@ -13,9 +13,11 @@
 #   - Operates on the current repository
 #   - Age threshold `max_age_hours`: 24 by default (also for scheduled runs),
 #     can be overridden in the GitHub web UI when run manually
+#   - Number of runs to keep `max_runs`: 0 (no limit) by default, can be
+#     overridden in the GitHub web UI when run manually
 #
 # Uses:
-#   - durandtibo/cancel-queued-runs-action@v1.7
+#   - durandtibo/cancel-queued-runs-action@v1.9
 #     Specialized action for managing workflow run queue
 #
 # Purpose:
@@ -39,6 +41,11 @@ on:
         required: false
         default: "24"
         type: string
+      max_runs:
+        description: "Keep only this many most recent queued runs (0 means no limit)"
+        required: false
+        default: "0"
+        type: string
 
 permissions: {}
 
@@ -57,3 +64,5 @@ jobs:
           repo: ${{ github.repository }}
           # Scheduled runs have no inputs, so fall back to 24 hours.
           max_age_hours: ${{ inputs.max_age_hours || '24' }}
+          # No limit (0) for scheduled runs, which have no inputs.
+          max_runs: ${{ inputs.max_runs || '0' }}
