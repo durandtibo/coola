@@ -164,6 +164,8 @@ and keep it up to date when you add, rename or remove a workflow.
   maintains them).
 - `ci-verify-workflows.yaml` lints the workflows: check your changes with `actionlint` when
   available.
+- Set `permissions` at the job level (including jobs that call a reusable workflow), not at the
+  workflow level.
 
 ## Reporting
 
