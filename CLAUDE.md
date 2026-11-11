@@ -159,13 +159,13 @@ and keep it up to date when you add, rename or remove a workflow.
   test workflows, so the Python versions and OS are defined in one place. To add a check,
   create a `ci-<name>.yaml` reusable workflow and add a job in `ci.yaml`.
 - Conventions: a header comment that says what the workflow does and when it runs; `permissions: {}`
-  at most at the workflow level and the minimum permissions per job; `timeout-minutes`
+  at the workflow level and the minimum permissions per job; `timeout-minutes`
   on every job; actions pinned to a commit SHA with a `# ratchet:` comment (`bot-pin-action.yaml`
   maintains them).
 - `ci-verify-workflows.yaml` lints the workflows: check your changes with `actionlint` when
   available.
-- Set `permissions` on every job (including jobs that call a reusable workflow). The workflow
-  level has no `permissions`, or only `permissions: {}` (it grants nothing), never a grant.
+- Set `permissions` on every job (including jobs that call a reusable workflow). Every workflow
+  has `permissions: {}` at the workflow level (it grants nothing), never a grant.
 
 ## Reporting
 
