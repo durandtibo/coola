@@ -32,7 +32,7 @@ install-markdownlint:
 .PHONY: lint-markdown
 lint-markdown: install-markdownlint ## Lint Markdown files with markdownlint
 	@echo "🔍 Running markdownlint on Markdown files..."
-	markdownlint $(MARKDOWN_LINT_GLOB)
+	markdownlint '$(MARKDOWN_LINT_GLOB)'
 	@echo "✅ Markdownlint passed"
 
 endif

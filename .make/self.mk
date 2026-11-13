@@ -14,7 +14,7 @@ SHARED_MAKEFILES_REMOTE_NAME ?= shared-makefiles
 SHARED_MAKEFILES_REMOTE_URL ?= https://github.com/durandtibo/shared-makefiles.git
 SHARED_MAKEFILES_BRANCH ?= main
 SHARED_MAKEFILES_PREFIX ?= .make
-SHARED_MAKEFILES_CLEANUP ?= .github testdata tests .gitignore CODE_OF_CONDUCT.md CONTRIBUTING.md README.md SECURITY.md
+SHARED_MAKEFILES_CLEANUP ?= .github testdata tests .gitignore CODE_OF_CONDUCT.md CLAUDE.md CONTRIBUTING.md README.md SECURITY.md
 
 .PHONY: update-subtree
 update-subtree:

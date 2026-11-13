@@ -4,12 +4,13 @@ include shell.mk
 include toml.mk
 include markdown.mk
 include actions.mk
+include github.mk
 include help.mk
 
 .DEFAULT_GOAL := help
 
 .PHONY: install-tools
-install-tools: install-prettier install-yamllint install-mbake install-checkmake install-shellcheck install-shfmt install-bats install-taplo install-markdownlint install-actionlint ## Install all formatting/linting tools
+install-tools: install-prettier install-yamllint install-mbake install-checkmake install-shellcheck install-shfmt install-bats install-taplo install-markdownlint install-actionlint install-gh ## Install all formatting/linting tools
 
 .PHONY: format
 format: format-yaml format-makefile format-shell format-toml format-markdown ## Format all files
