@@ -35,7 +35,7 @@ class CounterRandomManager(BaseRandomManager):
 
 def test_base_random_manager_is_abstract() -> None:
     with pytest.raises(TypeError, match="abstract"):
-        BaseRandomManager()  # ty: ignore[call-non-callable]
+        BaseRandomManager()  # ty: ignore[abstract-class-instantiation]
 
 
 def test_base_random_manager_seed_sets_the_seed_inside_the_context() -> None:
