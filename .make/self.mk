@@ -2,6 +2,7 @@ ifndef SELF_MK_INCLUDED
 SELF_MK_INCLUDED := 1
 
 # Target for syncing the shared-makefiles subtree in a consuming project.
+# The subtree is assumed to be unmodified locally: on merge conflicts, the upstream version wins.
 #
 # Optional variables (set before including this file):
 #   SHARED_MAKEFILES_REMOTE_NAME ?= shared-makefiles                                   # git remote name
@@ -34,7 +35,23 @@ update-subtree:
 	elif [ ! -d "$(SHARED_MAKEFILES_PREFIX)" ]; then \
 		git subtree add --prefix=$(SHARED_MAKEFILES_PREFIX) $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash -m "chore: sync shared Makefile subtree"; \
 	else \
-		git subtree pull --prefix=$(SHARED_MAKEFILES_PREFIX) $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash -m "chore: sync shared Makefile subtree"; \
+		if ! git subtree pull --prefix=$(SHARED_MAKEFILES_PREFIX) $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash -m "chore: sync shared Makefile subtree"; then \
+			conflicts=$$(git diff --name-only --diff-filter=U -- $(SHARED_MAKEFILES_PREFIX)); \
+			if [ -z "$$conflicts" ]; then \
+				echo "❌ subtree pull failed"; \
+				exit 1; \
+			fi; \
+			echo "⚠️  Conflicts in $(SHARED_MAKEFILES_PREFIX); keeping the upstream version..."; \
+			for f in $$conflicts; do \
+				if git checkout --theirs -- "$$f" 2>/dev/null; then \
+					git add -- "$$f"; \
+				else \
+					git rm -rq --cached -- "$$f"; \
+					rm -rf "$$f"; \
+				fi; \
+			done; \
+			git commit -q --no-edit -m "chore: sync shared Makefile subtree"; \
+		fi; \
 	fi
 	@removed=""; \
 	for f in $(SHARED_MAKEFILES_CLEANUP); do \
