@@ -78,7 +78,7 @@ def test_format_fields_accepts_an_iterator() -> None:
 
 def test_base_metadata_summarizer_is_abstract() -> None:
     with pytest.raises(TypeError, match="abstract"):
-        BaseMetadataSummarizer()  # ty: ignore[call-non-callable]
+        BaseMetadataSummarizer()  # ty: ignore[abstract-class-instantiation]
 
 
 def test_base_metadata_summarizer_summarize() -> None:

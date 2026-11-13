@@ -40,7 +40,7 @@ def test_node_different_total() -> None:
 
 def test_base_summarizer_is_abstract() -> None:
     with pytest.raises(TypeError, match="abstract"):
-        BaseSummarizer()  # ty: ignore[call-non-callable]
+        BaseSummarizer()  # ty: ignore[abstract-class-instantiation]
 
 
 def test_base_summarizer_equal_same_type() -> None:

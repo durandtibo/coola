@@ -107,7 +107,7 @@ def test_get_object_attributes_exception() -> None:
 
 def test_get_object_attributes_exception_with_attribute() -> None:
     error = KeyError("a")
-    error.code = 3  # ty: ignore[unresolved-attribute]
+    error.code = 3  # ty: ignore[missing-attribute]
     assert get_object_attributes(error) == {"args": ("a",), "code": 3}
 
 
@@ -184,7 +184,7 @@ def test_object_attributes_equality_tester_different_attribute_names(
     config: EqualityConfig,
 ) -> None:
     other = Point(1, 2)
-    other.z = 3  # ty: ignore[unresolved-attribute]
+    other.z = 3  # ty: ignore[missing-attribute]
     assert not run_tester(ObjectAttributesEqualityTester(), Point(1, 2), other, config)
 
 
@@ -192,7 +192,7 @@ def test_object_attributes_equality_tester_different_attribute_names_reason(
     config: EqualityConfig,
 ) -> None:
     other = Point(1, 2)
-    other.z = 3  # ty: ignore[unresolved-attribute]
+    other.z = 3  # ty: ignore[missing-attribute]
     config = explaining(config)
     run_tester(ObjectAttributesEqualityTester(), Point(1, 2), other, config)
     assert messages(config) == ["objects have different attributes: ['x', 'y'] vs ['x', 'y', 'z']"]
