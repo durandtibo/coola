@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -3793,7 +3793,7 @@ had. If you only used the release <code>1.1.10</code>, skip these parts:</p>
   (see section 20).</li>
 <li>These names were not in <code>1.1.10</code>: <code>DataclassMarker</code>, <code>BaseTypeDispatchRegistry</code>, <code>resolve_or</code>,
   <code>register_fallback</code>, <code>register_lazy</code>, <code>enter_dataclasses</code>, <code>SupportsHash</code>, <code>HashableHasher</code>,
-  <code>_allowed_prefixes_</code>, <code>is_object_config</code>, <code>get_random_seed</code>, <code>LazySingleton</code>,
+  <code>_allowed_prefixes_</code>, <code>is_object_config</code>, <code>sample_torch_seed</code>, <code>LazySingleton</code>,
   <code>add_prefix_suffix_to_keys</code>, <code>coola.testing.registries</code>, <code>coola.testing.marks.requires</code> and
   <code>plural=</code>, <code>smallest_items</code> and <code>int_repr</code>.</li>
 </ul>
@@ -4629,7 +4629,7 @@ that resolves its arguments (<code>"coola"</code>, <code>"coola.factory"</code>,
 </tr>
 <tr>
 <td><code>get_torch_generator(random_seed=1, device)</code> (not exported)</td>
-<td><code>get_torch_generator(seed, *, device="cpu")</code> from <code>coola.random</code>; <code>seed</code> is required</td>
+<td><code>make_torch_generator(seed, *, device="cpu")</code> from <code>coola.random</code>; <code>seed</code> is required</td>
 </tr>
 <tr>
 <td><code>repr(RandomManagerRegistry)</code> has a <code>(state): Registry(...)</code> line</td>
@@ -5611,7 +5611,7 @@ cannot state, and removes the synonyms, with no alias:</p>
 <td><code>coola.nested</code></td>
 </tr>
 <tr>
-<td><code>PythonRandomManager</code>, <code>get_random_seed</code>, <code>get_torch_generator</code>, <code>validate_seed</code></td>
+<td><code>PythonRandomManager</code>, <code>sample_torch_seed</code>, <code>make_torch_generator</code>, <code>validate_seed</code></td>
 <td><code>coola.random</code></td>
 </tr>
 <tr>
@@ -5696,7 +5696,7 @@ cannot state, and removes the synonyms, with no alias:</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.expand", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"method": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -2993,15 +2993,15 @@ state beyond the key to manager mapping.</p>
 <td>A registry of managers that is a manager.</td>
 </tr>
 <tr>
-<td><code>get_torch_generator(seed, *, device="cpu")</code></td>
+<td><code>make_torch_generator(seed, *, device="cpu")</code></td>
 <td>A <code>torch.Generator</code> seeded with <code>seed</code> (lazy export).</td>
 </tr>
 <tr>
-<td><code>get_numpy_generator(seed)</code></td>
+<td><code>make_numpy_generator(seed)</code></td>
 <td>A <code>numpy.random.Generator</code> (<code>default_rng(seed)</code>) with a validated seed (lazy export).</td>
 </tr>
 <tr>
-<td><code>get_random_seed(seed)</code></td>
+<td><code>sample_torch_seed(seed)</code></td>
 <td>A deterministic seed in <code>[0, 2**63 - 1)</code> derived from <code>seed</code>, valid for <code>manual_seed</code> (lazy export).</td>
 </tr>
 </tbody>
@@ -3122,8 +3122,8 @@ cost is documented in the docstring of <code>manual_seed</code> and <code>random
   base.py         BaseRandomManager (contract + seed())
   seed.py         MAX_SEED, validate_seed
   python.py       PythonRandomManager
-  numpy.py        NumpyRandomManager, get_numpy_generator
-  torch.py        TorchRandomManager, get_torch_generator, get_random_seed
+  numpy.py        NumpyRandomManager, make_numpy_generator
+  torch.py        TorchRandomManager, make_torch_generator, sample_torch_seed
   registry.py     RandomManagerRegistry (35 lines)
   interface.py    module functions, default registry
 </code></pre></div>
@@ -3165,9 +3165,9 @@ standard library module), and the tests mirror it (<code>tests/unit/random/test_
 <td>Seed only the libraries already in <code>sys.modules</code>: fast, but <code>manual_seed(42); import torch</code> silently does nothing. Import-time hooks: fragile.</td>
 </tr>
 <tr>
-<td><code>get_torch_generator</code> and <code>get_random_seed</code> are exported lazily, with keyword-only options and a fixed seed range.</td>
-<td><code>get_torch_generator</code> is the documented way to get a seeded independent generator for threads (the "Not guaranteed" part sends the reader there). <code>get_random_seed</code> returns a valid seed <code>[0, 2**63 - 1)</code> (<code>torch.randint</code> rejects <code>2**63</code>), so its output goes to <code>manual_seed</code>.</td>
-<td>No helper: leaves threads without one. <code>get_numpy_generator(seed)</code> is the twin for NumPy: <code>default_rng(seed)</code> with the same seed validation.</td>
+<td><code>make_torch_generator</code> and <code>sample_torch_seed</code> are exported lazily, with keyword-only options and a fixed seed range.</td>
+<td><code>make_torch_generator</code> is the documented way to get a seeded independent generator for threads (the "Not guaranteed" part sends the reader there). <code>sample_torch_seed</code> returns a valid seed <code>[0, 2**63 - 1)</code> (<code>torch.randint</code> rejects <code>2**63</code>), so its output goes to <code>manual_seed</code>.</td>
+<td>No helper: leaves threads without one. <code>make_numpy_generator(seed)</code> is the twin for NumPy: <code>default_rng(seed)</code> with the same seed validation.</td>
 </tr>
 <tr>
 <td>No lock, no thread-local state, no per-thread isolation.</td>
@@ -3195,7 +3195,7 @@ standard library module), and the tests mirror it (<code>tests/unit/random/test_
 <ul>
 <li><strong>No <code>Generator</code> management.</strong> Tracking <code>random.Random</code>, <code>default_rng</code> and <code>torch.Generator</code>
   objects would need weak references to every generator and a policy for the ones the package does
-  not know. It is a different package; the helpers <code>get_torch_generator</code> and <code>default_rng(seed)</code>
+  not know. It is a different package; the helpers <code>make_torch_generator</code> and <code>default_rng(seed)</code>
   are the answer.</li>
 <li><strong>No automatic seeding of other libraries</strong> (JAX uses explicit keys, TensorFlow and others can
   come as plugins through <code>coola.random.managers</code>).</li>
@@ -3261,7 +3261,7 @@ standard library module), and the tests mirror it (<code>tests/unit/random/test_
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.expand", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"method": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

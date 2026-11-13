@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -3423,7 +3423,7 @@ the base class knows the scoped context.</p>
 </tr>
 <tr>
 <td>One seed domain</td>
-<td>A seed is an <code>int</code> in <code>[0, 2**63)</code> (<code>bool</code> is rejected). Every entry that takes a seed (<code>manual_seed</code>, <code>random_seed</code>, <code>Manager.manual_seed</code>, <code>Manager.seed</code>, <code>get_torch_generator</code>, <code>get_numpy_generator</code>) validates it before any generator is touched.</td>
+<td>A seed is an <code>int</code> in <code>[0, 2**63)</code> (<code>bool</code> is rejected). Every entry that takes a seed (<code>manual_seed</code>, <code>random_seed</code>, <code>Manager.manual_seed</code>, <code>Manager.seed</code>, <code>make_torch_generator</code>, <code>make_numpy_generator</code>) validates it before any generator is touched.</td>
 </tr>
 <tr>
 <td>Seed injective</td>
@@ -3473,7 +3473,7 @@ the base class knows the scoped context.</p>
   time interleave their saves and restores, and the state at exit is the one of whoever restores
   last; a thread that draws numbers while another seeds gets numbers of the other's stream. Use one
   <code>random_seed</code> block at a time, or independent generators (<code>numpy.random.default_rng(seed)</code>,
-  <code>get_torch_generator(seed)</code>) in threads.</li>
+  <code>make_torch_generator(seed)</code>) in threads.</li>
 <li><strong>Independent generators.</strong> <code>random.Random()</code>, <code>numpy.random.default_rng()</code> and <code>torch.Generator()</code>
   are not seeded, and their state is not saved or restored. Seed them explicitly.</li>
 <li><strong>CUDA created inside a scoped block.</strong> The CUDA state is saved only if CUDA is already initialized
@@ -3585,19 +3585,19 @@ so two different seeds in <code>[0, 2**63)</code> never give the same numbers.</
 <p><code>torch.manual_seed</code> seeds the CPU, CUDA and MPS generators, so one call is enough.</p>
 <h3 id="independent-generators">Independent Generators<a class="headerlink" href="#independent-generators" title="Permanent link">&para;</a></h3>
 <p>The generators created with <code>random.Random()</code>, <code>numpy.random.default_rng()</code> and <code>torch.Generator()</code>
-are not managed. Seed them explicitly. <code>get_torch_generator</code> creates a seeded <code>torch.Generator</code>
-(<code>device</code> is keyword-only), and <code>get_random_seed</code> derives a seed that is valid for <code>manual_seed</code>
+are not managed. Seed them explicitly. <code>make_torch_generator</code> creates a seeded <code>torch.Generator</code>
+(<code>device</code> is keyword-only), and <code>sample_torch_seed</code> derives a seed that is valid for <code>manual_seed</code>
 from another seed:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_random_seed</span><span class="p">,</span> <span class="n">get_torch_generator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">sample_torch_seed</span><span class="p">,</span> <span class="n">make_torch_generator</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">array([...])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">generator</span> <span class="o">=</span> <span class="n">get_torch_generator</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">generator</span> <span class="o">=</span> <span class="n">make_torch_generator</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="n">generator</span><span class="p">)</span>
 <span class="go">tensor([...])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">get_random_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="o">**</span><span class="mi">63</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">sample_torch_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="o">**</span><span class="mi">63</span> <span class="o">-</span> <span class="mi">1</span>
 <span class="go">True</span>
 </code></pre></div>
 <h2 id="advanced-usage">Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permanent link">&para;</a></h2>
@@ -3796,14 +3796,14 @@ It is equivalent to this code.</p>
 <h2 id="threads-and-processes">Threads and Processes<a class="headerlink" href="#threads-and-processes" title="Permanent link">&para;</a></h2>
 <p>The generators are process-global and <code>coola.random</code> does not lock them: it cannot, because other
 code draws from the same generators. In threads, use independent generators
-(<code>get_numpy_generator(seed)</code>, <code>get_torch_generator(seed)</code>) instead of <code>random_seed</code>.</p>
+(<code>make_numpy_generator(seed)</code>, <code>make_torch_generator(seed)</code>) instead of <code>random_seed</code>.</p>
 <p>The CUDA state is read only if CUDA is already initialized, so <code>get_rng_state</code> can be called in a
 forked worker. A child process restores a state with <code>set_rng_state</code>.</p>
 <h2 id="what-coolarandom-does-not-do">What <code>coola.random</code> does not do<a class="headerlink" href="#what-coolarandom-does-not-do" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>It does not manage <code>Generator</code> objects.</strong> <code>random.Random</code>, <code>numpy.random.default_rng</code> and
   <code>torch.Generator</code> objects are not tracked: the package manages the global generators only. Seed an
-  independent generator yourself, with <code>default_rng(seed)</code> or <code>get_torch_generator(seed)</code>.</li>
+  independent generator yourself, with <code>default_rng(seed)</code> or <code>make_torch_generator(seed)</code>.</li>
 <li><strong>It does not seed other libraries automatically.</strong> JAX uses explicit keys. A manager for
   TensorFlow or another library can be added as a plugin through <code>coola.random.managers</code>.</li>
 <li><strong>It does not lock the generators</strong>, and it does not make them thread-local (see
@@ -3890,7 +3890,7 @@ state is restored when the block exits.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.expand", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"method": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
