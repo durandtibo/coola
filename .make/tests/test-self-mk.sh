@@ -12,7 +12,7 @@ git_cfg=(-c user.name=test -c user.email=test@example.com)
 upstream="$work/upstream"
 mkdir -p "$upstream/.github" "$upstream/testdata" "$upstream/tests"
 cp "$repo_root/self.mk" "$upstream/self.mk"
-for f in .gitignore CODE_OF_CONDUCT.md CONTRIBUTING.md README.md SECURITY.md LICENSE .github/x.yml testdata/x.txt tests/x.sh; do
+for f in .gitignore CODE_OF_CONDUCT.md CLAUDE.md CONTRIBUTING.md README.md SECURITY.md LICENSE .github/x.yml testdata/x.txt tests/x.sh; do
 	echo "# $f" >"$upstream/$f"
 done
 git -C "$upstream" init -q -b main
@@ -34,7 +34,7 @@ export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.com
 export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
 make update-subtree
 
-for f in .gitignore CODE_OF_CONDUCT.md CONTRIBUTING.md README.md SECURITY.md .github testdata tests; do
+for f in .gitignore CODE_OF_CONDUCT.md CLAUDE.md CONTRIBUTING.md README.md SECURITY.md .github testdata tests; do
 	if [ -e ".make/$f" ]; then
 		echo "FAIL: .make/$f should have been removed" >&2
 		exit 1

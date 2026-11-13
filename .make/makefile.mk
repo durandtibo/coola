@@ -71,7 +71,17 @@ format-makefile: install-mbake ## Format Makefiles and .mk files with mbake
 .PHONY: lint-makefile
 lint-makefile: install-checkmake ## Lint Makefiles and .mk files with checkmake
 	@echo "🔍 Running checkmake on Makefiles..."
-	checkmake $(MAKEFILE_LINT_FILES)
+	@files=""; \
+	for pattern in $(MAKEFILE_LINT_FILES); do \
+		for f in $$pattern; do \
+			[ -e "$$f" ] && files="$$files $$f"; \
+		done; \
+	done; \
+	if [ -n "$$files" ]; then \
+		checkmake $$files; \
+	else \
+		echo "No files found matching: $(MAKEFILE_LINT_FILES)"; \
+	fi
 	@echo "✅ Checkmake passed"
 
 endif
