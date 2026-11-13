@@ -22,35 +22,40 @@ on:
   workflow_call:
     outputs:
       test_matrix:
-        description: "JSON string containing python_versions and os_matrix"
+        description: "JSON string containing python_versions, python_versions_standard, os_matrix and os_macos"
         value: ${{ jobs.get-matrix.outputs.test_matrix }}
 
   workflow_dispatch: # Allows manual triggering for testing purposes
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   get-matrix:
+    permissions:
+      contents: read
     runs-on: ubuntu-slim
     timeout-minutes: 2
     outputs:
       test_matrix: ${{ steps.build-matrix.outputs.test_matrix }}
     steps:
       - name: Load workflow config
-        uses: durandtibo/workflow-config-action@8c406999ac8ac3cafe656c263759d8ddea3a4edb # ratchet:durandtibo/workflow-config-action@v0.2
+        uses: durandtibo/workflow-config-action@293a1c5eff18a9c485359d32d3035fdaaddcb955 # ratchet:durandtibo/workflow-config-action@v0.3.0
         id: cfg
 
       - name: Build test matrix
         id: build-matrix
         env:
           PYTHON_VERSIONS: ${{ steps.cfg.outputs.python_versions }}
+          PYTHON_VERSIONS_STANDARD: ${{ steps.cfg.outputs.python_versions_standard }}
           OS_UNIX: ${{ steps.cfg.outputs.os_unix }}
+          OS_MACOS: ${{ steps.cfg.outputs.os_macos }}
         run: |
           test_matrix=$(jq -nc \
             --argjson python_versions "$PYTHON_VERSIONS" \
+            --argjson python_versions_standard "$PYTHON_VERSIONS_STANDARD" \
             --argjson os_matrix "$OS_UNIX" \
-            '{python_versions: $python_versions, os_matrix: $os_matrix}')
+            --argjson os_macos "$OS_MACOS" \
+            '{python_versions: $python_versions, python_versions_standard: $python_versions_standard, os_matrix: $os_matrix, os_macos: $os_macos}')
           echo "test_matrix=$test_matrix" >> "$GITHUB_OUTPUT"
 
       - name: Display test matrix
