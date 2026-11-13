@@ -4,22 +4,19 @@
     <a href="https://github.com/durandtibo/coola/actions/workflows/ci.yaml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/durandtibo/coola/ci.yaml?branch=main&label=CI&logo=github"></a>
     <a href="https://github.com/durandtibo/coola/actions/workflows/nightly-package.yaml"><img alt="Nightly Package Tests" src="https://img.shields.io/github/actions/workflow/status/durandtibo/coola/nightly-package.yaml?label=nightly&logo=github"></a>
     <a href="https://codecov.io/gh/durandtibo/coola"><img alt="Codecov" src="https://img.shields.io/codecov/c/github/durandtibo/coola?logo=codecov"></a>
-    <br/>
     <a href="https://durandtibo.github.io/coola/"><img alt="Documentation (stable)" src="https://img.shields.io/badge/docs-stable-blue?logo=readthedocs&logoColor=white"></a>
-    <a href="https://durandtibo.github.io/coola/dev/"><img alt="Documentation (unstable)" src="https://img.shields.io/badge/docs-dev-orange?logo=readthedocs&logoColor=white"></a>
     <br/>
     <a href="https://pypi.org/project/coola/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/coola?logo=pypi&logoColor=white"></a>
     <a href="https://pypi.org/project/coola/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/coola?logo=python&logoColor=white"></a>
     <a href="https://opensource.org/licenses/BSD-3-Clause"><img alt="BSD-3-Clause" src="https://img.shields.io/pypi/l/coola"></a>
     <br/>
+    <a href="https://github.com/astral-sh/ruff"><img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json"></a>
+    <a href="https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings"><img alt="Doc style: google" src="https://img.shields.io/badge/docstyle-google-3666d6"></a>
+    <a href="https://scorecard.dev/viewer/?uri=github.com/durandtibo/coola"><img alt="OpenSSF Scorecard" src="https://img.shields.io/ossf-scorecard/github.com/durandtibo/coola?label=openssf%20scorecard"></a>
+    <br/>
     <a href="https://pepy.tech/project/coola"><img alt="Downloads" src="https://img.shields.io/pepy/dt/coola"></a>
     <a href="https://pepy.tech/project/coola"><img alt="Monthly downloads" src="https://img.shields.io/pepy/dm/coola"></a>
     <a href="https://github.com/durandtibo/coola/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/durandtibo/coola?logo=github"></a>
-    <br/>
-    <a href="https://github.com/astral-sh/ruff"><img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json"></a>
-    <a href="https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings"><img alt="Doc style: google" src="https://img.shields.io/badge/docstyle-google-3666d6"></a>
-    <a href="https://www.bestpractices.dev/projects/14387"><img alt="OpenSSF Best Practices" src="https://img.shields.io/cii/summary/14387?label=openssf%20best%20practices"></a>
-    <a href="https://scorecard.dev/viewer/?uri=github.com/durandtibo/coola"><img alt="OpenSSF Scorecard" src="https://img.shields.io/ossf-scorecard/github.com/durandtibo/coola?label=openssf%20scorecard"></a>
 </p>
 
 ## Overview
@@ -363,7 +360,7 @@ methods, see the [installation guide](https://durandtibo.github.io/coola/get_sta
 ### Compatibility Matrix
 
 | `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `pydantic`<sup>*</sup> | `scipy`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python` |
-| -------- | ----------------- | ------------------- | ----------------------- | -------------------- | -------------------- | --------------------- | ---------------------- | ------------------- | ------------------- | -------------------- | -------- |
+|----------|-------------------|---------------------|-------------------------|----------------------|----------------------|-----------------------|------------------------|---------------------|---------------------|----------------------|----------|
 | `main`   | `>=0.6.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<3.0`         | `>=11.0`              | `>=2.0,<3.0`           | `>=1.13`            | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.11` |
 | `1.1.10` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              | `>=2.0,<3.0`           |                     | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
 | `1.1.9`  | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<4.0`         | `>=1.0,<2.0`         | `>=11.0`              | `>=2.0,<3.0`           |                     | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10` |
@@ -385,7 +382,7 @@ methods, see the [installation guide](https://durandtibo.github.io/coola/get_sta
     <summary>older versions</summary>
 
 | `coola`  | `jax`<sup>*</sup> | `numpy`<sup>*</sup> | `packaging`<sup>*</sup> | `pandas`<sup>*</sup> | `polars`<sup>*</sup> | `pyarrow`<sup>*</sup> | `torch`<sup>*</sup> | `xarray`<sup>*</sup> | `python`       |
-| -------- | ----------------- | ------------------- | ----------------------- | -------------------- | -------------------- | --------------------- | ------------------- | -------------------- | -------------- |
+|----------|-------------------|---------------------|-------------------------|----------------------|----------------------|-----------------------|---------------------|----------------------|----------------|
 | `0.11.1` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2024.1`           | `>=3.10`       |
 | `0.11.0` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10`       |
 | `0.10.0` | `>=0.5.0,<1.0`    | `>=1.24,<3.0`       | `>=22.0`                | `>=2.0,<3.0`         | `>=1.0,<2.0`         | `>=11.0,<22.0`        | `>=2.0,<3.0`        | `>=2023.1`           | `>=3.10`       |
