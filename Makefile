@@ -1,6 +1,7 @@
 SHELL = /bin/bash
 
 include .make/help.mk
+include .make/actions.mk
 include .make/git.mk
 include .make/github.mk
 include .make/makefile.mk
