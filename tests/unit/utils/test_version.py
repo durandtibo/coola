@@ -52,7 +52,7 @@ def test_compare_version_missing_packaging() -> None:
 
 
 @packaging_available
-@pytest.mark.parametrize("package", ["pytest", "ruff"])
+@pytest.mark.parametrize("package", ["pytest", "packaging"])
 def test_get_package_version(package: str) -> None:
     assert isinstance(get_package_version(package), Version)
 
