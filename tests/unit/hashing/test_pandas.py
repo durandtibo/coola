@@ -2,13 +2,17 @@ from __future__ import annotations
 
 from unittest.mock import Mock
 
-import numpy as np
 import pytest
 
 from coola.hashing import hash_object
 from coola.hashing.pandas import _normalize_missing
 from coola.testing.marks import pandas_available
-from coola.utils.imports import is_pandas_available
+from coola.utils.imports import is_numpy_available, is_pandas_available
+
+if is_numpy_available():
+    import numpy as np
+else:
+    np = Mock()
 
 if is_pandas_available():
     import pandas as pd
