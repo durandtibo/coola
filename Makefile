@@ -1,12 +1,14 @@
 SHELL = /bin/bash
 
 include .make/help.mk
+include .make/git.mk
 include .make/github.mk
 include .make/makefile.mk
 include .make/markdown.mk
 include .make/self.mk
 include .make/shell.mk
 include .make/toml.mk
+include .make/tools.mk
 include .make/uv.mk
 include .make/yaml.mk
 
