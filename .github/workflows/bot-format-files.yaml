@@ -1,5 +1,7 @@
-# Formats this repo's own YAML, Makefile, shell, and Markdown files weekly,
+# Formats this repo's own YAML, Makefile, shell, TOML, and Markdown files weekly,
 # opening a pull request when anything drifted out of format.
+# It runs `make format` of the root Makefile instead of durandtibo/format-files-action, which
+# expects the shared Makefiles to be vendored in .make/ (this repo is their source).
 
 name: Format (bot)
 
@@ -12,18 +14,36 @@ permissions: {}
 
 jobs:
   format:
-    runs-on: ubuntu-slim
-    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read # actions/checkout only needs read; the app token grants write
 
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # ratchet:actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ secrets.TIBOT_CLIENT_ID }}
+          private-key: ${{ secrets.TIBOT_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Format files
-        uses: durandtibo/format-files-action@d38cabe9c65c3a3c6f58a5d22bbb66ba59fb8619 # ratchet:durandtibo/format-files-action@v0.0.1
+        run: |
+          make format
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8 # ratchet:peter-evans/create-pull-request@v8
         with:
-          github-app-client-id: ${{ secrets.TIBOT_CLIENT_ID }}
-          github-app-private-key: ${{ secrets.TIBOT_APP_PRIVATE_KEY }}
+          token: ${{ steps.app-token.outputs.token }}
+          branch: bot/format-files
+          title: "style: format files"
+          commit-message: "style: format files"
+          body: Format YAML, Makefile, shell, TOML, and Markdown files with `make format`.
+          delete-branch: true
