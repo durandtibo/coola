@@ -682,6 +682,13 @@ def test_hash_pyarrow_chunked_array_with_null_ignores_the_chunk_layout() -> None
 
 
 @pyarrow_available
+def test_hash_pyarrow_chunked_array_without_chunk_equals_the_empty_array() -> None:
+    assert hash_object(pa.chunked_array([], type=pa.int64())) == hash_object(
+        pa.chunked_array([pa.array([], type=pa.int64())])
+    )
+
+
+@pyarrow_available
 def test_hash_pyarrow_string_array_with_null() -> None:
     assert hash_object(pa.array(["a", None])) != hash_object(pa.array(["a", ""]))
 
