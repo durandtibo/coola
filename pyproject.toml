@@ -167,6 +167,8 @@ filterwarnings = [
   "ignore:Sparse invariant checks are implicitly disabled:UserWarning",
   # torch warns the first time a compressed sparse tensor (CSR, CSC, BSR, BSC) is built.
   "ignore:Sparse .* tensor support is in beta state:UserWarning",
+  # xarray (all supported versions) builds `np.timedelta64("NaT")` at import, which NumPy 2.5 deprecates.
+  "ignore:The 'generic' unit for NumPy timedelta is deprecated:DeprecationWarning",
 ]
 # Configuration of the short test summary info
 # https://docs.pytest.org/en/stable/usage.html#detailed-summary-report
