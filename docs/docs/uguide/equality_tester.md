@@ -40,8 +40,8 @@ An equality tester is responsible for comparing objects of a specific type. Each
 >>> from coola.equality.tester import SequenceEqualityTester, get_default_registry
 >>> engine = Engine(EqualityConfig())
 >>> tester = SequenceEqualityTester()
->>> list(tester.objects_are_equal([1.0, 2.0], [1.0, 3.0], engine))
-[(1.0, 1.0, 0), (2.0, 3.0, 1)]
+>>> tester.objects_are_equal([1.0, 2.0], [1.0, 3.0], engine)
+False
 >>> engine.run([1, 2, 3], [1, 2, 3])
 True
 >>> engine.run([1, 2, 3], [1, 2, 4])
@@ -396,7 +396,7 @@ be applied, so a `RuntimeWarning` says that they are ignored (once per compariso
 `ctx.warn_once`).
 
 A table is one leaf for the engine: `compare` reports it as different, with the name of the first
-column that differs and no row. Use the tools of the library to find the row.
+column that differs, the first row that differs and the two values.
 
 ```pycon
 >>> import pandas as pd
@@ -407,7 +407,7 @@ column that differs and no row. Use the tools of the library to find the row.
 >>> result.path
 ('prices',)
 >>> print(result.reason)
-tables have different values: column 'b' differs
+tables have different values: column 'b' differs at row 2: 6 vs 7
 
 ```
 
