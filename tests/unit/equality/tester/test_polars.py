@@ -622,12 +622,14 @@ VALUE_REASONS = [
         pl.DataFrame({"a": [1.0, 2.0, 4.0]}),
         "tables have different values: column 'a' differs at row 2: 3.0 vs 4.0",
         id="float column",
+        marks=numpy_available,
     ),
     pytest.param(
         pl.DataFrame({"a": [1, 2], "b": ["x", "y"]}),
         pl.DataFrame({"a": [1, 2], "b": ["x", "z"]}),
         "tables have different values: column 'b' differs at row 1: 'y' vs 'z'",
         id="string column",
+        marks=numpy_available,
     ),
     pytest.param(
         pl.DataFrame({"a": ["x", "y"]}),
@@ -640,6 +642,7 @@ VALUE_REASONS = [
         pl.DataFrame({"a": [1, 2]}),
         "tables have different values: column 'a' differs at row 1: None vs 2",
         id="integer column with a null",
+        marks=numpy_available,
     ),
     pytest.param(
         pl.Series([True, False]),
