@@ -3761,8 +3761,8 @@ automatically selects the appropriate tester based on the type of the objects be
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality.tester</span><span class="w"> </span><span class="kn">import</span> <span class="n">SequenceEqualityTester</span><span class="p">,</span> <span class="n">get_default_registry</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span><span class="n">EqualityConfig</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tester</span> <span class="o">=</span> <span class="n">SequenceEqualityTester</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">tester</span><span class="o">.</span><span class="n">objects_are_equal</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="n">engine</span><span class="p">))</span>
-<span class="go">[(1.0, 1.0, 0), (2.0, 3.0, 1)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tester</span><span class="o">.</span><span class="n">objects_are_equal</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="n">engine</span><span class="p">)</span>
+<span class="go">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
@@ -4054,7 +4054,7 @@ library (<code>equals</code>), which never sees the tolerance or <code>equal_nan
 be applied, so a <code>RuntimeWarning</code> says that they are ignored (once per comparison, through
 <code>ctx.warn_once</code>).</p>
 <p>A table is one leaf for the engine: <code>compare</code> reports it as different, with the name of the first
-column that differs and no row. Use the tools of the library to find the row.</p>
+column that differs, the first row that differs and the two values.</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">compare</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"a"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">"b"</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]})</span>
@@ -4063,7 +4063,7 @@ column that differs and no row. Use the tools of the library to find the row.</p
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">path</span>
 <span class="go">('prices',)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">reason</span><span class="p">)</span>
-<span class="go">tables have different values: column 'b' differs</span>
+<span class="go">tables have different values: column 'b' differs at row 2: 6 vs 7</span>
 </code></pre></div>
 <p>To support another library, write an adapter: a function that returns an object with a <code>kind_name</code>
 (the plural word used in the reasons), a <code>same_structure(other, ctx)</code> method and a <code>columns()</code>
