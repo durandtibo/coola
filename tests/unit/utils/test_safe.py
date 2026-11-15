@@ -45,7 +45,7 @@ NonStrStr = type("NonStrStr", (), {"__str__": lambda _: 1})
 
 class NonStrRepr:
     def __repr__(self) -> str:
-        return 1  # ty: ignore[invalid-return-type]
+        return 1  # ty: ignore[invalid-explicit-return]
 
 
 class Interrupt:
