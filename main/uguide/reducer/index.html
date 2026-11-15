@@ -3606,7 +3606,7 @@ input that is not one-dimensional raises <code>ValueError</code>. The message sa
 <span class="gp">&gt;&gt;&gt; </span><span class="n">reducer</span><span class="o">.</span><span class="n">quantile</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 <span class="gt">Traceback (most recent call last):</span>
 <span class="w">    </span><span class="o">...</span>
-<span class="gr">ValueError</span>: <span class="n">quantiles must be in [0, 1], got 2</span>
+<span class="gr">ValueError</span>: <span class="n">quantiles must be in the range [0, 1], got 2</span>
 </code></pre></div>
 <h3 id="empty-sequences">Empty Sequences<a class="headerlink" href="#empty-sequences" title="Permanent link">&para;</a></h3>
 <p><code>max</code>, <code>min</code>, <code>mean</code>, <code>median</code>, <code>std</code> and <code>quantile</code> raise <code>EmptySequenceError</code> when given an

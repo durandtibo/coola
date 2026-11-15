@@ -3260,7 +3260,7 @@ the format is only known at runtime (e.g. read from a config file):</p>
 <span class="go">JsonLoader(encoding=None)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">saver</span> <span class="o">=</span> <span class="n">resolve_saver</span><span class="p">({</span><span class="s2">"_target_"</span><span class="p">:</span> <span class="s2">"coola.io.JsonSaver"</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">saver</span>
-<span class="go">JsonSaver(encoding='utf-8')</span>
+<span class="go">JsonSaver(encoding='utf-8', allow_nan=False, jsonable=False)</span>
 </code></pre></div>
 <p>Use <code>is_loader_config</code>/<code>is_saver_config</code> to check if a configuration targets a <code>BaseLoader</code> or
 <code>BaseSaver</code>:</p>

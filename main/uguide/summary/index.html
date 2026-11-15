@@ -3823,11 +3823,11 @@ and the rest of the summary is intact:</p>
 dataclasses and the pydantic models, and to the columns of the data frames, the tables and the
 datasets.</p>
 <h3 id="truncating-long-texts">Truncating Long Texts<a class="headerlink" href="#truncating-long-texts" title="Permanent link">&para;</a></h3>
-<p>A text is cut at <code>max_characters</code> characters (1000 by default). The <code>str</code> of the object is computed
+<p>A text, with its type header, is at most <code>max_characters</code> characters long (1000 by default). The <code>str</code> of the object is computed
 before it is cut. Use <code>max_characters=None</code> to show everything:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.summary</span><span class="w"> </span><span class="kn">import</span> <span class="n">summarize</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">summarize</span><span class="p">(</span><span class="s2">"This is a very long string that is cut"</span><span class="p">,</span> <span class="n">max_characters</span><span class="o">=</span><span class="mi">24</span><span class="p">))</span>
-<span class="go">&lt;class 'str'&gt; This is a...</span>
+<span class="go">&lt;class 'str'&gt; This is...</span>
 </code></pre></div>
 <h2 id="working-with-numpy-and-pytorch">Working with NumPy and PyTorch<a class="headerlink" href="#working-with-numpy-and-pytorch" title="Permanent link">&para;</a></h2>
 <p>The default registry summarizes the arrays and the tensors with their metadata, so a large array
