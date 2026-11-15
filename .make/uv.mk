@@ -1,6 +1,8 @@
 ifndef UV_MK_INCLUDED
 UV_MK_INCLUDED := 1
 
+include $(dir $(lastword $(MAKEFILE_LIST)))tool-info.mk
+
 # Targets for installing Python tools via uv.
 #
 # Optional variables (set before including this file):
@@ -14,12 +16,14 @@ install-uv:
 		echo "📦 uv not found, installing..."; \
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
 	fi
+	$(call show-tool,uv)
 
 .PHONY: install-invoke
 install-invoke: install-uv
 	@echo "📦 Installing invoke..."
 	uv pip install "invoke>=3.0" "invoke-tasklib>=0.0.8"
 	@echo "✅ invoke installed"
+	$(call show-tool,invoke)
 
 .PHONY: update-uv
 update-uv: install-uv

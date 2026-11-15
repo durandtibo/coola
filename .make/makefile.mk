@@ -1,6 +1,8 @@
 ifndef MAKEFILE_MK_INCLUDED
 MAKEFILE_MK_INCLUDED := 1
 
+include $(dir $(lastword $(MAKEFILE_LIST)))tool-info.mk
+
 # Targets for formatting and linting Makefiles and *.mk files.
 #
 # Optional variables (set before including this file):
@@ -28,6 +30,7 @@ install-mbake:
 			pip3 install --user --break-system-packages mbake; \
 		fi; \
 	fi
+	$(call show-tool,mbake)
 
 .PHONY: install-checkmake
 install-checkmake:
@@ -51,6 +54,7 @@ install-checkmake:
 				;; \
 		esac; \
 	fi
+	$(call show-tool,checkmake)
 
 .PHONY: format-makefile
 format-makefile: install-mbake ## Format Makefiles and .mk files with mbake

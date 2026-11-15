@@ -1,6 +1,8 @@
 ifndef GITHUB_MK_INCLUDED
 GITHUB_MK_INCLUDED := 1
 
+include $(dir $(lastword $(MAKEFILE_LIST)))tool-info.mk
+
 # Targets for working with GitHub Actions runs through the GitHub CLI (`gh`).
 #
 # `gh` must be authenticated (`gh auth login`) and run inside a clone of the target repository.
@@ -27,6 +29,7 @@ install-gh:
 				;; \
 		esac; \
 	fi
+	$(call show-tool,gh)
 
 # Equivalent of "Re-run failed jobs" in the web UI, applied to the last runs whose conclusion is
 # failure, cancelled or timed_out. Successful, skipped and still-running runs are left untouched.
