@@ -1,24 +1,15 @@
 # Main CI workflow that orchestrates all quality checks and tests.
 # Runs on pull requests, pushes to main, a nightly schedule, and manual dispatch.
-# Validates code quality, runs tests, and checks dependencies.
-# Coverage is uploaded from the "all" job of ci-test.yaml rather than a
-# separate full test run.
+# It tests every module (*.mk) of the repository against the files of testdata/.
 #
-# Deliberately NOT called from here, each standalone with its own trigger:
-#   - ci-benchmark.yaml: runs nightly on its own schedule instead of gating
-#     every PR/push, since a benchmark regression isn't a merge blocker.
-#   - ci-verify-workflows.yaml: lints .github/workflows/* itself, so it
-#     triggers on workflow-file changes rather than every PR/push.
-# See .github/GUIDELINES.md for the naming/prefix and runs-on/timeout
-# conventions shared across every workflow in this directory.
+# Deliberately NOT called from here, with its own trigger:
+#   - ci-verify-workflows.yaml: lints .github/workflows/* itself.
 #
-# The individual check jobs below call out to per-check reusable workflows
-# (ci-build.yaml, ci-format.yaml, ...) instead of inlining their steps here,
-# so each check can still be run/tested on its own (workflow_dispatch) and to
-# keep this file short. Job ids are load-bearing: main's branch protection
-# requires status checks named "format / format", "pre-commit / pre-commit"
-# and "type-checking / type-checking", derived from the job id here plus the
-# job id in the called workflow - keep both in sync if either is renamed.
+# Permissions are set at the job level, not the workflow level.
+#
+# The individual check jobs below call out to per-module reusable workflows
+# (ci-yaml.yaml, ...) instead of inlining their steps here, so each check
+# is easy to read and to extend.
 
 name: CI
 on:
@@ -30,55 +21,118 @@ on:
     - cron: "10 9 * * *" # Run nightly at 9:10 AM UTC to catch issues from external changes
   workflow_dispatch: # to trigger manually
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
-  # Load the shared python-version/OS matrix from dev/config/test_matrix.json
-  # once, and pass it down to every job below that needs it.
+  # Load the shared OS and Python version matrices from the default config of
+  # durandtibo/workflow-config-action once, and pass it down to every job
+  # below that needs it.
   get-matrix:
     uses: ./.github/workflows/lib-get-test-matrix.yaml
+    permissions:
+      contents: read
 
-  # Validate package can be built and installed correctly
-  build:
-    needs: get-matrix
-    uses: ./.github/workflows/ci-build.yaml
-    with:
-      test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
-
-  # Check for circular import dependencies
-  cyclic-imports:
-    uses: ./.github/workflows/ci-cyclic-imports.yaml
-
-  # Run doctests on code examples
-  doctest:
-    uses: ./.github/workflows/ci-doctest.yaml
-    secrets: inherit
-
-  # Verify code formatting and linting
+  # Verify the formatting and lint all the files of the repository
   format:
     uses: ./.github/workflows/ci-format.yaml
+    permissions:
+      contents: read
 
-  # Check type annotations with ty
-  type-checking:
-    uses: ./.github/workflows/ci-type-checking.yaml
-
-  # Run pre-commit hooks for code quality
-  pre-commit:
-    uses: ./.github/workflows/ci-pre-commit.yaml
-
-  # Run unit and integration tests across multiple Python versions and OS.
-  # secrets: inherit is required so the "all" job can upload coverage to Codecov.
-  test:
+  # Test yaml.mk on multiple OS
+  yaml:
     needs: get-matrix
-    uses: ./.github/workflows/ci-test.yaml
+    uses: ./.github/workflows/ci-yaml.yaml
     with:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
-    secrets: inherit
+    permissions:
+      contents: read
 
-  # Test compatibility with different dependency versions
-  test-deps:
+  # Test makefile.mk on multiple OS
+  makefile:
     needs: get-matrix
-    uses: ./.github/workflows/ci-test-deps.yaml
+    uses: ./.github/workflows/ci-makefile.yaml
     with:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+    permissions:
+      contents: read
+
+  # Test shell.mk on multiple OS
+  shell:
+    needs: get-matrix
+    uses: ./.github/workflows/ci-shell.yaml
+    with:
+      test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+    permissions:
+      contents: read
+
+  # Test toml.mk on multiple OS
+  toml:
+    needs: get-matrix
+    uses: ./.github/workflows/ci-toml.yaml
+    with:
+      test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+    permissions:
+      contents: read
+
+  # Test markdown.mk on multiple OS
+  markdown:
+    needs: get-matrix
+    uses: ./.github/workflows/ci-markdown.yaml
+    with:
+      test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+    permissions:
+      contents: read
+
+  # Test actions.mk on multiple OS
+  actions:
+    needs: get-matrix
+    uses: ./.github/workflows/ci-actions.yaml
+    with:
+      test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+    permissions:
+      contents: read
+
+  # Test github.mk on multiple OS
+  github:
+    needs: get-matrix
+    uses: ./.github/workflows/ci-github.yaml
+    with:
+      test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+    permissions:
+      contents: read
+
+  # Test self.mk on multiple OS
+  self:
+    needs: get-matrix
+    uses: ./.github/workflows/ci-self.yaml
+    with:
+      test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+    permissions:
+      contents: read
+
+  # Test git.mk on multiple OS
+  git:
+    needs: get-matrix
+    uses: ./.github/workflows/ci-git.yaml
+    with:
+      test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+    permissions:
+      contents: read
+
+  # Test tools.mk on multiple OS
+  tools:
+    needs: get-matrix
+    uses: ./.github/workflows/ci-tools.yaml
+    with:
+      test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+    permissions:
+      contents: read
+
+  # Test uv.mk on multiple OS and Python versions
+  uv:
+    needs: get-matrix
+    uses: ./.github/workflows/ci-uv.yaml
+    with:
+      test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
+    permissions:
+      contents: read
