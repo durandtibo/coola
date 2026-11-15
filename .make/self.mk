@@ -15,10 +15,15 @@ SHARED_MAKEFILES_REMOTE_NAME ?= shared-makefiles
 SHARED_MAKEFILES_REMOTE_URL ?= https://github.com/durandtibo/shared-makefiles.git
 SHARED_MAKEFILES_BRANCH ?= main
 SHARED_MAKEFILES_PREFIX ?= .make
-SHARED_MAKEFILES_CLEANUP ?= .github testdata tests .gitignore CODE_OF_CONDUCT.md CLAUDE.md CONTRIBUTING.md README.md SECURITY.md
+SHARED_MAKEFILES_CLEANUP ?= .github testdata tests .gitignore CODE_OF_CONDUCT.md CODEOWNERS CLAUDE.md CONTRIBUTING.md README.md SECURITY.md
 
 .PHONY: update-subtree
-update-subtree:
+update-subtree: ## Deprecated alias of self-update
+	@echo "⚠️  'update-subtree' is deprecated and will be removed; use 'make self-update' instead."
+	@$(MAKE) --no-print-directory self-update
+
+.PHONY: self-update
+self-update: ## Sync the shared-makefiles subtree from upstream
 	@echo "🔄 Syncing $(SHARED_MAKEFILES_PREFIX) subtree from $(SHARED_MAKEFILES_REMOTE_URL)..."
 	git remote add $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_REMOTE_URL) || true
 	git fetch $(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH)

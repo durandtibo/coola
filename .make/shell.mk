@@ -1,6 +1,8 @@
 ifndef SHELL_MK_INCLUDED
 SHELL_MK_INCLUDED := 1
 
+include $(dir $(lastword $(MAKEFILE_LIST)))tool-info.mk
+
 # Targets for formatting and linting shell scripts.
 #
 # Optional variables (set before including this file):
@@ -20,6 +22,18 @@ install-shellcheck:
 			*) sudo apt-get update && sudo apt-get install -y shellcheck ;; \
 		esac; \
 	fi
+	$(call show-tool,shellcheck)
+
+.PHONY: install-bats
+install-bats:
+	@if ! command -v bats >/dev/null 2>&1; then \
+		echo "📦 bats not found, installing..."; \
+		case "$$(uname -s)" in \
+			Darwin) brew install bats-core ;; \
+			*) sudo apt-get update && sudo apt-get install -y bats ;; \
+		esac; \
+	fi
+	$(call show-tool,bats)
 
 .PHONY: install-bats
 install-bats:
@@ -55,6 +69,7 @@ install-shfmt:
 				;; \
 		esac; \
 	fi
+	$(call show-tool,shfmt)
 
 .PHONY: lint-shell
 lint-shell: install-shellcheck ## Lint shell scripts with shellcheck

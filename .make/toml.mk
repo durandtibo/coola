@@ -1,6 +1,8 @@
 ifndef TOML_MK_INCLUDED
 TOML_MK_INCLUDED := 1
 
+include $(dir $(lastword $(MAKEFILE_LIST)))tool-info.mk
+
 # Targets for formatting TOML files.
 #
 # Optional variables (set before including this file):
@@ -17,6 +19,7 @@ install-taplo:
 			*) npm install -g @taplo/cli ;; \
 		esac; \
 	fi
+	$(call show-tool,taplo)
 
 .PHONY: format-toml
 format-toml: install-taplo ## Format TOML files with taplo

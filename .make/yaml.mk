@@ -1,6 +1,8 @@
 ifndef YAML_MK_INCLUDED
 YAML_MK_INCLUDED := 1
 
+include $(dir $(lastword $(MAKEFILE_LIST)))tool-info.mk
+
 # Targets for formatting and linting YAML files.
 #
 # Optional variables (set before including this file):
@@ -31,6 +33,7 @@ install-yamllint:
 			*) pip3 install --user yamllint ;; \
 		esac; \
 	fi
+	$(call show-tool,yamllint)
 
 .PHONY: lint-yaml
 lint-yaml: install-yamllint ## Lint YAML files with yamllint
