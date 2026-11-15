@@ -137,15 +137,15 @@ from coola.reducer import (
 )
 ```
 
-| Behaviour                       | Rule                                                                     |
-| ------------------------------- | ------------------------------------------------------------------------ |
-| Input                           | a sequence of reals, or a 1-D array / tensor for the backend (rule 1)    |
-| Wrong input                     | `TypeError` (type / element), `ValueError` (shape), same text            |
-| `quantile` with an invalid `q`  | `ValueError("quantiles must be in [0, 1], got 2")` in the three backends |
-| `auto_reducer()` with both libs | `NumpyReducer`                                                           |
-| `NativeReducer.mean`            | `statistics.fmean` (the last bit can differ for floats)                  |
-| `sort(values, *, descending)`   | `descending` is keyword-only                                             |
-| Reducer equality                | identity                                                                 |
+| Behaviour                       | Rule                                                                               |
+| ------------------------------- | ---------------------------------------------------------------------------------- |
+| Input                           | a sequence of reals, or a 1-D array / tensor for the backend (rule 1)              |
+| Wrong input                     | `TypeError` (type / element), `ValueError` (shape), same text                      |
+| `quantile` with an invalid `q`  | `ValueError("quantiles must be in the range [0, 1], got 2")` in the three backends |
+| `auto_reducer()` with both libs | `NumpyReducer`                                                                     |
+| `NativeReducer.mean`            | `statistics.fmean` (the last bit can differ for floats)                            |
+| `sort(values, *, descending)`   | `descending` is keyword-only                                                       |
+| Reducer equality                | identity                                                                           |
 
 ## Dependents
 

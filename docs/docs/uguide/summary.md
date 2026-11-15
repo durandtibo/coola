@@ -331,13 +331,13 @@ datasets.
 
 ### Truncating Long Texts
 
-A text is cut at `max_characters` characters (1000 by default). The `str` of the object is computed
+A text, with its type header, is at most `max_characters` characters long (1000 by default). The `str` of the object is computed
 before it is cut. Use `max_characters=None` to show everything:
 
 ```pycon
 >>> from coola.summary import summarize
 >>> print(summarize("This is a very long string that is cut", max_characters=24))
-<class 'str'> This is a...
+<class 'str'> This is...
 
 ```
 

@@ -278,7 +278,7 @@ TypeError: Cannot compute the maximum of a set, pass a sequence of numbers (e.g.
 >>> reducer.quantile([1, 2, 3], [2])
 Traceback (most recent call last):
     ...
-ValueError: quantiles must be in [0, 1], got 2
+ValueError: quantiles must be in the range [0, 1], got 2
 
 ```
 
