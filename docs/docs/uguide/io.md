@@ -266,7 +266,7 @@ the format is only known at runtime (e.g. read from a config file):
 JsonLoader(encoding=None)
 >>> saver = resolve_saver({"_target_": "coola.io.JsonSaver"})
 >>> saver
-JsonSaver(encoding='utf-8')
+JsonSaver(encoding='utf-8', allow_nan=False, jsonable=False)
 
 ```
 
