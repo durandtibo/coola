@@ -40,10 +40,8 @@ jobs:
       - name: Run unit tests
         run: |
           inv test.unit --cov
-      - name: Run integration tests
-        run: |
-          inv test.integration --cov
-      # Upload coverage from a single representative cell of the matrix (only
+      # Upload the coverage of the unit tests only (the integration tests below
+      # replace coverage.xml) from a single representative cell of the matrix (only
       # for the main repository, to avoid spam from forks).
       - name: Upload coverage to Codecov
         if: |
@@ -58,6 +56,9 @@ jobs:
           # in the github UI just because the coverage report failed to
           # be published.
           fail_ci_if_error: false
+      - name: Run integration tests
+        run: |
+          inv test.integration --cov
 
   # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
