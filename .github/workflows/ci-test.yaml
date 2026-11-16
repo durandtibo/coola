@@ -58,7 +58,7 @@ jobs:
           fail_ci_if_error: false
       - name: Run integration tests
         run: |
-          inv test.integration --cov --append
+          inv test.integration --cov
 
   # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
