@@ -145,6 +145,7 @@ def test_is_mps_available_does_not_allocate_a_tensor() -> None:
         assert isinstance(is_mps_available(), bool)
 
 
+@torch_available
 @patch("coola.utils.tensor.is_torch_available", lambda: True)
 def test_is_mps_available_ignores_unsupported_device_warning() -> None:
     def warn() -> bool:
