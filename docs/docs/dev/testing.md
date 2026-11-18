@@ -131,9 +131,9 @@ Design points:
   keeps
   the property "Standard pytest".
 - **No friendly error for a missing `pytest`.** `import pytest` raises `ModuleNotFoundError: No
-  module
+module
 named 'pytest'`, which a test author understands at once; the package docstring and the guide name
-the
+  the
   `testing` extra.
 
 ### `coola.testing.fixtures`

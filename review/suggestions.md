@@ -343,7 +343,7 @@ Withdrawn by the maintainer; the number is kept so that the IDs of the other ite
    the value; apply it to the value only, or reject a limit under the header length with the
    `validate_*` helpers.
 3. **`round_values` modes** **[verified]**. `mode="trunc"` raises (`must be one of ('round',
-   'floor',
+'floor',
 'ceil')`), `decimals=-2` still raises (item 45.4 listed it; #2729 did not change it), and
    `round_values(2.5)` is `2.0` and `round_values(0.5)` is `0.0` (half to even, as `round` and
    NumPy). The

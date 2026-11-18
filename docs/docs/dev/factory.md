@@ -270,12 +270,12 @@ Behaviours worth knowing:
 
 ## Dependents
 
-| Package                                           | Use                                                                                                                                                       |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Package                                           | Use                                                                                                                                                         |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `io.base` (`resolve_loader`, `resolve_saver`)     | A dict without `_target_` fails with ``Received object is not a BaseLoader instance (received: <class 'dict'>; a configuration needs the `_target_` key)``. |
-| `io.base` (`is_loader_config`, `is_saver_config`) | Their docstrings point to `is_object_config`, which has the contract for `allowed_prefixes` and `import_target`.                                          |
-| `utils.imports.import_object`                     | A different function with the same name (colon syntax, for the lazy registries). Both docstrings cross-reference each other and state the path syntax.    |
-| `pyproject.toml` (import-linter)                  | `coola.factory` imports `coola.utils.imports` only.                                                                                                       |
+| `io.base` (`is_loader_config`, `is_saver_config`) | Their docstrings point to `is_object_config`, which has the contract for `allowed_prefixes` and `import_target`.                                            |
+| `utils.imports.import_object`                     | A different function with the same name (colon syntax, for the lazy registries). Both docstrings cross-reference each other and state the path syntax.      |
+| `pyproject.toml` (import-linter)                  | `coola.factory` imports `coola.utils.imports` only.                                                                                                         |
 
 ## Design choices and trade-offs
 

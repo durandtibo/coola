@@ -480,9 +480,9 @@ Decision: yes
   loader or a saver holds its configuration only, so it is safe to call from a worker thread. A
   layer
   can then be added without touching the core: `aload` / `asave` as `await
-  asyncio.to_thread(self.load,
+asyncio.to_thread(self.load,
 ...)` in the base classes (no dependency; `aiofiles` and `anyio.Path` use threads too), `asyncio`
-only.
+  only.
   Evidence kept from the probes on `main` (macOS, Python 3.14): a save of 400 ms called in a
   coroutine
   froze a 5 ms ticker for 414 ms (6 ms with `to_thread`); `wait_for(asyncio.to_thread(save), 0.1)`

@@ -460,7 +460,7 @@ behaviour per test, literal expected values, a regression test for every bug che
   tiny input per function. A step is rejected if the large inputs are more than 10 % slower than
   `main` or a tiny input costs more than 15 µs.
 - Coverage: 100 % of `src/coola/nested` (`--cov=coola`), no `# pragma: no cover` (the `else: #
-  pragma:
+pragma:
 no cover` of the polars fallback import is the existing exception for an absent library).
 
 ## 9. Decisions for the maintainers

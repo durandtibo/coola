@@ -197,7 +197,7 @@ The rules for a package that uses an optional library:
   hint. `package_available(name)` asks without importing.
 - **Fallback modules**: the module of a library guards its import with
   `if TYPE_CHECKING or is_<pkg>_available(): import ... else:
-  from coola.utils.fallback.<pkg> import ...`.
+from coola.utils.fallback.<pkg> import ...`.
   The fakes raise `MissingPackageError` at the first use, before anything is changed.
 - **A missing library is an error at the call**, not at import. A function never runs half without
   its
