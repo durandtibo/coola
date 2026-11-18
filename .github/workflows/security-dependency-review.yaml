@@ -9,19 +9,19 @@
 name: Dependency Review
 on:
   pull_request:
-  push:
     branches:
       - main
 
-permissions:
-  contents: read
-  # Required for the comment-summary-in-pr option below.
-  pull-requests: write
+permissions: {}
 
 jobs:
   dependency-review:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      # Required for the comment-summary-in-pr option below.
+      pull-requests: write
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
