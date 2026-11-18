@@ -2,11 +2,14 @@ ifndef ACTIONS_MK_INCLUDED
 ACTIONS_MK_INCLUDED := 1
 
 include $(dir $(lastword $(MAKEFILE_LIST)))tool-info.mk
+include $(dir $(lastword $(MAKEFILE_LIST)))files.mk
 
-# Targets for linting GitHub Actions workflow files.
+# Targets for linting GitHub Actions workflow files and composite actions.
 #
 # Optional variables (set before including this file):
-#   ACTIONS_LINT_PATH ?= .   # path searched for workflow/action files passed to actionlint
+#   ACTIONS_LINT_PATH ?= .   # path searched for workflow files passed to actionlint, and for workflow and
+#                              action files passed to zizmor
+#   USE_GITIGNORE ?= 1   # 1: skip the files ignored by .gitignore (see files.mk)
 
 ACTIONS_LINT_PATH ?= .
 
@@ -54,8 +57,17 @@ install-zizmor:
 .PHONY: lint-actions
 lint-actions: install-actionlint ## Lint GitHub Actions workflow files with actionlint
 	@echo "⚙️ Running actionlint on GitHub Actions workflow files..."
-	find $(ACTIONS_LINT_PATH) -type d -name '.make' -prune -o -type f -path '*/.github/workflows/*' \( -name '*.yml' -o -name '*.yaml' \) -print0 \
-		| xargs -0 -r actionlint -color
+	@{ $(call list-files,$(ACTIONS_LINT_PATH),**/.github/workflows/*.yml); \
+	$(call list-files,$(ACTIONS_LINT_PATH),**/.github/workflows/*.yaml); } | xargs -0 -r actionlint -color
 	@echo "✅ Actionlint passed"
+
+.PHONY: lint-actions-security
+lint-actions-security: install-zizmor ## Audit GitHub Actions workflows and actions with zizmor
+	@echo "⚙️ Running zizmor on GitHub Actions workflow and action files..."
+	@{ $(call list-files,$(ACTIONS_LINT_PATH),**/.github/workflows/*.yml); \
+	$(call list-files,$(ACTIONS_LINT_PATH),**/.github/workflows/*.yaml); \
+	$(call list-files,$(ACTIONS_LINT_PATH),**/.github/actions/**/action.yml); \
+	$(call list-files,$(ACTIONS_LINT_PATH),**/.github/actions/**/action.yaml); } | xargs -0 -r zizmor --no-progress
+	@echo "✅ Zizmor passed"
 
 endif

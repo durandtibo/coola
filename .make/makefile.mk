@@ -2,6 +2,7 @@ ifndef MAKEFILE_MK_INCLUDED
 MAKEFILE_MK_INCLUDED := 1
 
 include $(dir $(lastword $(MAKEFILE_LIST)))tool-info.mk
+include $(dir $(lastword $(MAKEFILE_LIST)))files.mk
 
 # Targets for formatting and linting Makefiles and *.mk files.
 #
@@ -9,6 +10,7 @@ include $(dir $(lastword $(MAKEFILE_LIST)))tool-info.mk
 #   MAKEFILE_FORMAT_FILES ?= Makefile *.mk   # files passed to mbake format
 #   MAKEFILE_LINT_FILES   ?= Makefile *.mk   # files passed to checkmake
 #   MBAKE_CONFIG          ?= <this dir>/bake.toml   # config passed to mbake format
+#   USE_GITIGNORE ?= 1   # 1: skip the files ignored by .gitignore (see files.mk)
 
 MAKEFILE_FORMAT_FILES ?= Makefile *.mk
 MAKEFILE_LINT_FILES ?= Makefile *.mk
@@ -62,7 +64,7 @@ format-makefile: install-mbake ## Format Makefiles and .mk files with mbake
 	@files=""; \
 	for pattern in $(MAKEFILE_FORMAT_FILES); do \
 		for f in $$pattern; do \
-			[ -e "$$f" ] && files="$$files $$f"; \
+			[ -e "$$f" ] && ! $(call is-ignored,$$f) && files="$$files $$f"; \
 		done; \
 	done; \
 	if [ -n "$$files" ]; then \
@@ -78,7 +80,7 @@ lint-makefile: install-checkmake ## Lint Makefiles and .mk files with checkmake
 	@files=""; \
 	for pattern in $(MAKEFILE_LINT_FILES); do \
 		for f in $$pattern; do \
-			[ -e "$$f" ] && files="$$files $$f"; \
+			[ -e "$$f" ] && ! $(call is-ignored,$$f) && files="$$files $$f"; \
 		done; \
 	done; \
 	if [ -n "$$files" ]; then \
