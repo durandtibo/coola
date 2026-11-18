@@ -16,11 +16,11 @@ code. Nothing in `src`, `tests` or `docs` was changed.
 ## Constraints
 
 1. **Simple and easy to maintain.** The package is 3,686 lines, 25 modules and 31 `hash` methods
-   that all repeat the same four parameters (and 30 `# noqa: ARG002` to silence the ones they do
-   not use). The target removes the code that exists only to work around the design (the
-   thread-local cycle state, two copies of it, the `RecursionError` translation, the signature
-   inspection of `_has_hash_method`, the secret traversal of `unwrap_secrets`, the positional-argument
-   shim) instead of adding code next to it.
+   that all repeat the same four parameters (and 30 `# noqa: ARG002` to silence the ones they do not
+   use). The target removes the code that exists only to work around the design (the thread-local
+   cycle state, two copies of it, the `RecursionError` translation, the signature inspection of
+   `_has_hash_method`, the secret traversal of `unwrap_secrets`, the positional-argument shim)
+   instead of adding code next to it.
 2. **Major release.** Breaking changes are fine and compatibility is not a design input: no adapter,
    no alias, no deprecation period. **Every hash value changes** (the encoding changes, section
    3.4), so every stable identifier changes too. The release notes say so; the golden vectors are
@@ -98,18 +98,19 @@ Not guaranteed, and documented as such:
 | F14 | **`unhashable` placeholders warn once per object.** `hash_object([A() for _ in range(5)], ignore_unhashable=True)` emits five warnings (the default filter shows one per call site, but a `-W always` log is flooded). The warning points at coola's frame, not the caller's.                                                                                                                                                                                                                                                                                       | **[verified]** |
 | F15 | **`length` is not validated as an `int`.** `length=2.0` raises a raw `TypeError` from the integer division, and `length=True` is rejected with the message "got True".                                                                                                                                                                                                                                                                                                                                                                                              | **[verified]** |
 
-What is already right and must not regress: type dispatch with MRO, the fallbacks of
-`TypeRegistry` and the lazy groups; the tagged, fixed-width Merkle composition (a container hash
-depends only on the digests of the children); the canonical scalars (`-0.0` is `0.0`, one NaN, aware
-datetimes and times in UTC, `Decimal` by `as_tuple`, `Fraction` in lowest terms, `range` in constant
-time, NumPy scalars like the builtin, huge integers independent of `sys.set_int_max_str_digits`, lone
-surrogates); the array rules (dtype, shape and values, not the layout, the device or `requires_grad`);
-the stable registry; independence of `PYTHONHASHSEED` **[verified]**; thread safety of concurrent
-calls **[verified]**; a hashing call of 50 MB of bytes in 0.09 s **[verified]**.
+What is already right and must not regress: type dispatch with MRO, the fallbacks of `TypeRegistry`
+and the lazy groups; the tagged, fixed-width Merkle composition (a container hash depends only on
+the digests of the children); the canonical scalars (`-0.0` is `0.0`, one NaN, aware datetimes and
+times in UTC, `Decimal` by `as_tuple`, `Fraction` in lowest terms, `range` in constant time, NumPy
+scalars like the builtin, huge integers independent of `sys.set_int_max_str_digits`, lone
+surrogates); the array rules (dtype, shape and values, not the layout, the device or
+`requires_grad`); the stable registry; independence of `PYTHONHASHSEED` **[verified]**; thread
+safety of concurrent calls **[verified]**; a hashing call of 50 MB of bytes in 0.09 s
+**[verified]**.
 
 ## 3. Architecture
 
-```
+```text
 hash_object(data, *, registry=None, length=64, ignore_unhashable=False)
         |   validates length; one registry (default: the singleton); one call = one engine run
         v
@@ -162,8 +163,8 @@ Two helpers are public, so that a hasher never imports `hashlib` and the format 
 - `tagged(tag: str, payload: str | bytes = b"") -> bytes`: `tag`, a NUL byte, `payload` (text is
   encoded in UTF-8 with `surrogatepass`: a lone surrogate never collides with a valid string).
 - `digest(data: bytes) -> bytes`: the 64-byte BLAKE2b of the package. A hasher uses it to reduce a
-  big buffer (array values, the content of a `bytes`) to a fixed-width value **before** it enters the
-  encoding, so the engine never copies a 50 MB preimage.
+  big buffer (array values, the content of a `bytes`) to a fixed-width value **before** it enters
+  the encoding, so the engine never copies a 50 MB preimage.
 
 Rules of the contract (documented in `BaseHasher`, checked by one parametrised unit test over the
 default registry, like `NATIVE_SAMPLES` in `equality`):
@@ -305,7 +306,7 @@ convention: `Transformer`/`BaseTransformer`, `Summarizer`/`BaseSummarizer`), `Ha
 
 One rule for every hash, written once in `engine.py` and `base.py`:
 
-```
+```text
 digest(x)  = BLAKE2b-512(preimage, person = b"coola-hash-1")           # 64 bytes, always
 leaf       : preimage = 0x00 + tag + 0x00 + payload                     # what `encode` returned
 node       : preimage = 0x01 + tag + 0x00 + d1 + d2 + ... + dn          # fixed-width children
@@ -316,9 +317,9 @@ hash_object(x, length=n) = digest(x).hex()[:n]                         # n chara
 - **Fixed-width children** make the concatenation unambiguous without delimiters. The leading
   `0x00`/`0x01` byte makes a leaf and a node with the same tag different by construction.
 - **`length` is chosen by the caller and cuts the end.** The caller asks for 2 to 128 characters
-  (decision D2). Every digest is a full 64-byte BLAKE2b, so the hash of any length is the start of the
-  longest one, a hasher never sees `length`, and `length` is validated once, before the traversal.
-  The default `length=64` is the first half of the digest.
+  (decision D2). Every digest is a full 64-byte BLAKE2b, so the hash of any length is the start of
+  the longest one, a hasher never sees `length`, and `length` is validated once, before the
+  traversal. The default `length=64` is the first half of the digest.
 - **The format version** is the `person` parameter of BLAKE2b (at most 16 bytes, free): the digests
   of two formats can never be mistaken for one another, and a change of the encoding is one
   constant, `coola-hash-2`, plus the regenerated golden vectors (decision D9).
@@ -326,9 +327,9 @@ hash_object(x, length=n) = digest(x).hex()[:n]                         # n chara
   `OrderedDict`, `date`, `UUID`, `Decimal`, `Path`, `numpy.ndarray`, ...), so a subclass hashes like
   its base and a library moving a class to another module does not change a hash. A user-defined
   type (dataclass, model, enum, custom object) uses `module.qualname`, because the class **is** its
-  identity. A tag is never derived from `type(data)` anywhere else (F8). A named tuple adds its class
-  name and field names to the tag of `tuple` (so it differs from a plain tuple and from another
-  named tuple).
+  identity. A tag is never derived from `type(data)` anywhere else (F8). A named tuple adds its
+  class name and field names to the tag of `tuple` (so it differs from a plain tuple and from
+  another named tuple).
 - **Big payloads** are reduced with `digest()` by the hasher (arrays, `bytes`), so the preimage of a
   leaf is a few hundred bytes at most.
 
@@ -528,10 +529,10 @@ Reading the numbers:
   because the lookup is paid once per type, the digests stay bytes (no hex round trip) and the
   per-node bookkeeping is one dictionary insert.
 - **"Inlined leaves"** is a variant, not part of the design: a short leaf (at most 64 bytes) is
-  appended to the preimage of its parent with a two-byte length instead of being digested on its own,
-  so a flat container makes one BLAKE2b call instead of one per item. It is 4 times faster than
-  `main` on flat containers. It costs a second form of child entry (a digest or an inline leaf) and a
-  slightly longer preimage. It is left as an optional step behind the benchmark gate (D7).
+  appended to the preimage of its parent with a two-byte length instead of being digested on its
+  own, so a flat container makes one BLAKE2b call instead of one per item. It is 4 times faster than
+  `main` on flat containers. It costs a second form of child entry (a digest or an inline leaf) and
+  a slightly longer preimage. It is left as an optional step behind the benchmark gate (D7).
 - The prototype has not the real `encode` (a method call and a `Node` per container), so the real
   engine will be somewhat slower than the table; the gate (section 8) is "no slower than `main`" on
   every input, with the margin above.
@@ -557,10 +558,10 @@ puts the measurement and the fixes that do not depend on the new engine first.
 | 9    | **Layout (optional, no behaviour change).** Merge the leaf modules that are now 15 lines each (`str.py`, `repr.py`, `enum.py`, `bytes.py`, `string.py`) into `scalar.py`, and `dataclass.py` with `hashable.py` into `object.py`. Keep `sequence.py`, `mapping.py`, `set.py` apart, like `summary`. The tests move with the modules.                                                                                                                                                             | no                               |
 | 10   | **Inlined leaves (optional, decision D7).** Only if the benchmark of step 1 shows that the plain composition is too slow for a use case. Changes the format: bump `person` and regenerate the golden vectors.                                                                                                                                                                                                                                                                                    | yes (hash values)                |
 
-The prefix property of `length` is **not true on `main`** (`hash_object([1, 2], length=16)` is not the
-start of `hash_object([1, 2], length=128)` **[verified]**: `length` is applied to every node), so it
-goes into the user guide in step 8 and not before, or the doctest would fail. The text to add to
-`uguide/hashing.md`, in the **Properties** table (row "Fixed width") and in "Controlling the Hash
+The prefix property of `length` is **not true on `main`** (`hash_object([1, 2], length=16)` is not
+the start of `hash_object([1, 2], length=128)` **[verified]**: `length` is applied to every node),
+so it goes into the user guide in step 8 and not before, or the doctest would fail. The text to add
+to `uguide/hashing.md`, in the **Properties** table (row "Fixed width") and in "Controlling the Hash
 Length":
 
 > The output has exactly `length` characters, an even number from 2 to 128 (default 64). Hashes of
@@ -605,19 +606,20 @@ seeded data).
   - `ignore_unhashable`: the placeholder depends on the type only, one `UserWarning` per type per
     call (F14), a nested object and a key are replaced, `TypeNotRegisteredError` by default.
 - **Each hasher** (`test_<module>.py`): `encode` asserts the whole output against a literal (the
-  bytes of a leaf, the tag, the children and the flags of a node), the typical, empty, single-element
-  and duplicate cases, the subclass rule (a subclass hashes like its base), the input is not modified.
-  Mapping: unorderable keys, mixed key types, an `OrderedDict`, a `MappingProxyType`. Dataclass:
-  `compare=False`, `init=False`, a frozen and a slotted class, a nested dataclass. `UserString`
-  (F4). `memoryview` differs from `bytes` (F8). A user class named like a stdlib type does not
-  collide (F8).
+  bytes of a leaf, the tag, the children and the flags of a node), the typical, empty,
+  single-element and duplicate cases, the subclass rule (a subclass hashes like its base), the input
+  is not modified. Mapping: unorderable keys, mixed key types, an `OrderedDict`, a
+  `MappingProxyType`. Dataclass: `compare=False`, `init=False`, a frozen and a slotted class, a
+  nested dataclass. `UserString` (F4). `memoryview` differs from `bytes` (F8). A user class named
+  like a stdlib type does not collide (F8).
 - **Contract test over the default registry** (`test_contract.py`, new): for one sample per
   registered type, `encode` returns `bytes` or a `Node`, twice the same value, does not modify the
   sample, and a `Node` has a non-empty `tag`, and `ordered=False` has `group >= 1`; the whole digest
   of every sample is a golden vector (replaces `test_golden.py`, regenerated once in step 4).
 - **Equality-consistency** (`tests/properties/test_hashing.py`, extend): for the pairs of the
   support matrix that are equal, the hashes are equal (F7), including a dataclass with a
-  `compare=False` field and a pandas `Series` with a `NaN` name; a new test replaces the missing one of 14.7.
+  `compare=False` field and a pandas `Series` with a `NaN` name; a new test replaces the missing one
+  of 14.7.
 - **Secrets** (`test_pydantic.py`): the three policies for a secret in a model, in a dict, in a list
   and in a dataclass; `"exclude"` hashes models that differ only by the secret the same; the error
   message never contains the secret; no thread-local state remains.
@@ -627,18 +629,18 @@ seeded data).
   library (NumPy, torch, JAX, pandas, polars, pyarrow, xarray, pydantic), with no patching;
   `PYTHONHASHSEED` independence (a subprocess).
 - **Doctests** run as part of the docstrings; the guide examples are doctests.
-- **Benchmark gate** (`tests/benchmarks/test_hashing_benchmark.py`, appendix): the new engine must not
-  be slower than `main` on any input (target: at most the numbers of `main`; expected: 1.3 to 2.0
-  times faster on containers). A failing gate rejects the step.
+- **Benchmark gate** (`tests/benchmarks/test_hashing_benchmark.py`, appendix): the new engine must
+  not be slower than `main` on any input (target: at most the numbers of `main`; expected: 1.3 to
+  2.0 times faster on containers). A failing gate rejects the step.
 - Coverage: 100 % of `src/coola/hashing` (`--cov=coola`), no `# pragma: no cover`.
 
 ## 9. Decisions for the maintainers
 
 **D1. One contract: `encode` returns a description, the engine hashes.** _Recommended: yes._ It is
 the only way to make cycles, depth, sharing, `length` and the placeholder properties of the engine
-instead of the discipline of 31 methods, and it is what `equality`, `summary` and `recursive` already
-do. Alternative: keep `hash(data, registry, *, length, ignore_unhashable) -> str` and move the
-parameters into a context object (`hash(data, ctx)`). It removes the `noqa` but a hasher still
+instead of the discipline of 31 methods, and it is what `equality`, `summary` and `recursive`
+already do. Alternative: keep `hash(data, registry, *, length, ignore_unhashable) -> str` and move
+the parameters into a context object (`hash(data, ctx)`). It removes the `noqa` but a hasher still
 recurses, so F1 to F3 stay and the engine cannot be an explicit loop.
 
 Decision: yes
@@ -649,20 +651,20 @@ Decision: yes
 meet the requirement (no `size` argument in the engine, no special case for the root). A side effect
 is that the hash of a shorter length is the start of the longer one, so a short id can be matched
 against a stored full hash with `startswith`. The alternative (the root alone computed with
-`digest_size = length // 2`) gives the same API and independent values at each length, at the cost of
-one more argument in the engine; it was not chosen.
+`digest_size = length // 2`) gives the same API and independent values at each length, at the cost
+of one more argument in the engine; it was not chosen.
 
 Decision: I want to be able to control the hash length.
 
-Applied: the **Fixed width, user-chosen** property, the encoding rule of section 3.4, the registry and
-the length tests of section 8.
+Applied: the **Fixed width, user-chosen** property, the encoding rule of section 3.4, the registry
+and the length tests of section 8.
 
 **D3. Memoize the shared containers.** _Recommended: yes._ Unlike `recursive_apply` (decision D3 of
-`review/recursive.md`: an impure `func` would be called a different number of times), a hash is pure,
-so the memo is unobservable, and it turns a DAG from exponential to linear (F3). The cost is one
-dictionary entry per container and the objects kept alive until the call ends, which also makes the
-`id` reuse of temporary children impossible. Alternative: no memo and a plain set of ancestors for
-the cycles; simpler by three lines, 2^20 paths stay 4 s.
+`review/recursive.md`: an impure `func` would be called a different number of times), a hash is
+pure, so the memo is unobservable, and it turns a DAG from exponential to linear (F3). The cost is
+one dictionary entry per container and the objects kept alive until the call ends, which also makes
+the `id` reuse of temporary children impossible. Alternative: no memo and a plain set of ancestors
+for the cycles; simpler by three lines, 2^20 paths stay 4 s.
 
 Decision: yes
 
@@ -675,11 +677,12 @@ ten; the loud error is the better default. Revisit if a user needs it.
 
 Decision: keep `ValueError`
 
-**D5. The protocol of a custom object.** _Recommended: a method that returns the content (`__hash_content__`); decided: `__coola_hash__(self) -> object`._ The
-object says what its content is and does not recurse (F10); no signature inspection, no collision
-with a library `hash` method. Alternative: keep `hash(registry, length, ignore_unhashable)`, which
-forces the engine to support a re-entrant, parameterised call and keeps F10. Naming alternatives:
-`__hash_content__`, `hash_content`.
+**D5. The protocol of a custom object.** _Recommended: a method that returns the content
+(`__hash_content__`); decided: `__coola_hash__(self) -> object`._ The object says what its content
+is and does not recurse (F10); no signature inspection, no collision with a library `hash` method.
+Alternative: keep `hash(registry, length, ignore_unhashable)`, which forces the engine to support a
+re-entrant, parameterised call and keeps F10. Naming alternatives: `__hash_content__`,
+`hash_content`.
 
 Decision: `__coola_hash__(self) -> object`
 
@@ -705,9 +708,9 @@ Decision: not now
 
 **D8. Remove the public leaf functions** (`hash_string`, `hash_bytes`, `hash_tagged`, `hash_enum`,
 `hash_path`, `hash_pydantic_model`). _Recommended: remove._ They hash one value under a tag with a
-`length`, which is `hash_object` for a scalar, and they keep `length` in the leaf code (F5). A caller
-that wants a plain BLAKE2b of a string uses `hashlib`. `tagged` and `digest` stay because a custom
-hasher needs them.
+`length`, which is `hash_object` for a scalar, and they keep `length` in the leaf code (F5). A
+caller that wants a plain BLAKE2b of a string uses `hashlib`. `tagged` and `digest` stay because a
+custom hasher needs them.
 
 Decision: remove
 
@@ -771,16 +774,17 @@ behaviour (sections 1 and 8), not the size.
 
 ## Appendix: benchmark of the old implementation
 
-Baseline of `tests/benchmarks/test_hashing_benchmark.py` on the current implementation, to measure the
-progress of the steps of section 7. The benchmarks only use `hash_object(data)` with the default
+Baseline of `tests/benchmarks/test_hashing_benchmark.py` on the current implementation, to measure
+the progress of the steps of section 7. The benchmarks only use `hash_object(data)` with the default
 registry, so they run unchanged on the new design (no internals of the package). Run them with
-`inv test.benchmark` (or `pytest tests/benchmarks/test_hashing_benchmark.py --benchmark-only
---benchmark-save=<name>`, then `--benchmark-compare=<name>`).
+`inv test.benchmark` (or
+`pytest tests/benchmarks/test_hashing_benchmark.py --benchmark-only --benchmark-save=<name>`, then
+`--benchmark-compare=<name>`).
 
-Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark` 5.3. One run, nothing else heavy
-running, `main` at `314682c6` (`src/coola/hashing` identical to `d2e60e6fc`). The raw results are
-saved in `.benchmarks/Darwin-CPython-3.14-64bit/0009_hashing_old_314682c6.json`. Save the run of the
-new engine next to it and compare with `pytest --benchmark-compare=0009 --benchmark-only`. The
+Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark` 5.3. One run, nothing else
+heavy running, `main` at `314682c6` (`src/coola/hashing` identical to `d2e60e6fc`). The raw results
+are saved in `.benchmarks/Darwin-CPython-3.14-64bit/0009_hashing_old_314682c6.json`. Save the run of
+the new engine next to it and compare with `pytest --benchmark-compare=0009 --benchmark-only`. The
 absolute numbers depend on the machine; read the speed-ups (old time / new time: above 1 is faster).
 
 | Benchmark (`test_hash_object_<name>_benchmark`) | Input                                                                                      | Old median | Old min   | Gate (new median, at most) | Expected (section 6) | New median | Old / new | Gate        | Inlined median | Old / inlined | Gate (inlined) |
@@ -808,10 +812,11 @@ absolute numbers depend on the machine; read the speed-ups (old time / new time:
 | `flat_set`                                      | set of 100,000 ints                                                                        | 172.21 ms  | 170.83 ms | 172.21 ms                  | 1.8x                 | 135.46 ms  | 1.27x     | met         | 73.11 ms       | 2.36x         | met            |
 | `flat_dict`                                     | dict of 100,000 ints                                                                       | 324.46 ms  | 322.43 ms | 324.46 ms                  | 1.7x                 | 268.64 ms  | 1.21x     | met         | 159.03 ms      | 2.04x         | met            |
 
-**Result of the engine** (steps 4 to 9, columns "New median", "Old / new", "Gate"; `main` at `6704dda8`). Same machine and Python,
-two runs saved as `.benchmarks/Darwin-CPython-3.14-64bit/0011_hashing_engine_f2e8.json` and
-`0012_hashing_engine_6704_run2.json`. "New median" is the mean of the two medians (they differ by
-at most 3%). "Gate" is "met" if the new median is at most 2% above the old one.
+**Result of the engine** (steps 4 to 9, columns "New median", "Old / new", "Gate"; `main` at
+`6704dda8`). Same machine and Python, two runs saved as
+`.benchmarks/Darwin-CPython-3.14-64bit/0011_hashing_engine_f2e8.json` and
+`0012_hashing_engine_6704_run2.json`. "New median" is the mean of the two medians (they differ by at
+most 3%). "Gate" is "met" if the new median is at most 2% above the old one.
 
 - **Met, and faster, on the containers that dominate real inputs:** flat list, tuple, set and
   dict 1.2 to 1.3x, list of strings 1.33x, mixed containers 1.23x, `tree[4-10]` 1.25x, list of
@@ -848,8 +853,8 @@ inlined", "Gate (inlined)"). A leaf of at most 64 bytes is an entry of the preim
 Reading the numbers:
 
 - **The cost is per node: about 1.4 µs per item of a list or a tuple, 1.7 µs per item of a set and
-  3.2 µs per item of a dict** (a key and a value). Flat containers of 100,000 items take 145 to 325 ms.
-  The deep list costs 1.1 µs per level, linear and recursive.
+  3.2 µs per item of a dict** (a key and a value). Flat containers of 100,000 items take 145 to 325
+  ms. The deep list costs 1.1 µs per level, linear and recursive.
 - **The array and `bytes` benchmarks measure BLAKE2b and the canonicalisation**, not the engine
   (10 MB in 9.8 ms, 8 MB of `float64` in 8.7 ms), so the new engine should not change them; they are
   the guard that the `digest(raw)` reduction of section 3.1 does not copy the buffer.

@@ -1,12 +1,15 @@
 # Architecture of `coola.testing`
 
-:book: This page describes the design of the `coola.testing` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/testing.md#properties); the API is in the [reference](../refs/testing.md).
+:book: This page describes the design of the `coola.testing` package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the [user guide](../uguide/testing.md#properties); the API is in the
+[reference](../refs/testing.md).
 
 ## Constraints
 
 1. **Simple and easy to maintain.** Adding a dependency is one row of one table in
-   `coola.testing.marks`. There is no hand-written `__all__`, no annotation per mark and no re-export
-   of the fixture in each `conftest.py`.
+   `coola.testing.marks`. There is no hand-written `__all__`, no annotation per mark and no
+   re-export of the fixture in each `conftest.py`.
 2. **Stable mark names.** The mark names (`numpy_available`, ...) are what every test file of the
    repository, and every downstream suite, import, and they read well.
 3. **No cost for the suites that do not use it.** Importing `coola.testing.marks` must not import an
@@ -19,14 +22,14 @@
 
 ## Architecture
 
-```
+```text
 coola/testing/
     __init__.py     package docstring (properties), __all__ = []
     marks.py        requires(), the table of dependencies, the lazy marks
     fixtures.py     isolated_default_registries
 ```
 
-```
+```text
 test module                      coola.testing.marks                          coola.utils.imports
 -----------                      -------------------                          -------------------
 from ...marks import             module __getattr__("numpy_available")
@@ -36,7 +39,7 @@ from ...marks import             module __getattr__("numpy_available")
 @numpy_available       <-------   pytest.mark.skipif(not available, reason=...)
 ```
 
-```
+```text
 conftest.py (top of the suite)           coola.testing.fixtures
 ------------------------------           ----------------------
 pytest_plugins = ["coola.testing.fixtures"]  ->  @pytest.fixture isolated_default_registries
@@ -89,17 +92,17 @@ def __getattr__(name: str) -> pytest.MarkDecorator:
 Design points:
 
 - **One source of truth.** `_DEPENDENCIES` is the table. `__all__` is computed from it
-  (`["requires", *(f"{k}{s}" for k in _DEPENDENCIES for s in ("_available", "_not_available"))]`), so
-  `from coola.testing.marks import *` works and there is no second list. The return type of the module
-  `__getattr__` types the names, so there is no annotation per mark. Supporting a new dependency is
-  "add one row to `_DEPENDENCIES`" (see [add_backend.md](add_backend.md)).
-- **Lazy by construction.** The table stores the **function**, not its result. Nothing runs at import.
-  The device probes are small functions that import `coola.utils.tensor` on first call.
+  (`["requires", *(f"{k}{s}" for k in _DEPENDENCIES for s in ("_available", "_not_available"))]`),
+  so `from coola.testing.marks import *` works and there is no second list. The return type of the
+  module `__getattr__` types the names, so there is no annotation per mark. Supporting a new
+  dependency is "add one row to `_DEPENDENCIES`" (see [add_backend.md](add_backend.md)).
+- **Lazy by construction.** The table stores the **function**, not its result. Nothing runs at
+  import. The device probes are small functions that import `coola.utils.tensor` on first call.
 - **Singular names.** The reasons are "Requires PyTorch with CUDA" and "Skip if PyTorch with CUDA is
   available".
-- **The error lists what exists.** An unknown name raises `AttributeError` whose message ends with the
-  valid keys (`did you mean ...`), the substitute for the static check that a hand-written `__all__`
-  would give.
+- **The error lists what exists.** An unknown name raises `AttributeError` whose message ends with
+  the valid keys (`did you mean ...`), the substitute for the static check that a hand-written
+  `__all__` would give.
 - **`requires(is_available, name)` is public.** It is the documented way for a downstream suite to
   define its own pair (`dask_available, dask_not_available = requires(package_available("dask"),
 "Dask")`).
@@ -114,13 +117,15 @@ Design points:
   risk is a silent disappearance of a test that imports the function `is_numpy_available` instead of
   the mark; the guide says so. Renaming the marks `requires_numpy` / `without_numpy` would make the
   clash impossible at the cost of every test file.
-- **Import-time marks, not a plugin.** A mark that evaluates at run time (`@pytest.mark.requires("numpy")`
-  with a plugin hook) would be the shortest to extend, but it needs a plugin in every suite (the marks
-  work with no plugin), loses the importable and greppable names, and is not mechanical for
-  `pytestmark = [a, b]` and `pytest.param(marks=...)`. The module `__getattr__` costs 10 lines and keeps
-  the property "Standard pytest".
-- **No friendly error for a missing `pytest`.** `import pytest` raises `ModuleNotFoundError: No module
-named 'pytest'`, which a test author understands at once; the package docstring and the guide name the
+- **Import-time marks, not a plugin.** A mark that evaluates at run time
+  (`@pytest.mark.requires("numpy")` with a plugin hook) would be the shortest to extend, but it
+  needs a plugin in every suite (the marks work with no plugin), loses the importable and greppable
+  names, and is not mechanical for `pytestmark = [a, b]` and `pytest.param(marks=...)`. The module
+  `__getattr__` costs 10 lines and keeps the property "Standard pytest".
+- **No friendly error for a missing `pytest`.** `import pytest` raises `ModuleNotFoundError: No
+module
+named 'pytest'`, which a test author understands at once; the package docstring and the guide name
+  the
   `testing` extra.
 
 ### `coola.testing.fixtures`
@@ -141,19 +146,19 @@ pytest_plugins = ["coola.testing.fixtures"]
 
 and requests it by name (`@pytest.mark.usefixtures("isolated_default_registries")`, or as an
 argument). There is no `__all__` hack and no re-export in each sub-directory `conftest.py`, and the
-fixture is visible in `pytest --fixtures` with its docstring. `pytest_plugins` must be in the top-level
-`conftest.py` of the run (`testpaths = ["tests/"]` makes `tests/conftest.py` one).
+fixture is visible in `pytest --fixtures` with its docstring. `pytest_plugins` must be in the
+top-level `conftest.py` of the run (`testpaths = ["tests/"]` makes `tests/conftest.py` one).
 
 The fixture is **not** autouse: isolation costs a copy of the default registries per test and most
-tests do not register anything. It is also **not** registered through a `pytest11` entry point, which
-would be the least typing but intrusive: `coola` is a dependency of ML code, and a library should not
-add a plugin and a fixture name to the sessions of projects that did not ask for it.
+tests do not register anything. It is also **not** registered through a `pytest11` entry point,
+which would be the least typing but intrusive: `coola` is a dependency of ML code, and a library
+should not add a plugin and a fixture name to the sessions of projects that did not ask for it.
 
 ### The package docstring
 
 `coola/testing/__init__.py` carries the **Properties** table (condensed) and the two lines "import a
-mark from `coola.testing.marks`; load the fixtures with `pytest_plugins`", as `coola.recursive` does.
-`__all__` is empty.
+mark from `coola.testing.marks`; load the fixtures with `pytest_plugins`", as `coola.recursive`
+does. `__all__` is empty.
 
 ## Public API
 
@@ -170,8 +175,8 @@ from coola.testing.marks import (
 pytest_plugins = ["coola.testing.fixtures"]  # provides: isolated_default_registries
 ```
 
-The module `marks` holds the marks and the module `fixtures` holds the fixture, so each name says what
-it contains.
+The module `marks` holds the marks and the module `fixtures` holds the fixture, so each name says
+what it contains.
 
 ## Dependents
 

@@ -69,9 +69,9 @@ dictionaries (rows):
 This is useful when you have columnar data and need to process it row-by-row, or when interfacing
 with APIs that expect row-oriented data.
 
-**Important:** All sequences in the dictionary should have the same length. A value must be a `Sequence`: a `str`, a set
-(its elements have no position) or a generator raises a `TypeError` that names the type.
-`convert_to_dict_of_lists()` accepts any iterable of mappings, a generator included.
+**Important:** All sequences in the dictionary should have the same length. A value must be a
+`Sequence`: a `str`, a set (its elements have no position) or a generator raises a `TypeError` that
+names the type. `convert_to_dict_of_lists()` accepts any iterable of mappings, a generator included.
 
 ### Round-Trip Conversion
 
@@ -173,8 +173,8 @@ Like `remove_keys_starting_with()`, they return a new mapping and keep the input
 
 ### Adding a Prefix or a Suffix to the Keys
 
-Use `add_prefix_suffix_to_keys()` to rename the keys of a mapping. By default only the top-level keys
-are renamed. Use `recursive=True` to rename the keys of the nested mappings too:
+Use `add_prefix_suffix_to_keys()` to rename the keys of a mapping. By default only the top-level
+keys are renamed. Use `recursive=True` to rename the keys of the nested mappings too:
 
 ```pycon
 >>> from coola.nested import add_prefix_suffix_to_keys
@@ -343,8 +343,8 @@ leaves too, because a set has no index. A dataclass is entered field by field:
 ### Restoring Lists
 
 `from_flat_dict()` keeps the integer segments as dictionary keys by default, so a list does not come
-back as a list. Use `restore_lists=True` to rebuild the lists. A dictionary built from the keys whose
-keys are exactly `"0"`, `"1"`, ..., `"n-1"` is converted, and the tuples come back as lists. A
+back as a list. Use `restore_lists=True` to rebuild the lists. A dictionary built from the keys
+whose keys are exactly `"0"`, `"1"`, ..., `"n-1"` is converted, and the tuples come back as lists. A
 dictionary given as a value is a value of the caller: it is kept as it is. There is no limit on the
 depth:
 
@@ -384,8 +384,8 @@ The conversion of a nested structure to JSON data is in [`coola.jsonable`](jsona
 ## Flattening a polars DataFrame
 
 Use `flatten_frame()` to unnest the struct columns of a polars `DataFrame` (and, with
-`expand_lists=True`, to expand the list columns into one column per index). The new columns are named
-`<parent><separator><field>`. It requires `polars`, which is imported on first use:
+`expand_lists=True`, to expand the list columns into one column per index). The new columns are
+named `<parent><separator><field>`. It requires `polars`, which is imported on first use:
 
 ```pycon
 >>> import polars as pl
@@ -397,8 +397,8 @@ Use `flatten_frame()` to unnest the struct columns of a polars `DataFrame` (and,
 ```
 
 A `LazyFrame` is not accepted by `flatten_frame`: it raises a `TypeError` that asks you to call
-`collect()` first, because a lazy frame has no cheap schema and the number of rows of an exploded list
-is only known after the evaluation. The supported range of polars is `polars>=1.0,<3.0`.
+`collect()` first, because a lazy frame has no cheap schema and the number of rows of an exploded
+list is only known after the evaluation. The supported range of polars is `polars>=1.0,<3.0`.
 
 ## What `coola.nested` does not do
 

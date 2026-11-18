@@ -234,8 +234,8 @@ a dataclass as a leaf, register `DefaultChildFinder()` for its type:
 ## Paths of the Leaves
 
 The `dfs_items` function is `dfs_iterate` with the path of each leaf: it yields the pairs
-`(path, leaf)` in the same order, where `path` is the tuple of the labels of the containers crossed to
-reach the leaf. The label of a child is the key of a mapping (not converted), the index of a
+`(path, leaf)` in the same order, where `path` is the tuple of the labels of the containers crossed
+to reach the leaf. The label of a child is the key of a mapping (not converted), the index of a
 sequence, the name of the field of a dataclass, or the element itself for a set (a set has no
 position). The path of a root that is a leaf is the empty tuple.
 

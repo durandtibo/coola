@@ -1,13 +1,16 @@
 # Architecture of `coola.utils`
 
-:book: This page describes the design of the `coola.utils` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/utils.md#properties); the API is in the [reference](../refs/utils.md).
+:book: This page describes the design of the `coola.utils` package for contributors: the invariants,
+the contracts between the parts, and the trade-offs of the main design choices. The rules that users
+rely on are in the [user guide](../uguide/utils.md#properties); the API is in the
+[reference](../refs/utils.md).
 
 ## Constraints
 
 1. **Simple and easy to maintain.** `coola.utils` mixes the foundation of `coola` (imports,
    singletons, introspection) with standalone helpers (Bloom filter, LRU cache, git, dates) that no
-   other package imports. Repetition is removed (one definition of "available" for every library, one
-   message for a missing package), and the useful helpers are kept, with their tests.
+   other package imports. Repetition is removed (one definition of "available" for every library,
+   one message for a missing package), and the useful helpers are kept, with their tests.
 2. **Moved modules are imported from their new path.** There is no alias and no deprecation period.
 3. **The rules of the repository apply to the helpers too.** Options are keyword-only, an argument
    check goes through `coola.validation`, a shared helper is public and tested, a lazily built
@@ -24,7 +27,7 @@
 
 ### Layout
 
-```
+```text
 coola/utils/                      the helpers
 ├── __init__.py                   docstring only, no re-export
 ├── array.py                      to_array
@@ -76,8 +79,8 @@ coola/formatting/                 turning values into text
 └── diff.py                       unified_diff
 ```
 
-`formatting` is a core package next to `utils`: every function that turns a value into a string
-for a message, a `repr` or a report is there. It may import `utils` (`sort_by_keys`) and `validation`,
+`formatting` is a core package next to `utils`: every function that turns a value into a string for
+a message, a `repr` or a report is there. It may import `utils` (`sort_by_keys`) and `validation`,
 and no other package. `display`, `registry` and the feature packages import from it. The name is
 `formatting` because `coola.format` would shadow the builtin in `from coola import format`; a
 `coola.text` would be wrong because the byte and time functions are not text, and folding it into
@@ -85,17 +88,18 @@ and no other package. `display`, `registry` and the feature packages import from
 sequence and mapping functions stay in one module (`structure`) because they share `str_indent`.
 
 The modules that no other package imports (`array`, `batching`, `bloom_filter`, `date`, `env_vars`,
-`file_size`, `git`, `logging`, `lru`, `password`, `recursion`, `timing`) are public and documented in
-the same page as the core helpers (`docs/docs/uguide/utils.md`, `refs/utils.md`): there is one place for
-the helpers and one import path per function. A package of its own for them (`coola.tools`) would split
-the documentation and the import paths for no benefit; grouping them by theme (`structures`, `text`,
-`system`) would be a better public API but a rewrite of the paths and of the tests.
+`file_size`, `git`, `logging`, `lru`, `password`, `recursion`, `timing`) are public and documented
+in the same page as the core helpers (`docs/docs/uguide/utils.md`, `refs/utils.md`): there is one
+place for the helpers and one import path per function. A package of its own for them
+(`coola.tools`) would split the documentation and the import paths for no benefit; grouping them by
+theme (`structures`, `text`, `system`) would be a better public API but a rewrite of the paths and
+of the tests.
 
 The default-registry code (`make_default_registry_singleton`, `reset_default_registries`,
-`temporary_default_registries`) and the plugin loader (`load_registry_plugins`, `get_loaded_plugins`,
-`LoadedPlugin`, the two environment variable names) are in `coola.registry` (`default.py`,
-`plugins.py`), because they know what a registry is (they call `copy`, they load entry points into
-it). The conversion to JSON data is `coola.jsonable`.
+`temporary_default_registries`) and the plugin loader (`load_registry_plugins`,
+`get_loaded_plugins`, `LoadedPlugin`, the two environment variable names) are in `coola.registry`
+(`default.py`, `plugins.py`), because they know what a registry is (they call `copy`, they load
+entry points into it). The conversion to JSON data is `coola.jsonable`.
 
 ### The modules
 
@@ -178,13 +182,13 @@ its name for the files that import it and for the `if TYPE_CHECKING or is_numpy_
 idiom, which needs a statically known name. The torch and NumPy pair keeps its compatibility check
 (`torch.tensor([1.0]).numpy()`), imported inside the function.
 
-The public surface has no decorators `x_available`, no `raise_x_missing_error` per library (the fallback
-modules call `raise_package_missing_error` through `make_fake_class("numpy")`), no `LazyModule` or
-`lazy_import`, and no `import_object`: a `"pkg.mod:name"` path is resolved with
+The public surface has no decorators `x_available`, no `raise_x_missing_error` per library (the
+fallback modules call `raise_package_missing_error` through `make_fake_class("numpy")`), no
+`LazyModule` or `lazy_import`, and no `import_object`: a `"pkg.mod:name"` path is resolved with
 `pkgutil.resolve_name`, which has the same format and the same errors and avoids a second function
 named like the one of `coola.factory`. `check_package(package, *, install=None)` has a keyword-only
-`install`, the pip name when it differs from the import name, and the message is the same as for every
-other package.
+`install`, the pip name when it differs from the import name, and the message is the same as for
+every other package.
 
 `lazy.py` has `lazy_exports` and `is_module_imported` (used by `factory`).
 
@@ -194,8 +198,8 @@ Adding a library (`docs/docs/dev/add_backend.md`) is two functions in `optional.
 
 ### `LazySingleton` and the default registries
 
-`utils/singleton.py` has the primitive, with the test hooks public so that the registry code does not
-need privates:
+`utils/singleton.py` has the primitive, with the test hooks public so that the registry code does
+not need privates:
 
 ```python
 class LazySingleton(Generic[T]):
@@ -208,17 +212,18 @@ class LazySingleton(Generic[T]):
         ...
 ```
 
-`coola/registry/default.py` has `make_default_registry_singleton(registry_cls, register_defaults, *,
-plugin_group=None)`, `reset_default_registries()` and `temporary_default_registries()`; the last one is
-written with `is_built`, `get`, `set` and `reset`: on entry, `set(get().copy())` for each registry that
-is built; on exit, `set(original)` for those registries and `reset()` for the ones that were built
-inside the context. `coola/registry/plugins.py` has the entry-point loader, `LoadedPlugin`,
+`coola/registry/default.py` has
+`make_default_registry_singleton(registry_cls, register_defaults, *, plugin_group=None)`,
+`reset_default_registries()` and `temporary_default_registries()`; the last one is written with
+`is_built`, `get`, `set` and `reset`: on entry, `set(get().copy())` for each registry that is built;
+on exit, `set(original)` for those registries and `reset()` for the ones that were built inside the
+context. `coola/registry/plugins.py` has the entry-point loader, `LoadedPlugin`,
 `get_loaded_plugins` and the two environment variable names (`COOLA_STRICT_PLUGINS`,
 `COOLA_DISABLE_PLUGINS`). The feature packages and `coola.testing` import from `coola.registry`;
 `coola.random` also depends on `coola.registry` (its registry is a `Registry`). The import of
-`importlib.metadata` (7.5 ms) is paid by `coola.registry`, not by `coola.utils`. Keeping this code in
-`utils` (split in `singleton.py`, `default_registry.py` and `plugins.py`) would leave `utils` with a
-concept it should not know.
+`importlib.metadata` (7.5 ms) is paid by `coola.registry`, not by `coola.utils`. Keeping this code
+in `utils` (split in `singleton.py`, `default_registry.py` and `plugins.py`) would leave `utils`
+with a concept it should not know.
 
 ### Contracts of the helpers that stay
 
@@ -284,7 +289,10 @@ from coola.utils.stats import quantile
 from coola.utils.version import compare_version, get_package_version
 ```
 
-`coola.formatting` (the 14 functions of `format`, `str_*` and `repr_*` in `structure`, the byte, time and bar functions in `quantity`, with options keyword-only; `text.{char_diff_summary, count_lines, remove_empty_lines, slugify, truncate_str}`, `secret.mask_secret`, `diff.unified_diff`).
+`coola.formatting` (the 14 functions of `format`, `str_*` and `repr_*` in `structure`, the byte,
+time and bar functions in `quantity`, with options keyword-only;
+`text.{char_diff_summary, count_lines, remove_empty_lines, slugify, truncate_str}`,
+`secret.mask_secret`, `diff.unified_diff`).
 
 The standalone helpers, which no other package imports except where stated:
 
@@ -328,20 +336,20 @@ from coola.utils.timing import TimingResult, timeblock
 
 ## Design choices and trade-offs
 
-**Standalone helpers stay in `utils`.** Deleting a helper that no package uses is risky for users and
-cheap to keep: each has tests and a documented role. Two helpers carry a caveat: `password` handles
-credentials (a bug would be a security issue, and `coola` has no use for it), and `recursion` explains
-an error that no function raises since the explicit stacks. They are kept for now and are the first
-candidates for removal. `working_directory` is not provided (`contextlib.chdir`), nor
-`deprecate_positional_options`.
+**Standalone helpers stay in `utils`.** Deleting a helper that no package uses is risky for users
+and cheap to keep: each has tests and a documented role. Two helpers carry a caveat: `password`
+handles credentials (a bug would be a security issue, and `coola` has no use for it), and
+`recursion` explains an error that no function raises since the explicit stacks. They are kept for
+now and are the first candidates for removal. `working_directory` is not provided
+(`contextlib.chdir`), nor `deprecate_positional_options`.
 
 **The default registries and the plugin loader live in `coola.registry`.** It is registry code (it
 copies registries, it loads entry points into them), and it is what `LazySingleton` should not know.
 The cost is an import in each feature package, which `lint-imports` checks.
 
-**A huge negative integer is hashed as `-0x…`.** `0x-1000…` is not a representation of the number. Only
-a negative integer with more than 4,300 digits is affected. A hash is only stable inside a version of
-`coola`.
+**A huge negative integer is hashed as `-0x…`.** `0x-1000…` is not a representation of the number.
+Only a negative integer with more than 4,300 digits is affected. A hash is only stable inside a
+version of `coola`.
 
 **`_reset_after_fork` is not public.** It is a hook for the fork handler, not part of the API of a
 registry or of `LazySingleton`; the protocol (`ForkAware`) says so. A callback passed to
@@ -359,5 +367,5 @@ np.ndarray)` false when NumPy is missing. A different mechanism (a lazy proxy, a
   good, but `display` keeps importing `format`, `mapping` and `imports`.
 - **Windows**: `os.register_at_fork` is absent there, so `track_fork` is a no-op (documented); the
   fork behaviour is not tested on Windows.
-- **Performance**: no helper of `utils` is on a hot path except `track_fork` (called once per object)
-  and `is_<pkg>_available` (cached); no benchmark gate is needed for this item.
+- **Performance**: no helper of `utils` is on a hot path except `track_fork` (called once per
+  object) and `is_<pkg>_available` (cached); no benchmark gate is needed for this item.

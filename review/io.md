@@ -10,9 +10,9 @@ cause). Its aim is a small package that is easy to maintain: **one atomic write,
 direction, one thin class per format**. Breaking changes are
 accepted, and the future state is more important than the past one.
 
-Evidence comes from probes and a throw-away prototype run on `main` (Python 3.14, macOS APFS; scripts
-kept outside the repository). Items marked **[verified]** were reproduced; **[reading]** comes from
-the code. Nothing in `src`, `tests` or `docs` was changed.
+Evidence comes from probes and a throw-away prototype run on `main` (Python 3.14, macOS APFS;
+scripts kept outside the repository). Items marked **[verified]** were reproduced; **[reading]**
+comes from the code. Nothing in `src`, `tests` or `docs` was changed.
 
 The headline findings:
 
@@ -21,17 +21,17 @@ The headline findings:
   thread, stale-lock breaking, an in-process lock, a fork reset) serialize saves that the commit
   (`os.link` for `exist_ok=False`, `os.replace` for `exist_ok=True`) already makes safe. A prototype
   without any lock gave exactly one winner in 30 rounds of 8 racing processes and an intact file
-  after 240 overwrites (section 6). The lock costs 250 µs per save, and blocks a thread while it waits
-  (section 2, F1 and F2).
+  after 240 overwrites (section 6). The lock costs 250 µs per save, and blocks a thread while it
+  waits (section 2, F1 and F2).
 - **The contract of a loader is easy to break**: each `load` must remember to sanitize the path, and
   the example of the user guide does not (F5). The template method moves that into the base class.
 
 ## Constraints
 
-1. **Simple and easy to maintain.** The package is 1,796 lines (880 in `base.py`). The target removes
-   the code that exists only to work around the design (the lock protocol, eight copies of `equal`,
-   the `noqa: ARG002` that go with them, the repeated `sanitize_path` call) instead of adding code
-   next to it.
+1. **Simple and easy to maintain.** The package is 1,796 lines (880 in `base.py`). The target
+   removes the code that exists only to work around the design (the lock protocol, eight copies of
+   `equal`, the `noqa: ARG002` that go with them, the repeated `sanitize_path` call) instead of
+   adding code next to it.
 2. **Major release.** Breaking changes are fine and compatibility is not a design input: no adapter,
    no alias, no deprecation period. The release notes list the changes
    (`docs/docs/migration/v1.1_to_v2.0.md`).
@@ -39,9 +39,9 @@ The headline findings:
    only (torch stays optional and lazy).
 4. **No slower than today.** `save_json` costs 773 µs on `main` with the lock, 521 µs without it
    **[verified]**. The benchmark gate of section 8 must hold.
-5. **Consistent with the siblings.** Keyword-only options, `equal(other, equal_nan=False)` for the comparison of
-   two configured objects (the method the package has today and the guide documents), the engine owns the invariants,
-   errors name the cause, optional libraries (torch) stay lazy.
+5. **Consistent with the siblings.** Keyword-only options, `equal(other, equal_nan=False)` for the
+   comparison of two configured objects (the method the package has today and the guide documents),
+   the engine owns the invariants, errors name the cause, optional libraries (torch) stay lazy.
 6. **Security does not regress.** `TorchLoader` stays `weights_only=True` by default, `PickleLoader`
    keeps its warning, `resolve_loader` / `resolve_saver` keep `allowed_prefixes`.
 7. **Async is out of scope** (decision of the maintainers). The design must not prevent it: the sync
@@ -75,15 +75,15 @@ instead of by the discipline of each format. They replace the table of the user 
 
 Not guaranteed, and documented as such:
 
-- **Round trip beyond the format.** JSON turns tuples into lists and non-string keys into strings and
-  writes `NaN` as a non-standard token; a text file stores a `str`.
+- **Round trip beyond the format.** JSON turns tuples into lists and non-string keys into strings
+  and writes `NaN` as a non-standard token; a text file stores a `str`.
 - **Durability without `fsync=True`**, and which of several concurrent saves wins.
 - **A hidden `.<name>-<uuid><ext>` file after a crash.** A process killed (SIGKILL, power loss)
   between the write and the commit leaves its temporary file (F3). It is hidden, never taken for the
   target, and safe to delete.
 - **`exist_ok=False` on a file system without hard links** (FAT/exFAT, some network and container
-  volumes): the commit falls back on "check, then rename", so two processes that create the same file
-  at the same instant can both succeed. The last one wins; no file is torn.
+  volumes): the commit falls back on "check, then rename", so two processes that create the same
+  file at the same instant can both succeed. The last one wins; no file is torn.
 - **Replacing a file that another process has open on Windows**: `os.replace` raises
   `PermissionError`, which propagates.
 - **Streaming, compression, remote storage**: one value per call, local files only (section 10).
@@ -116,7 +116,7 @@ URIs; lazy exports of the torch classes; the `_display_fields` repr.
 
 ## 3. Architecture
 
-```
+```text
 saver.save(data, path, *, exist_ok, fsync)            loader.load(path)
         |                                                    |
         |  sanitize_path ; checks ; hidden tmp file          |  sanitize_path
@@ -297,7 +297,8 @@ All numbers are from one machine (Apple M1, APFS, Python 3.14). Scripts are outs
 `str`; a SIGKILL after the write leaves `['.k-4510feb7….txt', 'k.txt.lock']`; a same-path save from
 inside `_save_file` is still blocked after 3 s;
 
-**The prototype of the target save** (the code of section 3.2 as one function, no lock, no thread), stressed with forked processes on one directory:
+**The prototype of the target save** (the code of section 3.2 as one function, no lock, no thread),
+stressed with forked processes on one directory:
 
 | Test                                                                                         | Result                                                          |
 | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
@@ -347,21 +348,21 @@ sleep, `*_available` fixtures for torch).
 - **Base classes** (`test_base.py`):
   - `load` converts a `str`, a `Path` and a `file://` URI before `_load`, and `_load` receives a
     `Path` (regression for F5; fails on `main` with the `str` example);
-  - `equal()`: same type and fields are equal, a different field or type is not, the fields are compared with
-    `objects_are_equal`, a subclass is not equal to its base;
+  - `equal()`: same type and fields are equal, a different field or type is not, the fields are
+    compared with `objects_are_equal`, a subclass is not equal to its base;
   - the whole `repr` of a configured loader and saver against a literal;
   - `save`: `exist_ok` false raises `FileExistsError` and leaves the file untouched; `exist_ok` true
-    replaces; a directory, a parent that is a file; missing parents are created; a symlink is overwritten
-    through the link; the mode is kept; the temporary file is hidden, has the extension of the target and
-    is removed after a failure of `_save_file`, of the commit and of the cleanup (the original error
-    is raised); a 255-byte name works; `fsync=True` calls the file and the directory sync (patched,
-    see the integration rule below);
+    replaces; a directory, a parent that is a file; missing parents are created; a symlink is
+    overwritten through the link; the mode is kept; the temporary file is hidden, has the extension
+    of the target and is removed after a failure of `_save_file`, of the commit and of the cleanup
+    (the original error is raised); a 255-byte name works; `fsync=True` calls the file and the
+    directory sync (patched, see the integration rule below);
   - the whole directory listing after a successful and after a failed save is the target alone, or
     empty (no `.lock`, no temporary file).
-- **Formats** (`test_json.py`, `test_pickle.py`, `test_text.py`, `test_torch.py`): round trip, keyword
-  arguments, encoding, `equal()` between configurations, the empty value, the error of a missing file and
-  of a corrupt file, `TextSaver` rejects `None`, `int` and `bytes` with a `TypeError` and does not create a
-  file, `TorchLoader()` equals `TorchLoader(weights_only=True)`.
+- **Formats** (`test_json.py`, `test_pickle.py`, `test_text.py`, `test_torch.py`): round trip,
+  keyword arguments, encoding, `equal()` between configurations, the empty value, the error of a
+  missing file and of a corrupt file, `TextSaver` rejects `None`, `int` and `bytes` with a
+  `TypeError` and does not create a file, `TorchLoader()` equals `TorchLoader(weights_only=True)`.
 - **Integration** (`tests/integration/io/`, `run_threads`, `requires_fork`, docstrings starting with
   "Test that ..."):
   - 8 forked processes create the same file: exactly one wins, the others see `FileExistsError`, the
@@ -377,35 +378,35 @@ sleep, `*_available` fixtures for torch).
   directory empty.
 - **Doctests**: every docstring example runs.
 - **Benchmark gate** (`tests/benchmarks/test_io_benchmark.py`, added with this document, 15 tests):
-  it only uses the public functions and classes, so it runs unchanged on both designs. The appendix has the numbers of `main`. The new
-  `save_json_small_new_file` and `save_json_small_overwrite` must be at most the numbers of `main`
-  (the lock is gone: expected about 0.6x), `load_*` the same as `main` (± noise), `save_*_1mib` and
-  `save_json_large` not slower, `save_json_same_path_4_threads` no slower than
-  `save_json_distinct_paths_4_threads` + 10 % (the lock no longer serializes). A failing
-  gate rejects the step.
+  it only uses the public functions and classes, so it runs unchanged on both designs. The appendix
+  has the numbers of `main`. The new `save_json_small_new_file` and `save_json_small_overwrite` must
+  be at most the numbers of `main` (the lock is gone: expected about 0.6x), `load_*` the same as
+  `main` (± noise), `save_*_1mib` and `save_json_large` not slower, `save_json_same_path_4_threads`
+  no slower than `save_json_distinct_paths_4_threads` + 10 % (the lock no longer serializes). A
+  failing gate rejects the step.
 - Coverage: 100 % of `src/coola/io` (`--cov=coola`), no `# pragma: no cover`. Baseline today: 359
   passed, 2 skipped (`tests/unit/io`, `tests/integration/io`).
 
 ## 9. Decisions for the maintainers
 
-**D1. Remove the save lock?** _Recommended: yes._ The atomic commit already gives the guarantees
-the lock claims (section 3.2, evidence in section 6); the lock adds a thread, a lock file, a polling
-loop, 250 µs and a deadlock (F4). Consequences,
-all listed in "Not guaranteed": two processes creating the same file at the same instant on a file
-system **without hard links** can both succeed (the last one wins, no torn file); a caller who wants
-mutual exclusion around a read-modify-write uses its own lock. Alternatives: (a) keep the lock as an
-opt-in (`lock=True`, default off): the code and its 63 tests stay; (b) keep it for the fallback only (the link-less case): about 100 lines for a case
-that affects FAT and some container volumes. If the maintainers want (b), keep `lock` out of the
-public signature and take the file lock only inside `_link`'s fallback.
+**D1. Remove the save lock?** _Recommended: yes._ The atomic commit already gives the guarantees the
+lock claims (section 3.2, evidence in section 6); the lock adds a thread, a lock file, a polling
+loop, 250 µs and a deadlock (F4). Consequences, all listed in "Not guaranteed": two processes
+creating the same file at the same instant on a file system **without hard links** can both succeed
+(the last one wins, no torn file); a caller who wants mutual exclusion around a read-modify-write
+uses its own lock. Alternatives: (a) keep the lock as an opt-in (`lock=True`, default off): the code
+and its 63 tests stay; (b) keep it for the fallback only (the link-less case): about 100 lines for a
+case that affects FAT and some container volumes. If the maintainers want (b), keep `lock` out of
+the public signature and take the file lock only inside `_link`'s fallback.
 
 Decision: yes
 
 **D2. Keep `equal()`, make it concrete?** _Recommended: yes._ The method is the documented API and
-`objects_are_equal(a, b)` already works with it. Moving one implementation into the base class
-(same type, then `objects_are_equal` on `_display_fields()` with `equal_nan`) deletes the eight
-overrides and four `noqa` without a breaking change for callers. `==` and `hash` stay the identity, so
-loaders remain hashable. Alternative: `__eq__` as in `equality` (rejected: unhashable objects and a
-change of a documented method for no gain). Cost: a format whose comparison differs from its displayed
+`objects_are_equal(a, b)` already works with it. Moving one implementation into the base class (same
+type, then `objects_are_equal` on `_display_fields()` with `equal_nan`) deletes the eight overrides
+and four `noqa` without a breaking change for callers. `==` and `hash` stay the identity, so loaders
+remain hashable. Alternative: `__eq__` as in `equality` (rejected: unhashable objects and a change
+of a documented method for no gain). Cost: a format whose comparison differs from its displayed
 fields overrides `equal`; `TorchLoader` does not need to once `weights_only` is a named argument.
 
 Decision: yes
@@ -444,25 +445,30 @@ registered by default.
 
 Decision: follow recommendation
 
-**D10. Keep `BaseSaver` and `BaseFileSaver` apart?** _Recommended: yes._ The split costs a few
-lines and gives the seam for a saver that is not a local file. Merging them would put `fsync` and the temporary file on every saver.
+**D10. Keep `BaseSaver` and `BaseFileSaver` apart?** _Recommended: yes._ The split costs a few lines
+and gives the seam for a saver that is not a local file. Merging them would put `fsync` and the
+temporary file on every saver.
 
 Decision: yes
 
 ## 10. Not covered
 
 - **Remote and virtual file systems** (S3, GCS, `fsspec`): `path` is a local path. A saver for an
-  object store is a `BaseSaver` subclass (D10); the atomic write is the store's job. Accepting a file
-  object instead of a path (so `fsspec.open` could be used) is a separate design.
+  object store is a `BaseSaver` subclass (D10); the atomic write is the store's job. Accepting a
+  file object instead of a path (so `fsspec.open` could be used) is a separate design.
 - **Async (`aload`, `asave`)**: out of scope by decision of the maintainers (D3-D5). The design
-  keeps the door open: after step 5 the sync core holds no lock, no thread and no global state, and a
-  loader or a saver holds its configuration only, so it is safe to call from a worker thread. A layer
-  can then be added without touching the core: `aload` / `asave` as `await asyncio.to_thread(self.load,
-...)` in the base classes (no dependency; `aiofiles` and `anyio.Path` use threads too), `asyncio` only.
-  Evidence kept from the probes on `main` (macOS, Python 3.14): a save of 400 ms called in a coroutine
+  keeps the door open: after step 5 the sync core holds no lock, no thread and no global state, and
+  a loader or a saver holds its configuration only, so it is safe to call from a worker thread. A
+  layer can then be added without touching the core: `aload` / `asave` as `await
+asyncio.to_thread(self.load,
+...)` in the base classes (no dependency; `aiofiles` and `anyio.Path` use threads too), `asyncio`
+  only.
+  Evidence kept from the probes on `main` (macOS, Python 3.14): a save of 400 ms called in a
+  coroutine
   froze a 5 ms ticker for 414 ms (6 ms with `to_thread`); `wait_for(asyncio.to_thread(save), 0.1)`
   raises `TimeoutError` and the file appears 0.4 s later, so a layer needs a cancellation flag that
-  `BaseFileSaver` checks after the write and before the commit (a prototype left the target untouched);
+  `BaseFileSaver` checks after the write and before the commit (a prototype left the target
+  untouched);
   `to_thread(lambda: None)` costs 36 µs; 300 small saves cost 550 µs each in a blocking loop, 582 µs
   awaited one by one and 226 µs with `gather`. Not decided: async shortcuts (`asave_json`), a client
   that is async only (it would need separate `BaseAsync*` ABCs; the sync hook stays mandatory), and
@@ -470,11 +476,11 @@ Decision: yes
 - **Streaming and large values.** One value is read or written per call, fully in memory. A
   `JsonLinesLoader` (an iterator of values) is a separate item.
 - **Compression** (`.json.gz`), **checksums** and **file locking for the caller**: out of scope.
-- **More formats** (`yaml`, `.npy`, `safetensors`, `bytes`): each is one `_load` and one `_save_file`
-  (section 4) and an optional dependency imported lazily; none is part of this design.
+- **More formats** (`yaml`, `.npy`, `safetensors`, `bytes`): each is one `_load` and one
+  `_save_file` (section 4) and an optional dependency imported lazily; none is part of this design.
 - **Cleanup of the leftover temporary files of killed processes**: they are hidden and have a
-  recognisable name; a cleaner would need a lock to know the owner is dead, which is the protocol this
-  design removes (F3).
+  recognisable name; a cleaner would need a lock to know the owner is dead, which is the protocol
+  this design removes (F3).
 - **Selection by suffix** (D9).
 
 ## Appendix: effect on the size of the package
@@ -527,22 +533,24 @@ ignored). The speed-up of the new implementation is old time / new time: above 1
 
 Reading the numbers:
 
-- **A load is cheap, a save is not.** A small load costs 27 µs; a small save costs 0.4 to 0.8 ms,
-  15 to 30 times more: the temporary file, the commit and the lock. The 1 MiB loads (68 µs for
-  pickle, 178 µs for text) are limited by the read; the 1 MiB saves are dominated by the fixed cost of
-  the save (0.56 to 0.71 ms), not by the size.
+- **A load is cheap, a save is not.** A small load costs 27 µs; a small save costs 0.4 to 0.8 ms, 15
+  to 30 times more: the temporary file, the commit and the lock. The 1 MiB loads (68 µs for pickle,
+  178 µs for text) are limited by the read; the 1 MiB saves are dominated by the fixed cost of the
+  save (0.56 to 0.71 ms), not by the size.
 - **The new-file save is the slowest small save** (820 µs against 477 µs for an overwrite): the
   default `exist_ok=False` commit is `os.link` + `unlink`, which costs about 375 µs on APFS against
-  176 µs for `os.replace` (section 6). The design keeps the link (D1), so the expected gain of step 5
-  is the lock (about 250 µs), not the whole difference.
+  176 µs for `os.replace` (section 6). The design keeps the link (D1), so the expected gain of step
+  5 is the lock (about 250 µs), not the whole difference.
 - **The lock serializes the threads of one path.** 100 saves from 4 threads take 51.7 ms to one path
-  and 34.6 ms to 4 distinct paths (+49 %), although the per-path lock only protects the commit that is
-  already atomic (F1). With 100 sequential saves at 84 ms the 4 threads give 2.4x on distinct paths.
+  and 34.6 ms to 4 distinct paths (+49 %), although the per-path lock only protects the commit that
+  is already atomic (F1). With 100 sequential saves at 84 ms the 4 threads give 2.4x on distinct
+  paths.
 - **`fsync=True` adds only 27 µs** (504 against 477 µs) because macOS `fsync` does not force the
-  data out of the drive cache (that needs `F_FULLFSYNC`). The number says nothing about Linux, where an
-  fsync costs milliseconds on a disk; rerun the file there before the step 5 decision on `O_RDWR`.
-- **`json.dump` dominates a large save** (19.1 ms for 590 KB against 5.5 ms to load): the I/O layer is
-  below 1 ms of it. The design cannot change this number; it is in the file to show that the gain
+  data out of the drive cache (that needs `F_FULLFSYNC`). The number says nothing about Linux, where
+  an fsync costs milliseconds on a disk; rerun the file there before the step 5 decision on
+  `O_RDWR`.
+- **`json.dump` dominates a large save** (19.1 ms for 590 KB against 5.5 ms to load): the I/O layer
+  is below 1 ms of it. The design cannot change this number; it is in the file to show that the gain
   applies to small files and to threads.
 - Add deeper cases when the new design lands if a regression is suspected (a `TorchSaver` benchmark
   needs torch and is left out to keep the file runnable with no optional library).

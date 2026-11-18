@@ -1,6 +1,9 @@
 # Architecture of `coola.hashing`
 
-:book: This page describes the design of the `coola.hashing` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/hashing.md#properties); the API is in the [reference](../refs/hashing.md).
+:book: This page describes the design of the `coola.hashing` package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the [user guide](../uguide/hashing.md#properties); the API is in the
+[reference](../refs/hashing.md).
 
 ## Overview
 
@@ -12,7 +15,7 @@ containers, the depth and the placeholder of `ignore_unhashable`. This is the sa
 `equality` (the engine owns identity, type, depth and cycles; a tester returns the child pairs) and
 `recursive` (a transformer returns the children).
 
-```
+```text
 hash_object(data, *, registry=None, length=64, ignore_unhashable=False)
         |   validates length; one registry; one call = one engine run
         v
@@ -40,7 +43,8 @@ the 64-byte digest of the root  ->  hex()[:length]
 | Only the `compare=True` fields of a dataclass                       | equal dataclasses have the same hash                                     |
 
 See the [user guide](../uguide/hashing.md#properties) for the properties of the package. The
-trade-offs behind these choices are in [Design choices and trade-offs](#design-choices-and-trade-offs).
+trade-offs behind these choices are in
+[Design choices and trade-offs](#design-choices-and-trade-offs).
 
 ## Design constraints
 
@@ -65,7 +69,7 @@ trade-offs behind these choices are in [Design choices and trade-offs](#design-c
 
 ## Architecture in detail
 
-```
+```text
 hash_object(data, *, registry=None, length=64, ignore_unhashable=False)
         |   validates length; one registry (default: the singleton); one call = one engine run
         v
@@ -118,8 +122,8 @@ Two helpers are public, so that a hasher never imports `hashlib` and the format 
 - `tagged(tag: str, payload: str | bytes = b"") -> bytes`: `tag`, a NUL byte, `payload` (text is
   encoded in UTF-8 with `surrogatepass`: a lone surrogate never collides with a valid string).
 - `digest(data: bytes) -> bytes`: the 64-byte BLAKE2b of the package. A hasher uses it to reduce a
-  big buffer (array values, the content of a `bytes`) to a fixed-width value **before** it enters the
-  encoding, so the engine never copies a 50 MB preimage.
+  big buffer (array values, the content of a `bytes`) to a fixed-width value **before** it enters
+  the encoding, so the engine never copies a 50 MB preimage.
 
 Rules of the contract (documented in `BaseHasher`, checked by one parametrised unit test over the
 default registry, like `NATIVE_SAMPLES` in `equality`):
@@ -220,9 +224,10 @@ Design points:
 - **Memory.** Besides the input, the engine holds the digests of the children of the containers
   being built (about 100 bytes per child of a node in progress) and the memo. A flat list of one
   million items needs about 100 MB for the digests. Streaming the digests of an ordered node into a
-  running `blake2b` object would remove it; it is not done because the benchmark does not show a need.
-- A hasher's exception reaches the caller with its own traceback and no frame of the package between,
-  because the engine is a loop and not a recursion.
+  running `blake2b` object would remove it; it is not done because the benchmark does not show a
+  need.
+- A hasher's exception reaches the caller with its own traceback and no frame of the package
+  between, because the engine is a loop and not a recursion.
 
 ### Built-in hashers
 
@@ -256,7 +261,7 @@ registry API is `HasherRegistry` with `register`, `register_many`, `register_fal
 
 One rule for every hash, written once in `engine.py` and `base.py`:
 
-```
+```text
 digest(x)  = BLAKE2b-512(preimage, person = b"coola-hash-1")           # 64 bytes, always
 leaf       : preimage = 0x00 + tag + 0x00 + payload                     # what `encode` returned
 node       : preimage = 0x01 + tag + 0x00 + e1 + e2 + ... + en          # one entry per child
@@ -266,9 +271,9 @@ hash_object(x, length=n) = digest(x).hex()[:n]                         # n chara
 ```
 
 - **Self-delimiting entries** make the concatenation unambiguous without delimiters: an entry is
-  either a marker and a fixed-width digest, or a size byte and the leaf. The leading `0x00`/`0x01` byte
-  makes a leaf and a node with the same tag different by construction. Inlining the short leaves
-  makes a flat container one BLAKE2b call instead of one per item.
+  either a marker and a fixed-width digest, or a size byte and the leaf. The leading `0x00`/`0x01`
+  byte makes a leaf and a node with the same tag different by construction. Inlining the short
+  leaves makes a flat container one BLAKE2b call instead of one per item.
 - **`length` is chosen by the caller and cuts the end.** The caller asks for 2 to 128 characters.
   Every digest is a full 64-byte BLAKE2b, so the hash of any length is the start of the
   longest one, a hasher never sees `length`, and `length` is validated once, before the traversal.
@@ -296,8 +301,8 @@ registered (the default registry has none: an unsupported type fails loudly). It
 > A subclass of `Enum` resolves to the hasher of `Enum` unless a hasher is registered for the enum
 > class itself (or for a parent that is not a builtin base of the mixin).
 
-`StringHasher` and `ReprHasher` have no `isinstance(data, Enum)` branch, and `HasherRegistry.hash` is
-`digest_of(...).hex()[:length]` with the validation of `length`. The registry has no knowledge of
+`StringHasher` and `ReprHasher` have no `isinstance(data, Enum)` branch, and `HasherRegistry.hash`
+is `digest_of(...).hex()[:length]` with the validation of `length`. The registry has no knowledge of
 cycles, placeholders or the recursion limit.
 
 `get_default_registry()` is the singleton with the built-in hashers, the entries of the plugin group
@@ -341,9 +346,9 @@ class Point:
 ```
 
 The object does not recurse, so it cannot bypass the cycle check, nobody forwards `length`, and the
-fallback predicate is `callable(getattr(t, "__coola_hash__", None))` with no signature inspection. The dunder
-name cannot collide with a method of a library (`polars.Series.hash`). A dataclass keeps the
-dataclass hasher even if it defines `__coola_hash__` (type > fallback order, then registration
+fallback predicate is `callable(getattr(t, "__coola_hash__", None))` with no signature inspection.
+The dunder name cannot collide with a method of a library (`polars.Series.hash`). A dataclass keeps
+the dataclass hasher even if it defines `__coola_hash__` (type > fallback order, then registration
 order of the fallbacks).
 
 ### Secrets and pydantic
@@ -372,8 +377,8 @@ hash_object(model, registry=registry)
 ```
 
 A secret in a dict or in a dataclass is governed by the same policy as in a model. `"exclude"` does
-not remove the key or the item: it replaces the value by a constant (the position of a secret is part
-of the schema of the class, so it is not information; the value is never hashed).
+not remove the key or the item: it replaces the value by a constant (the position of a secret is
+part of the schema of the class, so it is not information; the value is never hashed).
 
 ### Errors and options
 
@@ -434,8 +439,8 @@ from coola.hashing import (
 
 `hash_object(data, *, registry=None, length=64, ignore_unhashable=False)` has no positional option.
 `HasherRegistry.hash(data, *, length=64, ignore_unhashable=False)` is the registry-level entry point
-(it is what the guide and the doctests use) and calls the same engine. The decimal, fraction and range
-hashers live in `coola.hashing.canonical` (public but not re-exported).
+(it is what the guide and the doctests use) and calls the same engine. The decimal, fraction and
+range hashers live in `coola.hashing.canonical` (public but not re-exported).
 
 ## Dependents
 
@@ -451,28 +456,30 @@ hashers live in `coola.hashing.canonical` (public but not re-exported).
 
 **One contract: `encode` returns a description, the engine hashes.** It is the only way to make
 cycles, depth, sharing, `length` and the placeholder properties of the engine instead of the
-discipline of every hasher, and it is what `equality`, `summary` and `recursive` do. The alternative,
-a context object passed to a `hash(data, ctx)` method, removes the repeated parameters but a hasher
-still recurses, so the cycle protection stays per hasher and the engine cannot be an explicit loop.
+discipline of every hasher, and it is what `equality`, `summary` and `recursive` do. The
+alternative, a context object passed to a `hash(data, ctx)` method, removes the repeated parameters
+but a hasher still recurses, so the cycle protection stays per hasher and the engine cannot be an
+explicit loop.
 
 **The caller chooses the length of the hash.** `hash_object(x, length=16)` returns 16 characters (an
-even `int` from 2 to 128). Internally one 64-byte digest is computed and the first `length` characters
-are kept: no `size` argument in the engine, no special case for the root. A side effect is that the
-hash of a shorter length is the start of the longer one, so a short id can be matched against a stored
-full hash with `startswith`. Computing the root with `digest_size = length // 2` gives independent
-values at each length, at the cost of one more argument in the engine.
+even `int` from 2 to 128). Internally one 64-byte digest is computed and the first `length`
+characters are kept: no `size` argument in the engine, no special case for the root. A side effect
+is that the hash of a shorter length is the start of the longer one, so a short id can be matched
+against a stored full hash with `startswith`. Computing the root with `digest_size = length // 2`
+gives independent values at each length, at the cost of one more argument in the engine.
 
 **Shared containers are memoized.** Unlike `recursive_apply`, a hash is pure, so the memo is
 unobservable, and it turns a DAG from exponential to linear. The cost is one dictionary entry per
-container and the objects kept alive until the call ends, which also makes the `id` reuse of temporary
-children impossible. Without the memo, a plain set of ancestors detects cycles with three lines less,
-but 2^20 paths take 4 s.
+container and the objects kept alive until the call ends, which also makes the `id` reuse of
+temporary children impossible. Without the memo, a plain set of ancestors detects cycles with three
+lines less, but 2^20 paths take 4 s.
 
-**A cycle is an error.** `objects_are_equal` accepts a cyclic structure and says "equal", so strictly
-"equal implies the same hash" is violated by a cycle. A deterministic back-reference (the distance to
-the ancestor) would make a cycle hashable, but the digest of a container in a cycle would then depend
-on where it is reached from, which breaks the memo and the "hash of a child is reusable" property. A
-cycle in a hashed configuration is almost always a bug, so the loud error is the better default.
+**A cycle is an error.** `objects_are_equal` accepts a cyclic structure and says "equal", so
+strictly "equal implies the same hash" is violated by a cycle. A deterministic back-reference (the
+distance to the ancestor) would make a cycle hashable, but the digest of a container in a cycle
+would then depend on where it is reached from, which breaks the memo and the "hash of a child is
+reusable" property. A cycle in a hashed configuration is almost always a bug, so the loud error is
+the better default.
 
 **A custom object says what its content is.** `__coola_hash__(self) -> object` returns the content;
 the object does not recurse, there is no signature inspection, and the name cannot collide with a
@@ -484,11 +491,11 @@ traversal to unwrap secrets, and the policy is the one of the registry, so a cal
 `reveal` builds a registry once. Keeping an `on_secret` argument on the model hasher would treat a
 secret in a dict differently from a secret in a model.
 
-**Short leaves are inlined in the preimage of their parent.** A flat container of short items makes one
-BLAKE2b call, which is about 4 times faster than one call per item. The price is two forms of child
-entry (a size byte and the leaf, or a marker and a digest). Streaming the digests of an ordered node
-into a running `blake2b` object (memory) is the optimisation that is held back until a benchmark or a
-user shows that hashing a million-element list is on a hot path.
+**Short leaves are inlined in the preimage of their parent.** A flat container of short items makes
+one BLAKE2b call, which is about 4 times faster than one call per item. The price is two forms of
+child entry (a size byte and the leaf, or a marker and a digest). Streaming the digests of an
+ordered node into a running `blake2b` object (memory) is the optimisation that is held back until a
+benchmark or a user shows that hashing a million-element list is on a hot path.
 
 **No public leaf functions.** A function such as `hash_string` hashes one value under a tag with a
 `length`, which is `hash_object` for a scalar, and it keeps `length` in the leaf code. A caller that
@@ -496,9 +503,9 @@ wants a plain BLAKE2b of a string uses `hashlib`. `tagged` and `digest` are publ
 hasher needs them.
 
 **A format version in the digest.** `person=b"coola-hash-1"` costs nothing, makes two formats
-impossible to confuse (a stored hash of another format never equals a new one by accident), and turns
-a deliberate format change into a one-line constant plus the golden vectors. Without it, only the
-golden vectors would signal a format change.
+impossible to confuse (a stored hash of another format never equals a new one by accident), and
+turns a deliberate format change into a one-line constant plus the golden vectors. Without it, only
+the golden vectors would signal a format change.
 
 **The stable registry and the plugin group.** The plugin group is how a library adds its types, and
 `get_stable_registry()` keeps the identifiers independent of the plugins.
@@ -509,9 +516,10 @@ different. A user who wants every field registers a hasher of their own.
 
 ## Not covered
 
-- **Hashes of types that equality supports and hashing does not.** The next candidates are `Index`, `MultiIndex` and `Categorical` as values, `np.datetime64`,
-  `np.timedelta64`, `array.array`, `dict_keys`, `dict_values`, `dict_items`, `slice`, `Ellipsis`,
-  `re.Pattern`, `torch.dtype` and `torch.device`. Each is one hasher and one registration.
+- **Hashes of types that equality supports and hashing does not.** The next candidates are `Index`,
+  `MultiIndex` and `Categorical` as values, `np.datetime64`, `np.timedelta64`, `array.array`,
+  `dict_keys`, `dict_values`, `dict_items`, `slice`, `Ellipsis`, `re.Pattern`, `torch.dtype` and
+  `torch.device`. Each is one hasher and one registration.
 - **Functions, classes and other callables** are not hashed (a class in a configuration needs its
   own hasher). A `type` hasher by qualified name is a one-line registration if a user asks.
 - **Hashing the content of a file** (`ResolvedPathHasher` hashes the path, not the file).

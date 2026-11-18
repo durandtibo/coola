@@ -1,6 +1,9 @@
 # Architecture of `coola.io`
 
-:book: This page describes the design of the `coola.io` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/io.md#properties); the API is in the [reference](../refs/io.md).
+:book: This page describes the design of the `coola.io` package for contributors: the invariants,
+the contracts between the parts, and the trade-offs of the main design choices. The rules that users
+rely on are in the [user guide](../uguide/io.md#properties); the API is in the
+[reference](../refs/io.md).
 
 ## Overview
 
@@ -20,8 +23,8 @@ properties of the package.
 
 ## Design constraints
 
-1. **Simple and easy to maintain.** The base classes own the invariants once (the path conversion, the
-   atomic commit, `equal`, `repr`), so a format has no lock protocol, no copy of `equal` and no
+1. **Simple and easy to maintain.** The base classes own the invariants once (the path conversion,
+   the atomic commit, `equal`, `repr`), so a format has no lock protocol, no copy of `equal` and no
    repeated `sanitize_path` call.
 2. **No new dependency.** `coola` has zero hard dependencies; the package uses the standard library
    only (torch stays optional and lazy).
@@ -37,7 +40,7 @@ properties of the package.
 
 ## Architecture in detail
 
-```
+```text
 saver.save(data, path, *, exist_ok, fsync)            loader.load(path)
         |                                                    |
         |  sanitize_path ; checks ; hidden tmp file          |  sanitize_path
@@ -100,9 +103,9 @@ class BaseFileSaver(BaseSaver[T]):
   the base class is where a cross-cutting step (a log line, a size check) would go. A subclass that
   overrides `load` instead keeps working but loses the conversion. The saver side works the same way
   (`_save_file`).
-- `TextSaver` accepts a `str` only. Writing `None` as the text "None" is the kind of silent conversion
-  the architecture rejects, and the class is typed `str`; a caller who wants `str(x)` writes it, and
-  the error says so.
+- `TextSaver` accepts a `str` only. Writing `None` as the text "None" is the kind of silent
+  conversion the architecture rejects, and the class is typed `str`; a caller who wants `str(x)`
+  writes it, and the error says so.
 
 ### The atomic commit (no lock)
 
@@ -148,9 +151,10 @@ Why a lock is not needed:
 A caller that needs **mutual exclusion** (a read-modify-write of one file) needs a lock around the
 read and the write, which `save` could never give; it uses a lock library of its choice. The
 `exist_ok=False` fallback on a file system **without hard links** is the one case where a lock would
-matter: two processes creating the same file at the same instant can both succeed (the last one wins,
-no torn file). It is listed under "Not guaranteed". A lock (a thread, a lock file, a polling loop)
-would add latency and a deadlock risk for that one case, which affects FAT and some container volumes.
+matter: two processes creating the same file at the same instant can both succeed (the last one
+wins, no torn file). It is listed under "Not guaranteed". A lock (a thread, a lock file, a polling
+loop) would add latency and a deadlock risk for that one case, which affects FAT and some container
+volumes.
 
 ## Public API
 
@@ -217,20 +221,22 @@ and gets the atomic write, `exist_ok`, `fsync`, `equal()`, `repr` from the bases
 
 ## Design choices and trade-offs
 
-**No save lock.** The atomic commit already gives the guarantees that a lock would claim. A lock adds a
-thread, a lock file, a polling loop, latency and a deadlock risk. The consequences are listed in "Not
-guaranteed": two processes creating the same file at the same instant on a file system without hard
-links can both succeed, and a caller who wants mutual exclusion around a read-modify-write uses its
-own lock. An opt-in `lock=True` would keep the code and its tests for a case that few users have.
+**No save lock.** The atomic commit already gives the guarantees that a lock would claim. A lock
+adds a thread, a lock file, a polling loop, latency and a deadlock risk. The consequences are listed
+in "Not guaranteed": two processes creating the same file at the same instant on a file system
+without hard links can both succeed, and a caller who wants mutual exclusion around a
+read-modify-write uses its own lock. An opt-in `lock=True` would keep the code and its tests for a
+case that few users have.
 
-**`equal()` is concrete, not `__eq__`.** The method is the documented API and `objects_are_equal(a, b)`
-works with it. One implementation in the base class (same type, then `objects_are_equal` on
-`_display_fields()` with `equal_nan`) replaces one override per format.
+**`equal()` is concrete, not `__eq__`.** The method is the documented API and
+`objects_are_equal(a, b)` works with it. One implementation in the base class (same type, then
+`objects_are_equal` on `_display_fields()` with `equal_nan`) replaces one override per format.
 
 **Explicit loaders, no choice by suffix.** `load("data.json")` would need a registry from suffix to
-loader. It is a natural next step (it would follow `coola.registry`), but it is a new extension point
-and a security question: `load("x.pkl")` would unpickle by the file name. Explicit loaders keep the
-format visible at the call site. If it is added, `PickleLoader` should not be registered by default.
+loader. It is a natural next step (it would follow `coola.registry`), but it is a new extension
+point and a security question: `load("x.pkl")` would unpickle by the file name. Explicit loaders
+keep the format visible at the call site. If it is added, `PickleLoader` should not be registered by
+default.
 
 **Async is a layer, not part of the core.** The recommended shape is `asyncio.to_thread` of the sync
 method.
@@ -247,15 +253,16 @@ asyncio.to_thread(self.load, ...)` in the base classes (no dependency; `aiofiles
   use threads too). What a probe showed (macOS, Python 3.14): a save of 400 ms called in a coroutine
   froze a 5 ms ticker for 414 ms (6 ms with `to_thread`); `wait_for(asyncio.to_thread(save), 0.1)`
   raises `TimeoutError` and the file appears 0.4 s later, so a layer needs a cancellation flag that
-  `BaseFileSaver` checks after the write and before the commit; `to_thread(lambda: None)` costs 36 µs.
+  `BaseFileSaver` checks after the write and before the commit; `to_thread(lambda: None)` costs 36
+  µs.
   Not decided: async shortcuts (`asave_json`), a client that is async only (it would need separate
   `BaseAsync*` ABCs), and other event loops (`trio`, `anyio` call the sync methods through their own
   `to_thread`).
 - **Streaming and large values.** One value is read or written per call, fully in memory. A
   `JsonLinesLoader` (an iterator of values) is a separate item.
 - **Compression** (`.json.gz`), **checksums** and **file locking for the caller**: out of scope.
-- **More formats** (`yaml`, `.npy`, `safetensors`, `bytes`): each is one `_load` and one `_save_file`
-  and an optional dependency imported lazily; none is provided.
+- **More formats** (`yaml`, `.npy`, `safetensors`, `bytes`): each is one `_load` and one
+  `_save_file` and an optional dependency imported lazily; none is provided.
 - **Cleanup of the leftover temporary files of killed processes**: they are hidden and have a
   recognisable name; a cleaner would need a lock to know the owner is dead.
 - **Selection by suffix**.

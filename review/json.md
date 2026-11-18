@@ -2,11 +2,11 @@
 
 This document describes the design that the JSON conversion of `coola` should have, then the changes
 to make to the current implementation (`main`, `9659de0b`) to get there. Today the conversion is
-`coola.nested.convert_to_jsonable` plus `coola.nested.conversion.to_jsonable` (225 of the 352 lines of
-`src/coola/nested/conversion.py`, 48 of its tests). The target is a small sub-package,
+`coola.nested.convert_to_jsonable` plus `coola.nested.conversion.to_jsonable` (225 of the 352 lines
+of `src/coola/nested/conversion.py`, 48 of its tests). The target is a small sub-package,
 **`coola.jsonable`**, with **one function (`to_jsonable`), one registry, one rule per type**. The
-design follows the rules of the user guides (`docs/docs/uguide/recursive.md`, `nested_data.md`) and the
-architecture guide (`docs/docs/dev/architecture.md`: properties first, one engine, one extension
+design follows the rules of the user guides (`docs/docs/uguide/recursive.md`, `nested_data.md`) and
+the architecture guide (`docs/docs/dev/architecture.md`: properties first, one engine, one extension
 point, strict and loud, lazy imports), and `review/recursive.md` is the model. Breaking changes are
 accepted, and the future state is more important than the past one.
 
@@ -14,7 +14,11 @@ Evidence comes from probes (about 60 inputs) and a throw-away prototype run on `
 NumPy, PyTorch, pandas, pydantic; scripts kept outside the repository). Items marked **[verified]**
 were reproduced; **[reading]** comes from the code. Nothing in `src`, `tests` or `docs` was changed.
 
-**Status:** implemented in four pull requests: step 1 #2652, step 2 #2653, step 3 #2654, step 4 #2656. One deviation: the benchmark gate of section 8 failed for the array with the check of every element (149 ms, 7.9x `tolist`, 47 % of `json.dumps`), so the fast path that D12 names is included (`NDArrayTransformer`, `TensorTransformer`: no check of the elements of real numeric arrays, 17 ms).
+**Status:** implemented in four pull requests: step 1 #2652, step 2 #2653, step 3 #2654,
+step 4 #2656. One deviation: the benchmark gate of section 8 failed for the array with the check of
+every
+element (149 ms, 7.9x `tolist`, 47 % of `json.dumps`), so the fast path that D12 names is included
+(`NDArrayTransformer`, `TensorTransformer`: no check of the elements of real numeric arrays, 17 ms).
 
 ## 1. Properties of the sub-package
 
@@ -42,34 +46,34 @@ These are the rules. Every design choice below exists to make one of them true *
 Not guaranteed, and documented as such:
 
 - **A round trip to the Python types.** `json.loads` gives lists, not tuples, sets or dataclasses; a
-  `Decimal`, a `UUID` or a `Path` becomes a `str`, bytes become a Base64 `str`, a `timedelta` becomes
-  a number of seconds (`float`). The conversion is one way.
+  `Decimal`, a `UUID` or a `Path` becomes a `str`, bytes become a Base64 `str`, a `timedelta`
+  becomes a number of seconds (`float`). The conversion is one way.
 - **Strict JSON (RFC 8259).** `NaN` and the infinities are kept, exactly as `json.dumps` writes them
   by default. Pass `allow_nan=False` to `json.dumps` (or `save_json`) to refuse them.
 - **Shared references.** A container reachable by several paths is converted once per path (the rule
   of `recursive`), so the output has no aliasing.
-- **Nanosecond `datetime64`.** NumPy returns an `int` for `datetime64[ns]` (`tolist`), which is kept;
-  cast to a coarser unit first.
+- **Nanosecond `datetime64`.** NumPy returns an `int` for `datetime64[ns]` (`tolist`), which is
+  kept; cast to a coarser unit first.
 - **Tables.** Data frames, tables and datasets have no single JSON shape; they are not converted
   until the caller says how (decision D7).
 
 ## Constraints
 
 1. **Simple and easy to maintain.** The target deletes code that exists only to work around the
-   design (the predicate table `_CONVERTERS`, the `sys.modules` look-ups, the registry built per call)
-   instead of adding code next to it. The prototype is about 120 lines of code; with the docstrings of
-   the repository the package is about 450 lines (against 225 today), because it adds what the
-   current code lacks: a registry, a plugin point, key handling and four library adapters. Each
-   module stays small and does one thing, as in the sibling packages.
-2. **Major release.** Breaking changes are fine and compatibility is not a design input: no alias, no
-   deprecation period, `convert_to_jsonable` is not kept. The release notes and the migration page
-   list the changes.
-3. **No slower than today.** The benchmark gate of section 8 must hold. The prototype is faster on every
-   input of section 6 (1.3x to 41x), with one exception that is stated (arrays, D12).
+   design (the predicate table `_CONVERTERS`, the `sys.modules` look-ups, the registry built per
+   call) instead of adding code next to it. The prototype is about 120 lines of code; with the
+   docstrings of the repository the package is about 450 lines (against 225 today), because it adds
+   what the current code lacks: a registry, a plugin point, key handling and four library adapters.
+   Each module stays small and does one thing, as in the sibling packages.
+2. **Major release.** Breaking changes are fine and compatibility is not a design input: no alias,
+   no deprecation period, `convert_to_jsonable` is not kept. The release notes and the migration
+   page list the changes.
+3. **No slower than today.** The benchmark gate of section 8 must hold. The prototype is faster on
+   every input of section 6 (1.3x to 41x), with one exception that is stated (arrays, D12).
 4. **Consistent with the siblings.** Same containers, same dispatch, same lazy loading, same plugin
    mechanism (`make_default_registry_singleton` with a `plugin_group`), same keyword-only options.
-5. **Optional libraries stay lazy.** NumPy, PyTorch, pandas and pydantic are imported by their module
-   of the package only, never by `import coola.jsonable`.
+5. **Optional libraries stay lazy.** NumPy, PyTorch, pandas and pydantic are imported by their
+   module of the package only, never by `import coola.jsonable`.
 
 ## 2. What differs today
 
@@ -89,17 +93,17 @@ Not guaranteed, and documented as such:
 | F12 | **Lossy conversions are not listed.** `np.datetime64` with a nanosecond unit gives an `int` (an instant becomes a number, `1577836800000000001`, **[verified]**), a `timedelta` gives `float` seconds (no unit, loses microseconds above ~285 years), `bytes` give Base64 (not distinguishable from text), a `Decimal` gives a `str`. The docstring lists the types but not what is lost, so the caller finds out when reading the file back.                                                                                                                                                                  | **[reading]**  |
 | F13 | **Documentation drift.** The docstring of `convert_to_jsonable` promises "converting `pydantic.BaseModel` objects found at any depth" and "a tuple stays a tuple" (neither holds inside a model, F6, and neither is JSON, F8), the guide (`uguide/nested.md`, "JSON Conversion") and `dev/nested.md` repeat it, the migration page has a section 12.5 on determinism, `save_json` says "use `coola.nested.convert_to_jsonable` first", and the package docstring of `coola.nested` lists `json` as a group. There is no page for the registry, the extension point or the plugin group, because there is none. | **[reading]**  |
 
-What is already right and must not regress: sets become **sorted** lists whose order never depends on
-the iteration order of the set (`_sorted_elements`: by value, else by `(type name, repr)`, and a
+What is already right and must not regress: sets become **sorted** lists whose order never depends
+on the iteration order of the set (`_sorted_elements`: by value, else by `(type name, repr)`, and a
 `NaN` forces the second rule); dataclasses are entered and converted field by field (not
-`dataclasses.asdict`, which deep-copies); `SecretStr` and `SecretBytes` are masked; the explicit stack
-(no `RecursionError`, cycles are a `ValueError`); lazy optional libraries (no import of NumPy, PyTorch
-or pydantic by `import coola.nested`); `bytes` as Base64, `Decimal`, `UUID` and `Path` as `str`,
-dates and times as ISO 8601 strings, an `Enum` as its (converted) value, a `range` as a list.
+`dataclasses.asdict`, which deep-copies); `SecretStr` and `SecretBytes` are masked; the explicit
+stack (no `RecursionError`, cycles are a `ValueError`); lazy optional libraries (no import of NumPy,
+PyTorch or pydantic by `import coola.nested`); `bytes` as Base64, `Decimal`, `UUID` and `Path` as
+`str`, dates and times as ISO 8601 strings, an `Enum` as its (converted) value, a `range` as a list.
 
 ## 3. Architecture
 
-```
+```text
 to_jsonable(data, *, registry=None)           coola/jsonable/interface.py
         |   one registry (default: the singleton), one call = one engine run
         v
@@ -116,8 +120,8 @@ JSON data
 **The package is a registry of transformers on the engine of `coola.recursive`.** It adds no
 traversal: cycles, depth, order, the per-call cache and the thread safety come from the engine, as
 they do for `nested`. A transformer only describes the shape of one type, with the `expand` contract
-of `review/recursive.md`: `expand(data)` returns `None` for a scalar, or `(children, rebuild)`. Three
-shapes are enough for every type:
+of `review/recursive.md`: `expand(data)` returns `None` for a scalar, or `(children, rebuild)`.
+Three shapes are enough for every type:
 
 | Shape          | `expand(data)`                                                           | Used for                                       |
 | -------------- | ------------------------------------------------------------------------ | ---------------------------------------------- |
@@ -128,19 +132,19 @@ shapes are enough for every type:
 The third shape is the whole trick. A conversion returns a value that the engine converts in turn,
 until only JSON scalars and containers remain: an `Enum` gives its value (which may be a tuple of
 paths), `ndarray.tolist()` gives a list that is checked like any list (F5), a pydantic model gives a
-dict whose values may be sets or arrays (F6), a `SecretStr` gives a `str`. No converter calls another
-one, no converter knows the registry, and nothing is returned unchecked. The leaf function of the
-engine is chosen by the option `on_unsupported`, and it is the only place where the three modes
-differ: `object` is a leaf like the JSON scalars, so a value of an unregistered type reaches the leaf
-function, which keeps the JSON scalars and treats the others as unsupported (`"raise"`: `TypeError`,
-`"warn"`: `UserWarning` and the value is kept, `"keep"`: the value is kept, the function is the
-identity and costs nothing). The transformers are the same in the three modes, so there is one
-registry and nothing is built per call. The check is one `isinstance` against the five scalar types,
-+0.03 µs per leaf (7.7 ms to 10.6 ms for 100,000 `int` in the prototype).
+dict whose values may be sets or arrays (F6), a `SecretStr` gives a `str`. No converter calls
+another one, no converter knows the registry, and nothing is returned unchecked. The leaf function
+of the engine is chosen by the option `on_unsupported`, and it is the only place where the three
+modes differ: `object` is a leaf like the JSON scalars, so a value of an unregistered type reaches
+the leaf function, which keeps the JSON scalars and treats the others as unsupported (`"raise"`:
+`TypeError`, `"warn"`: `UserWarning` and the value is kept, `"keep"`: the value is kept, the
+function is the identity and costs nothing). The transformers are the same in the three modes, so
+there is one registry and nothing is built per call. The check is one `isinstance` against the five
+scalar types, +0.03 µs per leaf (7.7 ms to 10.6 ms for 100,000 `int` in the prototype).
 
 ### 3.1 Modules
 
-```
+```text
 coola/jsonable/
     __init__.py       package docstring with the Properties; the public names
     interface.py      to_jsonable, get_default_registry, register_transformers; the default registry
@@ -156,7 +160,8 @@ coola/jsonable/
     pydantic.py       get_default_transformers(): BaseModel, SecretStr, SecretBytes
 ```
 
-`interface.py` follows `summary/interface.py`: `_register_default_transformers(registry)` registers the
+`interface.py` follows `summary/interface.py`: `_register_default_transformers(registry)` registers
+the
 native and standard types, `register_fallback(dataclasses.is_dataclass, DataclassTransformer())`,
 and one `register_lazy` per installed library (`(("numpy",), "coola.jsonable.numpy")`, ...), and the
 singleton is `make_default_registry_singleton(TransformerRegistry, _register_default_transformers,
@@ -228,12 +233,13 @@ class DataclassTransformer(...):  # the fallback of ``dataclasses.is_dataclass``
         return [getattr(data, name) for name in names], lambda xs: dict(zip(names, xs, strict=True))
 ```
 
-The **keys are children** of the mapping (`[*keys, *values]`). The engine converts them like any other
-value (a `Path` key gives a `str`, a tuple key gives a list), and `_to_dict` only has to check the
-result: a `str` is kept, `bool`, `int`, `float` and `None` go through `json.dumps` (so `True` gives
-`"true"`, as the standard library does), anything else raises a `TypeError` that names the type; a
-duplicate raises a `ValueError` that names the key. This is the only place where "keys are labels" of
-`recursive` is deliberately reversed, because a JSON object has no other kind of key (F2).
+The **keys are children** of the mapping (`[*keys, *values]`). The engine converts them like any
+other value (a `Path` key gives a `str`, a tuple key gives a list), and `_to_dict` only has to check
+the result: a `str` is kept, `bool`, `int`, `float` and `None` go through `json.dumps` (so `True`
+gives `"true"`, as the standard library does), anything else raises a `TypeError` that names the
+type; a duplicate raises a `ValueError` that names the key. This is the only place where "keys are
+labels" of `recursive` is deliberately reversed, because a JSON object has no other kind of key
+(F2).
 
 The default registrations (the contract test of section 8 checks every row):
 
@@ -259,8 +265,8 @@ The default registrations (the contract test of section 8 checks every row):
 
 Two details of the dispatch that the tests pin: `numpy.generic` comes before `float` in the MRO of
 `numpy.float64`, so a NumPy scalar is converted by `item()` and not kept as a `numpy.float64`; and a
-`str` enum member or an `IntEnum` member is a `str` or an `int` for the MRO, so it is a scalar and is
-kept (D11).
+`str` enum member or an `IntEnum` member is a `str` or an `int` for the MRO, so it is a scalar and
+is kept (D11).
 
 ## 4. Public API after the change
 
@@ -273,15 +279,15 @@ from coola.jsonable import (
 )
 ```
 
-`to_jsonable(data, *, registry=None, on_unsupported="raise")` is the one function. It replaces `convert_to_jsonable` and the
-old `to_jsonable`; there is no alias. `registry` is a `coola.recursive.TransformerRegistry` (a copy of
-`get_default_registry()` plus the caller's entries). `on_unsupported` says what happens to a value
-whose type has no transformer: `"raise"` (default) raises `TypeError`, `"warn"` issues a `UserWarning`
-and keeps the value, `"keep"` keeps the value silently; any other string raises `ValueError` before
-any work is done (validated with `coola.validation`). A key that cannot become a string always
-raises `TypeError` (whatever the mode), and `ValueError` is raised for a cycle and for two keys that
-give the same string. With `"warn"` and `"keep"` the result may contain objects that `json` rejects;
-the caller owns them.
+`to_jsonable(data, *, registry=None, on_unsupported="raise")` is the one function. It replaces
+`convert_to_jsonable` and the old `to_jsonable`; there is no alias. `registry` is a
+`coola.recursive.TransformerRegistry` (a copy of `get_default_registry()` plus the caller's
+entries). `on_unsupported` says what happens to a value whose type has no transformer: `"raise"`
+(default) raises `TypeError`, `"warn"` issues a `UserWarning` and keeps the value, `"keep"` keeps
+the value silently; any other string raises `ValueError` before any work is done (validated with
+`coola.validation`). A key that cannot become a string always raises `TypeError` (whatever the
+mode), and `ValueError` is raised for a cycle and for two keys that give the same string. With
+`"warn"` and `"keep"` the result may contain objects that `json` rejects; the caller owns them.
 
 The extension example of the guide is the shortest possible one:
 
@@ -324,9 +330,9 @@ pure format (it does not convert); its docstring points to `coola.jsonable.to_js
 
 ## 6. Evidence: a prototype
 
-A prototype of the design (the six transformers, the stdlib table, NumPy, PyTorch and pydantic, on the
-real `TransformerRegistry` and the real engine of `main`) was run on `main`. It is not part of the
-repository. **[verified]** Machine: Apple M1, Python 3.14, best of 3.
+A prototype of the design (the six transformers, the stdlib table, NumPy, PyTorch and pydantic, on
+the real `TransformerRegistry` and the real engine of `main`) was run on `main`. It is not part of
+the repository. **[verified]** Machine: Apple M1, Python 3.14, best of 3.
 
 | Input                                                | `main`   | Prototype   | Speed-up  |
 | ---------------------------------------------------- | -------- | ----------- | --------- |
@@ -343,9 +349,9 @@ repository. **[verified]** Machine: Apple M1, Python 3.14, best of 3.
 The array is the one regression, and it is the price of F5: `main` returns `tolist()` unchecked
 (17.6 ms, the cost of `tolist`), the prototype checks each of the 1,000,000 floats (0.09 µs per
 element). `json.dumps` of the list then takes 318 ms, so the whole pipeline (convert and dump) goes
-from about 336 ms to 411 ms (23 % slower), and the unchecked list is not always JSON (complex numbers, objects, `datetime64`). Decision
-D12 keeps the check and names the fast path if it is ever needed (skip the check for the `b`, `i`,
-`u`, `f` dtypes).
+from about 336 ms to 411 ms (23 % slower), and the unchecked list is not always JSON (complex
+numbers, objects, `datetime64`). Decision D12 keeps the check and names the fast path if it is ever
+needed (skip the check for the `b`, `i`, `u`, `f` dtypes).
 
 Behaviour of the prototype on the probes of F1 to F11 **[verified]**:
 
@@ -366,8 +372,8 @@ Behaviour of the prototype on the probes of F1 to F11 **[verified]**:
 | `UserString("ab")` with a `Sequence` transformer                           | n/a                                        | **never ends**; with `UserString` registered: `'ab'`  |
 
 Two limits of the prototype: it has no `pandas.py` (so the `NaT` row is the design, not a
-measurement), and its leaf function is the identity (the mode `"keep"`; the check of the other modes was
-measured separately, section 3), so a `str` enum member is kept as a member (D11).
+measurement), and its leaf function is the identity (the mode `"keep"`; the check of the other modes
+was measured separately, section 3), so a `str` enum member is kept as a member (D11).
 
 ## 7. Changes to reach the target state
 
@@ -391,13 +397,14 @@ break calling code):
    behaviour (`"warn"` to see which values are kept).
 3. Tuples, deques, named tuples and ranges become lists; `OrderedDict`, `defaultdict` and `Counter`
    become dicts.
-4. The keys become strings (as `json.dumps` writes them) or raise; two keys that give one string raise.
-5. NumPy, PyTorch and pydantic outputs are checked: complex numbers and objects raise (by default), a `datetime64`
-   with a unit coarser than the nanosecond gives an ISO string instead of a `date`, a `timedelta64`
-   gives seconds, `np.bytes_` gives Base64.
-6. A pydantic model is dumped with `model_dump()` (Python mode) and converted by the registry: the sets
-   inside are sorted and the arrays are converted; a serializer declared `when_used="json"` is no
-   longer applied (D3).
+4. The keys become strings (as `json.dumps` writes them) or raise; two keys that give one string
+   raise.
+5. NumPy, PyTorch and pydantic outputs are checked: complex numbers and objects raise (by default),
+   a `datetime64` with a unit coarser than the nanosecond gives an ISO string instead of a `date`, a
+   `timedelta64` gives seconds, `np.bytes_` gives Base64.
+6. A pydantic model is dumped with `model_dump()` (Python mode) and converted by the registry: the
+   sets inside are sorted and the arrays are converted; a serializer declared `when_used="json"` is
+   no longer applied (D3).
 7. `pd.NaT` and `pd.NA` give `None`; `pd.Series` and `pd.Index` give lists.
 
 ## 8. Tests and gates
@@ -409,21 +416,22 @@ test for every bug, checked to fail without the fix).
 - **Each transformer** (`test_transformers.py`): `expand` asserts the whole output against a literal
   (children and rebuilt value), the typical, empty, single-element and duplicate cases; the input is
   not modified and the output shares no container with it. `MappingTransformer`: a `str`, `int`,
-  `float`, `bool`, `None` and `Path` key, a tuple key (`TypeError` with the type), two keys that give
-  one string (`ValueError` with the key), `OrderedDict` and `defaultdict` give a `dict`, the order is
-  kept. `SetTransformer`: the sort by value, mixed types, `NaN`, a set of frozensets, the move of the
-  tests of `_sorted_elements` and `_sort_key`. `ConvertTransformer`: the result is converted again,
-  a converter that returns its own type raises.
+  `float`, `bool`, `None` and `Path` key, a tuple key (`TypeError` with the type), two keys that
+  give one string (`ValueError` with the key), `OrderedDict` and `defaultdict` give a `dict`, the
+  order is kept. `SetTransformer`: the sort by value, mixed types, `NaN`, a set of frozensets, the
+  move of the tests of `_sorted_elements` and `_sort_key`. `ConvertTransformer`: the result is
+  converted again, a converter that returns its own type raises.
 - **The default registry** (`test_interface.py`, new): one row per line of the table of section 3.2,
-  with a sample and a literal expected value (like `NATIVE_SAMPLES` in `equality`), `UserString` is a
-  string, `numpy.float64` goes through `item`, an `IntEnum` is kept, an unknown type raises in the
+  with a sample and a literal expected value (like `NATIVE_SAMPLES` in `equality`), `UserString` is
+  a string, `numpy.float64` goes through `item`, an `IntEnum` is kept, an unknown type raises in the
   default mode, warns and is kept with `"warn"`, is kept silently with `"keep"`, an invalid
   `on_unsupported` raises `ValueError`; an unknown type in a key raises in the three modes; the
   `TypeError` names the type; a dataclass class (not an instance) is unsupported; and `to_jsonable`
   does not modify the default registry.
-- **The libraries** (`test_numpy.py`, `test_torch.py`, `test_pandas.py`, `test_pydantic.py`): with the
-  `*_available` fixtures; the cases of F5 to F7 (complex, object array, `datetime64[D]`, a tensor with
-  `requires_grad`, `bfloat16`, `NaT`, a model with a set, a NumPy field and a `SecretStr`).
+- **The libraries** (`test_numpy.py`, `test_torch.py`, `test_pandas.py`, `test_pydantic.py`): with
+  the `*_available` fixtures; the cases of F5 to F7 (complex, object array, `datetime64[D]`, a
+  tensor with `requires_grad`, `bfloat16`, `NaT`, a model with a set, a NumPy field and a
+  `SecretStr`).
 - **Properties** (`tests/properties/test_jsonable.py`, replaces the two properties of
   `convert_to_jsonable`):
   1. for every nested value of the supported types (dict, list, tuple, set, dataclass, enum, path,
@@ -432,29 +440,31 @@ test for every bug, checked to fail without the fix).
   2. `to_jsonable(to_jsonable(x)) == to_jsonable(x)` (idempotent);
   3. the output does not depend on the order of the input sets (kept from `test_nested.py`);
   4. the input is not modified (`deepcopy` before, `objects_are_equal` after).
-- **Integration** (`tests/integration/jsonable/`): the output for `PYTHONHASHSEED` 0, 1, 2, 3, 42 is the
-  same, with a model that has a set (the regression test of F6, in a subprocess); threads running
-  `to_jsonable` on the default registry with a lock around the shared list (`run_threads`, docstring
-  "Test that ..."); depth 100,000 does not raise; a cycle through a list, a dict and a dataclass
-  raises `ValueError`; importing `coola.jsonable` imports neither NumPy, PyTorch, pandas nor pydantic;
-  a plugin registered through the entry-point group; `save_json(to_jsonable(batch))` and `load_json`
-  round trip on a batch of arrays, paths and dataclasses.
+- **Integration** (`tests/integration/jsonable/`): the output for `PYTHONHASHSEED` 0, 1, 2, 3, 42 is
+  the same, with a model that has a set (the regression test of F6, in a subprocess); threads
+  running `to_jsonable` on the default registry with a lock around the shared list (`run_threads`,
+  docstring "Test that ..."); depth 100,000 does not raise; a cycle through a list, a dict and a
+  dataclass raises `ValueError`; importing `coola.jsonable` imports neither NumPy, PyTorch, pandas
+  nor pydantic; a plugin registered through the entry-point group; `save_json(to_jsonable(batch))`
+  and `load_json` round trip on a batch of arrays, paths and dataclasses.
 - **Doctests** run as part of the docstrings; the guide examples are doctests.
-- **Benchmark gate** (`tests/benchmarks/test_jsonable_benchmark.py`, the CI benchmark): the inputs of
-  section 6 (flat `int` and `str`, dict, tree, dataclasses, scalar, small dict, deep list, array); the
-  new code must not be slower than `main` on any of them except the array, where the gate is "at most
-  6x `main` and at most 40 % of `json.dumps` of the result" (D12). A failing gate rejects the step.
+- **Benchmark gate** (`tests/benchmarks/test_jsonable_benchmark.py`, the CI benchmark): the inputs
+  of section 6 (flat `int` and `str`, dict, tree, dataclasses, scalar, small dict, deep list,
+  array); the new code must not be slower than `main` on any of them except the array, where the
+  gate is "at most 6x `main` and at most 40 % of `json.dumps` of the result" (D12). A failing gate
+  rejects the step.
 - Coverage: 100 % of `src/coola/jsonable` (`--cov=coola`), no `# pragma: no cover`.
 
 ## 9. Decisions for the maintainers
 
-**D1. The output is the JSON data model (tuples become lists).** _Recommended: yes._ The point of the
-function is data that the standard library accepts and that survives `json.dumps` and `json.loads`
-unchanged, which gives the idempotence property (section 1). `review/nested.md` kept tuples ("a tuple
-stays a tuple") to be "structure-preserving", but a tuple is not JSON, a `deque` is not accepted, and
-the sibling `recursive` property does not apply to a conversion whose purpose is to change the
-representation. Alternative: keep tuples and `OrderedDict`; the caller then cannot tell whether the
-result is JSON without calling `json.dumps`, and the property test of section 8 disappears.
+**D1. The output is the JSON data model (tuples become lists).** _Recommended: yes._ The point of
+the function is data that the standard library accepts and that survives `json.dumps` and
+`json.loads` unchanged, which gives the idempotence property (section 1). `review/nested.md` kept
+tuples ("a tuple stays a tuple") to be "structure-preserving", but a tuple is not JSON, a `deque` is
+not accepted, and the sibling `recursive` property does not apply to a conversion whose purpose is
+to change the representation. Alternative: keep tuples and `OrderedDict`; the caller then cannot
+tell whether the result is JSON without calling `json.dumps`, and the property test of section 8
+disappears.
 
 Decision: follow recommendation
 
@@ -466,26 +476,27 @@ is not converted; `"keep"` keeps it silently (the behaviour of `main`, F1). Only
 differs between the modes (section 3), so there is one registry and no cost for `"keep"`. The price
 is the one `isinstance` per leaf of the two checking modes (+0.03 µs) and the property "Accepted by
 `json`", which holds in `"raise"` only. Rejected: a `default=` callable like `json.dumps` (the
-registry already is the per-type hook); `repr` as a fourth mode (`ConvertTransformer(repr)` registered
-for `object` in a copy of the registry does it).
+registry already is the per-type hook); `repr` as a fourth mode (`ConvertTransformer(repr)`
+registered for `object` in a copy of the registry does it).
 
-**D3. Pydantic models: `model_dump()` in Python mode, then the registry.** _Recommended._ The registry
-owns the semantics (principle 4): the sets are sorted, the arrays and the paths are converted, a
-secret is masked, the field names, the exclusions (`Field(exclude=True)`) and the plain serializers of
-the model are honoured by `model_dump`. Cost: a serializer declared `when_used="json"` (and the
-`ser_json_*` settings) is not applied, because the dump is not made in JSON mode (the prototype gives
-`{'v': 1}` where `model_dump(mode="json")` gives `{'v': 'v1'}`). Alternatives: `mode="json"` (today;
-non-deterministic sets, fails on a NumPy field, F6); the fields as children, as `hashing` and
-`summary` do (ignores `exclude` and every serializer). A model that needs its JSON mode registers
-`ConvertTransformer(lambda m: m.model_dump(mode="json"))` for its class.
+**D3. Pydantic models: `model_dump()` in Python mode, then the registry.** _Recommended._ The
+registry owns the semantics (principle 4): the sets are sorted, the arrays and the paths are
+converted, a secret is masked, the field names, the exclusions (`Field(exclude=True)`) and the plain
+serializers of the model are honoured by `model_dump`. Cost: a serializer declared
+`when_used="json"` (and the `ser_json_*` settings) is not applied, because the dump is not made in
+JSON mode (the prototype gives `{'v': 1}` where `model_dump(mode="json")` gives `{'v': 'v1'}`).
+Alternatives: `mode="json"` (today; non-deterministic sets, fails on a NumPy field, F6); the fields
+as children, as `hashing` and `summary` do (ignores `exclude` and every serializer). A model that
+needs its JSON mode registers `ConvertTransformer(lambda m: m.model_dump(mode="json"))` for its
+class.
 
 Decision: follow recommendation
 
-**D4. `NaN` and infinities are kept.** _Recommended._ The contract is "what `json` accepts by default"
-(as `save_json` documents), and `json.dumps(..., allow_nan=False)` is the one place that enforces
-RFC 8259 and reports the offending value. Alternatives: an `allow_nan` keyword that raises (a second
-check of what `json.dumps` already does), or `NaN` to `None` (silently changes a number into a
-missing value, the kind of loss the properties forbid).
+**D4. `NaN` and infinities are kept.** _Recommended._ The contract is "what `json` accepts by
+default" (as `save_json` documents), and `json.dumps(..., allow_nan=False)` is the one place that
+enforces RFC 8259 and reports the offending value. Alternatives: an `allow_nan` keyword that raises
+(a second check of what `json.dumps` already does), or `NaN` to `None` (silently changes a number
+into a missing value, the kind of loss the properties forbid).
 
 Decision: follow recommendation
 
@@ -496,27 +507,27 @@ data and returns text for text).
 
 Decision: follow recommendation
 
-**D6. A `timedelta` is a number of seconds.** _Recommended: keep._ Simple, no new code (`total_seconds`),
-and the one that most consumers read. It is a `float`, so microseconds are lost above ~285 years.
-Alternative: an ISO 8601 duration (`"P1DT0.000001S"`), lossless and what pydantic writes, but it needs
-a formatter of about ten lines and a parser on the reading side.
+**D6. A `timedelta` is a number of seconds.** _Recommended: keep._ Simple, no new code
+(`total_seconds`), and the one that most consumers read. It is a `float`, so microseconds are lost
+above ~285 years. Alternative: an ISO 8601 duration (`"P1DT0.000001S"`), lossless and what pydantic
+writes, but it needs a formatter of about ten lines and a parser on the reading side.
 
 Decision: follow recommendation
 
-**D7. Frames and tables are not converted by default.** _Recommended._ A `DataFrame` has at least three
-usual shapes (list of records, dict of columns, split) and none is neutral: a default would be a
-silent choice for every caller. `pandas.Series` and `Index` are one-dimensional and are converted.
-The guide shows the one-line registration for each shape. `polars`, `pyarrow`, `xarray` and `jax` are
-the same decision (a jax array is `tolist()` and can be registered in one line, so it is a candidate
-for the second round).
+**D7. Frames and tables are not converted by default.** _Recommended._ A `DataFrame` has at least
+three usual shapes (list of records, dict of columns, split) and none is neutral: a default would be
+a silent choice for every caller. `pandas.Series` and `Index` are one-dimensional and are converted.
+The guide shows the one-line registration for each shape. `polars`, `pyarrow`, `xarray` and `jax`
+are the same decision (a jax array is `tolist()` and can be registered in one line, so it is a
+candidate for the second round).
 
 Decision: follow recommendation
 
 **D8. A new package `coola.jsonable`, one function.** _Recommended._ The name avoids `coola.json`
 (which hides the standard library in `from coola import json` and in the reader's head) and echoes
 `to_jsonable`, the name that `pydantic_core` and FastAPI (`jsonable_encoder`) already teach.
-`nested` keeps what it is about (shape of mappings and records). Alternative: keep it in `nested` and
-only fix the code; cheaper, but `nested` then owns a registry, a plugin group and four library
+`nested` keeps what it is about (shape of mappings and records). Alternative: keep it in `nested`
+and only fix the code; cheaper, but `nested` then owns a registry, a plugin group and four library
 adapters, and the guide of `nested` stays about two unrelated things.
 
 Decision: follow recommendation
@@ -528,58 +539,61 @@ _Recommended._ The registry is the extension point of every package, the plugin 
 
 Decision: follow recommendation
 
-**D10. The keys go through the registry.** _Recommended._ It is why a `Path`, a `UUID`, an `Enum` or a
-`datetime` key works, with no code in the mapping transformer, and a collision is reported once, at
-the end. Alternative: only `str`, `int`, `float`, `bool` and `None` keys, anything else raises (the
-rule of `json.dumps` itself); simpler, but `{Path("a"): 1}` then needs a pre-pass by the caller.
+**D10. The keys go through the registry.** _Recommended._ It is why a `Path`, a `UUID`, an `Enum` or
+a `datetime` key works, with no code in the mapping transformer, and a collision is reported once,
+at the end. Alternative: only `str`, `int`, `float`, `bool` and `None` keys, anything else raises
+(the rule of `json.dumps` itself); simpler, but `{Path("a"): 1}` then needs a pre-pass by the
+caller.
 
 Decision: follow recommendation
 
 **D11. Subclasses of the JSON scalars are kept.** _Recommended._ A `str` enum member, an `IntEnum`
 member, a `numpy.str_` are `str` or `int` for the MRO, and `json` writes them as their base value.
-The idempotence property holds with `==`. Normalising them would need a leaf function that checks the
-exact type of every leaf of every call (an extra function call per leaf, and a rule per subclass) and
-would not change what `json` writes. Alternative if a consumer needs exact types (YAML, a database
-driver): register the enum class itself, `register_transformers({MyEnum: ConvertTransformer(lambda e:
-e.value)})`, because the MRO then finds it before `str`.
+The idempotence property holds with `==`. Normalising them would need a leaf function that checks
+the exact type of every leaf of every call (an extra function call per leaf, and a rule per
+subclass) and would not change what `json` writes. Alternative if a consumer needs exact types
+(YAML, a database driver): register the enum class itself,
+`register_transformers({MyEnum: ConvertTransformer(lambda e: e.value)})`, because the MRO then finds
+it before `str`.
 
 Decision: follow recommendation
 
-**D12. The output of an array is checked.** _Recommended._ The check is what makes "accepted by `json`"
-true for complex numbers, object arrays and `datetime64` (F5), and it costs 0.09 µs per element
-against 0.32 µs for `json.dumps` itself. Alternative if a user converts arrays of tens of millions of
-elements: skip the check for the numeric dtypes (`kind in "biuf"`), a four-line `ArrayTransformer`
-that returns `((), lambda _: data.tolist())`; not included until a benchmark of a real use asks for
-it.
+**D12. The output of an array is checked.** _Recommended._ The check is what makes "accepted by
+`json`" true for complex numbers, object arrays and `datetime64` (F5), and it costs 0.09 µs per
+element against 0.32 µs for `json.dumps` itself. Alternative if a user converts arrays of tens of
+millions of elements: skip the check for the numeric dtypes (`kind in "biuf"`), a four-line
+`ArrayTransformer` that returns `((), lambda _: data.tolist())`; not included until a benchmark of a
+real use asks for it.
 
 Decision: follow recommendation
 
 **D13. No guard against a converter that never ends, other than its own type.** _Recommended._ The
-engine has no depth limit by design ("Any depth"), so a transformer that returns a value of a type that
-converts to a value of the first type (or a sequence whose elements are sequences of themselves,
-`UserString`, F11) runs until memory is exhausted. `ConvertTransformer` rejects the one case it can see
-(the same type); the contract test over the default registry catches the others; the guide states the
-rule "a conversion must reduce the type to simpler ones". A depth counter in the engine would add a
-check to every node for a mistake of a plugin author.
+engine has no depth limit by design ("Any depth"), so a transformer that returns a value of a type
+that converts to a value of the first type (or a sequence whose elements are sequences of
+themselves, `UserString`, F11) runs until memory is exhausted. `ConvertTransformer` rejects the one
+case it can see (the same type); the contract test over the default registry catches the others; the
+guide states the rule "a conversion must reduce the type to simpler ones". A depth counter in the
+engine would add a check to every node for a mistake of a plugin author.
 
 Decision: follow recommendation
 
 ## 10. Not covered
 
-- **Reading back.** `from_jsonable`, a type tag (`{"__type__": "tuple"}`), a schema or a validation of
-  the result: out of scope, the conversion is one way. Pydantic and `msgspec` do it with a schema.
+- **Reading back.** `from_jsonable`, a type tag (`{"__type__": "tuple"}`), a schema or a validation
+  of the result: out of scope, the conversion is one way. Pydantic and `msgspec` do it with a
+  schema.
 - **Other formats** (YAML, TOML, MessagePack): the registry would be reusable (the structure is the
   same), but the lossy decisions (bytes, timedelta, dates) are different; a separate design.
 - **Streaming and JSON Lines.** The output is built whole, like `recursive_apply`. A generator of
   records is not accepted (an iterator is a leaf, and a leaf of an unknown type raises).
 - **Sorting the keys of the output**, indentation, ensure_ascii, `separators`: the job of
   `json.dumps` / `JsonSaver(**kwargs)`.
-- **Frames, tables and datasets** (pandas `DataFrame`, polars, pyarrow, xarray): D7. **JAX arrays**: one
-  line of registration, not included in the first round.
+- **Frames, tables and datasets** (pandas `DataFrame`, polars, pyarrow, xarray): D7. **JAX arrays**:
+  one line of registration, not included in the first round.
 - **Faster dumping** (`orjson`, `ujson`): both accept the output of `to_jsonable`; they are not a
   dependency.
-- **An `ensure_ascii`-like or locale-dependent text**, **big integers beyond 2^53** (a JSON reader in
-  another language may lose them: the output keeps the Python `int`), **`NaN` handling** (D4).
+- **An `ensure_ascii`-like or locale-dependent text**, **big integers beyond 2^53** (a JSON reader
+  in another language may lose them: the output keeps the Python `int`), **`NaN` handling** (D4).
 - The tests of the other packages that exercise `convert_to_jsonable` only through `nested` (the
   records helpers) are not changed.
 

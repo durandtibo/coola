@@ -1,10 +1,13 @@
 # Architecture of `coola.registry`
 
-:book: This page describes the design of the `coola.registry` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/registry.md#properties); the API is in the [reference](../refs/registry.md).
+:book: This page describes the design of the `coola.registry` package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the [user guide](../uguide/registry.md#properties); the API is in
+the [reference](../refs/registry.md).
 
 ## Architecture
 
-```
+```text
 exceptions.py   AlreadyRegisteredError(ValueError)
                 KeyNotRegisteredError(KeyError) <- TypeNotRegisteredError
 
@@ -24,8 +27,8 @@ domain          HasherRegistry, EqualityTesterRegistry, SummarizerRegistry,
 ```
 
 Two classes carry everything. A domain registry **is** a `TypeRegistry` (it inherits, it does not
-wrap), so it has no `_state` wrapper and one display. The dataclass rule is a fallback predicate, not
-a marker type.
+wrap), so it has no `_state` wrapper and one display. The dataclass rule is a fallback predicate,
+not a marker type.
 
 ### State: replaced, never mutated
 
@@ -50,8 +53,8 @@ class Registry(Generic[K, V]):
 ```
 
 - **Readers take no lock**: they read `self._state` once. A mutation builds a new dict (`O(n)`, `n`
-  is about 50 and a registration is rare) and swaps the reference, which is atomic, so no method needs
-  its own snapshot or invalidation logic.
+  is about 50 and a registration is rare) and swaps the reference, which is atomic, so no method
+  needs its own snapshot or invalidation logic.
 - `register_many` builds one dict for the whole mapping and publishes it once: atomic by
   construction, including for readers.
 - `_publish(state)` assigns `_state` and calls `_changed()`, a hook that `TypeRegistry` overrides to
@@ -101,15 +104,16 @@ def _lookup(self, dtype):
 - The cache is a plain strong `dict`, bounded (1,024 classes) and emptied by any change (`register`,
   `unregister`, `clear`, `register_fallback`, a lazy load). The miss path is under the lock, as the
   registration is, so a stale value cannot be written after a registration has emptied the cache. A
-  program that creates classes dynamically keeps at most 1,024 of them alive (a few MB) until the next
-  registration. A weak dictionary would not keep them, but is the more expensive structure; no cache
-  at all is simpler by about 12 lines, but the dataclass fallback predicates would run on every
-  lookup.
+  program that creates classes dynamically keeps at most 1,024 of them alive (a few MB) until the
+  next registration. A weak dictionary would not keep them, but is the more expensive structure; no
+  cache at all is simpler by about 12 lines, but the dataclass fallback predicates would run on
+  every lookup.
 - The fallbacks sit between the types and `object`: a registered type always wins, then the first
   predicate that accepts the type, then `object`. `object` is the **last** resort in every registry,
-  so a handler registered for `object` never hides a fallback. `resolve(object)` checks the fallbacks
-  too (no predicate of the repository accepts `object`). A predicate also solves the virtual-subclass
-  limit of the MRO lookup (a user can register `lambda t: issubclass(t, Sequence)`).
+  so a handler registered for `object` never hides a fallback. `resolve(object)` checks the
+  fallbacks too (no predicate of the repository accepts `object`). A predicate also solves the
+  virtual-subclass limit of the MRO lookup (a user can register
+  `lambda t: issubclass(t, Sequence)`).
 - `resolve` is the only lookup name. The domain aliases `has_<x>` and `find_<x>` are public API of
   five packages and read well at the call site: they are one-line delegations.
 
@@ -189,8 +193,8 @@ class HasherRegistry(TypeRegistry[Hasher[Any]]):
     def hash(self, data, length=64, ignore_unhashable=False): ...
 ```
 
-The domain registry defines only the aliases and its entry point: `__init__`, `copy`, the fork reset,
-the display, the fallbacks, `clear` and `equal` are inherited from the base classes.
+The domain registry defines only the aliases and its entry point: `__init__`, `copy`, the fork
+reset, the display, the fallbacks, `clear` and `equal` are inherited from the base classes.
 
 ### `equal`
 
@@ -247,26 +251,27 @@ keyword-only everywhere.
 
 ## Design choices and trade-offs
 
-**One fallback mechanism instead of a marker type.** Before the fallbacks, the dataclass rule needed a
-marker type in the registry and an identity test. A predicate is one idea implemented once, and it also
-solves the virtual-subclass limit of the MRO lookup. The consequence is that the dataclass handler is
-not a visible entry of `items()`. Keeping a marker type would leave each registry with a second
-mechanism.
+**One fallback mechanism instead of a marker type.** Before the fallbacks, the dataclass rule needed
+a marker type in the registry and an identity test. A predicate is one idea implemented once, and it
+also solves the virtual-subclass limit of the MRO lookup. The consequence is that the dataclass
+handler is not a visible entry of `items()`. Keeping a marker type would leave each registry with a
+second mechanism.
 
-**A generic `Registry` is kept.** `RandomManagerRegistry` uses it and `TypeRegistry` extends it, so it
-costs nothing: it is the storage class. Making it private would only change the guide (a "plugin
+**A generic `Registry` is kept.** `RandomManagerRegistry` uses it and `TypeRegistry` extends it, so
+it costs nothing: it is the storage class. Making it private would only change the guide (a "plugin
 system" or "factory" example is not what `coola` is for).
 
 **`equal()` is kept.** It is the documented way to compare two registries, it needs no feature
 package, and the alternative (`dict(a.items()) == dict(b.items())`) forgets the fallbacks.
 
-**`AlreadyRegisteredError` is a `ValueError`.** The value is not acceptable in the current state; it is
-not a `RuntimeError`.
+**`AlreadyRegisteredError` is a `ValueError`.** The value is not acceptable in the current state; it
+is not a `RuntimeError`.
 
-**Registries are picklable.** Ten lines remove a failure that only shows with `spawn`. The alternative
-is to document that a registry is not picklable and to pass the arguments that build it.
+**Registries are picklable.** Ten lines remove a failure that only shows with `spawn`. The
+alternative is to document that a registry is not picklable and to pass the arguments that build it.
 
-**A duplicate fallback predicate is an error.** A silent duplicate would be appended and never reached.
+**A duplicate fallback predicate is an error.** A silent duplicate would be appended and never
+reached.
 
 ## Not covered
 

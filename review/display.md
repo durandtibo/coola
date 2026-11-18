@@ -24,7 +24,8 @@ in `src`, `tests` or `docs` was changed.
 3. **`rich` and `colorlog` are optional (the point of this review).** `import coola`, `import
 coola.display` and `import coola.display.rich` must work without them and must not import them.
    Calling a function that needs a missing library raises `MissingPackageError` with the
-   `pip install coola[rich]` hint, not a bare `ModuleNotFoundError`. The tests of `coola.display.rich`
+   `pip install coola[rich]` hint, not a bare `ModuleNotFoundError`. The tests of
+   `coola.display.rich`
    are skipped when `rich` is not installed instead of failing at collection.
 4. **Core package.** `coola.display` sits in the core group (`registry`, `utils`, `validation`,
    `formatting`): it imports no feature package (`lint-imports` contract "Core packages must not
@@ -80,16 +81,16 @@ Not guaranteed, and documented as such:
 | F12 | **Guide Properties are only half true.** "Safe terminal output" and "Respects the logger" are about two functions of one module; the mixins have no property for `repr`/`str` of nested values, the pydantic helpers have none at all, and there is no statement about the optional libraries.                                                                                                                                                                                                                                             | **[reading]**  |
 
 What is already right and must not regress: the three mixins and the `_display_fields` hook (used by
-`io`, `recursive`, `hashing`, `registry`, `tools.timing`); the layout of both mixins; the lazy export
-of the pydantic functions from `coola.display`; the terminal check and the `stream` handling of
-`configure_colorlog_logging` (`sys.stderr is None`, a stream without `isatty`); the warning
+`io`, `recursive`, `hashing`, `registry`, `tools.timing`); the layout of both mixins; the lazy
+export of the pydantic functions from `coola.display`; the terminal check and the `stream` handling
+of `configure_colorlog_logging` (`sys.stderr is None`, a stream without `isatty`); the warning
 `stacklevel` of `exclude_fields` (points at the caller, **[verified]**); the keyword-only options of
 `configure_rich_logging`, `print_*` and `make_*`; 100 % statement and branch coverage of the
 package.
 
 ## 3. Architecture
 
-```
+```text
 coola/display/
     __init__.py       BaseDisplayMixin, InlineDisplayMixin, MultilineDisplayMixin (eager, no dependency)
                       str_pydantic_model, repr_pydantic_model                     (lazy, pydantic)
@@ -141,8 +142,9 @@ not installed. Please install it with`pip install coola[rich]`")` (the message o
    Every public function calls a fake in its first statement (`Pretty(data)`, `SpinnerColumn()`,
    `get_console()`), before it changes anything: `configure_rich_logging` does not touch the root
    logger when `rich` is missing.
-4. **`check_rich()` is not called.** The fallback is the single mechanism, as for `pydantic`; a second
-   check would be dead code. (`check_rich` stays in `coola.utils.imports` for the other packages.)
+4. **`check_rich()` is not called.** The fallback is the single mechanism, as for `pydantic`; a
+   second check would be dead code. (`check_rich` stays in `coola.utils.imports` for the other
+   packages.)
 5. **`colorlog` keeps its design**: the function works without the library and falls back to plain
    `logging.basicConfig`, because for a logging helper "no colour" is a correct result and not an
    error. This is documented as the difference between the two logging functions: `rich` is
@@ -231,7 +233,8 @@ console=None)`.** Same `console` argument; the columns are unchanged.
 
   The cut is not guaranteed to keep an inline marker (`**`, `*`, `` ` ``) balanced when it falls
   inside a paragraph: the preference for paragraph and line breaks makes it rare, and it is
-  documented instead of repaired with a heuristic. `_print_in_panel` stays (it removes a real duplication) and
+  documented instead of repaired with a heuristic. `_print_in_panel` stays (it removes a real
+  duplication) and
   `print_.py` gets its docstring corrected ("Provide helpers to print an object or a Markdown string
   with rich").
 
@@ -314,12 +317,12 @@ marks for the optional libraries.
   boundary keeps less than half, an open code fence closed (and a closed one left alone), the
   notice with the number of omitted characters (whole output asserted against a literal), empty
   string, and `max_length` 0 and -1 raise `ValueError` through `print_markdown` (regression for F4).
-- **Pydantic** (`test_pydantic.py`): new tests for a nested model that keeps its name, for the options of
-  the root applied to a nested model (`sort`, `exclude_none`, `exclude_secret`), for a nested model
-  in a list, a tuple, a set and a dict value, for `Field(repr=False)`, for `extra="allow"` values, for a
-  `field_serializer` that raises (the formatter does not call it), and the **whole output** of a
-  model with nested secrets asserted against a literal. `_mask_*` tests are replaced by tests of
-  `_shown`.
+- **Pydantic** (`test_pydantic.py`): new tests for a nested model that keeps its name, for the
+  options of the root applied to a nested model (`sort`, `exclude_none`, `exclude_secret`), for a
+  nested model in a list, a tuple, a set and a dict value, for `Field(repr=False)`, for
+  `extra="allow"` values, for a `field_serializer` that raises (the formatter does not call it), and
+  the **whole output** of a model with nested secrets asserted against a literal. `_mask_*` tests
+  are replaced by tests of `_shown`.
 - **Mixins** (`test_mixin.py`): add a test of the `RecursionError` documentation (a self-referencing
   field), and one with a value whose `str` has several lines (`MultilineDisplayMixin`).
 - **Colorlog** (`test_colorlog.py`): `force` positional raises `TypeError`; the rest is kept.
@@ -343,8 +346,8 @@ One branch and one pull request per step (`CLAUDE.md`). The order keeps every st
 | 4    | **Simplify the pydantic formatting (F7, F8, F9).** Read the fields from the model, `_shown` for the nested values, delete `_mask_*`, one documented option list. New tests, regression tests for F7 checked with `git stash push src`.                                                                                              | yes (output) |
 | 5    | **Documentation (F5, F12).** Rewrite `uguide/display.md` (the Properties of section 1 at the top, one section per kind of content, the optional libraries), `refs/display.md`, the optional dependencies and the layering paragraphs of `dev/architecture.md`, the migration page, and the status table of `review/suggestions.md`. | no           |
 
-Steps 1 and 2 are independent of steps 3 and 4; step 5 comes last (or is split in each PR when the PR
-changes the page it touches).
+Steps 1 and 2 are independent of steps 3 and 4; step 5 comes last (or is split in each PR when the
+PR changes the page it touches).
 
 ## 8. Decisions for the maintainers
 
@@ -356,11 +359,11 @@ with the names imported, but a second convention and imports hidden in function 
 
 Decision: follow recommendation
 
-**D2. Remove `print_markdown(max_length)`?** _Recommended: yes._ It was added in the last release, it
-cuts a Markdown string at a character count (it can drop the closing `**` or a code fence, F4),
-`truncate_str` already exists in `formatting`, and no other helper of the package truncates. Alternative:
-keep it, call `truncate_str(msg, max_length, suffix=...)` and validate `max_length >= 1` with
-`validate_ge`; this keeps the feature and the mid-syntax cut.
+**D2. Remove `print_markdown(max_length)`?** _Recommended: yes._ It was added in the last release,
+it cuts a Markdown string at a character count (it can drop the closing `**` or a code fence, F4),
+`truncate_str` already exists in `formatting`, and no other helper of the package truncates.
+Alternative: keep it, call `truncate_str(msg, max_length, suffix=...)` and validate
+`max_length >= 1` with `validate_ge`; this keeps the feature and the mid-syntax cut.
 
 Decision (maintainers): keep it, but improve it. Resolved as: keep `max_length`, validate it, prefer
 paragraph and line breaks, close an open code fence, keep the notice; `_truncate` is replaced by
@@ -381,17 +384,17 @@ until a third use exists.
 
 Decision: follow recommendation
 
-**D5. One generic `format_pydantic_model(model, *, use_repr)` instead of the pair?** _Recommended: no,
-keep the pair._ It mirrors `str`/`repr` and the existing exports; the pair is two wrappers of 5 lines
-over the private function. Only the documentation is deduplicated.
+**D5. One generic `format_pydantic_model(model, *, use_repr)` instead of the pair?** _Recommended:
+no, keep the pair._ It mirrors `str`/`repr` and the existing exports; the pair is two wrappers of 5
+lines over the private function. Only the documentation is deduplicated.
 
 Decision: follow recommendation
 
 **D6. Guard the mixins against self-reference?** _Recommended: no._ A `reprlib.recursive_repr`-style
 guard needs a per-call set of ids on every `__repr__`, for a case that does not occur in the objects
 that use the mixins (configurations, loaders, transformers, registries). Alternative: wrap
-`__repr__` with `reprlib.recursive_repr()` (3 lines, returns `...` for the inner call); cheap, but it
-changes `__str__` too and hides the bug in the caller's `_display_fields`.
+`__repr__` with `reprlib.recursive_repr()` (3 lines, returns `...` for the inner call); cheap, but
+it changes `__str__` too and hides the bug in the caller's `_display_fields`.
 
 Decision: follow recommendation
 
@@ -410,8 +413,8 @@ Decision: follow recommendation
 - **Log in JSON or to a file**: `configure_*_logging` forward `handlers`, `filename`, `format` to
   `logging.basicConfig`; nothing else is planned.
 - **Moving the logging helpers out of `display`** (to `coola.tools` or a `coola.logging` package):
-  `display` is where the user looks for terminal output and the two modules are small; revisit if the
-  package grows a third logging backend.
+  `display` is where the user looks for terminal output and the two modules are small; revisit if
+  the package grows a third logging backend.
 - **`coola.utils.logging.CaptureHandler`** is a test helper for loggers and is unrelated to the
   display of records.
 

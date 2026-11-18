@@ -119,7 +119,7 @@ What is already right and must not regress:
 
 ## 3. Architecture
 
-```
+```text
 manual_seed(seed) / random_seed(seed) / get_rng_state() / set_rng_state(state)
         |   module functions: forward to the default registry (or to the registry given)
         v
@@ -294,7 +294,7 @@ cost is documented in the docstring of `manual_seed` and `random_seed`, and in t
 
 ### 3.7 Module layout
 
-```
+```text
 coola/random/
   __init__.py     exports, lazy exports of the optional modules
   base.py         BaseRandomManager (contract + seed())

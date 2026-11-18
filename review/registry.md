@@ -53,15 +53,15 @@ Not guaranteed, and documented as such:
 
 Constraints that framed the analysis:
 
-1. **Simple and easy to maintain.** The package is 1,550 lines. 693 lines are in `base.py` for a class
-   (`Registry`) that adds no code on top of it; 308 lines are in `dispatch.py`, 250 of them are
-   delegations to `TypeRegistry`. The target removes the layers that exist only to work around the
-   design.
+1. **Simple and easy to maintain.** The package is 1,550 lines. 693 lines are in `base.py` for a
+   class (`Registry`) that adds no code on top of it; 308 lines are in `dispatch.py`, 250 of them
+   are delegations to `TypeRegistry`. The target removes the layers that exist only to work around
+   the design.
 2. **Major release.** Compatibility is not a design input: no adapter, no alias, no deprecation
    period. The release notes list the changes.
 3. **No slower than today**, measured by the benchmark gate of section 8. The registry is on the hot
-   path of `hash_object` (one lookup per node), of `summarize`, and of the first node of each type of
-   the other engines.
+   path of `hash_object` (one lookup per node), of `summarize`, and of the first node of each type
+   of the other engines.
 4. **Consistent with the siblings.** Five packages subclass the dispatch registry. A change of the
    contract is a change of the five; section 5 lists them.
 5. **Optional libraries stay lazy.** `import coola.registry` imports no optional library (it takes
@@ -95,7 +95,7 @@ the registry that loads it **[verified]**); `copy()` that shares the handlers; t
 
 ## 3. Architecture
 
-```
+```text
 exceptions.py   AlreadyRegisteredError(ValueError)
                 KeyNotRegisteredError(KeyError) <- TypeNotRegisteredError
 
@@ -278,8 +278,9 @@ class HasherRegistry(TypeRegistry[Hasher[Any]]):
 ```
 
 `HasherRegistry` loses `__init__`, `copy`, `_reset_after_fork`, `_display_fields`,
-`register_fallback`, `unregister_fallback`, `clear` and `equal` (about 110 lines; `equal` is inherited, see 3.8): the base class
-does them. `EqualityTesterRegistry` loses `_accepts_dataclass_marker`.
+`register_fallback`, `unregister_fallback`, `clear` and `equal` (about 110 lines; `equal` is
+inherited, see 3.8): the base class does them. `EqualityTesterRegistry` loses
+`_accepts_dataclass_marker`.
 
 ### 3.8 `equal` (decision D4: kept)
 
@@ -298,9 +299,9 @@ def equal(self, other: object) -> bool:
   `id`-ordered code and the deferred `coola.equality` import are deleted, and with them the
   import-linter exception).
 - Handlers are compared with `==`: a handler without `__eq__` is equal to itself only. A `copy()` is
-  therefore equal to its source (the handlers are shared), which fixes F9 for the hashing and summary
-  registries. Two registries built separately with handlers of the same class are equal only if the
-  handlers define `__eq__`.
+  therefore equal to its source (the handlers are shared), which fixes F9 for the hashing and
+  summary registries. Two registries built separately with handlers of the same class are equal only
+  if the handlers define `__eq__`.
 - `equal_nan` is dropped (it had no meaning for `==`). `HasherRegistry.equal` is deleted: the base
   compares the fallbacks too.
 
@@ -321,10 +322,10 @@ from coola.registry import (
 | `Registry`     | `register(key, value, *, exist_ok=False)`, `register_many(mapping, *, exist_ok=False)`, `unregister(key) -> value`, `clear()`, `copy()`, `get(key, default=None)`, `has(key)`, `[]`, `[]=`, `del`, `in`, `len`, `iter`, `keys()`, `values()`, `items()`, `equal(other)` |
 | `TypeRegistry` | all of `Registry`, plus `resolve(dtype)`, `register_fallback(predicate, handler, *, exist_ok=False)`, `unregister_fallback(predicate)`, `fallbacks()`, `register_lazy(packages, factory)`                                                                               |
 
-Removed: `BaseTypeDispatchRegistry`, `DataclassMarker`, `find`, `resolve_or`, the `equal_nan` argument of `equal`,
-the `RuntimeError` base of `AlreadyRegisteredError`, the positional `exist_ok`, `_snapshot` and the
-other private hooks listed in 3.1. Changed: the display of the dispatch registries, the order of
-precedence of `object` against the fallbacks of the hashing registry.
+Removed: `BaseTypeDispatchRegistry`, `DataclassMarker`, `find`, `resolve_or`, the `equal_nan`
+argument of `equal`, the `RuntimeError` base of `AlreadyRegisteredError`, the positional `exist_ok`,
+`_snapshot` and the other private hooks listed in 3.1. Changed: the display of the dispatch
+registries, the order of precedence of `object` against the fallbacks of the hashing registry.
 
 ## 5. Dependents
 
@@ -443,12 +444,13 @@ two remaining files unchanged.
   worker that receives a registry. No patching.
 - **Doctests** run as part of the docstrings; the guide examples are doctests (the SKIP'd traceback
   examples become real ones with `except AlreadyRegisteredError`).
-- **Benchmark gate** (`tests/benchmarks/test_registry_benchmark.py`, `inv test.benchmark`; the file and the baseline are in the appendix): keep
-  `test_type_registry_resolve_cached_benchmark` and `..._uncached_benchmark` (it resets `_cache`
-  with `{}`: still valid), add **a dataclass lookup through a fallback**, **5,000 distinct types**,
-  **`has`** and **`register`** on a 50-entry registry; the new code must not be slower than `main`
-  on any (expected: 4-5x faster for the cached hit and the dataclass, 100x or more for the cold
-  types, `register` slower by one `O(n)` dict copy, about 1-2 µs, which is accepted).
+- **Benchmark gate** (`tests/benchmarks/test_registry_benchmark.py`, `inv test.benchmark`; the file
+  and the baseline are in the appendix): keep `test_type_registry_resolve_cached_benchmark` and
+  `..._uncached_benchmark` (it resets `_cache` with `{}`: still valid), add **a dataclass lookup
+  through a fallback**, **5,000 distinct types**, **`has`** and **`register`** on a 50-entry
+  registry; the new code must not be slower than `main` on any (expected: 4-5x faster for the cached
+  hit and the dataclass, 100x or more for the cold types, `register` slower by one `O(n)` dict copy,
+  about 1-2 µs, which is accepted).
 - Coverage: 100 % of `src/coola/registry` (`--cov=coola.registry`), no `# pragma: no cover`.
 
 ## 9. Decisions for the maintainers
@@ -478,13 +480,15 @@ the dataclass fallback predicates run on every lookup (section 6).
 
 **Decision: yes.**
 
-**D4. Delete `equal()`?** _Recommended: yes. Answered: no, it is kept (rewritten as the alternative below, see 3.8)._ Nothing in `src` uses it, it is wrong for two default
-registries (F9), and it is the only reason `registry` depends on `equality`. A test that needs to
-compare two registries compares `dict(a.items()) == dict(b.items())`. Alternative: keep
-`equal(other)` as `type(a) is type(b) and a._state == b._state and a._fallbacks == b._fallbacks`
-(handlers compare by `==`, so a copy is equal), without `equal_nan` and without the second lock.
+**D4. Delete `equal()`?** _Recommended: yes. Answered: no, it is kept (rewritten as the alternative
+below, see 3.8)._ Nothing in `src` uses it, it is wrong for two default registries (F9), and it is
+the only reason `registry` depends on `equality`. A test that needs to compare two registries
+compares `dict(a.items()) == dict(b.items())`. Alternative: keep `equal(other)` as
+`type(a) is type(b) and a._state == b._state and a._fallbacks == b._fallbacks` (handlers compare by
+`==`, so a copy is equal), without `equal_nan` and without the second lock.
 
-**Decision: no.** `equal` stays; it is rewritten without the `equality` import and without `equal_nan`.
+**Decision: no.** `equal` stays; it is rewritten without the `equality` import and without
+`equal_nan`.
 
 **D5. Drop the `RuntimeError` base of `AlreadyRegisteredError`?** _Recommended: yes._ It is a
 `ValueError` (the value is not acceptable in the current state). `except RuntimeError` code is
@@ -557,12 +561,12 @@ both caches).
 Run and compare with `inv test.benchmark` (or `pytest tests/benchmarks/test_registry_benchmark.py
 --benchmark-only --benchmark-save=<name>`, then `--benchmark-compare=<name>`).
 
-The **New** columns are the run after step 4 (steps 2 and 3 are included). Machine: Apple M1, macOS (Darwin), Python 3.14.8, `pytest-benchmark`. One run, nothing else heavy
-running. The raw results of the baseline are in
-`.benchmarks/Darwin-CPython-3.14-64bit/0008_registry_old_5ce6dfcd.json` (the directory is ignored by
-git: the table below is the record). The speed-up is old time / new time: above 1 is faster. The
-absolute numbers depend on the machine; read the speed-ups. Registries of 50 entries unless said
-otherwise; `Point` is a dataclass of two ints.
+The **New** columns are the run after step 4 (steps 2 and 3 are included). Machine: Apple M1, macOS
+(Darwin), Python 3.14.8, `pytest-benchmark`. One run, nothing else heavy running. The raw results of
+the baseline are in `.benchmarks/Darwin-CPython-3.14-64bit/0008_registry_old_5ce6dfcd.json` (the
+directory is ignored by git: the table below is the record). The speed-up is old time / new time:
+above 1 is faster. The absolute numbers depend on the machine; read the speed-ups. Registries of 50
+entries unless said otherwise; `Point` is a dataclass of two ints.
 
 | Benchmark (`test_<name>_benchmark`)           | Input                                                      | Old median | Old min  | New median | New min  | Speed-up | Expected                          |
 | --------------------------------------------- | ---------------------------------------------------------- | ---------- | -------- | ---------- | -------- | -------- | --------------------------------- |

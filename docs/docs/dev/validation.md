@@ -1,6 +1,9 @@
 # Architecture of `coola.validation`
 
-:book: This page describes the design of the `coola.validation` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/validation.md#properties); the API is in the [reference](../refs/validation.md).
+:book: This page describes the design of the `coola.validation` package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the [user guide](../uguide/validation.md#properties); the API is in
+the [reference](../refs/validation.md).
 
 ## Overview
 
@@ -23,10 +26,11 @@ The rule for the whole project: validate an argument with `coola.validation`; do
 
 ## Design constraints
 
-1. **Simple and easy to maintain.** A function is kept only if it adds behaviour that the caller would
-   otherwise have to write. A wrapper such as `validate_str(x)` (which is `validate_isinstance(x, str)`)
-   or `validate_positive(x)` (which is `validate_gt(x, 0)`) would cost a docstring, an export, a doc
-   entry and tests each, and the list of names would grow one wrapper at a time.
+1. **Simple and easy to maintain.** A function is kept only if it adds behaviour that the caller
+   would otherwise have to write. A wrapper such as `validate_str(x)` (which is
+   `validate_isinstance(x, str)`) or `validate_positive(x)` (which is `validate_gt(x, 0)`) would
+   cost a docstring, an export, a doc entry and tests each, and the list of names would grow one
+   wrapper at a time.
 2. **Core package.** `coola.validation` imports only the standard library (import-linter contract
    "Core packages must not import feature packages"). It imports NumPy or any optional library
    **never**; NumPy scalars are supported through the `numbers` ABCs they register with.
@@ -42,7 +46,7 @@ The rule for the whole project: validate an argument with `coola.validation`; do
 
 Two helpers own the invariants; a validator only states its constraint.
 
-```
+```text
 validate_xxx(value, ..., *, name="value")
         |
         |-- type validators      -> _type_error(name, expected, value)       builds the TypeError
@@ -62,8 +66,8 @@ The message format is **one sentence**, the same for every validator:
 | not comparable             | `<name> cannot be compared with <bound>, got <value!r>`                                |
 | bounds make an empty range | `<name>: the range [<low>, <high>] is empty` (a `ValueError`)                          |
 
-The expected type is written once, by `_type_name`: a class gives its `__qualname__` (`int`), a tuple
-or a union gives `int or str`, an ABC gives its name (`Mapping`). `validate_int` and
+The expected type is written once, by `_type_name`: a class gives its `__qualname__` (`int`), a
+tuple or a union gives `int or str`, an ABC gives its name (`Mapping`). `validate_int` and
 `validate_number` pass a phrase (`an int`, `a real number`) because the article matters.
 
 ### The helpers
@@ -86,9 +90,9 @@ def _compare(test: Callable[[Any], Any], value, bounds: str, name: str, requirem
 ```
 
 `_compare` is the one evaluation. The four bound checks, the range and the finiteness check call it
-with a `lambda`/`operator.partial` test; the closure costs about 40 ns, below the margin of the gate.
-Both helpers are private to `coola.validation`: they are an implementation detail, and a package that
-wants the same format writes a call to a validator.
+with a `lambda`/`operator.partial` test; the closure costs about 40 ns, below the margin of the
+gate. Both helpers are private to `coola.validation`: they are an implementation detail, and a
+package that wants the same format writes a call to a validator.
 
 ### The functions
 
@@ -105,12 +109,13 @@ wants the same format writes a call to a validator.
 | Container | `validate_not_empty(value, *, name)`                                                 | `TypeError` (no `len`), `ValueError`     | `len(value) == 0`; an iterator or a generator has no `len` and is a `TypeError`, not consumed          |
 | Container | `validate_in(value, valid, *, name)`                                                 | `ValueError`                             | an unhashable value is not in a `set`: `ValueError`, not a raw `TypeError`; listing bounded            |
 
-There are no type shortcuts such as `validate_str` or `validate_list` (use `validate_isinstance(value,
-X)`), no sign shortcuts such as `validate_positive` (use `validate_gt(value, 0)`), and no separate
-`open`, `closed` and `half_open` range functions (use `validate_range`). The synonyms are the part of
-a package that grows one name at a time; without them the list of names can be read in ten seconds and
-the rule to add one is written down. Keeping `validate_positive` and `validate_non_negative` only would
-need an explanation for the missing `negative`.
+There are no type shortcuts such as `validate_str` or `validate_list` (use
+`validate_isinstance(value, X)`), no sign shortcuts such as `validate_positive` (use
+`validate_gt(value, 0)`), and no separate `open`, `closed` and `half_open` range functions (use
+`validate_range`). The synonyms are the part of a package that grows one name at a time; without
+them the list of names can be read in ten seconds and the rule to add one is written down. Keeping
+`validate_positive` and `validate_non_negative` only would need an explanation for the missing
+`negative`.
 
 The rule to add a function (written in the module docstring and in the guide): _a
 validator exists only if it states a constraint that `isinstance` or one comparison cannot state
@@ -128,8 +133,8 @@ Three modules, named by what the function checks:
 | `comparison.py` | `_compare`, `validate_ge/gt/le/lt`, `validate_range`, `validate_finite` | what a value **compares** to (finite = `-inf < x < inf`) |
 | `container.py`  | `validate_not_empty`, `validate_in`                                     | what a value **holds** or belongs to                     |
 
-`__init__.py` re-exports the 14 names; `__all__` is alphabetical. `docs/docs/refs/validation.md` lists
-the three submodules.
+`__init__.py` re-exports the 14 names; `__all__` is alphabetical. `docs/docs/refs/validation.md`
+lists the three submodules.
 
 ## Dependents
 
@@ -151,35 +156,36 @@ No dependent imports anything private from `coola.validation`.
 ## Design choices and trade-offs
 
 **`numpy.int64` and `numpy.float32` are not ints and floats for the type validators, but numbers for
-`validate_number`.** A type annotation `int` rejects `numpy.int64` for a type checker, `validate_int`
-follows the annotation, and a caller that accepts NumPy scalars writes `validate_isinstance(x, (int,
-np.integer))` or uses `validate_number`. `numbers.Integral` for `validate_int` would accept NumPy ints
-(still rejecting `bool` by the explicit test) with a one-line change, but it makes the strictness
-depend on the registration of the ABCs, and an `int` argument that is later used as `range(n)` or a
-shift accepts `numpy.int64` anyway. The strict rule can be revisited if a user reports a real case.
+`validate_number`.** A type annotation `int` rejects `numpy.int64` for a type checker,
+`validate_int` follows the annotation, and a caller that accepts NumPy scalars writes
+`validate_isinstance(x, (int, np.integer))` or uses `validate_number`. `numbers.Integral` for
+`validate_int` would accept NumPy ints (still rejecting `bool` by the explicit test) with a one-line
+change, but it makes the strictness depend on the registration of the ABCs, and an `int` argument
+that is later used as `range(n)` or a shift accepts `numpy.int64` anyway. The strict rule can be
+revisited if a user reports a real case.
 
-**"Type then bound" is two calls.** `validate_int(x, min=0)` would remove 8 lines at the call sites and
-add options to the most used function, with a second message path. Two calls are explicit, and the
-order of the errors (a `TypeError` for `"a"` before a `ValueError` for `-1`) is visible. Revisit if a
-call site needs three constraints on one argument.
+**"Type then bound" is two calls.** `validate_int(x, min=0)` would remove 8 lines at the call sites
+and add options to the most used function, with a second message path. Two calls are explicit, and
+the order of the errors (a `TypeError` for `"a"` before a `ValueError` for `-1`) is visible. Revisit
+if a call site needs three constraints on one argument.
 
 **An empty range raises.** `validate_range(x, 1, 0)` cannot succeed; it is a programming error, and
-blaming the value would send the reader to the wrong argument. The `ValueError` about the bounds costs
-one comparison.
+blaming the value would send the reader to the wrong argument. The `ValueError` about the bounds
+costs one comparison.
 
-**`validate_in` with an unhashable value is a `ValueError`.** From the point of view of the caller, `[]`
-is not one of the valid modes; the fact that the container is a `set` is an implementation detail. A
-`TypeError` would be right only if `valid` were not a container, and that case still raises (the bug of
-the caller). A `valid` that is a string with a non-string value (`1 in "abc"` raises `TypeError`) is
-reported as a value error, and the message shows both.
+**`validate_in` with an unhashable value is a `ValueError`.** From the point of view of the caller,
+`[]` is not one of the valid modes; the fact that the container is a `set` is an implementation
+detail. A `TypeError` would be right only if `valid` were not a container, and that case still
+raises (the bug of the caller). A `valid` that is a string with a non-string value (`1 in "abc"`
+raises `TypeError`) is reported as a value error, and the message shows both.
 
 **The project-wide rule lives in this package's docstring, the guide and `CLAUDE.md`:** "Validate an
-argument with `coola.validation`; do not write `raise ValueError` for a type, range or membership check,
-and do not add a validator that is one `isinstance` or one comparison." Without the rule, each package
-grows private copies with their own messages.
+argument with `coola.validation`; do not write `raise ValueError` for a type, range or membership
+check, and do not add a validator that is one `isinstance` or one comparison." Without the rule,
+each package grows private copies with their own messages.
 
-**No decorator or `Annotated` metadata.** A schema layer (pydantic, attrs validators, beartype) does it
-better, and none of the call sites needs it. The package is a set of functions that a constructor
+**No decorator or `Annotated` metadata.** A schema layer (pydantic, attrs validators, beartype) does
+it better, and none of the call sites needs it. The package is a set of functions that a constructor
 calls.
 
 ## Not covered

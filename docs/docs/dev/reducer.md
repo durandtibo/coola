@@ -1,6 +1,9 @@
 # Architecture of `coola.reducer`
 
-:book: This page describes the design of the `coola.reducer` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/reducer.md#properties); the API is in the [reference](../refs/reducer.md).
+:book: This page describes the design of the `coola.reducer` package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the [user guide](../uguide/reducer.md#properties); the API is in the
+[reference](../refs/reducer.md).
 
 ## Constraints
 
@@ -11,15 +14,15 @@
    `statistics.mean` (104 ms against 6.8 ms in a probe). A design that is simpler but slower is
    rejected.
 3. **Consistent with the siblings.** Keyword-only options, strict contracts (an invalid option or
-   input raises before any work, with a message that names the remedy), stateless objects that can be
-   shared by threads, lazy optional libraries.
+   input raises before any work, with a message that names the remedy), stateless objects that can
+   be shared by threads, lazy optional libraries.
 4. **Optional libraries stay lazy.** `import coola.reducer` imports neither NumPy nor PyTorch
    (`lazy_exports`). `TorchReducer` costs 0.94 s of import, which is why
    `auto_reducer` must not choose it by default.
 
 ## Architecture
 
-```
+```text
 reducer.max(values)                                      coola/reducer/base.py
         |
         |-- values  = self._prepare(values)              backend: convert, validate, no copy if possible
@@ -157,8 +160,8 @@ from coola.reducer import (
 ## Design choices and trade-offs
 
 **One base class, a template.** A pair of base classes (one without checks and one with them) leaves
-the author to choose, and the empty-case property then depends on the class that was picked. With one
-template, a backend that wants to skip a check has to override the public method on purpose.
+the author to choose, and the empty-case property then depends on the class that was picked. With
+one template, a backend that wants to skip a check has to override the public method on purpose.
 
 **Strict input.** A silent flatten of a 2-D array gives a number that looks right and is not, and a
 set is accepted by one backend and not by the others. Being liberal (convert everything with
@@ -166,39 +169,42 @@ set is accepted by one backend and not by the others. Being liberal (convert eve
 changes meaning with `auto_reducer`. The strictness costs one `isinstance` and one `ndim` check per
 call (nanoseconds against a 2.8 µs call).
 
-**`auto_reducer` does not look at the values.** `auto_reducer()` returns NumPy, then native; a tensor
-on a device is a reason to write `TorchReducer()`. An `auto_reducer(values)` that returns
-`TorchReducer` for a tensor, `NumpyReducer` for an array and the default otherwise would be about ten
-lines and a second dispatch mechanism; it can be added without breaking anything once a consumer asks.
-"Torch first" would handle tensors always, but is slower on lists and costs 0.94 s of import.
+**`auto_reducer` does not look at the values.** `auto_reducer()` returns NumPy, then native; a
+tensor on a device is a reason to write `TorchReducer()`. An `auto_reducer(values)` that returns
+`TorchReducer` for a tensor, `NumpyReducer` for an array and the default otherwise would be about
+ten lines and a second dispatch mechanism; it can be added without breaking anything once a consumer
+asks. "Torch first" would handle tensors always, but is slower on lists and costs 0.94 s of import.
 
 **No `__eq__` and `__hash__` for reducers.** A reducer is stateless, and two of them are rarely
 compared. If an `__eq__` is wanted (for example to cache a function by its reducer), `type(a) is
 type(b)` is one line in the base class. `InlineDisplayMixin` (the `repr`) costs nothing and is kept.
 
-**`TorchReducer` stays.** It is the only backend for a tensor that lives on a GPU, and tensors are the
-data of the users of the sibling packages (`equality`, `summary`). It is also the most expensive to
-maintain (two converters, a median that is not the library's), which is why it has one converter and
-the shared errors. Dropping it would be a decision about the scope of `coola`, not about this package.
+**`TorchReducer` stays.** It is the only backend for a tensor that lives on a GPU, and tensors are
+the data of the users of the sibling packages (`equality`, `summary`). It is also the most expensive
+to maintain (two converters, a median that is not the library's), which is why it has one converter
+and the shared errors. Dropping it would be a decision about the scope of `coola`, not about this
+package.
 
-**`NativeReducer.mean` is fast, not exact.** The exact mean of `statistics.mean` is irrelevant to the
-cross-backend tolerance (NumPy and torch already differ in the last bit), and the time gap is the
-largest of the package. `fmean` also returns a `float` for ints, which is the documented result type.
+**`NativeReducer.mean` is fast, not exact.** The exact mean of `statistics.mean` is irrelevant to
+the cross-backend tolerance (NumPy and torch already differ in the last bit), and the time gap is
+the largest of the package. `fmean` also returns a `float` for ints, which is the documented result
+type.
 
 ## Not covered
 
-- **More statistics** (`variance`, `mode`, `sum`, `argmax`, `percentile`, `histogram`): the six methods
-  and `sort` are the contract. Each new statistic is one public method of `BaseReducer`, one
+- **More statistics** (`variance`, `mode`, `sum`, `argmax`, `percentile`, `histogram`): the six
+  methods and `sort` are the contract. Each new statistic is one public method of `BaseReducer`, one
   abstract computation, three implementations and a contract test: this is why none is added without
   a consumer.
-- **Axis / multi-dimensional reductions, weights, `ddof`, `skipna`**: out of scope; the package reduces
-  one sequence. `std` is the sample standard deviation (`ddof=1`) in the three backends.
+- **Axis / multi-dimensional reductions, weights, `ddof`, `skipna`**: out of scope; the package
+  reduces one sequence. `std` is the sample standard deviation (`ddof=1`) in the three backends.
 - **A registry of reducers** (`register`, lazy loading by type name, plugin entry point): three
   classes do not justify it (`architecture.md` lists `reducer` outside `registry` on purpose). If
   `auto_reducer(values)` ever dispatches on more than two types, it is the moment to reuse
   `BaseTypeDispatchRegistry`.
-- **Other backends** (pandas `Series`, polars, JAX): [How to add support for a new library](add_backend.md) explains how to add one; the contract test is
-  the acceptance test.
+- **Other backends** (pandas `Series`, polars, JAX):
+  [How to add support for a new library](add_backend.md) explains how to add one; the contract test
+  is the acceptance test.
 - **Lazy / streaming input** (`statistics` of an iterator in one pass): the iterator is rejected on
   purpose (the reducers go over the values several times); the error says to convert it to a list.
 - **Precision beyond float64** (`Decimal`, `Fraction`): `NativeReducer` happens to work; it is not a

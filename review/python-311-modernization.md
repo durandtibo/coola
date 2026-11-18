@@ -155,11 +155,11 @@ were left: they are needed by `ty` and removing them is a separate experiment.
 
 `equality/handler/pandas.py:137-180`, `equality/tester/interface.py:330`,
 `equality/tester/jax.py:107`, `utils/tensor.py:112` and `display/pydantic.py:73` use
-`cast("Any", pd)` to silence the checker on optional dependencies. These are
-workarounds for optional dependencies, not 3.11 features. Review which are still needed
-once `ty` runs clean (see follow-up 2); some may be removable. The
-`cast("Callable[..., Any]", type(data))` pattern repeated in `recursive/{set,sequence,mapping,key}.py`
-could become one shared helper (or a `Protocol` with `__call__`) instead of four copies.
+`cast("Any", pd)` to silence the checker on optional dependencies. These are workarounds for
+optional dependencies, not 3.11 features. Review which are still needed once `ty` runs clean (see
+follow-up 2); some may be removable. The `cast("Callable[..., Any]", type(data))` pattern repeated
+in `recursive/{set,sequence,mapping,key}.py` could become one shared helper (or a `Protocol` with
+`__call__`) instead of four copies.
 
 ### C. `typing.Union` in `factory/config.py` — Reviewed, kept
 
@@ -172,28 +172,29 @@ says so). No other `Optional`/`Union`/`List`/`Dict` exist in `src/` or `tests/`.
 
 0 uses today across 33 abstract methods and every subclass of `BaseTester`, `BaseHasher`,
 `BaseTransformer`, `BaseLoader`/`BaseSaver`, `BaseReducer`, `BaseSummarizer`, `BaseHandler`,
-`BaseRandomManager` and the `Registry` classes. When the floor becomes 3.12 add `@override` from `typing`.
-Do not backport it with `typing_extensions` now: `dependencies = []` is a feature.
+`BaseRandomManager` and the `Registry` classes. When the floor becomes 3.12 add `@override` from
+`typing`. Do not backport it with `typing_extensions` now: `dependencies = []` is a feature.
 
 ### E. Dedupe the 11 `utils/imports/<pkg>.py` modules — Decided against
 
 `numpy.py`, `torch.py`, `pandas.py`, `polars.py`, `jax.py`, `pyarrow.py`, `pydantic.py`,
-`packaging.py`, `colorlog.py`, `rich.py`, `xarray.py` are near-identical (96 lines each; they
-differ only in the package name and the `__all__` order). Each repeats `F = TypeVar("F",
-bound="Callable[..., Any]")`, a `@lru_cache(1)` availability check, `check_*`,
-`*_available`, `raise_*_missing_error`. A small factory in `utils/imports/universal.py`
-(for example `make_package_helpers("numpy")`) would remove ~1000 lines. **Decision: not done.** The
-modules are the public, statically named API (`check_numpy`, `is_numpy_available`, ...) re-exported
-from `utils/imports/__init__.py`, with per-function docstrings and doctests. Generating them from a
+`packaging.py`, `colorlog.py`, `rich.py`, `xarray.py` are near-identical (96 lines each; they differ
+only in the package name and the `__all__` order). Each repeats
+`F = TypeVar("F", bound="Callable[..., Any]")`, a `@lru_cache(1)` availability check, `check_*`,
+`*_available`, `raise_*_missing_error`. A small factory in `utils/imports/universal.py` (for example
+`make_package_helpers("numpy")`) would remove ~1000 lines. **Decision: not done.** The modules are
+the public, statically named API (`check_numpy`, `is_numpy_available`, ...) re-exported from
+`utils/imports/__init__.py`, with per-function docstrings and doctests. Generating them from a
 factory would hide those names from `ty` and IDEs and change the docs. Changing the decorator's
 return type to `Callable[P, R | None]` would also make every decorated function look `Optional` to
-callers. The duplication is the price of explicit names; revisit only with a stub-generating approach.
-Original note: this is not purely a modernization item, but it is the largest remaining duplication. On 3.12 the repeated
-`F` becomes `ParamSpec`-based (`def decorator[**P, R](fn: Callable[P, R]) -> Callable[P, R | None]`),
-which also removes the `cast("F", inner)` in `universal.py:136`. On 3.11 the same can be
-done now with `ParamSpec` + `TypeVar` from `typing` (3.10+); the `@wraps` wrapper then returns
-`Callable[P, R | None]`, which is truthfully typed because the wrapper returns `None` when
-the package is missing. The current `F`-typed signature claims the return type is unchanged.
+callers. The duplication is the price of explicit names; revisit only with a stub-generating
+approach. Original note: this is not purely a modernization item, but it is the largest remaining
+duplication. On 3.12 the repeated `F` becomes `ParamSpec`-based
+(`def decorator[**P, R](fn: Callable[P, R]) -> Callable[P, R | None]`), which also removes the
+`cast("F", inner)` in `universal.py:136`. On 3.11 the same can be done now with `ParamSpec` +
+`TypeVar` from `typing` (3.10+); the `@wraps` wrapper then returns `Callable[P, R | None]`, which is
+truthfully typed because the wrapper returns `None` when the package is missing. The current
+`F`-typed signature claims the return type is unchanged.
 
 ### F. `@functools.cache` for the remaining zero-argument `@lru_cache(1)` (11 files) — Done
 
@@ -208,8 +209,8 @@ case; switch to `@cache`. `utils/imports/universal.py:25,50` use bare `@lru_cach
 ### G. Logging: lazy `%s` formatting instead of f-strings (7 sites) — Done
 
 Done: 12 `src/` sites converted to lazy `%s` arguments, `logger.error(..., exc_info=True)` became
-`logger.exception(...)` in `utils/singleton.py`, and ruff `G` is enabled (with `G004` ignored for the
-`debug/` and `dev/` scripts). The `format_value_difference(...)` calls are already guarded by
+`logger.exception(...)` in `utils/singleton.py`, and ruff `G` is enabled (with `G004` ignored for
+the `debug/` and `dev/` scripts). The `format_value_difference(...)` calls are already guarded by
 `config.show_difference`, so they were left as they are.
 
 `io/base.py:84`, `utils/env_vars.py:58,60`, `equality/handler/native.py:174,205` and
@@ -223,9 +224,9 @@ run on every mismatch during equality checks.
 ### H. Small readability items — Mostly done
 
 Done: `_iter_items` helper in `utils/format.py`, `removesuffix` in `io/utils.py`,
-`next(iter(data.values()))` in `nested/mapping.py`. Not done: the `isinstance(other, type(self))` clause
-is redundant at runtime but narrows `other` for the type checker, so it stays; `time_ns() // 1_000_000`
-appears only twice in `snowflake.py`, not worth a helper.
+`next(iter(data.values()))` in `nested/mapping.py`. Not done: the `isinstance(other, type(self))`
+clause is redundant at runtime but narrows `other` for the type checker, so it stays;
+`time_ns() // 1_000_000` appears only twice in `snowflake.py`, not worth a helper.
 
 - Time sources are already correct: `perf_counter` for elapsed time, `monotonic` for
   deadlines, `time.time()` only where compared with file mtimes or ID timestamps.
