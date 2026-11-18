@@ -185,10 +185,8 @@ False
 ```
 
 `equal` is `False` for two registries of different classes. Otherwise it compares the entries and
-the
-fallbacks (after loading the pending lazy groups) with `==`. The handlers are compared with `==`
-too:
-a handler without `__eq__` is equal to itself only, so a `copy()` is equal to its source (the
+the fallbacks (after loading the pending lazy groups) with `==`. The handlers are compared with `==`
+too: a handler without `__eq__` is equal to itself only, so a `copy()` is equal to its source (the
 handlers are shared), and two registries built separately with handlers of the same class are equal
 only if the handlers define `__eq__`.
 
@@ -326,12 +324,10 @@ The `resolve()` method walks the MRO to find the most specific registered type:
 
 !!! warning "Abstract base classes are only matched if they are real base classes"
 
-    The lookup follows `__mro__`, it does not call `issubclass`. A registration for an abstract
-    base class such as `collections.abc.Sequence` or `collections.abc.Mapping` therefore applies
-    only
-    to the classes that inherit from it. A class that is only _registered_ as a virtual subclass is
-    not matched: `collections.deque` is a `MutableSequence` for `isinstance`, but it is not in the
-    MRO
+    The lookup follows `__mro__`, it does not call `issubclass`. A registration for an abstract base
+    class such as `collections.abc.Sequence` or `collections.abc.Mapping` therefore applies only to
+    the classes that inherit from it. A class that is only _registered_ as a virtual subclass is not
+    matched: `collections.deque` is a `MutableSequence` for `isinstance`, but it is not in the MRO
     of `Sequence`. Register such types explicitly (the default registries of `coola` register
     `deque` for this reason).
 
@@ -371,20 +367,16 @@ The `TypeRegistry` uses an internal cache for type resolution to optimize perfor
 ```
 
 The cache is a plain dictionary bounded to 1,024 types, and any change of the registry (a
-registration,
-an unregistration, a fallback, a lazy load) empties it. It holds strong references to the types, so
-a
-class created dynamically stays alive until the cache is reset.
+registration, an unregistration, a fallback, a lazy load) empties it. It holds strong references to
+the types, so a class created dynamically stays alive until the cache is reset.
 
 ## Fallbacks
 
 The MRO lookup cannot support a type that cannot be a key of the registry: every dataclass is a
 different type, a class that defines a method (`__hash__`, `hash()`) is not a base class, and a
-class
-that is only _registered_ with an abstract base class is not in its MRO. A **fallback** supports
-such
-types: `register_fallback(predicate, handler)` registers a handler for the types that satisfy a
-predicate.
+class that is only _registered_ with an abstract base class is not in its MRO. A **fallback**
+supports such types: `register_fallback(predicate, handler)` registers a handler for the types that
+satisfy a predicate.
 
 ```pycon
 >>> from collections import deque
@@ -428,8 +420,7 @@ fallbacks.
 Both `Registry` and `TypeRegistry` are thread-safe. The state is a dictionary that is replaced on
 every write and never mutated, so the reads take no lock, and `items()`, `keys()` and `values()`
 return snapshots. The writers are serialized by a reentrant lock (`threading.RLock`). The lock is
-reentrant so that a lazy factory can register entries in the
-registry that loads it:
+reentrant so that a lazy factory can register entries in the registry that loads it:
 
 ```pycon
 >>> from coola.registry import Registry
@@ -458,10 +449,9 @@ is not affected.
 
 `TypeRegistry.register_lazy(packages, factory)` registers a group of entries that is built the first
 time it is needed. It is how `coola` registers the handlers of an optional library (numpy, torch,
-pandas, ...)
-without importing the library. `packages` is a top-level package name or a sequence of names, and
-`factory` is a callable that returns a mapping, or its path `"package.module:name"`, which is
-imported only when the group is loaded:
+pandas, ...) without importing the library. `packages` is a top-level package name or a sequence of
+names, and `factory` is a callable that returns a mapping, or its path `"package.module:name"`,
+which is imported only when the group is loaded:
 
 ```pycon
 >>> from coola.registry import TypeRegistry
@@ -512,8 +502,7 @@ leaking the registration to the other tests, see "Isolating the Default Registri
 ## Default Registries and Plugins
 
 The packages built on `coola.registry` (equality, hashing, summary, iterator, recursive, random)
-each
-have a default registry, built the first time it is used. `coola.registry.default` builds them:
+each have a default registry, built the first time it is used. `coola.registry.default` builds them:
 
 ```pycon
 >>> from coola.registry.default import make_default_registry_singleton
@@ -529,9 +518,8 @@ touching `coola`. `coola.registry.plugins` has the loader and the diagnostics:
 
 - `load_registry_plugins(registry, group)` populates a registry from the entry points of a group. A
   plugin that fails emits a `RuntimeWarning` and is skipped. If `COOLA_STRICT_PLUGINS` is set, all
-  the
-  failures are raised together as an `ExceptionGroup`. If `COOLA_DISABLE_PLUGINS` is set, no plugin
-  is loaded.
+  the failures are raised together as an `ExceptionGroup`. If `COOLA_DISABLE_PLUGINS` is set, no
+  plugin is loaded.
 - `get_loaded_plugins()` lists the plugins that were applied in this process.
 - `reset_default_registries()` and `temporary_default_registries()` (in `coola.registry.default`)
   forget the default registries, or run a block on copies of them. See "Isolating the Default

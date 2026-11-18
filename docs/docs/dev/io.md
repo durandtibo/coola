@@ -24,8 +24,7 @@ properties of the package.
 ## Design constraints
 
 1. **Simple and easy to maintain.** The base classes own the invariants once (the path conversion,
-   the
-   atomic commit, `equal`, `repr`), so a format has no lock protocol, no copy of `equal` and no
+   the atomic commit, `equal`, `repr`), so a format has no lock protocol, no copy of `equal` and no
    repeated `sanitize_path` call.
 2. **No new dependency.** `coola` has zero hard dependencies; the package uses the standard library
    only (torch stays optional and lazy).
@@ -105,9 +104,8 @@ class BaseFileSaver(BaseSaver[T]):
   overrides `load` instead keeps working but loses the conversion. The saver side works the same way
   (`_save_file`).
 - `TextSaver` accepts a `str` only. Writing `None` as the text "None" is the kind of silent
-  conversion
-  the architecture rejects, and the class is typed `str`; a caller who wants `str(x)` writes it, and
-  the error says so.
+  conversion the architecture rejects, and the class is typed `str`; a caller who wants `str(x)`
+  writes it, and the error says so.
 
 ### The atomic commit (no lock)
 
@@ -154,9 +152,8 @@ A caller that needs **mutual exclusion** (a read-modify-write of one file) needs
 read and the write, which `save` could never give; it uses a lock library of its choice. The
 `exist_ok=False` fallback on a file system **without hard links** is the one case where a lock would
 matter: two processes creating the same file at the same instant can both succeed (the last one
-wins,
-no torn file). It is listed under "Not guaranteed". A lock (a thread, a lock file, a polling loop)
-would add latency and a deadlock risk for that one case, which affects FAT and some container
+wins, no torn file). It is listed under "Not guaranteed". A lock (a thread, a lock file, a polling
+loop) would add latency and a deadlock risk for that one case, which affects FAT and some container
 volumes.
 
 ## Public API
@@ -225,23 +222,21 @@ and gets the atomic write, `exist_ok`, `fsync`, `equal()`, `repr` from the bases
 ## Design choices and trade-offs
 
 **No save lock.** The atomic commit already gives the guarantees that a lock would claim. A lock
-adds a
-thread, a lock file, a polling loop, latency and a deadlock risk. The consequences are listed in
-"Not
-guaranteed": two processes creating the same file at the same instant on a file system without hard
-links can both succeed, and a caller who wants mutual exclusion around a read-modify-write uses its
-own lock. An opt-in `lock=True` would keep the code and its tests for a case that few users have.
+adds a thread, a lock file, a polling loop, latency and a deadlock risk. The consequences are listed
+in "Not guaranteed": two processes creating the same file at the same instant on a file system
+without hard links can both succeed, and a caller who wants mutual exclusion around a
+read-modify-write uses its own lock. An opt-in `lock=True` would keep the code and its tests for a
+case that few users have.
 
 **`equal()` is concrete, not `__eq__`.** The method is the documented API and
-`objects_are_equal(a, b)`
-works with it. One implementation in the base class (same type, then `objects_are_equal` on
-`_display_fields()` with `equal_nan`) replaces one override per format.
+`objects_are_equal(a, b)` works with it. One implementation in the base class (same type, then
+`objects_are_equal` on `_display_fields()` with `equal_nan`) replaces one override per format.
 
 **Explicit loaders, no choice by suffix.** `load("data.json")` would need a registry from suffix to
 loader. It is a natural next step (it would follow `coola.registry`), but it is a new extension
-point
-and a security question: `load("x.pkl")` would unpickle by the file name. Explicit loaders keep the
-format visible at the call site. If it is added, `PickleLoader` should not be registered by default.
+point and a security question: `load("x.pkl")` would unpickle by the file name. Explicit loaders
+keep the format visible at the call site. If it is added, `PickleLoader` should not be registered by
+default.
 
 **Async is a layer, not part of the core.** The recommended shape is `asyncio.to_thread` of the sync
 method.
@@ -267,8 +262,7 @@ asyncio.to_thread(self.load, ...)` in the base classes (no dependency; `aiofiles
   `JsonLinesLoader` (an iterator of values) is a separate item.
 - **Compression** (`.json.gz`), **checksums** and **file locking for the caller**: out of scope.
 - **More formats** (`yaml`, `.npy`, `safetensors`, `bytes`): each is one `_load` and one
-  `_save_file`
-  and an optional dependency imported lazily; none is provided.
+  `_save_file` and an optional dependency imported lazily; none is provided.
 - **Cleanup of the leftover temporary files of killed processes**: they are hidden and have a
   recognisable name; a cleaner would need a lock to know the owner is dead.
 - **Selection by suffix**.

@@ -4,11 +4,9 @@ This document describes the design that `coola.recursive` should have, then the 
 the current implementation (`main`, `698a6808`) to get there. The design follows the rules of the
 user guide (`docs/docs/uguide/recursive.md`, **Properties**) and the architecture guide
 (`docs/docs/dev/architecture.md`: registry dispatch, MRO lookup, lazy imports, strict contracts),
-and
-it stays aligned with the sibling packages `equality`, `hashing`, `summary` and `iterator`. Its aim
-is
-a small package that is easy to maintain: **one engine, one extension point, one rebuild rule per
-container type**. Breaking changes are accepted, and the future state is more important than the
+and it stays aligned with the sibling packages `equality`, `hashing`, `summary` and `iterator`. Its
+aim is a small package that is easy to maintain: **one engine, one extension point, one rebuild rule
+per container type**. Breaking changes are accepted, and the future state is more important than the
 past one.
 
 Evidence comes from probes and a throw-away prototype run on `main` (Python 3.14, scripts kept
@@ -280,8 +278,7 @@ and in the doctests keeps working.
 
 A prototype of the loop above (explicit stack, the real `rebuild_*` helpers, the real default
 registry for the lookup with a per-call cache, `expand` inlined) was run on `main`. It is not part
-of
-the repository. **[verified]**
+of the repository. **[verified]**
 
 | Input                                                                   | `main`                            | Prototype |
 | ----------------------------------------------------------------------- | --------------------------------- | --------- |
@@ -353,23 +350,21 @@ imports).
   a dataclass registered with its own transformer has priority).
 - **Doctests** run as part of the docstrings; the guide examples are doctests.
 - **Benchmark gate** (`benchmarks/`, the CI benchmark): `recursive_apply` on the tree and on the
-  flat
-  list of section 6; the new engine must not be slower than `main` on either (target: at most the
-  numbers of `main`; expected: faster). A failing gate rejects the step.
+  flat list of section 6; the new engine must not be slower than `main` on either (target: at most
+  the numbers of `main`; expected: faster). A failing gate rejects the step.
 - Coverage: 100 % of `src/coola/recursive` (`--cov=coola`), no `# pragma: no cover`.
 
 ## 9. Decisions for the maintainers
 
-**D1. Enter dataclasses by default?** _Recommended: yes._ `equality`, `hashing` and `summary`
-enter them, so `recursive_apply(Config(...), f)` calling `f` on the whole object is the surprise
-(25.3 of `suggestions.md`). The opt-in `enter_dataclasses()` mutates a process-wide singleton, which
-is
-the worst kind of switch for a library. Consequences: `convert_to_jsonable` needs its own leaf
-registry (section 5), `round_values(recursive=True)` rounds the fields of a dataclass, and a user
-who wants a dataclass as a leaf registers `DefaultTransformer()` for its type (a transformer
-registered for the type has priority over the marker, which already works). Alternative: keep it
-opt-in, and keep `enter_dataclasses` with a `registry` argument; cheaper, but the three traversal
-packages stay inconsistent with `equality`.
+**D1. Enter dataclasses by default?** _Recommended: yes._ `equality`, `hashing` and `summary` enter
+them, so `recursive_apply(Config(...), f)` calling `f` on the whole object is the surprise (25.3 of
+`suggestions.md`). The opt-in `enter_dataclasses()` mutates a process-wide singleton, which is the
+worst kind of switch for a library. Consequences: `convert_to_jsonable` needs its own leaf registry
+(section 5), `round_values(recursive=True)` rounds the fields of a dataclass, and a user who wants a
+dataclass as a leaf registers `DefaultTransformer()` for its type (a transformer registered for the
+type has priority over the marker, which already works). Alternative: keep it opt-in, and keep
+`enter_dataclasses` with a `registry` argument; cheaper, but the three traversal packages stay
+inconsistent with `equality`.
 
 **D2. How a dataclass is rebuilt.** _Recommended: shallow copy and set every field with
 `object.__setattr__`._ It supports frozen and slotted dataclasses, transforms the `init=False`

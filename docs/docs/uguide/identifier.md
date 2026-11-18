@@ -157,8 +157,7 @@ ULIDs generated with the current time are **monotonic within a process**, as rec
 specification: ULIDs generated in the same millisecond (or after the clock moved backward) keep the
 timestamp and increment the random part by one, so they sort in the order of generation. Across
 processes, ULIDs generated in the same millisecond are not ordered. A ULID generated with an
-explicit
-`timestamp_ms` always has a random part, so it is not ordered relative to the others.
+explicit `timestamp_ms` always has a random part, so it is not ordered relative to the others.
 
 Use `extract_ulid_timestamp_ms` to recover the timestamp encoded in a ULID, e.g. to check how old a
 record is without a separate stored timestamp column:
@@ -225,22 +224,19 @@ True
 Like `generate_ulid`, successive IDs of a generator are strictly increasing, from any number of
 threads, but the result is a plain integer rather than a string, useful when the identifier must fit
 a `BIGINT`-style column, or when IDs need to be attributable to the worker/shard that minted them
-via
-`worker_id`.
+via `worker_id`.
 
-Create **one generator per process** and share it. There is no module-level function: a
-process-wide generator has one `worker_id`, which only the caller knows. The uniqueness of the IDs
-across processes comes from the `worker_id`, so assigning distinct numbers to the workers (a
-database row, an environment variable, a coordinator) is the job of the caller. A generator keeps
-its
-own sequence; two generators with the same `worker_id` can mint the same ID.
+Create **one generator per process** and share it. There is no module-level function: a process-wide
+generator has one `worker_id`, which only the caller knows. The uniqueness of the IDs across
+processes comes from the `worker_id`, so assigning distinct numbers to the workers (a database row,
+an environment variable, a coordinator) is the job of the caller. A generator keeps its own
+sequence; two generators with the same `worker_id` can mint the same ID.
 
 The generator never raises or sleeps because of the clock. If more than 4,096 IDs are requested in
 the same millisecond, or if the clock moves backward (an NTP step, a virtual machine that resumes
 from a pause), the timestamp is kept (or advanced by one millisecond) and the sequence goes on.
-Order
-and uniqueness win over accuracy: the timestamp of the IDs runs ahead of the clock until the clock
-catches up.
+Order and uniqueness win over accuracy: the timestamp of the IDs runs ahead of the clock until the
+clock catches up.
 
 A generator cannot be used in the child process of a fork (`os.fork`, or `multiprocessing` with the
 `fork` start method): the child would continue the sequence of its parent with the same `worker_id`.
@@ -307,11 +303,9 @@ True
 
 The identifier is made of the characters `0-9A-Z` (without `I`, `L`, `O` and `U`) and the separator:
 it is safe in a shell, a URL and a spreadsheet. The Crockford check symbol has 37 values, so 5 of
-the
-37 payloads would end with one of the extra symbols `*~$=U`; the generator draws such a payload
-again
-(1.16 draws on average, a cost of 0.21 bit of entropy). `sep` must be empty or a single character
-that is not in the alphabet (it is stripped before the check).
+the 37 payloads would end with one of the extra symbols `*~$=U`; the generator draws such a payload
+again (1.16 draws on average, a cost of 0.21 bit of entropy). `sep` must be empty or a single
+character that is not in the alphabet (it is stripped before the check).
 
 `verify_checksummed_id` follows the Crockford Base32 spec's own transcription rules: it is
 case-insensitive, and it normalizes `'O'` to `'0'` and `'I'`/`'L'` to `'1'` before checking the

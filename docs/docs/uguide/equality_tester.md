@@ -54,8 +54,7 @@ False
 !!! tip "Import collisions"
 
     `get_default_registry` exists in several `coola` subpackages with different return types. Import
-    it
-    from `coola.equality.tester`, or import the module and call `tester.get_default_registry()`.
+    it from `coola.equality.tester`, or import the module and call `tester.get_default_registry()`.
 
 The registry maintains a mapping from types to testers and automatically selects the right tester:
 
@@ -447,10 +446,9 @@ A plain class that does not define `__eq__`, an exception such as `ValueError("a
 dataclass or a pydantic model, which are compared field by field. This is the rule of "equal means
 `==`", so the tester is **not registered by default**. Register it for the classes that must be
 compared by their attributes. It compares the entries of `vars(obj)`, the slots of the class and of
-its
-parent classes, the `args` of an exception and the `func`, `args` and `keywords` of a partial,
-through
-the registry (so the tolerance and `equal_nan` apply), and reports the attribute that differs:
+its parent classes, the `args` of an exception and the `func`, `args` and `keywords` of a partial,
+through the registry (so the tolerance and `equal_nan` apply), and reports the attribute that
+differs:
 
 ```pycon
 >>> from coola.equality import objects_are_equal

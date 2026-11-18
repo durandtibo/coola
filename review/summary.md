@@ -7,8 +7,7 @@ guide (`docs/docs/dev/architecture.md`: registry dispatch, MRO lookup, lazy impo
 contracts), and it stays aligned with the sibling packages `equality`, `recursive` and `iterator`
 (`review/equality.md`, `review/recursive.md`). Its aim is a small package that is easy to maintain:
 **one engine, one extension point, one option object**. Breaking changes are accepted, and the
-future
-state is more important than the past one.
+future state is more important than the past one.
 
 Evidence comes from probes and a throw-away prototype run on `main` (Python 3.14, scripts kept
 outside the repository). Items marked **[verified]** were reproduced; **[reading]** comes from the
@@ -44,10 +43,9 @@ Not guaranteed, and documented as such:
 - **Shared references.** A container reachable by several paths (a DAG) is shown once per path (only
   a cycle is cut). The output stays bounded by `max_items` and `max_depth`.
 - **The bound on a chain.** Each level is indented, so a chain of `n` levels costs `O(n²)`
-  characters
-  (`max_depth=50,000` on a 50,000-level list gives 2.5 GB in the prototype **[verified]**).
-  `max_depth`
-  is what bounds the output; the user who asks for a huge depth gets a huge text.
+  characters (`max_depth=50,000` on a 50,000-level list gives 2.5 GB in the prototype
+  **[verified]**). `max_depth` is what bounds the output; the user who asks for a huge depth gets a
+  huge text.
 - **The time of a foreign `str` or `repr`.** The package bounds what it iterates, not what a user
   class does inside `__str__` or `__repr__` (they are computed in full and then cut).
 - **A stable format** between releases (see "For humans").
@@ -66,13 +64,11 @@ Not guaranteed, and documented as such:
    microseconds) may cost a little more for the fixed cost of the engine, but a huge input must not
    cost more than a small one (section 9, gates).
 4. **Consistent with the siblings.** Same engine shape as `equality` (the engine owns the
-   invariants,
-   a plugin describes one type), same registry, same option rules as `recursive` and `equality`
-   (keyword-only, validated, one frozen config).
+   invariants, a plugin describes one type), same registry, same option rules as `recursive` and
+   `equality` (keyword-only, validated, one frozen config).
 5. **Optional libraries stay lazy.** The package imports no optional library with
    `import coola.summary`; the summarizers of NumPy, torch, pandas, ... are loaded the first time
-   the
-   registry needs a type of the library (`register_lazy`, as today). The plugin group
+   the registry needs a type of the library (`register_lazy`, as today). The plugin group
    `coola.summary.summarizers` is kept.
 
 ## 3. What differs today
@@ -97,8 +93,7 @@ What is already right and must not regress: type dispatch with MRO and a cache; 
 the summarizers of optional libraries; metadata instead of values for arrays, tensors and frames;
 `PolarsLazyFrameSummarizer` never collects the data (the schema only); the secret fields of pydantic
 models; the deterministic set preview (`PYTHONHASHSEED`); `safe_str` for a broken `__str__`;
-iterators
-and generators as leaves; the display depth that does not raise.
+iterators and generators as leaves; the display depth that does not raise.
 
 ## 4. Architecture
 
@@ -126,9 +121,8 @@ The engine owns the invariants (bounded output, bounded work, depth, cycles, tot
 summarizer **only describes one type**: a string for a leaf, or a header and lazy children for a
 container. That is the same split as `equality` (the engine owns identity, type, depth and cycles; a
 tester returns a verdict or the child pairs) and as `recursive` (a transformer returns the
-children).
-`registry`, `depth` and `max_depth` are no longer arguments of the summarizer, so a summarizer
-cannot forget a protection and cannot recurse.
+children). `registry`, `depth` and `max_depth` are no longer arguments of the summarizer, so a
+summarizer cannot forget a protection and cannot recurse.
 
 ### 4.1 The summarizer contract
 
@@ -154,27 +148,23 @@ class BaseSummarizer(ABC, Generic[T]):  # convenience base class, as today
 ```
 
 Rules of the contract (documented in `BaseSummarizer`, checked by one parametrised unit test over
-the
-default registry, like `NATIVE_SAMPLES` in `equality`):
+the default registry, like `NATIVE_SAMPLES` in `equality`):
 
 1. `summarize` is pure and cheap: it does not call the registry, does not recurse, does not modify
    `data`, and does not iterate the whole data. For a container it reads `len(data)` and returns the
    children **lazily** (`enumerate(data)`, `data.items()`, a generator): the engine takes at most
    `max_items` of them. A set is the exception: it returns the smallest `max_items` items.
 2. `compact` is `True` when the node is at the display depth. A leaf may use it (the default
-   summarizer
-   shows the type only when `compact` is `False`); a container ignores it (the engine uses
-   `CompactRepr`).
+   summarizer shows the type only when `compact` is `False`); a container ignores it (the engine
+   uses `CompactRepr`).
 3. A leaf returns a `str`, which may have several lines. The engine cuts it at `max_characters`, so
-   a
-   leaf does not have to.
+   a leaf does not have to.
 4. Labels are anything: the engine writes `safe_str(label)` cut at `max_characters`.
 5. An exception (of `summarize`, of the children iterator, of a label's `str`) is the engine's
    problem: it prints a placeholder, the summarizer does not guard itself.
 
 `Node` is a dataclass and not a tuple so that the contract is readable and a later field (for
-example
-a closing line) can be added without breaking the plugins.
+example a closing line) can be added without breaking the plugins.
 
 ### 4.2 The config
 
@@ -189,8 +179,7 @@ class SummaryConfig:  # shareable, hashable, thread-safe; validated in __post_in
 
 All the options of the package are here, in one place, with one validation. `None` replaces the
 negative sentinel (`-1` was "no limit" for `max_items` and `max_characters` but `max_depth=-1` was
-an
-error). `num_spaces` and `max_fields` are deleted (decisions D2, D7).
+an error). `num_spaces` and `max_fields` are deleted (decisions D2, D7).
 
 ### 4.3 The engine
 
@@ -251,18 +240,15 @@ Design points:
 
 - **No `RecursionError`, no thread-local, no lock.** The state (stack, ancestors, lines) is local to
   the call. `raise_recursion_limit_error` is not used by the package any more, and the
-  `RecursionError`
-  paragraphs of the docstrings and of the guide are deleted.
+  `RecursionError` paragraphs of the docstrings and of the guide are deleted.
 - **`summarize` of a container runs at the boundary too.** It is cheap by contract (rule 1), and it
   keeps the engine free of a "is this a container?" question that only the summarizer can answer.
 - **The cycle check is on the open nodes only** (`ancestors`), so a DAG is not reported as a cycle,
-  and
-  a leaf (a string, an array) never enters the set.
+  and a leaf (a string, an array) never enters the set.
 - **The layout is one rule**: a node at depth `d` is written with `2 * d` spaces, and a text with
   several lines is aligned under its first character. Nothing is re-indented (F6).
 - **A failure is local.** A node that fails prints its type and the exception name (never the
-  message,
-  which may carry data) and the rest of the summary is intact.
+  message, which may carry data) and the rest of the summary is intact.
 
 ### 4.4 The compact form
 
@@ -333,12 +319,10 @@ Rules (the examples are the output of the prototype of section 7):
 ```
 
 - A node is `header`, then its children one level deeper, then `... (+N more)` if some are not
-  shown.
-  An empty container is its header alone: `<class 'list'> (length=0)`.
+  shown. An empty container is its header alone: `<class 'list'> (length=0)`.
 - A child is `(label): text`. The label of a sequence or a set is the position, of a mapping the
-  `str`
-  of the key, of a dataclass or a pydantic model the field name, of a named tuple the field name
-  (F13).
+  `str` of the key, of a dataclass or a pydantic model the field name, of a named tuple the field
+  name (F13).
 - **The type is shown for the nodes that are expanded and for their leaves; the boundary shows
   values.** A leaf shows `<class 'int'> 1` when `compact` is `False` and `1` when it is `True`. This
   is today's rule, kept (decision D8): `summarize(42)` is `<class 'int'> 42`, and the items of
@@ -369,16 +353,14 @@ summarizers share `BaseObjectFieldsSummarizer` (one abstract method `_get_fields
 stateless: no constructor, no `__repr__`, no `equal`, no `InlineDisplayMixin`.
 
 The metadata base class keeps one job: `BaseMetadataSummarizer` (`_describe(data, config)` returns
-the
-fields, `_check_dependencies` raises `MissingPackageError` at construction if the library is
+the fields, `_check_dependencies` raises `MissingPackageError` at construction if the library is
 missing). `BaseFieldsSummarizer` is deleted: the summarizers of frames and tables call
 `format_fields(items, config.max_items)` (`a: int64, b: float64, ... (+3 more)`) themselves.
 
 Removed from the default registry: `str`, `int`, `float`, `complex`, `bool` (resolved through
-`object`,
-the comment of `_get_native_summarizers` says so). Added: `UserString` and `MappingProxyType` (F5).
-Kept as they are: `get_default_registry`, `get_default_summarizer_registry` (alias),
-`register_summarizers`, the plugin group.
+`object`, the comment of `_get_native_summarizers` says so). Added: `UserString` and
+`MappingProxyType` (F5). Kept as they are: `get_default_registry`, `get_default_summarizer_registry`
+(alias), `register_summarizers`, the plugin group.
 
 The extension example of the guide becomes:
 
@@ -451,17 +433,15 @@ docstrings). The package is a leaf, which is why the contract can change in one 
 | Plugins of `coola.summary.summarizers`                                                           | Must be ported to the new `summarize(data, config, *, compact)` (migration page). A plugin that returned a string only needs the new signature.                            |
 
 `SummarizerRegistry.find_summarizer` copies the `DataclassMarker` fallback that
-`EqualityTesterRegistry`,
-`HasherRegistry`, `TransformerRegistry` and `ChildFinderRegistry` also copy. Moving it to
-`BaseTypeDispatchRegistry` is a cleanup for all five packages, outside this design (section 11).
+`EqualityTesterRegistry`, `HasherRegistry`, `TransformerRegistry` and `ChildFinderRegistry` also
+copy. Moving it to `BaseTypeDispatchRegistry` is a cleanup for all five packages, outside this
+design (section 11).
 
 ## 7. Evidence: a prototype of the engine
 
 A prototype (about 110 lines: `Node`, a config, the loop of 4.3, a `reprlib` subclass for the
-compact
-form, the three container summarizers and the dataclass one) was run on `main`. It is not part of
-the
-repository. **[verified]**
+compact form, the three container summarizers and the dataclass one) was run on `main`. It is not
+part of the repository. **[verified]**
 
 | Check                                                                | `main`                                 | Prototype                       |
 | -------------------------------------------------------------------- | -------------------------------------- | ------------------------------- |
@@ -477,9 +457,8 @@ repository. **[verified]**
 The prototype is slower for the smallest inputs, and not tuned: it builds the config and the
 `reprlib` object on every call (the real engine builds `CompactRepr` lazily, only for a container at
 the boundary, and the config once per call in `summarize`). The fixed cost is a few microseconds;
-the
-gain is on the inputs where `main` is not bounded (F1, F2). The gate of section 9 is stated in these
-terms.
+the gain is on the inputs where `main` is not bounded (F1, F2). The gate of section 9 is stated in
+these terms.
 
 ## 8. Changes to reach the target state
 
@@ -503,17 +482,14 @@ Steps 2, 3 and 6 are independent and can be merged in any order before 4. Step 5
 Unit tests mirror the source tree (`tests/unit/summary/`); the conventions of `CLAUDE.md` apply (one
 behaviour per test, literal expected values, the whole output asserted against a literal at least
 once, a regression test for every bug, no local imports, the `*_available` fixtures). The 4,020
-lines
-of today shrink: the tests of constructors, `__repr__`, `equal`, `num_spaces`, `_get_preview` and
-the
-negative sentinels disappear with the code.
+lines of today shrink: the tests of constructors, `__repr__`, `equal`, `num_spaces`, `_get_preview`
+and the negative sentinels disappear with the code.
 
 - **Engine** (`test_engine.py`, new):
   - the full text of a nested list/dict/tuple/set/dataclass against a literal, for `max_depth` 0, 1,
     2 and 3 (the layout of 4.5);
   - `max_items=0`, `1`, exactly the length, the length plus one, `None`: the `... (+N more)` line
-    and
-    its count;
+    and its count;
   - `max_characters` on a leaf, on a label and on a header-less text; `None` = no cut;
   - a text with a newline is aligned at every depth; a key with a newline is cut to one label;
   - cycle through a list, a dict, a tuple-in-list, a dataclass: `<cycle>`; a DAG (`[s, s]`) is **not**
@@ -537,16 +513,13 @@ negative sentinels disappear with the code.
 - **Each summarizer** (`test_<module>.py`): `summarize` asserts the whole result against a literal
   (`Node` header, the list of children, the total), and the typical, empty, single-element and
   duplicate cases; a subclass of `list`/`dict`/`set` keeps its type in the header; named tuple
-  labels;
-  `OrderedDict`, `Counter`, `deque`, `UserList`, `UserString`, `MappingProxyType`; a set of mixed
-  types; the input is not modified. Dataclass: frozen, slots, `field(repr=False)`, `InitVar`,
-  nested.
-  Pydantic: secrets, extras, nested models. Metadata summarizers: `show_data` False and True, a
-  masked array, a lazy frame that is not collected, an invalid lazy frame.
+  labels; `OrderedDict`, `Counter`, `deque`, `UserList`, `UserString`, `MappingProxyType`; a set of
+  mixed types; the input is not modified. Dataclass: frozen, slots, `field(repr=False)`, `InitVar`,
+  nested. Pydantic: secrets, extras, nested models. Metadata summarizers: `show_data` False and
+  True, a masked array, a lazy frame that is not collected, an invalid lazy frame.
 - **Contract test over the default registry**: every summarizer of the default registry (including
   the lazy ones when the library is installed) returns a `str` or a `Node` with `total >= 0` and
-  lazy
-  `children` (one sample per registered type, like `NATIVE_SAMPLES`).
+  lazy `children` (one sample per registered type, like `NATIVE_SAMPLES`).
 - **Properties** (`tests/properties/test_summary_random.py`, extend): the number of lines is at most
   `1 + max_items * (1 + ...)` for the given depth (bounded output); the summary of a nested random
   structure is the same twice (kept); the data is not modified (kept); with `max_items=None` and
@@ -562,8 +535,7 @@ negative sentinels disappear with the code.
   items, five lists of 2,000,000 items at the boundary, and a list nested 300 levels. Gate: every
   input under 50 µs on `main` may cost up to 2x (and at most 10 µs more); every other input must not
   be slower than `main`; the two huge inputs must be at least 100x faster. A failing gate rejects
-  the
-  step.
+  the step.
 - Coverage: 100 % of `src/coola/summary` (`--cov=coola`), no `# pragma: no cover`.
 
 ## 10. Decisions
@@ -572,94 +544,77 @@ All ten decisions were taken as recommended. The design above is final on these 
 each decision is kept for the reasoning and for the alternatives that were rejected.
 
 **D1. Options in a config, not in the constructors?** _Decided: yes (recommended)._ A person who
-wants three
-items writes `summarize(data, max_items=3)`; today they build a registry, register `object` and
-`list`,
-and lose the other types (F3). The summarizers become stateless, so `__init__`, `__repr__`, `equal`
-and the display mixin disappear, and the package matches `EqualityConfig`. Cost: no per-type
-option (`max_items=3` for lists and 10 for dicts); the user who needs it registers their own
-summarizer (a one-line subclass that returns a `Node` with a smaller `total`).
+wants three items writes `summarize(data, max_items=3)`; today they build a registry, register
+`object` and `list`, and lose the other types (F3). The summarizers become stateless, so `__init__`,
+`__repr__`, `equal` and the display mixin disappear, and the package matches `EqualityConfig`. Cost:
+no per-type option (`max_items=3` for lists and 10 for dicts); the user who needs it registers their
+own summarizer (a one-line subclass that returns a `Node` with a smaller `total`).
 
 Decision: **accepted as recommended.**
 
 **D2. One limit for items, fields and columns?** _Decided (recommended): yes, `max_items` (default
-5)._
-`MAX_FIELDS=10` and `max_items=5` count the same thing (entries shown). Consequence: a frame lists 5
-columns by default instead of 10; `summarize(df, max_items=20)` lists more. Alternative: keep
-`max_fields` as a second option, or default `max_items` to 10 (a list of 20 shows 10 lines).
+5)._ `MAX_FIELDS=10` and `max_items=5` count the same thing (entries shown). Consequence: a frame
+lists 5 columns by default instead of 10; `summarize(df, max_items=20)` lists more. Alternative:
+keep `max_fields` as a second option, or default `max_items` to 10 (a list of 20 shows 10 lines).
 
 Decision: **accepted as recommended.**
 
 **D3. Keep the name `max_depth`?** _Decided: yes (recommended)._ It is a display depth here and a
-limit that
-raises in `objects_are_equal` (28.3 of `suggestions.md`); the docs say so in both places. Renaming
-to
-`expand_depth` removes the ambiguity, but `max_depth` is the name every user of `summarize` knows,
-and
-the cost of the ambiguity is a documentation sentence.
+limit that raises in `objects_are_equal` (28.3 of `suggestions.md`); the docs say so in both places.
+Renaming to `expand_depth` removes the ambiguity, but `max_depth` is the name every user of
+`summarize` knows, and the cost of the ambiguity is a documentation sentence.
 
 Decision: **accepted as recommended.**
 
 **D4. What is the compact form?** _Decided (recommended): a `reprlib`-based one line (4.4)._ It
-keeps the content
-of a small nested structure, which is the point of the default `max_depth=1`, and it is bounded.
-Alternatives (rejected): the header only (simplest, hides small configs); asking the summarizer for
-an
-inline form (`Node.inline`), which is exact for every type but doubles the contract.
+keeps the content of a small nested structure, which is the point of the default `max_depth=1`, and
+it is bounded. Alternatives (rejected): the header only (simplest, hides small configs); asking the
+summarizer for an inline form (`Node.inline`), which is exact for every type but doubles the
+contract.
 
 Decision: **accepted as recommended.** Consequence: the benchmark appendix shows that `reprlib`
-makes
-`tree[1]` 2.5x slower than `main`, so step 4 must meet the gate of section 9 with a fast path in
-`CompactRepr` (`repr()` directly when the container has at most `max_items` scalar entries) and
+makes `tree[1]` 2.5x slower than `main`, so step 4 must meet the gate of section 9 with a fast path
+in `CompactRepr` (`repr()` directly when the container has at most `max_items` scalar entries) and
 re-measure. The gate stays "up to 2x and at most 10 µs more" for inputs under 50 µs; relaxing it is
-not
-part of the decision.
+not part of the decision.
 
 **D5. Total summarizing?** _Decided (recommended): yes, catch `Exception` in the engine._ A summary
-is for logs
-and error messages; raising there hides the original problem. The cost is that a bug in a custom
-summarizer shows as `<summary failed: ValueError>` instead of a traceback; the exception type is in
-the text and the tests of the plugin show it. Alternative: let the exceptions propagate and only
-keep
-`safe_str`.
+is for logs and error messages; raising there hides the original problem. The cost is that a bug in
+a custom summarizer shows as `<summary failed: ValueError>` instead of a traceback; the exception
+type is in the text and the tests of the plugin show it. Alternative: let the exceptions propagate
+and only keep `safe_str`.
 
 Decision: **accepted as recommended.**
 
 **D6. Hide the `field(repr=False)` fields of a dataclass?** _Decided: yes (recommended)._ It is how
-a dataclass
-author declares "do not print this" (tokens, large buffers), and the pydantic summarizer already
-hides
-secrets. The summary is not a comparison, so unlike `equality` and `hashing` it does not need every
-field. Alternative: show them (today), and document that a dataclass is printed in full.
+a dataclass author declares "do not print this" (tokens, large buffers), and the pydantic summarizer
+already hides secrets. The summary is not a comparison, so unlike `equality` and `hashing` it does
+not need every field. Alternative: show them (today), and document that a dataclass is printed in
+full.
 
 Decision: **accepted as recommended.**
 
 **D7. Fixed indentation?** _Decided (recommended): yes, 2 spaces, no `num_spaces`._ The option
-exists to fix a
-layout that was irregular (F6); a regular layout does not need it. Adding it back is one field of
-the
-config.
+exists to fix a layout that was irregular (F6); a regular layout does not need it. Adding it back is
+one field of the config.
 
 Decision: **accepted as recommended.**
 
 **D8. Keep the rule "type shown inside the expansion, values at the boundary"?** _Decided
-(recommended): keep._
-It is the documented behaviour of `summarize(42)` and of every example, and it needs one flag
-(`compact`). Alternative: always show the type of a leaf (`(a): <class 'int'> 1` everywhere): a
-simpler rule, but twice as long on the default output.
+(recommended): keep._ It is the documented behaviour of `summarize(42)` and of every example, and it
+needs one flag (`compact`). Alternative: always show the type of a leaf (`(a): <class 'int'> 1`
+everywhere): a simpler rule, but twice as long on the default output.
 
 Decision: **accepted as recommended.**
 
 **D9. One protocol or two?** _Decided (recommended): keep `Summarizer` (protocol) and
-`BaseSummarizer` (ABC)._
-Same as `Hasher`/`BaseHasher` and `Transformer`/`BaseTransformer`; the cost is a few lines and the
-benefit is that a summarizer from another library needs no import of `coola`.
+`BaseSummarizer` (ABC)._ Same as `Hasher`/`BaseHasher` and `Transformer`/`BaseTransformer`; the cost
+is a few lines and the benefit is that a summarizer from another library needs no import of `coola`.
 
 Decision: **accepted as recommended.**
 
 **D10. Named tuple labels?** _Decided: yes (recommended)._ One line in `SequenceSummarizer`
-(`data._fields`),
-consistent with dataclasses. Alternative: positions only (today).
+(`data._fields`), consistent with dataclasses. Alternative: positions only (today).
 
 Decision: **accepted as recommended.**
 
@@ -741,36 +696,27 @@ The raw results are saved in `.benchmarks/Darwin-CPython-3.14-64bit/` (ignored b
 Reading the numbers:
 
 - **Where `main` is not bounded, the design is far faster.** Five big lists at the display depth
-  cost
-  22 ms on `main` (it converts all of them to a string, F2) and 15 µs in the prototype, about
+  cost 22 ms on `main` (it converts all of them to a string, F2) and 15 µs in the prototype, about
   1,500 times less, and independent of the size of the lists. A deep chain is quadratic on `main`
-  (the
-  levels re-indent the text of their children, F6): 100 levels 14x faster, 300 levels 73x faster.
-  The
-  expanded tree is 3.1x faster for the same reason. A chain of 400 levels or more cannot be measured
-  on
-  `main` (F1); the prototype handles it.
+  (the levels re-indent the text of their children, F6): 100 levels 14x faster, 300 levels 73x
+  faster. The expanded tree is 3.1x faster for the same reason. A chain of 400 levels or more cannot
+  be measured on `main` (F1); the prototype handles it.
 - **Flat large inputs are the same or a little faster** (1.2x). Both only touch `max_items` entries.
   The set is the exception by design: the smallest items are selected in one pass over the 100,000
   elements (1.08 ms on both), the documented exception of "Bounded work".
 - **The smallest inputs are slower, by a fixed cost of 0.1 to 2 µs** (the scalar 0.85x, the empty
-  list
-  0.60x, the small dict 0.71x): the engine builds a frame and a list of lines for a node that `main`
-  returns directly. The absolute difference is under 2 µs and does not grow with the input.
+  list 0.60x, the small dict 0.71x): the engine builds a frame and a list of lines for a node that
+  `main` returns directly. The absolute difference is under 2 µs and does not grow with the input.
 - **`tree[1]` is the one regression that matters: 2.5x slower (10.9 µs to 27 µs).** At `max_depth=1`
   the 3 children of the dict are containers shown in the compact form, and `reprlib` is slower than
   `str()` of a small container (it formats item by item, with a level counter). The gate of section
-  9
-  ("up to 2x, at most 10 µs more, for an input under 50 µs") is **not met** by the prototype on this
-  case (+16 µs). It is the cost of bounding the compact form (F2) and it only shows on a mid-size
-  structure whose children are small. Options before step 4: `CompactRepr` calls `repr()` directly
-  when
-  `len(x) <= max_items` and the children are scalars (the common small case). Decision D4 is
-  settled, so the gate is not relaxed. The real engine must be measured
-  again; the prototype is not tuned (it uses `reprlib` as is, one `Frame` list per node, no
-  `__slots__`).
+  9 ("up to 2x, at most 10 µs more, for an input under 50 µs") is **not met** by the prototype on
+  this case (+16 µs). It is the cost of bounding the compact form (F2) and it only shows on a
+  mid-size structure whose children are small. Options before step 4: `CompactRepr` calls `repr()`
+  directly when `len(x) <= max_items` and the children are scalars (the common small case). Decision
+  D4 is settled, so the gate is not relaxed. The real engine must be measured again; the prototype
+  is not tuned (it uses `reprlib` as is, one `Frame` list per node, no `__slots__`).
 - **These numbers do not include** the metadata summarizers (arrays, frames), the pydantic
-  summarizer,
-  the cache of the registry lookup or the validation of the config; none of them is on the hot path
-  of
-  the cases above, but each adds a fixed cost per call that the real benchmark will show.
+  summarizer, the cache of the registry lookup or the validation of the config; none of them is on
+  the hot path of the cases above, but each adds a fixed cost per call that the real benchmark will
+  show.

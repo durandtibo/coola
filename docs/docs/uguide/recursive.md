@@ -148,10 +148,9 @@ You can create and use a custom registry for more control:
 
 A dataclass instance is entered, like `objects_are_equal`, `hash_object` and `summarize` do: the
 function is applied to the fields, not to the instance. The instance is rebuilt
-(`DataclassTransformer`)
-from a shallow copy in which every field is set with `object.__setattr__`, so frozen and slotted
-dataclasses are supported, the fields with `init=False` are transformed, the input is not modified
-and no user code (`__init__`, `__post_init__`) runs during the traversal:
+(`DataclassTransformer`) from a shallow copy in which every field is set with `object.__setattr__`,
+so frozen and slotted dataclasses are supported, the fields with `init=False` are transformed, the
+input is not modified and no user code (`__init__`, `__post_init__`) runs during the traversal:
 
 ```pycon
 >>> from dataclasses import dataclass
@@ -182,8 +181,7 @@ registering `DefaultTransformer()` for its type:
 ### Pydantic models
 
 A pydantic model is entered like a dataclass (when pydantic is installed): the function is applied
-to
-the values of the fields, the declared fields first and then the extra fields of a model with
+to the values of the fields, the declared fields first and then the extra fields of a model with
 `extra="allow"`. A computed field is not a child. The model is rebuilt with `model_copy(update=...)`
 (`coola.recursive.pydantic.PydanticModelTransformer`): the input is not modified, a frozen model is
 supported and the validators do not run again, so the new values are not validated. A transformer
@@ -224,8 +222,7 @@ the type is raised: register a transformer for this type.
 
     `get_default_registry` exists in several `coola` subpackages with different return types.
     `get_default_transformer_registry` is an alias of the same function with a more explicit name,
-    which avoids
-    import collisions.
+    which avoids import collisions.
 
 The package maintains a singleton default registry with transformers for common Python types:
 

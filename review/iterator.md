@@ -4,8 +4,7 @@ This document describes the design that `coola.iterator` should have, then the c
 the current implementation (`main`, `8498d971`) to get there. The design follows the rules of the
 user guide (`docs/docs/uguide/iterator.md`, **Properties**) and the architecture guide
 (`docs/docs/dev/architecture.md`: registry dispatch, MRO lookup, lazy imports, strict contracts),
-and
-it stays aligned with the sibling packages `recursive`, `equality`, `hashing` and `summary`
+and it stays aligned with the sibling packages `recursive`, `equality`, `hashing` and `summary`
 (`review/recursive.md` is the model: **one engine, one extension point, one rule per container
 type**). Its aim is a small package that is easy to maintain. Breaking changes are accepted, and the
 future state is more important than the past one.
@@ -63,8 +62,7 @@ Not guaranteed, and documented as such:
   path, so the cost is proportional to the number of paths, not to the number of objects. No
   memoization: it would break the property "Leaves only, once per occurrence" (decision D8).
 - **The order inside a set** and the order of a `ChainMap` (its `values()` follow the lookup order
-  of
-  the maps, last map first **[verified]**: `dfs_iterate(ChainMap({"a": 1}, {"b": 2}))` gives
+  of the maps, last map first **[verified]**: `dfs_iterate(ChainMap({"a": 1}, {"b": 2}))` gives
   `[2, 1]`).
 - **Mutation during the traversal.** Changing a container while it is walked is the caller's
   problem, as for any Python iteration (`RuntimeError` for a dict or a set that changes size).
@@ -227,10 +225,9 @@ Design points:
 | `DataclassChildFinder` | `(getattr(data, f.name) for f in dataclasses.fields(data))` | `DataclassMarker`                                                                               |
 
 `DefaultChildFinder` keeps the explicit `str`, `bytes` and `UserString` registrations: `object`
-would
-be enough through the MRO, but `str` and `bytes` are `Sequence`s and `UserString` would never end,
-so listing them documents the types that must not be expanded and makes `has_child_finder` answer
-for them. The one table of types moves from `bootstrap.py` into `interface.py`
+would be enough through the MRO, but `str` and `bytes` are `Sequence`s and `UserString` would never
+end, so listing them documents the types that must not be expanded and makes `has_child_finder`
+answer for them. The one table of types moves from `bootstrap.py` into `interface.py`
 (`_register_default_child_finders`), where it is the only place that says what is a container.
 
 Removed: `DfsIterator` family (`BaseIterator`, `DefaultIterator`, `IterableIterator`,
@@ -257,19 +254,16 @@ Not implemented by this work (decision D9), but the design is chosen so that it 
 a rewrite:
 
 - **The frame of the engine is one pair.** DFS keeps `(owner, iterator over the children)` per
-  level.
-  Paths add a parallel list of labels (the label of the child being visited at each level) that is
-  appended and popped with the frame; BFS adds the path tuple to each queue entry. No existing line
-  changes meaning.
+  level. Paths add a parallel list of labels (the label of the child being visited at each level)
+  that is appended and popped with the frame; BFS adds the path tuple to each queue entry. No
+  existing line changes meaning.
 - **The shape of a type is known in one place: its finder.** A finder gets one more, optional
-  method,
-  `find_items(data) -> Iterable[tuple[label, child]] | None`, with the same `None` for a leaf. The
-  base class derives a default from `find_children` (`enumerate` of the children, so a custom finder
-  works with no change and gets integer labels), and the four built-in finders override it
-  (`data.items()` for a mapping, `enumerate(data)` for a sequence, the field names for a dataclass,
-  the
-  element itself for a set: a set has no stable position).
-  `find_children` stays the method of the hot path, so `dfs_iterate` and `bfs_iterate` pay nothing.
+  method, `find_items(data) -> Iterable[tuple[label, child]] | None`, with the same `None` for a
+  leaf. The base class derives a default from `find_children` (`enumerate` of the children, so a
+  custom finder works with no change and gets integer labels), and the four built-in finders
+  override it (`data.items()` for a mapping, `enumerate(data)` for a sequence, the field names for a
+  dataclass, the element itself for a set: a set has no stable position). `find_children` stays the
+  method of the hot path, so `dfs_iterate` and `bfs_iterate` pay nothing.
 - **The labels are the path parts of `equality`** (a key or an index `['a']`, `[3]`, an
   `AttributeName("x")`, an `Element(2)`), so a path printed by `compare` and a path yielded by
   `dfs_items` read the same. A path is a tuple of parts, built only by the `*_items` functions.
@@ -277,8 +271,7 @@ a rewrite:
   parametrised by the method name, so the items loop reuses the cache, the cycle rule and the
   leaf rule; only the loop that carries the labels is new (about 25 lines for DFS, 15 for BFS).
 - **Same leaves, same order.** `dfs_items(data)` yields the leaves of `dfs_iterate(data)` in the
-  same
-  order; a property test (section 8) ties the two as soon as the function exists.
+  same order; a property test (section 8) ties the two as soon as the function exists.
 
 What the planned addition does **not** require: a change to the registry, to the plugin group, to
 `dfs_iterate`, or to a finder written for this release.
@@ -335,8 +328,7 @@ group, `coola.iterator.child_finders`, like `coola.recursive.transformers` (deci
 
 A prototype of the two loops above (explicit stack and queue, the real default registry for the
 lookup with a per-call cache, `find_children` inlined as a `None`-or-generator) was run on `main`.
-It
-is not part of the repository. **[verified]**
+It is not part of the repository. **[verified]**
 
 | Input                                                       | `dfs_iterate` on `main`  | DFS prototype | `bfs_iterate` on `main` | BFS prototype |
 | ----------------------------------------------------------- | ------------------------ | ------------- | ----------------------- | ------------- |
@@ -457,17 +449,15 @@ Decision: two functions
 dataclasses), so that the same data gives the same leaves in `iterator`, `recursive`, `hashing` and
 `summary` (constraint 4). The consequence is that `range(3)` becomes a leaf (it is a lazy arithmetic
 sequence, like an array) and that a user class that only inherits `Collection` or
-`collections.abc.Set`
-is a leaf until it registers a finder; the migration page says so. Alternative: widen `recursive` to
-`Collection`; rejected, because `recursive` must rebuild the type and cannot for an arbitrary
-`Collection`.
+`collections.abc.Set` is a leaf until it registers a finder; the migration page says so.
+Alternative: widen `recursive` to `Collection`; rejected, because `recursive` must rebuild the type
+and cannot for an arbitrary `Collection`.
 
 Decision: follow the recommendation
 
 **D4. Name of the plugin group.** _Recommended: `coola.iterator.child_finders`_, the same form as
 `coola.recursive.transformers`, `coola.equality.testers`, `coola.hashing.hashers`. The two old
-groups
-are not read any more; the migration page lists the change. Alternative: keep reading the old
+groups are not read any more; the migration page lists the change. Alternative: keep reading the old
 groups; rejected, because it keeps the two-registry design alive.
 
 Decision: `coola.iterator.child_finders`
@@ -505,13 +495,11 @@ Decision: no
 
 **D9. Yield the path of each leaf?** _Decided: yes, later; design for it now._ A `dfs_items(data)`
 that yields `(path, leaf)` answers "where is the NaN" and is the natural next feature. It is not
-part
-of this work, but nothing in this design may make it harder: section 3.4 lists the choices that keep
-it cheap (the frame of the engine, the single place that knows the shape of a type, the path parts
-shared with `equality`, the cached lookup) and the additive change it needs (an optional
-`find_items` on the
-finder, a third engine loop). The hot path of `dfs_iterate` and `bfs_iterate` stays free of labels.
-Same direction as D4 of `recursive.md`.
+part of this work, but nothing in this design may make it harder: section 3.4 lists the choices that
+keep it cheap (the frame of the engine, the single place that knows the shape of a type, the path
+parts shared with `equality`, the cached lookup) and the additive change it needs (an optional
+`find_items` on the finder, a third engine loop). The hot path of `dfs_iterate` and `bfs_iterate`
+stays free of labels. Same direction as D4 of `recursive.md`.
 
 **D10. `registry.iterate` kept as a method?** _Recommended: removed._ `recursive` keeps
 `TransformerRegistry.transform` as the registry-level entry point; here the registry is a dispatcher
@@ -527,13 +515,11 @@ Decision: removed
   it.
 - Pydantic models, attrs classes and plain objects with `__dict__`: leaves, as today. `equality`
   enters pydantic models; a lazily registered `PydanticChildFinder` is a separate item, with the
-  same
-  one for `recursive`.
+  same one for `recursive`.
 - NumPy arrays, torch tensors, data frames: leaves (the function receives the whole array).
   Element-wise iteration is the job of the caller.
 - Parallel or async traversal, and a `max_depth` or `max_leaves` option: out of scope;
-  `itertools.islice`
-  stops a traversal after `n` leaves, because the functions are lazy.
+  `itertools.islice` stops a traversal after `n` leaves, because the functions are lazy.
 - `coola.recursive`: the engine is separate (it must rebuild) and already iterative; only the
   container table and the order are shared.
 - The existing `suggestions.md` item 25.1 for `dfs_iterate` (explicit stack) is closed by step 3.
@@ -671,10 +657,9 @@ Reading the numbers:
   `list_of_small_dicts` from 51 / 48 ms to 24 / 14 ms. `mixed_containers` is 2.4x (BFS) and 5.4x
   (DFS) faster.
 - **Small inputs are faster too, and DFS no longer pays a fixed cost.** A scalar costs 0.7 µs in
-  both
-  orders (BFS 1.0 µs, DFS 2.5 µs before), a small nested dict 3.7 / 3.2 µs instead of 4.9 / 6.3 µs.
-  Depth is still linear, at about 0.35 µs per level instead of 0.65-0.8 µs (speed-up 1.6x to 2.0x).
-  The empty list is the only case that did not change for BFS (1.4 µs, speed-up 1.00x).
+  both orders (BFS 1.0 µs, DFS 2.5 µs before), a small nested dict 3.7 / 3.2 µs instead of 4.9 / 6.3
+  µs. Depth is still linear, at about 0.35 µs per level instead of 0.65-0.8 µs (speed-up 1.6x to
+  2.0x). The empty list is the only case that did not change for BFS (1.4 µs, speed-up 1.00x).
 - **No benchmark is slower than before**, so the gate of section 8 ("no slower than `main`") holds
   on every input. The BFS flat-container runs are noisier than the others (the standard deviation
   is a quarter of the mean on the first run): a second run of the BFS flat, tree and mixed cases

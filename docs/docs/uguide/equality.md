@@ -341,8 +341,7 @@ False
 ```
 
 With `equal_nan=True`, two `NaN` keys (also inside a `tuple` key) are the same key, as the `NaN`
-members
-of a `set` are:
+members of a `set` are:
 
 ```pycon
 >>> from coola.equality import objects_are_equal
@@ -430,13 +429,13 @@ True
 ```
 
 Two numbers are considered equal if
-`|actual - expected| <= atol + rtol * max(|actual|, |expected|)`.
-This is the rule of NumPy, PyTorch, JAX, PyArrow and xarray arrays, and it is also used for Python
-numbers (`float`, `int`, `complex`), NumPy scalars, `Decimal`, `Fraction` and `timedelta`. It is
-symmetric: `objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result.
-The numeric columns (integers and floats, also the nullable ones, and complex numbers for pandas)
-and the duration columns of `pandas`, `polars` and `pyarrow` data frames, series and arrays follow
-the same rule (`atol` of a duration is a number of seconds). The other columns (booleans, strings,
+`|actual - expected| <= atol + rtol * max(|actual|, |expected|)`. This is the rule of NumPy,
+PyTorch, JAX, PyArrow and xarray arrays, and it is also used for Python numbers (`float`, `int`,
+`complex`), NumPy scalars, `Decimal`, `Fraction` and `timedelta`. It is symmetric:
+`objects_are_allclose(a, b)` and `objects_are_allclose(b, a)` give the same result. The numeric
+columns (integers and floats, also the nullable ones, and complex numbers for pandas) and the
+duration columns of `pandas`, `polars` and `pyarrow` data frames, series and arrays follow the same
+rule (`atol` of a duration is a number of seconds). The other columns (booleans, strings,
 categories, instants, decimals, nested values and `object` columns) are compared exactly with the
 `equals` of the library: the tolerance and `equal_nan` do not reach the values nested in a cell.
 Whether a `NaN` nested in a cell equals a `NaN` is decided by the library: it does in `polars`, it
@@ -565,11 +564,10 @@ True
 
 ## Connection with Similar Tools
 
-`coola` is not the first tool to provide functions to compare nested objects.
-If you are a PyTorch user, you probably know
-the [`torch.testing.assert_close`](https://pytorch.org/docs/stable/testing.html) function.
-If you are a NumPy user, you probably know
-the
+`coola` is not the first tool to provide functions to compare nested objects. If you are a PyTorch
+user, you probably know the
+[`torch.testing.assert_close`](https://pytorch.org/docs/stable/testing.html) function. If you are a
+NumPy user, you probably know the
 [`numpy.testing.assert_equal`](https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html)
 function.
 However, most of these functions work in a fixed scope and are difficult to extend or customize.
@@ -732,9 +730,8 @@ and `assert_objects_allclose`) share the same options, with the same meaning:
 | `registry`  | The registry that maps a type to its tester (default: the default registry). See [Using Custom Registries](#using-custom-registries).                                                                         |
 
 The `*_allclose` functions also take `rtol` and `atol`. `compare` takes `rtol` and `atol` too, and
-is
-exact unless one of them is given. The assert functions take a `root` name (default `"actual"`) for
-the message.
+is exact unless one of them is given. The assert functions take a `root` name (default `"actual"`)
+for the message.
 
 ## Advanced Usage
 
@@ -750,9 +747,8 @@ There are two special cases, and only the second raises:
 | Nesting deeper than `max_depth`          | `coola.equality.MaxDepthExceededError`, a plain `Exception` (not a `RecursionError`) |
 
 `max_depth` must be `None` (the default, no limit) or a positive `int` (not a `bool`), otherwise a
-`ValueError` (not positive) or a
-`TypeError` (not an `int`) is raised. `rtol` and `atol` must be non-negative finite real numbers
-(not `bool`).
+`ValueError` (not positive) or a `TypeError` (not an `int`) is raised. `rtol` and `atol` must be
+non-negative finite real numbers (not `bool`).
 
 The comparison does not recurse: the engine keeps the child iterators on an explicit stack, so a
 `RecursionError` cannot happen whatever the nesting (100 000 nested dictionaries compare under the
@@ -779,10 +775,8 @@ True
 ```
 
 The default `max_depth` is `None`: the nesting is not limited. Set it to a number (for example
-`100`)
-to guard against a structure that is deeper than expected, such as an object that creates a new
-child
-each time an attribute is read.
+`100`) to guard against a structure that is deeper than expected, such as an object that creates a
+new child each time an attribute is read.
 
 ### Using Custom Registries
 
@@ -865,8 +859,7 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   given. A `timedelta64` array, like a `datetime.timedelta`, follows the tolerance (`atol` is a
   number of seconds), and so does a `pandas` series or column of timedeltas
 - `decimal.Decimal`, `fractions.Fraction` and `datetime.timedelta`: compared with `==`, or with
-  their
-  difference if `atol` or `rtol` is given (`atol` of a `timedelta` is a number of seconds). A
+  their difference if `atol` or `rtol` is given (`atol` of a `timedelta` is a number of seconds). A
   `Decimal` NaN is equal to a NaN only if `equal_nan=True`
 - `set` and `frozenset`: the elements are matched by hash and type in linear time, so `equal_nan`
   applies to the elements (`{1.0, float("nan")}` equals itself with `equal_nan=True`, also inside
@@ -879,8 +872,7 @@ The exact equality, the tolerance (`atol`, `rtol`) and `equal_nan` are all handl
   `TypeError` is raised: register a tester for this type
 - Objects with a reference cycle (a list that contains itself) are supported: a pair of objects that
   is already being compared is considered equal, so two cyclic structures are equal if they unfold
-  to
-  the same values. Very deep (but not cyclic) structures raise a `MaxDepthExceededError` beyond
+  to the same values. Very deep (but not cyclic) structures raise a `MaxDepthExceededError` beyond
   `max_depth`, never a `RecursionError`
 - Two objects are only compared if they have exactly the same type: a subclass is not equal to
   its parent class, and `numpy.float32(1)` is not equal to `numpy.float64(1)`
@@ -1096,9 +1088,8 @@ and the hash of the data depends on it.
 
 The time resolution is part of the dtype, as in NumPy: `timedelta64[s]` and `timedelta64[ns]` (or
 `datetime64[s]` and `datetime64[ns]`) are different dtypes, so two frames that hold the same
-instants
-with different resolutions are different. pandas 3 infers the resolution from how the values are
-built, so cast both sides with `astype` to the resolution you want before the comparison.
+instants with different resolutions are different. pandas 3 infers the resolution from how the
+values are built, so cast both sides with `astype` to the resolution you want before the comparison.
 
 ```pycon
 >>> import pandas as pd
@@ -1253,8 +1244,7 @@ equal, for example `numpy.float32(1.0)` and `numpy.float64(1.0)`.
 
 The tolerance is computed in double precision for the arrays: `float16`, `bfloat16` and `float32`
 are cast to `float64`, so the tolerance cannot overflow at the edge of their range. The difference
-of
-two integers is exact, whatever the size of the integers (`2**62` and `2**62 + 1` are not within
+of two integers is exact, whatever the size of the integers (`2**62` and `2**62 + 1` are not within
 `atol=0.5`); only its comparison to the tolerance is made in `float64`. In a rare case, a difference
 above 2^53 that is exactly equal to the tolerance can be rounded the other way. JAX without 64-bit
 mode has no `float64` and uses the widest dtype it has.
@@ -1344,8 +1334,7 @@ False
 
 You need to install `coola` with PyTorch to check if some PyTorch objects are equal within a
 tolerance or not. Please check the [get started page](../get_started.md) for more information.
-`coola`
-currently support the following PyTorch objects:
+`coola` currently support the following PyTorch objects:
 
 - `torch.Tensor`
 - `torch.nn.utils.rnn.PackedSequence`
@@ -1693,13 +1682,12 @@ message, for the tests.
 
 The path is read as follows: a key or a position is itself (`['a']`, `[3]`), a field or an attribute
 is `.x`, an element of a set is `{2}`, and an array reports its index (`[1][2]`). A pandas, polars
-or
-PyArrow table is reported as a whole (the path is the location of the table), and the reason says
+or PyArrow table is reported as a whole (the path is the location of the table), and the reason says
 what differs: a difference of structure names the part that differs (for example
-`tables have a different structure: dtypes differ: a: int64 vs float64`), and a difference of
-values gives the first differing column, the first differing row and the two values (for example
-`tables have different values: column 'a' differs at row 999: 999 vs 0`). The row is not given for
-a nested column. The design behind this is described in
+`tables have a different structure: dtypes differ: a: int64 vs float64`), and a difference of values
+gives the first differing column, the first differing row and the two values (for example
+`tables have different values: column 'a' differs at row 999: 999 vs 0`). The row is not given for a
+nested column. The design behind this is described in
 [Architecture](../dev/equality.md).
 
 - `compare` and the assert functions do not log and do not change the logging configuration, so they

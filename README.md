@@ -302,9 +302,7 @@ environment variables, caches and more.
 
 ## Installation
 
-We highly recommend installing
-`coola` in
-a
+We highly recommend installing `coola` in a
 [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
 to avoid dependency conflicts.
 

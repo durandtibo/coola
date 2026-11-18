@@ -12,8 +12,7 @@ it keeps no registry, cache or singleton, and it imports the standard library an
 `coola.utils.imports` only. A configuration names the code to run, so every change is judged first
 by what the data can make the process do. The three entry points (`factory`, `resolve_object` and
 `is_object_config`) are compositions of functions that each own one invariant: `import_object` is
-the
-only place that imports a target (allow-list checked before the import, one `ImportError` for a
+the only place that imports a target (allow-list checked before the import, one `ImportError` for a
 missing target), and `instantiate_object` is the only place that calls one (abstract classes
 refused, the `_init_` rule, the target's keywords never shadowed by a parameter of the API). The
 allow-list is a filter on a path and always comes from the caller's code, never from the data. See
@@ -208,11 +207,9 @@ Notes on the sketch:
 
 - `resolve_object` does not call `factory`. `factory` is the `**`-friendly API for code that has the
   arguments; `resolve_object` is the API for configurations, and the check between the import and
-  the
-  call needs the imported object. The duplication is the four lines of `_build`.
+  the call needs the imported object. The duplication is the four lines of `_build`.
 - `_RESERVED = (OBJECT_TARGET, OBJECT_INIT, OBJECT_PREFIXES)`. `_allowed_prefixes_` in a
-  configuration
-  is dropped silently (documented): the policy is the caller's.
+  configuration is dropped silently (documented): the policy is the caller's.
 - `_refuse_nested_configurations(args, kwargs)` raises `ValueError` if a value of the arguments is a
   `dict` with `_target_`. Only the top level is scanned.
 - `_not_an_instance_message` adds, for a `dict`, "(a configuration needs the `_target_` key)", so a
@@ -292,13 +289,10 @@ Behaviours worth knowing:
 | Location of `builds`                                 | `coola/factory/target.py`, not exported |
 
 **A `dict` with the key `_target_` is always a configuration.** The rule does not depend on `cls`.
-The
-key is reserved, as in Hydra: a dict that has it cannot be passed through `resolve_object` as data,
-and the guide says so. As a consequence `Mapping`, `dict` and `object` work the same, and the rule
-is
-one sentence. A rule that depends on `cls` needs an `issubclass` special case for dict subclasses
-and
-fails for generics.
+The key is reserved, as in Hydra: a dict that has it cannot be passed through `resolve_object` as
+data, and the guide says so. As a consequence `Mapping`, `dict` and `object` work the same, and the
+rule is one sentence. A rule that depends on `cls` needs an `issubclass` special case for dict
+subclasses and fails for generics.
 
 **No `_init_="__new__"` and no underscore names.** `cls(...)` runs `__new__` and `__init__`;
 `cls.__new__(cls, ...)` alone gives a partially initialised object, and the data can choose it. A
@@ -307,27 +301,23 @@ public class method (`from_config`, `fromkeys`, `now`) is what `_init_` is for.
 **The allow-list is never read from the data.** The key `_allowed_prefixes_` is a keyword of
 `factory` (so `factory(**config, ...)` works), but `resolve_object` ignores it in a configuration. A
 policy that the data can narrow looks like a feature, and it is a hole the day somebody lets the
-data
-widen it.
+data widen it.
 
 **A nested configuration is refused when an allow-list is active.** It closes the case of an allowed
 function that resolves its arguments (for example one that calls `resolve_object` on them), and it
 fails closed: whoever needs the nested object resolves it first, with the same list, as the guide
 tells. Limits: it scans the top level of the arguments only (a configuration deeper in a list is not
 found), and it does not help against a prefix that contains `import_object`. It is a mitigation, not
-a
-proof; the guide says which prefixes must never be allowed. Documentation alone would be cheaper but
-would leave the hole open.
+a proof; the guide says which prefixes must never be allowed. Documentation alone would be cheaper
+but would leave the hole open.
 
 **`dict`, not `Mapping`, for configurations.** JSON and YAML load into `dict`; a `DictConfig` is
 converted by the caller (`to_container`). Accepting any `Mapping` costs one word but widens what
-counts
-as "a configuration" in a security-relevant check.
+counts as "a configuration" in a security-relevant check.
 
 **The module that defines the target is not checked.** Comparing `target.__module__` to the prefixes
 would stop a re-export from another package, but it does not close the nested-configuration case
-(the
-functions of `coola.factory` are defined under `coola`), and it rejects legitimate aliases
+(the functions of `coola.factory` are defined under `coola`), and it rejects legitimate aliases
 (`os.path.join` is defined in `posixpath`, `numpy` functions in private modules of other names). The
 guide states that the list filters paths.
 
@@ -337,16 +327,14 @@ dotted form is the user-facing one. Renaming `coola.utils.imports.import_object`
 other.
 
 **No attribute paths (`pkg.module.Class.method`).**
-`import_object("collections.OrderedDict.fromkeys")`
-raises `ImportError: The target object does not exist`. Three reasons: (1) a fallback loop over
-prefixes must tell an expected failure (`collections.OrderedDict` is not a module) from a real one
-(a
-module that exists but whose own dependency is missing), which is the `err.name` rule repeated at
-every
+`import_object("collections.OrderedDict.fromkeys")` raises
+`ImportError: The target object does not exist`. Three reasons: (1) a fallback loop over prefixes
+must tell an expected failure (`collections.OrderedDict` is not a module) from a real one (a module
+that exists but whose own dependency is missing), which is the `err.name` rule repeated at every
 step; (2) `_init_` already reaches class methods; (3) walking attributes widens what a prefix
-reaches:
-`"mypkg"` would allow `mypkg.module.Class.helper.os.system`, whereas now only the last segment goes
-through `getattr`. The cost is that a nested class (`pkg.Outer.Inner`) needs a module-level alias.
+reaches: `"mypkg"` would allow `mypkg.module.Class.helper.os.system`, whereas now only the last
+segment goes through `getattr`. The cost is that a nested class (`pkg.Outer.Inner`) needs a
+module-level alias.
 
 **`builds` is not exported.** It is a helper of two modules of one package and has no other user.
 

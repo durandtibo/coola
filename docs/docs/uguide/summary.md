@@ -59,12 +59,10 @@ What the package does not do:
   summarizer to show their attributes.
 - **A machine-readable form** (JSON, a tree of nodes): the package produces text for humans.
 - **Width-aware or colored output**, a template for the format, and options per type. To show 3
-  items
-  for a list and 10 for a dict, register your own summarizer.
+  items for a list and 10 for a dict, register your own summarizer.
 - **Summaries of the elements of an array** (min, max, mean, number of NaN): the default is the
-  shape
-  and the dtype, which is cheap and needs no copy and no device transfer. A metadata summarizer can
-  compute more for the types that want it.
+  shape and the dtype, which is cheap and needs no copy and no device transfer. A metadata
+  summarizer can compute more for the types that want it.
 
 ## Basic Usage
 
@@ -334,8 +332,7 @@ datasets.
 ### Truncating Long Texts
 
 A text, with its type header, is at most `max_characters` characters long (1000 by default). The
-`str` of the object is computed
-before it is cut. Use `max_characters=None` to show everything:
+`str` of the object is computed before it is cut. Use `max_characters=None` to show everything:
 
 ```pycon
 >>> from coola.summary import summarize
@@ -477,10 +474,9 @@ The summarizers can also be provided by a package, with the entry-point group
 ### Understanding the Registry
 
 The `SummarizerRegistry` manages the mapping from types to summarizers. `find_summarizer` returns
-the
-summarizer of a type, or of its nearest registered parent type along the Method Resolution Order.
-The full content of the global registry depends on the installed libraries and on the summarizers
-registered so far, so it is not shown here:
+the summarizer of a type, or of its nearest registered parent type along the Method Resolution
+Order. The full content of the global registry depends on the installed libraries and on the
+summarizers registered so far, so it is not shown here:
 
 ```pycon
 >>> from coola.summary import get_default_registry

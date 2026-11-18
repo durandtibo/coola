@@ -4,11 +4,10 @@ This document describes the design that `coola.validation` should have, then the
 the current implementation (`main`, `dc8dc788`) to get there. The design follows the rules of the
 user guide (`docs/docs/uguide/validation.md`, **Properties**) and the architecture guide
 (`docs/docs/dev/architecture.md`: `validation` is a **core** package, it imports no feature
-package),
-and it is written in the same form as `review/recursive.md`. Its aim is a package that is **small,
-orthogonal and uniform**: a short list of validators, no validator that is a synonym of another one,
-one error-message format, one place where a comparison is evaluated. Breaking changes are accepted,
-and the future state is more important than the past one.
+package), and it is written in the same form as `review/recursive.md`. Its aim is a package that is
+**small, orthogonal and uniform**: a short list of validators, no validator that is a synonym of
+another one, one error-message format, one place where a comparison is evaluated. Breaking changes
+are accepted, and the future state is more important than the past one.
 
 Evidence comes from probes run on `main` (Python 3.14, NumPy 2, scripts kept outside the repository)
 and from a search of every call site in `src`. Items marked **[verified]** were reproduced;
@@ -20,8 +19,8 @@ and from a search of every call site in `src`. Items marked **[verified]** were 
    one-line wrappers (nine type checks are `validate_isinstance(value, X)`, four sign checks are
    `validate_ge/gt/le/lt(value, 0)`) and three are one range with two flags. Eight of the 26
    functions have no caller in `src` (section 2). Each wrapper costs a docstring, an export, a doc
-   entry and tests. The target
-   keeps a function only if it adds behaviour that the caller would otherwise have to write.
+   entry and tests. The target keeps a function only if it adds behaviour that the caller would
+   otherwise have to write.
 2. **Major release.** Breaking changes are fine and compatibility is not a design input: no alias,
    no deprecation period. The release notes list the removed names and the call-site rewrite.
 3. **Core package.** `coola.validation` imports only the standard library (import-linter contract
@@ -38,8 +37,7 @@ and from a search of every call site in `src`. Items marked **[verified]** were 
 ## 1. Properties of the sub-package
 
 These are the rules of the user guide, tightened where the code does not hold them today (section
-2).
-Every design choice below exists to make one of them true **by construction**: one helper builds
+2). Every design choice below exists to make one of them true **by construction**: one helper builds
 every message, one helper evaluates every comparison.
 
 | Property                   | Statement                                                                                                                                                                                                                                                    | Enforced by                                |
@@ -116,8 +114,7 @@ The message format is **one sentence**, the same for every validator:
 | bounds make an empty range | `<name>: the range [<low>, <high>] is empty` (a `ValueError`, section 4.3)             |
 
 The expected type is written once, by `_type_name`: a class gives its `__qualname__` (`int`), a
-tuple
-or a union gives `int or str`, an ABC gives its name (`Mapping`). `validate_int` and
+tuple or a union gives `int or str`, an ABC gives its name (`Mapping`). `validate_int` and
 `validate_number` pass a phrase (`an int`, `a real number`) because the article matters.
 
 ### 3.1 The helpers
@@ -252,8 +249,7 @@ bound, finite" stays visible at the call site).
   same `ValueError`, so the caller catches one exception type. `valid` that is not a container is a
   bug of the caller and its `TypeError` propagates. The listing of `valid` uses `reprlib` with a
   limit of 20 items (`one of ('a', 'b', ... )`), so the message of F9 is a few hundred characters,
-  and
-  the listing is built only on the failure path.
+  and the listing is built only on the failure path.
 
 ## 5. Dependents
 
@@ -290,12 +286,10 @@ run, Apple M1):
 
 The target `validate_range` evaluates `low <= value <= high` in one expression inside the `test`
 callable (a chained comparison is one bytecode sequence, and cheaper than two `operator` calls), so
-it
-is expected to be at most the current cost; `validate_ge/gt/le/lt` keep the current cost; the extra
-`low <= high` check of F8 adds about 30 ns. The gate (section 8) is "no slower than `main` beyond 10
-%
-on any of the seven rows above", measured in the same run. If a row regresses, the wrapper is
-inlined, not the design changed.
+it is expected to be at most the current cost; `validate_ge/gt/le/lt` keep the current cost; the
+extra `low <= high` check of F8 adds about 30 ns. The gate (section 8) is "no slower than `main`
+beyond 10 % on any of the seven rows above", measured in the same run. If a row regresses, the
+wrapper is inlined, not the design changed.
 
 Message probes **[verified]**: the 688,919-character message of F9; the nondeterministic set order
 (`{'b', 'a'}` and `{'a', 'b'}` in different processes); the raw exceptions of F4; `Decimal('NaN')`
@@ -324,15 +318,12 @@ imports).
 - **Type** (`test_type.py`): `validate_isinstance` with a class, a tuple and a union (the message
   asserted whole: `value must be an instance of int or str, got float`); `validate_int` and
   `validate_number`: `bool`, `None`, `str`, `numpy.int64`, `numpy.float32`, `Fraction`, `Decimal`;
-  the
-  `name` in every message; a subclass of `int` (accepted).
+  the `name` in every message; a subclass of `int` (accepted).
 - **Comparison** (`test_comparison.py`): for each of `ge/gt/le/lt`: below, equal, above, NaN,
-  `None`,
-  a `str`, an array with several items, a `date` (duck typing), `bool`; `validate_range`: the four
-  flag combinations at both bounds, inside, a NaN, an empty range, an incomparable value, bounds
-  that
-  are not comparable with each other; `validate_finite`: finite, `inf`, `-inf`, NaN, huge `int`,
-  `numpy.float32('inf')`, `None`, `True`, `Decimal`, an array.
+  `None`, a `str`, an array with several items, a `date` (duck typing), `bool`; `validate_range`:
+  the four flag combinations at both bounds, inside, a NaN, an empty range, an incomparable value,
+  bounds that are not comparable with each other; `validate_finite`: finite, `inf`, `-inf`, NaN,
+  huge `int`, `numpy.float32('inf')`, `None`, `True`, `Decimal`, an array.
 - **Container** (`test_container.py`): empty and non-empty list, `str`, `dict`, a NumPy empty array;
   an object without `len` (the named `TypeError`), a generator (not consumed: assert
   `next(gen)` still works afterwards); `validate_in`: present, absent, unhashable value against a
@@ -343,14 +334,12 @@ imports).
   message starts with `"<name> must be"` or `"<name> cannot be"` and contains the received value or
   type name. This is the executable form of the property "informative message".
 - **Purity**: the inputs are unchanged after success and failure (a list, a `dict`, a NumPy array),
-  an
-  iterator passed to `validate_not_empty` is not consumed, the calls are deterministic.
+  an iterator passed to `validate_not_empty` is not consumed, the calls are deterministic.
 - **Properties** (`tests/properties/test_validation.py`, extend): `validate_ge(x, y)` raises
   `ValueError` exactly when `x < y` for finite floats; `validate_range` equals the conjunction of
-  two
-  bound checks; a `float` outside `[low, high]` is a `ValueError`, inside is silent; the two flags
-  match the four mathematical intervals; `validate_finite` passes every finite float and rejects
-  `inf`, `-inf`, `nan`; `validate_int` rejects `bool`; the existing type tests stay for
+  two bound checks; a `float` outside `[low, high]` is a `ValueError`, inside is silent; the two
+  flags match the four mathematical intervals; `validate_finite` passes every finite float and
+  rejects `inf`, `-inf`, `nan`; `validate_int` rejects `bool`; the existing type tests stay for
   `validate_isinstance` and `validate_int`.
 - **Integration** (`tests/integration/`): the public arguments that call a validator (one per
   dependent of section 5) raise the unified message with the real validator, no patching
@@ -368,15 +357,14 @@ is the decided design; the text of each decision is kept as the reason.
 
 **D1. Delete the synonyms?** _Recommended: yes._ Thirteen of the 26 functions are a one-line wrapper
 and eight have no caller (F1, F2). They are the part of the package that grows (the range functions
-and the type shortcuts were added one by one) and each one needs a docstring, a doc entry, an
-export and tests. The cost for a user is writing `validate_isinstance(x, str)` instead of
+and the type shortcuts were added one by one) and each one needs a docstring, a doc entry, an export
+and tests. The cost for a user is writing `validate_isinstance(x, str)` instead of
 `validate_str(x)`, and `validate_gt(x, 0)` instead of `validate_positive(x)`; the gain is a package
 where the list of names can be read in ten seconds and the rule to add one is written down.
 Alternative: keep `validate_positive` and `validate_non_negative` (the two most used of the sign
 checks, 12 call sites) and drop the symmetric pair; cheaper to migrate, but then `negative` is
 missing and the list needs an explanation. The full set is not kept: the package is not a public
-toolbox for
-other libraries, which the user guide does not claim.
+toolbox for other libraries, which the user guide does not claim.
 
 Decision: **adopted**.
 
@@ -401,16 +389,14 @@ Decision: **adopted**.
 **D4. Raise on an empty range (F8)?** _Recommended: yes._ `validate_range(x, 1, 0)` cannot succeed;
 it is a programming error and the current message blames the value. A `ValueError` about the bounds
 costs one comparison. Alternative (rejected): leave it and document, because the failing message
-sends
-the reader to the wrong argument.
+sends the reader to the wrong argument.
 
 Decision: **adopted**.
 
 **D5. `validate_in` with an unhashable value: `ValueError` or `TypeError`?** _Recommended:
 `ValueError`._ From the point of view of the caller, `[]` is not one of the valid modes; the fact
-that
-the container is a `set` is an implementation detail. A `TypeError` would be right only if `valid`
-were not a container, and that case still raises (the bug of the caller). The cost is that a
+that the container is a `set` is an implementation detail. A `TypeError` would be right only if
+`valid` were not a container, and that case still raises (the bug of the caller). The cost is that a
 `valid` that is a string with a non-string value (`1 in "abc"` raises `TypeError`) is reported as a
 value error: acceptable, the message shows both.
 
@@ -457,8 +443,7 @@ np.ndarray)` works; a dtype check belongs to the package that owns the array lib
 | call sites      | n/a         | about plus 5   | `_validate_on_duplicate`, the `bool` test of `rounding` and the hand-made messages are deleted |
 
 The line counts are estimates from the current docstrings and from the code to delete; the gate is
-the
-behaviour (sections 1 and 8), not the size.
+the behaviour (sections 1 and 8), not the size.
 
 ## Status
 

@@ -42,9 +42,9 @@ instead of by more per-backend patches.
    dataclasses entered with `recursive=True`, stateless and thread-safe.
 5. **Optional libraries stay lazy.** `import coola.rounding` imports no optional library (verified:
    `numpy`, `torch`, `pandas`, `polars` and `pyarrow` are all absent from `sys.modules` after it)
-   and
-   `coola` still has zero hard dependencies. New: rounding a polars or a pyarrow object needs NumPy
-   (decision D3); without it `on_missing_package` decides: raise (default), warn or ignore (D9).
+   and `coola` still has zero hard dependencies. New: rounding a polars or a pyarrow object needs
+   NumPy (decision D3); without it `on_missing_package` decides: raise (default), warn or ignore
+   (D9).
 
 ## 1. Properties of the sub-package
 
@@ -148,10 +148,9 @@ the dtype of `x`:
 The grid point is found with float arithmetic and two checks, which is what makes the rule exact
 without `Decimal`. With `s = x * scale` and `k = floor(s)` the index is wrong by at most one in
 either direction, because `x * scale` is rounded; comparing the grid points **in the dtype of `x`**
-repairs it in both directions (the current code repairs one direction only, F2). For `"round"`
-the midpoint `(2k + 1) / (2 * scale)` is computed as a float of the dtype: `x == mid` is a halfway
-case if and only if `repr(x)` is the midpoint, as long as the grid is coarser than the spacing of
-the
+repairs it in both directions (the current code repairs one direction only, F2). For `"round"` the
+midpoint `(2k + 1) / (2 * scale)` is computed as a float of the dtype: `x == mid` is a halfway case
+if and only if `repr(x)` is the midpoint, as long as the grid is coarser than the spacing of the
 floats (the bound of the "Exact" row).
 
 ```python
@@ -188,8 +187,8 @@ for the other dtypes, `np.errstate(over="ignore", invalid="ignore")`).
 - **`round_float` (native).** The same formula on one `float`, with `math.floor`, integer `k` and
   `math.copysign`: about 15 lines, 0.30 µs per call, bit-identical to the NumPy kernel **[verified
   on 100,010 values, 3 modes, 5 values of `decimals`, signs of zero included]**. `int` (and `bool`)
-  are returned
-  as they are. The `Decimal` implementation is the specification and lives in the tests only (D2).
+  are returned as they are. The `Decimal` implementation is the specification and lives in the tests
+  only (D2).
 - **`round_torch`.** The same formula with `torch.floor`, `torch.where`, `torch.round` (which is
   half-to-even), the dtype of the tensor for the grid, `float32` instead of `float64` on `mps` (as
   today), `detach().clone()` for the integers. The result is bit-identical to the NumPy kernel for
@@ -201,8 +200,7 @@ for the other dtypes, `np.errstate(over="ignore", invalid="ignore")`).
 - **Tables.** The three adapters share one shape: find the floating-point columns, round each with
   `round_numpy` on its NumPy values, restore the nulls, put the column back with its name and dtype.
   - pandas: as today (`isetitem` keeps duplicate column names; the `pandas` nullable and Arrow
-    dtypes
-    already go through `to_numpy(na_value=nan)`); a Series of integers is returned as a copy.
+    dtypes already go through `to_numpy(na_value=nan)`); a Series of integers is returned as a copy.
   - polars: `pl.Series(name, round_numpy(s.to_numpy(), ...), dtype=s.dtype)` then `zip_with(
 s.is_not_null(), s)` when there are nulls. 20 lines instead of 40, no expression, no
     `Series / scalar` (F1). **[verified]** equal to the kernel on 1,000,000 values, in three modes,
@@ -277,19 +275,17 @@ def round_values(
 ```
 
 - `_round_object` does the lookup and the call; it is the only place that converts the registry
-  error
-  and that applies `on_missing_package`. When a rounder raises `MissingPackageError`: `"raise"`
-  raises `UnsupportedTypeError` naming the package, with the `MissingPackageError` as the cause;
-  `"warn"` emits a `UserWarning` naming the type and the package and returns `data` unchanged;
-  `"ignore"` returns `data` unchanged. The policy covers any rounder (a user rounder that needs a
-  missing package gets it too). A type with **no** rounder is not concerned: it raises
+  error and that applies `on_missing_package`. When a rounder raises `MissingPackageError`:
+  `"raise"` raises `UnsupportedTypeError` naming the package, with the `MissingPackageError` as the
+  cause; `"warn"` emits a `UserWarning` naming the type and the package and returns `data`
+  unchanged; `"ignore"` returns `data` unchanged. The policy covers any rounder (a user rounder that
+  needs a missing package gets it too). A type with **no** rounder is not concerned: it raises
   `UnsupportedTypeError` (kept by `recursive=True`), whatever the option.
 - With `recursive=True` the policy applies to each leaf, so `"raise"` stops the walk at the first
   polars or pyarrow leaf and `"warn"` warns once per leaf (the default warning filter shows one per
   location).
 - `_round_leaf` calls it and catches **only** `UnsupportedTypeError` (F5). A string, `None` or a
-  date
-  inside a nested structure is kept; a bug in a rounder is not hidden.
+  date inside a nested structure is kept; a bug in a rounder is not hidden.
 - `validate_arguments` also checks `on_missing_package` (`"raise"`, `"warn"` or `"ignore"`) before
   any work. It accepts any integer (`operator.index`), so `np.int64(2)` works (F8), and still
   rejects `bool` and `float`. The messages do not change.
@@ -376,8 +372,8 @@ One branch and one pull request per step (`CLAUDE.md`). The order keeps every st
 | 5    | **Documentation.** Rewrite `uguide/rounding.md` (**Properties** table of section 1, the rule, the extension example, the exactness bound, a table of the behaviour by type), the package docstring, `dev/add_backend.md`, the "Rounding" paragraph of `dev/architecture.md`, the migration page (results change, `UnsupportedTypeError`, NumPy for polars and pyarrow, `on_missing_package`), and the status table of `review/suggestions.md`.             | no                                    |
 | 6    | **Benchmarks and gate.** `tests/benchmarks/test_rounding_benchmark.py` (section 8).                                                                                                                                                                                                                                                                                                                                                                        | no                                    |
 
-Status of the steps (stacked pull requests): step 1 #2596, step 2 #2597, step 3 #2599, step
-4 #2600, step 5 this documentation pull request; step 6 (benchmarks) follows it.
+Status of the steps (stacked pull requests): step 1 #2596, step 2 #2597, step 3 #2599, step 4 #2600,
+step 5 this documentation pull request; step 6 (benchmarks) follows it.
 
 Steps 2 and 3 are independent of 4; step 1 must come first so that every fix has a failing test
 before it (`git stash push src`, as `CLAUDE.md` asks).
@@ -414,8 +410,7 @@ imports, the whole composite output asserted against a literal at least once).
   nested output asserted against a literal; `on_missing_package` with a rounder that raises
   `MissingPackageError`: `"raise"` gives `UnsupportedTypeError` with the cause, `"warn"` warns and
   returns the same object, `"ignore"` returns it silently, an invalid value raises before any work,
-  a
-  type with no rounder raises in all three, and with `recursive=True` the policy applies per leaf.
+  a type with no rounder raises in all three, and with `recursive=True` the policy applies per leaf.
   These are patched unit tests; the integration test below exercises the real case.
 - **Properties** (`tests/properties/test_rounding.py`, hypothesis, floats with 1 to 17 significant
   digits and the neighbours of grid points): result equals the oracle while `abs(x) * 10**d <
@@ -427,8 +422,8 @@ imports, the whole composite output asserted against a literal at least once).
   group entry (as the other packages test theirs); `round_values(recursive=True)` on a dataclass
   holding an array, a Series and a float; a subprocess without NumPy rounding a polars or a pyarrow
   object with the three values of `on_missing_package` (no patching); threads running `round_values`
-  on the default registry
-  with a lock around the shared list (`run_threads`, docstring "Test that ..."); lazy imports.
+  on the default registry with a lock around the shared list (`run_threads`, docstring "Test that
+  ..."); lazy imports.
 - **Doctests** run as part of the docstrings; the guide examples are doctests.
 - **Benchmark gate** (`tests/benchmarks/test_rounding_benchmark.py`, new): a Python float; 1,000,000
   `float64` in NumPy, torch, polars and pyarrow; a pandas Series; a list and a nested dict of
@@ -453,9 +448,8 @@ Decision: follow recommendation
 **D2. The native scalar: the float formula or `Decimal`?** _Recommended: the float formula._
 `Decimal(repr(x)).quantize(...)` is simple and exact, but it costs about 1.2 µs and needs a context
 for huge exponents (it raises `InvalidOperation` for `decimals=400`). The float formula costs 0.30
-µs, is bit-identical to the arrays by
-construction, and the `Decimal` version stays in the tests as the independent oracle: a kernel
-checked against a copy of itself proves nothing.
+µs, is bit-identical to the arrays by construction, and the `Decimal` version stays in the tests as
+the independent oracle: a kernel checked against a copy of itself proves nothing.
 
 Decision: follow recommendation
 
@@ -496,18 +490,17 @@ message already names the rule. Revisit with the request; the rule of section 3.
 
 Decision: follow recommendation
 
-**D7. Nested columns of a table (`list<float>`, struct).** _Recommended: left unchanged, documented._
-Entering them needs a second walk (Arrow lists, polars `List`) in two libraries and is a different
-feature (rounding the values inside the cells). The property "only floating-point columns" states
-it.
+**D7. Nested columns of a table (`list<float>`, struct).** _Recommended: left unchanged,
+documented._ Entering them needs a second walk (Arrow lists, polars `List`) in two libraries and is
+a different feature (rounding the values inside the cells). The property "only floating-point
+columns" states it.
 
 Decision: follow recommendation
 
 **D8. Where the guarantee stops.** _Recommended: document `1e13`, do not widen it._ The first
 mismatch measured is at `9.9e13`, and the error is one step, but a proof is out of reach with
-floats.
-Past the bound the answer is still a grid point within one step; a user who needs exactness at 15
-digits uses `Decimal` with a registered rounder.
+floats. Past the bound the answer is still a grid point within one step; a user who needs exactness
+at 15 digits uses `Decimal` with a registered rounder.
 
 Decision: follow recommendation
 

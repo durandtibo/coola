@@ -74,8 +74,7 @@ The entries are self-delimiting (a marker `0xFF` and a fixed width, or a size), 
 concatenation unambiguous without other delimiters. A short leaf (a number, a short string) is part
 of the preimage of its parent instead of a BLAKE2b call of its own, which is what makes the flat
 containers fast. The leading `0x00`/`0x01` byte makes a leaf and a node with the same tag different.
-The
-registry dispatches on `type(data)` along the Method Resolution Order, so the most specific
+The registry dispatches on `type(data)` along the Method Resolution Order, so the most specific
 registered type wins. A scalar and a standard-library container have a constant tag, so a subclass
 hashes like its base; a user-defined class (dataclass, model, enum, custom object) uses its
 qualified name.
@@ -236,9 +235,8 @@ hashed (see `Path` below). Each of them is one hasher and one registration if yo
 The array libraries are only imported if they are installed. A NumPy array and a PyTorch tensor with
 the same content hash differently. Your own classes still need a registered hasher (a class with a
 `__coola_hash__()` method and a dataclass work without registration, see below). Otherwise
-`hash_object`
-raises a `TypeNotRegisteredError` that lists the remedies (or hashes a placeholder with
-`ignore_unhashable=True`). To change what is part of the hash, register your own hasher, for
+`hash_object` raises a `TypeNotRegisteredError` that lists the remedies (or hashes a placeholder
+with `ignore_unhashable=True`). To change what is part of the hash, register your own hasher, for
 example for NumPy arrays:
 
 ```pycon
@@ -384,14 +382,12 @@ include:
 - `NumpyArrayHasher`, `TorchTensorHasher`, `JaxArrayHasher` - hash the dtype, the shape and the
   values of an array or of a tensor (require the corresponding package)
 - `PandasSeriesHasher`, `PandasDataFrameHasher`, `PolarsSeriesHasher`, `PolarsDataFrameHasher` -
-  hash
-  the names, the dtypes and the values of a series or of a data frame (require the corresponding
-  package)
+  hash the names, the dtypes and the values of a series or of a data frame (require the
+  corresponding package)
 - `PyarrowArrayHasher`, `PyarrowTableHasher` - hash the types and the values of a PyArrow array or
   table (require `pyarrow`)
 - `XarrayHasher` - hashes the dimensions, the values, the coordinates, the attributes and the name
-  of
-  an xarray `DataArray`, `Dataset` or `Variable` (requires `xarray`)
+  of an xarray `DataArray`, `Dataset` or `Variable` (requires `xarray`)
 
 A hasher describes the content of a type with `encode`; the engine does the hashing. Each hasher
 can be used directly to see that description:
@@ -425,8 +421,7 @@ registered hasher for an object's type, using the Method Resolution Order (MRO):
 
     `get_default_registry` exists in several `coola` subpackages with different return types.
     `get_default_hasher_registry` is an alias of the same function with a more explicit name, which
-    avoids
-    import collisions.
+    avoids import collisions.
 
 `get_default_registry` returns the singleton registry used internally by `hash_object`. Because
 it is a singleton, any modification made via `register_hashers` affects every subsequent call:
@@ -453,12 +448,11 @@ If you need an isolated registry instead of mutating the shared singleton, creat
 
 A registry maps _types_ to hashers, so it cannot say "every dataclass" or "every class with a
 `__coola_hash__()` method". `HasherRegistry.register_fallback(predicate, hasher)` registers a hasher
-for the
-types that satisfy a predicate. A fallback is only used if no hasher is registered for the type or
-for one of its parent types (`object` excluded), so a hasher registered for a type always wins. The
-default registry
-has two fallbacks: dataclasses (`DataclassHasher`) and the classes with a `__coola_hash__()` method
-(`ContentHasher`). A dataclass that also defines `__coola_hash__()` uses the dataclass hasher.
+for the types that satisfy a predicate. A fallback is only used if no hasher is registered for the
+type or for one of its parent types (`object` excluded), so a hasher registered for a type always
+wins. The default registry has two fallbacks: dataclasses (`DataclassHasher`) and the classes with a
+`__coola_hash__()` method (`ContentHasher`). A dataclass that also defines `__coola_hash__()` uses
+the dataclass hasher.
 
 ```pycon
 >>> from coola.hashing import HasherRegistry, SequenceHasher, DataclassHasher
@@ -478,9 +472,8 @@ predicate can only be registered once (`AlreadyRegisteredError`, unless `exist_o
 its position); if several predicates match, the first registered one wins.
 
 `HasherRegistry.unregister_fallback(predicate)` removes a fallback and returns its hasher, `clear()`
-removes the hashers
-and the fallbacks, and `equal()` compares the fallbacks (predicates, in order, and hashers) as well
-as the hashers.
+removes the hashers and the fallbacks, and `equal()` compares the fallbacks (predicates, in order,
+and hashers) as well as the hashers.
 
 ## Custom Objects
 

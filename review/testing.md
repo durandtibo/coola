@@ -289,17 +289,16 @@ test, literal expected values, a regression test for every bug, no local imports
   (Kept: these are fast and about the function.)
 - **The table**: **one** parametrised test per property over `_DEPENDENCIES` (not five pasted
   lists): every key gives a pair of marks; the two marks are opposite (`args[0]` differs); the
-  reasons start with "Requires " / "Skip if " and the second ends with " is available". To stay
-  fast the test patches the check of the key (`monkeypatch.setitem(_DEPENDENCIES, key,
+  reasons start with "Requires " / "Skip if " and the second ends with " is available". To stay fast
+  the test patches the check of the key (`monkeypatch.setitem(_DEPENDENCIES, key,
 _Dependency(lambda: True, "X"))`) instead of importing `torch`, `jax` and `pandas`; the real
   checks are covered by the integration test below.
-- **The lazy `__getattr__`**: an unknown name raises `AttributeError` that names the module and
-  the attribute (kept); the message lists the valid names (new); the marks are cached and created
+- **The lazy `__getattr__`**: an unknown name raises `AttributeError` that names the module and the
+  attribute (kept); the message lists the valid names (new); the marks are cached and created
   together (kept, reduced to two tests); `__all__` equals `["requires"]` plus the two names of every
   row, asserted against a fully-specified literal built from a **two-row table** patched into the
   module (no assertion on `len == 28`, which fails each time a dependency is added); `dir()`
-  contains
-  the marks.
+  contains the marks.
 - **Removed**: `test_all_exports_new_not_available_fixtures`, `test_requires_is_in_all`,
   `test_requires_is_callable` (tests of `__all__` and `callable`), `test_all_names_are_markers`
   (duplicate), `len(MARK_NAMES) == 28`, the three `*_is_opposite_of_*` tests (covered by the
@@ -345,12 +344,11 @@ confusion stays for every new reader.
 
 **Decision: yes.** Rename `fixtures.py` to `marks.py` and `registries.py` to `fixtures.py` (step 3).
 
-**D2. How a suite gets the fixture.** _Recommended: `pytest_plugins = ["coola.testing.fixtures"]`
-in the top-level `conftest.py`, documented._ It is the supported mechanism, needs no `__all__`
-hack and no re-export in each directory. Alternatives: (a) keep the re-export in `conftest.py`
-(works, F2 boilerplate); (b) register `coola.testing.fixtures` through a `pytest11` entry point so
-it
-is loaded in every session where `coola` and `pytest` are installed. (b) is the least typing but
+**D2. How a suite gets the fixture.** _Recommended: `pytest_plugins = ["coola.testing.fixtures"]` in
+the top-level `conftest.py`, documented._ It is the supported mechanism, needs no `__all__` hack and
+no re-export in each directory. Alternatives: (a) keep the re-export in `conftest.py` (works, F2
+boilerplate); (b) register `coola.testing.fixtures` through a `pytest11` entry point so it is loaded
+in every session where `coola` and `pytest` are installed. (b) is the least typing but
 **intrusive**: `coola` is a dependency of ML code, and a library should not add a plugin and a
 fixture name to the sessions of projects that did not ask for it. Not recommended. The fixture is
 **not** autouse in any case: isolation costs a copy of six registries per test and most tests do not

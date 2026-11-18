@@ -26,8 +26,7 @@ is `dict` with `str` keys, `list`, `str`, `int`, `float`, `bool` and `None`.
 
 The conversion is chosen from the type of each value, along the Method Resolution Order. The
 containers are entered at any depth, and the optional libraries (NumPy, PyTorch, JAX, pandas,
-polars, pyarrow, xarray, pydantic) are
-imported only when a value of that library is converted.
+polars, pyarrow, xarray, pydantic) are imported only when a value of that library is converted.
 
 | Type                                                  | JSON value                                              |
 | ----------------------------------------------------- | ------------------------------------------------------- |
@@ -97,8 +96,7 @@ Not guaranteed:
 - **`numpy.longdouble`.** Its `tolist` keeps NumPy scalars, so it raises a `TypeError`; cast to
   `float64` first.
 - **Tables.** Data frames, tables and datasets have no single JSON shape; they are not converted
-  until
-  you say how (see below).
+  until you say how (see below).
 
 ## Unsupported values
 
@@ -124,17 +122,15 @@ TypeError: Cannot convert an object of type Obj to JSON: register a ConvertTrans
 ```
 
 With `"warn"` and `"keep"` the result may contain objects that `json` rejects: you own them. A key
-that
-cannot become a string raises `TypeError` in the three modes, and an invalid `on_unsupported` raises
-`ValueError` before any work is done.
+that cannot become a string raises `TypeError` in the three modes, and an invalid `on_unsupported`
+raises `ValueError` before any work is done.
 
 ## Supporting a new type
 
 Register a `ConvertTransformer`: a function that maps a value to a simpler one. Its result is
 converted in turn, so it may return a container, a path or an array. A function must reduce the type
-to
-simpler ones: a function that returns a value of the same type raises a `TypeError`, and a cycle of
-types (A gives B, B gives A) never ends.
+to simpler ones: a function that returns a value of the same type raises a `TypeError`, and a cycle
+of types (A gives B, B gives A) never ends.
 
 ```pycon
 >>> from coola.jsonable import ConvertTransformer, register_transformers, to_jsonable
@@ -166,8 +162,7 @@ A package can register its types without a call from the user with the entry-poi
 ### Frames and tables
 
 A data frame has several usual shapes (a list of records, a dict of columns, ...) and none is
-neutral,
-so it is not converted until you choose one:
+neutral, so it is not converted until you choose one:
 
 ```python
 import pandas as pd
@@ -181,9 +176,8 @@ The same holds for polars, pyarrow and xarray objects.
 ### Pydantic models
 
 A model is dumped with `model_dump()` (Python mode) and converted by the registry, so the sets
-inside
-are sorted and the arrays are converted. A serializer declared with `when_used="json"` is therefore
-not applied. A model that needs its JSON mode registers
+inside are sorted and the arrays are converted. A serializer declared with `when_used="json"` is
+therefore not applied. A model that needs its JSON mode registers
 `ConvertTransformer(lambda model: model.model_dump(mode="json"))` for its class.
 
 ## Writing a JSON file
@@ -215,8 +209,7 @@ not applied. A model that needs its JSON mode registers
 - **Formatting the file** (indentation, `ensure_ascii`, sorted keys): the job of `json.dumps` and
   `JsonSaver(**kwargs)`.
 - **Big integers beyond 2^53.** A JSON reader in another language may lose them: the output keeps
-  the
-  Python `int`.
+  the Python `int`.
 
 ## See Also
 

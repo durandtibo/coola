@@ -8,12 +8,10 @@ rules that users rely on are in the [user guide](../uguide/random.md#properties)
 ## Constraints
 
 1. **Simple and easy to maintain.** The package seeds three libraries. The registry of managers
-   reuses
-   `coola.registry.Registry` instead of re-implementing it, and there is one way to scope a seed
-   (`random_seed`, or `Manager().seed`), not one function per library.
+   reuses `coola.registry.Registry` instead of re-implementing it, and there is one way to scope a
+   seed (`random_seed`, or `Manager().seed`), not one function per library.
 2. **Reproducible.** Reproducibility of the user's experiments is the whole point of the package:
-   the
-   random numbers produced by a seed must not change between versions (see
+   the random numbers produced by a seed must not change between versions (see
    [the NumPy seed](#design-choices-and-trade-offs)).
 3. **Standalone helper.** `coola.random` imports only core packages (`registry`, `utils`,
    `display`). It is not a type-dispatch registry and does not become one (the key of a manager is a
@@ -67,8 +65,8 @@ state beyond the key to manager mapping.
 | `sample_torch_seed(seed)`                       | A deterministic seed in `[0, 2**63 - 1)` derived from `seed`, valid for `manual_seed` (lazy export). |
 
 There is no `numpy_seed` or `torch_seed` shortcut: `NumpyRandomManager().seed(42)` is the same
-context
-manager with the same name as every other manager, and `random_seed(42)` covers the common case.
+context manager with the same name as every other manager, and `random_seed(42)` covers the common
+case.
 
 ### The contract of a manager
 
@@ -136,8 +134,7 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
 ```
 
 `get_rng_state` and `set_rng_state` of the torch manager cover the CPU, CUDA (only if initialized)
-and
-MPS generators, with a check of the CUDA device count and of MPS on restore.
+and MPS generators, with a check of the CUDA device count and of MPS on restore.
 
 ### `RandomManagerRegistry`
 

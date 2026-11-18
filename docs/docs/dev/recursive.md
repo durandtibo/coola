@@ -17,12 +17,10 @@ split as the equality engine, where a tester returns the child pairs.
 ## Constraints
 
 1. **Simple and easy to maintain.** One function, one engine, one extension point. A transformer
-   only
-   describes a shape; there is no thread-local cycle state, no recursion-limit translation and no
-   per-type workaround in the callers.
+   only describes a shape; there is no thread-local cycle state, no recursion-limit translation and
+   no per-type workaround in the callers.
 2. **Fast.** `recursive_apply` is the engine of `nested`, `jsonable` and `round_values`. The
-   benchmark
-   gate must hold; a design that is simpler but slower is rejected.
+   benchmark gate must hold; a design that is simpler but slower is rejected.
 3. **Consistent with the siblings.** The same input is handled the same way by `equality`,
    `hashing`, `summary`, `iterator` and `recursive` (dataclasses are entered, iterators are leaves,
    cycles are detected, keyword-only options).
@@ -153,9 +151,8 @@ The registry API is `TransformerRegistry` with `register`, `register_many`, `fin
 `has_transformer`, `get_default_registry` (and its alias `get_default_transformer_registry`) and
 `register_transformers`. `Transformer` (a protocol) and `BaseTransformer` (an ABC) follow the family
 convention (`Hasher`/`BaseHasher`, `Summarizer`/`BaseSummarizer`): the protocol means a transformer
-from another library needs no import of `coola`. `recursive_apply` is `recursive_apply(data, func,
-*,
-registry=None)`.
+from another library needs no import of `coola`. `recursive_apply` is
+`recursive_apply(data, func, *, registry=None)`.
 
 The shortest extension example has no `func` and no registry to remember:
 
@@ -173,8 +170,7 @@ register_transformers({Point: PointTransformer()})
 All the rebuild rules live in `rebuild.py`, a documented public module (it is imported by `nested`)
 with `rebuild_sequence`, `rebuild_mapping` and `rebuild_set`. It is not re-exported from
 `coola.recursive`: it is the helper a custom container transformer needs, and re-exporting three
-more
-names would grow the top-level namespace for little gain.
+more names would grow the top-level namespace for little gain.
 
 - `rebuild_*` call the constructor of `type(data)`; if it raises a `TypeError`, they raise a
   `TypeError` that names the type and says "register a transformer for `<type>`", with the original
@@ -184,29 +180,24 @@ names would grow the top-level namespace for little gain.
   `ChainMap` is documented as flattened (its parents are not leaves of the structure), and is not
   special-cased: a user who needs it registers a transformer.
 - `rebuild_mapping` and `rebuild_sequence` accept any iterable, not only `dict`/`list`, so the
-  engine
-  does not allocate an intermediate container.
+  engine does not allocate an intermediate container.
 
 ### Dataclasses
 
 A dataclass is entered by default, like in `equality`, `hashing` and `summary`, so
 `recursive_apply(Config(...), f)` does not call `f` on the whole object. The rule is a fallback
 (`dataclasses.is_dataclass`), so a user who wants a dataclass as a leaf registers
-`DefaultTransformer()`
-for its type (a transformer registered for the type has priority over the fallback). An opt-in
-switch
-on a process-wide singleton would be the worst kind of switch for a library.
+`DefaultTransformer()` for its type (a transformer registered for the type has priority over the
+fallback). An opt-in switch on a process-wide singleton would be the worst kind of switch for a
+library.
 
 A dataclass is rebuilt as a shallow copy in which every field is set with `object.__setattr__`. It
 supports frozen and slotted dataclasses, transforms the `init=False` fields, supports an `InitVar`
 without a default, and never runs user code (`__init__`, `__post_init__`), so the traversal has no
-side
-effect. The cost is that a `__post_init__` that derives a field from another is not re-run, so a
-derived field can become inconsistent with the field it was derived from after `func`; a user who
-needs
-that registers a transformer. `dataclasses.replace` would re-validate through `__post_init__`, with
-the
-limits of `init=False` fields and `InitVar`.
+side effect. The cost is that a `__post_init__` that derives a field from another is not re-run, so
+a derived field can become inconsistent with the field it was derived from after `func`; a user who
+needs that registers a transformer. `dataclasses.replace` would re-validate through `__post_init__`,
+with the limits of `init=False` fields and `InitVar`.
 
 ## Public API
 
@@ -229,8 +220,7 @@ from coola.recursive import (
 ```
 
 `exist_ok` of `register_transformers` is keyword-only. `TransformerRegistry.transform(data, func)`
-is
-the registry-level entry point and calls the engine.
+is the registry-level entry point and calls the engine.
 
 ## Dependents
 
@@ -245,27 +235,22 @@ the registry-level entry point and calls the engine.
 ## Design choices and trade-offs
 
 **Shared containers are not memoized.** Memoizing by `id` would fix the exponential cost of a DAG
-and
-keep the aliasing of the input, but a container would be transformed once while `func` is called
-once
-per occurrence for its leaves today; an impure `func` (a counter, a random draw, a call that logs)
-would change behaviour, and the output would alias containers that the caller may then mutate
+and keep the aliasing of the input, but a container would be transformed once while `func` is called
+once per occurrence for its leaves today; an impure `func` (a counter, a random draw, a call that
+logs) would change behaviour, and the output would alias containers that the caller may then mutate
 independently. A DAG with millions of paths is rare, and `dfs_iterate` also yields the leaves once
-per
-path.
+per path.
 
 **The path of a failure is not reported.** With `expand` returning only the children, the path (a
-key,
-an index) is not known. An exception raised by `func` would be more useful with the path
+key, an index) is not known. An exception raised by `func` would be more useful with the path
 (`exc.add_note("at ['a'][2]")`), but that needs the label of each child (a second element in
 `children`, as the `equality` testers return) and costs a tuple per child on the hot path. The
-`expand`
-contract can be extended by returning `(label, child)` pairs without changing the structure of the
-engine loop.
+`expand` contract can be extended by returning `(label, child)` pairs without changing the structure
+of the engine loop.
 
 **Protocol and ABC.** `Transformer` (protocol) and `BaseTransformer` (ABC) match
-`Hasher`/`BaseHasher`
-and `Summarizer`/`BaseSummarizer`; dropping the ABC would be a change of the three packages.
+`Hasher`/`BaseHasher` and `Summarizer`/`BaseSummarizer`; dropping the ABC would be a change of the
+three packages.
 
 **The container table is shared by convention, not by code.** The iterator and the transformers have
 different contracts (`expand` returns the children and the rebuild function; the iterator needs the
@@ -275,8 +260,7 @@ children only), so they keep separate registries.
 
 - Keys: no transformer for the keys of a mapping in `recursive`. `nested` has a private one
   (`_KeyTransformer`); a public `MapKeysTransformer(key_func)` is one `expand` away if a second
-  package
-  needs it.
+  package needs it.
 - Pydantic models, attrs classes and plain objects with `__dict__`: leaves. `equality`
   enters pydantic models; a `PydanticTransformer` is registered lazily the way the equality tester
   is (`register_lazy`) and is a separate item.

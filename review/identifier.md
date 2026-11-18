@@ -54,8 +54,7 @@ Not guaranteed, and documented as such:
   and across registries other than the stable one.
 - **Unguessability** of any identifier (see "Identifier, not a secret").
 - **Collision resistance beyond the random width.** A UUID has 122 random bits: its birthday bound
-  is
-  2^61 whatever the hash behind it.
+  is 2^61 whatever the hash behind it.
 
 ## 2. Constraints
 
@@ -70,8 +69,7 @@ Not guaranteed, and documented as such:
    (golden vectors, section 9), because they are persisted by users.
 3. **Scope.** A generator stays if it is hard to write correctly (a bit layout, an encoding, a
    monotonic counter, a content hash) **and** safe to use. A one-line wrapper of the standard
-   library
-   and a primitive that looks like encryption do not stay (decision D1).
+   library and a primitive that looks like encryption do not stay (decision D1).
 4. **No slower than today.** The prototype of section 7 is faster than `main` for the four
    time-ordered generators; the benchmark gate of section 9 must hold.
 5. **Consistent with the siblings.** Strict types and ranges from `coola.validation`, keyword-only
@@ -119,8 +117,7 @@ coola/identifier/
 
 Removed modules: `uuid4.py`, `nanoid.py`, `prefixed.py`, `obfuscated.py`, `uuid5.py` (merged into
 `content.py`), `monotonic.py` (renamed `sequence.py`), `validation.py` (split: the range checks go
-to
-`coola.validation`, the alphabet and the decoder to `crockford.py`).
+to `coola.validation`, the alphabet and the decoder to `crockford.py`).
 
 There are two families and nothing else:
 
@@ -130,10 +127,8 @@ There are two families and nothing else:
   and no fork code: it asks the engine for a `(tick, counter)` pair and packs it.
 
 `checksummed.py` is the only module of a third kind (a random code for a human). It stays because
-the
-Crockford checksum is a real piece of work that nobody should rewrite, and it shares the decoder
-with
-ULID.
+the Crockford checksum is a real piece of work that nobody should rewrite, and it shares the decoder
+with ULID.
 
 ### 4.1 The engine: one clock rule
 
@@ -179,15 +174,14 @@ Design points:
   that went back) increments, an exhausted counter borrows the next tick. No case raises or waits,
   so no case needs a lock to be held for longer than a few operations.
 - **Strictly increasing is a property of the pair**, and the pair is packed with the tick in the
-  high
-  bits, so the packed value (and its string form for ULID, UUIDv7 and ObjectId) sorts like the pair.
+  high bits, so the packed value (and its string form for ULID, UUIDv7 and ObjectId) sorts like the
+  pair.
 - **The timestamp may run ahead of the wall clock** (burst or backward step); this is stated in the
   guide (section 1, "Not guaranteed"). For Snowflake it happens above 4,096 identifiers per
   millisecond (4 million per second).
 - **The validation of the packed timestamp stays in the format module** (a ULID timestamp is 48
-  bits,
-  a Snowflake one is 41 bits from its epoch), after `next`, so a borrowed tick that leaves the range
-  raises a `ValueError` like an explicit one.
+  bits, a Snowflake one is 41 bits from its epoch), after `next`, so a borrowed tick that leaves the
+  range raises a `ValueError` like an explicit one.
 
 ### 4.2 The formats
 
@@ -275,12 +269,11 @@ needed.
 - `generate_checksummed_id(*, length=12, group_size=4, sep="-")` and
   `verify_checksummed_id(identifier, *, sep="-")`: keyword-only options (F4).
 - **The generator never emits the extended check symbols.** If the mod-37 remainder of the payload
-  is
-  32 or more, the payload is drawn again (5 of 37 payloads, 1.16 draws on average), so the
-  identifier
-  is made of `0-9A-Z` and the separator: safe in a shell, a URL and a spreadsheet (F9). The cost is
-  `log2(37/32)`, that is 0.21 bit of the entropy of a 60-bit payload. `verify_checksummed_id` still
-  accepts the five symbols of the specification, so identifiers from another implementation verify.
+  is 32 or more, the payload is drawn again (5 of 37 payloads, 1.16 draws on average), so the
+  identifier is made of `0-9A-Z` and the separator: safe in a shell, a URL and a spreadsheet (F9).
+  The cost is `log2(37/32)`, that is 0.21 bit of the entropy of a 60-bit payload.
+  `verify_checksummed_id` still accepts the five symbols of the specification, so identifiers from
+  another implementation verify.
 - `sep` must not be in the 32-character alphabet (it is stripped before the check), which is shorter
   to state than "the extended alphabet".
 - `verify_checksummed_id` returns `False` and never raises, for a wrong type, a non-ASCII character
@@ -386,10 +379,9 @@ Unit tests mirror the source tree (`tests/unit/identifier/`); the conventions of
 (one behaviour per test, literal expected values, a regression test for every bug, no local imports,
 no loop in a unit test).
 
-- **Engine** (`test_sequence.py`, replaces `test_monotonic.py`), with `time.time_ns` patched:
-  a new tick restarts the counter (random: the value comes from `secrets`; `random_start=False`:
-  `0`);
-  the same tick increments; a backward clock keeps the tick and increments; an exhausted counter
+- **Engine** (`test_sequence.py`, replaces `test_monotonic.py`), with `time.time_ns` patched: a new
+  tick restarts the counter (random: the value comes from `secrets`; `random_start=False`: `0`); the
+  same tick increments; a backward clock keeps the tick and increments; an exhausted counter
   (`bits=1`) borrows the next tick and restarts; `tick_ns` divides the clock; two sequences are
   independent. The thread test is in `tests/integration/` without patching.
 - **Each format** (`test_ulid.py`, `test_uuid7.py`, `test_objectid.py`, `test_snowflake.py`):
@@ -411,8 +403,7 @@ no loop in a unit test).
   separators rejected, `verify` for lower case and the confusable letters, `False` for a wrong type,
   non-ASCII, too short, and every wrong-symbol case.
 - **Properties** (`tests/properties/test_identifier.py`, rewritten: the obfuscated tests go away
-  with
-  their module):
+  with their module):
   - round trip `extract(generate(timestamp)) == timestamp` for the four formats;
   - for `t1 < t2`, the identifier of `t1` sorts before the identifier of `t2` (string order for
     ULID, UUIDv7 and ObjectId, numeric for Snowflake), whatever the random part;
@@ -422,9 +413,8 @@ no loop in a unit test).
   - the stable identifiers of two equal-but-reordered mappings are equal.
 - **Integration** (`tests/integration/identifier/`): threads (8 threads x 1,000 calls, with a lock
   around the shared list and the docstring "Test that ...") are unique and, per thread, increasing
-  for
-  the four formats; 200,000 sequential Snowflake identifiers (more than 4,096 per millisecond) are
-  strictly increasing and never raise; `os.fork`: a child of ULID, UUIDv7 and ObjectId does not
+  for the four formats; 200,000 sequential Snowflake identifiers (more than 4,096 per millisecond)
+  are strictly increasing and never raise; `os.fork`: a child of ULID, UUIDv7 and ObjectId does not
   repeat the identifiers of its parent, a child of a `SnowflakeIdGenerator` raises, a lock held at
   the fork does not block the child (the tests of `test_fork.py`, updated); the stable identifiers
   do not change when a plugin hasher is registered in the default registry.
@@ -436,8 +426,7 @@ no loop in a unit test).
 ## 10. Decisions
 
 All eight decisions were taken by the maintainers and follow the recommendation. The alternatives
-are
-kept to explain what was rejected.
+are kept to explain what was rejected.
 
 | Decision | Taken                                                                                      |
 | -------- | ------------------------------------------------------------------------------------------ |
@@ -455,16 +444,14 @@ time-ordered formats and the checksummed identifier; remove `uuid4`, `nanoid`, `
 `obfuscated`._ The rule is the one of section 2: a generator stays if it is hard to write correctly
 and safe. `uuid4`, `prefixed` and `nanoid` are a line of the standard library (section 5), cost 3
 modules (4 with `obfuscated`), and each one has to be documented, tested and kept consistent with
-the others.
-`obfuscated` is the one with a real argument against it: it looks like encryption, leaks the parity,
-is broken by two pairs, and needs a 47-line module docstring on its limits; a user who needs an
-opaque public identifier
-should get one from a library made for it. Alternatives: (B) keep everything and apply only steps
-1, 3, 4, 5, 6 and 7, with `Callable`-based `prefixed` and the fixes of F4 and F5 for the four
-modules
-(about 420 more lines of source and 480 of tests to maintain), or (C) move the whole package to a
-separate distribution and keep only `content.py` in `coola`. (C) is the cleanest layering, and the
-most work for the users; it is worth considering if the time-ordered formats keep growing.
+the others. `obfuscated` is the one with a real argument against it: it looks like encryption, leaks
+the parity, is broken by two pairs, and needs a 47-line module docstring on its limits; a user who
+needs an opaque public identifier should get one from a library made for it. Alternatives: (B) keep
+everything and apply only steps 1, 3, 4, 5, 6 and 7, with `Callable`-based `prefixed` and the fixes
+of F4 and F5 for the four modules (about 420 more lines of source and 480 of tests to maintain), or
+(C) move the whole package to a separate distribution and keep only `content.py` in `coola`. (C) is
+the cleanest layering, and the most work for the users; it is worth considering if the time-ordered
+formats keep growing.
 
 **Decided: A.**
 
@@ -488,8 +475,7 @@ global.
 step costs accuracy of the embedded timestamp (it runs ahead), never order or uniqueness, and the
 Snowflake `RuntimeError` / `time.sleep` code, its tests and the guide paragraph on NTP disappear.
 Alternative: keep the `RuntimeError` for Snowflake only, as a strict clock check; it needs the
-second
-rule back in `snowflake.py`, and the user must retry.
+second rule back in `snowflake.py`, and the user must retry.
 
 **Decided: as recommended.**
 
@@ -504,9 +490,8 @@ reads the same bytes. Alternative: keep the layout with a per-process value stor
 
 **D6. Strict extractors.** _Recommended: only the canonical form._ `extract_uuid7_timestamp_ms`
 takes the 36-character form that `generate_uuid7` returns (any case), not `{...}` or `urn:uuid:`;
-the
-ObjectId extractor takes 24 hex characters; the ULID extractor takes 26 Crockford characters (with
-the `O`/`I`/`L` rule). A caller who has a `uuid.UUID` passes `str(...)`. Alternative: accept
+the ObjectId extractor takes 24 hex characters; the ULID extractor takes 26 Crockford characters
+(with the `O`/`I`/`L` rule). A caller who has a `uuid.UUID` passes `str(...)`. Alternative: accept
 `uuid.UUID | str`; one `isinstance` more, and the same function for the two inputs.
 
 **Decided: as recommended.**
@@ -606,10 +591,9 @@ Reading the numbers:
   input (one `uuid.uuid5`), nothing measurable on the nested one. Merging the two modules (step 6)
   must not change these rows.
 - **The checksummed generator is the slowest row** (3.9 µs, 38.7 ms per 10,000): the mod-37 decode
-  of
-  the payload is a Python loop over the characters. The rejection sampling of step 7 draws a payload
-  again in 5 of 37 cases (1.16 draws on average), so expect about 1.16 times this cost for the
-  generator, and no change for `verify_checksummed_id`; the shared `crockford.decode` of step 3
+  of the payload is a Python loop over the characters. The rejection sampling of step 7 draws a
+  payload again in 5 of 37 cases (1.16 draws on average), so expect about 1.16 times this cost for
+  the generator, and no change for `verify_checksummed_id`; the shared `crockford.decode` of step 3
   should keep both rows within 10 % of the old numbers.
 - **Not in the table:** the behaviour that no benchmark of speed can show (strictly increasing
   values, the Snowflake burst above 4,096 identifiers per millisecond, which today sleeps and

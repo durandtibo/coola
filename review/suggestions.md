@@ -1,19 +1,17 @@
 # Codebase review: suggestions (round 8)
 
 This file **replaces the previous `review/suggestions.md`** (round 7, items 43 to 52). That version
-is
-in git history (last touched by `bc4a251d`). Nothing below repeats an item of round 7 or of the
+is in git history (last touched by `bc4a251d`). Nothing below repeats an item of round 7 or of the
 `review/<package>.md` design documents, except where an item is explicitly marked _carried over_.
 
 The numbering **continues** the previous rounds (sections 53 to 66), so that an ID such as `54.1` in
-a
-branch name or a commit message is unambiguous.
+a branch name or a commit message is unambiguous.
 
 ## How this review was done
 
 Checkout of `main` at `abdd23d1` (`.venv`, Python 3.14.8; NumPy, pandas, polars, pyarrow, torch,
-xarray,
-JAX, pydantic and SciPy at the versions of the lock file). Baseline, run on the clean checkout:
+xarray, JAX, pydantic and SciPy at the versions of the lock file). Baseline, run on the clean
+checkout:
 
 - `pytest tests/unit tests/integration`: 13855 passed, 34 skipped, 47 xfailed, **1 failed**
   (`test_real_mark_is_importable_in_a_generated_module`, the round-6 item 39.1, red again), in 37 s,
@@ -31,14 +29,12 @@ What was done:
    and 34.1 (item 54.2).
 2. **Probes**, about 450 one-line calls (scripts kept outside the repository): 75 stdlib and exotic
    values through `objects_are_equal` and `hash_object` (equality and hash must agree), 62 pandas,
-   polars,
-   pyarrow and xarray values (dtype, names, attrs, NA kinds, categoricals, chunking), `io`,
-   `factory`,
-   `identifier`, `random`, `nested`, `recursive`, `iterator`, `reducer`, `rounding`, `summary`.
+   polars, pyarrow and xarray values (dtype, names, attrs, NA kinds, categoricals, chunking), `io`,
+   `factory`, `identifier`, `random`, `nested`, `recursive`, `iterator`, `reducer`, `rounding`,
+   `summary`.
 3. **Mechanical checks** with AST scripts over `src` and `tests`: public API surface of the 19
-   packages,
-   use of every `coola.utils` function by the rest of `src`, the rules of `CLAUDE.md` for the unit
-   tests.
+   packages, use of every `coola.utils` function by the rest of `src`, the rules of `CLAUDE.md` for
+   the unit tests.
 4. **Performance** of 35 operations at 1e5 to 1e6 items against the library baseline (`==`,
    `np.array_equal`, `DataFrame.equals`, `torch.equal`, `deepcopy`), plus a `cProfile` of
    `hash_object`.
@@ -49,17 +45,14 @@ What was done:
 
 The library is in very good shape: no crash on the 450 probes except the ones listed, the threads
 behave, the security-sensitive paths (`factory`, `io`) are conservative and documented, the hashes
-are
-independent of `PYTHONHASHSEED`, the CI covers the lowest and highest version of every optional
+are independent of `PYTHONHASHSEED`, the CI covers the lowest and highest version of every optional
 dependency but one (item 63). The findings are narrow: **two pandas cases where `objects_are_equal`
-is
-`True` and `hash_object` differs** (54.1, 54.2), **a red test whose cause is the formatter** (53),
-**`hash_object` that cannot hash what `objects_are_equal` compares** (55), and an **API surface that
-has drifted** (58, 59).
+is `True` and `hash_object` differs** (54.1, 54.2), **a red test whose cause is the formatter**
+(53), **`hash_object` that cannot hash what `objects_are_equal` compares** (55), and an **API
+surface that has drifted** (58, 59).
 
 Priority: **P1** wrong result, crash on realistic input or a red test on `main`, **P2** inconsistent
-or
-surprising behaviour, **P3** cleanup or design.
+or surprising behaviour, **P3** cleanup or design.
 
 ## Summary
 
@@ -85,8 +78,7 @@ surprising behaviour, **P3** cleanup or design.
 ## 53. The red test is a formatter problem, and it will come back (P1, _carried over_ 39.1) **[verified]**
 
 `tests/integration/testing/test_marks.py::test_real_mark_is_importable_in_a_generated_module` fails
-on
-`main`. The generated module is not valid Python:
+on `main`. The generated module is not valid Python:
 
 ```python
 pytester.makepyfile(
@@ -103,13 +95,11 @@ pytester.makepyfile(
 `From` is capitalised and the import line is wrapped and ends with a full stop. The cause is the
 `docformatter` hook of `.pre-commit-config.yaml` (and `bot-format-files.yaml`): it takes the string
 literal that is the only argument of the call for a docstring and rewrites it as prose. Reproduced
-with
-`docformatter --config ./pyproject.toml --diff` on a copy of the correct source. The history
-confirms
-it: `f9ade729` (#2696) fixed the source, `bc9e1534` (#2713, "Minor improvements") ran the formatter
-and
-broke it again. Fixing the text a third time is not a fix. What docformatter leaves alone is a
-module-level constant (checked: `SOURCE = """..."""` is unchanged, a keyword argument is not):
+with `docformatter --config ./pyproject.toml --diff` on a copy of the correct source. The history
+confirms it: `f9ade729` (#2696) fixed the source, `bc9e1534` (#2713, "Minor improvements") ran the
+formatter and broke it again. Fixing the text a third time is not a fix. What docformatter leaves
+alone is a module-level constant (checked: `SOURCE = """..."""` is unchanged, a keyword argument is
+not):
 
 ```python
 SOURCE = """
@@ -151,14 +141,11 @@ hash_object(da) == hash_object(db)  # True: the frame and the series do not agre
 
 The Series hasher and the DataFrame hasher normalise the missing values differently, so the same
 column hashes differently depending on its container. `generate_stable_content_id` on a series is
-then
-different for two series that the library calls equal. Proposal: one function in `hashing/pandas.py`
-that maps `None`, `nan`, `NaT` and `pd.NA` of an object array to one tag, used by both hashers, and
-a
-test that hashes `Series(x)` and `DataFrame({"c": x})` of the same data. Whether `objects_are_equal`
-should call `None` and `nan` equal when `equal_nan=False` is a separate question; the pandas answer
-is
-yes, and the test of the tester should say so.
+then different for two series that the library calls equal. Proposal: one function in
+`hashing/pandas.py` that maps `None`, `nan`, `NaT` and `pd.NA` of an object array to one tag, used
+by both hashers, and a test that hashes `Series(x)` and `DataFrame({"c": x})` of the same data.
+Whether `objects_are_equal` should call `None` and `nan` equal when `equal_nan=False` is a separate
+question; the pandas answer is yes, and the test of the tester should say so.
 
 ### 54.2 Categories in a different order **[verified]** (P2, _carried over_ 34.1)
 
@@ -176,9 +163,8 @@ the order. `a.equals(b)` of pandas is `True` for this pair, so the docstring and
 say that `coola` is stricter than `equals` here (as `assert_series_equal` with `check_categorical`
 is). The strict xfail `test_different_frames_have_different_hashes` ("pandas metadata") in
 `tests/properties/test_library_types.py` is exactly this case: I enumerated its 72 specs pair by
-pair,
-and the only 4 pairs where equality and hash disagree differ by the order of the categories of an
-unordered categorical (`["a", "b"]` against `["b", "a"]`). The test is right; once the tester is
+pair, and the only 4 pairs where equality and hash disagree differ by the order of the categories of
+an unordered categorical (`["a", "b"]` against `["b", "a"]`). The test is right; once the tester is
 strict it passes, so remove the xfail. Add a unit test of the tester with the pair above (`False`),
 one with the same categories in the same order (`True`) and one with `ordered` different (`False`).
 
@@ -199,22 +185,18 @@ test per row so that a library upgrade that changes `equals` is noticed.
 ## 55. `hash_object` cannot hash what `objects_are_equal` compares (P2) **[verified]**
 
 `objects_are_equal(x, x)` is `True` and `hash_object(x)` raises `TypeNotRegisteredError` for: a
-class
-(`int`), a function or a lambda, a module, `re.compile("a")`, `slice(1, 2)`, `...`,
-`NotImplemented`,
-`array.array("i", [1])`, an object without `__eq__` or dataclass, a `functools.partial`, a lock, an
-iterator. `memoryview`, `UUID`, `timedelta`, `deque`, `ChainMap`, `mappingproxy` work.
+class (`int`), a function or a lambda, a module, `re.compile("a")`, `slice(1, 2)`, `...`,
+`NotImplemented`, `array.array("i", [1])`, an object without `__eq__` or dataclass, a
+`functools.partial`, a lock, an iterator. `memoryview`, `UUID`, `timedelta`, `deque`, `ChainMap`,
+`mappingproxy` work.
 
-The ML use case is a config dict that holds a class or a function (`{"model": nn.Linear, "loss":
-F.mse_loss, "pattern": re.compile(...)}`): today the caller must pass `ignore_unhashable=True`, and
-then
-two configs with a different `model` get the same identifier. That is a worse outcome than the
-error.
-The stable ones can be hashed without surprises:
+The ML use case is a config dict that holds a class or a function
+(`{"model": nn.Linear, "loss": F.mse_loss, "pattern": re.compile(...)}`): today the caller must pass
+`ignore_unhashable=True`, and then two configs with a different `model` get the same identifier.
+That is a worse outcome than the error. The stable ones can be hashed without surprises:
 
 - a class or a named function: `module:qualname` (a lambda or a local function has no stable name
-  and
-  keeps raising);
+  and keeps raising);
 - `re.Pattern`: `(pattern, flags)`; `slice`: `(start, stop, step)`; `Ellipsis`, `NotImplemented`: a
   tag;
 - `array.array`: `(typecode, bytes)`.
@@ -231,8 +213,7 @@ Withdrawn by the maintainer; the number is kept so that the IDs of the other ite
 
 `TypeRegistry` caches the resolution per type in a dict that is reset at 1024 entries
 (`registry/type.py:731`). The key is a strong reference, so up to 1024 classes (with their methods,
-their
-module globals and everything they close over) survive after the last instance is gone:
+their module globals and everything they close over) survive after the last instance is gone:
 
 ```python
 for i in range(3000):
@@ -242,28 +223,22 @@ for i in range(3000):
 ```
 
 `recursive_apply` shows the same (50/50 alive); `objects_are_equal`, `hash_object` and `to_jsonable`
-did
-not on the same loop (identity shortcut or no cache hit). Services that build a class per request
-(`pydantic.create_model`, `make_dataclass`, `namedtuple`) hold on to them. Use a
+did not on the same loop (identity shortcut or no cache hit). Services that build a class per
+request (`pydantic.create_model`, `make_dataclass`, `namedtuple`) hold on to them. Use a
 `weakref.WeakKeyDictionary` for `_cache` (types are weak-referenceable), or cache only the types
-whose
-`__module__` is not `__main__` or a builtin. Test with `weakref.ref(C)` after `gc.collect()`; no
-sleep
-is needed.
+whose `__module__` is not `__main__` or a builtin. Test with `weakref.ref(C)` after `gc.collect()`;
+no sleep is needed.
 
 ## 58. The names of the public API have drifted (P3) **[verified]**
 
 1. **Two names for one getter.** `hashing`, `summary`, `recursive`, `iterator` and `random` export
-   both
-   `get_default_registry` and `get_default_<x>_registry` (`get_default_hasher_registry`,
+   both `get_default_registry` and `get_default_<x>_registry` (`get_default_hasher_registry`,
    `get_default_summarizer_registry`, `get_default_transformer_registry`,
    `get_default_child_finder_registry`, `get_default_random_manager_registry`); `equality`,
-   `jsonable`
-   and `rounding` export one. Pick the short name (the packages are already namespaced) and delete
-   the
-   other: breaking changes are accepted, and 5 `__all__` and as many docs lines get shorter. The
-   same
-   goes for `hashing.get_default_registry` vs `get_default_hasher_registry` in the docs.
+   `jsonable` and `rounding` export one. Pick the short name (the packages are already namespaced)
+   and delete the other: breaking changes are accepted, and 5 `__all__` and as many docs lines get
+   shorter. The same goes for `hashing.get_default_registry` vs `get_default_hasher_registry` in the
+   docs.
 2. **Same name, two meanings.** `coola.recursive` and `coola.jsonable` both define `Transformer`,
    `TransformerRegistry`, `DataclassTransformer`, `MappingTransformer`, `SequenceTransformer`,
    `SetTransformer` and `register_transformers`; they are different protocols (`transform(data,
@@ -277,15 +252,12 @@ coola.jsonable import TransformerRegistry` give two unrelated classes, and an ID
 3. **`hashing` has three similar names** (`StrHasher`, `StringHasher`, `ReprHasher`, plus
    `BytesHasher`, `ContentHasher`): `StringHasher` is for `str` and `UserString`, `StrHasher` hashes
    `str(obj)` and `ReprHasher` `repr(obj)`. The docstrings say it, but a name like `StrHasher` next
-   to
-   `StringHasher` is easy to confuse; a table "type -> hasher -> what is hashed" in
-   `uguide/hashing.md`
-   or a rename of `StrHasher` to `StrOfHasher` would help.
+   to `StringHasher` is easy to confuse; a table "type -> hasher -> what is hashed" in
+   `uguide/hashing.md` or a rename of `StrHasher` to `StrOfHasher` would help.
 4. **`to_jsonable(..., on_unsupported: str)`** is typed `str`; every sibling uses `Literal[...]`
    (`round_values`, `flatten_mapping`, `merge_mappings`, `get_secret_hashers`).
 5. **`__all__` of `utils`, `testing`, `formatting` is empty** by design (import from the module). It
-   is
-   the only place where `from coola.formatting import truncate_str` does not work while `from
+   is the only place where `from coola.formatting import truncate_str` does not work while `from
 coola.nested import flatten_mapping` does. Either re-export the formatting functions (they are
    documented as user-facing in `uguide/formatting.md`) or say it in the first line of the page.
 
@@ -328,20 +300,18 @@ Withdrawn by the maintainer; the number is kept so that the IDs of the other ite
 1. **A `factory` prefix with a trailing dot never matches** **[verified]**.
    `import_object("coola.io.JsonLoader", allowed_prefixes=["coola."])` raises "not allowed" while
    `["coola"]` and `["coola.io"]` work (the match is by dotted component,
-   `factory/instantiation.py:89`).
-   `"coola."` is the natural way to write "everything under coola". Validate the prefixes once
-   (`validate_not_empty`, no leading or trailing dot) or strip one trailing dot, and say so in the
-   docstring. Related and documented: `allowed_prefixes=None` allows every importable callable
-   (`factory("shutil.which", "ls")` runs). That is the right default for a library API; consider a
-   `COOLA_FACTORY_ALLOWED_PREFIXES`-style process-wide default for applications that read configs
-   from
-   files, so the allow-list does not have to be threaded through every call.
+   `factory/instantiation.py:89`). `"coola."` is the natural way to write "everything under coola".
+   Validate the prefixes once (`validate_not_empty`, no leading or trailing dot) or strip one
+   trailing dot, and say so in the docstring. Related and documented: `allowed_prefixes=None` allows
+   every importable callable (`factory("shutil.which", "ls")` runs). That is the right default for a
+   library API; consider a `COOLA_FACTORY_ALLOWED_PREFIXES`-style process-wide default for
+   applications that read configs from files, so the allow-list does not have to be threaded through
+   every call.
 2. **`summarize(..., max_characters=0 or 1)` truncates the keys** **[verified]**.
    `summarize([1, 2, 3], max_characters=0)` gives `():` followed by a space for each item (the index
-   disappears), and
-   `summarize({"abc": "defghijkl"}, max_characters=1)` gives `(.): .`. The limit is documented for
-   the value; apply it to the value only, or reject a limit under the header length with the
-   `validate_*` helpers.
+   disappears), and `summarize({"abc": "defghijkl"}, max_characters=1)` gives `(.): .`. The limit is
+   documented for the value; apply it to the value only, or reject a limit under the header length
+   with the `validate_*` helpers.
 3. **`round_values` modes** **[verified]**. `mode="trunc"` raises (`must be one of ('round',
 'floor',
 'ceil')`), `decimals=-2` still raises (item 45.4 listed it; #2729 did not change it), and
@@ -353,69 +323,51 @@ Withdrawn by the maintainer; the number is kept so that the IDs of the other ite
    (`round_values(1234.5, decimals=-2)`).
 4. **`LazyFrame` message** **[verified]**. `objects_are_equal(pl.LazyFrame(...), pl.LazyFrame(...))`
    raises "`==` raised or returned a value that cannot be converted to a bool ... Register an
-   equality
-   tester for this type", while `summarize` still has a `PolarsLazyFrameSummarizer`. A dedicated
-   message
-   ("call `.collect()` first; a LazyFrame is never collected by `coola`") costs one tester that
-   raises,
-   and matches the summary's rule "a lazy frame is never collected".
+   equality tester for this type", while `summarize` still has a `PolarsLazyFrameSummarizer`. A
+   dedicated message ("call `.collect()` first; a LazyFrame is never collected by `coola`") costs
+   one tester that raises, and matches the summary's rule "a lazy frame is never collected".
 5. **`deque(maxlen=...)` is ignored** by equality and hashing (`deque([1], maxlen=2)` equals and
-   hashes
-   like `deque([1])`). Same behaviour as `==`, so probably right; one sentence in the guide.
+   hashes like `deque([1])`). Same behaviour as `==`, so probably right; one sentence in the guide.
 6. **`recursive_apply` loses sharing** **[verified]**: `s = [1]; recursive_apply([s, s], f)` returns
-   two
-   distinct lists (`r[0] is r[1]` is `False`), as `deepcopy` does not. Document it next to the cycle
-   rule
-   (the cycle raises, the DAG is expanded).
+   two distinct lists (`r[0] is r[1]` is `False`), as `deepcopy` does not. Document it next to the
+   cycle rule (the cycle raises, the DAG is expanded).
 
 ## 63. SciPy is not in the version matrix of the CI (P3) **[verified]**
 
 `dev/config/package_versions.json` lists 12 packages (colorlog, jax, numpy, packaging, pandas,
-polars,
-pyarrow, pydantic, pytest, rich, torch, xarray) and **not `scipy`**, although `pyproject.toml` has
-the
-extra `scipy = ["scipy>=1.13"]` and `equality/tester/scipy.py` is 270 lines.
-`dev/generate_versions.py`
-reads the dependencies from `pyproject.toml`, so the file is stale (the bot probably ran before the
-extra
-was added) or the bot did not run. Run `dev/generate_versions.py`, commit the file, and add a CI
-check
-that every key of `[project.optional-dependencies]` has an entry in the JSON, so that the next extra
-cannot be forgotten. Today the sparse-matrix tester has never been run against `scipy==1.13`.
+polars, pyarrow, pydantic, pytest, rich, torch, xarray) and **not `scipy`**, although
+`pyproject.toml` has the extra `scipy = ["scipy>=1.13"]` and `equality/tester/scipy.py` is 270
+lines. `dev/generate_versions.py` reads the dependencies from `pyproject.toml`, so the file is stale
+(the bot probably ran before the extra was added) or the bot did not run. Run
+`dev/generate_versions.py`, commit the file, and add a CI check that every key of
+`[project.optional-dependencies]` has an entry in the JSON, so that the next extra cannot be
+forgotten. Today the sparse-matrix tester has never been run against `scipy==1.13`.
 
 ## 64. The tests (P3)
 
 1. **`CLAUDE.md` rules that the unit tests still break** (AST scan of `tests/unit`): **117 tests
-   have
-   more than one `assert` or `pytest.raises`** (top directories: `factory` 13, `utils` 12, `imports`
-   12,
-   `hashing` 11, `registry` 11, `rounding` 8; for example `test_text_saver_save_rejects_non_str_*`,
+   have more than one `assert` or `pytest.raises`** (top directories: `factory` 13, `utils` 12,
+   `imports` 12, `hashing` 11, `registry` 11, `rounding` 8; for example
+   `test_text_saver_save_rejects_non_str_*`,
    `test_base_file_saver_save_failure_leaves_the_directory_empty`) and **18 contain a loop**
-   (`nested`
-   6, `hashing` 4, `equality` 3). No test has a local import, a `pytest.raises` without `match`, or
-   a
-   `time.sleep` (it is patched); that part of the guide is respected. A first pass: split the 117 (a
-   mechanical edit, one new test name each), and move the loops to `parametrize`.
+   (`nested` 6, `hashing` 4, `equality` 3). No test has a local import, a `pytest.raises` without
+   `match`, or a `time.sleep` (it is patched); that part of the guide is respected. A first pass:
+   split the 117 (a mechanical edit, one new test name each), and move the loops to `parametrize`.
 2. **The property tests do not generate the data of 54.1.** The pair test of 54.2 exists (as a
-   strict
-   xfail); `make_frame` has no object column. Add an object-column strategy mixing `None`, `nan`,
-   `NaT` and `pd.NA`, and a test over pairs with `assume(objects_are_equal(a, b))` then
+   strict xfail); `make_frame` has no object column. Add an object-column strategy mixing `None`,
+   `nan`, `NaT` and `pd.NA`, and a test over pairs with `assume(objects_are_equal(a, b))` then
    `hash_object(a) == hash_object(b)`, for both `Series` and `DataFrame`. 54.1 falls out of it in a
-   few
-   hundred examples. This is how the differential fuzz of round 7 should be kept: as a regression
-   test
-   and not as a throw-away script.
+   few hundred examples. This is how the differential fuzz of round 7 should be kept: as a
+   regression test and not as a throw-away script.
 3. **47 xfails are a list of known gaps** (13 `to_jsonable`, torch string comparison, two property
    tests). With strict markers (#2733) they cannot pass silently, which is the right design. Each
    `reason="known gap"` should name an issue or a section of this file, so that a gap that is
-   decided
-   "will not fix" turns into a documented limitation and leaves the xfail list.
+   decided "will not fix" turns into a documented limitation and leaves the xfail list.
 4. **The size of the suite**: 75k lines of tests for 33k lines of `src` (equality: 17k for 6.4k).
-   The
-   run time (37 s) is fine; the maintenance cost is in the shape: the same registry/`find`/`has`/
-   `register` tests are repeated in each of the 8 registry packages. A shared `registry_contract`
-   fixture (a parametrised class in `tests/helpers.py`) would test the `TypeRegistry` behaviour once
-   per subclass, in 20 lines instead of about 250.
+   The run time (37 s) is fine; the maintenance cost is in the shape: the same
+   registry/`find`/`has`/ `register` tests are repeated in each of the 8 registry packages. A shared
+   `registry_contract` fixture (a parametrised class in `tests/helpers.py`) would test the
+   `TypeRegistry` behaviour once per subclass, in 20 lines instead of about 250.
 
 ## 65. Performance: measured costs (P3)
 
@@ -437,18 +389,14 @@ Best of 3, Apple M-series, Python 3.14. `ref` is the plain library call.
 
 Nothing is a problem for the documented use (test assertions, identifiers of configs), and the array
 and table paths are at the speed of the library call. Three places are worth a profile if the goal
-is
-speed: (1) the engine overhead per node of `objects_are_equal` (2.7 us per node, and a
-`cProfile` of `hash_object` shows 80000 calls of `fill` and 140000 of `tagged` for 20000 dicts: the
-cost is spread over `fill`, `leave`, `tagged`, `int_repr` and `isinstance`, so a gain needs a fast
-path
-for `str` and `int` leaves like the one added for floats in #2735, not a micro-optimisation);
-(2) `round_values(recursive=True)` costs 3.5x its own traversal, so the per-leaf dispatch (a
-registry
+is speed: (1) the engine overhead per node of `objects_are_equal` (2.7 us per node, and a `cProfile`
+of `hash_object` shows 80000 calls of `fill` and 140000 of `tagged` for 20000 dicts: the cost is
+spread over `fill`, `leave`, `tagged`, `int_repr` and `isinstance`, so a gain needs a fast path for
+`str` and `int` leaves like the one added for floats in #2735, not a micro-optimisation); (2)
+`round_values(recursive=True)` costs 3.5x its own traversal, so the per-leaf dispatch (a registry
 lookup on each leaf, 200000 here) is the part to cache by type for the duration of the call; (3) the
 `hash_object` of a list of floats at 0.7 us per item, which could use
-`array.array("d", ...).tobytes()`
-for a homogeneous list, as #2735 did for equality.
+`array.array("d", ...).tobytes()` for a homogeneous list, as #2735 did for equality.
 
 ## 66. Proposed order of the work
 
@@ -456,9 +404,8 @@ One branch and one pull request each, as `CLAUDE.md` asks:
 
 1. `test/fix-generated-module-source` - item 53 (turns the CI green; do this first).
 2. `bugfix/pandas-na-hash-and-category-order` - items 54.1 and 54.2, with the pair-based property
-   tests (the
-   xfail of 54.2 is removed, 64.2 adds 54.1) as the regression tests (check that they fail on
-   `main`).
+   tests (the xfail of 54.2 is removed, 64.2 adds 54.1) as the regression tests (check that they
+   fail on `main`).
 3. `ci/add-scipy-to-versions` - item 63.
 4. `feat/hash-classes-functions-patterns` - item 55.
 5. `refactor/api-names` - items 58, 59 together (one breaking change and one migration note); then
