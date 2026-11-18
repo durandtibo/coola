@@ -14728,7 +14728,9 @@ device and <code>"mps:0"</code> if MPS is available.</p>
     <div class="doc doc-contents ">
 
         <p>Indicate if MPS is currently available.</p>
-<p>It does not allocate a tensor on the device.</p>
+<p>It does not allocate a tensor on the device. The <code>UserWarning</code> that
+PyTorch emits when the Metal device is not supported (for example on
+a virtualized macOS machine) is silenced.</p>
 
 
     <p><span class="doc-section-title">Returns:</span></p>
