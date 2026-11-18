@@ -143,7 +143,7 @@ No new mechanism. These functions work on the top level only.
 
 - **Options are keyword-only**:
   `merge_mappings(mappings, *, on_duplicate="raise", equal_nan=False)`, `flatten_mapping(mapping, *,
-  on_duplicate="raise", always_prefix=False, separator=".",
+on_duplicate="raise", always_prefix=False, separator=".",
 equal_nan=False)`.
 - **`merge_mappings(on_duplicate="suffix")` does not depend on the order.** A key of an input
   mapping that equals a generated suffixed key is a conflict whatever the position: the check is

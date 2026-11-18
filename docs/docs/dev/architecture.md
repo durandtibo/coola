@@ -180,9 +180,9 @@ The rules for a package that uses an optional library:
   of "available". `check_<pkg>()` raises `MissingPackageError` with one message and the
   `pip install` hint. `package_available(name)` asks without importing.
 - **Fallback modules**: the module of a library guards its import with `if TYPE_CHECKING or
-  is_<pkg>_available(): import ... else:
+is_<pkg>_available(): import ... else:
 from coola.utils.fallback.<pkg> import ...`. The fakes raise `MissingPackageError` at the first use,
-before anything is changed.
+  before anything is changed.
 - **A missing library is an error at the call**, not at import. A function never runs half without
   its library; where "no feature" is a correct result (colour of a log), the function says so.
 - **Adding a library**: two functions in `imports`, one fake module in `fallback/`, one row in
