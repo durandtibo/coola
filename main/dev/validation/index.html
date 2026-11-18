@@ -2861,7 +2861,10 @@
 
 
 <h1 id="architecture-of-coolavalidation">Architecture of <code>coola.validation</code><a class="headerlink" href="#architecture-of-coolavalidation" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.validation</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/validation/#properties">user guide</a>; the API is in the <a href="../../refs/validation/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.validation</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/validation/#properties">user guide</a>; the API is in
+the <a href="../../refs/validation/">reference</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p><code>coola.validation</code> is a core package: it imports the standard library only (NumPy scalars are
 supported through the <code>numbers</code> ABCs they register with). It has eleven functions in three modules,
@@ -2880,10 +2883,11 @@ the code it replaces (<code>tests/benchmarks/test_validation_benchmark.py</code>
 <a href="../../uguide/validation/#properties">user guide</a> for the properties of the package.</p>
 <h2 id="design-constraints">Design constraints<a class="headerlink" href="#design-constraints" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Simple and easy to maintain.</strong> A function is kept only if it adds behaviour that the caller would
-   otherwise have to write. A wrapper such as <code>validate_str(x)</code> (which is <code>validate_isinstance(x, str)</code>)
-   or <code>validate_positive(x)</code> (which is <code>validate_gt(x, 0)</code>) would cost a docstring, an export, a doc
-   entry and tests each, and the list of names would grow one wrapper at a time.</li>
+<li><strong>Simple and easy to maintain.</strong> A function is kept only if it adds behaviour that the caller
+   would otherwise have to write. A wrapper such as <code>validate_str(x)</code> (which is
+   <code>validate_isinstance(x, str)</code>) or <code>validate_positive(x)</code> (which is <code>validate_gt(x, 0)</code>) would
+   cost a docstring, an export, a doc entry and tests each, and the list of names would grow one
+   wrapper at a time.</li>
 <li><strong>Core package.</strong> <code>coola.validation</code> imports only the standard library (import-linter contract
    "Core packages must not import feature packages"). It imports NumPy or any optional library
    <strong>never</strong>; NumPy scalars are supported through the <code>numbers</code> ABCs they register with.</li>
@@ -2933,8 +2937,8 @@ None, or TypeError / ValueError with the message
 </tr>
 </tbody>
 </table>
-<p>The expected type is written once, by <code>_type_name</code>: a class gives its <code>__qualname__</code> (<code>int</code>), a tuple
-or a union gives <code>int or str</code>, an ABC gives its name (<code>Mapping</code>). <code>validate_int</code> and
+<p>The expected type is written once, by <code>_type_name</code>: a class gives its <code>__qualname__</code> (<code>int</code>), a
+tuple or a union gives <code>int or str</code>, an ABC gives its name (<code>Mapping</code>). <code>validate_int</code> and
 <code>validate_number</code> pass a phrase (<code>an int</code>, <code>a real number</code>) because the article matters.</p>
 <h3 id="the-helpers">The helpers<a class="headerlink" href="#the-helpers" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_type_error</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">expected</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
@@ -2953,9 +2957,9 @@ or a union gives <code>int or str</code>, an ABC gives its name (<code>Mapping</
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 </code></pre></div>
 <p><code>_compare</code> is the one evaluation. The four bound checks, the range and the finiteness check call it
-with a <code>lambda</code>/<code>operator.partial</code> test; the closure costs about 40 ns, below the margin of the gate.
-Both helpers are private to <code>coola.validation</code>: they are an implementation detail, and a package that
-wants the same format writes a call to a validator.</p>
+with a <code>lambda</code>/<code>operator.partial</code> test; the closure costs about 40 ns, below the margin of the
+gate. Both helpers are private to <code>coola.validation</code>: they are an implementation detail, and a
+package that wants the same format writes a call to a validator.</p>
 <h3 id="the-functions">The functions<a class="headerlink" href="#the-functions" title="Permanent link">&para;</a></h3>
 <p><code>from coola.validation import ...</code> (14 names):</p>
 <table>
@@ -3018,12 +3022,13 @@ wants the same format writes a call to a validator.</p>
 </tr>
 </tbody>
 </table>
-<p>There are no type shortcuts such as <code>validate_str</code> or <code>validate_list</code> (use <code>validate_isinstance(value,
-X)</code>), no sign shortcuts such as <code>validate_positive</code> (use <code>validate_gt(value, 0)</code>), and no separate
-<code>open</code>, <code>closed</code> and <code>half_open</code> range functions (use <code>validate_range</code>). The synonyms are the part of
-a package that grows one name at a time; without them the list of names can be read in ten seconds and
-the rule to add one is written down. Keeping <code>validate_positive</code> and <code>validate_non_negative</code> only would
-need an explanation for the missing <code>negative</code>.</p>
+<p>There are no type shortcuts such as <code>validate_str</code> or <code>validate_list</code> (use
+<code>validate_isinstance(value, X)</code>), no sign shortcuts such as <code>validate_positive</code> (use
+<code>validate_gt(value, 0)</code>), and no separate <code>open</code>, <code>closed</code> and <code>half_open</code> range functions (use
+<code>validate_range</code>). The synonyms are the part of a package that grows one name at a time; without
+them the list of names can be read in ten seconds and the rule to add one is written down. Keeping
+<code>validate_positive</code> and <code>validate_non_negative</code> only would need an explanation for the missing
+<code>negative</code>.</p>
 <p>The rule to add a function (written in the module docstring and in the guide): <em>a
 validator exists only if it states a constraint that <code>isinstance</code> or one comparison cannot state
 without a special case</em>. <code>validate_int</code> exists for the <code>bool</code> case; <code>validate_number</code> for the
@@ -3057,8 +3062,8 @@ NaN. <code>validate_str</code> does not: <code>validate_isinstance(x, str)</code
 </tr>
 </tbody>
 </table>
-<p><code>__init__.py</code> re-exports the 14 names; <code>__all__</code> is alphabetical. <code>docs/docs/refs/validation.md</code> lists
-the three submodules.</p>
+<p><code>__init__.py</code> re-exports the 14 names; <code>__all__</code> is alphabetical. <code>docs/docs/refs/validation.md</code>
+lists the three submodules.</p>
 <h2 id="dependents">Dependents<a class="headerlink" href="#dependents" title="Permanent link">&para;</a></h2>
 <p>The messages have one format, so the tests of the callers that match a message match this format.</p>
 <table>
@@ -3106,30 +3111,31 @@ the three submodules.</p>
 <p>No dependent imports anything private from <code>coola.validation</code>.</p>
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
 <p><strong><code>numpy.int64</code> and <code>numpy.float32</code> are not ints and floats for the type validators, but numbers for
-<code>validate_number</code>.</strong> A type annotation <code>int</code> rejects <code>numpy.int64</code> for a type checker, <code>validate_int</code>
-follows the annotation, and a caller that accepts NumPy scalars writes <code>validate_isinstance(x, (int,
-np.integer))</code> or uses <code>validate_number</code>. <code>numbers.Integral</code> for <code>validate_int</code> would accept NumPy ints
-(still rejecting <code>bool</code> by the explicit test) with a one-line change, but it makes the strictness
-depend on the registration of the ABCs, and an <code>int</code> argument that is later used as <code>range(n)</code> or a
-shift accepts <code>numpy.int64</code> anyway. The strict rule can be revisited if a user reports a real case.</p>
-<p><strong>"Type then bound" is two calls.</strong> <code>validate_int(x, min=0)</code> would remove 8 lines at the call sites and
-add options to the most used function, with a second message path. Two calls are explicit, and the
-order of the errors (a <code>TypeError</code> for <code>"a"</code> before a <code>ValueError</code> for <code>-1</code>) is visible. Revisit if a
-call site needs three constraints on one argument.</p>
+<code>validate_number</code>.</strong> A type annotation <code>int</code> rejects <code>numpy.int64</code> for a type checker,
+<code>validate_int</code> follows the annotation, and a caller that accepts NumPy scalars writes
+<code>validate_isinstance(x, (int, np.integer))</code> or uses <code>validate_number</code>. <code>numbers.Integral</code> for
+<code>validate_int</code> would accept NumPy ints (still rejecting <code>bool</code> by the explicit test) with a one-line
+change, but it makes the strictness depend on the registration of the ABCs, and an <code>int</code> argument
+that is later used as <code>range(n)</code> or a shift accepts <code>numpy.int64</code> anyway. The strict rule can be
+revisited if a user reports a real case.</p>
+<p><strong>"Type then bound" is two calls.</strong> <code>validate_int(x, min=0)</code> would remove 8 lines at the call sites
+and add options to the most used function, with a second message path. Two calls are explicit, and
+the order of the errors (a <code>TypeError</code> for <code>"a"</code> before a <code>ValueError</code> for <code>-1</code>) is visible. Revisit
+if a call site needs three constraints on one argument.</p>
 <p><strong>An empty range raises.</strong> <code>validate_range(x, 1, 0)</code> cannot succeed; it is a programming error, and
-blaming the value would send the reader to the wrong argument. The <code>ValueError</code> about the bounds costs
-one comparison.</p>
-<p><strong><code>validate_in</code> with an unhashable value is a <code>ValueError</code>.</strong> From the point of view of the caller, <code>[]</code>
-is not one of the valid modes; the fact that the container is a <code>set</code> is an implementation detail. A
-<code>TypeError</code> would be right only if <code>valid</code> were not a container, and that case still raises (the bug of
-the caller). A <code>valid</code> that is a string with a non-string value (<code>1 in "abc"</code> raises <code>TypeError</code>) is
-reported as a value error, and the message shows both.</p>
+blaming the value would send the reader to the wrong argument. The <code>ValueError</code> about the bounds
+costs one comparison.</p>
+<p><strong><code>validate_in</code> with an unhashable value is a <code>ValueError</code>.</strong> From the point of view of the caller,
+<code>[]</code> is not one of the valid modes; the fact that the container is a <code>set</code> is an implementation
+detail. A <code>TypeError</code> would be right only if <code>valid</code> were not a container, and that case still
+raises (the bug of the caller). A <code>valid</code> that is a string with a non-string value (<code>1 in "abc"</code>
+raises <code>TypeError</code>) is reported as a value error, and the message shows both.</p>
 <p><strong>The project-wide rule lives in this package's docstring, the guide and <code>CLAUDE.md</code>:</strong> "Validate an
-argument with <code>coola.validation</code>; do not write <code>raise ValueError</code> for a type, range or membership check,
-and do not add a validator that is one <code>isinstance</code> or one comparison." Without the rule, each package
-grows private copies with their own messages.</p>
-<p><strong>No decorator or <code>Annotated</code> metadata.</strong> A schema layer (pydantic, attrs validators, beartype) does it
-better, and none of the call sites needs it. The package is a set of functions that a constructor
+argument with <code>coola.validation</code>; do not write <code>raise ValueError</code> for a type, range or membership
+check, and do not add a validator that is one <code>isinstance</code> or one comparison." Without the rule,
+each package grows private copies with their own messages.</p>
+<p><strong>No decorator or <code>Annotated</code> metadata.</strong> A schema layer (pydantic, attrs validators, beartype) does
+it better, and none of the call sites needs it. The package is a set of functions that a constructor
 calls.</p>
 <h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
 <ul>

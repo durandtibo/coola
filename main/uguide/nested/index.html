@@ -3420,9 +3420,9 @@ dictionaries (rows):</p>
 </code></pre></div>
 <p>This is useful when you have columnar data and need to process it row-by-row, or when interfacing
 with APIs that expect row-oriented data.</p>
-<p><strong>Important:</strong> All sequences in the dictionary should have the same length. A value must be a <code>Sequence</code>: a <code>str</code>, a set
-(its elements have no position) or a generator raises a <code>TypeError</code> that names the type.
-<code>convert_to_dict_of_lists()</code> accepts any iterable of mappings, a generator included.</p>
+<p><strong>Important:</strong> All sequences in the dictionary should have the same length. A value must be a
+<code>Sequence</code>: a <code>str</code>, a set (its elements have no position) or a generator raises a <code>TypeError</code> that
+names the type. <code>convert_to_dict_of_lists()</code> accepts any iterable of mappings, a generator included.</p>
 <h3 id="round-trip-conversion">Round-Trip Conversion<a class="headerlink" href="#round-trip-conversion" title="Permanent link">&para;</a></h3>
 <p>These conversion functions are inverse operations of each other:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.nested</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_to_dict_of_lists</span><span class="p">,</span> <span class="n">convert_to_list_of_dicts</span>
@@ -3491,8 +3491,8 @@ the mapping should have at least one value but don't know the key.</p>
 </code></pre></div>
 <p>Like <code>remove_keys_starting_with()</code>, they return a new mapping and keep the input unchanged.</p>
 <h3 id="adding-a-prefix-or-a-suffix-to-the-keys">Adding a Prefix or a Suffix to the Keys<a class="headerlink" href="#adding-a-prefix-or-a-suffix-to-the-keys" title="Permanent link">&para;</a></h3>
-<p>Use <code>add_prefix_suffix_to_keys()</code> to rename the keys of a mapping. By default only the top-level keys
-are renamed. Use <code>recursive=True</code> to rename the keys of the nested mappings too:</p>
+<p>Use <code>add_prefix_suffix_to_keys()</code> to rename the keys of a mapping. By default only the top-level
+keys are renamed. Use <code>recursive=True</code> to rename the keys of the nested mappings too:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.nested</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_prefix_suffix_to_keys</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"c"</span><span class="p">:</span> <span class="mi">2</span><span class="p">}}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">add_prefix_suffix_to_keys</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">"x_"</span><span class="p">)</span>
@@ -3633,8 +3633,8 @@ leaves too, because a set has no index. A dataclass is entered field by field:</
 </code></pre></div>
 <h3 id="restoring-lists">Restoring Lists<a class="headerlink" href="#restoring-lists" title="Permanent link">&para;</a></h3>
 <p><code>from_flat_dict()</code> keeps the integer segments as dictionary keys by default, so a list does not come
-back as a list. Use <code>restore_lists=True</code> to rebuild the lists. A dictionary built from the keys whose
-keys are exactly <code>"0"</code>, <code>"1"</code>, ..., <code>"n-1"</code> is converted, and the tuples come back as lists. A
+back as a list. Use <code>restore_lists=True</code> to rebuild the lists. A dictionary built from the keys
+whose keys are exactly <code>"0"</code>, <code>"1"</code>, ..., <code>"n-1"</code> is converted, and the tuples come back as lists. A
 dictionary given as a value is a value of the caller: it is kept as it is. There is no limit on the
 depth:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.nested</span><span class="w"> </span><span class="kn">import</span> <span class="n">from_flat_dict</span>
@@ -3661,8 +3661,8 @@ flattened:</p>
 <code>to_jsonable(data)</code> converts the data, and its registry is the extension point for other types.</p>
 <h2 id="flattening-a-polars-dataframe">Flattening a polars DataFrame<a class="headerlink" href="#flattening-a-polars-dataframe" title="Permanent link">&para;</a></h2>
 <p>Use <code>flatten_frame()</code> to unnest the struct columns of a polars <code>DataFrame</code> (and, with
-<code>expand_lists=True</code>, to expand the list columns into one column per index). The new columns are named
-<code>&lt;parent&gt;&lt;separator&gt;&lt;field&gt;</code>. It requires <code>polars</code>, which is imported on first use:</p>
+<code>expand_lists=True</code>, to expand the list columns into one column per index). The new columns are
+named <code>&lt;parent&gt;&lt;separator&gt;&lt;field&gt;</code>. It requires <code>polars</code>, which is imported on first use:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.nested</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten_frame</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">frame</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"id"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s2">"coords"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mi">20</span><span class="p">},</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mi">40</span><span class="p">}]})</span>
@@ -3670,8 +3670,8 @@ flattened:</p>
 <span class="go">['id', 'coords.x', 'coords.y']</span>
 </code></pre></div>
 <p>A <code>LazyFrame</code> is not accepted by <code>flatten_frame</code>: it raises a <code>TypeError</code> that asks you to call
-<code>collect()</code> first, because a lazy frame has no cheap schema and the number of rows of an exploded list
-is only known after the evaluation. The supported range of polars is <code>polars&gt;=1.0,&lt;3.0</code>.</p>
+<code>collect()</code> first, because a lazy frame has no cheap schema and the number of rows of an exploded
+list is only known after the evaluation. The supported range of polars is <code>polars&gt;=1.0,&lt;3.0</code>.</p>
 <h2 id="what-coolanested-does-not-do">What <code>coola.nested</code> does not do<a class="headerlink" href="#what-coolanested-does-not-do" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Dataclasses and pydantic models from <code>from_flat_dict</code>.</strong> The function builds dicts and lists:

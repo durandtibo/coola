@@ -2883,13 +2883,16 @@
 
 
 <h1 id="architecture-of-coolajsonable">Architecture of <code>coola.jsonable</code><a class="headerlink" href="#architecture-of-coolajsonable" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.jsonable</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/jsonable/#properties">user guide</a>; the API is in the <a href="../../refs/jsonable/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.jsonable</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/jsonable/#properties">user guide</a>; the API is in
+the <a href="../../refs/jsonable/">reference</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p><code>coola.jsonable</code> is <strong>a registry of transformers on the engine of <code>coola.recursive</code></strong>. It adds no
 traversal: the cycles, the depth, the order, the per-call cache and the thread safety come from the
-engine. A transformer only describes the shape of one type with the <code>expand</code> contract of <code>recursive</code>:
-<code>expand(data)</code> returns <code>None</code> for a scalar, or <code>(children, rebuild)</code>. Three shapes are enough for every
-type:</p>
+engine. A transformer only describes the shape of one type with the <code>expand</code> contract of
+<code>recursive</code>: <code>expand(data)</code> returns <code>None</code> for a scalar, or <code>(children, rebuild)</code>. Three shapes are
+enough for every type:</p>
 <table>
 <thead>
 <tr>
@@ -2925,13 +2928,14 @@ converter calls another one, no converter knows the registry, and nothing is ret
 <ol>
 <li><strong>Simple and easy to maintain.</strong> One function, one registry, one rule per type: no table of
    predicates, no <code>sys.modules</code> look-up and no registry built on every call.</li>
-<li><strong>Fast.</strong> The benchmark gate (<code>tests/benchmarks/test_jsonable_benchmark.py</code>) holds on every input,
-   including arrays (see <a href="#design-choices-and-trade-offs">Arrays are checked, except the numeric dtypes</a>).</li>
-<li><strong>Consistent with the siblings.</strong> Same containers, same dispatch (<code>TransformerRegistry</code>), same lazy
-   loading (<code>register_lazy</code>), same plugin mechanism (<code>make_default_registry_singleton</code> with a
+<li><strong>Fast.</strong> The benchmark gate (<code>tests/benchmarks/test_jsonable_benchmark.py</code>) holds on every
+   input, including arrays (see
+   <a href="#design-choices-and-trade-offs">Arrays are checked, except the numeric dtypes</a>).</li>
+<li><strong>Consistent with the siblings.</strong> Same containers, same dispatch (<code>TransformerRegistry</code>), same
+   lazy loading (<code>register_lazy</code>), same plugin mechanism (<code>make_default_registry_singleton</code> with a
    <code>plugin_group</code>), same keyword-only options.</li>
-<li><strong>Optional libraries stay lazy.</strong> NumPy, PyTorch, JAX, pandas, polars, pyarrow, xarray and pydantic are imported by their module
-   only, never by <code>import coola.jsonable</code>.</li>
+<li><strong>Optional libraries stay lazy.</strong> NumPy, PyTorch, JAX, pandas, polars, pyarrow, xarray and
+   pydantic are imported by their module only, never by <code>import coola.jsonable</code>.</li>
 </ol>
 <h2 id="architecture-in-detail">Architecture in detail<a class="headerlink" href="#architecture-in-detail" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>coola/jsonable/
@@ -2960,33 +2964,33 @@ registry.transform(data, leaf)                 coola.recursive engine
         v
 JSON data
 </code></pre></div>
-<p><code>interface.py</code> follows <code>summary/interface.py</code>: <code>_register_default_transformers(registry)</code> registers the
-native and standard types, <code>register_fallback(dataclasses.is_dataclass, DataclassTransformer())</code> and
-one <code>register_lazy</code> per installed library, and the singleton is built with
+<p><code>interface.py</code> follows <code>summary/interface.py</code>: <code>_register_default_transformers(registry)</code> registers
+the native and standard types, <code>register_fallback(dataclasses.is_dataclass, DataclassTransformer())</code>
+and one <code>register_lazy</code> per installed library, and the singleton is built with
 <code>make_default_registry_singleton(..., plugin_group="coola.jsonable.transformers")</code>.</p>
 <h3 id="the-leaf-function-and-on_unsupported">The leaf function and <code>on_unsupported</code><a class="headerlink" href="#the-leaf-function-and-on_unsupported" title="Permanent link">&para;</a></h3>
-<p><code>object</code> and the JSON scalars are registered with <code>DefaultTransformer</code>, so a value of an unregistered
-type reaches the <strong>leaf function</strong> of the engine. The leaf function is the only place where the three
-modes differ: <code>_raise</code> keeps the JSON scalars and raises a <code>TypeError</code> for the others, <code>_warn</code> warns
-and keeps, <code>_keep</code> is the identity. The transformers are the same in the three modes, so there is one
-registry and nothing is built per call. The check is one <code>isinstance</code> against the five scalar types
-(about 0.03 µs per leaf).</p>
+<p><code>object</code> and the JSON scalars are registered with <code>DefaultTransformer</code>, so a value of an
+unregistered type reaches the <strong>leaf function</strong> of the engine. The leaf function is the only place
+where the three modes differ: <code>_raise</code> keeps the JSON scalars and raises a <code>TypeError</code> for the
+others, <code>_warn</code> warns and keeps, <code>_keep</code> is the identity. The transformers are the same in the three
+modes, so there is one registry and nothing is built per call. The check is one <code>isinstance</code> against
+the five scalar types (about 0.03 µs per leaf).</p>
 <h3 id="keys">Keys<a class="headerlink" href="#keys" title="Permanent link">&para;</a></h3>
 <p>The <strong>keys are children</strong> of the mapping (<code>[*keys, *values]</code>), so the engine converts them like any
-other value (a <code>Path</code> key gives a <code>str</code>, a tuple key gives a list). <code>_to_dict</code> then checks the result:
-a <code>str</code> is kept, <code>bool</code>, <code>int</code>, <code>float</code> and <code>None</code> go through <code>json.dumps</code> (<code>True</code> gives <code>"true"</code>), any
-other value raises a <code>TypeError</code> that names the type, and a duplicate raises a <code>ValueError</code> that names
-the key. This is the only place where "keys are labels" of <code>recursive</code> is deliberately reversed,
-because a JSON object has no other kind of key.</p>
+other value (a <code>Path</code> key gives a <code>str</code>, a tuple key gives a list). <code>_to_dict</code> then checks the
+result: a <code>str</code> is kept, <code>bool</code>, <code>int</code>, <code>float</code> and <code>None</code> go through <code>json.dumps</code> (<code>True</code> gives
+<code>"true"</code>), any other value raises a <code>TypeError</code> that names the type, and a duplicate raises a
+<code>ValueError</code> that names the key. This is the only place where "keys are labels" of <code>recursive</code> is
+deliberately reversed, because a JSON object has no other kind of key.</p>
 <h3 id="traps-of-the-dispatch">Traps of the dispatch<a class="headerlink" href="#traps-of-the-dispatch" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>UserString</code> is a <code>Sequence</code> of <code>UserString</code>: a <code>Sequence</code> transformer that lists its elements never
-  ends. It is registered as a <code>str</code> conversion in <code>stdlib.py</code>.</li>
-<li><code>numpy.generic</code> comes before <code>float</code> in the MRO of <code>numpy.float64</code>, so a NumPy scalar is converted by
-  <code>item()</code>. <code>np.bytes_</code> is a <code>bytes</code> subclass and <code>np.str_</code> a <code>str</code> subclass: they follow <code>bytes</code> and
-  <code>str</code>.</li>
-<li>A <code>str</code> enum member or an <code>IntEnum</code> member is a <code>str</code> or an <code>int</code> for the MRO, so it is a scalar and
-  is kept. Register the enum class to normalize it.</li>
+<li><code>UserString</code> is a <code>Sequence</code> of <code>UserString</code>: a <code>Sequence</code> transformer that lists its elements
+  never ends. It is registered as a <code>str</code> conversion in <code>stdlib.py</code>.</li>
+<li><code>numpy.generic</code> comes before <code>float</code> in the MRO of <code>numpy.float64</code>, so a NumPy scalar is converted
+  by <code>item()</code>. <code>np.bytes_</code> is a <code>bytes</code> subclass and <code>np.str_</code> a <code>str</code> subclass: they follow <code>bytes</code>
+  and <code>str</code>.</li>
+<li>A <code>str</code> enum member or an <code>IntEnum</code> member is a <code>str</code> or an <code>int</code> for the MRO, so it is a scalar
+  and is kept. Register the enum class to normalize it.</li>
 <li><code>pd.NaT</code> is a <code>datetime</code> subclass: <code>type(pd.NaT)</code> is registered, so it gives <code>None</code> and not
   <code>"NaT"</code>.</li>
 <li>A dataclass class (not an instance) has the type <code>type</code>, so it is a leaf and is unsupported.</li>
@@ -2997,35 +3001,35 @@ because a JSON object has no other kind of key.</p>
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>The output is the JSON data model</strong> (tuples become lists), which gives the idempotence property.</li>
-<li><strong>Unsupported types: three modes</strong>, <code>"raise"</code> (default), <code>"warn"</code> and <code>"keep"</code>. A <code>default=</code> callable
-  like <code>json.dumps</code> is not offered because the registry already is the per-type hook; <code>repr</code> as a mode
-  is <code>ConvertTransformer(repr)</code> registered for <code>object</code> in a copy of the registry.</li>
-<li><strong>Pydantic: <code>model_dump()</code> in Python mode, then the registry.</strong> The sets are sorted, the arrays and
-  paths are converted, a secret is masked, and the exclusions and plain serializers of the model are
-  honoured. A serializer declared with <code>when_used="json"</code> is not applied. <code>mode="json"</code> would make the
-  sets non-deterministic and fail on a NumPy field; the fields as children would ignore <code>exclude</code> and
-  every serializer.</li>
+<li><strong>Unsupported types: three modes</strong>, <code>"raise"</code> (default), <code>"warn"</code> and <code>"keep"</code>. A <code>default=</code>
+  callable like <code>json.dumps</code> is not offered because the registry already is the per-type hook;
+  <code>repr</code> as a mode is <code>ConvertTransformer(repr)</code> registered for <code>object</code> in a copy of the registry.</li>
+<li><strong>Pydantic: <code>model_dump()</code> in Python mode, then the registry.</strong> The sets are sorted, the arrays
+  and paths are converted, a secret is masked, and the exclusions and plain serializers of the model
+  are honoured. A serializer declared with <code>when_used="json"</code> is not applied. <code>mode="json"</code> would
+  make the sets non-deterministic and fail on a NumPy field; the fields as children would ignore
+  <code>exclude</code> and every serializer.</li>
 <li><strong><code>NaN</code> and the infinities are kept.</strong> <code>json.dumps(..., allow_nan=False)</code> enforces RFC 8259.</li>
 <li><strong>Bytes are Base64.</strong> Lossless but indistinguishable from text when read.</li>
 <li><strong>A <code>timedelta</code> is a number of seconds.</strong> A <code>float</code> loses the microseconds above about 285 years.</li>
 <li><strong>Frames and tables are not converted by default.</strong> A <code>DataFrame</code> has at least three usual shapes
   and none is neutral. <code>Series</code> and <code>Index</code> are one-dimensional and are converted.</li>
-<li><strong>A package <code>coola.jsonable</code> with one function.</strong> The name avoids <code>coola.json</code>, which would hide the
-  standard library.</li>
-<li><strong><code>register_transformers</code> and <code>ConvertTransformer</code></strong> rather than a function-based API: the registry
-  is the extension point of every package.</li>
+<li><strong>A package <code>coola.jsonable</code> with one function.</strong> The name avoids <code>coola.json</code>, which would hide
+  the standard library.</li>
+<li><strong><code>register_transformers</code> and <code>ConvertTransformer</code></strong> rather than a function-based API: the
+  registry is the extension point of every package.</li>
 <li><strong>The keys go through the registry</strong>, so a <code>Path</code>, a <code>UUID</code> or an <code>Enum</code> key works with no code in
   the mapping transformer.</li>
-<li><strong>The subclasses of the JSON scalars are kept.</strong> Normalizing them would need an exact-type check on
-  every leaf and would not change what <code>json</code> writes.</li>
+<li><strong>The subclasses of the JSON scalars are kept.</strong> Normalizing them would need an exact-type check
+  on every leaf and would not change what <code>json</code> writes.</li>
 <li><strong>Arrays are checked, except the numeric dtypes.</strong> Checking every element makes complex numbers,
   object arrays and <code>datetime64</code> raise (they are not JSON), but costs 0.09 µs per element: the
   conversion of 1,000,000 floats took 149 ms, 7.9 times <code>tolist</code> and 47 % of <code>json.dumps</code> of the
   result, which failed the benchmark gate. <code>NDArrayTransformer</code> and <code>TensorTransformer</code> therefore
   return no children for the arrays whose <code>tolist</code> already gives Python <code>bool</code>, <code>int</code> and <code>float</code>
-  (NumPy kinds <code>b</code>, <code>i</code>, <code>u</code> and the dtypes <code>float16</code>, <code>float32</code>, <code>float64</code>; every real tensor): 17 ms,
-  the cost of <code>tolist</code>. The other arrays (complex, object, dates, strings, <code>longdouble</code>) are still
-  checked.</li>
+  (NumPy kinds <code>b</code>, <code>i</code>, <code>u</code> and the dtypes <code>float16</code>, <code>float32</code>, <code>float64</code>; every real tensor): 17
+  ms, the cost of <code>tolist</code>. The other arrays (complex, object, dates, strings, <code>longdouble</code>) are
+  still checked.</li>
 <li><strong>No guard against a converter that never ends</strong>, other than its own type. The engine has no depth
   limit by design.</li>
 </ul>
@@ -3074,12 +3078,13 @@ because a JSON object has no other kind of key.</p>
 </table>
 <h2 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">&para;</a></h2>
 <p>The unit tests mirror the source tree (<code>tests/unit/jsonable/</code>). The property tests
-(<code>tests/properties/test_jsonable.py</code>) check that the output is accepted by <code>json</code> and round trips, that
-the function is idempotent, that the output does not depend on the order of the input and that the
-input is not modified. The integration tests (<code>tests/integration/jsonable/</code>) check the output for five
-values of <code>PYTHONHASHSEED</code> (with a pydantic model that has a set), the threads, the depth of 100,000
-levels and the cycles. The lazy-import tests check that <code>import coola.jsonable</code> imports no optional
-library. The benchmark (<code>tests/benchmarks/test_jsonable_benchmark.py</code>) is the gate for the speed.</p>
+(<code>tests/properties/test_jsonable.py</code>) check that the output is accepted by <code>json</code> and round trips,
+that the function is idempotent, that the output does not depend on the order of the input and that
+the input is not modified. The integration tests (<code>tests/integration/jsonable/</code>) check the output
+for five values of <code>PYTHONHASHSEED</code> (with a pydantic model that has a set), the threads, the depth
+of 100,000 levels and the cycles. The lazy-import tests check that <code>import coola.jsonable</code> imports
+no optional library. The benchmark (<code>tests/benchmarks/test_jsonable_benchmark.py</code>) is the gate for
+the speed.</p>
 
 
 

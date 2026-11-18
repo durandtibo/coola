@@ -2949,14 +2949,17 @@
 
 
 <h1 id="architecture-of-coolafactory">Architecture of <code>coola.factory</code><a class="headerlink" href="#architecture-of-coolafactory" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.factory</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/factory/#properties">user guide</a>; the API is in the <a href="../../refs/factory/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.factory</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/factory/#properties">user guide</a>; the API is in the
+<a href="../../refs/factory/">reference</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>The package builds an object from a fully qualified name. It is small on purpose and has no state:
 it keeps no registry, cache or singleton, and it imports the standard library and
 <code>coola.utils.imports</code> only. A configuration names the code to run, so every change is judged first
 by what the data can make the process do. The three entry points (<code>factory</code>, <code>resolve_object</code> and
-<code>is_object_config</code>) are compositions of functions that each own one invariant: <code>import_object</code> is the
-only place that imports a target (allow-list checked before the import, one <code>ImportError</code> for a
+<code>is_object_config</code>) are compositions of functions that each own one invariant: <code>import_object</code> is
+the only place that imports a target (allow-list checked before the import, one <code>ImportError</code> for a
 missing target), and <code>instantiate_object</code> is the only place that calls one (abstract classes
 refused, the <code>_init_</code> rule, the target's keywords never shadowed by a parameter of the API). The
 allow-list is a filter on a path and always comes from the caller's code, never from the data. See
@@ -3145,10 +3148,10 @@ place that reads a return hint.</p>
 <p>Notes on the sketch:</p>
 <ul>
 <li><code>resolve_object</code> does not call <code>factory</code>. <code>factory</code> is the <code>**</code>-friendly API for code that has the
-  arguments; <code>resolve_object</code> is the API for configurations, and the check between the import and the
-  call needs the imported object. The duplication is the four lines of <code>_build</code>.</li>
-<li><code>_RESERVED = (OBJECT_TARGET, OBJECT_INIT, OBJECT_PREFIXES)</code>. <code>_allowed_prefixes_</code> in a configuration
-  is dropped silently (documented): the policy is the caller's.</li>
+  arguments; <code>resolve_object</code> is the API for configurations, and the check between the import and
+  the call needs the imported object. The duplication is the four lines of <code>_build</code>.</li>
+<li><code>_RESERVED = (OBJECT_TARGET, OBJECT_INIT, OBJECT_PREFIXES)</code>. <code>_allowed_prefixes_</code> in a
+  configuration is dropped silently (documented): the policy is the caller's.</li>
 <li><code>_refuse_nested_configurations(args, kwargs)</code> raises <code>ValueError</code> if a value of the arguments is a
   <code>dict</code> with <code>_target_</code>. Only the top level is scanned.</li>
 <li><code>_not_an_instance_message</code> adds, for a <code>dict</code>, "(a configuration needs the <code>_target_</code> key)", so a
@@ -3302,7 +3305,7 @@ place that reads a return hint.</p>
 <tbody>
 <tr>
 <td><code>io.base</code> (<code>resolve_loader</code>, <code>resolve_saver</code>)</td>
-<td>A dict without <code>_target_</code> fails with <code>Received object is not a BaseLoader instance (received: &lt;class 'dict'&gt;; a configuration needs the</code><em>target</em><code>key)</code>.</td>
+<td>A dict without <code>_target_</code> fails with <code>Received object is not a BaseLoader instance (received: &lt;class 'dict'&gt;; a configuration needs the `_target_` key)</code>.</td>
 </tr>
 <tr>
 <td><code>io.base</code> (<code>is_loader_config</code>, <code>is_saver_config</code>)</td>
@@ -3365,44 +3368,46 @@ place that reads a return hint.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>A <code>dict</code> with the key <code>_target_</code> is always a configuration.</strong> The rule does not depend on <code>cls</code>. The
-key is reserved, as in Hydra: a dict that has it cannot be passed through <code>resolve_object</code> as data,
-and the guide says so. As a consequence <code>Mapping</code>, <code>dict</code> and <code>object</code> work the same, and the rule is
-one sentence. A rule that depends on <code>cls</code> needs an <code>issubclass</code> special case for dict subclasses and
-fails for generics.</p>
+<p><strong>A <code>dict</code> with the key <code>_target_</code> is always a configuration.</strong> The rule does not depend on <code>cls</code>.
+The key is reserved, as in Hydra: a dict that has it cannot be passed through <code>resolve_object</code> as
+data, and the guide says so. As a consequence <code>Mapping</code>, <code>dict</code> and <code>object</code> work the same, and the
+rule is one sentence. A rule that depends on <code>cls</code> needs an <code>issubclass</code> special case for dict
+subclasses and fails for generics.</p>
 <p><strong>No <code>_init_="__new__"</code> and no underscore names.</strong> <code>cls(...)</code> runs <code>__new__</code> and <code>__init__</code>;
 <code>cls.__new__(cls, ...)</code> alone gives a partially initialised object, and the data can choose it. A
 public class method (<code>from_config</code>, <code>fromkeys</code>, <code>now</code>) is what <code>_init_</code> is for.</p>
 <p><strong>The allow-list is never read from the data.</strong> The key <code>_allowed_prefixes_</code> is a keyword of
 <code>factory</code> (so <code>factory(**config, ...)</code> works), but <code>resolve_object</code> ignores it in a configuration. A
-policy that the data can narrow looks like a feature, and it is a hole the day somebody lets the data
-widen it.</p>
+policy that the data can narrow looks like a feature, and it is a hole the day somebody lets the
+data widen it.</p>
 <p><strong>A nested configuration is refused when an allow-list is active.</strong> It closes the case of an allowed
 function that resolves its arguments (for example one that calls <code>resolve_object</code> on them), and it
 fails closed: whoever needs the nested object resolves it first, with the same list, as the guide
 tells. Limits: it scans the top level of the arguments only (a configuration deeper in a list is not
-found), and it does not help against a prefix that contains <code>import_object</code>. It is a mitigation, not a
-proof; the guide says which prefixes must never be allowed. Documentation alone would be cheaper but
-would leave the hole open.</p>
+found), and it does not help against a prefix that contains <code>import_object</code>. It is a mitigation, not
+a proof; the guide says which prefixes must never be allowed. Documentation alone would be cheaper
+but would leave the hole open.</p>
 <p><strong><code>dict</code>, not <code>Mapping</code>, for configurations.</strong> JSON and YAML load into <code>dict</code>; a <code>DictConfig</code> is
-converted by the caller (<code>to_container</code>). Accepting any <code>Mapping</code> costs one word but widens what counts
-as "a configuration" in a security-relevant check.</p>
+converted by the caller (<code>to_container</code>). Accepting any <code>Mapping</code> costs one word but widens what
+counts as "a configuration" in a security-relevant check.</p>
 <p><strong>The module that defines the target is not checked.</strong> Comparing <code>target.__module__</code> to the prefixes
-would stop a re-export from another package, but it does not close the nested-configuration case (the
-functions of <code>coola.factory</code> are defined under <code>coola</code>), and it rejects legitimate aliases
+would stop a re-export from another package, but it does not close the nested-configuration case
+(the functions of <code>coola.factory</code> are defined under <code>coola</code>), and it rejects legitimate aliases
 (<code>os.path.join</code> is defined in <code>posixpath</code>, <code>numpy</code> functions in private modules of other names). The
 guide states that the list filters paths.</p>
 <p><strong>Two <code>import_object</code> functions.</strong> The colon form is the internal syntax of the lazy registries, the
 dotted form is the user-facing one. Renaming <code>coola.utils.imports.import_object</code> would touch
 <code>registry</code>, <code>random</code>, <code>reducer</code> and their tests for a naming gain, so the docstrings link to each
 other.</p>
-<p><strong>No attribute paths (<code>pkg.module.Class.method</code>).</strong> <code>import_object("collections.OrderedDict.fromkeys")</code>
-raises <code>ImportError: The target object does not exist</code>. Three reasons: (1) a fallback loop over
-prefixes must tell an expected failure (<code>collections.OrderedDict</code> is not a module) from a real one (a
-module that exists but whose own dependency is missing), which is the <code>err.name</code> rule repeated at every
-step; (2) <code>_init_</code> already reaches class methods; (3) walking attributes widens what a prefix reaches:
-<code>"mypkg"</code> would allow <code>mypkg.module.Class.helper.os.system</code>, whereas now only the last segment goes
-through <code>getattr</code>. The cost is that a nested class (<code>pkg.Outer.Inner</code>) needs a module-level alias.</p>
+<p><strong>No attribute paths (<code>pkg.module.Class.method</code>).</strong>
+<code>import_object("collections.OrderedDict.fromkeys")</code> raises
+<code>ImportError: The target object does not exist</code>. Three reasons: (1) a fallback loop over prefixes
+must tell an expected failure (<code>collections.OrderedDict</code> is not a module) from a real one (a module
+that exists but whose own dependency is missing), which is the <code>err.name</code> rule repeated at every
+step; (2) <code>_init_</code> already reaches class methods; (3) walking attributes widens what a prefix
+reaches: <code>"mypkg"</code> would allow <code>mypkg.module.Class.helper.os.system</code>, whereas now only the last
+segment goes through <code>getattr</code>. The cost is that a nested class (<code>pkg.Outer.Inner</code>) needs a
+module-level alias.</p>
 <p><strong><code>builds</code> is not exported.</strong> It is a helper of two modules of one package and has no other user.</p>
 <h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
 <ul>

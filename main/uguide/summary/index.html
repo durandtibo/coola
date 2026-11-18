@@ -3609,11 +3609,11 @@ a (possibly huge, nested, partly unprintable) object contains. These are the rul
 <li><strong>Plain objects with <code>__dict__</code>, <code>attrs</code> classes and <code>__slots__</code></strong> are leaves. Register a
   summarizer to show their attributes.</li>
 <li><strong>A machine-readable form</strong> (JSON, a tree of nodes): the package produces text for humans.</li>
-<li><strong>Width-aware or colored output</strong>, a template for the format, and options per type. To show 3 items
-  for a list and 10 for a dict, register your own summarizer.</li>
-<li><strong>Summaries of the elements of an array</strong> (min, max, mean, number of NaN): the default is the shape
-  and the dtype, which is cheap and needs no copy and no device transfer. A metadata summarizer can
-  compute more for the types that want it.</li>
+<li><strong>Width-aware or colored output</strong>, a template for the format, and options per type. To show 3
+  items for a list and 10 for a dict, register your own summarizer.</li>
+<li><strong>Summaries of the elements of an array</strong> (min, max, mean, number of NaN): the default is the
+  shape and the dtype, which is cheap and needs no copy and no device transfer. A metadata
+  summarizer can compute more for the types that want it.</li>
 </ul>
 <h2 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h2>
 <h3 id="the-summarize-function">The <code>summarize()</code> Function<a class="headerlink" href="#the-summarize-function" title="Permanent link">&para;</a></h3>
@@ -3823,8 +3823,8 @@ and the rest of the summary is intact:</p>
 dataclasses and the pydantic models, and to the columns of the data frames, the tables and the
 datasets.</p>
 <h3 id="truncating-long-texts">Truncating Long Texts<a class="headerlink" href="#truncating-long-texts" title="Permanent link">&para;</a></h3>
-<p>A text, with its type header, is at most <code>max_characters</code> characters long (1000 by default). The <code>str</code> of the object is computed
-before it is cut. Use <code>max_characters=None</code> to show everything:</p>
+<p>A text, with its type header, is at most <code>max_characters</code> characters long (1000 by default). The
+<code>str</code> of the object is computed before it is cut. Use <code>max_characters=None</code> to show everything:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.summary</span><span class="w"> </span><span class="kn">import</span> <span class="n">summarize</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">summarize</span><span class="p">(</span><span class="s2">"This is a very long string that is cut"</span><span class="p">,</span> <span class="n">max_characters</span><span class="o">=</span><span class="mi">24</span><span class="p">))</span>
 <span class="go">&lt;class 'str'&gt; This is...</span>
@@ -3984,10 +3984,10 @@ convenience base class.</p>
 <code>coola.summary.summarizers</code>.</p>
 <h2 id="working-with-the-registry">Working with the Registry<a class="headerlink" href="#working-with-the-registry" title="Permanent link">&para;</a></h2>
 <h3 id="understanding-the-registry">Understanding the Registry<a class="headerlink" href="#understanding-the-registry" title="Permanent link">&para;</a></h3>
-<p>The <code>SummarizerRegistry</code> manages the mapping from types to summarizers. <code>find_summarizer</code> returns the
-summarizer of a type, or of its nearest registered parent type along the Method Resolution Order.
-The full content of the global registry depends on the installed libraries and on the summarizers
-registered so far, so it is not shown here:</p>
+<p>The <code>SummarizerRegistry</code> manages the mapping from types to summarizers. <code>find_summarizer</code> returns
+the summarizer of a type, or of its nearest registered parent type along the Method Resolution
+Order. The full content of the global registry depends on the installed libraries and on the
+summarizers registered so far, so it is not shown here:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.summary</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_default_registry</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">registry</span> <span class="o">=</span> <span class="n">get_default_registry</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">registry</span><span class="o">.</span><span class="n">find_summarizer</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
@@ -4108,7 +4108,8 @@ pairs. <code>get_default_summarizer_registry()</code> returns the registry used 
 </ol>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../recursive/">Recursive Data Transformation</a>: For transforming nested data while preserving structure</li>
+<li><a href="../recursive/">Recursive Data Transformation</a>: For transforming nested data while preserving
+  structure</li>
 <li><a href="../iterator/">Iterating Over Nested Data</a>: For iterating over nested data structures</li>
 <li><a href="../registry/">Registry System</a>: For understanding the registry pattern used internally</li>
 </ul>

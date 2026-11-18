@@ -4430,8 +4430,8 @@ type and hash, so <code>{1}</code> and <code>{True}</code> are different (unlike
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_equal</span><span class="p">({</span><span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="kc">True</span><span class="p">})</span>
 <span class="go">False</span>
 </code></pre></div>
-<p>With <code>equal_nan=True</code>, two <code>NaN</code> keys (also inside a <code>tuple</code> key) are the same key, as the <code>NaN</code> members
-of a <code>set</code> are:</p>
+<p>With <code>equal_nan=True</code>, two <code>NaN</code> keys (also inside a <code>tuple</code> key) are the same key, as the <code>NaN</code>
+members of a <code>set</code> are:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_equal</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_equal</span><span class="p">({</span><span class="nb">float</span><span class="p">(</span><span class="s2">"nan"</span><span class="p">):</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="nb">float</span><span class="p">(</span><span class="s2">"nan"</span><span class="p">):</span> <span class="mi">1</span><span class="p">})</span>
 <span class="go">False</span>
@@ -4496,13 +4496,14 @@ whereas <code>objects_are_allclose</code> and <code>assert_objects_allclose</cod
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">compare</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">))</span>
 <span class="go">True</span>
 </code></pre></div>
-<p>Two numbers are considered equal if <code>|actual - expected| &lt;= atol + rtol * max(|actual|, |expected|)</code>.
-This is the rule of NumPy, PyTorch, JAX, PyArrow and xarray arrays, and it is also used for Python
-numbers (<code>float</code>, <code>int</code>, <code>complex</code>), NumPy scalars, <code>Decimal</code>, <code>Fraction</code> and <code>timedelta</code>. It is
-symmetric: <code>objects_are_allclose(a, b)</code> and <code>objects_are_allclose(b, a)</code> give the same result.
-The numeric columns (integers and floats, also the nullable ones, and complex numbers for pandas)
-and the duration columns of <code>pandas</code>, <code>polars</code> and <code>pyarrow</code> data frames, series and arrays follow
-the same rule (<code>atol</code> of a duration is a number of seconds). The other columns (booleans, strings,
+<p>Two numbers are considered equal if
+<code>|actual - expected| &lt;= atol + rtol * max(|actual|, |expected|)</code>. This is the rule of NumPy,
+PyTorch, JAX, PyArrow and xarray arrays, and it is also used for Python numbers (<code>float</code>, <code>int</code>,
+<code>complex</code>), NumPy scalars, <code>Decimal</code>, <code>Fraction</code> and <code>timedelta</code>. It is symmetric:
+<code>objects_are_allclose(a, b)</code> and <code>objects_are_allclose(b, a)</code> give the same result. The numeric
+columns (integers and floats, also the nullable ones, and complex numbers for pandas) and the
+duration columns of <code>pandas</code>, <code>polars</code> and <code>pyarrow</code> data frames, series and arrays follow the same
+rule (<code>atol</code> of a duration is a number of seconds). The other columns (booleans, strings,
 categories, instants, decimals, nested values and <code>object</code> columns) are compared exactly with the
 <code>equals</code> of the library: the tolerance and <code>equal_nan</code> do not reach the values nested in a cell.
 Whether a <code>NaN</code> nested in a cell equals a <code>NaN</code> is decided by the library: it does in <code>polars</code>, it
@@ -4600,12 +4601,11 @@ It is possible to use the <code>equal_nan=True</code> option to compare two tens
 <span class="go">True</span>
 </code></pre></div>
 <h2 id="connection-with-similar-tools">Connection with Similar Tools<a class="headerlink" href="#connection-with-similar-tools" title="Permanent link">&para;</a></h2>
-<p><code>coola</code> is not the first tool to provide functions to compare nested objects.
-If you are a PyTorch user, you probably know
-the <a href="https://pytorch.org/docs/stable/testing.html"><code>torch.testing.assert_close</code></a> function.
-If you are a NumPy user, you probably know
-the <a href="https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html">
-<code>numpy.testing.assert_equal</code></a>
+<p><code>coola</code> is not the first tool to provide functions to compare nested objects. If you are a PyTorch
+user, you probably know the
+<a href="https://pytorch.org/docs/stable/testing.html"><code>torch.testing.assert_close</code></a> function. If you are a
+NumPy user, you probably know the
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html"><code>numpy.testing.assert_equal</code></a>
 function.
 However, most of these functions work in a fixed scope and are difficult to extend or customize.
 On the opposite side, <code>coola</code> is flexible and easy to customize.</p>
@@ -4677,8 +4677,7 @@ convert some values to tensors to compare them, which can lead to surprising res
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_equal</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 <span class="go">False</span>
 </code></pre></div>
-<p><a href="https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html">
-<code>numpy.testing.assert_equal</code></a>
+<p><a href="https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_equal.html"><code>numpy.testing.assert_equal</code></a>
 has different limitations.
 For example, it can work with strings but can handle only simple sequence and mapping objects</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -4744,9 +4743,9 @@ and <code>assert_objects_allclose</code>) share the same options, with the same 
 </tr>
 </tbody>
 </table>
-<p>The <code>*_allclose</code> functions also take <code>rtol</code> and <code>atol</code>. <code>compare</code> takes <code>rtol</code> and <code>atol</code> too, and is
-exact unless one of them is given. The assert functions take a <code>root</code> name (default <code>"actual"</code>) for
-the message.</p>
+<p>The <code>*_allclose</code> functions also take <code>rtol</code> and <code>atol</code>. <code>compare</code> takes <code>rtol</code> and <code>atol</code> too, and
+is exact unless one of them is given. The assert functions take a <code>root</code> name (default <code>"actual"</code>)
+for the message.</p>
 <h2 id="advanced-usage">Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permanent link">&para;</a></h2>
 <h3 id="controlling-recursion-depth">Controlling Recursion Depth<a class="headerlink" href="#controlling-recursion-depth" title="Permanent link">&para;</a></h3>
 <p>The <code>max_depth</code> option is the <strong>nesting limit</strong> of the comparison.</p>
@@ -4769,9 +4768,9 @@ the message.</p>
 </tr>
 </tbody>
 </table>
-<p><code>max_depth</code> must be <code>None</code> (the default, no limit) or a positive <code>int</code> (not a <code>bool</code>), otherwise a <code>ValueError</code> (not positive) or a
-<code>TypeError</code> (not an <code>int</code>) is raised. <code>rtol</code> and <code>atol</code> must be non-negative finite real numbers
-(not <code>bool</code>).</p>
+<p><code>max_depth</code> must be <code>None</code> (the default, no limit) or a positive <code>int</code> (not a <code>bool</code>), otherwise a
+<code>ValueError</code> (not positive) or a <code>TypeError</code> (not an <code>int</code>) is raised. <code>rtol</code> and <code>atol</code> must be
+non-negative finite real numbers (not <code>bool</code>).</p>
 <p>The comparison does not recurse: the engine keeps the child iterators on an explicit stack, so a
 <code>RecursionError</code> cannot happen whatever the nesting (100 000 nested dictionaries compare under the
 default interpreter limit). <code>max_depth</code> is therefore a policy, not a safety net: it bounds the work
@@ -4792,9 +4791,9 @@ an attribute is read. By default there is no limit, so a deep but valid structur
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_equal</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span> <span class="n">data2</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="go">True</span>
 </code></pre></div>
-<p>The default <code>max_depth</code> is <code>None</code>: the nesting is not limited. Set it to a number (for example <code>100</code>)
-to guard against a structure that is deeper than expected, such as an object that creates a new child
-each time an attribute is read.</p>
+<p>The default <code>max_depth</code> is <code>None</code>: the nesting is not limited. Set it to a number (for example
+<code>100</code>) to guard against a structure that is deeper than expected, such as an object that creates a
+new child each time an attribute is read.</p>
 <h3 id="using-custom-registries">Using Custom Registries<a class="headerlink" href="#using-custom-registries" title="Permanent link">&para;</a></h3>
 <p>The equality system uses a registry to dispatch to the appropriate comparison logic based on type.
 You can provide a custom registry if needed:</p>
@@ -4864,8 +4863,8 @@ well have limits. When a type matters for your use case, check it with a small e
   exactly, and so are <code>datetime64</code> arrays (an instant is not a quantity), even if a tolerance is
   given. A <code>timedelta64</code> array, like a <code>datetime.timedelta</code>, follows the tolerance (<code>atol</code> is a
   number of seconds), and so does a <code>pandas</code> series or column of timedeltas</li>
-<li><code>decimal.Decimal</code>, <code>fractions.Fraction</code> and <code>datetime.timedelta</code>: compared with <code>==</code>, or with their
-  difference if <code>atol</code> or <code>rtol</code> is given (<code>atol</code> of a <code>timedelta</code> is a number of seconds). A
+<li><code>decimal.Decimal</code>, <code>fractions.Fraction</code> and <code>datetime.timedelta</code>: compared with <code>==</code>, or with
+  their difference if <code>atol</code> or <code>rtol</code> is given (<code>atol</code> of a <code>timedelta</code> is a number of seconds). A
   <code>Decimal</code> NaN is equal to a NaN only if <code>equal_nan=True</code></li>
 <li><code>set</code> and <code>frozenset</code>: the elements are matched by hash and type in linear time, so <code>equal_nan</code>
   applies to the elements (<code>{1.0, float("nan")}</code> equals itself with <code>equal_nan=True</code>, also inside
@@ -4877,8 +4876,8 @@ well have limits. When a type matters for your use case, check it with a small e
   value that can be converted to a <code>bool</code> (for example, a class that compares arrays), a
   <code>TypeError</code> is raised: register a tester for this type</li>
 <li>Objects with a reference cycle (a list that contains itself) are supported: a pair of objects that
-  is already being compared is considered equal, so two cyclic structures are equal if they unfold to
-  the same values. Very deep (but not cyclic) structures raise a <code>MaxDepthExceededError</code> beyond
+  is already being compared is considered equal, so two cyclic structures are equal if they unfold
+  to the same values. Very deep (but not cyclic) structures raise a <code>MaxDepthExceededError</code> beyond
   <code>max_depth</code>, never a <code>RecursionError</code></li>
 <li>Two objects are only compared if they have exactly the same type: a subclass is not equal to
   its parent class, and <code>numpy.float32(1)</code> is not equal to <code>numpy.float64(1)</code></li>
@@ -4890,7 +4889,7 @@ well have limits. When a type matters for your use case, check it with a small e
 <li>they have the same type</li>
 <li>they are equal i.e. <code>actual == expected</code> returns <code>True</code></li>
 </ul>
-<p><strong>Example</strong></p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_equal</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_equal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="go">True</span>
@@ -4935,7 +4934,7 @@ well have limits. When a type matters for your use case, check it with a small e
 <li>For each position, the elements are equal. The <code>i</code>-th element in the first sequence has to be
   equal to the <code>i</code>-th element in the second sequence.</li>
 </ul>
-<p><strong>Example</strong></p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_equal</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_equal</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"abc"</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"abc"</span><span class="p">])</span>
 <span class="go">True</span>
@@ -4962,7 +4961,7 @@ following PyTorch objects:</p>
 <li>they have the same shape i.e. <code>tensor1.shape == tensor2.shape</code> returns <code>True</code></li>
 <li>they have the same values i.e. <code>tensor1.equal(tensor2)</code> returns <code>True</code></li>
 </ul>
-<p><strong>Example</strong></p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_equal</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_equal</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
@@ -4982,7 +4981,7 @@ following PyTorch objects:</p>
 <li>The <code>sorted_indices</code> attributes are equal</li>
 <li>The <code>unsorted_indices</code> attributes are equal</li>
 </ul>
-<p><strong>Example</strong></p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn.utils.rnn</span><span class="w"> </span><span class="kn">import</span> <span class="n">pack_padded_sequence</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_equal</span>
@@ -5058,9 +5057,9 @@ their categories are in the same order and they have the same <code>ordered</cod
 ignore the order of the categories of an unordered categorical). The order changes the codes,
 and the hash of the data depends on it.</p>
 <p>The time resolution is part of the dtype, as in NumPy: <code>timedelta64[s]</code> and <code>timedelta64[ns]</code> (or
-<code>datetime64[s]</code> and <code>datetime64[ns]</code>) are different dtypes, so two frames that hold the same instants
-with different resolutions are different. pandas 3 infers the resolution from how the values are
-built, so cast both sides with <code>astype</code> to the resolution you want before the comparison.</p>
+<code>datetime64[s]</code> and <code>datetime64[ns]</code>) are different dtypes, so two frames that hold the same
+instants with different resolutions are different. pandas 3 infers the resolution from how the
+values are built, so cast both sides with <code>astype</code> to the resolution you want before the comparison.</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_equal</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"a"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">"b"</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]})</span>
@@ -5153,7 +5152,7 @@ By default, two objects are equal if:</p>
 <li>they have the same type</li>
 <li>they are equal i.e. <code>actual == expected</code> returns <code>True</code></li>
 </ul>
-<p><strong>Example</strong></p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_allclose</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_allclose</span><span class="p">(</span><span class="s2">"abc"</span><span class="p">,</span> <span class="s2">"abc"</span><span class="p">)</span>
 <span class="go">True</span>
@@ -5166,7 +5165,7 @@ By default, two objects are equal if:</p>
 <li>they have the same type</li>
 <li>the values are equal with a tolerance</li>
 </ul>
-<p><strong>Example</strong></p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_allclose</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_allclose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="go">False</span>
@@ -5187,8 +5186,8 @@ By default, two objects are equal if:</p>
 the NumPy scalars like <code>numpy.float32</code> or <code>numpy.int64</code>. Two numbers of different types are never
 equal, for example <code>numpy.float32(1.0)</code> and <code>numpy.float64(1.0)</code>.</p>
 <p>The tolerance is computed in double precision for the arrays: <code>float16</code>, <code>bfloat16</code> and <code>float32</code>
-are cast to <code>float64</code>, so the tolerance cannot overflow at the edge of their range. The difference of
-two integers is exact, whatever the size of the integers (<code>2**62</code> and <code>2**62 + 1</code> are not within
+are cast to <code>float64</code>, so the tolerance cannot overflow at the edge of their range. The difference
+of two integers is exact, whatever the size of the integers (<code>2**62</code> and <code>2**62 + 1</code> are not within
 <code>atol=0.5</code>); only its comparison to the tolerance is made in <code>float64</code>. In a rare case, a difference
 above 2^53 that is exactly equal to the tolerance can be rounded the other way. JAX without 64-bit
 mode has no <code>float64</code> and uses the widest dtype it has.</p>
@@ -5218,7 +5217,7 @@ and arrays) or to enum members (<code>IntEnum</code> and <code>IntFlag</code> in
 <li>For an <code>OrderedDict</code> only: the keys are in the same order. The tolerance does not apply to the
   keys.</li>
 </ul>
-<p><strong>Example</strong></p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_allclose</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_allclose</span><span class="p">({</span><span class="s2">"int"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"str"</span><span class="p">:</span> <span class="s2">"abc"</span><span class="p">},</span> <span class="p">{</span><span class="s2">"int"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"str"</span><span class="p">:</span> <span class="s2">"abc"</span><span class="p">})</span>
@@ -5244,7 +5243,7 @@ and arrays) or to enum members (<code>IntEnum</code> and <code>IntFlag</code> in
 <li>For each position, the elements are equal within a tolerance. The <code>i</code>-th element in the first
   sequence has to be equal within a tolerance to the <code>i</code>-th element in the second sequence.</li>
 </ul>
-<p><strong>Example</strong></p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_allclose</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_allclose</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"abc"</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"abc"</span><span class="p">])</span>
 <span class="go">True</span>
@@ -5261,8 +5260,8 @@ and arrays) or to enum members (<code>IntEnum</code> and <code>IntFlag</code> in
 </code></pre></div>
 <h4 id="pytorch_1">PyTorch<a class="headerlink" href="#pytorch_1" title="Permanent link">&para;</a></h4>
 <p>You need to install <code>coola</code> with PyTorch to check if some PyTorch objects are equal within a
-tolerance or not. Please check the <a href="../../get_started/">get started page</a> for more information. <code>coola</code>
-currently support the following PyTorch objects:</p>
+tolerance or not. Please check the <a href="../../get_started/">get started page</a> for more information.
+<code>coola</code> currently support the following PyTorch objects:</p>
 <ul>
 <li><code>torch.Tensor</code></li>
 <li><code>torch.nn.utils.rnn.PackedSequence</code></li>
@@ -5275,7 +5274,7 @@ currently support the following PyTorch objects:</p>
 <li>they have the same shape i.e. <code>tensor1.shape == tensor2.shape</code> returns <code>True</code></li>
 <li>the values are equal within a tolerance i.e. <code>tensor1.allclose(tensor2)</code> returns <code>True</code></li>
 </ul>
-<p><strong>Example</strong></p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_allclose</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">objects_are_allclose</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
@@ -5299,7 +5298,7 @@ currently support the following PyTorch objects:</p>
 <li>The <code>sorted_indices</code> attributes are equal</li>
 <li>The <code>unsorted_indices</code> attributes are equal</li>
 </ul>
-<p><strong>Example</strong></p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn.utils.rnn</span><span class="w"> </span><span class="kn">import</span> <span class="n">pack_padded_sequence</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_allclose</span>
@@ -5620,13 +5619,13 @@ by another code path. Use `equal_nan=True` whenever the data can contain a `NaN`
 <p><code>assert_objects_equal</code> and <code>assert_objects_allclose</code> raise an <code>AssertionError</code> with the same
 message, for the tests.</p>
 <p>The path is read as follows: a key or a position is itself (<code>['a']</code>, <code>[3]</code>), a field or an attribute
-is <code>.x</code>, an element of a set is <code>{2}</code>, and an array reports its index (<code>[1][2]</code>). A pandas, polars or
-PyArrow table is reported as a whole (the path is the location of the table), and the reason says
+is <code>.x</code>, an element of a set is <code>{2}</code>, and an array reports its index (<code>[1][2]</code>). A pandas, polars
+or PyArrow table is reported as a whole (the path is the location of the table), and the reason says
 what differs: a difference of structure names the part that differs (for example
-<code>tables have a different structure: dtypes differ: a: int64 vs float64</code>), and a difference of
-values gives the first differing column, the first differing row and the two values (for example
-<code>tables have different values: column 'a' differs at row 999: 999 vs 0</code>). The row is not given for
-a nested column. The design behind this is described in
+<code>tables have a different structure: dtypes differ: a: int64 vs float64</code>), and a difference of values
+gives the first differing column, the first differing row and the two values (for example
+<code>tables have different values: column 'a' differs at row 999: 999 vs 0</code>). The row is not given for a
+nested column. The design behind this is described in
 <a href="../../dev/equality/">Architecture</a>.</p>
 <ul>
 <li><code>compare</code> and the assert functions do not log and do not change the logging configuration, so they

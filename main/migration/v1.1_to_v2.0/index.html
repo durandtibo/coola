@@ -3785,8 +3785,8 @@ finders, loaders or registries) must be ported.</p>
 <h2 id="before-you-start">Before you start<a class="headerlink" href="#before-you-start" title="Permanent link">&para;</a></h2>
 <p><strong>Requirements.</strong> <code>coola</code> 2.0 requires Python 3.11 or later (section 1).</p>
 <p><strong>Baseline.</strong> The baseline is the release <code>1.1.10</code>. Some tables also compare with states of the
-development branch between <code>1.1.10</code> and <code>2.0</code>, so a "Before" cell can name something the release never
-had. If you only used the release <code>1.1.10</code>, skip these parts:</p>
+development branch between <code>1.1.10</code> and <code>2.0</code>, so a "Before" cell can name something the release
+never had. If you only used the release <code>1.1.10</code>, skip these parts:</p>
 <ul>
 <li>The packages <code>coola.io</code> (section 16), <code>coola.identifier</code> (17), <code>coola.rounding</code> (18),
   <code>coola.validation</code> (19), <code>coola.formatting</code> and <code>coola.display.rich</code> did not exist. They are new
@@ -3838,13 +3838,14 @@ had. If you only used the release <code>1.1.10</code>, skip these parts:</p>
       <code>raise_&lt;pkg&gt;_missing_error</code> functions, and read the smaller behaviour changes (section 13).</li>
 <li>[ ] Display: pass <code>force</code> of <code>configure_colorlog_logging</code> by keyword and read the new pydantic
       output (section 14).</li>
-<li>[ ] Testing: import the marks from <code>coola.testing.marks</code> and load the fixture with <code>pytest_plugins</code>
-      (section 15); install the <code>testing</code> extra (section 1).</li>
+<li>[ ] Testing: import the marks from <code>coola.testing.marks</code> and load the fixture with
+      <code>pytest_plugins</code> (section 15); install the <code>testing</code> extra (section 1).</li>
 <li>[ ] SciPy sparse matrices: install the <code>scipy</code> extra to compare them (section 1).</li>
 </ul>
 <h2 id="detailed-changes">Detailed changes<a class="headerlink" href="#detailed-changes" title="Permanent link">&para;</a></h2>
 <p>Sections 1 to 3 apply to the whole library. Sections 4 to 11 follow the packages in order of use,
-section 12 covers <code>coola.nested</code>, sections 13 to 15 the helpers, and sections 16 to 19 the new packages.</p>
+section 12 covers <code>coola.nested</code>, sections 13 to 15 the helpers, and sections 16 to 19 the new
+packages.</p>
 <h2 id="part-1-whole-library-sections-1-to-3">Part 1: Whole library (sections 1 to 3)<a class="headerlink" href="#part-1-whole-library-sections-1-to-3" title="Permanent link">&para;</a></h2>
 <h3 id="1-packaging-python-311-new-extras">1. Packaging: Python 3.11, New Extras<a class="headerlink" href="#1-packaging-python-311-new-extras" title="Permanent link">&para;</a></h3>
 <p><strong>Affects:</strong> Everyone who installs <code>coola</code>.</p>
@@ -3883,8 +3884,8 @@ section 12 covers <code>coola.nested</code>, sections 13 to 15 the helpers, and 
 </tbody>
 </table>
 <p>The <code>jax</code>, <code>numpy</code>, <code>packaging</code>, <code>pandas</code>, <code>pyarrow</code>, <code>pydantic</code>, <code>xarray</code>, <code>colorlog</code> and <code>rich</code>
-extras are unchanged. The development tools changed (<code>ty</code> replaces <code>pyright</code>; <code>black</code> and <code>mutmut</code> are
-removed), which matters to contributors only.</p>
+extras are unchanged. The development tools changed (<code>ty</code> replaces <code>pyright</code>; <code>black</code> and <code>mutmut</code>
+are removed), which matters to contributors only.</p>
 <h3 id="2-exceptions-that-changed-type">2. Exceptions That Changed Type<a class="headerlink" href="#2-exceptions-that-changed-type" title="Permanent link">&para;</a></h3>
 <p><strong>Affects:</strong> Code that catches <code>RuntimeError</code>, <code>KeyError</code> or <code>RecursionError</code> raised by <code>coola</code>.</p>
 <table>
@@ -4007,7 +4008,8 @@ also supports the virtual subclasses of an abstract base class (the MRO lookup d
 <code>registry.register_fallback(lambda t: issubclass(t, Sequence), handler)</code>.</p>
 <h2 id="part-2-core-packages-sections-4-to-11">Part 2: Core packages (sections 4 to 11)<a class="headerlink" href="#part-2-core-packages-sections-4-to-11" title="Permanent link">&para;</a></h2>
 <h3 id="4-coolaequality-one-engine-testers-that-return-a-verdict-or-child-pairs">4. <code>coola.equality</code>: One Engine, Testers That Return a Verdict or Child Pairs<a class="headerlink" href="#4-coolaequality-one-engine-testers-that-return-a-verdict-or-child-pairs" title="Permanent link">&para;</a></h3>
-<p><strong>Affects:</strong> Custom equality testers and handlers, code that uses <code>show_difference=True</code>, and tests that depend on comparison edge cases.</p>
+<p><strong>Affects:</strong> Custom equality testers and handlers, code that uses <code>show_difference=True</code>, and tests
+that depend on comparison edge cases.</p>
 <p>The handler chain is replaced by testers that use an engine. A tester never recurses and
 never checks the identity, the type, the depth or the cycles: the engine does. The tester receives
 two objects of the same type and the engine (<code>ctx</code>), and returns either a verdict or the child pairs
@@ -4169,10 +4171,11 @@ format nothing.</p>
 <code>objects_are_allclose</code> (exact by default). <code>ComparisonResult</code> has <code>equal</code>, <code>path</code> (keys, positions,
 <code>AttributeName</code>, <code>Element</code>) and <code>reason</code>, and no <code>actual</code> / <code>expected</code> fields.</p>
 <h3 id="5-coolahashing-one-engine-encode-a-new-format">5. <code>coola.hashing</code>: One Engine, <code>encode</code>, a New Format<a class="headerlink" href="#5-coolahashing-one-engine-encode-a-new-format" title="Permanent link">&para;</a></h3>
-<p><strong>Affects:</strong> Everyone who stores a hash or a stable identifier, custom hashers, and code that handles secrets.</p>
-<p><strong>Every hash value changes</strong> (new encoding, format version <code>coola-hash-2</code>, short leaves inlined in the preimage of their parent), so every stable
-identifier changes too: <code>generate_stable_content_id</code> and <code>generate_stable_uuid5</code> return other values.
-Regenerate any stored hash or identifier.</p>
+<p><strong>Affects:</strong> Everyone who stores a hash or a stable identifier, custom hashers, and code that
+handles secrets.</p>
+<p><strong>Every hash value changes</strong> (new encoding, format version <code>coola-hash-2</code>, short leaves inlined in
+the preimage of their parent), so every stable identifier changes too: <code>generate_stable_content_id</code>
+and <code>generate_stable_uuid5</code> return other values. Regenerate any stored hash or identifier.</p>
 <table>
 <thead>
 <tr>
@@ -4259,7 +4262,8 @@ Regenerate any stored hash or identifier.</p>
 <span class="n">hash_object</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">registry</span><span class="o">=</span><span class="n">registry</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="6-coolasummary-one-engine-one-option-object">6. <code>coola.summary</code>: One Engine, One Option Object<a class="headerlink" href="#6-coolasummary-one-engine-one-option-object" title="Permanent link">&para;</a></h3>
-<p><strong>Affects:</strong> Custom summarizers, code that passes options to a summarizer, and code that parses summary text.</p>
+<p><strong>Affects:</strong> Custom summarizers, code that passes options to a summarizer, and code that parses
+summary text.</p>
 <table>
 <thead>
 <tr>
@@ -4432,10 +4436,11 @@ not parsed, and its layout changes in this release.</p>
         <span class="k">return</span> <span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">y</span><span class="p">],</span> <span class="k">lambda</span> <span class="n">xs</span><span class="p">:</span> <span class="n">Point</span><span class="p">(</span><span class="o">*</span><span class="n">xs</span><span class="p">)</span>
 </code></pre></div>
 <p>A plugin of the group <code>coola.recursive.transformers</code> that implements <code>transform</code> must be ported to
-<code>expand</code>. To keep a dataclass as a leaf, register <code>DefaultTransformer()</code> for its type (<code>DefaultChildFinder()</code> for
-<code>dfs_iterate</code> and <code>bfs_iterate</code>).</p>
+<code>expand</code>. To keep a dataclass as a leaf, register <code>DefaultTransformer()</code> for its type
+(<code>DefaultChildFinder()</code> for <code>dfs_iterate</code> and <code>bfs_iterate</code>).</p>
 <h3 id="8-coolaiterator-one-child-finder-for-both-orders">8. <code>coola.iterator</code>: One Child Finder for Both Orders<a class="headerlink" href="#8-coolaiterator-one-child-finder-for-both-orders" title="Permanent link">&para;</a></h3>
-<p><strong>Affects:</strong> Custom iterators and child finders, and plugins of the groups <code>coola.iterator.dfs</code> and <code>coola.iterator.bfs</code>.</p>
+<p><strong>Affects:</strong> Custom iterators and child finders, and plugins of the groups <code>coola.iterator.dfs</code> and
+<code>coola.iterator.bfs</code>.</p>
 <table>
 <thead>
 <tr>
@@ -4514,7 +4519,8 @@ not parsed, and its layout changes in this release.</p>
 plugin of the group <code>coola.iterator.dfs</code> or <code>coola.iterator.bfs</code> must register a <code>ChildFinder</code> in
 <code>coola.iterator.child_finders</code> instead.</p>
 <h3 id="9-coolafactory-strict-contracts">9. <code>coola.factory</code>: Strict Contracts<a class="headerlink" href="#9-coolafactory-strict-contracts" title="Permanent link">&para;</a></h3>
-<p><strong>Affects:</strong> Configurations that use <code>_init_</code> or <code>_allowed_prefixes_</code>, and code that nests configurations.</p>
+<p><strong>Affects:</strong> Configurations that use <code>_init_</code> or <code>_allowed_prefixes_</code>, and code that nests
+configurations.</p>
 <table>
 <thead>
 <tr>
@@ -4665,7 +4671,8 @@ it into a registry with the same keys.</p>
 </ul>
 <h2 id="part-3-nested-data-section-12">Part 3: Nested data (section 12)<a class="headerlink" href="#part-3-nested-data-section-12" title="Permanent link">&para;</a></h2>
 <h3 id="12-coolanested-built-on-the-engines">12. <code>coola.nested</code>: Built on the Engines<a class="headerlink" href="#12-coolanested-built-on-the-engines" title="Permanent link">&para;</a></h3>
-<p><strong>Affects:</strong> Users of <code>coola.nested</code> (flattening, key filtering, mapping helpers) and of the JSON conversion.</p>
+<p><strong>Affects:</strong> Users of <code>coola.nested</code> (flattening, key filtering, mapping helpers) and of the JSON
+conversion.</p>
 <h4 id="121-to_flat_dict-on-dfs_items">12.1 <code>to_flat_dict</code> on <code>dfs_items</code><a class="headerlink" href="#121-to_flat_dict-on-dfs_items" title="Permanent link">&para;</a></h4>
 <p><code>to_flat_dict</code> joins the paths given by <code>coola.iterator.dfs_items</code> instead of walking the data with
 its own recursion.</p>
@@ -4810,7 +4817,8 @@ and its default registry, instead of a traversal of their own.</p>
 </table>
 <h4 id="125-convert_to_jsonable-moved-to-coolajsonableto_jsonable">12.5 <code>convert_to_jsonable</code> moved to <code>coola.jsonable.to_jsonable</code><a class="headerlink" href="#125-convert_to_jsonable-moved-to-coolajsonableto_jsonable" title="Permanent link">&para;</a></h4>
 <p><code>coola.nested.convert_to_jsonable</code> and <code>coola.nested.conversion.to_jsonable</code> are removed, with no
-alias. The conversion is <code>coola.jsonable.to_jsonable</code> (see <a href="../../uguide/jsonable/">Converting Data to JSON</a>),
+alias. The conversion is <code>coola.jsonable.to_jsonable</code> (see
+<a href="../../uguide/jsonable/">Converting Data to JSON</a>),
 and <code>coola/nested/conversion.py</code> is now <code>coola/nested/records.py</code>.</p>
 <table>
 <thead>
@@ -4870,8 +4878,8 @@ and <code>coola/nested/conversion.py</code> is now <code>coola/nested/records.py
 </tr>
 </tbody>
 </table>
-<p><code>NaN</code> and the infinities are still kept (as <code>json.dumps</code> writes them by default): pass <code>allow_nan=False</code>
-to <code>json.dumps</code> or <code>save_json</code> to refuse them.</p>
+<p><code>NaN</code> and the infinities are still kept (as <code>json.dumps</code> writes them by default): pass
+<code>allow_nan=False</code> to <code>json.dumps</code> or <code>save_json</code> to refuse them.</p>
 <h4 id="126-mappings-and-records">12.6 Mappings and records<a class="headerlink" href="#126-mappings-and-records" title="Permanent link">&para;</a></h4>
 <table>
 <thead>
@@ -4936,7 +4944,8 @@ to <code>json.dumps</code> or <code>save_json</code> to refuse them.</p>
 </table>
 <h2 id="part-4-helpers-sections-13-to-15">Part 4: Helpers (sections 13 to 15)<a class="headerlink" href="#part-4-helpers-sections-13-to-15" title="Permanent link">&para;</a></h2>
 <h3 id="13-coolautils-leaf-layer-formatting">13. <code>coola.utils</code>: Leaf Layer, Formatting<a class="headerlink" href="#13-coolautils-leaf-layer-formatting" title="Permanent link">&para;</a></h3>
-<p><strong>Affects:</strong> Code that imports from <code>coola.utils</code>, uses its import helpers, or relies on the behaviour of its functions.</p>
+<p><strong>Affects:</strong> Code that imports from <code>coola.utils</code>, uses its import helpers, or relies on the
+behaviour of its functions.</p>
 <p><code>coola.utils</code> imports the standard library and <code>coola.validation</code> only. Some modules moved, with
 no alias:</p>
 <table>
@@ -5360,8 +5369,8 @@ identifiers, an affine map that two known pairs break. The stable identifiers ke
 </tr>
 </tbody>
 </table>
-<p>An ObjectId has the same 24 hexadecimal characters, the same timestamp field and the same sort order;
-only a tool that decodes the former process field and counter notices.</p>
+<p>An ObjectId has the same 24 hexadecimal characters, the same timestamp field and the same sort
+order; only a tool that decodes the former process field and counter notices.</p>
 <table>
 <thead>
 <tr>

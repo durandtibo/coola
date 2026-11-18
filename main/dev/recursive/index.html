@@ -2927,7 +2927,10 @@
 
 
 <h1 id="architecture-of-coolarecursive">Architecture of <code>coola.recursive</code><a class="headerlink" href="#architecture-of-coolarecursive" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.recursive</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/recursive/#properties">user guide</a>; the API is in the <a href="../../refs/recursive/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.recursive</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/recursive/#properties">user guide</a>; the API is in
+the <a href="../../refs/recursive/">reference</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p><code>recursive_apply</code> uses one engine (<code>coola.recursive.engine</code>) and one extension point. A transformer
 only describes the shape of a type: <code>expand(data)</code> returns <code>None</code> for a leaf, or the children and
@@ -2937,11 +2940,11 @@ the cycle check and the depth (an explicit stack, so there is no <code>Recursion
 split as the equality engine, where a tester returns the child pairs.</p>
 <h2 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Simple and easy to maintain.</strong> One function, one engine, one extension point. A transformer only
-   describes a shape; there is no thread-local cycle state, no recursion-limit translation and no
-   per-type workaround in the callers.</li>
-<li><strong>Fast.</strong> <code>recursive_apply</code> is the engine of <code>nested</code>, <code>jsonable</code> and <code>round_values</code>. The benchmark
-   gate must hold; a design that is simpler but slower is rejected.</li>
+<li><strong>Simple and easy to maintain.</strong> One function, one engine, one extension point. A transformer
+   only describes a shape; there is no thread-local cycle state, no recursion-limit translation and
+   no per-type workaround in the callers.</li>
+<li><strong>Fast.</strong> <code>recursive_apply</code> is the engine of <code>nested</code>, <code>jsonable</code> and <code>round_values</code>. The
+   benchmark gate must hold; a design that is simpler but slower is rejected.</li>
 <li><strong>Consistent with the siblings.</strong> The same input is handled the same way by <code>equality</code>,
    <code>hashing</code>, <code>summary</code>, <code>iterator</code> and <code>recursive</code> (dataclasses are entered, iterators are leaves,
    cycles are detected, keyword-only options).</li>
@@ -3097,8 +3100,8 @@ the default registry, like <code>NATIVE_SAMPLES</code> in <code>equality</code>)
 <code>has_transformer</code>, <code>get_default_registry</code> (and its alias <code>get_default_transformer_registry</code>) and
 <code>register_transformers</code>. <code>Transformer</code> (a protocol) and <code>BaseTransformer</code> (an ABC) follow the family
 convention (<code>Hasher</code>/<code>BaseHasher</code>, <code>Summarizer</code>/<code>BaseSummarizer</code>): the protocol means a transformer
-from another library needs no import of <code>coola</code>. <code>recursive_apply</code> is <code>recursive_apply(data, func, *,
-registry=None)</code>.</p>
+from another library needs no import of <code>coola</code>. <code>recursive_apply</code> is
+<code>recursive_apply(data, func, *, registry=None)</code>.</p>
 <p>The shortest extension example has no <code>func</code> and no registry to remember:</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">PointTransformer</span><span class="p">(</span><span class="n">BaseTransformer</span><span class="p">[</span><span class="n">Point</span><span class="p">]):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">expand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
@@ -3110,31 +3113,33 @@ registry=None)</code>.</p>
 <h3 id="rebuild-rules-coolarecursiverebuild">Rebuild rules (<code>coola.recursive.rebuild</code>)<a class="headerlink" href="#rebuild-rules-coolarecursiverebuild" title="Permanent link">&para;</a></h3>
 <p>All the rebuild rules live in <code>rebuild.py</code>, a documented public module (it is imported by <code>nested</code>)
 with <code>rebuild_sequence</code>, <code>rebuild_mapping</code> and <code>rebuild_set</code>. It is not re-exported from
-<code>coola.recursive</code>: it is the helper a custom container transformer needs, and re-exporting three more
-names would grow the top-level namespace for little gain.</p>
+<code>coola.recursive</code>: it is the helper a custom container transformer needs, and re-exporting three
+more names would grow the top-level namespace for little gain.</p>
 <ul>
 <li><code>rebuild_*</code> call the constructor of <code>type(data)</code>; if it raises a <code>TypeError</code>, they raise a
   <code>TypeError</code> that names the type and says "register a transformer for <code>&lt;type&gt;</code>", with the original
-  error as the cause. The same wrapper reports the unhashable set elements with the original message.</li>
+  error as the cause. The same wrapper reports the unhashable set elements with the original
+  message.</li>
 <li>Special cases are the three that exist (named tuple, <code>deque</code> <code>maxlen</code>, <code>defaultdict</code> factory).
   <code>ChainMap</code> is documented as flattened (its parents are not leaves of the structure), and is not
   special-cased: a user who needs it registers a transformer.</li>
-<li><code>rebuild_mapping</code> and <code>rebuild_sequence</code> accept any iterable, not only <code>dict</code>/<code>list</code>, so the engine
-  does not allocate an intermediate container.</li>
+<li><code>rebuild_mapping</code> and <code>rebuild_sequence</code> accept any iterable, not only <code>dict</code>/<code>list</code>, so the
+  engine does not allocate an intermediate container.</li>
 </ul>
 <h3 id="dataclasses">Dataclasses<a class="headerlink" href="#dataclasses" title="Permanent link">&para;</a></h3>
 <p>A dataclass is entered by default, like in <code>equality</code>, <code>hashing</code> and <code>summary</code>, so
 <code>recursive_apply(Config(...), f)</code> does not call <code>f</code> on the whole object. The rule is a fallback
-(<code>dataclasses.is_dataclass</code>), so a user who wants a dataclass as a leaf registers <code>DefaultTransformer()</code>
-for its type (a transformer registered for the type has priority over the fallback). An opt-in switch
-on a process-wide singleton would be the worst kind of switch for a library.</p>
+(<code>dataclasses.is_dataclass</code>), so a user who wants a dataclass as a leaf registers
+<code>DefaultTransformer()</code> for its type (a transformer registered for the type has priority over the
+fallback). An opt-in switch on a process-wide singleton would be the worst kind of switch for a
+library.</p>
 <p>A dataclass is rebuilt as a shallow copy in which every field is set with <code>object.__setattr__</code>. It
 supports frozen and slotted dataclasses, transforms the <code>init=False</code> fields, supports an <code>InitVar</code>
-without a default, and never runs user code (<code>__init__</code>, <code>__post_init__</code>), so the traversal has no side
-effect. The cost is that a <code>__post_init__</code> that derives a field from another is not re-run, so a
-derived field can become inconsistent with the field it was derived from after <code>func</code>; a user who needs
-that registers a transformer. <code>dataclasses.replace</code> would re-validate through <code>__post_init__</code>, with the
-limits of <code>init=False</code> fields and <code>InitVar</code>.</p>
+without a default, and never runs user code (<code>__init__</code>, <code>__post_init__</code>), so the traversal has no
+side effect. The cost is that a <code>__post_init__</code> that derives a field from another is not re-run, so
+a derived field can become inconsistent with the field it was derived from after <code>func</code>; a user who
+needs that registers a transformer. <code>dataclasses.replace</code> would re-validate through <code>__post_init__</code>,
+with the limits of <code>init=False</code> fields and <code>InitVar</code>.</p>
 <h2 id="public-api">Public API<a class="headerlink" href="#public-api" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">coola.recursive</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">recursive_apply</span><span class="p">,</span>  <span class="c1"># (data, func, *, registry=None)</span>
@@ -3152,8 +3157,8 @@ limits of <code>init=False</code> fields and <code>InitVar</code>.</p>
     <span class="n">DataclassTransformer</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
-<p><code>exist_ok</code> of <code>register_transformers</code> is keyword-only. <code>TransformerRegistry.transform(data, func)</code> is
-the registry-level entry point and calls the engine.</p>
+<p><code>exist_ok</code> of <code>register_transformers</code> is keyword-only. <code>TransformerRegistry.transform(data, func)</code>
+is the registry-level entry point and calls the engine.</p>
 <h2 id="dependents">Dependents<a class="headerlink" href="#dependents" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3186,28 +3191,29 @@ the registry-level entry point and calls the engine.</p>
 </tbody>
 </table>
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
-<p><strong>Shared containers are not memoized.</strong> Memoizing by <code>id</code> would fix the exponential cost of a DAG and
-keep the aliasing of the input, but a container would be transformed once while <code>func</code> is called once
-per occurrence for its leaves today; an impure <code>func</code> (a counter, a random draw, a call that logs)
-would change behaviour, and the output would alias containers that the caller may then mutate
-independently. A DAG with millions of paths is rare, and <code>dfs_iterate</code> also yields the leaves once per
-path.</p>
-<p><strong>The path of a failure is not reported.</strong> With <code>expand</code> returning only the children, the path (a key,
-an index) is not known. An exception raised by <code>func</code> would be more useful with the path
+<p><strong>Shared containers are not memoized.</strong> Memoizing by <code>id</code> would fix the exponential cost of a DAG
+and keep the aliasing of the input, but a container would be transformed once while <code>func</code> is called
+once per occurrence for its leaves today; an impure <code>func</code> (a counter, a random draw, a call that
+logs) would change behaviour, and the output would alias containers that the caller may then mutate
+independently. A DAG with millions of paths is rare, and <code>dfs_iterate</code> also yields the leaves once
+per path.</p>
+<p><strong>The path of a failure is not reported.</strong> With <code>expand</code> returning only the children, the path (a
+key, an index) is not known. An exception raised by <code>func</code> would be more useful with the path
 (<code>exc.add_note("at ['a'][2]")</code>), but that needs the label of each child (a second element in
-<code>children</code>, as the <code>equality</code> testers return) and costs a tuple per child on the hot path. The <code>expand</code>
-contract can be extended by returning <code>(label, child)</code> pairs without changing the structure of the
-engine loop.</p>
-<p><strong>Protocol and ABC.</strong> <code>Transformer</code> (protocol) and <code>BaseTransformer</code> (ABC) match <code>Hasher</code>/<code>BaseHasher</code>
-and <code>Summarizer</code>/<code>BaseSummarizer</code>; dropping the ABC would be a change of the three packages.</p>
+<code>children</code>, as the <code>equality</code> testers return) and costs a tuple per child on the hot path. The
+<code>expand</code> contract can be extended by returning <code>(label, child)</code> pairs without changing the structure
+of the engine loop.</p>
+<p><strong>Protocol and ABC.</strong> <code>Transformer</code> (protocol) and <code>BaseTransformer</code> (ABC) match
+<code>Hasher</code>/<code>BaseHasher</code> and <code>Summarizer</code>/<code>BaseSummarizer</code>; dropping the ABC would be a change of the
+three packages.</p>
 <p><strong>The container table is shared by convention, not by code.</strong> The iterator and the transformers have
 different contracts (<code>expand</code> returns the children and the rebuild function; the iterator needs the
 children only), so they keep separate registries.</p>
 <h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Keys: no transformer for the keys of a mapping in <code>recursive</code>. <code>nested</code> has a private one
-  (<code>_KeyTransformer</code>); a public <code>MapKeysTransformer(key_func)</code> is one <code>expand</code> away if a second package
-  needs it.</li>
+  (<code>_KeyTransformer</code>); a public <code>MapKeysTransformer(key_func)</code> is one <code>expand</code> away if a second
+  package needs it.</li>
 <li>Pydantic models, attrs classes and plain objects with <code>__dict__</code>: leaves. <code>equality</code>
   enters pydantic models; a <code>PydanticTransformer</code> is registered lazily the way the equality tester
   is (<code>register_lazy</code>) and is a separate item.</li>

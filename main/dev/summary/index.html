@@ -2949,7 +2949,10 @@
 
 
 <h1 id="architecture-of-coolasummary">Architecture of <code>coola.summary</code><a class="headerlink" href="#architecture-of-coolasummary" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.summary</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/summary/#properties">user guide</a>; the API is in the <a href="../../refs/summary/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.summary</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/summary/#properties">user guide</a>; the API is in the
+<a href="../../refs/summary/">reference</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p><code>summarize</code> uses one engine (<code>coola.summary.engine</code>), one extension point and one option object
 (<code>SummaryConfig</code>). A summarizer only describes one type: <code>summarize(data, config, *, compact)</code>
@@ -2965,15 +2968,15 @@ data. This is the same split as the equality and the recursive engines.</p>
 <li><strong>Simple and easy to maintain.</strong> Summarizers are stateless: no constructor, no <code>__repr__</code>, no
    <code>equal</code>. The options live in one config, the traversal in one engine, and a summarizer only
    describes one type.</li>
-<li><strong>Bounded output and work.</strong> <code>summarize</code> is called to build a log line. The cost depends on the size
-   of the summary, not on the size of the data: a huge input must not cost more than a small one. Small
-   inputs (tens of microseconds) pay a little for the fixed cost of the engine.</li>
-<li><strong>Consistent with the siblings.</strong> Same engine shape as <code>equality</code> (the engine owns the invariants,
-   a plugin describes one type), same registry, same option rules as <code>recursive</code> and <code>equality</code>
-   (keyword-only, validated, one frozen config).</li>
+<li><strong>Bounded output and work.</strong> <code>summarize</code> is called to build a log line. The cost depends on the
+   size of the summary, not on the size of the data: a huge input must not cost more than a small
+   one. Small inputs (tens of microseconds) pay a little for the fixed cost of the engine.</li>
+<li><strong>Consistent with the siblings.</strong> Same engine shape as <code>equality</code> (the engine owns the
+   invariants, a plugin describes one type), same registry, same option rules as <code>recursive</code> and
+   <code>equality</code> (keyword-only, validated, one frozen config).</li>
 <li><strong>Optional libraries stay lazy.</strong> The package imports no optional library with
-   <code>import coola.summary</code>; the summarizers of NumPy, torch, pandas, ... are loaded the first time the
-   registry needs a type of the library (<code>register_lazy</code>). The plugin group
+   <code>import coola.summary</code>; the summarizers of NumPy, torch, pandas, ... are loaded the first time
+   the registry needs a type of the library (<code>register_lazy</code>). The plugin group
    <code>coola.summary.summarizers</code> is the extension point.</li>
 </ol>
 <h2 id="architecture-in-detail">Architecture in detail<a class="headerlink" href="#architecture-in-detail" title="Permanent link">&para;</a></h2>
@@ -2998,9 +3001,9 @@ the text (lines joined once)
 <p>The engine owns the invariants (bounded output, bounded work, depth, cycles, totality, layout). A
 summarizer <strong>only describes one type</strong>: a string for a leaf, or a header and lazy children for a
 container. That is the same split as <code>equality</code> (the engine owns identity, type, depth and cycles; a
-tester returns a verdict or the child pairs) and as <code>recursive</code> (a transformer returns the children).
-<code>registry</code>, <code>depth</code> and <code>max_depth</code> are not arguments of the summarizer, so a summarizer cannot
-forget a protection and cannot recurse.</p>
+tester returns a verdict or the child pairs) and as <code>recursive</code> (a transformer returns the
+children). <code>registry</code>, <code>depth</code> and <code>max_depth</code> are not arguments of the summarizer, so a summarizer
+cannot forget a protection and cannot recurse.</p>
 <h3 id="the-summarizer-contract">The summarizer contract<a class="headerlink" href="#the-summarizer-contract" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">:</span>
@@ -3021,25 +3024,27 @@ forget a protection and cannot recurse.</p>
     <span class="k">def</span><span class="w"> </span><span class="nf">equal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>  <span class="c1"># concrete: same type (all the built-ins are stateless)</span>
         <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 </code></pre></div>
-<p>Rules of the contract (documented in <code>BaseSummarizer</code>, checked by one parametrised unit test over the
-default registry, like <code>NATIVE_SAMPLES</code> in <code>equality</code>):</p>
+<p>Rules of the contract (documented in <code>BaseSummarizer</code>, checked by one parametrised unit test over
+the default registry, like <code>NATIVE_SAMPLES</code> in <code>equality</code>):</p>
 <ol>
 <li><code>summarize</code> is pure and cheap: it does not call the registry, does not recurse, does not modify
    <code>data</code>, and does not iterate the whole data. For a container it reads <code>len(data)</code> and returns the
    children <strong>lazily</strong> (<code>enumerate(data)</code>, <code>data.items()</code>, a generator): the engine takes at most
    <code>max_items</code> of them. A set is the exception: it returns the smallest <code>max_items</code> items.</li>
-<li><code>compact</code> is <code>True</code> when the node is at the display depth. A leaf may use it (the default summarizer
-   shows the type only when <code>compact</code> is <code>False</code>); a container ignores it (the engine uses
-   <code>CompactRepr</code>).</li>
-<li>A leaf returns a <code>str</code>, which may have several lines. The engine cuts it to at most <code>max_characters</code> characters (the <code>...</code> is part of the limit, as in <code>truncate_str</code>), so a
-   leaf does not have to.</li>
+<li><code>compact</code> is <code>True</code> when the node is at the display depth. A leaf may use it (the default
+   summarizer shows the type only when <code>compact</code> is <code>False</code>); a container ignores it (the engine
+   uses <code>CompactRepr</code>).</li>
+<li>A leaf returns a <code>str</code>, which may have several lines. The engine cuts it to at most
+   <code>max_characters</code> characters (the <code>...</code> is part of the limit, as in <code>truncate_str</code>), so a leaf
+   does not have to.</li>
 <li>Labels are anything: the engine writes <code>safe_str(label)</code> cut at <code>max_characters</code>.</li>
 <li>An exception (of <code>summarize</code>, of the children iterator, of a label's <code>str</code>) is the engine's
    problem: it prints a placeholder, the summarizer does not guard itself.</li>
 </ol>
-<p><code>Node</code> is a dataclass and not a tuple so that the contract is readable and a later field (for example
-a closing line) can be added without breaking the plugins. <code>Summarizer</code> (protocol) and <code>BaseSummarizer</code>
-(ABC) follow the family convention: a summarizer from another library needs no import of <code>coola</code>.</p>
+<p><code>Node</code> is a dataclass and not a tuple so that the contract is readable and a later field (for
+example a closing line) can be added without breaking the plugins. <code>Summarizer</code> (protocol) and
+<code>BaseSummarizer</code> (ABC) follow the family convention: a summarizer from another library needs no
+import of <code>coola</code>.</p>
 <h3 id="the-config">The config<a class="headerlink" href="#the-config" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SummaryConfig</span><span class="p">:</span>  <span class="c1"># shareable, hashable, thread-safe; validated in __post_init__</span>
@@ -3049,16 +3054,18 @@ a closing line) can be added without breaking the plugins. <code>Summarizer</cod
     <span class="n">show_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># metadata summarizers show a bounded repr of the values</span>
 </code></pre></div>
 <p>All the options of the package are here, in one place, with one validation. <code>None</code> means "no limit"
-(there is no negative sentinel). The consequences of one config instead of options in the constructors:</p>
+(there is no negative sentinel). The consequences of one config instead of options in the
+constructors:</p>
 <ul>
-<li>A person who wants three items writes <code>summarize(data, max_items=3)</code>; they do not build a registry.</li>
+<li>A person who wants three items writes <code>summarize(data, max_items=3)</code>; they do not build a
+  registry.</li>
 <li>Summarizers are stateless, so they need no <code>__init__</code>, <code>__repr__</code>, <code>equal</code> or display mixin.</li>
-<li>There is no per-type option (<code>max_items=3</code> for lists and 10 for dicts); a user who needs it registers
-  their own summarizer (a subclass that returns a <code>Node</code> with a smaller <code>total</code>).</li>
-<li><strong>One limit for items, fields and columns</strong>: <code>max_items</code> (default 5) counts the entries shown, so a
-  frame lists 5 columns by default and <code>summarize(df, max_items=20)</code> lists more.</li>
-<li><strong>The indentation is fixed</strong> (2 spaces per level): a regular layout needs no <code>num_spaces</code>. Adding it
-  would be one field of the config.</li>
+<li>There is no per-type option (<code>max_items=3</code> for lists and 10 for dicts); a user who needs it
+  registers their own summarizer (a subclass that returns a <code>Node</code> with a smaller <code>total</code>).</li>
+<li><strong>One limit for items, fields and columns</strong>: <code>max_items</code> (default 5) counts the entries shown, so
+  a frame lists 5 columns by default and <code>summarize(df, max_items=20)</code> lists more.</li>
+<li><strong>The indentation is fixed</strong> (2 spaces per level): a regular layout needs no <code>num_spaces</code>. Adding
+  it would be one field of the config.</li>
 </ul>
 <h3 id="the-engine">The engine<a class="headerlink" href="#the-engine" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">INDENT</span> <span class="o">=</span> <span class="s2">"  "</span>
@@ -3118,18 +3125,18 @@ a closing line) can be added without breaking the plugins. <code>Summarizer</cod
   the call.</li>
 <li><strong><code>summarize</code> of a container runs at the boundary too.</strong> It is cheap by contract (rule 1), and it
   keeps the engine free of a "is this a container?" question that only the summarizer can answer.</li>
-<li><strong>The cycle check is on the open nodes only</strong> (<code>ancestors</code>), so a DAG is not reported as a cycle, and
-  a leaf (a string, an array) never enters the set.</li>
+<li><strong>The cycle check is on the open nodes only</strong> (<code>ancestors</code>), so a DAG is not reported as a cycle,
+  and a leaf (a string, an array) never enters the set.</li>
 <li><strong>The layout is one rule</strong>: a node at depth <code>d</code> is written with <code>2 * d</code> spaces, and a text with
   several lines is aligned under its first character. Nothing is re-indented.</li>
-<li><strong>A failure is local.</strong> A node that fails prints its type and the exception name (never the message,
-  which may carry data) and the rest of the summary is intact. A summary is for logs and error
-  messages, so raising there would hide the original problem. The cost is that a bug in a custom
-  summarizer shows as <code>&lt;summary failed: ValueError&gt;</code> instead of a traceback; the exception type is in
-  the text, and the tests of the plugin show it.</li>
-<li><strong><code>max_depth</code> is a display depth</strong> here (the nodes deeper than it are shown on one line), whereas it
-  is a limit that raises in <code>objects_are_equal</code>; the docs say so in both places. <code>expand_depth</code> would
-  remove the ambiguity, but <code>max_depth</code> is the name every user of <code>summarize</code> knows.</li>
+<li><strong>A failure is local.</strong> A node that fails prints its type and the exception name (never the
+  message, which may carry data) and the rest of the summary is intact. A summary is for logs and
+  error messages, so raising there would hide the original problem. The cost is that a bug in a
+  custom summarizer shows as <code>&lt;summary failed: ValueError&gt;</code> instead of a traceback; the exception
+  type is in the text, and the tests of the plugin show it.</li>
+<li><strong><code>max_depth</code> is a display depth</strong> here (the nodes deeper than it are shown on one line), whereas
+  it is a limit that raises in <code>objects_are_equal</code>; the docs say so in both places. <code>expand_depth</code>
+  would remove the ambiguity, but <code>max_depth</code> is the name every user of <code>summarize</code> knows.</li>
 </ul>
 <h3 id="the-compact-form">The compact form<a class="headerlink" href="#the-compact-form" title="Permanent link">&para;</a></h3>
 <p>The compact form is what the engine prints for a container at the display depth: <strong>one line, with
@@ -3158,11 +3165,12 @@ bounded work</strong>. It is a <code>reprlib.Repr</code> configured from the con
   entries is shown with <code>repr()</code> directly, because <code>reprlib</code> is slower than <code>repr</code> on small
   containers.</li>
 </ul>
-<p>A "header only" form (<code>&lt;class 'list'&gt; (length=100) ...</code>) would be bounded and need no <code>reprlib</code>, but it
-would hide the content of a small nested configuration, which is the most common use of the default
-<code>max_depth=1</code>. Asking the summarizer for an inline form (<code>Node.inline</code>) would be exact for every type,
-but would double the contract. <code>reprlib</code> is slower than <code>repr</code> on small containers, so the fast path
-keeps the common case cheap; the gate is "up to 2x and at most 10 µs more" for inputs under 50 µs.</p>
+<p>A "header only" form (<code>&lt;class 'list'&gt; (length=100) ...</code>) would be bounded and need no <code>reprlib</code>, but
+it would hide the content of a small nested configuration, which is the most common use of the
+default <code>max_depth=1</code>. Asking the summarizer for an inline form (<code>Node.inline</code>) would be exact for
+every type, but would double the contract. <code>reprlib</code> is slower than <code>repr</code> on small containers, so
+the fast path keeps the common case cheap; the gate is "up to 2x and at most 10 µs more" for inputs
+under 50 µs.</p>
 <h3 id="the-layout-of-the-text">The layout of the text<a class="headerlink" href="#the-layout-of-the-text" title="Permanent link">&para;</a></h3>
 <p>Rules (the examples are the output of the function):</p>
 <div class="highlight"><pre><span></span><code>&gt;&gt;&gt; from coola.summary import summarize
@@ -3192,16 +3200,18 @@ keeps the common case cheap; the gate is "up to 2x and at most 10 µs more" for 
   (1): &lt;cycle&gt;
 </code></pre></div>
 <ul>
-<li>A node is <code>header</code>, then its children one level deeper, then <code>... (+N more)</code> if some are not shown.
-  An empty container is its header alone: <code>&lt;class 'list'&gt; (length=0)</code>.</li>
-<li>A child is <code>(label): text</code>. The label of a sequence or a set is the position, of a mapping the <code>str</code>
-  of the key, of a dataclass or a pydantic model the field name, of a named tuple the field name.</li>
+<li>A node is <code>header</code>, then its children one level deeper, then <code>... (+N more)</code> if some are not
+  shown. An empty container is its header alone: <code>&lt;class 'list'&gt; (length=0)</code>.</li>
+<li>A child is <code>(label): text</code>. The label of a sequence or a set is the position, of a mapping the
+  <code>str</code> of the key, of a dataclass or a pydantic model the field name, of a named tuple the field
+  name.</li>
 <li><strong>The type is shown for the nodes that are expanded and for their leaves; the boundary shows
   values.</strong> A leaf shows <code>&lt;class 'int'&gt; 1</code> when <code>compact</code> is <code>False</code> and <code>1</code> when it is <code>True</code>:
-  <code>summarize(42)</code> is <code>&lt;class 'int'&gt; 42</code>, and the items of <code>summarize([1, "a"])</code> are bare because they
-  are at the display depth. It needs one flag (<code>compact</code>). Showing the type of every leaf would be a
-  simpler rule, but twice as long on the default output.</li>
-<li>A metadata summarizer always shows its type: <code>&lt;class 'numpy.ndarray'&gt; | shape=(3,) | dtype=float64</code>.</li>
+  <code>summarize(42)</code> is <code>&lt;class 'int'&gt; 42</code>, and the items of <code>summarize([1, "a"])</code> are bare because
+  they are at the display depth. It needs one flag (<code>compact</code>). Showing the type of every leaf would
+  be a simpler rule, but twice as long on the default output.</li>
+<li>A metadata summarizer always shows its type:
+  <code>&lt;class 'numpy.ndarray'&gt; | shape=(3,) | dtype=float64</code>.</li>
 <li>Indentation is a fixed 2 spaces per level.</li>
 </ul>
 <p>An empty container is <code>(length=0)</code>, a list at the boundary is <code>[0, 1, 2, 3, 4, ...]</code>, a dict at the
@@ -3219,7 +3229,7 @@ entries are announced by <code>... (+N more)</code>.</p>
 <tbody>
 <tr>
 <td><code>DefaultSummarizer</code></td>
-<td><code>safe_str(data)</code>, preceded by <code>&lt;class ...&gt;</code> unless <code>compact</code>; a leaf</td>
+<td><code>safe_str(data)</code>, preceded by <code>&lt;class ...&gt;</code> and a space unless <code>compact</code>; a leaf</td>
 <td><code>object</code>, <code>UserString</code></td>
 </tr>
 <tr>
@@ -3257,14 +3267,14 @@ entries are announced by <code>... (+N more)</code>.</p>
 <p>Container summarizers are three one-line classes on a common helper; the dataclass and pydantic
 summarizers share <code>BaseObjectFieldsSummarizer</code> (one abstract method <code>_get_fields</code>). All of them are
 stateless: no constructor and no <code>__repr__</code>.</p>
-<p>A dataclass hides the <code>field(repr=False)</code> fields: it is how a dataclass author declares "do not print
-this" (tokens, large buffers), and the pydantic summarizer already hides secrets. The summary is not a
-comparison, so unlike <code>equality</code> and <code>hashing</code> it does not need every field. A named tuple uses its
-field names as labels (<code>data._fields</code>), consistent with dataclasses.</p>
+<p>A dataclass hides the <code>field(repr=False)</code> fields: it is how a dataclass author declares "do not
+print this" (tokens, large buffers), and the pydantic summarizer already hides secrets. The summary
+is not a comparison, so unlike <code>equality</code> and <code>hashing</code> it does not need every field. A named tuple
+uses its field names as labels (<code>data._fields</code>), consistent with dataclasses.</p>
 <p><code>BaseMetadataSummarizer</code> (<code>_describe(data, config)</code> returns the fields, <code>_check_dependencies</code> raises
 <code>MissingPackageError</code> at construction if the library is missing) is the base class of the array and
-table summarizers. The summarizers of frames and tables call <code>format_fields(items, config.max_items)</code>
-(<code>a: int64, b: float64, ... (+3 more)</code>) themselves.</p>
+table summarizers. The summarizers of frames and tables call
+<code>format_fields(items, config.max_items)</code> (<code>a: int64, b: float64, ... (+3 more)</code>) themselves.</p>
 <p><code>str</code>, <code>int</code>, <code>float</code>, <code>complex</code> and <code>bool</code> are not registered: they resolve through <code>object</code>.
 <code>UserString</code> and <code>MappingProxyType</code> are registered. The plugin group is <code>coola.summary.summarizers</code>.</p>
 <p>The extension example:</p>
@@ -3310,8 +3320,8 @@ table summarizers. The summarizers of frames and tables call <code>format_fields
 <span class="p">)</span>
 </code></pre></div>
 <p><code>summarize(...)</code> builds a <code>SummaryConfig</code> (so the options are validated in one place) and calls
-<code>registry.summarize(data, config)</code>, which calls the engine; <code>registry.summarize</code> is the registry-level
-entry point, as <code>registry.objects_are_equal</code> is for <code>equality</code>.</p>
+<code>registry.summarize(data, config)</code>, which calls the engine; <code>registry.summarize</code> is the
+registry-level entry point, as <code>registry.objects_are_equal</code> is for <code>equality</code>.</p>
 <h2 id="dependents">Dependents<a class="headerlink" href="#dependents" title="Permanent link">&para;</a></h2>
 <p>Nothing in <code>src</code> imports <code>coola.summary</code> (the mentions in <code>equality</code> and <code>utils.singleton</code> are
 docstrings). The package is a leaf.</p>
@@ -3344,13 +3354,14 @@ docstrings). The package is a leaf.</p>
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
 <p>The choices that shape the package, with the alternative each was preferred to:</p>
 <ul>
-<li><strong>A config instead of constructor options</strong> (see <a href="#the-config">The config</a>): simpler and stateless,
-  at the cost of per-type options.</li>
-<li><strong>A <code>reprlib</code>-based compact form</strong>: it keeps the content of a small nested structure and it is bounded.</li>
+<li><strong>A config instead of constructor options</strong> (see <a href="#the-config">The config</a>): simpler and
+  stateless, at the cost of per-type options.</li>
+<li><strong>A <code>reprlib</code>-based compact form</strong>: it keeps the content of a small nested structure and it is
+  bounded.</li>
 <li><strong>A total engine</strong>: an exception of a summarizer is a placeholder, not a raised error.</li>
 <li><strong>Fixed indentation, one limit for items, fields and columns</strong>: fewer options to validate and
-  document. A second <code>max_fields</code> option or a larger default for <code>max_items</code> (a list of 20 would show 10
-  lines) are the alternatives.</li>
+  document. A second <code>max_fields</code> option or a larger default for <code>max_items</code> (a list of 20 would
+  show 10 lines) are the alternatives.</li>
 <li><strong>The rule "type shown inside the expansion, values at the boundary"</strong>: needs one flag.</li>
 </ul>
 <h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>

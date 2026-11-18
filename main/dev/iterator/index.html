@@ -2883,7 +2883,10 @@
 
 
 <h1 id="architecture-of-coolaiterator">Architecture of <code>coola.iterator</code><a class="headerlink" href="#architecture-of-coolaiterator" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.iterator</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/iterator/#properties">user guide</a>; the API is in the <a href="../../refs/iterator/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.iterator</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/iterator/#properties">user guide</a>; the API is in
+the <a href="../../refs/iterator/">reference</a>.</p>
 <h2 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Simple and easy to maintain.</strong> The package is small: functions that walk the same tree in
@@ -3053,11 +3056,11 @@ the default registry, like <code>NATIVE_SAMPLES</code> in <code>equality</code>)
 </tr>
 </tbody>
 </table>
-<p><code>DefaultChildFinder</code> keeps the explicit <code>str</code>, <code>bytes</code> and <code>UserString</code> registrations: <code>object</code> would
-be enough through the MRO, but <code>str</code> and <code>bytes</code> are <code>Sequence</code>s and <code>UserString</code> would never end,
-so listing them documents the types that must not be expanded and makes <code>has_child_finder</code> answer
-for them. The one table of types is in <code>interface.py</code> (<code>_register_default_child_finders</code>), the only
-place that says what is a container.</p>
+<p><code>DefaultChildFinder</code> keeps the explicit <code>str</code>, <code>bytes</code> and <code>UserString</code> registrations: <code>object</code>
+would be enough through the MRO, but <code>str</code> and <code>bytes</code> are <code>Sequence</code>s and <code>UserString</code> would never
+end, so listing them documents the types that must not be expanded and makes <code>has_child_finder</code>
+answer for them. The one table of types is in <code>interface.py</code> (<code>_register_default_child_finders</code>),
+the only place that says what is a container.</p>
 <p>The extension example of the guide has no registry to remember and one registration for both orders:</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">NodeChildFinder</span><span class="p">(</span><span class="n">BaseChildFinder</span><span class="p">[</span><span class="n">Node</span><span class="p">]):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">find_children</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
@@ -3070,21 +3073,22 @@ place that says what is a container.</p>
 </code></pre></div>
 <h3 id="the-path-of-each-leaf-dfs_items">The path of each leaf: <code>dfs_items</code><a class="headerlink" href="#the-path-of-each-leaf-dfs_items" title="Permanent link">&para;</a></h3>
 <p><code>dfs_items(data, *, registry=None, empty=False)</code> yields <code>(path, leaf)</code> pairs: the leaves of
-<code>dfs_iterate</code>, in the same order, each with the tuple of the labels of the containers crossed to reach
-it. The root being a leaf gives the empty path. With <code>empty=True</code> an empty container is also yielded as
-a leaf; by default it yields nothing.</p>
+<code>dfs_iterate</code>, in the same order, each with the tuple of the labels of the containers crossed to
+reach it. The root being a leaf gives the empty path. With <code>empty=True</code> an empty container is also
+yielded as a leaf; by default it yields nothing.</p>
 <ul>
 <li><strong>The shape of a type is known in one place: its finder.</strong> A finder gets the optional method
   <code>find_items(data) -&gt; Iterable[tuple[label, child]] | None</code>, with the same <code>None</code> for a leaf. The
   default derives it from <code>find_children</code> (<code>enumerate</code>), and the built-in finders override it
   (<code>data.items()</code> for a mapping, <code>enumerate(data)</code> for a sequence, the field names for a dataclass,
-  the element itself for a set: a set has no stable position). <code>find_children</code> stays the method of the
-  hot path, so <code>dfs_iterate</code> and <code>bfs_iterate</code> pay nothing for the labels.</li>
-<li><strong>The labels are raw</strong>: a key is not converted to <code>str</code>. They are the keys, indices and field names,
-  not the path parts of <code>equality</code> (<code>AttributeName</code>, <code>Element</code>).</li>
+  the element itself for a set: a set has no stable position). <code>find_children</code> stays the method of
+  the hot path, so <code>dfs_iterate</code> and <code>bfs_iterate</code> pay nothing for the labels.</li>
+<li><strong>The labels are raw</strong>: a key is not converted to <code>str</code>. They are the keys, indices and field
+  names, not the path parts of <code>equality</code> (<code>AttributeName</code>, <code>Element</code>).</li>
 <li><strong>One engine, three loops.</strong> <code>_make_find</code> is parametrised by the method name (<code>find_children</code> or
-  <code>find_items</code>), so the three loops share the per-call finder cache, the cycle rule and the leaf rule.
-  <code>depth_first_items</code> keeps a parallel list of labels that is appended and popped with the stack frame.</li>
+  <code>find_items</code>), so the three loops share the per-call finder cache, the cycle rule and the leaf
+  rule. <code>depth_first_items</code> keeps a parallel list of labels that is appended and popped with the
+  stack frame.</li>
 <li><strong>Depth first only.</strong> There is no <code>bfs_items</code>: the labels of a breadth-first walk would need the
   path in every queue entry.</li>
 <li><strong>Same leaves, same order.</strong> A property test ties <code>dfs_items</code> to <code>dfs_iterate</code>.</li>
@@ -3109,8 +3113,8 @@ a leaf; by default it yields nothing.</p>
 </code></pre></div>
 <p>The package is flat: <code>base.py</code>, <code>default.py</code>, <code>iterable.py</code>, <code>mapping.py</code>, <code>dataclass.py</code>,
 <code>registry.py</code>, <code>engine.py</code>, <code>interface.py</code>, <code>filtering.py</code> (the layout of <code>coola.recursive</code>).
-<code>ChildFinderRegistry</code> has <code>register</code>, <code>register_many</code>, <code>has_child_finder</code>, <code>find_child_finder</code>, and the
-inherited <code>copy</code>, <code>unregister</code>, <code>clear</code>. The engine is the only walker; the doctests use
+<code>ChildFinderRegistry</code> has <code>register</code>, <code>register_many</code>, <code>has_child_finder</code>, <code>find_child_finder</code>, and
+the inherited <code>copy</code>, <code>unregister</code>, <code>clear</code>. The engine is the only walker; the doctests use
 <code>dfs_iterate(data, registry=...)</code>. <code>register_child_finders(mapping, *, exist_ok=False)</code> has a
 keyword-only <code>exist_ok</code>. The plugin group is <code>coola.iterator.child_finders</code>, like
 <code>coola.recursive.transformers</code>.</p>
@@ -3144,52 +3148,52 @@ keyword-only <code>exist_ok</code>. The plugin group is <code>coola.iterator.chi
 </tbody>
 </table>
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
-<p><strong>One child finder and one registry for DFS and BFS.</strong> The two orders differ only by the order in which
-the same children are visited. One <code>find_children</code> per type, walked by several engines, avoids
-duplicated classes, registries, singletons and plugin groups, and makes "same leaves" a property of the
-design instead of a convention. The cost is that a custom finder cannot choose its own order for one
-traversal only: it returns its children in the order they are visited, for both orders. Two packages
-with two registries would be cheaper to start, but every feature (a third order, a depth limit, the
-paths) would be written twice.</p>
-<p><strong>Two functions, not one with an <code>order</code> argument.</strong> <code>dfs_iterate(data)</code> and <code>bfs_iterate(data)</code> read
-well, appear in the guide and in the <code>recursive</code> property ("the order of <code>dfs_iterate</code>"), and an
-<code>order="dfs"</code> string would add an option that needs validation.</p>
-<p><strong>The containers entered by default are those of <code>recursive</code></strong> (<code>list</code>, <code>tuple</code>, <code>deque</code>, <code>Sequence</code>,
-<code>set</code>, <code>frozenset</code>, <code>dict</code>, <code>Mapping</code>, <code>MappingProxyType</code>, the dataclasses), so that the same data
-gives the same leaves in <code>iterator</code>, <code>recursive</code>, <code>hashing</code> and <code>summary</code>. The consequence is that
-<code>range(3)</code> is a leaf (it is a lazy arithmetic sequence, like an array) and that a user class that only
-inherits <code>Collection</code> or <code>collections.abc.Set</code> is a leaf until it registers a finder. Widening
-<code>recursive</code> to <code>Collection</code> is not possible, because <code>recursive</code> must rebuild the type.</p>
-<p><strong>The plugin group is <code>coola.iterator.child_finders</code></strong>, the same form as <code>coola.recursive.transformers</code>,
-<code>coola.equality.testers</code> and <code>coola.hashing.hashers</code>.</p>
-<p><strong><code>filter_by_type</code> is kept.</strong> It is three lines, documented and tested. The alternative is a generator
-expression <code>(x for x in dfs_iterate(data) if isinstance(x, int))</code>, which the type checker types less
-well.</p>
+<p><strong>One child finder and one registry for DFS and BFS.</strong> The two orders differ only by the order in
+which the same children are visited. One <code>find_children</code> per type, walked by several engines, avoids
+duplicated classes, registries, singletons and plugin groups, and makes "same leaves" a property of
+the design instead of a convention. The cost is that a custom finder cannot choose its own order for
+one traversal only: it returns its children in the order they are visited, for both orders. Two
+packages with two registries would be cheaper to start, but every feature (a third order, a depth
+limit, the paths) would be written twice.</p>
+<p><strong>Two functions, not one with an <code>order</code> argument.</strong> <code>dfs_iterate(data)</code> and <code>bfs_iterate(data)</code>
+read well, appear in the guide and in the <code>recursive</code> property ("the order of <code>dfs_iterate</code>"), and
+an <code>order="dfs"</code> string would add an option that needs validation.</p>
+<p><strong>The containers entered by default are those of <code>recursive</code></strong> (<code>list</code>, <code>tuple</code>, <code>deque</code>,
+<code>Sequence</code>, <code>set</code>, <code>frozenset</code>, <code>dict</code>, <code>Mapping</code>, <code>MappingProxyType</code>, the dataclasses), so that the
+same data gives the same leaves in <code>iterator</code>, <code>recursive</code>, <code>hashing</code> and <code>summary</code>. The consequence
+is that <code>range(3)</code> is a leaf (it is a lazy arithmetic sequence, like an array) and that a user class
+that only inherits <code>Collection</code> or <code>collections.abc.Set</code> is a leaf until it registers a finder.
+Widening <code>recursive</code> to <code>Collection</code> is not possible, because <code>recursive</code> must rebuild the type.</p>
+<p><strong>The plugin group is <code>coola.iterator.child_finders</code></strong>, the same form as
+<code>coola.recursive.transformers</code>, <code>coola.equality.testers</code> and <code>coola.hashing.hashers</code>.</p>
+<p><strong><code>filter_by_type</code> is kept.</strong> It is three lines, documented and tested. The alternative is a
+generator expression <code>(x for x in dfs_iterate(data) if isinstance(x, int))</code>, which the type checker
+types less well.</p>
 <p><strong><code>ChildFinder</code> and not <code>Expander</code>.</strong> The method is <code>find_children</code> and the registry method is
 <code>find_child_finder</code>. <code>recursive</code> uses <code>expand</code> because it returns the children and the rebuild
 function; the two names differ because the two contracts differ.</p>
 <p><strong>The registry is not shared with <code>recursive</code>.</strong> A <code>Transformer.expand</code> returns the children and a
-rebuild function; the iterator needs only the children. One registry for both would make <code>dfs_iterate</code>
-build a closure per container and couple two packages that have different extension points (a custom
-type that can be traversed but not rebuilt is a normal case). <code>find_children</code> is a subset of <code>expand</code>,
-so a merge stays possible if a third traversal package wants the same children.</p>
+rebuild function; the iterator needs only the children. One registry for both would make
+<code>dfs_iterate</code> build a closure per container and couple two packages that have different extension
+points (a custom type that can be traversed but not rebuilt is a normal case). <code>find_children</code> is a
+subset of <code>expand</code>, so a merge stays possible if a third traversal package wants the same children.</p>
 <p><strong>Shared containers are not memoized.</strong> A container reachable by several paths gives its leaves once
 per path (<code>[s, s]</code> gives them twice). This is the property "Leaves only, once per occurrence", and
-<code>recursive_apply</code> calls <code>func</code> the same number of times. A DAG with millions of paths is slow; that is
-documented, not hidden.</p>
-<p><strong>No <code>registry.iterate</code> method.</strong> <code>recursive</code> has <code>TransformerRegistry.transform</code> as the registry-level
-entry point; here the registry is a dispatcher and the functions are the only entry points, so there is
-one way to traverse and no method that has to choose an order.</p>
+<code>recursive_apply</code> calls <code>func</code> the same number of times. A DAG with millions of paths is slow; that
+is documented, not hidden.</p>
+<p><strong>No <code>registry.iterate</code> method.</strong> <code>recursive</code> has <code>TransformerRegistry.transform</code> as the
+registry-level entry point; here the registry is a dispatcher and the functions are the only entry
+points, so there is one way to traverse and no method that has to choose an order.</p>
 <h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Paths in breadth-first order: <code>dfs_items</code> is the only function that yields paths.</li>
-<li>Pydantic models, attrs classes and plain objects with <code>__dict__</code>: leaves. <code>equality</code>
-  enters pydantic models; a lazily registered <code>PydanticChildFinder</code> is a separate item, with the same
-  one for <code>recursive</code>.</li>
+<li>Pydantic models, attrs classes and plain objects with <code>__dict__</code>: leaves. <code>equality</code> enters
+  pydantic models; a lazily registered <code>PydanticChildFinder</code> is a separate item, with the same one
+  for <code>recursive</code>.</li>
 <li>NumPy arrays, torch tensors, data frames: leaves (the function receives the whole array).
   Element-wise iteration is the job of the caller.</li>
-<li>Parallel or async traversal, and a <code>max_depth</code> or <code>max_leaves</code> option: out of scope; <code>itertools.islice</code>
-  stops a traversal after <code>n</code> leaves, because the functions are lazy.</li>
+<li>Parallel or async traversal, and a <code>max_depth</code> or <code>max_leaves</code> option: out of scope;
+  <code>itertools.islice</code> stops a traversal after <code>n</code> leaves, because the functions are lazy.</li>
 <li><code>coola.recursive</code>: the engine is separate (it must rebuild) and already iterative; only the
   container table and the order are shared.</li>
 </ul>

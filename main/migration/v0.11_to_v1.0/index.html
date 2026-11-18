@@ -3181,7 +3181,8 @@ Version 1.0 includes significant API reorganization to improve maintainability a
 <li><strong>Naming changes</strong>: More consistent naming conventions (e.g., <code>comparators</code> → <code>tester</code>)</li>
 <li><strong>Removed features</strong>: Some modules were removed or merged (e.g., <code>formatters</code>)</li>
 <li><strong>New architecture</strong>: Introduction of handlers pattern for equality checking</li>
-<li><strong>Improved logging</strong>: Messages shown with <code>show_difference=True</code> are more concise and user-friendly</li>
+<li><strong>Improved logging</strong>: Messages shown with <code>show_difference=True</code> are more concise and
+   user-friendly</li>
 </ol>
 <h2 id="quick-migration-checklist">Quick Migration Checklist<a class="headerlink" href="#quick-migration-checklist" title="Permanent link">&para;</a></h2>
 <ul>
@@ -3246,7 +3247,8 @@ Version 1.0 includes significant API reorganization to improve maintainability a
 </tbody>
 </table>
 <p>*Use <code>coola.summary</code> instead of the removed <code>formatters</code> module.</p>
-<p><strong>Note:</strong> In v0.11, equality functions were available both at the top level (<code>from coola import</code>) and in <code>coola.comparison</code> module. In v1.0, they are only in <code>coola.equality</code>.</p>
+<p><strong>Note:</strong> In v0.11, equality functions were available both at the top level (<code>from coola import</code>)
+and in <code>coola.comparison</code> module. In v1.0, they are only in <code>coola.equality</code>.</p>
 <h3 id="3-equality-comparison-system">3. Equality Comparison System<a class="headerlink" href="#3-equality-comparison-system" title="Permanent link">&para;</a></h3>
 <p>The equality comparison system has been redesigned with a cleaner architecture.</p>
 <h4 id="basic-usage-no-breaking-changes">Basic Usage (No Breaking Changes)<a class="headerlink" href="#basic-usage-no-breaking-changes" title="Permanent link">&para;</a></h4>
@@ -3322,10 +3324,12 @@ Version 1.0 includes significant API reorganization to improve maintainability a
 </code></pre></div>
 <p><strong>Migration:</strong> Replace <code>Comparator</code> with <code>EqualityTester</code> in class names.</p>
 <h3 id="4-improved-logging-messages-with-show_differencetrue">4. Improved Logging Messages with <code>show_difference=True</code><a class="headerlink" href="#4-improved-logging-messages-with-show_differencetrue" title="Permanent link">&para;</a></h3>
-<p>The logging messages displayed when <code>show_difference=True</code> have been significantly improved in v1.0 to be more concise and user-friendly.</p>
+<p>The logging messages displayed when <code>show_difference=True</code> have been significantly improved in v1.0
+to be more concise and user-friendly.</p>
 <p><strong>Key improvements:</strong></p>
 <ul>
-<li><strong>Concise parent messages</strong>: Parent containers show only location info (key/index) without full object dumps</li>
+<li><strong>Concise parent messages</strong>: Parent containers show only location info (key/index) without full
+  object dumps</li>
 <li><strong>Structured formatting</strong>: Clear indentation with <code>actual</code> and <code>expected</code> labels</li>
 <li><strong>Specific information</strong>: Shows exactly which index, key, or attribute differs</li>
 <li><strong>Reduced verbosity</strong>: Only the relevant difference is shown, not entire object hierarchies</li>
@@ -3363,7 +3367,9 @@ sequences have different values at index 2
         [0., 0., 0.]])
 </code></pre></div>
 <p><strong>Migration:</strong></p>
-<p>No code changes are required. The <code>show_difference</code> parameter works the same way, but the logged output format is different. If you have tests or scripts that parse the logged messages (e.g., checking log output), you may need to update them to match the new format.</p>
+<p>No code changes are required. The <code>show_difference</code> parameter works the same way, but the logged
+output format is different. If you have tests or scripts that parse the logged messages (e.g.,
+checking log output), you may need to update them to match the new format.</p>
 <h3 id="5-formatters-removed">5. Formatters Removed<a class="headerlink" href="#5-formatters-removed" title="Permanent link">&para;</a></h3>
 <p>The <code>coola.formatters</code> module has been removed. Use <code>coola.summary</code> for text representation instead.</p>
 <p><strong>Before (v0.11):</strong></p>
@@ -3514,7 +3520,8 @@ sequences have different values at index 2
 <p>If you encounter issues during migration:</p>
 <ul>
 <li>Check the <a href="https://durandtibo.github.io/coola/">documentation</a> for detailed API reference</li>
-<li>Review the <a href="https://durandtibo.github.io/coola/uguide/equality/">examples</a> for common usage patterns</li>
+<li>Review the <a href="https://durandtibo.github.io/coola/uguide/equality/">examples</a> for common usage
+  patterns</li>
 <li>Open an issue on <a href="https://github.com/durandtibo/coola/issues">GitHub</a> if you need help</li>
 </ul>
 <h2 id="api-stability-note">API Stability Note<a class="headerlink" href="#api-stability-note" title="Permanent link">&para;</a></h2>
@@ -3524,7 +3531,8 @@ The current version is an alpha/pre-release.</p>
 <li>The API structure described in this guide reflects the 1.0 design</li>
 <li>The changes from v0.11 documented here are stable and will remain in the 1.0 series</li>
 <li>Minor refinements may occur before the final 1.0.0 stable release</li>
-<li>For production use, monitor the <a href="https://github.com/durandtibo/coola/releases">releases page</a> and consider pinning to a specific version</li>
+<li>For production use, monitor the <a href="https://github.com/durandtibo/coola/releases">releases page</a> and
+  consider pinning to a specific version</li>
 </ul>
 
 

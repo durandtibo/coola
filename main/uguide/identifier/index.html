@@ -3142,8 +3142,8 @@ record ID that should also sort roughly by insertion order.</p>
 <p>ULIDs generated with the current time are <strong>monotonic within a process</strong>, as recommended by the ULID
 specification: ULIDs generated in the same millisecond (or after the clock moved backward) keep the
 timestamp and increment the random part by one, so they sort in the order of generation. Across
-processes, ULIDs generated in the same millisecond are not ordered. A ULID generated with an explicit
-<code>timestamp_ms</code> always has a random part, so it is not ordered relative to the others.</p>
+processes, ULIDs generated in the same millisecond are not ordered. A ULID generated with an
+explicit <code>timestamp_ms</code> always has a random part, so it is not ordered relative to the others.</p>
 <p>Use <code>extract_ulid_timestamp_ms</code> to recover the timestamp encoded in a ULID, e.g. to check how old a
 record is without a separate stored timestamp column:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.identifier</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_ulid_timestamp_ms</span><span class="p">,</span> <span class="n">generate_ulid</span>
@@ -3189,18 +3189,18 @@ Twitter's original Snowflake service: a 41-bit millisecond timestamp (from 2024-
 </code></pre></div>
 <p>Like <code>generate_ulid</code>, successive IDs of a generator are strictly increasing, from any number of
 threads, but the result is a plain integer rather than a string, useful when the identifier must fit
-a <code>BIGINT</code>-style column, or when IDs need to be attributable to the worker/shard that minted them via
-<code>worker_id</code>.</p>
-<p>Create <strong>one generator per process</strong> and share it. There is no module-level function: a
-process-wide generator has one <code>worker_id</code>, which only the caller knows. The uniqueness of the IDs
-across processes comes from the <code>worker_id</code>, so assigning distinct numbers to the workers (a
-database row, an environment variable, a coordinator) is the job of the caller. A generator keeps its
-own sequence; two generators with the same <code>worker_id</code> can mint the same ID.</p>
+a <code>BIGINT</code>-style column, or when IDs need to be attributable to the worker/shard that minted them
+via <code>worker_id</code>.</p>
+<p>Create <strong>one generator per process</strong> and share it. There is no module-level function: a process-wide
+generator has one <code>worker_id</code>, which only the caller knows. The uniqueness of the IDs across
+processes comes from the <code>worker_id</code>, so assigning distinct numbers to the workers (a database row,
+an environment variable, a coordinator) is the job of the caller. A generator keeps its own
+sequence; two generators with the same <code>worker_id</code> can mint the same ID.</p>
 <p>The generator never raises or sleeps because of the clock. If more than 4,096 IDs are requested in
 the same millisecond, or if the clock moves backward (an NTP step, a virtual machine that resumes
-from a pause), the timestamp is kept (or advanced by one millisecond) and the sequence goes on. Order
-and uniqueness win over accuracy: the timestamp of the IDs runs ahead of the clock until the clock
-catches up.</p>
+from a pause), the timestamp is kept (or advanced by one millisecond) and the sequence goes on.
+Order and uniqueness win over accuracy: the timestamp of the IDs runs ahead of the clock until the
+clock catches up.</p>
 <p>A generator cannot be used in the child process of a fork (<code>os.fork</code>, or <code>multiprocessing</code> with the
 <code>fork</code> start method): the child would continue the sequence of its parent with the same <code>worker_id</code>.
 <code>generate</code> raises a <code>RuntimeError</code> in the child, which creates a generator with its own <code>worker_id</code>.</p>
@@ -3245,10 +3245,10 @@ options are keyword-only:</p>
 <span class="go">True</span>
 </code></pre></div>
 <p>The identifier is made of the characters <code>0-9A-Z</code> (without <code>I</code>, <code>L</code>, <code>O</code> and <code>U</code>) and the separator:
-it is safe in a shell, a URL and a spreadsheet. The Crockford check symbol has 37 values, so 5 of the
-37 payloads would end with one of the extra symbols <code>*~$=U</code>; the generator draws such a payload again
-(1.16 draws on average, a cost of 0.21 bit of entropy). <code>sep</code> must be empty or a single character
-that is not in the alphabet (it is stripped before the check).</p>
+it is safe in a shell, a URL and a spreadsheet. The Crockford check symbol has 37 values, so 5 of
+the 37 payloads would end with one of the extra symbols <code>*~$=U</code>; the generator draws such a payload
+again (1.16 draws on average, a cost of 0.21 bit of entropy). <code>sep</code> must be empty or a single
+character that is not in the alphabet (it is stripped before the check).</p>
 <p><code>verify_checksummed_id</code> follows the Crockford Base32 spec's own transcription rules: it is
 case-insensitive, and it normalizes <code>'O'</code> to <code>'0'</code> and <code>'I'</code>/<code>'L'</code> to <code>'1'</code> before checking the
 check symbol, so a human who reads back <code>'O'</code> for <code>'0'</code> (or types in lowercase) still verifies
@@ -3331,7 +3331,8 @@ character or a character outside the alphabet:</p>
 </tr>
 </tbody>
 </table>
-<p>The stable IDs inherit the <a href="../hashing/">hashing</a> properties, including the fact that they can change between versions of <code>coola</code>.</p>
+<p>The stable IDs inherit the <a href="../hashing/">hashing</a> properties, including the fact that they can change
+between versions of <code>coola</code>.</p>
 <p>Not guaranteed:</p>
 <ul>
 <li><strong>Order across processes.</strong> Identifiers minted in the same tick by two processes are ordered by

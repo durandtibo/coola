@@ -3258,7 +3258,7 @@ inv<span class="w"> </span>imports.check-cycles
 <p><strong>Build documentation locally:</strong></p>
 <div class="highlight"><pre><span></span><code>mkdocs<span class="w"> </span>serve<span class="w"> </span>-f<span class="w"> </span>docs/mkdocs.yml
 </code></pre></div>
-<p>Then open http://127.0.0.1:8000 in your browser.</p>
+<p>Then open <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a> in your browser.</p>
 <p><strong>Build documentation without serving:</strong></p>
 <div class="highlight"><pre><span></span><code>mkdocs<span class="w"> </span>build<span class="w"> </span>-f<span class="w"> </span>docs/mkdocs.yml
 </code></pre></div>
@@ -3326,10 +3326,10 @@ workflow). You can run type checking locally:</p>
 git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"Add: brief description of feature"</span>
 </code></pre></div>
 <ol>
-<li><strong>Push and create PR:</strong>
-   <div class="highlight"><pre><span></span><code>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/my-feature
-</code></pre></div></li>
+<li><strong>Push and create PR:</strong></li>
 </ol>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/my-feature
+</code></pre></div>
 <h3 id="fixing-a-bug">Fixing a Bug<a class="headerlink" href="#fixing-a-bug" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Create a branch:</strong></li>
@@ -3355,11 +3355,11 @@ git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </sp
 <div class="highlight"><pre><span></span><code>inv<span class="w"> </span>test.unit<span class="w"> </span>--cov
 </code></pre></div>
 <ol>
-<li><strong>Commit and push:</strong>
-   <div class="highlight"><pre><span></span><code>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"Fix: description of bug fix"</span>
-git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>fix/bug-description
-</code></pre></div></li>
+<li><strong>Commit and push:</strong></li>
 </ol>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"Fix: description of bug fix"</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>fix/bug-description
+</code></pre></div>
 <h3 id="updating-dependencies">Updating Dependencies<a class="headerlink" href="#updating-dependencies" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Update all dependencies</span>
 inv<span class="w"> </span>env.update
@@ -3405,15 +3405,15 @@ uv<span class="w"> </span>lock
     <span class="k">assert</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">True</span>
 </code></pre></div>
 <ol>
-<li><strong>Test both success and failure cases:</strong>
-   <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_success_case</span><span class="p">():</span>
+<li><strong>Test both success and failure cases:</strong></li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_success_case</span><span class="p">():</span>
     <span class="k">assert</span> <span class="n">objects_are_equal</span><span class="p">(</span><span class="n">obj1</span><span class="p">,</span> <span class="n">obj2</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">test_failure_case</span><span class="p">():</span>
     <span class="k">assert</span> <span class="ow">not</span> <span class="n">objects_are_equal</span><span class="p">(</span><span class="n">obj1</span><span class="p">,</span> <span class="n">obj3</span><span class="p">)</span>
-</code></pre></div></li>
-</ol>
+</code></pre></div>
 <h2 id="continuous-integration">Continuous Integration<a class="headerlink" href="#continuous-integration" title="Permanent link">&para;</a></h2>
 <p>The project uses GitHub Actions for CI. Workflows are in <code>.github/workflows/</code>:</p>
 <ul>

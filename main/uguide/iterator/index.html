@@ -3585,8 +3585,8 @@ a dataclass as a leaf, register <code>DefaultChildFinder()</code> for its type:<
 </code></pre></div>
 <h2 id="paths-of-the-leaves">Paths of the Leaves<a class="headerlink" href="#paths-of-the-leaves" title="Permanent link">&para;</a></h2>
 <p>The <code>dfs_items</code> function is <code>dfs_iterate</code> with the path of each leaf: it yields the pairs
-<code>(path, leaf)</code> in the same order, where <code>path</code> is the tuple of the labels of the containers crossed to
-reach the leaf. The label of a child is the key of a mapping (not converted), the index of a
+<code>(path, leaf)</code> in the same order, where <code>path</code> is the tuple of the labels of the containers crossed
+to reach the leaf. The label of a child is the key of a mapping (not converted), the index of a
 sequence, the name of the field of a dataclass, or the element itself for a set (a set has no
 position). The path of a root that is a leaf is the empty tuple.</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.iterator</span><span class="w"> </span><span class="kn">import</span> <span class="n">dfs_items</span>

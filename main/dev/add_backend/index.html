@@ -2794,15 +2794,15 @@ registry, and it is easy to add the equality support and forget the others.</p>
 <li>Add the extra to <code>[project.optional-dependencies]</code> of <code>pyproject.toml</code>, e.g.
    <code>&lt;pkg&gt; = ["&lt;pkg&gt;&gt;=1.0"]</code>. The <code>all</code> extra, the CI jobs that test each dependency with its
    supported versions, and <code>dev/config/package_versions.json</code> (updated by a bot) follow from it.</li>
-<li>Add <code>is_&lt;pkg&gt;_available</code> and <code>check_&lt;pkg&gt;</code> to <code>src/coola/utils/imports/optional.py</code>, with the same two
-   lines as the other libraries (<code>module_available("&lt;pkg&gt;")</code>, and <code>raise_package_missing_error</code>
-   when it is not available). Decorate <code>is_&lt;pkg&gt;_available</code> with <code>availability_cache</code> (not with
-   <code>functools.cache</code>), so that <code>clear_availability_caches</code> knows about it. Export the two names in
-   <code>src/coola/utils/imports/__init__.py</code>.</li>
+<li>Add <code>is_&lt;pkg&gt;_available</code> and <code>check_&lt;pkg&gt;</code> to <code>src/coola/utils/imports/optional.py</code>, with the
+   same two lines as the other libraries (<code>module_available("&lt;pkg&gt;")</code>, and
+   <code>raise_package_missing_error</code> when it is not available). Decorate <code>is_&lt;pkg&gt;_available</code> with
+   <code>availability_cache</code> (not with <code>functools.cache</code>), so that <code>clear_availability_caches</code> knows
+   about it. Export the two names in <code>src/coola/utils/imports/__init__.py</code>.</li>
 <li>Create <code>src/coola/utils/fallback/&lt;pkg&gt;.py</code>, copied from <code>pandas.py</code>: a fake module with fake
-   classes that raise <code>MissingPackageError</code> (<code>make_fake_class("&lt;pkg&gt;")</code>), used when the library is not installed. It must have
-   every attribute of the library that is used in an annotation or a <code>class X(Base[pkg.Type])</code>
-   statement, because these are evaluated when the module is imported.</li>
+   classes that raise <code>MissingPackageError</code> (<code>make_fake_class("&lt;pkg&gt;")</code>), used when the library is
+   not installed. It must have every attribute of the library that is used in an annotation or a
+   <code>class X(Base[pkg.Type])</code> statement, because these are evaluated when the module is imported.</li>
 <li>Add the marks for the tests: add one row to <code>_DEPENDENCIES</code> in <code>src/coola/testing/marks.py</code>
    (the <code>is_&lt;pkg&gt;_available</code> function and the name used in the skip reasons). <code>__all__</code> is computed
    from the table and the marks are typed by the module <code>__getattr__</code>, so nothing else changes:</li>
@@ -2899,10 +2899,10 @@ TorchTensorEqualityTester</code> works as before, but the module is imported whe
 <li><strong>Registries.</strong> The default registries do not import the modules of the optional libraries.
   <code>registry.register_lazy(packages, "package.module:get_default_...")</code> registers a group of entries
   that is built the first time the registry looks for a type whose class (or one of its base
-  classes) comes from one of the <code>packages</code>, or needs the whole registry (<code>len</code>, iteration, <code>items</code>).
-  An object cannot have a type of a library that was not imported, so a library is only imported by
-  the registry if the program already imported it. The entries that are already registered are not
-  replaced.</li>
+  classes) comes from one of the <code>packages</code>, or needs the whole registry (<code>len</code>, iteration,
+  <code>items</code>). An object cannot have a type of a library that was not imported, so a library is only
+  imported by the registry if the program already imported it. The entries that are already
+  registered are not replaced.</li>
 <li><strong>Code that handles the objects of a library only if they exist.</strong> Use
   <code>is_module_imported("numpy")</code> (<code>coola.utils.imports</code>) instead of importing the library.</li>
 </ul>

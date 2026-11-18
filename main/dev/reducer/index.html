@@ -2861,7 +2861,10 @@
 
 
 <h1 id="architecture-of-coolareducer">Architecture of <code>coola.reducer</code><a class="headerlink" href="#architecture-of-coolareducer" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.reducer</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/reducer/#properties">user guide</a>; the API is in the <a href="../../refs/reducer/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.reducer</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/reducer/#properties">user guide</a>; the API is in the
+<a href="../../refs/reducer/">reference</a>.</p>
 <h2 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Simple and easy to maintain.</strong> The contract is written once, in the base class. A backend
@@ -2871,8 +2874,8 @@
    <code>statistics.mean</code> (104 ms against 6.8 ms in a probe). A design that is simpler but slower is
    rejected.</li>
 <li><strong>Consistent with the siblings.</strong> Keyword-only options, strict contracts (an invalid option or
-   input raises before any work, with a message that names the remedy), stateless objects that can be
-   shared by threads, lazy optional libraries.</li>
+   input raises before any work, with a message that names the remedy), stateless objects that can
+   be shared by threads, lazy optional libraries.</li>
 <li><strong>Optional libraries stay lazy.</strong> <code>import coola.reducer</code> imports neither NumPy nor PyTorch
    (<code>lazy_exports</code>). <code>TorchReducer</code> costs 0.94 s of import, which is why
    <code>auto_reducer</code> must not choose it by default.</li>
@@ -3057,42 +3060,45 @@ would be a second dispatch mechanism for a package that has three classes.</p>
 </table>
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
 <p><strong>One base class, a template.</strong> A pair of base classes (one without checks and one with them) leaves
-the author to choose, and the empty-case property then depends on the class that was picked. With one
-template, a backend that wants to skip a check has to override the public method on purpose.</p>
+the author to choose, and the empty-case property then depends on the class that was picked. With
+one template, a backend that wants to skip a check has to override the public method on purpose.</p>
 <p><strong>Strict input.</strong> A silent flatten of a 2-D array gives a number that looks right and is not, and a
 set is accepted by one backend and not by the others. Being liberal (convert everything with
 <code>np.asarray</code> / <code>torch.as_tensor</code> and document the differences) gives shorter code, but the same call
 changes meaning with <code>auto_reducer</code>. The strictness costs one <code>isinstance</code> and one <code>ndim</code> check per
 call (nanoseconds against a 2.8 µs call).</p>
-<p><strong><code>auto_reducer</code> does not look at the values.</strong> <code>auto_reducer()</code> returns NumPy, then native; a tensor
-on a device is a reason to write <code>TorchReducer()</code>. An <code>auto_reducer(values)</code> that returns
-<code>TorchReducer</code> for a tensor, <code>NumpyReducer</code> for an array and the default otherwise would be about ten
-lines and a second dispatch mechanism; it can be added without breaking anything once a consumer asks.
-"Torch first" would handle tensors always, but is slower on lists and costs 0.94 s of import.</p>
+<p><strong><code>auto_reducer</code> does not look at the values.</strong> <code>auto_reducer()</code> returns NumPy, then native; a
+tensor on a device is a reason to write <code>TorchReducer()</code>. An <code>auto_reducer(values)</code> that returns
+<code>TorchReducer</code> for a tensor, <code>NumpyReducer</code> for an array and the default otherwise would be about
+ten lines and a second dispatch mechanism; it can be added without breaking anything once a consumer
+asks. "Torch first" would handle tensors always, but is slower on lists and costs 0.94 s of import.</p>
 <p><strong>No <code>__eq__</code> and <code>__hash__</code> for reducers.</strong> A reducer is stateless, and two of them are rarely
 compared. If an <code>__eq__</code> is wanted (for example to cache a function by its reducer), <code>type(a) is
 type(b)</code> is one line in the base class. <code>InlineDisplayMixin</code> (the <code>repr</code>) costs nothing and is kept.</p>
-<p><strong><code>TorchReducer</code> stays.</strong> It is the only backend for a tensor that lives on a GPU, and tensors are the
-data of the users of the sibling packages (<code>equality</code>, <code>summary</code>). It is also the most expensive to
-maintain (two converters, a median that is not the library's), which is why it has one converter and
-the shared errors. Dropping it would be a decision about the scope of <code>coola</code>, not about this package.</p>
-<p><strong><code>NativeReducer.mean</code> is fast, not exact.</strong> The exact mean of <code>statistics.mean</code> is irrelevant to the
-cross-backend tolerance (NumPy and torch already differ in the last bit), and the time gap is the
-largest of the package. <code>fmean</code> also returns a <code>float</code> for ints, which is the documented result type.</p>
+<p><strong><code>TorchReducer</code> stays.</strong> It is the only backend for a tensor that lives on a GPU, and tensors are
+the data of the users of the sibling packages (<code>equality</code>, <code>summary</code>). It is also the most expensive
+to maintain (two converters, a median that is not the library's), which is why it has one converter
+and the shared errors. Dropping it would be a decision about the scope of <code>coola</code>, not about this
+package.</p>
+<p><strong><code>NativeReducer.mean</code> is fast, not exact.</strong> The exact mean of <code>statistics.mean</code> is irrelevant to
+the cross-backend tolerance (NumPy and torch already differ in the last bit), and the time gap is
+the largest of the package. <code>fmean</code> also returns a <code>float</code> for ints, which is the documented result
+type.</p>
 <h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>More statistics</strong> (<code>variance</code>, <code>mode</code>, <code>sum</code>, <code>argmax</code>, <code>percentile</code>, <code>histogram</code>): the six methods
-  and <code>sort</code> are the contract. Each new statistic is one public method of <code>BaseReducer</code>, one
+<li><strong>More statistics</strong> (<code>variance</code>, <code>mode</code>, <code>sum</code>, <code>argmax</code>, <code>percentile</code>, <code>histogram</code>): the six
+  methods and <code>sort</code> are the contract. Each new statistic is one public method of <code>BaseReducer</code>, one
   abstract computation, three implementations and a contract test: this is why none is added without
   a consumer.</li>
-<li><strong>Axis / multi-dimensional reductions, weights, <code>ddof</code>, <code>skipna</code></strong>: out of scope; the package reduces
-  one sequence. <code>std</code> is the sample standard deviation (<code>ddof=1</code>) in the three backends.</li>
+<li><strong>Axis / multi-dimensional reductions, weights, <code>ddof</code>, <code>skipna</code></strong>: out of scope; the package
+  reduces one sequence. <code>std</code> is the sample standard deviation (<code>ddof=1</code>) in the three backends.</li>
 <li><strong>A registry of reducers</strong> (<code>register</code>, lazy loading by type name, plugin entry point): three
   classes do not justify it (<code>architecture.md</code> lists <code>reducer</code> outside <code>registry</code> on purpose). If
   <code>auto_reducer(values)</code> ever dispatches on more than two types, it is the moment to reuse
   <code>BaseTypeDispatchRegistry</code>.</li>
-<li><strong>Other backends</strong> (pandas <code>Series</code>, polars, JAX): <a href="../add_backend/">How to add support for a new library</a> explains how to add one; the contract test is
-  the acceptance test.</li>
+<li><strong>Other backends</strong> (pandas <code>Series</code>, polars, JAX):
+  <a href="../add_backend/">How to add support for a new library</a> explains how to add one; the contract test
+  is the acceptance test.</li>
 <li><strong>Lazy / streaming input</strong> (<code>statistics</code> of an iterator in one pass): the iterator is rejected on
   purpose (the reducers go over the values several times); the error says to convert it to a list.</li>
 <li><strong>Precision beyond float64</strong> (<code>Decimal</code>, <code>Fraction</code>): <code>NativeReducer</code> happens to work; it is not a

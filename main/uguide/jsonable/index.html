@@ -2879,8 +2879,8 @@ is <code>dict</code> with <code>str</code> keys, <code>list</code>, <code>str</c
 <span class="go">{'points': [{'x': 1, 'y': 2}], 'path': 'a/b', '3': [1, 2], 's': [1, 3]}</span>
 </code></pre></div>
 <p>The conversion is chosen from the type of each value, along the Method Resolution Order. The
-containers are entered at any depth, and the optional libraries (NumPy, PyTorch, JAX, pandas, polars, pyarrow, xarray, pydantic) are
-imported only when a value of that library is converted.</p>
+containers are entered at any depth, and the optional libraries (NumPy, PyTorch, JAX, pandas,
+polars, pyarrow, xarray, pydantic) are imported only when a value of that library is converted.</p>
 <table>
 <thead>
 <tr>
@@ -3056,8 +3056,8 @@ makes the test fail until the type is removed from the list.</p>
   coarser unit first.</li>
 <li><strong><code>numpy.longdouble</code>.</strong> Its <code>tolist</code> keeps NumPy scalars, so it raises a <code>TypeError</code>; cast to
   <code>float64</code> first.</li>
-<li><strong>Tables.</strong> Data frames, tables and datasets have no single JSON shape; they are not converted until
-  you say how (see below).</li>
+<li><strong>Tables.</strong> Data frames, tables and datasets have no single JSON shape; they are not converted
+  until you say how (see below).</li>
 </ul>
 <h2 id="unsupported-values">Unsupported values<a class="headerlink" href="#unsupported-values" title="Permanent link">&para;</a></h2>
 <p><code>on_unsupported</code> says what happens to a value whose type has no transformer.</p>
@@ -3093,14 +3093,14 @@ makes the test fail until the type is removed from the list.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">to_jsonable</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span><span class="n">j</span><span class="p">],</span> <span class="n">on_unsupported</span><span class="o">=</span><span class="s2">"keep"</span><span class="p">)</span>
 <span class="go">[1, (1+2j)]</span>
 </code></pre></div>
-<p>With <code>"warn"</code> and <code>"keep"</code> the result may contain objects that <code>json</code> rejects: you own them. A key that
-cannot become a string raises <code>TypeError</code> in the three modes, and an invalid <code>on_unsupported</code> raises
-<code>ValueError</code> before any work is done.</p>
+<p>With <code>"warn"</code> and <code>"keep"</code> the result may contain objects that <code>json</code> rejects: you own them. A key
+that cannot become a string raises <code>TypeError</code> in the three modes, and an invalid <code>on_unsupported</code>
+raises <code>ValueError</code> before any work is done.</p>
 <h2 id="supporting-a-new-type">Supporting a new type<a class="headerlink" href="#supporting-a-new-type" title="Permanent link">&para;</a></h2>
 <p>Register a <code>ConvertTransformer</code>: a function that maps a value to a simpler one. Its result is
-converted in turn, so it may return a container, a path or an array. A function must reduce the type to
-simpler ones: a function that returns a value of the same type raises a <code>TypeError</code>, and a cycle of
-types (A gives B, B gives A) never ends.</p>
+converted in turn, so it may return a container, a path or an array. A function must reduce the type
+to simpler ones: a function that returns a value of the same type raises a <code>TypeError</code>, and a cycle
+of types (A gives B, B gives A) never ends.</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.jsonable</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvertTransformer</span><span class="p">,</span> <span class="n">register_transformers</span><span class="p">,</span> <span class="n">to_jsonable</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Point</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
@@ -3121,8 +3121,8 @@ that is already registered):</p>
 <p>A package can register its types without a call from the user with the entry-point group
 <code>coola.jsonable.transformers</code> (see <a href="../extending/">Extending coola</a>).</p>
 <h3 id="frames-and-tables">Frames and tables<a class="headerlink" href="#frames-and-tables" title="Permanent link">&para;</a></h3>
-<p>A data frame has several usual shapes (a list of records, a dict of columns, ...) and none is neutral,
-so it is not converted until you choose one:</p>
+<p>A data frame has several usual shapes (a list of records, a dict of columns, ...) and none is
+neutral, so it is not converted until you choose one:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">coola.jsonable</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvertTransformer</span><span class="p">,</span> <span class="n">register_transformers</span>
 
@@ -3130,9 +3130,9 @@ so it is not converted until you choose one:</p>
 </code></pre></div>
 <p>The same holds for polars, pyarrow and xarray objects.</p>
 <h3 id="pydantic-models">Pydantic models<a class="headerlink" href="#pydantic-models" title="Permanent link">&para;</a></h3>
-<p>A model is dumped with <code>model_dump()</code> (Python mode) and converted by the registry, so the sets inside
-are sorted and the arrays are converted. A serializer declared with <code>when_used="json"</code> is therefore
-not applied. A model that needs its JSON mode registers
+<p>A model is dumped with <code>model_dump()</code> (Python mode) and converted by the registry, so the sets
+inside are sorted and the arrays are converted. A serializer declared with <code>when_used="json"</code> is
+therefore not applied. A model that needs its JSON mode registers
 <code>ConvertTransformer(lambda model: model.model_dump(mode="json"))</code> for its class.</p>
 <h2 id="writing-a-json-file">Writing a JSON file<a class="headerlink" href="#writing-a-json-file" title="Permanent link">&para;</a></h2>
 <p><code>save_json</code> writes what it receives, so convert first:</p>
@@ -3157,8 +3157,8 @@ not applied. A model that needs its JSON mode registers
 <li><strong>Streaming or JSON Lines.</strong> The output is built whole. A generator is not accepted.</li>
 <li><strong>Formatting the file</strong> (indentation, <code>ensure_ascii</code>, sorted keys): the job of <code>json.dumps</code> and
   <code>JsonSaver(**kwargs)</code>.</li>
-<li><strong>Big integers beyond 2^53.</strong> A JSON reader in another language may lose them: the output keeps the
-  Python <code>int</code>.</li>
+<li><strong>Big integers beyond 2^53.</strong> A JSON reader in another language may lose them: the output keeps
+  the Python <code>int</code>.</li>
 </ul>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>

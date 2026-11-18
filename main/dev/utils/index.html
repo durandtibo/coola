@@ -2927,13 +2927,16 @@
 
 
 <h1 id="architecture-of-coolautils">Architecture of <code>coola.utils</code><a class="headerlink" href="#architecture-of-coolautils" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.utils</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/utils/#properties">user guide</a>; the API is in the <a href="../../refs/utils/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.utils</code> package for contributors: the invariants,
+the contracts between the parts, and the trade-offs of the main design choices. The rules that users
+rely on are in the <a href="../../uguide/utils/#properties">user guide</a>; the API is in the
+<a href="../../refs/utils/">reference</a>.</p>
 <h2 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Simple and easy to maintain.</strong> <code>coola.utils</code> mixes the foundation of <code>coola</code> (imports,
    singletons, introspection) with standalone helpers (Bloom filter, LRU cache, git, dates) that no
-   other package imports. Repetition is removed (one definition of "available" for every library, one
-   message for a missing package), and the useful helpers are kept, with their tests.</li>
+   other package imports. Repetition is removed (one definition of "available" for every library,
+   one message for a missing package), and the useful helpers are kept, with their tests.</li>
 <li><strong>Moved modules are imported from their new path.</strong> There is no alias and no deprecation period.</li>
 <li><strong>The rules of the repository apply to the helpers too.</strong> Options are keyword-only, an argument
    check goes through <code>coola.validation</code>, a shared helper is public and tested, a lazily built
@@ -2998,24 +3001,25 @@ coola/formatting/                 turning values into text
 ├── secret.py                     mask_secret
 └── diff.py                       unified_diff
 </code></pre></div>
-<p><code>formatting</code> is a core package next to <code>utils</code>: every function that turns a value into a string
-for a message, a <code>repr</code> or a report is there. It may import <code>utils</code> (<code>sort_by_keys</code>) and <code>validation</code>,
+<p><code>formatting</code> is a core package next to <code>utils</code>: every function that turns a value into a string for
+a message, a <code>repr</code> or a report is there. It may import <code>utils</code> (<code>sort_by_keys</code>) and <code>validation</code>,
 and no other package. <code>display</code>, <code>registry</code> and the feature packages import from it. The name is
 <code>formatting</code> because <code>coola.format</code> would shadow the builtin in <code>from coola import format</code>; a
 <code>coola.text</code> would be wrong because the byte and time functions are not text, and folding it into
 <code>coola.display</code> would make <code>registry</code> depend on <code>display</code>, which the layering does not allow. The
 sequence and mapping functions stay in one module (<code>structure</code>) because they share <code>str_indent</code>.</p>
 <p>The modules that no other package imports (<code>array</code>, <code>batching</code>, <code>bloom_filter</code>, <code>date</code>, <code>env_vars</code>,
-<code>file_size</code>, <code>git</code>, <code>logging</code>, <code>lru</code>, <code>password</code>, <code>recursion</code>, <code>timing</code>) are public and documented in
-the same page as the core helpers (<code>docs/docs/uguide/utils.md</code>, <code>refs/utils.md</code>): there is one place for
-the helpers and one import path per function. A package of its own for them (<code>coola.tools</code>) would split
-the documentation and the import paths for no benefit; grouping them by theme (<code>structures</code>, <code>text</code>,
-<code>system</code>) would be a better public API but a rewrite of the paths and of the tests.</p>
+<code>file_size</code>, <code>git</code>, <code>logging</code>, <code>lru</code>, <code>password</code>, <code>recursion</code>, <code>timing</code>) are public and documented
+in the same page as the core helpers (<code>docs/docs/uguide/utils.md</code>, <code>refs/utils.md</code>): there is one
+place for the helpers and one import path per function. A package of its own for them
+(<code>coola.tools</code>) would split the documentation and the import paths for no benefit; grouping them by
+theme (<code>structures</code>, <code>text</code>, <code>system</code>) would be a better public API but a rewrite of the paths and
+of the tests.</p>
 <p>The default-registry code (<code>make_default_registry_singleton</code>, <code>reset_default_registries</code>,
-<code>temporary_default_registries</code>) and the plugin loader (<code>load_registry_plugins</code>, <code>get_loaded_plugins</code>,
-<code>LoadedPlugin</code>, the two environment variable names) are in <code>coola.registry</code> (<code>default.py</code>,
-<code>plugins.py</code>), because they know what a registry is (they call <code>copy</code>, they load entry points into
-it). The conversion to JSON data is <code>coola.jsonable</code>.</p>
+<code>temporary_default_registries</code>) and the plugin loader (<code>load_registry_plugins</code>,
+<code>get_loaded_plugins</code>, <code>LoadedPlugin</code>, the two environment variable names) are in <code>coola.registry</code>
+(<code>default.py</code>, <code>plugins.py</code>), because they know what a registry is (they call <code>copy</code>, they load
+entry points into it). The conversion to JSON data is <code>coola.jsonable</code>.</p>
 <h3 id="the-modules">The modules<a class="headerlink" href="#the-modules" title="Permanent link">&para;</a></h3>
 <p>"Callers" are the packages of <code>src/coola</code> that import the module (outside <code>utils</code>).</p>
 <table>
@@ -3194,20 +3198,20 @@ two lines:</p>
 its name for the files that import it and for the <code>if TYPE_CHECKING or is_numpy_available():</code>
 idiom, which needs a statically known name. The torch and NumPy pair keeps its compatibility check
 (<code>torch.tensor([1.0]).numpy()</code>), imported inside the function.</p>
-<p>The public surface has no decorators <code>x_available</code>, no <code>raise_x_missing_error</code> per library (the fallback
-modules call <code>raise_package_missing_error</code> through <code>make_fake_class("numpy")</code>), no <code>LazyModule</code> or
-<code>lazy_import</code>, and no <code>import_object</code>: a <code>"pkg.mod:name"</code> path is resolved with
+<p>The public surface has no decorators <code>x_available</code>, no <code>raise_x_missing_error</code> per library (the
+fallback modules call <code>raise_package_missing_error</code> through <code>make_fake_class("numpy")</code>), no
+<code>LazyModule</code> or <code>lazy_import</code>, and no <code>import_object</code>: a <code>"pkg.mod:name"</code> path is resolved with
 <code>pkgutil.resolve_name</code>, which has the same format and the same errors and avoids a second function
 named like the one of <code>coola.factory</code>. <code>check_package(package, *, install=None)</code> has a keyword-only
-<code>install</code>, the pip name when it differs from the import name, and the message is the same as for every
-other package.</p>
+<code>install</code>, the pip name when it differs from the import name, and the message is the same as for
+every other package.</p>
 <p><code>lazy.py</code> has <code>lazy_exports</code> and <code>is_module_imported</code> (used by <code>factory</code>).</p>
 <p>Adding a library (<code>docs/docs/dev/add_backend.md</code>) is two functions in <code>optional.py</code>, their names in
 <code>imports/__init__.py</code>, one fake module in <code>fallback/&lt;pkg&gt;.py</code> and one row in <code>testing/marks.py</code>, plus
 <code>pyproject.toml</code>: about 25 added lines.</p>
 <h3 id="lazysingleton-and-the-default-registries"><code>LazySingleton</code> and the default registries<a class="headerlink" href="#lazysingleton-and-the-default-registries" title="Permanent link">&para;</a></h3>
-<p><code>utils/singleton.py</code> has the primitive, with the test hooks public so that the registry code does not
-need privates:</p>
+<p><code>utils/singleton.py</code> has the primitive, with the test hooks public so that the registry code does
+not need privates:</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">LazySingleton</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span> <span class="o">...</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_built</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span> <span class="o">...</span>
@@ -3217,17 +3221,18 @@ need privates:</p>
     <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># replaces the cached value, under the lock</span>
         <span class="o">...</span>
 </code></pre></div>
-<p><code>coola/registry/default.py</code> has <code>make_default_registry_singleton(registry_cls, register_defaults, *,
-plugin_group=None)</code>, <code>reset_default_registries()</code> and <code>temporary_default_registries()</code>; the last one is
-written with <code>is_built</code>, <code>get</code>, <code>set</code> and <code>reset</code>: on entry, <code>set(get().copy())</code> for each registry that
-is built; on exit, <code>set(original)</code> for those registries and <code>reset()</code> for the ones that were built
-inside the context. <code>coola/registry/plugins.py</code> has the entry-point loader, <code>LoadedPlugin</code>,
+<p><code>coola/registry/default.py</code> has
+<code>make_default_registry_singleton(registry_cls, register_defaults, *, plugin_group=None)</code>,
+<code>reset_default_registries()</code> and <code>temporary_default_registries()</code>; the last one is written with
+<code>is_built</code>, <code>get</code>, <code>set</code> and <code>reset</code>: on entry, <code>set(get().copy())</code> for each registry that is built;
+on exit, <code>set(original)</code> for those registries and <code>reset()</code> for the ones that were built inside the
+context. <code>coola/registry/plugins.py</code> has the entry-point loader, <code>LoadedPlugin</code>,
 <code>get_loaded_plugins</code> and the two environment variable names (<code>COOLA_STRICT_PLUGINS</code>,
 <code>COOLA_DISABLE_PLUGINS</code>). The feature packages and <code>coola.testing</code> import from <code>coola.registry</code>;
 <code>coola.random</code> also depends on <code>coola.registry</code> (its registry is a <code>Registry</code>). The import of
-<code>importlib.metadata</code> (7.5 ms) is paid by <code>coola.registry</code>, not by <code>coola.utils</code>. Keeping this code in
-<code>utils</code> (split in <code>singleton.py</code>, <code>default_registry.py</code> and <code>plugins.py</code>) would leave <code>utils</code> with a
-concept it should not know.</p>
+<code>importlib.metadata</code> (7.5 ms) is paid by <code>coola.registry</code>, not by <code>coola.utils</code>. Keeping this code
+in <code>utils</code> (split in <code>singleton.py</code>, <code>default_registry.py</code> and <code>plugins.py</code>) would leave <code>utils</code>
+with a concept it should not know.</p>
 <h3 id="contracts-of-the-helpers-that-stay">Contracts of the helpers that stay<a class="headerlink" href="#contracts-of-the-helpers-that-stay" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3333,7 +3338,10 @@ package) would keep the rule by construction, but the rule rests on review today
 <span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">quantile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">compare_version</span><span class="p">,</span> <span class="n">get_package_version</span>
 </code></pre></div>
-<p><code>coola.formatting</code> (the 14 functions of <code>format</code>, <code>str_*</code> and <code>repr_*</code> in <code>structure</code>, the byte, time and bar functions in <code>quantity</code>, with options keyword-only; <code>text.{char_diff_summary, count_lines, remove_empty_lines, slugify, truncate_str}</code>, <code>secret.mask_secret</code>, <code>diff.unified_diff</code>).</p>
+<p><code>coola.formatting</code> (the 14 functions of <code>format</code>, <code>str_*</code> and <code>repr_*</code> in <code>structure</code>, the byte,
+time and bar functions in <code>quantity</code>, with options keyword-only;
+<code>text.{char_diff_summary, count_lines, remove_empty_lines, slugify, truncate_str}</code>,
+<code>secret.mask_secret</code>, <code>diff.unified_diff</code>).</p>
 <p>The standalone helpers, which no other package imports except where stated:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.array</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_array</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">coola.utils.batching</span><span class="w"> </span><span class="kn">import</span> <span class="n">batchify</span>
@@ -3399,18 +3407,18 @@ package) would keep the rule by construction, but the rule rests on review today
 </tbody>
 </table>
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
-<p><strong>Standalone helpers stay in <code>utils</code>.</strong> Deleting a helper that no package uses is risky for users and
-cheap to keep: each has tests and a documented role. Two helpers carry a caveat: <code>password</code> handles
-credentials (a bug would be a security issue, and <code>coola</code> has no use for it), and <code>recursion</code> explains
-an error that no function raises since the explicit stacks. They are kept for now and are the first
-candidates for removal. <code>working_directory</code> is not provided (<code>contextlib.chdir</code>), nor
-<code>deprecate_positional_options</code>.</p>
+<p><strong>Standalone helpers stay in <code>utils</code>.</strong> Deleting a helper that no package uses is risky for users
+and cheap to keep: each has tests and a documented role. Two helpers carry a caveat: <code>password</code>
+handles credentials (a bug would be a security issue, and <code>coola</code> has no use for it), and
+<code>recursion</code> explains an error that no function raises since the explicit stacks. They are kept for
+now and are the first candidates for removal. <code>working_directory</code> is not provided
+(<code>contextlib.chdir</code>), nor <code>deprecate_positional_options</code>.</p>
 <p><strong>The default registries and the plugin loader live in <code>coola.registry</code>.</strong> It is registry code (it
 copies registries, it loads entry points into them), and it is what <code>LazySingleton</code> should not know.
 The cost is an import in each feature package, which <code>lint-imports</code> checks.</p>
-<p><strong>A huge negative integer is hashed as <code>-0x…</code>.</strong> <code>0x-1000…</code> is not a representation of the number. Only
-a negative integer with more than 4,300 digits is affected. A hash is only stable inside a version of
-<code>coola</code>.</p>
+<p><strong>A huge negative integer is hashed as <code>-0x…</code>.</strong> <code>0x-1000…</code> is not a representation of the number.
+Only a negative integer with more than 4,300 digits is affected. A hash is only stable inside a
+version of <code>coola</code>.</p>
 <p><strong><code>_reset_after_fork</code> is not public.</strong> It is a hook for the fork handler, not part of the API of a
 registry or of <code>LazySingleton</code>; the protocol (<code>ForkAware</code>) says so. A callback passed to
 <code>track_fork(obj, callback)</code> would need a <code>WeakMethod</code> for the same effect, with more code.</p>
@@ -3426,8 +3434,8 @@ np.ndarray)</code> false when NumPy is missing. A different mechanism (a lazy pr
   good, but <code>display</code> keeps importing <code>format</code>, <code>mapping</code> and <code>imports</code>.</li>
 <li><strong>Windows</strong>: <code>os.register_at_fork</code> is absent there, so <code>track_fork</code> is a no-op (documented); the
   fork behaviour is not tested on Windows.</li>
-<li><strong>Performance</strong>: no helper of <code>utils</code> is on a hot path except <code>track_fork</code> (called once per object)
-  and <code>is_&lt;pkg&gt;_available</code> (cached); no benchmark gate is needed for this item.</li>
+<li><strong>Performance</strong>: no helper of <code>utils</code> is on a hot path except <code>track_fork</code> (called once per
+  object) and <code>is_&lt;pkg&gt;_available</code> (cached); no benchmark gate is needed for this item.</li>
 </ul>
 
 

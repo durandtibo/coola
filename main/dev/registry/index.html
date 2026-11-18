@@ -2949,7 +2949,10 @@
 
 
 <h1 id="architecture-of-coolaregistry">Architecture of <code>coola.registry</code><a class="headerlink" href="#architecture-of-coolaregistry" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.registry</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/registry/#properties">user guide</a>; the API is in the <a href="../../refs/registry/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.registry</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/registry/#properties">user guide</a>; the API is in
+the <a href="../../refs/registry/">reference</a>.</p>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>exceptions.py   AlreadyRegisteredError(ValueError)
                 KeyNotRegisteredError(KeyError) &lt;- TypeNotRegisteredError
@@ -2969,8 +2972,8 @@ domain          HasherRegistry, EqualityTesterRegistry, SummarizerRegistry,
                 |   has_&lt;x&gt;, find_&lt;x&gt; (one line each), the domain entry point
 </code></pre></div>
 <p>Two classes carry everything. A domain registry <strong>is</strong> a <code>TypeRegistry</code> (it inherits, it does not
-wrap), so it has no <code>_state</code> wrapper and one display. The dataclass rule is a fallback predicate, not
-a marker type.</p>
+wrap), so it has no <code>_state</code> wrapper and one display. The dataclass rule is a fallback predicate,
+not a marker type.</p>
 <h3 id="state-replaced-never-mutated">State: replaced, never mutated<a class="headerlink" href="#state-replaced-never-mutated" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Registry</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">]):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -2992,8 +2995,8 @@ a marker type.</p>
 </code></pre></div>
 <ul>
 <li><strong>Readers take no lock</strong>: they read <code>self._state</code> once. A mutation builds a new dict (<code>O(n)</code>, <code>n</code>
-  is about 50 and a registration is rare) and swaps the reference, which is atomic, so no method needs
-  its own snapshot or invalidation logic.</li>
+  is about 50 and a registration is rare) and swaps the reference, which is atomic, so no method
+  needs its own snapshot or invalidation logic.</li>
 <li><code>register_many</code> builds one dict for the whole mapping and publishes it once: atomic by
   construction, including for readers.</li>
 <li><code>_publish(state)</code> assigns <code>_state</code> and calls <code>_changed()</code>, a hook that <code>TypeRegistry</code> overrides to
@@ -3039,15 +3042,16 @@ a lambda; the default registries hold module-level functions and <code>"module:n
 <li>The cache is a plain strong <code>dict</code>, bounded (1,024 classes) and emptied by any change (<code>register</code>,
   <code>unregister</code>, <code>clear</code>, <code>register_fallback</code>, a lazy load). The miss path is under the lock, as the
   registration is, so a stale value cannot be written after a registration has emptied the cache. A
-  program that creates classes dynamically keeps at most 1,024 of them alive (a few MB) until the next
-  registration. A weak dictionary would not keep them, but is the more expensive structure; no cache
-  at all is simpler by about 12 lines, but the dataclass fallback predicates would run on every
-  lookup.</li>
+  program that creates classes dynamically keeps at most 1,024 of them alive (a few MB) until the
+  next registration. A weak dictionary would not keep them, but is the more expensive structure; no
+  cache at all is simpler by about 12 lines, but the dataclass fallback predicates would run on
+  every lookup.</li>
 <li>The fallbacks sit between the types and <code>object</code>: a registered type always wins, then the first
   predicate that accepts the type, then <code>object</code>. <code>object</code> is the <strong>last</strong> resort in every registry,
-  so a handler registered for <code>object</code> never hides a fallback. <code>resolve(object)</code> checks the fallbacks
-  too (no predicate of the repository accepts <code>object</code>). A predicate also solves the virtual-subclass
-  limit of the MRO lookup (a user can register <code>lambda t: issubclass(t, Sequence)</code>).</li>
+  so a handler registered for <code>object</code> never hides a fallback. <code>resolve(object)</code> checks the
+  fallbacks too (no predicate of the repository accepts <code>object</code>). A predicate also solves the
+  virtual-subclass limit of the MRO lookup (a user can register
+  <code>lambda t: issubclass(t, Sequence)</code>).</li>
 <li><code>resolve</code> is the only lookup name. The domain aliases <code>has_&lt;x&gt;</code> and <code>find_&lt;x&gt;</code> are public API of
   five packages and read well at the call site: they are one-line delegations.</li>
 </ul>
@@ -3131,8 +3135,8 @@ module-level functions of <code>type.py</code>.</p>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">ignore_unhashable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span> <span class="o">...</span>
 </code></pre></div>
-<p>The domain registry defines only the aliases and its entry point: <code>__init__</code>, <code>copy</code>, the fork reset,
-the display, the fallbacks, <code>clear</code> and <code>equal</code> are inherited from the base classes.</p>
+<p>The domain registry defines only the aliases and its entry point: <code>__init__</code>, <code>copy</code>, the fork
+reset, the display, the fallbacks, <code>clear</code> and <code>equal</code> are inherited from the base classes.</p>
 <h3 id="equal"><code>equal</code><a class="headerlink" href="#equal" title="Permanent link">&para;</a></h3>
 <p><code>equal(other)</code> compares two registries without any feature package:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">equal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -3220,21 +3224,22 @@ keyword-only everywhere.</p>
 </tbody>
 </table>
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
-<p><strong>One fallback mechanism instead of a marker type.</strong> Before the fallbacks, the dataclass rule needed a
-marker type in the registry and an identity test. A predicate is one idea implemented once, and it also
-solves the virtual-subclass limit of the MRO lookup. The consequence is that the dataclass handler is
-not a visible entry of <code>items()</code>. Keeping a marker type would leave each registry with a second
-mechanism.</p>
-<p><strong>A generic <code>Registry</code> is kept.</strong> <code>RandomManagerRegistry</code> uses it and <code>TypeRegistry</code> extends it, so it
-costs nothing: it is the storage class. Making it private would only change the guide (a "plugin
+<p><strong>One fallback mechanism instead of a marker type.</strong> Before the fallbacks, the dataclass rule needed
+a marker type in the registry and an identity test. A predicate is one idea implemented once, and it
+also solves the virtual-subclass limit of the MRO lookup. The consequence is that the dataclass
+handler is not a visible entry of <code>items()</code>. Keeping a marker type would leave each registry with a
+second mechanism.</p>
+<p><strong>A generic <code>Registry</code> is kept.</strong> <code>RandomManagerRegistry</code> uses it and <code>TypeRegistry</code> extends it, so
+it costs nothing: it is the storage class. Making it private would only change the guide (a "plugin
 system" or "factory" example is not what <code>coola</code> is for).</p>
 <p><strong><code>equal()</code> is kept.</strong> It is the documented way to compare two registries, it needs no feature
 package, and the alternative (<code>dict(a.items()) == dict(b.items())</code>) forgets the fallbacks.</p>
-<p><strong><code>AlreadyRegisteredError</code> is a <code>ValueError</code>.</strong> The value is not acceptable in the current state; it is
-not a <code>RuntimeError</code>.</p>
-<p><strong>Registries are picklable.</strong> Ten lines remove a failure that only shows with <code>spawn</code>. The alternative
-is to document that a registry is not picklable and to pass the arguments that build it.</p>
-<p><strong>A duplicate fallback predicate is an error.</strong> A silent duplicate would be appended and never reached.</p>
+<p><strong><code>AlreadyRegisteredError</code> is a <code>ValueError</code>.</strong> The value is not acceptable in the current state; it
+is not a <code>RuntimeError</code>.</p>
+<p><strong>Registries are picklable.</strong> Ten lines remove a failure that only shows with <code>spawn</code>. The
+alternative is to document that a registry is not picklable and to pass the arguments that build it.</p>
+<p><strong>A duplicate fallback predicate is an error.</strong> A silent duplicate would be appended and never
+reached.</p>
 <h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><code>issubclass</code> lookup.</strong> Not added to <code>resolve</code>: it would send <code>str</code> to the handler of <code>Sequence</code>

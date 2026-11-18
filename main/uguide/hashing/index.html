@@ -3189,8 +3189,8 @@ hash_object(x, length=n) = digest(x).hex()[:n]
 <p>The entries are self-delimiting (a marker <code>0xFF</code> and a fixed width, or a size), which makes the
 concatenation unambiguous without other delimiters. A short leaf (a number, a short string) is part
 of the preimage of its parent instead of a BLAKE2b call of its own, which is what makes the flat
-containers fast. The leading <code>0x00</code>/<code>0x01</code> byte makes a leaf and a node with the same tag different. The
-registry dispatches on <code>type(data)</code> along the Method Resolution Order, so the most specific
+containers fast. The leading <code>0x00</code>/<code>0x01</code> byte makes a leaf and a node with the same tag different.
+The registry dispatches on <code>type(data)</code> along the Method Resolution Order, so the most specific
 registered type wins. A scalar and a standard-library container have a constant tag, so a subclass
 hashes like its base; a user-defined class (dataclass, model, enum, custom object) uses its
 qualified name.</p>
@@ -3433,9 +3433,9 @@ Functions, classes and other callables are not hashed either, and the content of
 hashed (see <code>Path</code> below). Each of them is one hasher and one registration if you need it.</p>
 <p>The array libraries are only imported if they are installed. A NumPy array and a PyTorch tensor with
 the same content hash differently. Your own classes still need a registered hasher (a class with a
-<code>__coola_hash__()</code> method and a dataclass work without registration, see below). Otherwise <code>hash_object</code>
-raises a <code>TypeNotRegisteredError</code> that lists the remedies (or hashes a placeholder with
-<code>ignore_unhashable=True</code>). To change what is part of the hash, register your own hasher, for
+<code>__coola_hash__()</code> method and a dataclass work without registration, see below). Otherwise
+<code>hash_object</code> raises a <code>TypeNotRegisteredError</code> that lists the remedies (or hashes a placeholder
+with <code>ignore_unhashable=True</code>). To change what is part of the hash, register your own hasher, for
 example for NumPy arrays:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.hashing</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseHasher</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">hash_object</span><span class="p">,</span> <span class="n">register_hashers</span><span class="p">,</span> <span class="n">tagged</span>
@@ -3562,7 +3562,8 @@ Passing another registry opts out of this stability.</p>
 </table>
 <h2 id="type-specific-hashers">Type-Specific Hashers<a class="headerlink" href="#type-specific-hashers" title="Permanent link">&para;</a></h2>
 <p>Each hasher implements the <code>BaseHasher</code> interface and describes one kind of object with <code>encode</code>;
-the engine hashes the children of a <code>Node</code> with the hasher of their own type. The built-in hashers include:</p>
+the engine hashes the children of a <code>Node</code> with the hasher of their own type. The built-in hashers
+include:</p>
 <ul>
 <li><code>StringHasher</code> - hashes <code>str</code> objects, namespaced by the <code>str</code> type tag</li>
 <li><code>BytesHasher</code> - hashes <code>bytes</code> and <code>bytearray</code> objects, namespaced by the type tag</li>
@@ -3591,13 +3592,13 @@ the engine hashes the children of a <code>Node</code> with the hasher of their o
   define a <code>__coola_hash__()</code> method that returns their content), namespaced by the class name</li>
 <li><code>NumpyArrayHasher</code>, <code>TorchTensorHasher</code>, <code>JaxArrayHasher</code> - hash the dtype, the shape and the
   values of an array or of a tensor (require the corresponding package)</li>
-<li><code>PandasSeriesHasher</code>, <code>PandasDataFrameHasher</code>, <code>PolarsSeriesHasher</code>, <code>PolarsDataFrameHasher</code> - hash
-  the names, the dtypes and the values of a series or of a data frame (require the corresponding
-  package)</li>
+<li><code>PandasSeriesHasher</code>, <code>PandasDataFrameHasher</code>, <code>PolarsSeriesHasher</code>, <code>PolarsDataFrameHasher</code> -
+  hash the names, the dtypes and the values of a series or of a data frame (require the
+  corresponding package)</li>
 <li><code>PyarrowArrayHasher</code>, <code>PyarrowTableHasher</code> - hash the types and the values of a PyArrow array or
   table (require <code>pyarrow</code>)</li>
-<li><code>XarrayHasher</code> - hashes the dimensions, the values, the coordinates, the attributes and the name of
-  an xarray <code>DataArray</code>, <code>Dataset</code> or <code>Variable</code> (requires <code>xarray</code>)</li>
+<li><code>XarrayHasher</code> - hashes the dimensions, the values, the coordinates, the attributes and the name
+  of an xarray <code>DataArray</code>, <code>Dataset</code> or <code>Variable</code> (requires <code>xarray</code>)</li>
 </ul>
 <p>A hasher describes the content of a type with <code>encode</code>; the engine does the hashing. Each hasher
 can be used directly to see that description:</p>
@@ -3619,8 +3620,8 @@ registered hasher for an object's type, using the Method Resolution Order (MRO):
 <h3 id="the-default-registry">The Default Registry<a class="headerlink" href="#the-default-registry" title="Permanent link">&para;</a></h3>
 <p>!!! tip "Unambiguous alias"</p>
 <div class="highlight"><pre><span></span><code>`get_default_registry` exists in several `coola` subpackages with different return types.
-`get_default_hasher_registry` is an alias of the same function with a more explicit name, which avoids
-import collisions.
+`get_default_hasher_registry` is an alias of the same function with a more explicit name, which
+avoids import collisions.
 </code></pre></div>
 <p><code>get_default_registry</code> returns the singleton registry used internally by <code>hash_object</code>. Because
 it is a singleton, any modification made via <code>register_hashers</code> affects every subsequent call:</p>
@@ -3639,11 +3640,12 @@ it is a singleton, any modification made via <code>register_hashers</code> affec
 <code>HasherRegistry</code> instance directly, as shown above.</p>
 <h3 id="fallbacks">Fallbacks<a class="headerlink" href="#fallbacks" title="Permanent link">&para;</a></h3>
 <p>A registry maps <em>types</em> to hashers, so it cannot say "every dataclass" or "every class with a
-<code>__coola_hash__()</code> method". <code>HasherRegistry.register_fallback(predicate, hasher)</code> registers a hasher for the
-types that satisfy a predicate. A fallback is only used if no hasher is registered for the type or
-for one of its parent types (<code>object</code> excluded), so a hasher registered for a type always wins. The default registry
-has two fallbacks: dataclasses (<code>DataclassHasher</code>) and the classes with a <code>__coola_hash__()</code> method
-(<code>ContentHasher</code>). A dataclass that also defines <code>__coola_hash__()</code> uses the dataclass hasher.</p>
+<code>__coola_hash__()</code> method". <code>HasherRegistry.register_fallback(predicate, hasher)</code> registers a hasher
+for the types that satisfy a predicate. A fallback is only used if no hasher is registered for the
+type or for one of its parent types (<code>object</code> excluded), so a hasher registered for a type always
+wins. The default registry has two fallbacks: dataclasses (<code>DataclassHasher</code>) and the classes with a
+<code>__coola_hash__()</code> method (<code>ContentHasher</code>). A dataclass that also defines <code>__coola_hash__()</code> uses
+the dataclass hasher.</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.hashing</span><span class="w"> </span><span class="kn">import</span> <span class="n">HasherRegistry</span><span class="p">,</span> <span class="n">SequenceHasher</span><span class="p">,</span> <span class="n">DataclassHasher</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">is_dataclass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">registry</span> <span class="o">=</span> <span class="n">HasherRegistry</span><span class="p">({</span><span class="nb">list</span><span class="p">:</span> <span class="n">SequenceHasher</span><span class="p">()})</span>
@@ -3657,9 +3659,9 @@ has two fallbacks: dataclasses (<code>DataclassHasher</code>) and the classes wi
 <p>The hasher registered for <code>object</code> is the last resort: the fallbacks are tried before it. A
 predicate can only be registered once (<code>AlreadyRegisteredError</code>, unless <code>exist_ok=True</code>, which keeps
 its position); if several predicates match, the first registered one wins.</p>
-<p><code>HasherRegistry.unregister_fallback(predicate)</code> removes a fallback and returns its hasher, <code>clear()</code> removes the hashers
-and the fallbacks, and <code>equal()</code> compares the fallbacks (predicates, in order, and hashers) as well
-as the hashers.</p>
+<p><code>HasherRegistry.unregister_fallback(predicate)</code> removes a fallback and returns its hasher, <code>clear()</code>
+removes the hashers and the fallbacks, and <code>equal()</code> compares the fallbacks (predicates, in order,
+and hashers) as well as the hashers.</p>
 <h2 id="custom-objects">Custom Objects<a class="headerlink" href="#custom-objects" title="Permanent link">&para;</a></h2>
 <p>For a class that cannot be a dataclass, define a <code>__coola_hash__()</code> method that returns the content
 of the object (any value that can be hashed). <code>ContentHasher</code> hashes that value through the

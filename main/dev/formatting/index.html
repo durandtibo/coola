@@ -2739,13 +2739,15 @@
 
 
 <h1 id="architecture-of-coolaformatting">Architecture of <code>coola.formatting</code><a class="headerlink" href="#architecture-of-coolaformatting" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.formatting</code> package for contributors. The functions are described in the <a href="../../uguide/formatting/">user guide</a> and in the <a href="../../refs/formatting/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.formatting</code> package for contributors. The
+functions are described in the <a href="../../uguide/formatting/">user guide</a> and in the
+<a href="../../refs/formatting/">reference</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p><code>coola.formatting</code> turns values into text for messages, <code>repr</code> and reports. It is a <strong>core</strong> package
 (see <a href="../architecture/#package-layering">Package layering</a>): it imports <code>coola.utils</code> and
-<code>coola.validation</code> only, and the packages that print values (<code>display</code>, <code>registry</code>, the error messages
-of the feature packages) import it. Every function that formats a value for a message, a <code>repr</code> or a
-report lives here, so there is one place to look for it.</p>
+<code>coola.validation</code> only, and the packages that print values (<code>display</code>, <code>registry</code>, the error
+messages of the feature packages) import it. Every function that formats a value for a message, a
+<code>repr</code> or a report lives here, so there is one place to look for it.</p>
 <div class="highlight"><pre><span></span><code>coola/formatting/
     __init__.py     docstring only, no re-export
     structure.py    str_/repr_ of sequences and mappings, str_indent, repr_indent
@@ -2763,8 +2765,8 @@ report lives here, so there is one place to look for it.</p>
   <code>*_line</code> variants that write on one line. The pair shares one private helper, so the layout is
   written once. <code>InlineDisplayMixin</code> and <code>MultilineDisplayMixin</code> of <code>coola.display</code> build their
   <code>repr</code> and <code>str</code> with them.</li>
-<li><strong>One layout.</strong> A mapping is <code>(key): value</code> per line, a sequence is <code>(index): value</code> per line, and a
-  value whose text has several lines is indented under its key (<code>str_indent</code>, <code>repr_indent</code>).</li>
+<li><strong>One layout.</strong> A mapping is <code>(key): value</code> per line, a sequence is <code>(index): value</code> per line, and
+  a value whose text has several lines is indented under its key (<code>str_indent</code>, <code>repr_indent</code>).</li>
 <li><strong>Strict arguments.</strong> Options are keyword-only and checked with <code>coola.validation</code> (for example
   <code>validate_ge(num_spaces, 0, name="num_spaces")</code>).</li>
 <li><strong>No optional library.</strong> Nothing here imports NumPy, torch or another optional package.</li>
@@ -2773,12 +2775,12 @@ report lives here, so there is one place to look for it.</p>
 <p>The formatting functions share one purpose (values to text) and are used by several packages
 (<code>display</code>, <code>registry</code>, the error messages of the features). A package next to <code>utils</code> makes them
 discoverable and keeps <code>utils</code> the foundation. The name is <code>formatting</code> because <code>coola.format</code> would
-shadow the builtin in <code>from coola import format</code>. The sequence and mapping functions stay in one module
-because they share <code>str_indent</code>.</p>
+shadow the builtin in <code>from coola import format</code>. The sequence and mapping functions stay in one
+module because they share <code>str_indent</code>.</p>
 <h2 id="adding-a-function">Adding a function<a class="headerlink" href="#adding-a-function" title="Permanent link">&para;</a></h2>
 <p>Put a function here if it turns a value into text and is useful to more than one package. A function
-that is a step of one feature stays in that feature. Give it a Google docstring with a <code>pycon</code> example,
-a test in <code>tests/unit/formatting/test_&lt;module&gt;.py</code>, and a line in <code>refs/formatting.md</code>.</p>
+that is a step of one feature stays in that feature. Give it a Google docstring with a <code>pycon</code>
+example, a test in <code>tests/unit/formatting/test_&lt;module&gt;.py</code>, and a line in <code>refs/formatting.md</code>.</p>
 
 
 

@@ -3289,17 +3289,15 @@ data:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">recursive_apply</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
 <span class="go">{'level1': {'level2': {'level3': 84}}}</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code>**Mixed nested structures:**
-
-```pycon
-&gt;&gt;&gt; from coola.recursive import recursive_apply
-&gt;&gt;&gt; data = {
-...     "list": [1, 2, 3],
-...     "dict": {"a": 4, "b": 5},
-...     "value": 8,
-... }
-&gt;&gt;&gt; recursive_apply(data, lambda x: x + 100)
-{'list': [101, 102, 103], 'dict': {'a': 104, 'b': 105}, 'value': 108}
+<p><strong>Mixed nested structures:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.recursive</span><span class="w"> </span><span class="kn">import</span> <span class="n">recursive_apply</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">"list"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s2">"dict"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
+<span class="gp">... </span>    <span class="s2">"value"</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recursive_apply</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">100</span><span class="p">)</span>
+<span class="go">{'list': [101, 102, 103], 'dict': {'a': 104, 'b': 105}, 'value': 108}</span>
 </code></pre></div>
 <h2 id="advanced-usage">Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permanent link">&para;</a></h2>
 <h3 id="custom-transformers">Custom Transformers<a class="headerlink" href="#custom-transformers" title="Permanent link">&para;</a></h3>
@@ -3341,10 +3339,10 @@ transformed children. The engine applies the function to the leaves and detects 
 </code></pre></div>
 <h3 id="dataclasses">Dataclasses<a class="headerlink" href="#dataclasses" title="Permanent link">&para;</a></h3>
 <p>A dataclass instance is entered, like <code>objects_are_equal</code>, <code>hash_object</code> and <code>summarize</code> do: the
-function is applied to the fields, not to the instance. The instance is rebuilt (<code>DataclassTransformer</code>)
-from a shallow copy in which every field is set with <code>object.__setattr__</code>, so frozen and slotted
-dataclasses are supported, the fields with <code>init=False</code> are transformed, the input is not modified
-and no user code (<code>__init__</code>, <code>__post_init__</code>) runs during the traversal:</p>
+function is applied to the fields, not to the instance. The instance is rebuilt
+(<code>DataclassTransformer</code>) from a shallow copy in which every field is set with <code>object.__setattr__</code>,
+so frozen and slotted dataclasses are supported, the fields with <code>init=False</code> are transformed, the
+input is not modified and no user code (<code>__init__</code>, <code>__post_init__</code>) runs during the traversal:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.recursive</span><span class="w"> </span><span class="kn">import</span> <span class="n">recursive_apply</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nd">@dataclass</span>
@@ -3365,8 +3363,8 @@ registering <code>DefaultTransformer()</code> for its type:</p>
 <span class="go">'Config(lr=0.1, layers=[1, 2])'</span>
 </code></pre></div>
 <h3 id="pydantic-models">Pydantic models<a class="headerlink" href="#pydantic-models" title="Permanent link">&para;</a></h3>
-<p>A pydantic model is entered like a dataclass (when pydantic is installed): the function is applied to
-the values of the fields, the declared fields first and then the extra fields of a model with
+<p>A pydantic model is entered like a dataclass (when pydantic is installed): the function is applied
+to the values of the fields, the declared fields first and then the extra fields of a model with
 <code>extra="allow"</code>. A computed field is not a child. The model is rebuilt with <code>model_copy(update=...)</code>
 (<code>coola.recursive.pydantic.PydanticModelTransformer</code>): the input is not modified, a frozen model is
 supported and the validators do not run again, so the new values are not validated. A transformer
@@ -3377,7 +3375,8 @@ as a leaf.</p>
 <ul>
 <li><strong><code>DefaultTransformer</code></strong>: For scalar/leaf values (no children)</li>
 <li><strong><code>SequenceTransformer</code></strong>: For sequences (list, tuple) - recursive transformation preserving order</li>
-<li><strong><code>MappingTransformer</code></strong>: For mappings (dict) - recursive transformation of the values (the keys are kept)</li>
+<li><strong><code>MappingTransformer</code></strong>: For mappings (dict) - recursive transformation of the values (the keys
+  are kept)</li>
 <li><strong><code>SetTransformer</code></strong>: For sets - recursive transformation without order</li>
 <li><strong><code>IdentityTransformer</code></strong>: For leaf values that must be kept as they are: the function is never
   applied</li>
@@ -3396,8 +3395,8 @@ the type is raised: register a transformer for this type.</p>
 <h3 id="getting-the-default-registry">Getting the Default Registry<a class="headerlink" href="#getting-the-default-registry" title="Permanent link">&para;</a></h3>
 <p>!!! tip "Unambiguous alias"</p>
 <div class="highlight"><pre><span></span><code>`get_default_registry` exists in several `coola` subpackages with different return types.
-`get_default_transformer_registry` is an alias of the same function with a more explicit name, which avoids
-import collisions.
+`get_default_transformer_registry` is an alias of the same function with a more explicit name,
+which avoids import collisions.
 </code></pre></div>
 <p>The package maintains a singleton default registry with transformers for common Python types:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.recursive</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_default_registry</span>

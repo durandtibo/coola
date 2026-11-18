@@ -2905,7 +2905,10 @@
 
 
 <h1 id="architecture-of-coolarounding">Architecture of <code>coola.rounding</code><a class="headerlink" href="#architecture-of-coolarounding" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.rounding</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/rounding/#properties">user guide</a>; the API is in the <a href="../../refs/rounding/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.rounding</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/rounding/#properties">user guide</a>; the API is in
+the <a href="../../refs/rounding/">reference</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p><code>round_values</code> has <strong>one rule, two kernels, one adapter per table library and one extension
 point</strong>. A float is read as the decimal that <code>repr</code> shows, and <code>"floor"</code>, <code>"ceil"</code> and <code>"round"</code>
@@ -2924,19 +2927,19 @@ recursive walk and the error contract (<code>UnsupportedTypeError</code>, <code>
 <h2 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Simple and easy to maintain.</strong> Two kernels (NumPy and torch, like the numeric kernel of
-   <code>equality</code>), a scalar version of the same formula for Python floats, and the three table libraries
-   as thin adapters over the NumPy kernel. Copies of the formula per backend, each with its own
-   fix-ups, are how backends disagree.</li>
-<li><strong>Correct first, then fast.</strong> A rule that is exact and costs a few nanoseconds per element more is
-   preferred to a fast rule that is wrong on 1 % of the inputs. The benchmark gate bounds the cost
-   (<code>floor</code>/<code>ceil</code> at the speed of the plain kernel, <code>round</code> at most 5 times slower on a large array,
-   a scalar and the recursive path fast).</li>
+   <code>equality</code>), a scalar version of the same formula for Python floats, and the three table
+   libraries as thin adapters over the NumPy kernel. Copies of the formula per backend, each with
+   its own fix-ups, are how backends disagree.</li>
+<li><strong>Correct first, then fast.</strong> A rule that is exact and costs a few nanoseconds per element more
+   is preferred to a fast rule that is wrong on 1 % of the inputs. The benchmark gate bounds the
+   cost (<code>floor</code>/<code>ceil</code> at the speed of the plain kernel, <code>round</code> at most 5 times slower on a large
+   array, a scalar and the recursive path fast).</li>
 <li><strong>Consistent with the siblings.</strong> One extension point (a registry, <code>register_*</code>, a plugin group),
    keyword-only options, errors raised before any work with a message that names the remedy,
    dataclasses entered with <code>recursive=True</code>, stateless and thread-safe.</li>
 <li><strong>Optional libraries stay lazy.</strong> <code>import coola.rounding</code> imports no optional library (verified:
-   <code>numpy</code>, <code>torch</code>, <code>pandas</code>, <code>polars</code> and <code>pyarrow</code> are all absent from <code>sys.modules</code> after it) and
-   <code>coola</code> still has zero hard dependencies. Rounding a polars or a pyarrow object needs NumPy;
+   <code>numpy</code>, <code>torch</code>, <code>pandas</code>, <code>polars</code> and <code>pyarrow</code> are all absent from <code>sys.modules</code> after it)
+   and <code>coola</code> still has zero hard dependencies. Rounding a polars or a pyarrow object needs NumPy;
    without it <code>on_missing_package</code> decides: raise (default), warn or ignore.</li>
 </ol>
 <h2 id="architecture-in-detail">Architecture in detail<a class="headerlink" href="#architecture-in-detail" title="Permanent link">&para;</a></h2>
@@ -2974,10 +2977,9 @@ the dtype of <code>x</code>:</p>
 <p>The grid point is found with float arithmetic and two checks, which is what makes the rule exact
 without <code>Decimal</code>. With <code>s = x * scale</code> and <code>k = floor(s)</code> the index is wrong by at most one in
 either direction, because <code>x * scale</code> is rounded; comparing the grid points <strong>in the dtype of <code>x</code></strong>
-repairs it in both directions. For <code>"round"</code>
-the midpoint <code>(2k + 1) / (2 * scale)</code> is computed as a float of the dtype: <code>x == mid</code> is a halfway
-case if and only if <code>repr(x)</code> is the midpoint, as long as the grid is coarser than the spacing of the
-floats (the bound of the "Exact" row).</p>
+repairs it in both directions. For <code>"round"</code> the midpoint <code>(2k + 1) / (2 * scale)</code> is computed as a
+float of the dtype: <code>x == mid</code> is a halfway case if and only if <code>repr(x)</code> is the midpoint, as long
+as the grid is coarser than the spacing of the floats (the bound of the "Exact" row).</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">round_numpy</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">decimals</span><span class="p">):</span>  <span class="c1"># the float case of the kernel</span>
     <span class="n">scale</span> <span class="o">=</span> <span class="n">get_scale</span><span class="p">(</span><span class="n">decimals</span><span class="p">)</span>  <span class="c1"># 10.0**decimals, None if it overflows</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -3009,7 +3011,8 @@ for integers and booleans, <code>UnsupportedTypeError</code> for the other dtype
 <li><strong><code>round_float</code> (native).</strong> The same formula on one <code>float</code>, with <code>math.floor</code>, integer <code>k</code> and
   <code>math.copysign</code>: about 15 lines, 0.30 µs per call, bit-identical to the NumPy kernel (checked on
   100,010 values, 3 modes, 5 values of <code>decimals</code>, signs of zero included). <code>int</code> (and <code>bool</code>) are
-  returned as they are. The <code>Decimal</code> implementation is the specification and lives in the tests only.</li>
+  returned as they are. The <code>Decimal</code> implementation is the specification and lives in the tests
+  only.</li>
 <li><strong><code>round_torch</code>.</strong> The same formula with <code>torch.floor</code>, <code>torch.where</code>, <code>torch.round</code> (which is
   half-to-even), the dtype of the tensor for the grid, <code>float32</code> instead of <code>float64</code> on <code>mps</code>,
   <code>detach().clone()</code> for the integers. The result is bit-identical to the NumPy kernel for
@@ -3088,8 +3091,10 @@ not support. The default registry is a <code>TypeRegistry[Rounder]</code> built 
 </tbody>
 </table>
 <p>Each library module has a <code>get_default_rounders()</code> returning its <code>{type: rounder}</code> mapping (and <code>{}</code>
-when the library is missing), and <code>interface.py</code> has a <code>_LAZY_ROUNDERS</code> table, as <code>hashing</code> does. The rounders of polars and pyarrow are registered when their library is installed
-and import NumPy when they run. The plugin group is <code>coola.rounding.rounders</code> (a callable that receives the registry). A type with no
+when the library is missing), and <code>interface.py</code> has a <code>_LAZY_ROUNDERS</code> table, as <code>hashing</code> does.
+The rounders of polars and pyarrow are registered when their library is installed
+and import NumPy when they run. The plugin group is <code>coola.rounding.rounders</code> (a callable that
+receives the registry). A type with no
 rounder makes <code>resolve</code> raise <code>TypeNotRegisteredError</code>; <code>round_values</code> turns it into
 <code>UnsupportedTypeError("Cannot round an object of type X; register a rounder with register_rounders")</code>,
 with the registry error as the cause.</p>
@@ -3125,12 +3130,12 @@ with the registry error as the cause.</p>
     <span class="k">return</span> <span class="n">_round_object</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">registry</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">decimals</span><span class="p">,</span> <span class="n">on_missing_package</span><span class="p">)</span>
 </code></pre></div>
 <ul>
-<li><code>_round_object</code> does the lookup and the call; it is the only place that converts the registry error
-  and that applies <code>on_missing_package</code>. When a rounder raises <code>MissingPackageError</code>: <code>"raise"</code>
-  raises <code>UnsupportedTypeError</code> naming the package, with the <code>MissingPackageError</code> as the cause;
-  <code>"warn"</code> emits a <code>UserWarning</code> naming the type and the package and returns <code>data</code> unchanged;
-  <code>"ignore"</code> returns <code>data</code> unchanged. The policy covers any rounder (a user rounder that needs a
-  missing package gets it too). A type with <strong>no</strong> rounder is not concerned: it raises
+<li><code>_round_object</code> does the lookup and the call; it is the only place that converts the registry
+  error and that applies <code>on_missing_package</code>. When a rounder raises <code>MissingPackageError</code>:
+  <code>"raise"</code> raises <code>UnsupportedTypeError</code> naming the package, with the <code>MissingPackageError</code> as the
+  cause; <code>"warn"</code> emits a <code>UserWarning</code> naming the type and the package and returns <code>data</code>
+  unchanged; <code>"ignore"</code> returns <code>data</code> unchanged. The policy covers any rounder (a user rounder that
+  needs a missing package gets it too). A type with <strong>no</strong> rounder is not concerned: it raises
   <code>UnsupportedTypeError</code> (kept by <code>recursive=True</code>), whatever the option.</li>
 <li>With <code>recursive=True</code> the policy applies to each leaf, so <code>"raise"</code> stops the walk at the first
   polars or pyarrow leaf and <code>"warn"</code> warns once per leaf (the default warning filter shows one per
@@ -3155,9 +3160,9 @@ with the registry error as the cause.</p>
 <span class="p">)</span>
 </code></pre></div>
 <p>The modules <code>coola.rounding.{native,numpy,torch,pandas,polars,pyarrow}</code> are public with their
-functions (<code>round_numpy(data, mode, decimals)</code>, ...) so that a user can compose or wrap a rounder; they
-are not re-exported from <code>coola.rounding</code>. <code>get_scale</code>, <code>MAX_EXACT</code> and <code>validate_arguments</code> are in
-<code>coola.rounding.common</code>.</p>
+functions (<code>round_numpy(data, mode, decimals)</code>, ...) so that a user can compose or wrap a rounder;
+they are not re-exported from <code>coola.rounding</code>. <code>get_scale</code>, <code>MAX_EXACT</code> and <code>validate_arguments</code>
+are in <code>coola.rounding.common</code>.</p>
 <h2 id="dependents">Dependents<a class="headerlink" href="#dependents" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3187,42 +3192,44 @@ are not re-exported from <code>coola.rounding</code>. <code>get_scale</code>, <c
 </table>
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
 <p><strong>The rule for <code>"round"</code> is the decimal value, halfway to even.</strong> <code>floor</code> and <code>ceil</code> read <code>0.29</code> as
-<code>0.29</code>; <code>round</code> reads <code>2.675</code> as <code>2.675</code>, a tie, and gives <code>2.68</code>. This is the only rule under which the
-three modes mean the same thing, under which the backends can agree, and that a user can predict by
-looking at the number. The alternatives are the exact binary value like Python (<code>round(2.675, 2)</code> is
-<code>2.67</code>, but then <code>floor(0.29, 2)</code> must be <code>0.28</code>, which the package refuses on purpose, or the modes
-disagree) and scale-and-<code>rint</code> (inexact). The consequence is that <code>round_values</code> does not agree with
-<code>round()</code> on the halfway cases of a decimal literal, which the guide says in one sentence.</p>
-<p><strong>The native scalar uses the float formula, not <code>Decimal</code>.</strong> <code>Decimal(repr(x)).quantize(...)</code> is simple
-and exact, but costs about 1.2 µs and needs a context for huge exponents (it raises <code>InvalidOperation</code>
-for <code>decimals=400</code>). The float formula costs 0.30 µs and is bit-identical to the arrays by construction.
-The <code>Decimal</code> version lives in the tests as the independent oracle: a kernel checked against a copy of
-itself proves nothing.</p>
-<p><strong>Tables go through NumPy.</strong> polars cannot do the exact division, and a second and a third copy of the
-formula is how backends disagree. The cost is a conversion per column (<code>to_numpy</code>, an array back; 0.8x
-to 2.2x of a native kernel), and <strong>NumPy is required to round a polars or pyarrow object</strong> (pandas
-already needs it). The error is the usual <code>MissingPackageError</code>, and <code>on_missing_package</code> decides what
-happens (below). Keeping a polars and a pyarrow kernel would make the conformance test the only guard,
-and polars has no exact operation to build one from.</p>
-<p><strong>A rounder is a function, not a class.</strong> A rounder has no state, no children and one job; <code>Hasher</code> and
-<code>BaseHasher</code> exist because a hasher has a protocol with several members. A plain <code>TypeRegistry[Rounder]</code>
-with <code>register_rounders</code> and <code>get_default_registry</code> is about 40 lines; a <code>BaseRounder</code> hierarchy with a
-<code>RounderRegistry</code> would triple it. Reconsider if a rounder ever needs more than one method.</p>
-<p><strong><code>recursive=False</code> is the default.</strong> Strict by default (a string or a <code>Decimal</code> raises) is what a user
-rounding one object wants; <code>recursive=True</code> is the explicit opt-in to the lenient walk where unsupported
-leaves are kept. Always-recursive would lose the error for <code>"abc"</code>, and a separate function would be two
-names for one concept (<code>nested</code> already has the walk).</p>
+<code>0.29</code>; <code>round</code> reads <code>2.675</code> as <code>2.675</code>, a tie, and gives <code>2.68</code>. This is the only rule under which
+the three modes mean the same thing, under which the backends can agree, and that a user can predict
+by looking at the number. The alternatives are the exact binary value like Python (<code>round(2.675, 2)</code>
+is <code>2.67</code>, but then <code>floor(0.29, 2)</code> must be <code>0.28</code>, which the package refuses on purpose, or the
+modes disagree) and scale-and-<code>rint</code> (inexact). The consequence is that <code>round_values</code> does not
+agree with <code>round()</code> on the halfway cases of a decimal literal, which the guide says in one
+sentence.</p>
+<p><strong>The native scalar uses the float formula, not <code>Decimal</code>.</strong> <code>Decimal(repr(x)).quantize(...)</code> is
+simple and exact, but costs about 1.2 µs and needs a context for huge exponents (it raises
+<code>InvalidOperation</code> for <code>decimals=400</code>). The float formula costs 0.30 µs and is bit-identical to the
+arrays by construction. The <code>Decimal</code> version lives in the tests as the independent oracle: a kernel
+checked against a copy of itself proves nothing.</p>
+<p><strong>Tables go through NumPy.</strong> polars cannot do the exact division, and a second and a third copy of
+the formula is how backends disagree. The cost is a conversion per column (<code>to_numpy</code>, an array
+back; 0.8x to 2.2x of a native kernel), and <strong>NumPy is required to round a polars or pyarrow
+object</strong> (pandas already needs it). The error is the usual <code>MissingPackageError</code>, and
+<code>on_missing_package</code> decides what happens (below). Keeping a polars and a pyarrow kernel would make
+the conformance test the only guard, and polars has no exact operation to build one from.</p>
+<p><strong>A rounder is a function, not a class.</strong> A rounder has no state, no children and one job; <code>Hasher</code>
+and <code>BaseHasher</code> exist because a hasher has a protocol with several members. A plain
+<code>TypeRegistry[Rounder]</code> with <code>register_rounders</code> and <code>get_default_registry</code> is about 40 lines; a
+<code>BaseRounder</code> hierarchy with a <code>RounderRegistry</code> would triple it. Reconsider if a rounder ever needs
+more than one method.</p>
+<p><strong><code>recursive=False</code> is the default.</strong> Strict by default (a string or a <code>Decimal</code> raises) is what a
+user rounding one object wants; <code>recursive=True</code> is the explicit opt-in to the lenient walk where
+unsupported leaves are kept. Always-recursive would lose the error for <code>"abc"</code>, and a separate
+function would be two names for one concept (<code>nested</code> already has the walk).</p>
 <p><strong>Negative <code>decimals</code> are not supported.</strong> Python, NumPy and pandas accept them (round to tens,
-hundreds), but <code>x * 10**-2</code> is not exact, so the kernel needs a second path (divide by <code>10**n</code>, multiply
-back) in three implementations. The error message names the rule. The rule extends to it (<code>step =
-10**n</code>) if it is requested.</p>
-<p><strong>Nested columns of a table (<code>list&lt;float&gt;</code>, struct) are left unchanged</strong>, and documented. Entering them
-needs a second walk (Arrow lists, polars <code>List</code>) in two libraries and is a different feature (rounding
-the values inside the cells). The property "only floating-point columns" states it.</p>
+hundreds), but <code>x * 10**-2</code> is not exact, so the kernel needs a second path (divide by <code>10**n</code>,
+multiply back) in three implementations. The error message names the rule. The rule extends to it
+(<code>step = 10**n</code>) if it is requested.</p>
+<p><strong>Nested columns of a table (<code>list&lt;float&gt;</code>, struct) are left unchanged</strong>, and documented. Entering
+them needs a second walk (Arrow lists, polars <code>List</code>) in two libraries and is a different feature
+(rounding the values inside the cells). The property "only floating-point columns" states it.</p>
 <p><strong>Where the guarantee stops.</strong> The guide documents <code>1e13</code> and does not widen it: the first mismatch
-measured is at <code>9.9e13</code>, and the error is one step, but a proof is out of reach with floats. Past the
-bound the answer is still a grid point within one step; a user who needs exactness at 15 digits uses
-<code>Decimal</code> with a registered rounder.</p>
+measured is at <code>9.9e13</code>, and the error is one step, but a proof is out of reach with floats. Past
+the bound the answer is still a grid point within one step; a user who needs exactness at 15 digits
+uses <code>Decimal</code> with a registered rounder.</p>
 <p><strong><code>on_missing_package</code>.</strong> An option with three values; the default raises.</p>
 <table>
 <thead>
@@ -3248,13 +3255,14 @@ bound the answer is still a grid point within one step; a user who needs exactne
 </table>
 <ul>
 <li>The option is about a <strong>missing package</strong>, not about every unsupported type. It applies to any
-  rounder that raises <code>MissingPackageError</code> (NumPy for polars and pyarrow, and a user rounder that needs
-  another package). A type with no rounder (a <code>str</code>, a <code>Decimal</code>, a sparse tensor) is not affected:
-  <code>UnsupportedTypeError</code>, kept by <code>recursive=True</code>. This keeps the lenient walk of <code>recursive=True</code>.</li>
+  rounder that raises <code>MissingPackageError</code> (NumPy for polars and pyarrow, and a user rounder that
+  needs another package). A type with no rounder (a <code>str</code>, a <code>Decimal</code>, a sparse tensor) is not
+  affected: <code>UnsupportedTypeError</code>, kept by <code>recursive=True</code>. This keeps the lenient walk of
+  <code>recursive=True</code>.</li>
 <li>The rounders are registered when the library is installed and check NumPy when they run, so the
   registry, the lazy loading and <code>import coola.rounding</code> do not depend on NumPy.</li>
-<li><code>"warn"</code> and <code>"ignore"</code> can hide an unrounded column; they are opt-in. <code>"warn"</code> is the compromise for
-  a pipeline that must not fail on an optional step.</li>
+<li><code>"warn"</code> and <code>"ignore"</code> can hide an unrounded column; they are opt-in. <code>"warn"</code> is the compromise
+  for a pipeline that must not fail on an optional step.</li>
 <li>The name is <code>on_missing_package</code> (not <code>on_missing_numpy</code>) because the mechanism is general; the
   keyword is keyword-only and last before <code>registry</code>.</li>
 </ul>

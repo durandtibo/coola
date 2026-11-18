@@ -3583,9 +3583,9 @@ overwriting:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">registry1</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">registry3</span><span class="p">)</span>
 <span class="go">False</span>
 </code></pre></div>
-<p><code>equal</code> is <code>False</code> for two registries of different classes. Otherwise it compares the entries and the
-fallbacks (after loading the pending lazy groups) with <code>==</code>. The handlers are compared with <code>==</code> too:
-a handler without <code>__eq__</code> is equal to itself only, so a <code>copy()</code> is equal to its source (the
+<p><code>equal</code> is <code>False</code> for two registries of different classes. Otherwise it compares the entries and
+the fallbacks (after loading the pending lazy groups) with <code>==</code>. The handlers are compared with <code>==</code>
+too: a handler without <code>__eq__</code> is equal to itself only, so a <code>copy()</code> is equal to its source (the
 handlers are shared), and two registries built separately with handlers of the same class are equal
 only if the handlers define <code>__eq__</code>.</p>
 <h2 id="typeregistry-type-based">TypeRegistry (Type-Based)<a class="headerlink" href="#typeregistry-type-based" title="Permanent link">&para;</a></h2>
@@ -3681,10 +3681,10 @@ only if the handlers define <code>__eq__</code>.</p>
 <span class="go">'dog'</span>
 </code></pre></div>
 <p>!!! warning "Abstract base classes are only matched if they are real base classes"</p>
-<div class="highlight"><pre><span></span><code>The lookup follows `__mro__`, it does not call `issubclass`. A registration for an abstract
-base class such as `collections.abc.Sequence` or `collections.abc.Mapping` therefore applies only
-to the classes that inherit from it. A class that is only _registered_ as a virtual subclass is
-not matched: `collections.deque` is a `MutableSequence` for `isinstance`, but it is not in the MRO
+<div class="highlight"><pre><span></span><code>The lookup follows `__mro__`, it does not call `issubclass`. A registration for an abstract base
+class such as `collections.abc.Sequence` or `collections.abc.Mapping` therefore applies only to
+the classes that inherit from it. A class that is only _registered_ as a virtual subclass is not
+matched: `collections.deque` is a `MutableSequence` for `isinstance`, but it is not in the MRO
 of `Sequence`. Register such types explicitly (the default registries of `coola` register
 `deque` for this reason).
 </code></pre></div>
@@ -3715,15 +3715,15 @@ of `Sequence`. Register such types explicitly (the default registries of `coola`
 <span class="gp">&gt;&gt;&gt; </span><span class="n">registry</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
 <span class="go">'integer'</span>
 </code></pre></div>
-<p>The cache is a plain dictionary bounded to 1,024 types, and any change of the registry (a registration,
-an unregistration, a fallback, a lazy load) empties it. It holds strong references to the types, so a
-class created dynamically stays alive until the cache is reset.</p>
+<p>The cache is a plain dictionary bounded to 1,024 types, and any change of the registry (a
+registration, an unregistration, a fallback, a lazy load) empties it. It holds strong references to
+the types, so a class created dynamically stays alive until the cache is reset.</p>
 <h2 id="fallbacks">Fallbacks<a class="headerlink" href="#fallbacks" title="Permanent link">&para;</a></h2>
 <p>The MRO lookup cannot support a type that cannot be a key of the registry: every dataclass is a
-different type, a class that defines a method (<code>__hash__</code>, <code>hash()</code>) is not a base class, and a class
-that is only <em>registered</em> with an abstract base class is not in its MRO. A <strong>fallback</strong> supports such
-types: <code>register_fallback(predicate, handler)</code> registers a handler for the types that satisfy a
-predicate.</p>
+different type, a class that defines a method (<code>__hash__</code>, <code>hash()</code>) is not a base class, and a
+class that is only <em>registered</em> with an abstract base class is not in its MRO. A <strong>fallback</strong>
+supports such types: <code>register_fallback(predicate, handler)</code> registers a handler for the types that
+satisfy a predicate.</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">is_dataclass</span>
@@ -3778,8 +3778,8 @@ fallbacks.</p>
 <h2 id="thread-safety">Thread Safety<a class="headerlink" href="#thread-safety" title="Permanent link">&para;</a></h2>
 <p>Both <code>Registry</code> and <code>TypeRegistry</code> are thread-safe. The state is a dictionary that is replaced on
 every write and never mutated, so the reads take no lock, and <code>items()</code>, <code>keys()</code> and <code>values()</code>
-return snapshots. The writers are serialized by a reentrant lock (<code>threading.RLock</code>). The lock is reentrant so that a lazy factory can register entries in the
-registry that loads it:</p>
+return snapshots. The writers are serialized by a reentrant lock (<code>threading.RLock</code>). The lock is
+reentrant so that a lazy factory can register entries in the registry that loads it:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">Registry</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">registry</span> <span class="o">=</span> <span class="n">Registry</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]()</span>
@@ -3801,10 +3801,10 @@ new locks right after the fork and keeps the content of the registry. The same a
 is not affected.</p>
 <h2 id="lazy-registration">Lazy Registration<a class="headerlink" href="#lazy-registration" title="Permanent link">&para;</a></h2>
 <p><code>TypeRegistry.register_lazy(packages, factory)</code> registers a group of entries that is built the first
-time it is needed. It is how <code>coola</code> registers the handlers of an optional library (numpy, torch, pandas, ...)
-without importing the library. <code>packages</code> is a top-level package name or a sequence of names, and
-<code>factory</code> is a callable that returns a mapping, or its path <code>"package.module:name"</code>, which is
-imported only when the group is loaded:</p>
+time it is needed. It is how <code>coola</code> registers the handlers of an optional library (numpy, torch,
+pandas, ...) without importing the library. <code>packages</code> is a top-level package name or a sequence of
+names, and <code>factory</code> is a callable that returns a mapping, or its path <code>"package.module:name"</code>,
+which is imported only when the group is loaded:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypeRegistry</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">registry</span> <span class="o">=</span> <span class="n">TypeRegistry</span><span class="p">[</span><span class="nb">str</span><span class="p">]()</span>
@@ -3840,8 +3840,8 @@ The keys and the values are not copied:</p>
 leaking the registration to the other tests, see "Isolating the Default Registries" in the
 <a href="../testing/">testing guide</a>.</p>
 <h2 id="default-registries-and-plugins">Default Registries and Plugins<a class="headerlink" href="#default-registries-and-plugins" title="Permanent link">&para;</a></h2>
-<p>The packages built on <code>coola.registry</code> (equality, hashing, summary, iterator, recursive, random) each
-have a default registry, built the first time it is used. <code>coola.registry.default</code> builds them:</p>
+<p>The packages built on <code>coola.registry</code> (equality, hashing, summary, iterator, recursive, random)
+each have a default registry, built the first time it is used. <code>coola.registry.default</code> builds them:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.registry.default</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_default_registry_singleton</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">singleton</span> <span class="o">=</span> <span class="n">make_default_registry_singleton</span><span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">registry</span><span class="p">:</span> <span class="n">registry</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">singleton</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
@@ -3852,9 +3852,9 @@ defaults and called with the registry, so a third-party package can register its
 touching <code>coola</code>. <code>coola.registry.plugins</code> has the loader and the diagnostics:</p>
 <ul>
 <li><code>load_registry_plugins(registry, group)</code> populates a registry from the entry points of a group. A
-  plugin that fails emits a <code>RuntimeWarning</code> and is skipped. If <code>COOLA_STRICT_PLUGINS</code> is set, all the
-  failures are raised together as an <code>ExceptionGroup</code>. If <code>COOLA_DISABLE_PLUGINS</code> is set, no plugin
-  is loaded.</li>
+  plugin that fails emits a <code>RuntimeWarning</code> and is skipped. If <code>COOLA_STRICT_PLUGINS</code> is set, all
+  the failures are raised together as an <code>ExceptionGroup</code>. If <code>COOLA_DISABLE_PLUGINS</code> is set, no
+  plugin is loaded.</li>
 <li><code>get_loaded_plugins()</code> lists the plugins that were applied in this process.</li>
 <li><code>reset_default_registries()</code> and <code>temporary_default_registries()</code> (in <code>coola.registry.default</code>)
   forget the default registries, or run a block on copies of them. See "Isolating the Default

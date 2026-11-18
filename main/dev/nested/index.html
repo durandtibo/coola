@@ -2905,23 +2905,26 @@
 
 
 <h1 id="architecture-of-coolanested">Architecture of <code>coola.nested</code><a class="headerlink" href="#architecture-of-coolanested" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.nested</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/nested/#properties">user guide</a>; the API is in the <a href="../../refs/nested/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.nested</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/nested/#properties">user guide</a>; the API is in the
+<a href="../../refs/nested/">reference</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p><code>coola.nested</code> has no traversal of its own: a function that goes inside the values uses the engine of
-<code>recursive</code> (or the path iterator <code>dfs_items</code> of <code>iterator</code>) and describes one type, and a function
-that works on the top level only is a plain loop. The key functions (<code>remove_keys_*</code>,
+<p><code>coola.nested</code> has no traversal of its own: a function that goes inside the values uses the engine
+of <code>recursive</code> (or the path iterator <code>dfs_items</code> of <code>iterator</code>) and describes one type, and a
+function that works on the top level only is a plain loop. The key functions (<code>remove_keys_*</code>,
 <code>add_prefix_suffix_to_keys</code>) use one private transformer for the mappings, registered in a copy of
 the default registry; <code>to_flat_dict</code> joins the paths of <code>dfs_items</code>; <code>from_flat_dict</code> builds its
-result with a private <code>dict</code> subclass and one final <code>recursive_apply</code>. The containers, the cycle check
-and the depth are therefore the ones of the other packages.</p>
+result with a private <code>dict</code> subclass and one final <code>recursive_apply</code>. The containers, the cycle
+check and the depth are therefore the ones of the other packages.</p>
 <h2 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Simple and easy to maintain.</strong> No function has a hand-written recursion or a registry of types
-   built by hand: the traversal belongs to the engine of <code>recursive</code> or <code>iterator</code>, and <code>nested</code> only
-   says what to do with a key or a container.</li>
+   built by hand: the traversal belongs to the engine of <code>recursive</code> or <code>iterator</code>, and <code>nested</code>
+   only says what to do with a key or a container.</li>
 <li><strong>Fast on the data that matters.</strong> The benchmark gate holds on the data sizes that matter
-   (thousands of nodes). A fixed cost of a few microseconds per call on a tiny input (the copy of the
-   default registry) is accepted.</li>
+   (thousands of nodes). A fixed cost of a few microseconds per call on a tiny input (the copy of
+   the default registry) is accepted.</li>
 <li><strong>Consistent with the siblings.</strong> The same input is handled the same way by <code>equality</code>,
    <code>hashing</code>, <code>summary</code>, <code>iterator</code>, <code>recursive</code> and <code>nested</code>: the same containers are entered
    (dataclasses included), iterators and text are leaves, cycles are detected, no <code>RecursionError</code>,
@@ -2943,10 +2946,10 @@ type; a function that works on the top level only is a plain loop.</strong> <cod
 values. The conversion to JSON data is not part of <code>nested</code>: it is <code>coola.jsonable.to_jsonable</code>, a
 registry of transformers on the engine of <code>recursive</code> with its own <a href="../jsonable/">design page</a>.</p>
 <h3 id="keys-one-private-transformer"><code>keys</code>: one private transformer<a class="headerlink" href="#keys-one-private-transformer" title="Permanent link">&para;</a></h3>
-<p><code>_KeyTransformer</code> in <code>coola.nested.keys</code> is the only code that changes keys. <code>recursive</code> itself never
-transforms keys (a property of its engine), so the one transformer that renames or drops keys lives in
-the one package that needs it. A public <code>MapKeysTransformer</code> in <code>recursive</code> would become the right home
-as soon as a second package needs it; moving a private class is a rename.</p>
+<p><code>_KeyTransformer</code> in <code>coola.nested.keys</code> is the only code that changes keys. <code>recursive</code> itself
+never transforms keys (a property of its engine), so the one transformer that renames or drops keys
+lives in the one package that needs it. A public <code>MapKeysTransformer</code> in <code>recursive</code> would become
+the right home as soon as a second package needs it; moving a private class is a rename.</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">_KeyTransformer</span><span class="p">(</span><span class="n">BaseTransformer</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drop</span> <span class="o">=</span> <span class="n">rename</span><span class="p">,</span> <span class="n">drop</span>
@@ -2976,11 +2979,11 @@ as soon as a second package needs it; moving a private class is a rename.</p>
   keys; a non-<code>str</code> key is kept).</li>
 <li><code>add_prefix_suffix_to_keys(mapping, prefix="", suffix="", *, recursive=False)</code> is
   <code>_apply(mapping, rename=...)</code> when <code>recursive</code>, and one <code>rebuild_mapping</code> call on the top level
-  otherwise (no engine needed). The common use (a prefix such as <code>train/</code> on the top-level metrics) is
-  non-recursive, and the <code>remove_keys_*</code> functions are always recursive because removing a key at the
-  top only is a dict comprehension. A rename that collides with another key raises <code>DuplicateKeyError</code>
-  (the exception of the package), which is the rule for every function that can merge two entries and
-  the only one that makes a rename function safe to expose.</li>
+  otherwise (no engine needed). The common use (a prefix such as <code>train/</code> on the top-level metrics)
+  is non-recursive, and the <code>remove_keys_*</code> functions are always recursive because removing a key at
+  the top only is a dict comprehension. A rename that collides with another key raises
+  <code>DuplicateKeyError</code> (the exception of the package), which is the rule for every function that can
+  merge two entries and the only one that makes a rename function safe to expose.</li>
 <li>The registry is <strong>derived from the default one</strong>, so the containers are the ones of every other
   package: dataclasses are entered (the fields that are mappings are filtered or renamed, the
   dataclass is rebuilt), <code>MappingProxyType</code>, <code>deque</code> and the user-registered containers follow.</li>
@@ -2996,72 +2999,78 @@ as soon as a second package needs it; moving a private class is a rename.</p>
 <p><strong><code>to_flat_dict(data, *, prefix=None, separator=".", to_str=None, escape=False)</code></strong> is built on
 <code>dfs_items</code> of <code>coola.iterator</code>: the function is the join of the paths of the leaves.</p>
 <ul>
-<li><strong>What <code>nested</code> needs from <code>dfs_items</code></strong>: (1) the path is a tuple of raw labels from which the key,
-  index or field name can be read (<code>str(label)</code> of a key is the flat segment; the escape is applied to
-  it); (2) the keyword-only option <code>empty=True</code>, which also yields an empty container as <code>(path,
+<li><strong>What <code>nested</code> needs from <code>dfs_items</code></strong>: (1) the path is a tuple of raw labels from which the
+  key, index or field name can be read (<code>str(label)</code> of a key is the flat segment; the escape is
+  applied to it); (2) the keyword-only option <code>empty=True</code>, which also yields an empty container as
+  <code>(path,
 container)</code>, because an empty container is kept as the value of its key (<code>{"a": {}}</code> gives
-  <code>{"a": {}}</code>) and the round trip must not lose it (without the option <code>dfs_items</code> follows the rule of
+  <code>{"a": {}}</code>) and the round trip must not lose it (without the option <code>dfs_items</code> follows the rule
+  of
   the package: an empty container has no leaf); (3) the <code>registry</code> keyword of the other functions.</li>
-<li><strong>The containers are the ones of <code>iterator</code></strong>: mappings, sequences, deques, named tuples, ranges and
-  dataclasses are entered; <code>str</code>, <code>bytes</code>, <code>bytearray</code> and iterators are leaves. Sets are the one
-  documented exception (no index, so no label): the function uses a registry derived from the default
-  one in which <code>set</code> and <code>frozenset</code> are leaves. Likewise each type of <code>to_str</code> is a leaf of that
-  registry, and the leaf is written with <code>str()</code>.</li>
+<li><strong>The containers are the ones of <code>iterator</code></strong>: mappings, sequences, deques, named tuples, ranges
+  and dataclasses are entered; <code>str</code>, <code>bytes</code>, <code>bytearray</code> and iterators are leaves. Sets are the
+  one documented exception (no index, so no label): the function uses a registry derived from the
+  default one in which <code>set</code> and <code>frozenset</code> are leaves. Likewise each type of <code>to_str</code> is a leaf of
+  that registry, and the leaf is written with <code>str()</code>.</li>
 <li>The cycle (<code>ValueError</code>), the depth (no <code>RecursionError</code>) and the order come from the engine of
   <code>iterator</code>.</li>
-<li>A key collision raises <code>ValueError</code>. <code>prefix</code>, <code>separator</code>, <code>to_str</code> and <code>escape</code> are keyword-only.
-  The root being a leaf needs a <code>prefix</code> (<code>ValueError</code> otherwise). The root being empty gives <code>{}</code>.
-  <code>prefix=""</code> is a prefix like any other (<code>".a"</code>), with no special case.</li>
+<li>A key collision raises <code>ValueError</code>. <code>prefix</code>, <code>separator</code>, <code>to_str</code> and <code>escape</code> are
+  keyword-only. The root being a leaf needs a <code>prefix</code> (<code>ValueError</code> otherwise). The root being
+  empty gives <code>{}</code>. <code>prefix=""</code> is a prefix like any other (<code>".a"</code>), with no special case.</li>
 </ul>
 <p><strong><code>from_flat_dict(data, *, separator=".", restore_lists=False, escape=False)</code>.</strong> The build loop
 (<code>_set_nested</code>, <code>_split_key</code>) is flat, not recursive. Two devices avoid an id set and a recursion:</p>
 <ul>
-<li>The nodes created by the function are instances of a private <code>dict</code> subclass, <code>_Node</code>. A value given
-  by the caller, even a <code>dict</code>, is a plain <code>dict</code>, so <code>isinstance(existing, _Node)</code> is the test "this
-  dict is mine", and a dict of the caller is <strong>never converted by <code>restore_lists</code></strong>.</li>
+<li>The nodes created by the function are instances of a private <code>dict</code> subclass, <code>_Node</code>. A value
+  given by the caller, even a <code>dict</code>, is a plain <code>dict</code>, so <code>isinstance(existing, _Node)</code> is the
+  test "this dict is mine", and a dict of the caller is <strong>never converted by <code>restore_lists</code></strong>.</li>
 <li>The result is built by a final <code>recursive_apply</code> with a registry derived from the default one in
-  which <code>_Node</code> has a transformer: it rebuilds a plain <code>dict</code>, or a <code>list</code> when <code>restore_lists</code> is set
-  and the keys are exactly <code>"0"</code>, ..., <code>"n-1"</code>. The root is a separate subclass whose transformer never
-  builds a list (the root is always a <code>dict</code>). The depth is not limited (20,000 levels work).</li>
+  which <code>_Node</code> has a transformer: it rebuilds a plain <code>dict</code>, or a <code>list</code> when <code>restore_lists</code> is
+  set and the keys are exactly <code>"0"</code>, ..., <code>"n-1"</code>. The root is a separate subclass whose
+  transformer never builds a list (the root is always a <code>dict</code>). The depth is not limited (20,000
+  levels work).</li>
 <li><code>data</code> is annotated <code>Mapping[str, Any]</code>.</li>
 </ul>
 <h3 id="mapping-and-records"><code>mapping</code> and <code>records</code><a class="headerlink" href="#mapping-and-records" title="Permanent link">&para;</a></h3>
 <p>No new mechanism. These functions work on the top level only.</p>
 <ul>
-<li><strong>Options are keyword-only</strong>: <code>merge_mappings(mappings, *, on_duplicate="raise", equal_nan=False)</code>,
-  <code>flatten_mapping(mapping, *, on_duplicate="raise", always_prefix=False, separator=".",
+<li><strong>Options are keyword-only</strong>:
+  <code>merge_mappings(mappings, *, on_duplicate="raise", equal_nan=False)</code>, <code>flatten_mapping(mapping, *,
+on_duplicate="raise", always_prefix=False, separator=".",
 equal_nan=False)</code>.</li>
-<li><strong><code>merge_mappings(on_duplicate="suffix")</code> does not depend on the order.</strong> A key of an input mapping
-  that equals a generated suffixed key is a conflict whatever the position: the check is made once, on
-  the set of all input keys, before the merge (<code>_free_suffixed_key</code> skips them). The result for
-  <code>[{"a_1":3},{"a":1},{"a":2}]</code> is <code>{'a_1': 3, 'a': 1, 'a_2': 2}</code>, and the other order gives the same
-  entries (the order of the keys follows the input). A generated key never overwrites or hides an
-  input key, so there is nothing to raise.</li>
+<li><strong><code>merge_mappings(on_duplicate="suffix")</code> does not depend on the order.</strong> A key of an input
+  mapping that equals a generated suffixed key is a conflict whatever the position: the check is
+  made once, on the set of all input keys, before the merge (<code>_free_suffixed_key</code> skips them). The
+  result for <code>[{"a_1":3},{"a":1},{"a":2}]</code> is <code>{'a_1': 3, 'a': 1, 'a_2': 2}</code>, and the other order
+  gives the same entries (the order of the keys follows the input). A generated key never overwrites
+  or hides an input key, so there is nothing to raise.</li>
 <li><strong><code>flatten_mapping(on_duplicate="prefix")</code> keeps the order of the input</strong>: the first occurrence is
-  renamed in place, so the input of the guide gives <code>{'train.loss': 1, 'acc': 2, 'val.loss': 3}</code>. Both
-  functions can then say "the output follows the order of the input".</li>
-<li><strong><code>convert_to_list_of_dicts</code></strong> rejects <code>Set</code> values with a <code>TypeError</code> naming the type, like it does
-  for text, and accepts any <code>Sequence</code> (a generator is not one: <code>TypeError</code> that names the type).
-  <strong><code>convert_to_dict_of_lists</code></strong> accepts any iterable of mappings (it materialises it once), so a
-  generator works.</li>
-<li><strong><code>get_first_value</code> lives in <code>coola.utils.mapping</code></strong>, next to <code>sort_by_keys</code> and <code>sort_by_values</code>: it
-  does not look into a nested structure, so it is not a function of <code>nested</code>.</li>
+  renamed in place, so the input of the guide gives <code>{'train.loss': 1, 'acc': 2, 'val.loss': 3}</code>.
+  Both functions can then say "the output follows the order of the input".</li>
+<li><strong><code>convert_to_list_of_dicts</code></strong> rejects <code>Set</code> values with a <code>TypeError</code> naming the type, like it
+  does for text, and accepts any <code>Sequence</code> (a generator is not one: <code>TypeError</code> that names the
+  type). <strong><code>convert_to_dict_of_lists</code></strong> accepts any iterable of mappings (it materialises it once),
+  so a generator works.</li>
+<li><strong><code>get_first_value</code> lives in <code>coola.utils.mapping</code></strong>, next to <code>sort_by_keys</code> and <code>sort_by_values</code>:
+  it does not look into a nested structure, so it is not a function of <code>nested</code>.</li>
 </ul>
 <h3 id="polars-flatten_frame"><code>polars</code>: <code>flatten_frame</code><a class="headerlink" href="#polars-flatten_frame" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>flatten_frame(frame, *, separator=".", depth=None, expand_lists=False)</code> is exported lazily from
-  <code>coola.nested</code> with <code>lazy_exports</code> (<code>from coola.nested import flatten_frame</code> works without importing
-  polars at <code>import coola.nested</code>), and listed in <code>tests/integration/test_lazy_imports.py</code>.</li>
+  <code>coola.nested</code> with <code>lazy_exports</code> (<code>from coola.nested import flatten_frame</code> works without
+  importing polars at <code>import coola.nested</code>), and listed in
+  <code>tests/integration/test_lazy_imports.py</code>.</li>
 <li>The helpers are private (<code>_is_nested_struct</code>, <code>_unnest_with_separator</code>, <code>_unnest_one_level</code>,
   <code>_expand_list_columns</code>, <code>_explode</code>); the tests of their behaviour go through <code>flatten_frame</code>.</li>
 <li>Only a <code>DataFrame</code> is accepted: a <code>LazyFrame</code> raises a <code>TypeError</code> that names the type and says
-  "call <code>collect()</code>" (a lazy frame has no cheap schema, and the row count of an exploded list is only
-  known after the evaluation). It is a visible rule instead of a warning at the end of a long chain.</li>
+  "call <code>collect()</code>" (a lazy frame has no cheap schema, and the row count of an exploded list is
+  only known after the evaluation). It is a visible rule instead of a warning at the end of a long
+  chain.</li>
 <li><strong>The supported range is <code>polars&gt;=1.0,&lt;3.0</code></strong>, so two compatibility branches exist:
   <code>unnest(separator=...)</code> and <code>explode(empty_as_null=...)</code> are missing in the old versions. They are
   selected with <code>coola.utils.version.compare_version</code> on the version where each option appeared
-  (<code>_UNNEST_SEPARATOR_VERSION</code>, <code>_EXPLODE_EMPTY_AS_NULL_VERSION</code>) instead of <code>except TypeError</code>, so a
-  real <code>TypeError</code> propagates. Raising the minimum version would delete about 25 lines and two
+  (<code>_UNNEST_SEPARATOR_VERSION</code>, <code>_EXPLODE_EMPTY_AS_NULL_VERSION</code>) instead of <code>except TypeError</code>, so
+  a real <code>TypeError</code> propagates. Raising the minimum version would delete about 25 lines and two
   branches that CI cannot test on the current version.</li>
 </ul>
 <h2 id="public-api">Public API<a class="headerlink" href="#public-api" title="Permanent link">&para;</a></h2>
@@ -3112,15 +3121,15 @@ the package root is.</p>
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
 <p><strong>Dataclasses are entered by <code>to_flat_dict</code>, <code>remove_keys_*</code> and <code>add_prefix_suffix_to_keys</code>.</strong>
 <code>nested_data.md</code> says that a dataclass is a container in every package, and <code>recursive_apply</code> and
-<code>to_jsonable</code> enter them: five different rules for the same object is the real cost. The price is that
-a dataclass is not a leaf of the flat dict, and that a dataclass does not come back from
-<code>from_flat_dict</code>. Keeping dataclasses as leaves of <code>nested</code> would need an exception per function in the
-table of <code>nested_data.md</code>.</p>
+<code>to_jsonable</code> enter them: five different rules for the same object is the real cost. The price is
+that a dataclass is not a leaf of the flat dict, and that a dataclass does not come back from
+<code>from_flat_dict</code>. Keeping dataclasses as leaves of <code>nested</code> would need an exception per function in
+the table of <code>nested_data.md</code>.</p>
 <p><strong>The key transformer is private to <code>nested</code>.</strong> <code>recursive</code> says "keys are never transformed"; a
 transformer that renames or drops keys is the exception that only <code>nested</code> needs.</p>
-<p><strong><code>to_flat_dict</code> is built on <code>dfs_items</code>.</strong> The labels are raw (a key, an index, a field name), and the
-<code>empty</code> option keeps empty containers. A dedicated loop would be 25 lines, but would duplicate the
-depth, the cycle and the container rules of the engine.</p>
+<p><strong><code>to_flat_dict</code> is built on <code>dfs_items</code>.</strong> The labels are raw (a key, an index, a field name), and
+the <code>empty</code> option keeps empty containers. A dedicated loop would be 25 lines, but would duplicate
+the depth, the cycle and the container rules of the engine.</p>
 <p><strong>A collision on rename raises.</strong> The last entry winning would hide a loss of data.</p>
 <h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
 <ul>
@@ -3130,8 +3139,8 @@ depth, the cycle and the container rules of the engine.</p>
 <li><strong>Strict JSON</strong> (<code>NaN</code>, infinities): the contract is "accepted by the Python <code>json</code> module".</li>
 <li><strong>Dataclasses and pydantic models from <code>from_flat_dict</code></strong>: the function builds dicts and lists;
   rebuilding a typed object needs a schema and is not a flat-dict operation.</li>
-<li><strong>Lists of dicts to a flat table and back</strong> (<code>pandas</code>/<code>polars</code> do it): <code>records</code> is two functions of
-  the standard library.</li>
+<li><strong>Lists of dicts to a flat table and back</strong> (<code>pandas</code>/<code>polars</code> do it): <code>records</code> is two functions
+  of the standard library.</li>
 <li><strong>An element-wise <code>rename_keys(data, func)</code> function</strong>: <code>_KeyTransformer</code> supports it in one line;
   the public function can be added when a rename other than a prefix and a suffix is needed.</li>
 <li><strong><code>merge_mappings</code> of nested mappings (deep merge).</strong> Not a function of the package; the top-level

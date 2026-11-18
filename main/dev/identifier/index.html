@@ -2905,33 +2905,36 @@
 
 
 <h1 id="architecture-of-coolaidentifier">Architecture of <code>coola.identifier</code><a class="headerlink" href="#architecture-of-coolaidentifier" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.identifier</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/identifier/#properties">user guide</a>; the API is in the <a href="../../refs/identifier/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.identifier</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/identifier/#properties">user guide</a>; the API is in
+the <a href="../../refs/identifier/">reference</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>The package has <strong>two families and one clock rule</strong>. The content-derived identifiers
-(<code>content.py</code>) are a function of the data through <code>coola.hashing</code>; the time-ordered identifiers
-(<code>ulid.py</code>, <code>uuid7.py</code>, <code>objectid.py</code>, <code>snowflake.py</code>) are a <strong>format</strong> (a bit layout and an encoding)
-on top of <strong>one engine</strong>, <code>TickSequence</code> (<code>sequence.py</code>). A format module has no lock, no clock and no
-fork code: it asks the engine for a <code>(tick, counter)</code> pair and packs it. The engine has three cases and
+<p>The package has <strong>two families and one clock rule</strong>. The content-derived identifiers (<code>content.py</code>)
+are a function of the data through <code>coola.hashing</code>; the time-ordered identifiers (<code>ulid.py</code>,
+<code>uuid7.py</code>, <code>objectid.py</code>, <code>snowflake.py</code>) are a <strong>format</strong> (a bit layout and an encoding) on top of
+<strong>one engine</strong>, <code>TickSequence</code> (<code>sequence.py</code>). A format module has no lock, no clock and no fork
+code: it asks the engine for a <code>(tick, counter)</code> pair and packs it. The engine has three cases and
 none of them raises or waits: a new tick restarts the counter (random, or <code>0</code> for Snowflake whose
-uniqueness comes from its <code>worker_id</code>), the same tick or a clock that went back increments it, and an
-exhausted counter borrows the next tick, so the timestamp of an identifier can run ahead of the clock
-until the clock catches up. The state is per object and protected by a lock, and
-<code>coola.utils.fork.track_fork</code> resets it in a forked child; a <code>SnowflakeIdGenerator</code>, whose <code>worker_id</code>
-the child cannot choose, raises there instead. <code>crockford.py</code> is the one Crockford Base32 encoder and
-decoder (ULID and the checksummed identifiers), and the range and type checks come from
-<code>coola.validation</code>. The extractors are the strict inverse of the generators: they accept the
-canonical form only. See the <a href="../../uguide/identifier/#properties">user guide</a> for the properties of
-the package.</p>
+uniqueness comes from its <code>worker_id</code>), the same tick or a clock that went back increments it, and
+an exhausted counter borrows the next tick, so the timestamp of an identifier can run ahead of the
+clock until the clock catches up. The state is per object and protected by a lock, and
+<code>coola.utils.fork.track_fork</code> resets it in a forked child; a <code>SnowflakeIdGenerator</code>, whose
+<code>worker_id</code> the child cannot choose, raises there instead. <code>crockford.py</code> is the one Crockford
+Base32 encoder and decoder (ULID and the checksummed identifiers), and the range and type checks
+come from <code>coola.validation</code>. The extractors are the strict inverse of the generators: they accept
+the canonical form only. See the <a href="../../uguide/identifier/#properties">user guide</a> for the properties
+of the package.</p>
 <h2 id="design-constraints">Design constraints<a class="headerlink" href="#design-constraints" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Simple and easy to maintain.</strong> Eleven generators, one engine for "an identifier that increases
    with the time", and no code that exists only because of the shape of the API (no spin-wait, no
    persistence arguments, no duplicated decoder).</li>
-<li><strong>Persisted formats are stable.</strong> No compatibility alias is kept. The stable identifiers keep their
-   values (golden vectors), because users persist them.</li>
+<li><strong>Persisted formats are stable.</strong> No compatibility alias is kept. The stable identifiers keep
+   their values (golden vectors), because users persist them.</li>
 <li><strong>Scope.</strong> A generator stays if it is hard to write correctly (a bit layout, an encoding, a
-   monotonic counter, a content hash) <strong>and</strong> safe to use. A one-line wrapper of the standard library
-   and a primitive that looks like encryption do not belong here.</li>
+   monotonic counter, a content hash) <strong>and</strong> safe to use. A one-line wrapper of the standard
+   library and a primitive that looks like encryption do not belong here.</li>
 <li><strong>Fast.</strong> The time-ordered generators go through one lock and a few integer operations; the
    benchmark gate must hold.</li>
 <li><strong>Consistent with the siblings.</strong> Strict types and ranges from <code>coola.validation</code>, keyword-only
@@ -2957,9 +2960,9 @@ the package.</p>
   encoding) on top of <strong>one engine</strong> (<code>TickSequence</code>). A format module contains no lock, no clock
   and no fork code: it asks the engine for a <code>(tick, counter)</code> pair and packs it.</li>
 </ul>
-<p><code>checksummed.py</code> is the only module of a third kind (a random code for a human). It stays because the
-Crockford checksum is a real piece of work that nobody should rewrite, and it shares the decoder with
-ULID.</p>
+<p><code>checksummed.py</code> is the only module of a third kind (a random code for a human). It stays because
+the Crockford checksum is a real piece of work that nobody should rewrite, and it shares the decoder
+with ULID.</p>
 <h3 id="the-engine-one-clock-rule">The engine: one clock rule<a class="headerlink" href="#the-engine-one-clock-rule" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TickSequence</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Strictly increasing ``(tick, counter)`` pairs, from any number of threads."""</span>
@@ -2989,24 +2992,25 @@ ULID.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>  <span class="c1"># a thread that no longer exists may hold it</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tick</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counter</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span>
 </code></pre></div>
-<p>The engine has two parameters: the length of a tick (a millisecond, or a second for ObjectId) and the
-start of the counter (random for the identifiers that must not collide across processes, <code>0</code> for
+<p>The engine has two parameters: the length of a tick (a millisecond, or a second for ObjectId) and
+the start of the counter (random for the identifiers that must not collide across processes, <code>0</code> for
 Snowflake whose uniqueness comes from the <code>worker_id</code>).</p>
 <p>Design points:</p>
 <ul>
 <li><strong>The three cases of <code>next</code> are the whole rule.</strong> A new tick restarts, the same tick (or a clock
   that went back) increments, an exhausted counter borrows the next tick. No case raises or waits,
   so no case needs a lock to be held for longer than a few operations.</li>
-<li><strong>Strictly increasing is a property of the pair</strong>, and the pair is packed with the tick in the high
-  bits, so the packed value (and its string form for ULID, UUIDv7 and ObjectId) sorts like the pair.</li>
+<li><strong>Strictly increasing is a property of the pair</strong>, and the pair is packed with the tick in the
+  high bits, so the packed value (and its string form for ULID, UUIDv7 and ObjectId) sorts like the
+  pair.</li>
 <li><strong>The timestamp may run ahead of the wall clock</strong> (burst or backward step); this is stated in the
   guide. For Snowflake it happens above 4,096 identifiers per millisecond (4 million per second).
-  Not raising or sleeping on a backward clock costs the accuracy of the embedded timestamp, never the
-  order or the uniqueness; raising for Snowflake only would need a second clock rule in
+  Not raising or sleeping on a backward clock costs the accuracy of the embedded timestamp, never
+  the order or the uniqueness; raising for Snowflake only would need a second clock rule in
   <code>snowflake.py</code>, and the caller would have to retry.</li>
-<li><strong>The validation of the packed timestamp stays in the format module</strong> (a ULID timestamp is 48 bits,
-  a Snowflake one is 41 bits from its epoch), after <code>next</code>, so a borrowed tick that leaves the range
-  raises a <code>ValueError</code> like an explicit one.</li>
+<li><strong>The validation of the packed timestamp stays in the format module</strong> (a ULID timestamp is 48
+  bits, a Snowflake one is 41 bits from its epoch), after <code>next</code>, so a borrowed tick that leaves the
+  range raises a <code>ValueError</code> like an explicit one.</li>
 </ul>
 <h3 id="the-formats">The formats<a class="headerlink" href="#the-formats" title="Permanent link">&para;</a></h3>
 <table>
@@ -3063,28 +3067,30 @@ Snowflake whose uniqueness comes from the <code>worker_id</code>).</p>
 <li><strong>ObjectId</strong> is 4 bytes of seconds followed by 64 bits drawn at the start of each second and
   incremented. The 24 hexadecimal characters, the timestamp field and the sort order are those of an
   ObjectId; the identifier is strictly increasing within a process and needs no per-process value to
-  reset after a fork. The documented MongoDB layout (a 5-byte per-process value and a 3-byte counter)
-  is not used, which only matters to a tool that decodes those two fields; <code>extract_object_id_timestamp_s</code>
-  reads the same bytes.</li>
+  reset after a fork. The documented MongoDB layout (a 5-byte per-process value and a 3-byte
+  counter) is not used, which only matters to a tool that decodes those two fields;
+  <code>extract_object_id_timestamp_s</code> reads the same bytes.</li>
 <li><strong>Snowflake</strong> takes its <code>worker_id</code> in the constructor (required: no default <code>0</code>), owns one
   <code>TickSequence(bits=12, random_start=False)</code>, and has no module-level function and no default
   singleton: a process-wide generator has one <code>worker_id</code>, which only the caller knows. In a forked
   child, <code>_reset_after_fork</code> sets a flag and <code>generate</code> raises
   <code>RuntimeError("SnowflakeIdGenerator cannot be used in a forked process: create one with its own worker_id")</code>,
   so a silent duplicate becomes a loud error. The price is one more line in the caller
-  (<code>SnowflakeIdGenerator(worker_id=3)</code> once per process); a <code>generate_snowflake_id(worker_id)</code> backed
+  (<code>SnowflakeIdGenerator(worker_id=3)</code> once per process); a <code>generate_snowflake_id(worker_id)</code>
+  backed
   by a dictionary of generators would keep the two-line call at the cost of a global.</li>
 <li><strong>Crockford</strong> has one decoder: case-insensitive, <code>O</code> is <code>0</code>, <code>I</code> and <code>L</code> are <code>1</code> (the rule of the
   specification, applied to ULID too), and <code>encode(value, length)</code>. <code>verify_checksummed_id</code> and
   <code>extract_ulid_timestamp_ms</code> call it.</li>
 <li><strong>Validation</strong> is <code>validate_int</code> then <code>validate_closed_range</code> of <code>coola.validation</code>, with the
   parameter name, written inline (two lines per parameter). The 48-bit timestamp check of ULID and
-  UUIDv7 is repeated in the two modules instead of being a shared private helper: it is two lines, and
-  a private helper must not be imported across modules.</li>
+  UUIDv7 is repeated in the two modules instead of being a shared private helper: it is two lines,
+  and a private helper must not be imported across modules.</li>
 <li><strong>Strict extractors</strong> accept the canonical form only. <code>extract_uuid7_timestamp_ms</code> takes the
-  36-character form that <code>generate_uuid7</code> returns (any case), not <code>{...}</code> or <code>urn:uuid:</code>; the ObjectId
-  extractor takes 24 hex characters; the ULID extractor takes 26 Crockford characters. A caller who
-  has a <code>uuid.UUID</code> passes <code>str(...)</code>. Accepting <code>uuid.UUID | str</code> would add one <code>isinstance</code>.</li>
+  36-character form that <code>generate_uuid7</code> returns (any case), not <code>{...}</code> or <code>urn:uuid:</code>; the
+  ObjectId extractor takes 24 hex characters; the ULID extractor takes 26 Crockford characters. A
+  caller who has a <code>uuid.UUID</code> passes <code>str(...)</code>. Accepting <code>uuid.UUID | str</code> would add one
+  <code>isinstance</code>.</li>
 <li><strong><code>generate_uuid7</code> is our own.</strong> <code>uuid.uuid7()</code> exists in Python 3.14 and <code>requires-python</code> is
   <code>&gt;=3.11</code>. When the minimum version reaches 3.14, the body can become <code>str(uuid.uuid7())</code> after
   checking that the standard library keeps the same monotonic guarantee within a process; the
@@ -3116,21 +3122,22 @@ Snowflake whose uniqueness comes from the <code>worker_id</code>).</p>
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid5</span><span class="p">(</span><span class="n">namespace</span><span class="p">,</span> <span class="n">digest</span><span class="p">))</span>
 </code></pre></div>
 <p>The values are covered by golden vectors. The UUID is limited by its 122 random bits (birthday bound
-2^61), not by SHA-1; use <code>generate_stable_content_id</code> when more bits are needed. The stable identifiers
-live in <code>coola.identifier</code>: <code>identifier</code> depends on <code>hashing</code>, and a contract forbids the reverse
-import. Moving them into <code>coola.hashing</code> would make <code>identifier</code> standalone, but the name users know,
-and the guide, would move for little benefit.</p>
+2^61), not by SHA-1; use <code>generate_stable_content_id</code> when more bits are needed. The stable
+identifiers live in <code>coola.identifier</code>: <code>identifier</code> depends on <code>hashing</code>, and a contract forbids
+the reverse import. Moving them into <code>coola.hashing</code> would make <code>identifier</code> standalone, but the
+name users know, and the guide, would move for little benefit.</p>
 <h3 id="the-checksummed-identifiers">The checksummed identifiers<a class="headerlink" href="#the-checksummed-identifiers" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>generate_checksummed_id(*, length=12, group_size=4, sep="-")</code> and
   <code>verify_checksummed_id(identifier, *, sep="-")</code>: keyword-only options.</li>
-<li><strong>The generator never emits the extended check symbols.</strong> If the mod-37 remainder of the payload is
-  32 or more, the payload is drawn again (5 of 37 payloads, 1.16 draws on average), so the identifier
-  is made of <code>0-9A-Z</code> and the separator: safe in a shell, a URL and a spreadsheet. The cost is
-  <code>log2(37/32)</code>, that is 0.21 bit of the entropy of a 60-bit payload. <code>verify_checksummed_id</code> still
-  accepts the five symbols of the specification, so identifiers from another implementation verify.
-  The checksummed identifier stays in the package because the Crockford checksum is a real piece of
-  work that nobody should rewrite, and it shares the decoder with ULID.</li>
+<li><strong>The generator never emits the extended check symbols.</strong> If the mod-37 remainder of the payload
+  is 32 or more, the payload is drawn again (5 of 37 payloads, 1.16 draws on average), so the
+  identifier is made of <code>0-9A-Z</code> and the separator: safe in a shell, a URL and a spreadsheet. The
+  cost is <code>log2(37/32)</code>, that is 0.21 bit of the entropy of a 60-bit payload.
+  <code>verify_checksummed_id</code> still accepts the five symbols of the specification, so identifiers from
+  another implementation verify. The checksummed identifier stays in the package because the
+  Crockford checksum is a real piece of work that nobody should rewrite, and it shares the decoder
+  with ULID.</li>
 <li><code>sep</code> must not be in the 32-character alphabet (it is stripped before the check), which is shorter
   to state than "the extended alphabet".</li>
 <li><code>verify_checksummed_id</code> returns <code>False</code> and never raises, for a wrong type, a non-ASCII character
@@ -3152,7 +3159,8 @@ and the guide, would move for little benefit.</p>
     <span class="n">verify_checksummed_id</span><span class="p">,</span>  <span class="c1"># (identifier, *, sep="-")</span>
 <span class="p">)</span>
 </code></pre></div>
-<p>Options are keyword-only (<code>timestamp_ms</code>, <code>timestamp_s</code>, <code>worker_id</code>, <code>length</code>, <code>group_size</code>, <code>sep</code>).</p>
+<p>Options are keyword-only (<code>timestamp_ms</code>, <code>timestamp_s</code>, <code>worker_id</code>, <code>length</code>, <code>group_size</code>,
+<code>sep</code>).</p>
 <p>The package deliberately has no generator for a one-line wrapper of the standard library or for a
 primitive that looks like encryption. What to use instead:</p>
 <table>
@@ -3189,9 +3197,9 @@ primitive that looks like encryption. What to use instead:</p>
 </tr>
 </tbody>
 </table>
-<p>An obfuscated identifier (an affine permutation of an integer) looks like encryption, leaks the parity
-and is broken by two pairs, so it needs a long list of caveats; a user who needs an opaque public
-identifier should get one from a library made for it.</p>
+<p>An obfuscated identifier (an affine permutation of an integer) looks like encryption, leaks the
+parity and is broken by two pairs, so it needs a long list of caveats; a user who needs an opaque
+public identifier should get one from a library made for it.</p>
 <h2 id="dependents">Dependents<a class="headerlink" href="#dependents" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3238,17 +3246,17 @@ identifier should get one from a library made for it.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>How much of the package exists.</strong> The rule is "a generator stays if it is hard to write correctly and
-safe". A UUID4, a prefixed identifier or a nano ID is a line of the standard library and would cost a
-module, a docstring and tests each. The alternatives are to keep everything (more source and tests to
-maintain, and a <code>Callable</code>-based prefixed generator), or to move the whole package into a separate
-distribution and keep only <code>content.py</code> in <code>coola</code>; the second is the cleanest layering and more work
-for users, and is worth considering if the time-ordered formats keep growing.</p>
-<p><strong>The checksummed identifier.</strong> It shares code with ULID (the decoder), its detection claim is true and
-tested, and rejection sampling makes its output usable for what it is for. If the package were split,
-it would move with the other generators.</p>
-<p><strong>The clock rule.</strong> Raising a <code>RuntimeError</code> on a backward clock for Snowflake only would need the second
-rule back in <code>snowflake.py</code>, a <code>time.sleep</code> for the spin-wait, and a guide paragraph on NTP.</p>
+<p><strong>How much of the package exists.</strong> The rule is "a generator stays if it is hard to write correctly
+and safe". A UUID4, a prefixed identifier or a nano ID is a line of the standard library and would
+cost a module, a docstring and tests each. The alternatives are to keep everything (more source and
+tests to maintain, and a <code>Callable</code>-based prefixed generator), or to move the whole package into a
+separate distribution and keep only <code>content.py</code> in <code>coola</code>; the second is the cleanest layering and
+more work for users, and is worth considering if the time-ordered formats keep growing.</p>
+<p><strong>The checksummed identifier.</strong> It shares code with ULID (the decoder), its detection claim is true
+and tested, and rejection sampling makes its output usable for what it is for. If the package were
+split, it would move with the other generators.</p>
+<p><strong>The clock rule.</strong> Raising a <code>RuntimeError</code> on a backward clock for Snowflake only would need the
+second rule back in <code>snowflake.py</code>, a <code>time.sleep</code> for the spin-wait, and a guide paragraph on NTP.</p>
 <p><strong>ObjectId.</strong> Keeping the MongoDB layout would need a per-process value stored in a
 <code>LazySingleton</code>-built object that is reset after a fork.</p>
 <h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>

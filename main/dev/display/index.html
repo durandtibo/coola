@@ -2861,22 +2861,25 @@
 
 
 <h1 id="architecture-of-cooladisplay">Architecture of <code>coola.display</code><a class="headerlink" href="#architecture-of-cooladisplay" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.display</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/display/#properties">user guide</a>; the API is in the <a href="../../refs/display/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.display</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/display/#properties">user guide</a>; the API is in the
+<a href="../../refs/display/">reference</a>.</p>
 <h2 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Simple and easy to maintain.</strong> The package is small and mostly docstrings. It does not walk two
    structures in parallel, and it has no layer that only exists for one caller.</li>
 <li><strong><code>rich</code> and <code>colorlog</code> are optional.</strong> <code>import coola</code>, <code>import coola.display</code> and
-   <code>import coola.display.rich</code> work without them and do not import them. Calling a function that needs
-   a missing library raises <code>MissingPackageError</code> with the <code>pip install coola[rich]</code> hint, not a bare
-   <code>ModuleNotFoundError</code>. The tests of <code>coola.display.rich</code> are skipped when <code>rich</code> is not installed
-   instead of failing at collection.</li>
+   <code>import coola.display.rich</code> work without them and do not import them. Calling a function that
+   needs a missing library raises <code>MissingPackageError</code> with the <code>pip install coola[rich]</code> hint, not
+   a bare <code>ModuleNotFoundError</code>. The tests of <code>coola.display.rich</code> are skipped when <code>rich</code> is not
+   installed instead of failing at collection.</li>
 <li><strong>Core package.</strong> <code>coola.display</code> sits in the core group (<code>registry</code>, <code>utils</code>, <code>validation</code>,
    <code>formatting</code>): it imports no feature package (<code>lint-imports</code> contract "Core packages must not
    import feature packages"). It may import <code>utils</code>, <code>validation</code> and <code>formatting</code>.</li>
 <li><strong>Consistent with the siblings.</strong> Options are keyword-only, arguments are validated with
-   <code>coola.validation</code>, helpers that exist elsewhere are reused (<code>coola.formatting</code>), and the optional
-   libraries follow the pattern of <code>coola.utils.fallback</code>.</li>
+   <code>coola.validation</code>, helpers that exist elsewhere are reused (<code>coola.formatting</code>), and the
+   optional libraries follow the pattern of <code>coola.utils.fallback</code>.</li>
 </ol>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>coola/display/
@@ -2945,27 +2948,28 @@ coola/utils/fallback/rich.py   stand-ins for the names of rich that the three mo
    Every public function calls a fake in its first statement (<code>Pretty(data)</code>, <code>SpinnerColumn()</code>,
    <code>get_console()</code>), before it changes anything: <code>configure_rich_logging</code> does not touch the root
    logger when <code>rich</code> is missing.</li>
-<li><strong><code>check_rich()</code> is not called.</strong> The fallback is the single mechanism, as for <code>pydantic</code>; a second
-   check would be dead code. (<code>check_rich</code> stays in <code>coola.utils.imports</code> for the other packages.)</li>
+<li><strong><code>check_rich()</code> is not called.</strong> The fallback is the single mechanism, as for <code>pydantic</code>; a
+   second check would be dead code. (<code>check_rich</code> stays in <code>coola.utils.imports</code> for the other
+   packages.)</li>
 <li><strong><code>colorlog</code> works without the library.</strong> The function falls back to plain <code>logging.basicConfig</code>,
    because for a logging helper "no colour" is a correct result and not an error. This is the
    difference between the two logging functions: <code>rich</code> is required, <code>colorlog</code> is optional.</li>
 </ol>
 <p>Why the fallback and not an import inside each function: it is the convention of the repository
-(<code>reducer</code>, <code>rounding</code>, <code>utils.tensor</code>, <code>display.pydantic</code>, <code>display.colorlog</code>), the names stay at the
-top of the module where <code>ruff</code> and <code>ty</code> see them, and the tests need no patching of
+(<code>reducer</code>, <code>rounding</code>, <code>utils.tensor</code>, <code>display.pydantic</code>, <code>display.colorlog</code>), the names stay at
+the top of the module where <code>ruff</code> and <code>ty</code> see them, and the tests need no patching of
 <code>builtins.__import__</code>. The cost is one file of 25 lines to keep in sync with the imported names. The
 alternative, <code>check_rich()</code> and <code>from rich import ...</code> inside each function, needs no fake names but
 is a second convention and hides the imports in function bodies.</p>
 <h3 id="the-mixins">The mixins<a class="headerlink" href="#the-mixins" title="Permanent link">&para;</a></h3>
 <p><code>BaseDisplayMixin</code> defines <code>__repr__</code>, <code>__str__</code> and a default <code>_display_fields</code>; the two concrete
 mixins implement <code>_render_fields</code>. <code>MultilineDisplayMixin</code> uses <code>repr_indent(repr_mapping(fields))</code>,
-which indents the continuation lines of a multiline value (<code>(y): a\n  b</code>). This is intended and covered
-by a test.</p>
-<p>The mixins do not guard against self-reference. A <code>reprlib.recursive_repr</code>-style guard needs a per-call
-set of ids on every <code>__repr__</code>, for a case that does not occur in the objects that use the mixins
-(configurations, loaders, transformers, registries); it would also change <code>__str__</code> and hide a bug in
-the caller's <code>_display_fields</code>.</p>
+which indents the continuation lines of a multiline value (<code>(y): a\n  b</code>). This is intended and
+covered by a test.</p>
+<p>The mixins do not guard against self-reference. A <code>reprlib.recursive_repr</code>-style guard needs a
+per-call set of ids on every <code>__repr__</code>, for a case that does not occur in the objects that use the
+mixins (configurations, loaders, transformers, registries); it would also change <code>__str__</code> and hide
+a bug in the caller's <code>_display_fields</code>.</p>
 <h3 id="formatting-a-pydantic-model">Formatting a pydantic model<a class="headerlink" href="#formatting-a-pydantic-model" title="Permanent link">&para;</a></h3>
 <p>The function formats the <strong>fields of the model</strong>, not a dump of it. One private function builds the
 mapping, the two public functions choose <code>repr</code> or <code>str</code>:</p>
@@ -2983,23 +2987,23 @@ mapping, the two public functions choose <code>repr</code> or <code>str</code>:<
 <span class="w">    </span><span class="sd">"""A nested model is formatted like the root; lists, tuples, sets and dicts are rebuilt."""</span>
 </code></pre></div>
 <ul>
-<li><strong>Nested models keep their name</strong> (<code>P(c=C(name=a), items=[C(name=b)])</code>). A nested model is formatted
-  with the same options as the root (<code>sort</code>, <code>exclude_none</code>, <code>exclude_secret</code>); the shown value is a
-  tiny object whose <code>__repr__</code>/<code>__str__</code> is the formatted string, so the generic <code>repr_mapping_line</code>
-  and <code>str_mapping_line</code> of <code>coola.formatting</code> need no change.</li>
+<li><strong>Nested models keep their name</strong> (<code>P(c=C(name=a), items=[C(name=b)])</code>). A nested model is
+  formatted with the same options as the root (<code>sort</code>, <code>exclude_none</code>, <code>exclude_secret</code>); the shown
+  value is a tiny object whose <code>__repr__</code>/<code>__str__</code> is the formatted string, so the generic
+  <code>repr_mapping_line</code> and <code>str_mapping_line</code> of <code>coola.formatting</code> need no change.</li>
 <li><strong>No parallel walk, no <code>cast</code></strong>: the value is read once, from the model, and a nested secret is
-  dropped by the recursive call on the nested model. Dumping the model (<code>model_dump()</code>) and masking the
-  secrets in the dump would need a second walk over the model and the dump in parallel.</li>
+  dropped by the recursive call on the nested model. Dumping the model (<code>model_dump()</code>) and masking
+  the secrets in the dump would need a second walk over the model and the dump in parallel.</li>
 <li><strong>No serializer runs.</strong> <code>getattr</code> reads the attribute; a <code>field_serializer</code>, an alias or a
   <code>computed_field</code> has no effect (a <code>computed_field</code> is not a field, so it is not shown; pydantic's
   <code>repr</code> shows it, the function does not: it is a property that may be expensive). The function is a
   safe formatter for logs, whose value is that it cannot raise or leak through user code. Keeping
   <code>model_dump()</code> would keep <code>computed_field</code> at the price of the parallel walk and of running the
   serializers.</li>
-<li><strong><code>secret_field_names</code> and <code>is_secret_annotation</code> are public in <code>coola.display.pydantic</code>.</strong> They are
-  the definition of "secret" shared by <code>display</code> and <code>summary</code>, with their own tests and doctests.
-  A separate <code>coola.pydantic</code> module for the pydantic knowledge shared by several packages is not
-  justified for two functions.</li>
+<li><strong><code>secret_field_names</code> and <code>is_secret_annotation</code> are public in <code>coola.display.pydantic</code>.</strong> They
+  are the definition of "secret" shared by <code>display</code> and <code>summary</code>, with their own tests and
+  doctests. A separate <code>coola.pydantic</code> module for the pydantic knowledge shared by several packages
+  is not justified for two functions.</li>
 <li><strong>One core, two wrappers.</strong> <code>str_pydantic_model</code> and <code>repr_pydantic_model</code> mirror <code>str</code>/<code>repr</code> and
   <code>str_mapping</code>/<code>repr_mapping</code> of <code>formatting</code>. The five options are documented once in
   <code>str_pydantic_model</code> and <code>repr_pydantic_model</code> points to it ("same options"). A generic
@@ -3009,8 +3013,8 @@ mapping, the two public functions choose <code>repr</code> or <code>str</code>:<
 <h3 id="terminal-output">Terminal output<a class="headerlink" href="#terminal-output" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong><code>configure_colorlog_logging(level=logging.INFO, *, force=False, **kwargs)</code>.</strong> It accepts the
-  plain <code>logging.basicConfig</code> options (<code>handlers</code>, <code>filename</code>, <code>filemode</code>, <code>format</code>, <code>style</code>), handles
-  <code>stream</code> and <code>datefmt</code>, and checks that the stream is a terminal before it colours.</li>
+  plain <code>logging.basicConfig</code> options (<code>handlers</code>, <code>filename</code>, <code>filemode</code>, <code>format</code>, <code>style</code>),
+  handles <code>stream</code> and <code>datefmt</code>, and checks that the stream is a terminal before it colours.</li>
 <li><strong><code>configure_rich_logging(level=logging.INFO, *, fmt, datefmt, rich_tracebacks, markup, force,
 console=None, **kwargs)</code>.</strong> The handler is <code>RichHandler(console=console or get_console())</code>;
   <code>**kwargs</code> go to <code>RichHandler</code> and an unknown name raises <code>TypeError</code>.</li>
@@ -3019,11 +3023,11 @@ console=None)</code></strong> take the same <code>console</code> argument.</li>
 <li><strong><code>print_pretty</code> / <code>print_markdown</code></strong> take <code>title</code>, <code>title_align</code>, <code>box</code>, <code>panel</code> and <code>console</code>.
   <code>print_markdown(max_length=...)</code> truncates a Markdown string. <code>max_length</code> is validated
   (<code>validate_ge(max_length, 1)</code>, so a negative value raises <code>ValueError</code> instead of cutting from the
-  end) and the cut is done by <code>_truncate_markdown(msg, max_length)</code>, which stays in <code>print_.py</code> (it is
-  about Markdown, so it does not belong in <code>formatting.text</code>; <code>truncate_str</code> is not used because it
-  cuts at a character and appends a suffix). The cut:</li>
-<li>snaps to the last paragraph break (<code>\n\n</code>), else the last line break, else the last space, of the
-     kept text, each only if it keeps at least half of <code>max_length</code>; otherwise it cuts at
+  end) and the cut is done by <code>_truncate_markdown(msg, max_length)</code>, which stays in <code>print_.py</code> (it
+  is about Markdown, so it does not belong in <code>formatting.text</code>; <code>truncate_str</code> is not used because
+  it cuts at a character and appends a suffix). The cut:</li>
+<li>snaps to the last paragraph break (<code>\n\n</code>), else the last line break, else the last space, of
+     the kept text, each only if it keeps at least half of <code>max_length</code>; otherwise it cuts at
      <code>max_length</code>;</li>
 <li>closes a code fence left open by the cut (an odd number of lines that start with <code>`` or</code>~~~`
      gets a closing fence), so the rest of the panel is not swallowed by an open block;</li>
@@ -3031,16 +3035,18 @@ console=None)</code></strong> take the same <code>console</code> argument.</li>
      characters of <code>msg</code> that are not shown).</li>
 </ul>
 <p>The cut is not guaranteed to keep an inline marker (<code>**</code>, <code>*</code>, <code>`</code>) balanced when it falls
-  inside a paragraph: the preference for paragraph and line breaks makes it rare, and it is documented
-  instead of repaired with a heuristic. A plain character cut would be simpler but can drop the closing
+  inside a paragraph: the preference for paragraph and line breaks makes it rare, and it is
+  documented
+  instead of repaired with a heuristic. A plain character cut would be simpler but can drop the
+  closing
   <code>**</code> or a code fence.</p>
 <ul>
-<li><strong>The <code>rich</code> modules are four files</strong> (<code>logging</code>, <code>print_</code>, <code>progressbar</code>, <code>__init__</code>). Merging them
-  would not shorten them: the three cover three different <code>rich</code> APIs and the split keeps each import
-  list short.</li>
+<li><strong>The <code>rich</code> modules are four files</strong> (<code>logging</code>, <code>print_</code>, <code>progressbar</code>, <code>__init__</code>). Merging
+  them would not shorten them: the three cover three different <code>rich</code> APIs and the split keeps each
+  import list short.</li>
 <li><strong>Two logging functions, not one <code>configure_logging(backend=...)</code>.</strong> They have different options
-  (<code>rich_tracebacks</code>, <code>markup</code> against the colour of the formatter), and a dispatcher adds a name and
-  a string option for two lines of caller code.</li>
+  (<code>rich_tracebacks</code>, <code>markup</code> against the colour of the formatter), and a dispatcher adds a name
+  and a string option for two lines of caller code.</li>
 </ul>
 <h2 id="public-api">Public API<a class="headerlink" href="#public-api" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">coola.display</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -3141,8 +3147,8 @@ console=None)</code></strong> take the same <code>console</code> argument.</li>
 <li><strong>Log in JSON or to a file</strong>: <code>configure_*_logging</code> forward <code>handlers</code>, <code>filename</code>, <code>format</code> to
   <code>logging.basicConfig</code>; nothing else is provided.</li>
 <li><strong>Moving the logging helpers out of <code>display</code></strong> (to <code>coola.utils</code> or a <code>coola.logging</code> package):
-  <code>display</code> is where the user looks for terminal output and the two modules are small; revisit if the
-  package grows a third logging backend.</li>
+  <code>display</code> is where the user looks for terminal output and the two modules are small; revisit if
+  the package grows a third logging backend.</li>
 <li><strong><code>coola.utils.logging.CaptureHandler</code></strong> is a test helper for loggers and is unrelated to the
   display of records.</li>
 </ul>

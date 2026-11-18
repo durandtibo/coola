@@ -2861,7 +2861,10 @@
 
 
 <h1 id="architecture-of-coolaio">Architecture of <code>coola.io</code><a class="headerlink" href="#architecture-of-coolaio" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.io</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/io/#properties">user guide</a>; the API is in the <a href="../../refs/io/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.io</code> package for contributors: the invariants,
+the contracts between the parts, and the trade-offs of the main design choices. The rules that users
+rely on are in the <a href="../../uguide/io/#properties">user guide</a>; the API is in the
+<a href="../../refs/io/">reference</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>The package reads and writes one value to one file, and a write either happens completely or leaves
 the target as it was. The base classes own the invariants and a format only describes how to turn a
@@ -2878,8 +2881,8 @@ libraries (torch) are imported lazily. See the <a href="../../uguide/io/#propert
 properties of the package.</p>
 <h2 id="design-constraints">Design constraints<a class="headerlink" href="#design-constraints" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Simple and easy to maintain.</strong> The base classes own the invariants once (the path conversion, the
-   atomic commit, <code>equal</code>, <code>repr</code>), so a format has no lock protocol, no copy of <code>equal</code> and no
+<li><strong>Simple and easy to maintain.</strong> The base classes own the invariants once (the path conversion,
+   the atomic commit, <code>equal</code>, <code>repr</code>), so a format has no lock protocol, no copy of <code>equal</code> and no
    repeated <code>sanitize_path</code> call.</li>
 <li><strong>No new dependency.</strong> <code>coola</code> has zero hard dependencies; the package uses the standard library
    only (torch stays optional and lazy).</li>
@@ -2952,9 +2955,9 @@ same split as <code>recursive</code> (the engine owns the protections, a transfo
   the base class is where a cross-cutting step (a log line, a size check) would go. A subclass that
   overrides <code>load</code> instead keeps working but loses the conversion. The saver side works the same way
   (<code>_save_file</code>).</li>
-<li><code>TextSaver</code> accepts a <code>str</code> only. Writing <code>None</code> as the text "None" is the kind of silent conversion
-  the architecture rejects, and the class is typed <code>str</code>; a caller who wants <code>str(x)</code> writes it, and
-  the error says so.</li>
+<li><code>TextSaver</code> accepts a <code>str</code> only. Writing <code>None</code> as the text "None" is the kind of silent
+  conversion the architecture rejects, and the class is typed <code>str</code>; a caller who wants <code>str(x)</code>
+  writes it, and the error says so.</li>
 </ul>
 <h3 id="the-atomic-commit-no-lock">The atomic commit (no lock)<a class="headerlink" href="#the-atomic-commit-no-lock" title="Permanent link">&para;</a></h3>
 <p><code>save</code> takes no lock:</p>
@@ -3017,9 +3020,10 @@ same split as <code>recursive</code> (the engine owns the protections, a transfo
 <p>A caller that needs <strong>mutual exclusion</strong> (a read-modify-write of one file) needs a lock around the
 read and the write, which <code>save</code> could never give; it uses a lock library of its choice. The
 <code>exist_ok=False</code> fallback on a file system <strong>without hard links</strong> is the one case where a lock would
-matter: two processes creating the same file at the same instant can both succeed (the last one wins,
-no torn file). It is listed under "Not guaranteed". A lock (a thread, a lock file, a polling loop)
-would add latency and a deadlock risk for that one case, which affects FAT and some container volumes.</p>
+matter: two processes creating the same file at the same instant can both succeed (the last one
+wins, no torn file). It is listed under "Not guaranteed". A lock (a thread, a lock file, a polling
+loop) would add latency and a deadlock risk for that one case, which affects FAT and some container
+volumes.</p>
 <h2 id="public-api">Public API<a class="headerlink" href="#public-api" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">coola.io</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BaseLoader</span><span class="p">,</span>  <span class="c1"># load, equal ; implement _load</span>
@@ -3117,18 +3121,20 @@ would add latency and a deadlock risk for that one case, which affects FAT and s
 </tbody>
 </table>
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
-<p><strong>No save lock.</strong> The atomic commit already gives the guarantees that a lock would claim. A lock adds a
-thread, a lock file, a polling loop, latency and a deadlock risk. The consequences are listed in "Not
-guaranteed": two processes creating the same file at the same instant on a file system without hard
-links can both succeed, and a caller who wants mutual exclusion around a read-modify-write uses its
-own lock. An opt-in <code>lock=True</code> would keep the code and its tests for a case that few users have.</p>
-<p><strong><code>equal()</code> is concrete, not <code>__eq__</code>.</strong> The method is the documented API and <code>objects_are_equal(a, b)</code>
-works with it. One implementation in the base class (same type, then <code>objects_are_equal</code> on
-<code>_display_fields()</code> with <code>equal_nan</code>) replaces one override per format.</p>
+<p><strong>No save lock.</strong> The atomic commit already gives the guarantees that a lock would claim. A lock
+adds a thread, a lock file, a polling loop, latency and a deadlock risk. The consequences are listed
+in "Not guaranteed": two processes creating the same file at the same instant on a file system
+without hard links can both succeed, and a caller who wants mutual exclusion around a
+read-modify-write uses its own lock. An opt-in <code>lock=True</code> would keep the code and its tests for a
+case that few users have.</p>
+<p><strong><code>equal()</code> is concrete, not <code>__eq__</code>.</strong> The method is the documented API and
+<code>objects_are_equal(a, b)</code> works with it. One implementation in the base class (same type, then
+<code>objects_are_equal</code> on <code>_display_fields()</code> with <code>equal_nan</code>) replaces one override per format.</p>
 <p><strong>Explicit loaders, no choice by suffix.</strong> <code>load("data.json")</code> would need a registry from suffix to
-loader. It is a natural next step (it would follow <code>coola.registry</code>), but it is a new extension point
-and a security question: <code>load("x.pkl")</code> would unpickle by the file name. Explicit loaders keep the
-format visible at the call site. If it is added, <code>PickleLoader</code> should not be registered by default.</p>
+loader. It is a natural next step (it would follow <code>coola.registry</code>), but it is a new extension
+point and a security question: <code>load("x.pkl")</code> would unpickle by the file name. Explicit loaders
+keep the format visible at the call site. If it is added, <code>PickleLoader</code> should not be registered by
+default.</p>
 <p><strong>Async is a layer, not part of the core.</strong> The recommended shape is <code>asyncio.to_thread</code> of the sync
 method.</p>
 <h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
@@ -3143,15 +3149,16 @@ asyncio.to_thread(self.load, ...)</code> in the base classes (no dependency; <co
   use threads too). What a probe showed (macOS, Python 3.14): a save of 400 ms called in a coroutine
   froze a 5 ms ticker for 414 ms (6 ms with <code>to_thread</code>); <code>wait_for(asyncio.to_thread(save), 0.1)</code>
   raises <code>TimeoutError</code> and the file appears 0.4 s later, so a layer needs a cancellation flag that
-  <code>BaseFileSaver</code> checks after the write and before the commit; <code>to_thread(lambda: None)</code> costs 36 µs.
+  <code>BaseFileSaver</code> checks after the write and before the commit; <code>to_thread(lambda: None)</code> costs 36
+  µs.
   Not decided: async shortcuts (<code>asave_json</code>), a client that is async only (it would need separate
   <code>BaseAsync*</code> ABCs), and other event loops (<code>trio</code>, <code>anyio</code> call the sync methods through their own
   <code>to_thread</code>).</li>
 <li><strong>Streaming and large values.</strong> One value is read or written per call, fully in memory. A
   <code>JsonLinesLoader</code> (an iterator of values) is a separate item.</li>
 <li><strong>Compression</strong> (<code>.json.gz</code>), <strong>checksums</strong> and <strong>file locking for the caller</strong>: out of scope.</li>
-<li><strong>More formats</strong> (<code>yaml</code>, <code>.npy</code>, <code>safetensors</code>, <code>bytes</code>): each is one <code>_load</code> and one <code>_save_file</code>
-  and an optional dependency imported lazily; none is provided.</li>
+<li><strong>More formats</strong> (<code>yaml</code>, <code>.npy</code>, <code>safetensors</code>, <code>bytes</code>): each is one <code>_load</code> and one
+  <code>_save_file</code> and an optional dependency imported lazily; none is provided.</li>
 <li><strong>Cleanup of the leftover temporary files of killed processes</strong>: they are hidden and have a
   recognisable name; a cleaner would need a lock to know the owner is dead.</li>
 <li><strong>Selection by suffix</strong>.</li>

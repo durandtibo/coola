@@ -3015,7 +3015,10 @@
 
 
 <h1 id="architecture-of-coolahashing">Architecture of <code>coola.hashing</code><a class="headerlink" href="#architecture-of-coolahashing" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.hashing</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/hashing/#properties">user guide</a>; the API is in the <a href="../../refs/hashing/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.hashing</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/hashing/#properties">user guide</a>; the API is in the
+<a href="../../refs/hashing/">reference</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>The package has <strong>one engine, one extension point and one encoding rule</strong>. A hasher only describes
 the content of a type: <code>encode(data)</code> returns the bytes of a leaf (<code>tagged(tag, payload)</code>) or a
@@ -3084,7 +3087,8 @@ the 64-byte digest of the root  -&gt;  hex()[:length]
 </tbody>
 </table>
 <p>See the <a href="../../uguide/hashing/#properties">user guide</a> for the properties of the package. The
-trade-offs behind these choices are in <a href="#design-choices-and-trade-offs">Design choices and trade-offs</a>.</p>
+trade-offs behind these choices are in
+<a href="#design-choices-and-trade-offs">Design choices and trade-offs</a>.</p>
 <h2 id="design-constraints">Design constraints<a class="headerlink" href="#design-constraints" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Simple and easy to maintain.</strong> A hasher only describes a type. It does not repeat the
@@ -3154,8 +3158,8 @@ parameter.</p>
 <li><code>tagged(tag: str, payload: str | bytes = b"") -&gt; bytes</code>: <code>tag</code>, a NUL byte, <code>payload</code> (text is
   encoded in UTF-8 with <code>surrogatepass</code>: a lone surrogate never collides with a valid string).</li>
 <li><code>digest(data: bytes) -&gt; bytes</code>: the 64-byte BLAKE2b of the package. A hasher uses it to reduce a
-  big buffer (array values, the content of a <code>bytes</code>) to a fixed-width value <strong>before</strong> it enters the
-  encoding, so the engine never copies a 50 MB preimage.</li>
+  big buffer (array values, the content of a <code>bytes</code>) to a fixed-width value <strong>before</strong> it enters
+  the encoding, so the engine never copies a 50 MB preimage.</li>
 </ul>
 <p>Rules of the contract (documented in <code>BaseHasher</code>, checked by one parametrised unit test over the
 default registry, like <code>NATIVE_SAMPLES</code> in <code>equality</code>):</p>
@@ -3250,9 +3254,10 @@ default registry, like <code>NATIVE_SAMPLES</code> in <code>equality</code>):</p
 <li><strong>Memory.</strong> Besides the input, the engine holds the digests of the children of the containers
   being built (about 100 bytes per child of a node in progress) and the memo. A flat list of one
   million items needs about 100 MB for the digests. Streaming the digests of an ordered node into a
-  running <code>blake2b</code> object would remove it; it is not done because the benchmark does not show a need.</li>
-<li>A hasher's exception reaches the caller with its own traceback and no frame of the package between,
-  because the engine is a loop and not a recursion.</li>
+  running <code>blake2b</code> object would remove it; it is not done because the benchmark does not show a
+  need.</li>
+<li>A hasher's exception reaches the caller with its own traceback and no frame of the package
+  between, because the engine is a loop and not a recursion.</li>
 </ul>
 <h3 id="built-in-hashers">Built-in hashers<a class="headerlink" href="#built-in-hashers" title="Permanent link">&para;</a></h3>
 <table>
@@ -3359,9 +3364,9 @@ hash_object(x, length=n) = digest(x).hex()[:n]                         # n chara
 </code></pre></div>
 <ul>
 <li><strong>Self-delimiting entries</strong> make the concatenation unambiguous without delimiters: an entry is
-  either a marker and a fixed-width digest, or a size byte and the leaf. The leading <code>0x00</code>/<code>0x01</code> byte
-  makes a leaf and a node with the same tag different by construction. Inlining the short leaves
-  makes a flat container one BLAKE2b call instead of one per item.</li>
+  either a marker and a fixed-width digest, or a size byte and the leaf. The leading <code>0x00</code>/<code>0x01</code>
+  byte makes a leaf and a node with the same tag different by construction. Inlining the short
+  leaves makes a flat container one BLAKE2b call instead of one per item.</li>
 <li><strong><code>length</code> is chosen by the caller and cuts the end.</strong> The caller asks for 2 to 128 characters.
   Every digest is a full 64-byte BLAKE2b, so the hash of any length is the start of the
   longest one, a hasher never sees <code>length</code>, and <code>length</code> is validated once, before the traversal.
@@ -3388,8 +3393,8 @@ registered (the default registry has none: an unsupported type fails loudly). It
 <p>A subclass of <code>Enum</code> resolves to the hasher of <code>Enum</code> unless a hasher is registered for the enum
 class itself (or for a parent that is not a builtin base of the mixin).</p>
 </blockquote>
-<p><code>StringHasher</code> and <code>ReprHasher</code> have no <code>isinstance(data, Enum)</code> branch, and <code>HasherRegistry.hash</code> is
-<code>digest_of(...).hex()[:length]</code> with the validation of <code>length</code>. The registry has no knowledge of
+<p><code>StringHasher</code> and <code>ReprHasher</code> have no <code>isinstance(data, Enum)</code> branch, and <code>HasherRegistry.hash</code>
+is <code>digest_of(...).hex()[:length]</code> with the validation of <code>length</code>. The registry has no knowledge of
 cycles, placeholders or the recursion limit.</p>
 <p><code>get_default_registry()</code> is the singleton with the built-in hashers, the entries of the plugin group
 <code>coola.hashing.hashers</code> and the lazy groups; <code>get_stable_registry()</code> is the same without the plugins
@@ -3450,9 +3455,9 @@ tag <code>custom:module.Class</code>, so two classes with the same content diffe
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
 </code></pre></div>
 <p>The object does not recurse, so it cannot bypass the cycle check, nobody forwards <code>length</code>, and the
-fallback predicate is <code>callable(getattr(t, "__coola_hash__", None))</code> with no signature inspection. The dunder
-name cannot collide with a method of a library (<code>polars.Series.hash</code>). A dataclass keeps the
-dataclass hasher even if it defines <code>__coola_hash__</code> (type &gt; fallback order, then registration
+fallback predicate is <code>callable(getattr(t, "__coola_hash__", None))</code> with no signature inspection.
+The dunder name cannot collide with a method of a library (<code>polars.Series.hash</code>). A dataclass keeps
+the dataclass hasher even if it defines <code>__coola_hash__</code> (type &gt; fallback order, then registration
 order of the fallbacks).</p>
 <h3 id="secrets-and-pydantic">Secrets and pydantic<a class="headerlink" href="#secrets-and-pydantic" title="Permanent link">&para;</a></h3>
 <p>Secrets become <strong>types with a hasher</strong>, so the policy is the one of the registry and applies
@@ -3473,8 +3478,8 @@ exclude, a caller builds a registry:</p>
 <span class="n">hash_object</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">registry</span><span class="o">=</span><span class="n">registry</span><span class="p">)</span>
 </code></pre></div>
 <p>A secret in a dict or in a dataclass is governed by the same policy as in a model. <code>"exclude"</code> does
-not remove the key or the item: it replaces the value by a constant (the position of a secret is part
-of the schema of the class, so it is not information; the value is never hashed).</p>
+not remove the key or the item: it replaces the value by a constant (the position of a secret is
+part of the schema of the class, so it is not information; the value is never hashed).</p>
 <h3 id="errors-and-options">Errors and options<a class="headerlink" href="#errors-and-options" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3555,8 +3560,8 @@ of the schema of the class, so it is not information; the value is never hashed)
 </code></pre></div>
 <p><code>hash_object(data, *, registry=None, length=64, ignore_unhashable=False)</code> has no positional option.
 <code>HasherRegistry.hash(data, *, length=64, ignore_unhashable=False)</code> is the registry-level entry point
-(it is what the guide and the doctests use) and calls the same engine. The decimal, fraction and range
-hashers live in <code>coola.hashing.canonical</code> (public but not re-exported).</p>
+(it is what the guide and the doctests use) and calls the same engine. The decimal, fraction and
+range hashers live in <code>coola.hashing.canonical</code> (public but not re-exported).</p>
 <h2 id="dependents">Dependents<a class="headerlink" href="#dependents" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3591,25 +3596,27 @@ hashers live in <code>coola.hashing.canonical</code> (public but not re-exported
 <h2 id="design-choices-and-trade-offs">Design choices and trade-offs<a class="headerlink" href="#design-choices-and-trade-offs" title="Permanent link">&para;</a></h2>
 <p><strong>One contract: <code>encode</code> returns a description, the engine hashes.</strong> It is the only way to make
 cycles, depth, sharing, <code>length</code> and the placeholder properties of the engine instead of the
-discipline of every hasher, and it is what <code>equality</code>, <code>summary</code> and <code>recursive</code> do. The alternative,
-a context object passed to a <code>hash(data, ctx)</code> method, removes the repeated parameters but a hasher
-still recurses, so the cycle protection stays per hasher and the engine cannot be an explicit loop.</p>
+discipline of every hasher, and it is what <code>equality</code>, <code>summary</code> and <code>recursive</code> do. The
+alternative, a context object passed to a <code>hash(data, ctx)</code> method, removes the repeated parameters
+but a hasher still recurses, so the cycle protection stays per hasher and the engine cannot be an
+explicit loop.</p>
 <p><strong>The caller chooses the length of the hash.</strong> <code>hash_object(x, length=16)</code> returns 16 characters (an
-even <code>int</code> from 2 to 128). Internally one 64-byte digest is computed and the first <code>length</code> characters
-are kept: no <code>size</code> argument in the engine, no special case for the root. A side effect is that the
-hash of a shorter length is the start of the longer one, so a short id can be matched against a stored
-full hash with <code>startswith</code>. Computing the root with <code>digest_size = length // 2</code> gives independent
-values at each length, at the cost of one more argument in the engine.</p>
+even <code>int</code> from 2 to 128). Internally one 64-byte digest is computed and the first <code>length</code>
+characters are kept: no <code>size</code> argument in the engine, no special case for the root. A side effect
+is that the hash of a shorter length is the start of the longer one, so a short id can be matched
+against a stored full hash with <code>startswith</code>. Computing the root with <code>digest_size = length // 2</code>
+gives independent values at each length, at the cost of one more argument in the engine.</p>
 <p><strong>Shared containers are memoized.</strong> Unlike <code>recursive_apply</code>, a hash is pure, so the memo is
 unobservable, and it turns a DAG from exponential to linear. The cost is one dictionary entry per
-container and the objects kept alive until the call ends, which also makes the <code>id</code> reuse of temporary
-children impossible. Without the memo, a plain set of ancestors detects cycles with three lines less,
-but 2^20 paths take 4 s.</p>
-<p><strong>A cycle is an error.</strong> <code>objects_are_equal</code> accepts a cyclic structure and says "equal", so strictly
-"equal implies the same hash" is violated by a cycle. A deterministic back-reference (the distance to
-the ancestor) would make a cycle hashable, but the digest of a container in a cycle would then depend
-on where it is reached from, which breaks the memo and the "hash of a child is reusable" property. A
-cycle in a hashed configuration is almost always a bug, so the loud error is the better default.</p>
+container and the objects kept alive until the call ends, which also makes the <code>id</code> reuse of
+temporary children impossible. Without the memo, a plain set of ancestors detects cycles with three
+lines less, but 2^20 paths take 4 s.</p>
+<p><strong>A cycle is an error.</strong> <code>objects_are_equal</code> accepts a cyclic structure and says "equal", so
+strictly "equal implies the same hash" is violated by a cycle. A deterministic back-reference (the
+distance to the ancestor) would make a cycle hashable, but the digest of a container in a cycle
+would then depend on where it is reached from, which breaks the memo and the "hash of a child is
+reusable" property. A cycle in a hashed configuration is almost always a bug, so the loud error is
+the better default.</p>
 <p><strong>A custom object says what its content is.</strong> <code>__coola_hash__(self) -&gt; object</code> returns the content;
 the object does not recurse, there is no signature inspection, and the name cannot collide with a
 library method such as <code>polars.Series.hash</code>. The alternative, <code>hash(registry, length,
@@ -3618,19 +3625,19 @@ ignore_unhashable)</code>, forces the engine to support a re-entrant, parameteri
 traversal to unwrap secrets, and the policy is the one of the registry, so a caller that wants
 <code>reveal</code> builds a registry once. Keeping an <code>on_secret</code> argument on the model hasher would treat a
 secret in a dict differently from a secret in a model.</p>
-<p><strong>Short leaves are inlined in the preimage of their parent.</strong> A flat container of short items makes one
-BLAKE2b call, which is about 4 times faster than one call per item. The price is two forms of child
-entry (a size byte and the leaf, or a marker and a digest). Streaming the digests of an ordered node
-into a running <code>blake2b</code> object (memory) is the optimisation that is held back until a benchmark or a
-user shows that hashing a million-element list is on a hot path.</p>
+<p><strong>Short leaves are inlined in the preimage of their parent.</strong> A flat container of short items makes
+one BLAKE2b call, which is about 4 times faster than one call per item. The price is two forms of
+child entry (a size byte and the leaf, or a marker and a digest). Streaming the digests of an
+ordered node into a running <code>blake2b</code> object (memory) is the optimisation that is held back until a
+benchmark or a user shows that hashing a million-element list is on a hot path.</p>
 <p><strong>No public leaf functions.</strong> A function such as <code>hash_string</code> hashes one value under a tag with a
 <code>length</code>, which is <code>hash_object</code> for a scalar, and it keeps <code>length</code> in the leaf code. A caller that
 wants a plain BLAKE2b of a string uses <code>hashlib</code>. <code>tagged</code> and <code>digest</code> are public because a custom
 hasher needs them.</p>
 <p><strong>A format version in the digest.</strong> <code>person=b"coola-hash-1"</code> costs nothing, makes two formats
-impossible to confuse (a stored hash of another format never equals a new one by accident), and turns
-a deliberate format change into a one-line constant plus the golden vectors. Without it, only the
-golden vectors would signal a format change.</p>
+impossible to confuse (a stored hash of another format never equals a new one by accident), and
+turns a deliberate format change into a one-line constant plus the golden vectors. Without it, only
+the golden vectors would signal a format change.</p>
 <p><strong>The stable registry and the plugin group.</strong> The plugin group is how a library adds its types, and
 <code>get_stable_registry()</code> keeps the identifiers independent of the plugins.</p>
 <p><strong>Only <code>compare=True</code> fields of a dataclass.</strong> It is the rule of <code>objects_are_equal</code>, so equal
@@ -3638,9 +3645,10 @@ dataclasses have the same hash, and a cache or a lazily computed field cannot ma
 different. A user who wants every field registers a hasher of their own.</p>
 <h2 id="not-covered">Not covered<a class="headerlink" href="#not-covered" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Hashes of types that equality supports and hashing does not.</strong> The next candidates are <code>Index</code>, <code>MultiIndex</code> and <code>Categorical</code> as values, <code>np.datetime64</code>,
-  <code>np.timedelta64</code>, <code>array.array</code>, <code>dict_keys</code>, <code>dict_values</code>, <code>dict_items</code>, <code>slice</code>, <code>Ellipsis</code>,
-  <code>re.Pattern</code>, <code>torch.dtype</code> and <code>torch.device</code>. Each is one hasher and one registration.</li>
+<li><strong>Hashes of types that equality supports and hashing does not.</strong> The next candidates are <code>Index</code>,
+  <code>MultiIndex</code> and <code>Categorical</code> as values, <code>np.datetime64</code>, <code>np.timedelta64</code>, <code>array.array</code>,
+  <code>dict_keys</code>, <code>dict_values</code>, <code>dict_items</code>, <code>slice</code>, <code>Ellipsis</code>, <code>re.Pattern</code>, <code>torch.dtype</code> and
+  <code>torch.device</code>. Each is one hasher and one registration.</li>
 <li><strong>Functions, classes and other callables</strong> are not hashed (a class in a configuration needs its
   own hasher). A <code>type</code> hasher by qualified name is a one-line registration if a user asks.</li>
 <li><strong>Hashing the content of a file</strong> (<code>ResolvedPathHasher</code> hashes the path, not the file).</li>

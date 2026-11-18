@@ -2905,14 +2905,17 @@
 
 
 <h1 id="architecture-of-coolarandom">Architecture of <code>coola.random</code><a class="headerlink" href="#architecture-of-coolarandom" title="Permanent link">&para;</a></h1>
-<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.random</code> package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the <a href="../../uguide/random/#properties">user guide</a>; the API is in the <a href="../../refs/random/">reference</a>.</p>
+<p><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f4d6.svg" title=":book:" /> This page describes the design of the <code>coola.random</code> package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the <a href="../../uguide/random/#properties">user guide</a>; the API is in the
+<a href="../../refs/random/">reference</a>.</p>
 <h2 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Simple and easy to maintain.</strong> The package seeds three libraries. The registry of managers reuses
-   <code>coola.registry.Registry</code> instead of re-implementing it, and there is one way to scope a seed
-   (<code>random_seed</code>, or <code>Manager().seed</code>), not one function per library.</li>
-<li><strong>Reproducible.</strong> Reproducibility of the user's experiments is the whole point of the package: the
-   random numbers produced by a seed must not change between versions (see
+<li><strong>Simple and easy to maintain.</strong> The package seeds three libraries. The registry of managers
+   reuses <code>coola.registry.Registry</code> instead of re-implementing it, and there is one way to scope a
+   seed (<code>random_seed</code>, or <code>Manager().seed</code>), not one function per library.</li>
+<li><strong>Reproducible.</strong> Reproducibility of the user's experiments is the whole point of the package:
+   the random numbers produced by a seed must not change between versions (see
    <a href="#design-choices-and-trade-offs">the NumPy seed</a>).</li>
 <li><strong>Standalone helper.</strong> <code>coola.random</code> imports only core packages (<code>registry</code>, <code>utils</code>,
    <code>display</code>). It is not a type-dispatch registry and does not become one (the key of a manager is a
@@ -3006,8 +3009,9 @@ state beyond the key to manager mapping.</p>
 </tr>
 </tbody>
 </table>
-<p>There is no <code>numpy_seed</code> or <code>torch_seed</code> shortcut: <code>NumpyRandomManager().seed(42)</code> is the same context
-manager with the same name as every other manager, and <code>random_seed(42)</code> covers the common case.</p>
+<p>There is no <code>numpy_seed</code> or <code>torch_seed</code> shortcut: <code>NumpyRandomManager().seed(42)</code> is the same
+context manager with the same name as every other manager, and <code>random_seed(42)</code> covers the common
+case.</p>
 <h3 id="the-contract-of-a-manager">The contract of a manager<a class="headerlink" href="#the-contract-of-a-manager" title="Permanent link">&para;</a></h3>
 <p>Documented in <code>BaseRandomManager</code>, and checked for every manager by one parametrised unit test
 (a <code>MANAGERS</code> list built with the <code>*_available</code> fixtures, like <code>NATIVE_SAMPLES</code> in <code>equality</code>):</p>
@@ -3061,8 +3065,8 @@ must not behave differently from <code>manual_seed(-1)</code>).</p>
         <span class="n">validate_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>  <span class="c1"># seeds the CPU, CUDA (lazily) and MPS generators</span>
 </code></pre></div>
-<p><code>get_rng_state</code> and <code>set_rng_state</code> of the torch manager cover the CPU, CUDA (only if initialized) and
-MPS generators, with a check of the CUDA device count and of MPS on restore.</p>
+<p><code>get_rng_state</code> and <code>set_rng_state</code> of the torch manager cover the CPU, CUDA (only if initialized)
+and MPS generators, with a check of the CUDA device count and of MPS on restore.</p>
 <h3 id="randommanagerregistry"><code>RandomManagerRegistry</code><a class="headerlink" href="#randommanagerregistry" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">RandomManagerRegistry</span><span class="p">(</span><span class="n">Registry</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseRandomManager</span><span class="p">],</span> <span class="n">BaseRandomManager</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_rng_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
