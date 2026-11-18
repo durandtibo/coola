@@ -1,6 +1,7 @@
 # Testing Guide for coola
 
-This guide documents the testing conventions and best practices used in the coola project. All contributors should follow these guidelines when writing tests.
+This guide documents the testing conventions and best practices used in the coola project. All
+contributors should follow these guidelines when writing tests.
 
 ## Table of Contents
 
@@ -23,7 +24,7 @@ This guide documents the testing conventions and best practices used in the cool
 
 Tests are organized into the following categories:
 
-```
+```text
 tests/
 ├── unit/           # Unit tests for individual components
 │   ├── equality/
@@ -45,7 +46,8 @@ tests/
   `property` dependency group)
 - **Benchmarks**: Measure the performance (`inv test.benchmark`). The import time of
   `coola` and of each subpackage is measured in a fresh interpreter
-  (`inv test.benchmark-import`). The nightly `Benchmark` workflow runs them and fails if a benchmark is more than 50% slower than in the previous run
+  (`inv test.benchmark-import`). The nightly `Benchmark` workflow runs them and fails if a benchmark
+  is more than 50% slower than in the previous run
 - **Doctests**: The examples of the docstrings and of the Markdown files are tests
   (`inv test.doctest`)
 - **CUDA tests**: Marked with `cuda_available`; they are skipped without a GPU
@@ -74,7 +76,8 @@ All test files must follow the pytest convention:
 Examples:
 
 - Source: `src/coola/utils/format.py` → Test: `tests/unit/utils/test_format.py`
-- Source: `src/coola/equality/_helpers/scalar.py` → Test: `tests/unit/equality/_helpers/test_scalar.py`
+- Source: `src/coola/equality/_helpers/scalar.py` → Test:
+  `tests/unit/equality/_helpers/test_scalar.py`
 
 ## Test Function Naming
 
@@ -82,7 +85,7 @@ Test functions should clearly describe what is being tested and under what condi
 
 ### Pattern
 
-```
+```text
 test_<class_or_function>_<specific_behavior>_<condition>
 ```
 
@@ -409,7 +412,8 @@ the samples that only that package needs.
 
 ### Parametrize Marker
 
-The `@pytest.mark.parametrize` marker is used extensively (see [Parametrization](#parametrization) section).
+The `@pytest.mark.parametrize` marker is used extensively (see [Parametrization](#parametrization)
+section).
 
 ### Optional Dependency Markers
 

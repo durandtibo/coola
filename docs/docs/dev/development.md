@@ -136,7 +136,7 @@ pre-commit run --all-files
 mkdocs serve -f docs/mkdocs.yml
 ```
 
-Then open http://127.0.0.1:8000 in your browser.
+Then open <http://127.0.0.1:8000> in your browser.
 
 **Build documentation without serving:**
 
@@ -161,7 +161,7 @@ ty check
 
 ## Project Structure
 
-```
+```text
 coola/
 ├── .github/               # GitHub configuration
 │   ├── workflows/        # CI/CD workflows
@@ -221,6 +221,7 @@ coola/
    ```
 
 6. **Push and create PR:**
+
    ```shell
    git push origin feature/my-feature
    ```
@@ -250,6 +251,7 @@ coola/
    ```
 
 6. **Commit and push:**
+
    ```shell
    git commit -m "Fix: description of bug fix"
    git push origin fix/bug-description
@@ -304,6 +306,7 @@ uv lock
    ```
 
 4. **Test both success and failure cases:**
+
    ```python
    def test_success_case():
        assert objects_are_equal(obj1, obj2)

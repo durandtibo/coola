@@ -1,20 +1,30 @@
 # Architecture of `coola.identifier`
 
-:book: This page describes the design of the `coola.identifier` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/identifier.md#properties); the API is in the [reference](../refs/identifier.md).
+:book: This page describes the design of the `coola.identifier` package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the [user guide](../uguide/identifier.md#properties); the API is in
+the [reference](../refs/identifier.md).
 
 ## Overview
 
 The package has **two families and one clock rule**. The content-derived identifiers
 (`content.py`) are a function of the data through `coola.hashing`; the time-ordered identifiers
-(`ulid.py`, `uuid7.py`, `objectid.py`, `snowflake.py`) are a **format** (a bit layout and an encoding)
-on top of **one engine**, `TickSequence` (`sequence.py`). A format module has no lock, no clock and no
-fork code: it asks the engine for a `(tick, counter)` pair and packs it. The engine has three cases and
+(`ulid.py`, `uuid7.py`, `objectid.py`, `snowflake.py`) are a **format** (a bit layout and an
+encoding)
+on top of **one engine**, `TickSequence` (`sequence.py`). A format module has no lock, no clock and
+no
+fork code: it asks the engine for a `(tick, counter)` pair and packs it. The engine has three cases
+and
 none of them raises or waits: a new tick restarts the counter (random, or `0` for Snowflake whose
-uniqueness comes from its `worker_id`), the same tick or a clock that went back increments it, and an
-exhausted counter borrows the next tick, so the timestamp of an identifier can run ahead of the clock
+uniqueness comes from its `worker_id`), the same tick or a clock that went back increments it, and
+an
+exhausted counter borrows the next tick, so the timestamp of an identifier can run ahead of the
+clock
 until the clock catches up. The state is per object and protected by a lock, and
-`coola.utils.fork.track_fork` resets it in a forked child; a `SnowflakeIdGenerator`, whose `worker_id`
-the child cannot choose, raises there instead. `crockford.py` is the one Crockford Base32 encoder and
+`coola.utils.fork.track_fork` resets it in a forked child; a `SnowflakeIdGenerator`, whose
+`worker_id`
+the child cannot choose, raises there instead. `crockford.py` is the one Crockford Base32 encoder
+and
 decoder (ULID and the checksummed identifiers), and the range and type checks come from
 `coola.validation`. The extractors are the strict inverse of the generators: they accept the
 canonical form only. See the [user guide](../uguide/identifier.md#properties) for the properties of
@@ -25,10 +35,12 @@ the package.
 1. **Simple and easy to maintain.** Eleven generators, one engine for "an identifier that increases
    with the time", and no code that exists only because of the shape of the API (no spin-wait, no
    persistence arguments, no duplicated decoder).
-2. **Persisted formats are stable.** No compatibility alias is kept. The stable identifiers keep their
+2. **Persisted formats are stable.** No compatibility alias is kept. The stable identifiers keep
+   their
    values (golden vectors), because users persist them.
 3. **Scope.** A generator stays if it is hard to write correctly (a bit layout, an encoding, a
-   monotonic counter, a content hash) **and** safe to use. A one-line wrapper of the standard library
+   monotonic counter, a content hash) **and** safe to use. A one-line wrapper of the standard
+   library
    and a primitive that looks like encryption do not belong here.
 4. **Fast.** The time-ordered generators go through one lock and a few integer operations; the
    benchmark gate must hold.
@@ -38,7 +50,7 @@ the package.
 
 ## Architecture in detail
 
-```
+```text
 coola/identifier/
     __init__.py       the public names, the package docstring with the Properties
     content.py        generate_stable_content_id, generate_stable_uuid5        (uses coola.hashing)
@@ -58,8 +70,10 @@ There are two families and nothing else:
   encoding) on top of **one engine** (`TickSequence`). A format module contains no lock, no clock
   and no fork code: it asks the engine for a `(tick, counter)` pair and packs it.
 
-`checksummed.py` is the only module of a third kind (a random code for a human). It stays because the
-Crockford checksum is a real piece of work that nobody should rewrite, and it shares the decoder with
+`checksummed.py` is the only module of a third kind (a random code for a human). It stays because
+the
+Crockford checksum is a real piece of work that nobody should rewrite, and it shares the decoder
+with
 ULID.
 
 ### The engine: one clock rule
@@ -94,7 +108,8 @@ class TickSequence:
         self._tick, self._counter = -1, 0
 ```
 
-The engine has two parameters: the length of a tick (a millisecond, or a second for ObjectId) and the
+The engine has two parameters: the length of a tick (a millisecond, or a second for ObjectId) and
+the
 start of the counter (random for the identifiers that must not collide across processes, `0` for
 Snowflake whose uniqueness comes from the `worker_id`).
 
@@ -103,14 +118,17 @@ Design points:
 - **The three cases of `next` are the whole rule.** A new tick restarts, the same tick (or a clock
   that went back) increments, an exhausted counter borrows the next tick. No case raises or waits,
   so no case needs a lock to be held for longer than a few operations.
-- **Strictly increasing is a property of the pair**, and the pair is packed with the tick in the high
+- **Strictly increasing is a property of the pair**, and the pair is packed with the tick in the
+  high
   bits, so the packed value (and its string form for ULID, UUIDv7 and ObjectId) sorts like the pair.
 - **The timestamp may run ahead of the wall clock** (burst or backward step); this is stated in the
   guide. For Snowflake it happens above 4,096 identifiers per millisecond (4 million per second).
-  Not raising or sleeping on a backward clock costs the accuracy of the embedded timestamp, never the
+  Not raising or sleeping on a backward clock costs the accuracy of the embedded timestamp, never
+  the
   order or the uniqueness; raising for Snowflake only would need a second clock rule in
   `snowflake.py`, and the caller would have to retry.
-- **The validation of the packed timestamp stays in the format module** (a ULID timestamp is 48 bits,
+- **The validation of the packed timestamp stays in the format module** (a ULID timestamp is 48
+  bits,
   a Snowflake one is 41 bits from its epoch), after `next`, so a borrowed tick that leaves the range
   raises a `ValueError` like an explicit one.
 
@@ -144,8 +162,10 @@ Details of the formats:
 - **ObjectId** is 4 bytes of seconds followed by 64 bits drawn at the start of each second and
   incremented. The 24 hexadecimal characters, the timestamp field and the sort order are those of an
   ObjectId; the identifier is strictly increasing within a process and needs no per-process value to
-  reset after a fork. The documented MongoDB layout (a 5-byte per-process value and a 3-byte counter)
-  is not used, which only matters to a tool that decodes those two fields; `extract_object_id_timestamp_s`
+  reset after a fork. The documented MongoDB layout (a 5-byte per-process value and a 3-byte
+  counter)
+  is not used, which only matters to a tool that decodes those two fields;
+  `extract_object_id_timestamp_s`
   reads the same bytes.
 - **Snowflake** takes its `worker_id` in the constructor (required: no default `0`), owns one
   `TickSequence(bits=12, random_start=False)`, and has no module-level function and no default
@@ -153,17 +173,20 @@ Details of the formats:
   child, `_reset_after_fork` sets a flag and `generate` raises
   `RuntimeError("SnowflakeIdGenerator cannot be used in a forked process: create one with its own worker_id")`,
   so a silent duplicate becomes a loud error. The price is one more line in the caller
-  (`SnowflakeIdGenerator(worker_id=3)` once per process); a `generate_snowflake_id(worker_id)` backed
+  (`SnowflakeIdGenerator(worker_id=3)` once per process); a `generate_snowflake_id(worker_id)`
+  backed
   by a dictionary of generators would keep the two-line call at the cost of a global.
 - **Crockford** has one decoder: case-insensitive, `O` is `0`, `I` and `L` are `1` (the rule of the
   specification, applied to ULID too), and `encode(value, length)`. `verify_checksummed_id` and
   `extract_ulid_timestamp_ms` call it.
 - **Validation** is `validate_int` then `validate_closed_range` of `coola.validation`, with the
   parameter name, written inline (two lines per parameter). The 48-bit timestamp check of ULID and
-  UUIDv7 is repeated in the two modules instead of being a shared private helper: it is two lines, and
+  UUIDv7 is repeated in the two modules instead of being a shared private helper: it is two lines,
+  and
   a private helper must not be imported across modules.
 - **Strict extractors** accept the canonical form only. `extract_uuid7_timestamp_ms` takes the
-  36-character form that `generate_uuid7` returns (any case), not `{...}` or `urn:uuid:`; the ObjectId
+  36-character form that `generate_uuid7` returns (any case), not `{...}` or `urn:uuid:`; the
+  ObjectId
   extractor takes 24 hex characters; the ULID extractor takes 26 Crockford characters. A caller who
   has a `uuid.UUID` passes `str(...)`. Accepting `uuid.UUID | str` would add one `isinstance`.
 - **`generate_uuid7` is our own.** `uuid.uuid7()` exists in Python 3.14 and `requires-python` is
@@ -200,17 +223,21 @@ def generate_stable_uuid5(
 ```
 
 The values are covered by golden vectors. The UUID is limited by its 122 random bits (birthday bound
-2^61), not by SHA-1; use `generate_stable_content_id` when more bits are needed. The stable identifiers
+2^61), not by SHA-1; use `generate_stable_content_id` when more bits are needed. The stable
+identifiers
 live in `coola.identifier`: `identifier` depends on `hashing`, and a contract forbids the reverse
-import. Moving them into `coola.hashing` would make `identifier` standalone, but the name users know,
+import. Moving them into `coola.hashing` would make `identifier` standalone, but the name users
+know,
 and the guide, would move for little benefit.
 
 ### The checksummed identifiers
 
 - `generate_checksummed_id(*, length=12, group_size=4, sep="-")` and
   `verify_checksummed_id(identifier, *, sep="-")`: keyword-only options.
-- **The generator never emits the extended check symbols.** If the mod-37 remainder of the payload is
-  32 or more, the payload is drawn again (5 of 37 payloads, 1.16 draws on average), so the identifier
+- **The generator never emits the extended check symbols.** If the mod-37 remainder of the payload
+  is
+  32 or more, the payload is drawn again (5 of 37 payloads, 1.16 draws on average), so the
+  identifier
   is made of `0-9A-Z` and the separator: safe in a shell, a URL and a spreadsheet. The cost is
   `log2(37/32)`, that is 0.21 bit of the entropy of a 60-bit payload. `verify_checksummed_id` still
   accepts the five symbols of the specification, so identifiers from another implementation verify.
@@ -240,7 +267,8 @@ from coola.identifier import (
 )
 ```
 
-Options are keyword-only (`timestamp_ms`, `timestamp_s`, `worker_id`, `length`, `group_size`, `sep`).
+Options are keyword-only (`timestamp_ms`, `timestamp_s`, `worker_id`, `length`, `group_size`,
+`sep`).
 
 The package deliberately has no generator for a one-line wrapper of the standard library or for a
 primitive that looks like encryption. What to use instead:
@@ -254,7 +282,8 @@ primitive that looks like encryption. What to use instead:
 | a Snowflake identifier      | `SnowflakeIdGenerator(worker_id=...)` created once per process                 |
 | a deterministic ObjectId    | `generate_object_id(timestamp_s=...)`                                          |
 
-An obfuscated identifier (an affine permutation of an integer) looks like encryption, leaks the parity
+An obfuscated identifier (an affine permutation of an integer) looks like encryption, leaks the
+parity
 and is broken by two pairs, so it needs a long list of caveats; a user who needs an opaque public
 identifier should get one from a library made for it.
 
@@ -274,18 +303,25 @@ identifier should get one from a library made for it.
 | `SnowflakeIdGenerator(*, worker_id)`, no module-level function                            | the wrong code (a shared `worker_id`) does not exist                 |
 | Checksummed identifier with rejection sampling                                            | the output is usable in a shell, a URL and a spreadsheet             |
 
-**How much of the package exists.** The rule is "a generator stays if it is hard to write correctly and
-safe". A UUID4, a prefixed identifier or a nano ID is a line of the standard library and would cost a
-module, a docstring and tests each. The alternatives are to keep everything (more source and tests to
+**How much of the package exists.** The rule is "a generator stays if it is hard to write correctly
+and
+safe". A UUID4, a prefixed identifier or a nano ID is a line of the standard library and would cost
+a
+module, a docstring and tests each. The alternatives are to keep everything (more source and tests
+to
 maintain, and a `Callable`-based prefixed generator), or to move the whole package into a separate
-distribution and keep only `content.py` in `coola`; the second is the cleanest layering and more work
+distribution and keep only `content.py` in `coola`; the second is the cleanest layering and more
+work
 for users, and is worth considering if the time-ordered formats keep growing.
 
-**The checksummed identifier.** It shares code with ULID (the decoder), its detection claim is true and
-tested, and rejection sampling makes its output usable for what it is for. If the package were split,
+**The checksummed identifier.** It shares code with ULID (the decoder), its detection claim is true
+and
+tested, and rejection sampling makes its output usable for what it is for. If the package were
+split,
 it would move with the other generators.
 
-**The clock rule.** Raising a `RuntimeError` on a backward clock for Snowflake only would need the second
+**The clock rule.** Raising a `RuntimeError` on a backward clock for Snowflake only would need the
+second
 rule back in `snowflake.py`, a `time.sleep` for the spin-wait, and a guide paragraph on NTP.
 
 **ObjectId.** Keeping the MongoDB layout would need a per-process value stored in a

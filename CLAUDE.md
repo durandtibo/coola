@@ -4,11 +4,13 @@
 
 - Use the virtual environment in `.venv`: `.venv/bin/python`, `.venv/bin/pytest`, `.venv/bin/ruff`.
   There is no `python` on the `PATH`.
-- Lint and format before committing: `.venv/bin/ruff check src tests` and `.venv/bin/ruff format src tests`.
+- Lint and format before committing: `.venv/bin/ruff check src tests` and
+  `.venv/bin/ruff format src tests`.
   Fix the issues raised by ruff. Ignoring an issue (`noqa`, a changed rule set) is not fixing it.
 - Type check with `.venv/bin/ty check`. Fix the issues raised by ty. Ignoring an issue
   (`type: ignore`, `ty: ignore`, a cast that hides the problem) is not fixing it.
-- Run the unit tests of the packages you changed (for example `.venv/bin/pytest tests/unit/hashing -q`).
+- Run the unit tests of the packages you changed (for example
+  `.venv/bin/pytest tests/unit/hashing -q`).
   Some tests fail on `main`; check with `git stash` before blaming your change.
 
 ## Workflow
@@ -64,7 +66,8 @@
 
 ## Tests
 
-- Always write tests for the code in `src/`, including every private function. Unit tests must be fast and efficient; move big or
+- Always write tests for the code in `src/`, including every private function. Unit tests must be
+  fast and efficient; move big or
   slow tests to `tests/integration/` if needed.
 - Unit tests mirror the source tree (`tests/unit/<package>/test_<module>.py`). Cross-thread
   behaviour goes in `tests/integration/`, using `run_threads` from `tests/integration/helpers.py`,

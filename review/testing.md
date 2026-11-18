@@ -98,14 +98,14 @@ that holds the name).
 
 ## 3. Architecture
 
-```
+```text
 coola/testing/
     __init__.py     package docstring (properties), __all__ = []
     marks.py        requires(), the table of dependencies, the lazy marks     (about 90 lines)
     fixtures.py     isolated_default_registries                               (about 40 lines)
 ```
 
-```
+```text
 test module                      coola.testing.marks                          coola.utils.imports
 -----------                      -------------------                          -------------------
 from ...marks import             module __getattr__("numpy_available")
@@ -115,7 +115,7 @@ from ...marks import             module __getattr__("numpy_available")
 @numpy_available       <-------   pytest.mark.skipif(not available, reason=...)
 ```
 
-```
+```text
 conftest.py (top of the suite)           coola.testing.fixtures
 ------------------------------           ----------------------
 pytest_plugins = ["coola.testing.fixtures"]  ->  @pytest.fixture isolated_default_registries
@@ -289,7 +289,7 @@ test, literal expected values, a regression test for every bug, no local imports
   (Kept: these are fast and about the function.)
 - **The table**: **one** parametrised test per property over `_DEPENDENCIES` (not five pasted
   lists): every key gives a pair of marks; the two marks are opposite (`args[0]` differs); the
-  reasons start with `Requires ` / `Skip if ` and the second ends with ` is available`. To stay
+  reasons start with "Requires " / "Skip if " and the second ends with " is available". To stay
   fast the test patches the check of the key (`monkeypatch.setitem(_DEPENDENCIES, key,
 _Dependency(lambda: True, "X"))`) instead of importing `torch`, `jax` and `pandas`; the real
   checks are covered by the integration test below.
@@ -297,7 +297,8 @@ _Dependency(lambda: True, "X"))`) instead of importing `torch`, `jax` and `panda
   the attribute (kept); the message lists the valid names (new); the marks are cached and created
   together (kept, reduced to two tests); `__all__` equals `["requires"]` plus the two names of every
   row, asserted against a fully-specified literal built from a **two-row table** patched into the
-  module (no assertion on `len == 28`, which fails each time a dependency is added); `dir()` contains
+  module (no assertion on `len == 28`, which fails each time a dependency is added); `dir()`
+  contains
   the marks.
 - **Removed**: `test_all_exports_new_not_available_fixtures`, `test_requires_is_in_all`,
   `test_requires_is_callable` (tests of `__all__` and `callable`), `test_all_names_are_markers`
@@ -347,14 +348,16 @@ confusion stays for every new reader.
 **D2. How a suite gets the fixture.** _Recommended: `pytest_plugins = ["coola.testing.fixtures"]`
 in the top-level `conftest.py`, documented._ It is the supported mechanism, needs no `__all__`
 hack and no re-export in each directory. Alternatives: (a) keep the re-export in `conftest.py`
-(works, F2 boilerplate); (b) register `coola.testing.fixtures` through a `pytest11` entry point so it
+(works, F2 boilerplate); (b) register `coola.testing.fixtures` through a `pytest11` entry point so
+it
 is loaded in every session where `coola` and `pytest` are installed. (b) is the least typing but
 **intrusive**: `coola` is a dependency of ML code, and a library should not add a plugin and a
 fixture name to the sessions of projects that did not ask for it. Not recommended. The fixture is
 **not** autouse in any case: isolation costs a copy of six registries per test and most tests do not
 register anything.
 
-**Decision: follow the recommendation.** `pytest_plugins` in the top-level `conftest.py`; no entry point, not autouse.
+**Decision: follow the recommendation.** `pytest_plugins` in the top-level `conftest.py`; no entry
+point, not autouse.
 
 **D3. Keep the device marks (`torch_cuda_*`, `torch_mps_*`, `torch_numpy_*`)?** Three options were
 considered: keep all three, keep `torch_cuda_*` and `torch_mps_*` and drop `torch_numpy_*` (no user
@@ -362,7 +365,8 @@ in the repository; a downstream suite could write `requires(is_torch_numpy_avail
 and NumPy")`), or drop all of them (the MPS probe, 1.2 s, would then be paid at the import of each
 test module that rebuilds the condition by hand).
 
-**Decision: keep all three.** `torch_numpy_*` stays in the table (one row, singular name "PyTorch with NumPy"); the three hand-written CUDA/MPS conditions are replaced by the marks (step 4).
+**Decision: keep all three.** `torch_numpy_*` stays in the table (one row, singular name "PyTorch
+with NumPy"); the three hand-written CUDA/MPS conditions are replaced by the marks (step 4).
 
 **D4. Keep the `*_not_available` marks?** _Recommended: yes._ They are the property "Paired marks",
 they cost nothing in the table (built by the same call), and a fallback path that is never tested is
@@ -380,7 +384,8 @@ document and lint instead._ `numpy_available` reads well on a test, and the modu
 guide. Alternative: rename the marks `requires_numpy` / `without_numpy`, which makes the clash
 impossible but changes 93 files by hand-written names instead of a path.
 
-**Decision: no.** Keep the names; the clash is handled by the guide and the `banned-api` lint rule, as recommended.
+**Decision: no.** Keep the names; the clash is handled by the guide and the `banned-api` lint rule,
+as recommended.
 
 **D6. Catch the missing `pytest` with a friendly error?** _Recommended: no._ `import pytest` at the
 top of the module raises `ModuleNotFoundError: No module named 'pytest'`, which a test author

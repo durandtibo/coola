@@ -88,7 +88,7 @@ Not guaranteed, and documented as such:
 
 ## 3. Architecture
 
-```
+```text
 factory(_target_, *args, _init_="__init__", _allowed_prefixes_=None, **kwargs)
 resolve_object(obj, cls=object, *, allowed_prefixes=None, strict=False)
 is_object_config(config, cls, *, allowed_prefixes=None, import_target=False)
@@ -180,7 +180,8 @@ def instantiate_object(
     return result
 ```
 
-The positional-only `obj` makes `instantiate_object(C, obj=1, cls=2)` work: both go to the target. The
+The positional-only `obj` makes `instantiate_object(C, obj=1, cls=2)` work: both go to the target.
+The
 `"__new__"` branch and its `Warning` are deleted (decision D2).
 
 ### 3.4 `builds` (new module `target.py`)
@@ -263,15 +264,18 @@ def is_object_config(config, cls, *, allowed_prefixes=None, import_target=False)
 Notes on the sketch:
 
 - `resolve_object` no longer calls `factory`. `factory` is the `**`-friendly API for code that has
-  the arguments; `resolve_object` is the API for configurations, and the check between the import and
+  the arguments; `resolve_object` is the API for configurations, and the check between the import
+  and
   the call needs the imported object. The duplication is the four lines of `_build`.
-- `_RESERVED = (OBJECT_TARGET, OBJECT_INIT, OBJECT_PREFIXES)`. `_allowed_prefixes_` in a configuration
+- `_RESERVED = (OBJECT_TARGET, OBJECT_INIT, OBJECT_PREFIXES)`. `_allowed_prefixes_` in a
+  configuration
   is dropped silently (documented): the policy is the caller's (F6, D3).
 - `_refuse_nested_configurations(args, kwargs)` raises `ValueError` if a value of the arguments is a
   `dict` with `_target_`. Only the top level is scanned (D4).
 - `_not_an_instance_message` adds, for a `dict`, "(a configuration needs the `_target_` key)", so
   the useful part of today's "missing the `_target_` key" error is kept in the single `TypeError`.
-- An explicit `_init_="__init__"` is checked like the default (today the presence of the key skips the
+- An explicit `_init_="__init__"` is checked like the default (today the presence of the key skips
+  the
   check).
 - The `logger.info("Initializing a ...")` line is kept (the siblings log at the same level).
 
@@ -326,7 +330,7 @@ Behaviour changes (for the migration page):
 
 | Package                                           | Change                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `io.base` (`resolve_loader`, `resolve_saver`)     | Unchanged code. A dict without `_target_` now fails with `Received object is not a BaseLoader instance (received: <class 'dict'>; a configuration needs the `_target_` key)` instead of "missing the `_target_` key". No test of `io` matches the old message; the two tests of `tests/unit/factory/test_resolve.py` that do (lines 465 and 502) are updated. |
+| `io.base` (`resolve_loader`, `resolve_saver`)     | Unchanged code. A dict without `_target_` now fails with ``Received object is not a BaseLoader instance (received: <class 'dict'>; a configuration needs the `_target_` key)`` instead of "missing the `_target_` key". No test of `io` matches the old message; the two tests of `tests/unit/factory/test_resolve.py` that do (lines 465 and 502) are updated. |
 | `io.base` (`is_loader_config`, `is_saver_config`) | Unchanged code. Their docstrings point to `is_object_config`, which keeps the same contract for `allowed_prefixes` and `import_target`.                                                                                                                                                                                                                       |
 | `utils.imports.import_object`                     | Unchanged (D7). Both docstrings cross-reference each other and state the path syntax.                                                                                                                                                                                                                                                                         |
 | Docs                                              | `uguide/factory.md` (rewrite, F9), `dev/architecture.md` (one paragraph on the package), `migration/v1.1_to_v2.0.md` (section 3), `refs/factory.md` unchanged (`::: coola.factory`).                                                                                                                                                                          |
@@ -381,8 +385,10 @@ Unit tests mirror the source tree (`tests/unit/factory/`); the conventions of `C
 behaviour per test, literal expected values, a regression test for every bug, no local imports).
 
 - **`import_object`**: typical path, module path, nested module (`os.path`), empty path and empty
-  module name, non-string, allow-list (equal, child, sibling that shares a string prefix, empty list,
-  bare string), missing module, missing attribute, **a missing dependency of an existing module keeps
+  module name, non-string, allow-list (equal, child, sibling that shares a string prefix, empty
+  list,
+  bare string), missing module, missing attribute, **a missing dependency of an existing module
+  keeps
   its own error** (a module on `tmp_path` that imports a missing package), the message and `name` of
   each `ImportError`.
 - **`instantiate_object`**: class, function, `functools.partial`, callable instance, non-callable,
@@ -390,14 +396,18 @@ behaviour per test, literal expected values, a regression test for every bug, no
   for F1, for a class and for a function); a public class method and a static method; `_init_` that
   starts with `_`, that is not a string, that is missing, that is not callable; an alternative
   constructor that returns another type; `_init_` ignored for a function.
-- **`builds`** (`test_target.py`, new): class, subclass, unrelated class, function with a class hint,
+- **`builds`** (`test_target.py`, new): class, subclass, unrelated class, function with a class
+  hint,
   union (`A | B`, `Union[A, B]`, `A | None`), generic (`list[int]`), tuple of classes for `cls`,
   `None` for a function without hint, a built-in, an unresolvable forward reference, `Any`, a union
   with a member that is not a class. The whole table is one parametrised test.
-- **`resolve_object`**: instance returned as is (same object), configuration built, tuple of classes,
-  `cls=object`, a dict without `_target_` (returned for `dict`/`Mapping`/`object`, `TypeError` and the
+- **`resolve_object`**: instance returned as is (same object), configuration built, tuple of
+  classes,
+  `cls=object`, a dict without `_target_` (returned for `dict`/`Mapping`/`object`, `TypeError` and
+  the
   hint for another `cls`), a dict with `_target_` and `cls=dict` is built (F4), the key `_target_`
-  in a `Counter` is resolved, a generic `cls` raises the `isinstance` error; allow-list: the caller's
+  in a `Counter` is resolved, a generic `cls` raises the `isinstance` error; allow-list: the
+  caller's
   list wins over `_allowed_prefixes_`, the key is ignored without a list, the input is not modified;
   **nested configuration refused with an allow-list and passed without** (F5); the target is **not
   called** when refused (a class with a counter in `__init__`, as `Tracked` in the current tests);
@@ -413,7 +423,8 @@ behaviour per test, literal expected values, a regression test for every bug, no
   `v` (identity) for any value that is not a dict with `_target_`; the configuration is not modified
   (deep copy compared).
 - **Integration** (`tests/integration/factory/`, new, no patching):
-  - **the target is imported once** (F2): a module written to `tmp_path` whose top-level code appends
+  - **the target is imported once** (F2): a module written to `tmp_path` whose top-level code
+    appends
     to a list, resolved through `resolve_object` with a class `cls`; the list has one entry (unit
     tests may count `importlib.import_module` calls with a patch, but the integration test is the
     one that proves it);
@@ -447,30 +458,39 @@ Summary (every decision follows the recommendation):
 the rule that depends on `cls` (F4). The key is reserved, as in Hydra: a dict that has it cannot be
 passed through `resolve_object` as data, and the guide says so. Consequence: the dict-subclass tests
 and the guide warning are deleted, `Mapping`, `dict` and `object` work the same, and the explanation
-of the rule is one sentence. Rejected alternative: keep today's rule; it needs the `issubclass` special case,
+of the rule is one sentence. Rejected alternative: keep today's rule; it needs the `issubclass`
+special case,
 fails for generics, and leaves F4 open.
 
 **D2. Remove `_init_="__new__"` and the underscore names.** **Decided: yes.** `cls(...)` runs
-`__new__` and `__init__`; `cls.__new__(cls, ...)` alone gives a partially initialised object, and the
-data can choose it. A public class method (`from_config`, `fromkeys`, `now`) is what `_init_` is for.
+`__new__` and `__init__`; `cls.__new__(cls, ...)` alone gives a partially initialised object, and
+the
+data can choose it. A public class method (`from_config`, `fromkeys`, `now`) is what `_init_` is
+for.
 Breaking for anybody who wrote `_init_: __new__` (the migration page says to use a class method).
 
 **D3. The allow-list is never read from the data.** **Decided: yes.** The key
-`_allowed_prefixes_` stays as a keyword of `factory` (so `factory(**config, ...)` keeps working), but
+`_allowed_prefixes_` stays as a keyword of `factory` (so `factory(**config, ...)` keeps working),
+but
 `resolve_object` ignores it in a configuration. A policy that the data can narrow looks like a
-feature, and it is a hole in the day somebody lets the data widen it. Rejected alternative: keep reading it
+feature, and it is a hole in the day somebody lets the data widen it. Rejected alternative: keep
+reading it
 when the caller passes none (today); costs nothing, keeps the smell.
 
 **D4. Refuse a nested configuration when an allow-list is active.** **Decided: yes.** It closes the
 exact case of F5 (an allowed function that resolves its arguments) in 5 lines, and it fails closed:
 whoever needs the nested object resolves it first, with the same list, as the guide already tells.
-Limits: it scans the top level of the arguments only (a configuration deeper in a list is not found),
-and it does not help against a prefix that contains `import_object`. It is a mitigation, not a proof;
-the guide says which prefixes must never be allowed. Rejected alternative: documentation only; cheaper, but the
+Limits: it scans the top level of the arguments only (a configuration deeper in a list is not
+found),
+and it does not help against a prefix that contains `import_object`. It is a mitigation, not a
+proof;
+the guide says which prefixes must never be allowed. Rejected alternative: documentation only;
+cheaper, but the
 fix of F1 then exposes F5.
 
 **D5. `dict` or `Mapping` for configurations?** **Decided: `dict`.** JSON and YAML load into
-`dict`; a `DictConfig` is converted by the caller (`to_container`). Accepting any `Mapping` costs one
+`dict`; a `DictConfig` is converted by the caller (`to_container`). Accepting any `Mapping` costs
+one
 word but widens what counts as "a configuration" in a security-relevant check.
 
 **D6. Check the module that defines the target?** **Decided: no.** Comparing `target.__module__` to
@@ -486,7 +506,8 @@ naming gain. Both docstrings state the path syntax and link to each other.
 
 **D8. Support attribute paths (`pkg.module.Class.method`)?** **Decided: no.** It needs a
 loop over prefixes with the "does not exist" detection of section 3.2 at each step. A class method
-is reached with `_init_`, a nested class is rare. (`import_object("collections.OrderedDict.fromkeys")`
+is reached with `_init_`, a nested class is rare.
+(`import_object("collections.OrderedDict.fromkeys")`
 raises `ImportError: The target object does not exist`, with the prototype.) Three reasons: (1) the
 fallback loop must tell an expected failure (`collections.OrderedDict` is not a module) from a real
 one (a module that exists but whose own dependency is missing), which is the `err.name` rule of

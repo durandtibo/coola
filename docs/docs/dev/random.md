@@ -1,13 +1,18 @@
 # Architecture of `coola.random`
 
-:book: This page describes the design of the `coola.random` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/random.md#properties); the API is in the [reference](../refs/random.md).
+:book: This page describes the design of the `coola.random` package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the [user guide](../uguide/random.md#properties); the API is in the
+[reference](../refs/random.md).
 
 ## Constraints
 
-1. **Simple and easy to maintain.** The package seeds three libraries. The registry of managers reuses
+1. **Simple and easy to maintain.** The package seeds three libraries. The registry of managers
+   reuses
    `coola.registry.Registry` instead of re-implementing it, and there is one way to scope a seed
    (`random_seed`, or `Manager().seed`), not one function per library.
-2. **Reproducible.** Reproducibility of the user's experiments is the whole point of the package: the
+2. **Reproducible.** Reproducibility of the user's experiments is the whole point of the package:
+   the
    random numbers produced by a seed must not change between versions (see
    [the NumPy seed](#design-choices-and-trade-offs)).
 3. **Standalone helper.** `coola.random` imports only core packages (`registry`, `utils`,
@@ -22,7 +27,7 @@
 
 ## Architecture
 
-```
+```text
 manual_seed(seed) / random_seed(seed) / get_rng_state() / set_rng_state(state)
         |   module functions: forward to the default registry (or to the registry given)
         v
@@ -61,7 +66,8 @@ state beyond the key to manager mapping.
 | `make_numpy_generator(seed)`                    | A `numpy.random.Generator` (`default_rng(seed)`) with a validated seed (lazy export).                |
 | `sample_torch_seed(seed)`                       | A deterministic seed in `[0, 2**63 - 1)` derived from `seed`, valid for `manual_seed` (lazy export). |
 
-There is no `numpy_seed` or `torch_seed` shortcut: `NumpyRandomManager().seed(42)` is the same context
+There is no `numpy_seed` or `torch_seed` shortcut: `NumpyRandomManager().seed(42)` is the same
+context
 manager with the same name as every other manager, and `random_seed(42)` covers the common case.
 
 ### The contract of a manager
@@ -129,7 +135,8 @@ class TorchRandomManager(InlineDisplayMixin, BaseRandomManager):
         torch.manual_seed(seed)  # seeds the CPU, CUDA (lazily) and MPS generators
 ```
 
-`get_rng_state` and `set_rng_state` of the torch manager cover the CPU, CUDA (only if initialized) and
+`get_rng_state` and `set_rng_state` of the torch manager cover the CPU, CUDA (only if initialized)
+and
 MPS generators, with a check of the CUDA device count and of MPS on restore.
 
 ### `RandomManagerRegistry`
@@ -196,7 +203,7 @@ cost is documented in the docstring of `manual_seed` and `random_seed`, and in t
 
 ### Module layout
 
-```
+```text
 coola/random/
   __init__.py     exports, lazy exports of the optional modules
   base.py         BaseRandomManager (contract + seed())

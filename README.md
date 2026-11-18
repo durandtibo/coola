@@ -1,22 +1,35 @@
 # coola
 
 <p align="center">
-    <a href="https://github.com/durandtibo/coola/actions/workflows/ci.yaml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/durandtibo/coola/ci.yaml?branch=main&label=CI&logo=github"></a>
-    <a href="https://github.com/durandtibo/coola/actions/workflows/nightly-package.yaml"><img alt="Nightly Package Tests" src="https://img.shields.io/github/actions/workflow/status/durandtibo/coola/nightly-package.yaml?label=nightly&logo=github"></a>
-    <a href="https://codecov.io/gh/durandtibo/coola"><img alt="Codecov" src="https://img.shields.io/codecov/c/github/durandtibo/coola?logo=codecov"></a>
-    <a href="https://durandtibo.github.io/coola/"><img alt="Documentation (stable)" src="https://img.shields.io/badge/docs-stable-blue?logo=readthedocs&logoColor=white"></a>
+    <a href="https://github.com/durandtibo/coola/actions/workflows/ci.yaml">
+        <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/durandtibo/coola/ci.yaml?branch=main&label=CI&logo=github"></a>
+    <a href="https://github.com/durandtibo/coola/actions/workflows/nightly-package.yaml">
+        <img alt="Nightly Package Tests" src="https://img.shields.io/github/actions/workflow/status/durandtibo/coola/nightly-package.yaml?label=nightly&logo=github"></a>
+    <a href="https://codecov.io/gh/durandtibo/coola">
+        <img alt="Codecov" src="https://img.shields.io/codecov/c/github/durandtibo/coola?logo=codecov"></a>
+    <a href="https://durandtibo.github.io/coola/">
+        <img alt="Documentation (stable)" src="https://img.shields.io/badge/docs-stable-blue?logo=readthedocs&logoColor=white"></a>
     <br/>
-    <a href="https://pypi.org/project/coola/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/coola?logo=pypi&logoColor=white"></a>
-    <a href="https://pypi.org/project/coola/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/coola?logo=python&logoColor=white"></a>
-    <a href="https://opensource.org/licenses/BSD-3-Clause"><img alt="BSD-3-Clause" src="https://img.shields.io/pypi/l/coola"></a>
+    <a href="https://pypi.org/project/coola/">
+        <img alt="PyPI version" src="https://img.shields.io/pypi/v/coola?logo=pypi&logoColor=white"></a>
+    <a href="https://pypi.org/project/coola/">
+        <img alt="Python" src="https://img.shields.io/pypi/pyversions/coola?logo=python&logoColor=white"></a>
+    <a href="https://opensource.org/licenses/BSD-3-Clause">
+        <img alt="BSD-3-Clause" src="https://img.shields.io/pypi/l/coola"></a>
     <br/>
-    <a href="https://github.com/astral-sh/ruff"><img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json"></a>
-    <a href="https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings"><img alt="Doc style: google" src="https://img.shields.io/badge/docstyle-google-3666d6"></a>
-    <a href="https://scorecard.dev/viewer/?uri=github.com/durandtibo/coola"><img alt="OpenSSF Scorecard" src="https://img.shields.io/ossf-scorecard/github.com/durandtibo/coola?label=openssf%20scorecard"></a>
+    <a href="https://github.com/astral-sh/ruff">
+        <img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json"></a>
+    <a href="https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings">
+        <img alt="Doc style: google" src="https://img.shields.io/badge/docstyle-google-3666d6"></a>
+    <a href="https://scorecard.dev/viewer/?uri=github.com/durandtibo/coola">
+        <img alt="OpenSSF Scorecard" src="https://img.shields.io/ossf-scorecard/github.com/durandtibo/coola?label=openssf%20scorecard"></a>
     <br/>
-    <a href="https://pepy.tech/project/coola"><img alt="Downloads" src="https://img.shields.io/pepy/dt/coola"></a>
-    <a href="https://pepy.tech/project/coola"><img alt="Monthly downloads" src="https://img.shields.io/pepy/dm/coola"></a>
-    <a href="https://github.com/durandtibo/coola/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/durandtibo/coola?logo=github"></a>
+    <a href="https://pepy.tech/project/coola">
+        <img alt="Downloads" src="https://img.shields.io/pepy/dt/coola"></a>
+    <a href="https://pepy.tech/project/coola">
+        <img alt="Monthly downloads" src="https://img.shields.io/pepy/dm/coola"></a>
+    <a href="https://github.com/durandtibo/coola/stargazers">
+        <img alt="GitHub stars" src="https://img.shields.io/github/stars/durandtibo/coola?logo=github"></a>
 </p>
 
 ## Overview
@@ -243,7 +256,8 @@ Seed, save and restore the random number generators of `random`, NumPy and PyTor
 - Apply a function to every leaf of a nested structure
 - Validate arguments with clear error messages
 
-[Learn more about transformation →](https://durandtibo.github.io/coola/uguide/recursive) · [Learn more about validation →](https://durandtibo.github.io/coola/uguide/validation)
+[Learn more about transformation →](https://durandtibo.github.io/coola/uguide/recursive) ·
+[Learn more about validation →](https://durandtibo.github.io/coola/uguide/validation)
 
 ### 🧩 **Registries and Factories**
 
@@ -253,7 +267,8 @@ Build extensible components:
   optional libraries)
 - Build any importable class or function from a configuration dictionary with `coola.factory`
 
-[Learn more about registries →](https://durandtibo.github.io/coola/uguide/registry) · [Learn more about factories →](https://durandtibo.github.io/coola/uguide/factory)
+[Learn more about registries →](https://durandtibo.github.io/coola/uguide/registry) ·
+[Learn more about factories →](https://durandtibo.github.io/coola/uguide/factory)
 
 ### 🧾 **JSON Conversion**
 
@@ -274,20 +289,23 @@ with `round_values`.
 Build consistent `__repr__`/`__str__` with display mixins, mask secrets, format sizes and durations,
 and configure `rich` and `colorlog` output.
 
-[Learn more about display →](https://durandtibo.github.io/coola/uguide/display) · [Learn more about formatting →](https://durandtibo.github.io/coola/uguide/formatting)
+[Learn more about display →](https://durandtibo.github.io/coola/uguide/display) ·
+[Learn more about formatting →](https://durandtibo.github.io/coola/uguide/formatting)
 
 ### 🧪 **Testing and Utilities**
 
 `pytest` marks and fixtures to test code with optional dependencies, and helpers for imports, paths,
 environment variables, caches and more.
 
-[Learn more about testing →](https://durandtibo.github.io/coola/uguide/testing) · [Learn more about utilities →](https://durandtibo.github.io/coola/uguide/utils)
+[Learn more about testing →](https://durandtibo.github.io/coola/uguide/testing) ·
+[Learn more about utilities →](https://durandtibo.github.io/coola/uguide/utils)
 
 ## Installation
 
 We highly recommend installing
 `coola` in
-a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
+a
+[virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
 to avoid dependency conflicts.
 
 ### Using uv (recommended)

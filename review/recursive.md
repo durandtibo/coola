@@ -3,8 +3,10 @@
 This document describes the design that `coola.recursive` should have, then the changes to make to
 the current implementation (`main`, `698a6808`) to get there. The design follows the rules of the
 user guide (`docs/docs/uguide/recursive.md`, **Properties**) and the architecture guide
-(`docs/docs/dev/architecture.md`: registry dispatch, MRO lookup, lazy imports, strict contracts), and
-it stays aligned with the sibling packages `equality`, `hashing`, `summary` and `iterator`. Its aim is
+(`docs/docs/dev/architecture.md`: registry dispatch, MRO lookup, lazy imports, strict contracts),
+and
+it stays aligned with the sibling packages `equality`, `hashing`, `summary` and `iterator`. Its aim
+is
 a small package that is easy to maintain: **one engine, one extension point, one rebuild rule per
 container type**. Breaking changes are accepted, and the future state is more important than the
 past one.
@@ -58,7 +60,8 @@ Not guaranteed, and documented as such:
   `[x, x]` has 2^22 leaves and takes 10 s today **[verified]**). No memoization: it would change
   how often an impure `func` is called (decision D3).
 - **Order of the calls inside a set** and the result of `func` that is not deterministic.
-- **Subclasses whose constructor differs** from the base type (see the rebuild rules of section 4.4).
+- **Subclasses whose constructor differs** from the base type (see the rebuild rules of section
+  4.4).
 
 ## 2. What differs today
 
@@ -84,7 +87,7 @@ untouched; the input unmodified; keyword-only `registry`.
 
 ## 3. Architecture
 
-```
+```text
 recursive_apply(data, func, *, registry=None)
         |   one registry (default: the singleton), one call = one engine run
         v
@@ -276,7 +279,8 @@ and in the doctests keeps working.
 ## 6. Evidence: a prototype of the engine
 
 A prototype of the loop above (explicit stack, the real `rebuild_*` helpers, the real default
-registry for the lookup with a per-call cache, `expand` inlined) was run on `main`. It is not part of
+registry for the lookup with a per-call cache, `expand` inlined) was run on `main`. It is not part
+of
 the repository. **[verified]**
 
 | Input                                                                   | `main`                            | Prototype |
@@ -313,7 +317,8 @@ One branch and one pull request per step (`CLAUDE.md`). The order keeps every st
 ## 8. Tests and gates
 
 Unit tests mirror the source tree (`tests/unit/recursive/`); the conventions of `CLAUDE.md` apply
-(one behaviour per test, literal expected values, a regression test for every bug, no local imports).
+(one behaviour per test, literal expected values, a regression test for every bug, no local
+imports).
 
 - **Engine** (`test_engine.py`, new):
   - the order of the calls of `func` on a nested list/dict/tuple/set structure (a list that records
@@ -347,7 +352,8 @@ Unit tests mirror the source tree (`tests/unit/recursive/`); the conventions of 
   default with the default registry (frozen, slots, `init=False`, `InitVar`, nested dataclass,
   a dataclass registered with its own transformer has priority).
 - **Doctests** run as part of the docstrings; the guide examples are doctests.
-- **Benchmark gate** (`benchmarks/`, the CI benchmark): `recursive_apply` on the tree and on the flat
+- **Benchmark gate** (`benchmarks/`, the CI benchmark): `recursive_apply` on the tree and on the
+  flat
   list of section 6; the new engine must not be slower than `main` on either (target: at most the
   numbers of `main`; expected: faster). A failing gate rejects the step.
 - Coverage: 100 % of `src/coola/recursive` (`--cov=coola`), no `# pragma: no cover`.
@@ -356,7 +362,8 @@ Unit tests mirror the source tree (`tests/unit/recursive/`); the conventions of 
 
 **D1. Enter dataclasses by default?** _Recommended: yes._ `equality`, `hashing` and `summary`
 enter them, so `recursive_apply(Config(...), f)` calling `f` on the whole object is the surprise
-(25.3 of `suggestions.md`). The opt-in `enter_dataclasses()` mutates a process-wide singleton, which is
+(25.3 of `suggestions.md`). The opt-in `enter_dataclasses()` mutates a process-wide singleton, which
+is
 the worst kind of switch for a library. Consequences: `convert_to_jsonable` needs its own leaf
 registry (section 5), `round_values(recursive=True)` rounds the fields of a dataclass, and a user
 who wants a dataclass as a leaf registers `DefaultTransformer()` for its type (a transformer

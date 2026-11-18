@@ -44,6 +44,7 @@ Once you implement and test your feature or bug-fix, please submit a Pull Reques
    ```
 
 4. **Install pre-commit hooks:**
+
    ```shell
    pre-commit install
    ```
@@ -116,7 +117,7 @@ Build documentation locally:
 mkdocs serve -f docs/mkdocs.yml
 ```
 
-Then visit http://127.0.0.1:8000 to view the documentation.
+Then visit <http://127.0.0.1:8000> to view the documentation.
 
 ## Pull Requests
 
@@ -366,8 +367,8 @@ By participating in this project you agree to abide by its terms.
 
 ### Getting Help
 
-- **Documentation:** https://durandtibo.github.io/coola/
-- **Issues:** https://github.com/durandtibo/coola/issues
+- **Documentation:** <https://durandtibo.github.io/coola/>
+- **Issues:** <https://github.com/durandtibo/coola/issues>
 - **Discussions:** Open an issue for questions
 
 ### Recognition

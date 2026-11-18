@@ -158,7 +158,8 @@ were left: they are needed by `ty` and removing them is a separate experiment.
 `cast("Any", pd)` to silence the checker on optional dependencies. These are
 workarounds for optional dependencies, not 3.11 features. Review which are still needed
 once `ty` runs clean (see follow-up 2); some may be removable. The
-`cast("Callable[..., Any]", type(data))` pattern repeated in `recursive/{set,sequence,mapping,key}.py`
+`cast("Callable[..., Any]", type(data))` pattern repeated in
+`recursive/{set,sequence,mapping,key}.py`
 could become one shared helper (or a `Protocol` with `__call__`) instead of four copies.
 
 ### C. `typing.Union` in `factory/config.py` — Reviewed, kept
@@ -172,7 +173,8 @@ says so). No other `Optional`/`Union`/`List`/`Dict` exist in `src/` or `tests/`.
 
 0 uses today across 33 abstract methods and every subclass of `BaseTester`, `BaseHasher`,
 `BaseTransformer`, `BaseLoader`/`BaseSaver`, `BaseReducer`, `BaseSummarizer`, `BaseHandler`,
-`BaseRandomManager` and the `Registry` classes. When the floor becomes 3.12 add `@override` from `typing`.
+`BaseRandomManager` and the `Registry` classes. When the floor becomes 3.12 add `@override` from
+`typing`.
 Do not backport it with `typing_extensions` now: `dependencies = []` is a feature.
 
 ### E. Dedupe the 11 `utils/imports/<pkg>.py` modules — Decided against
@@ -187,9 +189,12 @@ modules are the public, statically named API (`check_numpy`, `is_numpy_available
 from `utils/imports/__init__.py`, with per-function docstrings and doctests. Generating them from a
 factory would hide those names from `ty` and IDEs and change the docs. Changing the decorator's
 return type to `Callable[P, R | None]` would also make every decorated function look `Optional` to
-callers. The duplication is the price of explicit names; revisit only with a stub-generating approach.
-Original note: this is not purely a modernization item, but it is the largest remaining duplication. On 3.12 the repeated
-`F` becomes `ParamSpec`-based (`def decorator[**P, R](fn: Callable[P, R]) -> Callable[P, R | None]`),
+callers. The duplication is the price of explicit names; revisit only with a stub-generating
+approach.
+Original note: this is not purely a modernization item, but it is the largest remaining duplication.
+On 3.12 the repeated
+`F` becomes `ParamSpec`-based
+(`def decorator[**P, R](fn: Callable[P, R]) -> Callable[P, R | None]`),
 which also removes the `cast("F", inner)` in `universal.py:136`. On 3.11 the same can be
 done now with `ParamSpec` + `TypeVar` from `typing` (3.10+); the `@wraps` wrapper then returns
 `Callable[P, R | None]`, which is truthfully typed because the wrapper returns `None` when
@@ -208,7 +213,8 @@ case; switch to `@cache`. `utils/imports/universal.py:25,50` use bare `@lru_cach
 ### G. Logging: lazy `%s` formatting instead of f-strings (7 sites) — Done
 
 Done: 12 `src/` sites converted to lazy `%s` arguments, `logger.error(..., exc_info=True)` became
-`logger.exception(...)` in `utils/singleton.py`, and ruff `G` is enabled (with `G004` ignored for the
+`logger.exception(...)` in `utils/singleton.py`, and ruff `G` is enabled (with `G004` ignored for
+the
 `debug/` and `dev/` scripts). The `format_value_difference(...)` calls are already guarded by
 `config.show_difference`, so they were left as they are.
 
@@ -223,8 +229,10 @@ run on every mismatch during equality checks.
 ### H. Small readability items — Mostly done
 
 Done: `_iter_items` helper in `utils/format.py`, `removesuffix` in `io/utils.py`,
-`next(iter(data.values()))` in `nested/mapping.py`. Not done: the `isinstance(other, type(self))` clause
-is redundant at runtime but narrows `other` for the type checker, so it stays; `time_ns() // 1_000_000`
+`next(iter(data.values()))` in `nested/mapping.py`. Not done: the `isinstance(other, type(self))`
+clause
+is redundant at runtime but narrows `other` for the type checker, so it stays;
+`time_ns() // 1_000_000`
 appears only twice in `snowflake.py`, not worth a helper.
 
 - Time sources are already correct: `perf_counter` for elapsed time, `monotonic` for

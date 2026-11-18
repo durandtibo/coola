@@ -1,6 +1,9 @@
 # Architecture of `coola.rounding`
 
-:book: This page describes the design of the `coola.rounding` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/rounding.md#properties); the API is in the [reference](../refs/rounding.md).
+:book: This page describes the design of the `coola.rounding` package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the [user guide](../uguide/rounding.md#properties); the API is in
+the [reference](../refs/rounding.md).
 
 ## Overview
 
@@ -22,24 +25,28 @@ recursive walk and the error contract (`UnsupportedTypeError`, `on_missing_packa
 ## Constraints
 
 1. **Simple and easy to maintain.** Two kernels (NumPy and torch, like the numeric kernel of
-   `equality`), a scalar version of the same formula for Python floats, and the three table libraries
+   `equality`), a scalar version of the same formula for Python floats, and the three table
+   libraries
    as thin adapters over the NumPy kernel. Copies of the formula per backend, each with its own
    fix-ups, are how backends disagree.
-2. **Correct first, then fast.** A rule that is exact and costs a few nanoseconds per element more is
+2. **Correct first, then fast.** A rule that is exact and costs a few nanoseconds per element more
+   is
    preferred to a fast rule that is wrong on 1 % of the inputs. The benchmark gate bounds the cost
-   (`floor`/`ceil` at the speed of the plain kernel, `round` at most 5 times slower on a large array,
+   (`floor`/`ceil` at the speed of the plain kernel, `round` at most 5 times slower on a large
+   array,
    a scalar and the recursive path fast).
 3. **Consistent with the siblings.** One extension point (a registry, `register_*`, a plugin group),
    keyword-only options, errors raised before any work with a message that names the remedy,
    dataclasses entered with `recursive=True`, stateless and thread-safe.
 4. **Optional libraries stay lazy.** `import coola.rounding` imports no optional library (verified:
-   `numpy`, `torch`, `pandas`, `polars` and `pyarrow` are all absent from `sys.modules` after it) and
+   `numpy`, `torch`, `pandas`, `polars` and `pyarrow` are all absent from `sys.modules` after it)
+   and
    `coola` still has zero hard dependencies. Rounding a polars or a pyarrow object needs NumPy;
    without it `on_missing_package` decides: raise (default), warn or ignore.
 
 ## Architecture in detail
 
-```
+```text
 round_values(data, *, mode="round", decimals=0, recursive=False, on_unsupported="ignore", on_missing_package="raise", registry=None)
         |   validate mode, decimals, on_unsupported and on_missing_package once; one registry (default: the singleton)
         |   recursive ? recursive_apply(data, leaf) : leaf(data)
@@ -79,7 +86,8 @@ without `Decimal`. With `s = x * scale` and `k = floor(s)` the index is wrong by
 either direction, because `x * scale` is rounded; comparing the grid points **in the dtype of `x`**
 repairs it in both directions. For `"round"`
 the midpoint `(2k + 1) / (2 * scale)` is computed as a float of the dtype: `x == mid` is a halfway
-case if and only if `repr(x)` is the midpoint, as long as the grid is coarser than the spacing of the
+case if and only if `repr(x)` is the midpoint, as long as the grid is coarser than the spacing of
+the
 floats (the bound of the "Exact" row).
 
 ```python
@@ -116,7 +124,8 @@ for integers and booleans, `UnsupportedTypeError` for the other dtypes,
 - **`round_float` (native).** The same formula on one `float`, with `math.floor`, integer `k` and
   `math.copysign`: about 15 lines, 0.30 µs per call, bit-identical to the NumPy kernel (checked on
   100,010 values, 3 modes, 5 values of `decimals`, signs of zero included). `int` (and `bool`) are
-  returned as they are. The `Decimal` implementation is the specification and lives in the tests only.
+  returned as they are. The `Decimal` implementation is the specification and lives in the tests
+  only.
 - **`round_torch`.** The same formula with `torch.floor`, `torch.where`, `torch.round` (which is
   half-to-even), the dtype of the tensor for the grid, `float32` instead of `float64` on `mps`,
   `detach().clone()` for the integers. The result is bit-identical to the NumPy kernel for
@@ -167,8 +176,10 @@ not support. The default registry is a `TypeRegistry[Rounder]` built by
 | `pa.Array`, `pa.ChunkedArray`, `pa.Table`, `pa.RecordBatch`            | `round_pyarrow`                       | lazily                           |
 
 Each library module has a `get_default_rounders()` returning its `{type: rounder}` mapping (and `{}`
-when the library is missing), and `interface.py` has a `_LAZY_ROUNDERS` table, as `hashing` does. The rounders of polars and pyarrow are registered when their library is installed
-and import NumPy when they run. The plugin group is `coola.rounding.rounders` (a callable that receives the registry). A type with no
+when the library is missing), and `interface.py` has a `_LAZY_ROUNDERS` table, as `hashing` does.
+The rounders of polars and pyarrow are registered when their library is installed
+and import NumPy when they run. The plugin group is `coola.rounding.rounders` (a callable that
+receives the registry). A type with no
 rounder makes `resolve` raise `TypeNotRegisteredError`; `round_values` turns it into
 `UnsupportedTypeError("Cannot round an object of type X; register a rounder with register_rounders")`,
 with the registry error as the cause.
@@ -210,7 +221,8 @@ def round_values(
     return _round_object(data, registry, mode, decimals, on_missing_package)
 ```
 
-- `_round_object` does the lookup and the call; it is the only place that converts the registry error
+- `_round_object` does the lookup and the call; it is the only place that converts the registry
+  error
   and that applies `on_missing_package`. When a rounder raises `MissingPackageError`: `"raise"`
   raises `UnsupportedTypeError` naming the package, with the `MissingPackageError` as the cause;
   `"warn"` emits a `UserWarning` naming the type and the package and returns `data` unchanged;
@@ -243,7 +255,8 @@ from coola.rounding import (
 ```
 
 The modules `coola.rounding.{native,numpy,torch,pandas,polars,pyarrow}` are public with their
-functions (`round_numpy(data, mode, decimals)`, ...) so that a user can compose or wrap a rounder; they
+functions (`round_numpy(data, mode, decimals)`, ...) so that a user can compose or wrap a rounder;
+they
 are not re-exported from `coola.rounding`. `get_scale`, `MAX_EXACT` and `validate_arguments` are in
 `coola.rounding.common`.
 
@@ -259,47 +272,65 @@ are not re-exported from `coola.rounding`. `get_scale`, `MAX_EXACT` and `validat
 ## Design choices and trade-offs
 
 **The rule for `"round"` is the decimal value, halfway to even.** `floor` and `ceil` read `0.29` as
-`0.29`; `round` reads `2.675` as `2.675`, a tie, and gives `2.68`. This is the only rule under which the
+`0.29`; `round` reads `2.675` as `2.675`, a tie, and gives `2.68`. This is the only rule under which
+the
 three modes mean the same thing, under which the backends can agree, and that a user can predict by
 looking at the number. The alternatives are the exact binary value like Python (`round(2.675, 2)` is
 `2.67`, but then `floor(0.29, 2)` must be `0.28`, which the package refuses on purpose, or the modes
 disagree) and scale-and-`rint` (inexact). The consequence is that `round_values` does not agree with
 `round()` on the halfway cases of a decimal literal, which the guide says in one sentence.
 
-**The native scalar uses the float formula, not `Decimal`.** `Decimal(repr(x)).quantize(...)` is simple
-and exact, but costs about 1.2 µs and needs a context for huge exponents (it raises `InvalidOperation`
-for `decimals=400`). The float formula costs 0.30 µs and is bit-identical to the arrays by construction.
-The `Decimal` version lives in the tests as the independent oracle: a kernel checked against a copy of
+**The native scalar uses the float formula, not `Decimal`.** `Decimal(repr(x)).quantize(...)` is
+simple
+and exact, but costs about 1.2 µs and needs a context for huge exponents (it raises
+`InvalidOperation`
+for `decimals=400`). The float formula costs 0.30 µs and is bit-identical to the arrays by
+construction.
+The `Decimal` version lives in the tests as the independent oracle: a kernel checked against a copy
+of
 itself proves nothing.
 
-**Tables go through NumPy.** polars cannot do the exact division, and a second and a third copy of the
-formula is how backends disagree. The cost is a conversion per column (`to_numpy`, an array back; 0.8x
+**Tables go through NumPy.** polars cannot do the exact division, and a second and a third copy of
+the
+formula is how backends disagree. The cost is a conversion per column (`to_numpy`, an array back;
+0.8x
 to 2.2x of a native kernel), and **NumPy is required to round a polars or pyarrow object** (pandas
-already needs it). The error is the usual `MissingPackageError`, and `on_missing_package` decides what
-happens (below). Keeping a polars and a pyarrow kernel would make the conformance test the only guard,
+already needs it). The error is the usual `MissingPackageError`, and `on_missing_package` decides
+what
+happens (below). Keeping a polars and a pyarrow kernel would make the conformance test the only
+guard,
 and polars has no exact operation to build one from.
 
-**A rounder is a function, not a class.** A rounder has no state, no children and one job; `Hasher` and
-`BaseHasher` exist because a hasher has a protocol with several members. A plain `TypeRegistry[Rounder]`
-with `register_rounders` and `get_default_registry` is about 40 lines; a `BaseRounder` hierarchy with a
+**A rounder is a function, not a class.** A rounder has no state, no children and one job; `Hasher`
+and
+`BaseHasher` exist because a hasher has a protocol with several members. A plain
+`TypeRegistry[Rounder]`
+with `register_rounders` and `get_default_registry` is about 40 lines; a `BaseRounder` hierarchy
+with a
 `RounderRegistry` would triple it. Reconsider if a rounder ever needs more than one method.
 
-**`recursive=False` is the default.** Strict by default (a string or a `Decimal` raises) is what a user
-rounding one object wants; `recursive=True` is the explicit opt-in to the lenient walk where unsupported
-leaves are kept. Always-recursive would lose the error for `"abc"`, and a separate function would be two
+**`recursive=False` is the default.** Strict by default (a string or a `Decimal` raises) is what a
+user
+rounding one object wants; `recursive=True` is the explicit opt-in to the lenient walk where
+unsupported
+leaves are kept. Always-recursive would lose the error for `"abc"`, and a separate function would be
+two
 names for one concept (`nested` already has the walk).
 
 **Negative `decimals` are not supported.** Python, NumPy and pandas accept them (round to tens,
-hundreds), but `x * 10**-2` is not exact, so the kernel needs a second path (divide by `10**n`, multiply
+hundreds), but `x * 10**-2` is not exact, so the kernel needs a second path (divide by `10**n`,
+multiply
 back) in three implementations. The error message names the rule. The rule extends to it (`step =
 10**n`) if it is requested.
 
 **Nested columns of a table (`list<float>`, struct) are left unchanged**, and documented. Entering them
-needs a second walk (Arrow lists, polars `List`) in two libraries and is a different feature (rounding
+needs a second walk (Arrow lists, polars `List`) in two libraries and is a different feature
+(rounding
 the values inside the cells). The property "only floating-point columns" states it.
 
 **Where the guarantee stops.** The guide documents `1e13` and does not widen it: the first mismatch
-measured is at `9.9e13`, and the error is one step, but a proof is out of reach with floats. Past the
+measured is at `9.9e13`, and the error is one step, but a proof is out of reach with floats. Past
+the
 bound the answer is still a grid point within one step; a user who needs exactness at 15 digits uses
 `Decimal` with a registered rounder.
 
@@ -312,12 +343,14 @@ bound the answer is still a grid point within one step; a user who needs exactne
 | `"ignore"`          | The object is returned unchanged, silently.                                            |
 
 - The option is about a **missing package**, not about every unsupported type. It applies to any
-  rounder that raises `MissingPackageError` (NumPy for polars and pyarrow, and a user rounder that needs
+  rounder that raises `MissingPackageError` (NumPy for polars and pyarrow, and a user rounder that
+  needs
   another package). A type with no rounder (a `str`, a `Decimal`, a sparse tensor) is not affected:
   `UnsupportedTypeError`, kept by `recursive=True`. This keeps the lenient walk of `recursive=True`.
 - The rounders are registered when the library is installed and check NumPy when they run, so the
   registry, the lazy loading and `import coola.rounding` do not depend on NumPy.
-- `"warn"` and `"ignore"` can hide an unrounded column; they are opt-in. `"warn"` is the compromise for
+- `"warn"` and `"ignore"` can hide an unrounded column; they are opt-in. `"warn"` is the compromise
+  for
   a pipeline that must not fail on an optional step.
 - The name is `on_missing_package` (not `on_missing_numpy`) because the mechanism is general; the
   keyword is keyword-only and last before `registry`.

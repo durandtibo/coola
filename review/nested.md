@@ -6,7 +6,8 @@ guides (`docs/docs/uguide/nested.md` **Properties**, `docs/docs/uguide/nested_da
 shared by all packages**) and the architecture guide (`docs/docs/dev/architecture.md`: registry
 dispatch, MRO lookup, lazy imports, strict contracts). It stays aligned with the sibling packages
 `equality`, `hashing`, `summary`, `iterator` and `recursive` (`review/recursive.md` is the model:
-**one engine, one extension point, one rule per container type**). Its aim is a small package that is
+**one engine, one extension point, one rule per container type**). Its aim is a small package that
+is
 easy to maintain: **no traversal of its own, no second definition of "container", no silent data
 loss**. Breaking changes are accepted, and the future state is more important than the past one.
 
@@ -37,10 +38,12 @@ comes from the code. Nothing in `src`, `tests` or `docs` was changed.
 ## 1. Properties of the sub-package
 
 `nested` is not one algorithm: it is a set of helpers built on the traversal packages. Its guide has
-four vague properties today (non-destructive, type-agnostic, predictable, explicit failure). They are
+four vague properties today (non-destructive, type-agnostic, predictable, explicit failure). They
+are
 replaced by the table below, which is also the content of the package docstring (as in
 `coola.recursive`) and of the **Properties** section of the guide. Every choice of this document
-exists to make one of them true **by construction** (in the engine, in one transformer) instead of by
+exists to make one of them true **by construction** (in the engine, in one transformer) instead of
+by
 the discipline of each function.
 
 The functions fall into five groups. The properties say which group each one covers.
@@ -79,7 +82,8 @@ Not guaranteed, and documented as such:
   `from_flat_dict(..., restore_lists=True)` returns lists.
 - **Non-`str` keys of `to_flat_dict`.** They are written with `str()`: `(1, 2)` becomes `"(1, 2)"`
   and cannot be restored.
-- **Strict JSON.** `convert_to_jsonable` follows the Python `json` module: `NaN` is kept, the keys are
+- **Strict JSON.** `convert_to_jsonable` follows the Python `json` module: `NaN` is kept, the keys
+  are
   not converted, tuples stay tuples.
 
 ## 2. What differs today
@@ -101,7 +105,8 @@ Not guaranteed, and documented as such:
 | F13 | **The guide is thin and partly wrong.** The four properties are generic; "Type-agnostic: dict, list, tuple" is not what the code does (F3); `to_flat_dict` is filed under "Mapping Utilities"; `flatten_frame` is absent; "Design Principles" repeats "Properties"; the package docstring is one line (the other packages list their properties there).                                                                                                                                                                                                                                                                                                                   | **[reading]**  |
 
 What is already right and must not regress: the `escape` option and the conflict errors of
-`to_flat_dict`/`from_flat_dict` (a conflict raises, a dict given by the caller is never mutated); the
+`to_flat_dict`/`from_flat_dict` (a conflict raises, a dict given by the caller is never mutated);
+the
 empty containers kept as values of the flat dict; `DuplicateKeyError(KeyError, ValueError)` with a
 readable message; the comparison of duplicate values with `objects_are_equal(equal_nan=...)`; the
 validation of `on_duplicate` before any work; the explicit rejection of `str`/`bytes` in
@@ -109,7 +114,7 @@ validation of `on_duplicate` before any work; the explicit rejection of `str`/`b
 
 ## 3. Architecture
 
-```
+```text
 coola.nested
   flat.py        to_flat_dict, from_flat_dict            dfs_items (iterator) + one transformer (_Node)
   keys.py        remove_keys_*, add_prefix_suffix_*      one private transformer (_KeyTransformer) + recursive_apply
@@ -123,7 +128,8 @@ The rule: **a function that goes inside values uses the engine of `recursive` an
 type; a function that works on the top level only is a plain loop.** `merge_mappings`,
 `flatten_mapping`, `convert_to_dict_of_lists` and `convert_to_list_of_dicts` do not look inside the
 values; they are right as they are, apart from the points of section 4. The modules are renamed to
-the plural of their content (`mapping.py` becomes `mappings.py`, `conversion.py` is split) only if the
+the plural of their content (`mapping.py` becomes `mappings.py`, `conversion.py` is split) only if
+the
 split of step 7 is done; the names of the functions do not depend on it.
 
 ### 3.1 `keys`: one private transformer (F1, F2, F3, F4, F6)
@@ -161,7 +167,8 @@ def _apply(data, **options):
   keys; a non-`str` key is kept).
 - `add_prefix_suffix_to_keys(mapping, prefix="", suffix="", *, recursive=False)` is
   `_apply(mapping, rename=...)` when `recursive`, and one `rebuild_mapping` call on the top level
-  otherwise (no engine needed). A renamed key that collides with another key raises `DuplicateKeyError`
+  otherwise (no engine needed). A renamed key that collides with another key raises
+  `DuplicateKeyError`
   (impossible today for a prefix and a suffix because the map is injective on `str`, but the
   transformer is generic and a rename function is one step away).
 - The registry is **derived from the default one**, so the containers are the ones of every other
@@ -185,15 +192,19 @@ def _apply(data, **options):
 `_flatten_into`, `_check_no_cycle`, `_build_key` and the recursion are deleted: the function is the
 join of the paths of the leaves.
 
-- **What `nested` needs from `dfs_items`** (to put in the design of `review/iterator.md` D9, which only
+- **What `nested` needs from `dfs_items`** (to put in the design of `review/iterator.md` D9, which
+  only
   says "the path of each leaf"): (1) the path is a tuple of labels from which the raw key, index or
   field name can be read (`str(label)` of a key is the flat segment; the escape is applied to it);
-  (2) a keyword-only option `empty=True` that also yields an empty container, as `(path, container)`,
+  (2) a keyword-only option `empty=True` that also yields an empty container, as
+  `(path, container)`,
   because an empty container is kept as the value of its key (`{"a": {}}` gives `{"a": {}}`) and the
   round trip must not lose it (without the option `dfs_items` follows the rule of the package: an
   empty container has no leaf); (3) the `registry` keyword of the other functions.
-- **The containers are the ones of `iterator`**: mappings, sequences, deques, named tuples, ranges and
-  dataclasses are entered (behaviour change for the dataclasses, F3); `str`, `bytes`, `bytearray` and
+- **The containers are the ones of `iterator`**: mappings, sequences, deques, named tuples, ranges
+  and
+  dataclasses are entered (behaviour change for the dataclasses, F3); `str`, `bytes`, `bytearray`
+  and
   iterators are leaves. Sets are the one documented exception (no index, so no label): the function
   uses a registry derived from the default one in which `set` and `frozenset` are leaves. Likewise
   each type of `to_str` is a leaf of that registry, and the leaf is written with `str()`.
@@ -205,31 +216,39 @@ join of the paths of the leaves.
 - `prefix=""` is a prefix like any other (`".a"`). Documented; no special case.
 
 **`from_flat_dict(data, *, separator=".", restore_lists=False, escape=False)`.** The build loop
-(`_set_nested`, `_split_key`) stays: it is flat, not recursive. Two changes remove the id set and the
+(`_set_nested`, `_split_key`) stays: it is flat, not recursive. Two changes remove the id set and
+the
 recursion:
 
 - The nodes created by the function are instances of a private `dict` subclass, `_Node`. A value
-  given by the caller, even a `dict`, is a plain `dict`, so `isinstance(existing, _Node)` is the test
+  given by the caller, even a `dict`, is a plain `dict`, so `isinstance(existing, _Node)` is the
+  test
   "this dict is mine" (it replaces the set `created` of ids) and a dict of the caller is **never
   converted by `restore_lists`** (F10).
 - The result is built by a final `recursive_apply` with a registry derived from the default one in
-  which `_Node` has a transformer: it rebuilds a plain `dict`, or a `list` when `restore_lists` is set
+  which `_Node` has a transformer: it rebuilds a plain `dict`, or a `list` when `restore_lists` is
+  set
   and the keys are exactly `"0"`, ..., `"n-1"`. The root is a separate subclass whose transformer
-  never builds a list (the root is always a `dict`). `_restore_lists` is deleted, and the depth is no
+  never builds a list (the root is always a `dict`). `_restore_lists` is deleted, and the depth is
+  no
   longer limited (F1). The prototype of section 6 gives the same output as `main` on the benchmark
   tree and runs on 20,000 levels.
 - `data` is annotated `Mapping[str, Any]` (F10).
 
 ### 3.3 `json`: `convert_to_jsonable` and `to_jsonable` (F1, F3, F5)
 
-`convert_to_jsonable(data)` is `recursive_apply(data, to_jsonable, registry=registry)` with a registry
+`convert_to_jsonable(data)` is `recursive_apply(data, to_jsonable, registry=registry)` with a
+registry
 derived from the default one in which:
 
 - `set` and `frozenset` have a transformer whose `rebuild` returns a sorted list (kept from
-  `SetToListTransformer`, now private), sorted with a key that does not depend on the iteration order:
-  the elements when they compare, otherwise `(type name, repr)`. `try_sorted_list` becomes the private
+  `SetToListTransformer`, now private), sorted with a key that does not depend on the iteration
+  order:
+  the elements when they compare, otherwise `(type name, repr)`. `try_sorted_list` becomes the
+  private
   `_sorted_elements` of this module (F8);
-- a dataclass has a transformer that returns its fields as a `dict` (`expand` gives the field values,
+- a dataclass has a transformer that returns its fields as a `dict` (`expand` gives the field
+  values,
   `rebuild` zips them with the names). The dataclass fallback of the default registry (entering and
   rebuilding the same dataclass) is replaced, so **a dataclass is converted by the engine, field by
   field, like any other container** and its fields get the same treatment as everything else: sets
@@ -242,7 +261,8 @@ change for `to_jsonable(Point(1, 2))` (the object is returned unchanged). The be
 `convert_to_jsonable`: a tuple in a dataclass stays a tuple (before: list), a set in a dataclass is
 sorted (before: iteration order).
 
-The registry is derived at each call (it reads the user registrations of the default registry; a copy
+The registry is derived at each call (it reads the user registrations of the default registry; a
+copy
 costs 6 µs). It is not cached in a `LazySingleton`, which would freeze the default registry at the
 first call.
 
@@ -253,20 +273,25 @@ first call.
 
 No new mechanism. These functions work on the top level only.
 
-- **Options keyword-only** (F7): `merge_mappings(mappings, *, on_duplicate="raise", equal_nan=False)`,
+- **Options keyword-only** (F7):
+  `merge_mappings(mappings, *, on_duplicate="raise", equal_nan=False)`,
   `flatten_mapping(mapping, *, on_duplicate="raise", always_prefix=False, separator=".",
 equal_nan=False)`.
 - **`merge_mappings(on_duplicate="suffix")` does not depend on the order** (F11). A key of an input
-  mapping that equals a generated suffixed key is a conflict whatever the position: the check is made
+  mapping that equals a generated suffixed key is a conflict whatever the position: the check is
+  made
   once, on the set of all input keys, before the merge (a `set` of the keys of every mapping, then
   `_free_suffixed_key` skips them). The result for `[{"a_1":3},{"a":1},{"a":2}]` is
-  `{'a_1': 3, 'a': 1, 'a_2': 2}` and the result for the other order is the same entries (the order of
+  `{'a_1': 3, 'a': 1, 'a_2': 2}` and the result for the other order is the same entries (the order
+  of
   the keys follows the input). This removes the `raise` of "it collides with a suffixed key": a
-  generated key never overwrites or hides an input key, so there is nothing to raise. The error of the
+  generated key never overwrites or hides an input key, so there is nothing to raise. The error of
+  the
   docstring (`DuplicateKeyError` "if a key of an input mapping is equal to a key generated by the
   suffix strategy") goes away. The unit tests of the old error become tests of the new result.
 - **`flatten_mapping(on_duplicate="prefix")` keeps the order of the input** (F11): the first
-  occurrence is renamed in place (the dict is rebuilt at the end instead of `pop` then re-adding), so
+  occurrence is renamed in place (the dict is rebuilt at the end instead of `pop` then re-adding),
+  so
   `{'train.loss': 1, 'acc': 2, 'val.loss': 3}` for the input of the guide. Both functions can then
   say "the output follows the order of the input". Behaviour change, documented.
 - **`convert_to_list_of_dicts`** rejects `Set` values with a `TypeError` naming the type, like it
@@ -284,11 +309,13 @@ equal_nan=False)`.
   `coola.nested` with `lazy_exports` (`from coola.nested import flatten_frame` works without
   importing polars at `import coola.nested`), documented in the guide with the example of its
   docstring, and listed in `tests/integration/test_lazy_imports.py`.
-- The four helpers become private (`_is_nested_struct`, `_unnest_with_separator`, `_unnest_one_level`,
+- The four helpers become private (`_is_nested_struct`, `_unnest_with_separator`,
+  `_unnest_one_level`,
   `_expand_list_columns`); the tests of their behaviour go through `flatten_frame`, which keeps the
   coverage.
 - Only a `DataFrame` is accepted: a `LazyFrame` raises a `TypeError` that names the type and says
-  "call `collect()`" (a lazy frame has no cheap schema, and the row count of an exploded list is only
+  "call `collect()`" (a lazy frame has no cheap schema, and the row count of an exploded list is
+  only
   known after the evaluation). It is a visible rule instead of a warning at the end of a long chain.
 - **The supported range stays `polars>=1.0,<3.0`** (decision D3), so the two compatibility branches
   stay (`unnest(separator=...)` and `explode(empty_as_null=...)` are missing in the old versions).
@@ -316,10 +343,12 @@ from coola.nested import (
 )
 ```
 
-Moved: `get_first_value` to `coola.utils.mapping`. Removed: `try_sorted_list` (private), `SetToListTransformer` (private),
+Moved: `get_first_value` to `coola.utils.mapping`. Removed: `try_sorted_list` (private),
+`SetToListTransformer` (private),
 `coola.nested.polars.{is_nested_struct, unnest_with_separator, unnest_one_level, expand_list_columns}`
 (private), `coola.recursive.KeyFilterTransformer` (moved, private), the positional options, the
-dataclass branch of `coola.utils.conversion.to_jsonable`. The names of the modules (`flat`, `mapping`,
+dataclass branch of `coola.utils.conversion.to_jsonable`. The names of the modules (`flat`,
+`mapping`,
 `conversion`, `polars`) are not public contracts (the package root is) and can be kept to keep the
 diff of each step small; the split of section 3 is optional.
 
@@ -337,8 +366,10 @@ diff of each step small; the split of section 3 is optional.
 
 ## 6. Evidence: a prototype
 
-A prototype of `_KeyTransformer`, of the `_Node` build of `from_flat_dict` and of the two transformers
-of `convert_to_jsonable` was run on `main` on top of the real engine of `recursive` (default registry
+A prototype of `_KeyTransformer`, of the `_Node` build of `from_flat_dict` and of the two
+transformers
+of `convert_to_jsonable` was run on `main` on top of the real engine of `recursive` (default
+registry
 copy, real `rebuild_mapping`). It is not part of the repository. **[verified]**
 
 | Check                                                                       | `main`                             | Prototype                       |
@@ -355,10 +386,12 @@ copy, real `rebuild_mapping`). It is not part of the repository. **[verified]**
 | `convert_to_jsonable({"p": P({"b","a","c"}, (1,2))})`, `PYTHONHASHSEED=1,2` | different lists                    | `['a', 'b', 'c']` both          |
 
 Reading the numbers: the engine is faster on large trees (removal 1.5 to 2 times) and the same
-elsewhere, and a call costs about 7 µs more on a tiny input, which is the copy of the default registry
+elsewhere, and a call costs about 7 µs more on a tiny input, which is the copy of the default
+registry
 (6.4 µs measured) and the registrations. Two mitigations are available if the benchmark gate rejects
 it: build the derived registry lazily once per `(function, options)` through a `LazySingleton` keyed
-on the registry version (not worth the complexity today), or pass `recursive_apply` a ready transformer
+on the registry version (not worth the complexity today), or pass `recursive_apply` a ready
+transformer
 override. The gate of section 8 states the accepted budget.
 
 ## 7. Changes to reach the target state
@@ -384,51 +417,64 @@ Unit tests mirror the source tree (`tests/unit/nested/`); the conventions of `CL
 behaviour per test, literal expected values, a regression test for every bug checked with
 `git stash push src`, no local imports, the `*_available` fixtures for polars).
 
-- **Keys** (`test_keys.py`): the predicate at every depth, in lists, tuples, sets and dataclasses; the
+- **Keys** (`test_keys.py`): the predicate at every depth, in lists, tuples, sets and dataclasses;
+  the
   whole output of a mixed structure against a literal; `OrderedDict`, `defaultdict` (factory kept),
   named tuple, `MappingProxyType` kept; the top-level type kept; a non-mapping raises `TypeError`; a
   rename collision raises `DuplicateKeyError`; a cycle raises `ValueError`; 20,000 levels do not
-  raise; the input is not modified and shares no container with the output; `recursive=False` renames
+  raise; the input is not modified and shares no container with the output; `recursive=False`
+  renames
   the top level only; non-`str` keys are kept.
 - **Flat** (`test_flat.py`): the 686 existing lines stay; add the dataclass, the `range`, the cycle,
   the 20,000 levels, the shared container (entries twice), the set kept as a leaf, the empty
-  containers; `from_flat_dict`: a value `dict` is not converted by `restore_lists`, 20,000 levels, the
+  containers; `from_flat_dict`: a value `dict` is not converted by `restore_lists`, 20,000 levels,
+  the
   root is always a dict, the `Mapping` input.
 - **JSON** (`test_conversion.py`): the dataclass with a set and a tuple (whole literal), a set of
-  mixed types, the depth and the cycle through a dataclass, an Enum and a path inside a dataclass, the
+  mixed types, the depth and the cycle through a dataclass, an Enum and a path inside a dataclass,
+  the
   determinism test over several `PYTHONHASHSEED` values in `tests/integration/nested/`.
 - **Mappings and records**: order independence of `suffix` (parametrised over the permutations of a
   three-mapping case), the order of `prefix`, a set value rejected, a generator accepted by
   `convert_to_dict_of_lists`.
-- **Polars**: the existing 853 lines are kept through the public function; the `LazyFrame` error; the
-  lazy import (`import coola.nested` does not import polars: `tests/integration/test_lazy_imports.py`).
+- **Polars**: the existing 853 lines are kept through the public function; the `LazyFrame` error;
+  the
+  lazy import (`import coola.nested` does not import polars:
+  `tests/integration/test_lazy_imports.py`).
 - **Properties** (`tests/properties/test_nested.py`, extend): the round trips of section 1 (kept),
   **the cycle and depth properties** for `to_flat_dict`, `remove_keys_if` and `convert_to_jsonable`
   on the strategies of `tests/properties/strategies.py` (new), the type of the containers is kept by
   `remove_keys_if` with a predicate that never matches (new: it is the identity), the input is not
   modified (new).
-- **Integration** (`tests/integration/nested/`): the dataclass behaviour with the real default registry
+- **Integration** (`tests/integration/nested/`): the dataclass behaviour with the real default
+  registry
   (no patching), a custom container registered with `register_transformers` that `remove_keys_if`
   enters, and a thread test with `run_threads` on `remove_keys_if` and `convert_to_jsonable` (a lock
   around the shared list, docstring "Test that ...").
 - **Doctests** run as part of the docstrings; the guide examples are doctests.
 - **Benchmark gate** (`tests/benchmarks/test_nested_benchmark.py`, new; the package has none today):
-  `to_flat_dict`, `from_flat_dict`, `remove_keys_if`, `add_prefix_suffix_to_keys(recursive=True)` and
-  `convert_to_jsonable` on a tree of about 8,000 leaves and on a flat dict of 100,000 entries, plus a
+  `to_flat_dict`, `from_flat_dict`, `remove_keys_if`, `add_prefix_suffix_to_keys(recursive=True)`
+  and
+  `convert_to_jsonable` on a tree of about 8,000 leaves and on a flat dict of 100,000 entries, plus
+  a
   tiny input per function. A step is rejected if the large inputs are more than 10 % slower than
   `main` or a tiny input costs more than 15 µs.
-- Coverage: 100 % of `src/coola/nested` (`--cov=coola`), no `# pragma: no cover` (the `else:  # pragma:
+- Coverage: 100 % of `src/coola/nested` (`--cov=coola`), no `# pragma: no cover` (the `else: #
+  pragma:
 no cover` of the polars fallback import is the existing exception for an absent library).
 
 ## 9. Decisions for the maintainers
 
-**D1. Delete `get_first_value`?** _Recommended: yes._ It is a one-liner without user in `src`, and the
+**D1. Delete `get_first_value`?** _Recommended: yes._ It is a one-liner without user in `src`, and
+the
 package shrinks to functions that do real work. The cost is one line for the callers
-(`next(iter(data.values()))`, which raises `StopIteration` on an empty mapping). Alternative: keep it;
+(`next(iter(data.values()))`, which raises `StopIteration` on an empty mapping). Alternative: keep
+it;
 it costs nothing to maintain, but it is the only function of the package that nobody needs from a
 nested structure.
 
-Decision: move it to `coola.utils.mapping` (not deleted). Reflected in section 3.4, the API list and step 2.
+Decision: move it to `coola.utils.mapping` (not deleted). Reflected in section 3.4, the API list and
+step 2.
 
 **D2. Own the key transformer in `nested`, or generalise it in `recursive`?** _Recommended: in
 `nested`, private._ `recursive` says "keys are never transformed", and a transformer that renames or
@@ -444,7 +490,8 @@ Decision: follow recommendation
 (`unnest_with_separator`, `_explode`) are deleted, about 25 lines and two untestable branches on
 current CI. If not, keep them behind `compare_version`.
 
-Decision: keep `polars>=1.0,<3.0`. The compatibility branches stay, behind `compare_version` (section 3.5, step 8).
+Decision: keep `polars>=1.0,<3.0`. The compatibility branches stay, behind `compare_version`
+(section 3.5, step 8).
 
 **D4. Enter dataclasses in `to_flat_dict`, `remove_keys_*` and `add_prefix_suffix_to_keys`?**
 _Recommended: yes._ `nested_data.md` says that a dataclass is a container in every package and
@@ -456,7 +503,8 @@ Alternative: keep dataclasses as leaves of `nested` and document it; the table o
 
 Decision: follow recommendation
 
-**D5. Keep `recursive=False` as the default of `add_prefix_suffix_to_keys`?** _Recommended: yes, as a
+**D5. Keep `recursive=False` as the default of `add_prefix_suffix_to_keys`?** _Recommended: yes, as
+a
 keyword-only option._ The common use (a prefix such as `train/` on the top-level metrics) is
 non-recursive, and the `remove_keys_*` functions are always recursive because removing a key at the
 top only is a dict comprehension. Alternative: make the rename always recursive and delete the flag
@@ -465,14 +513,17 @@ top only is a dict comprehension. Alternative: make the rename always recursive 
 Decision: follow recommendation
 
 **D6. Should a collision on rename raise, or should the last entry win?** _Recommended: raise_
-(`DuplicateKeyError`, the exception of the package). It is the rule for every other function that can
+(`DuplicateKeyError`, the exception of the package). It is the rule for every other function that
+can
 merge two entries and the only one that makes a rename function safe to expose later.
 
 Decision: follow recommendation
 
-**D7. Cache the derived registries?** _Recommended: no._ A copy of the default registry is 6 µs, which
+**D7. Cache the derived registries?** _Recommended: no._ A copy of the default registry is 6 µs,
+which
 is below the noise of any call on a real structure, and a cache of derived registries must track the
-changes of the default registry (a user registers a transformer after the first call). Revisit if the
+changes of the default registry (a user registers a transformer after the first call). Revisit if
+the
 benchmark of tiny inputs matters to a user.
 
 Decision: follow recommendation
@@ -480,14 +531,18 @@ Decision: follow recommendation
 **D8. `to_flat_dict` on top of `dfs_items` or its own loop?** _Recommended: its own loop now
 (25 lines, section 3.2), `dfs_items` later._ The path-aware iterator is not built, the loop is small
 and fixes the depth, the cycle and the dataclass today, and deleting it when `dfs_items` lands is a
-local change. Alternative: make `dfs_items` first and keep `to_flat_dict` as is; it blocks the fix on
+local change. Alternative: make `dfs_items` first and keep `to_flat_dict` as is; it blocks the fix
+on
 an unrelated feature.
 
-Decision: make `dfs_items` first. `to_flat_dict` is built on it (section 3.2); the work is split in step 0 (iterator) and step 6 (nested). The design of `dfs_items` has two requirements from `nested`: readable raw labels and an `empty` option.
+Decision: make `dfs_items` first. `to_flat_dict` is built on it (section 3.2); the work is split in
+step 0 (iterator) and step 6 (nested). The design of `dfs_items` has two requirements from `nested`:
+readable raw labels and an `empty` option.
 
 ## 10. Not covered
 
-- **Keys of `convert_to_jsonable`.** A `stringify_keys` option (or a `str`/`int`/`float`/`bool`/`None`
+- **Keys of `convert_to_jsonable`.** A `stringify_keys` option (or a
+  `str`/`int`/`float`/`bool`/`None`
   check that raises) would make the output strictly accepted by `json.dumps`. Natural next step with
   `_KeyTransformer`; it is not part of this design.
 - **Strict JSON** (`NaN`, infinities): the contract stays "accepted by the Python `json` module".

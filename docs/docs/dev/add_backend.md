@@ -14,13 +14,15 @@ In this page, `<pkg>` is the name of the library, e.g. `pandas`.
 1. Add the extra to `[project.optional-dependencies]` of `pyproject.toml`, e.g.
    `<pkg> = ["<pkg>>=1.0"]`. The `all` extra, the CI jobs that test each dependency with its
    supported versions, and `dev/config/package_versions.json` (updated by a bot) follow from it.
-2. Add `is_<pkg>_available` and `check_<pkg>` to `src/coola/utils/imports/optional.py`, with the same two
+2. Add `is_<pkg>_available` and `check_<pkg>` to `src/coola/utils/imports/optional.py`, with the
+   same two
    lines as the other libraries (`module_available("<pkg>")`, and `raise_package_missing_error`
    when it is not available). Decorate `is_<pkg>_available` with `availability_cache` (not with
    `functools.cache`), so that `clear_availability_caches` knows about it. Export the two names in
    `src/coola/utils/imports/__init__.py`.
 3. Create `src/coola/utils/fallback/<pkg>.py`, copied from `pandas.py`: a fake module with fake
-   classes that raise `MissingPackageError` (`make_fake_class("<pkg>")`), used when the library is not installed. It must have
+   classes that raise `MissingPackageError` (`make_fake_class("<pkg>")`), used when the library is
+   not installed. It must have
    every attribute of the library that is used in an annotation or a `class X(Base[pkg.Type])`
    statement, because these are evaluated when the module is imported.
 4. Add the marks for the tests: add one row to `_DEPENDENCIES` in `src/coola/testing/marks.py`
@@ -85,7 +87,8 @@ TorchTensorEqualityTester` works as before, but the module is imported when the 
 - **Registries.** The default registries do not import the modules of the optional libraries.
   `registry.register_lazy(packages, "package.module:get_default_...")` registers a group of entries
   that is built the first time the registry looks for a type whose class (or one of its base
-  classes) comes from one of the `packages`, or needs the whole registry (`len`, iteration, `items`).
+  classes) comes from one of the `packages`, or needs the whole registry (`len`, iteration,
+  `items`).
   An object cannot have a type of a library that was not imported, so a library is only imported by
   the registry if the program already imported it. The entries that are already registered are not
   replaced.

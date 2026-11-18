@@ -1,26 +1,32 @@
 # Architecture of `coola.display`
 
-:book: This page describes the design of the `coola.display` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/display.md#properties); the API is in the [reference](../refs/display.md).
+:book: This page describes the design of the `coola.display` package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the [user guide](../uguide/display.md#properties); the API is in the
+[reference](../refs/display.md).
 
 ## Constraints
 
 1. **Simple and easy to maintain.** The package is small and mostly docstrings. It does not walk two
    structures in parallel, and it has no layer that only exists for one caller.
 2. **`rich` and `colorlog` are optional.** `import coola`, `import coola.display` and
-   `import coola.display.rich` work without them and do not import them. Calling a function that needs
-   a missing library raises `MissingPackageError` with the `pip install coola[rich]` hint, not a bare
+   `import coola.display.rich` work without them and do not import them. Calling a function that
+   needs
+   a missing library raises `MissingPackageError` with the `pip install coola[rich]` hint, not a
+   bare
    `ModuleNotFoundError`. The tests of `coola.display.rich` are skipped when `rich` is not installed
    instead of failing at collection.
 3. **Core package.** `coola.display` sits in the core group (`registry`, `utils`, `validation`,
    `formatting`): it imports no feature package (`lint-imports` contract "Core packages must not
    import feature packages"). It may import `utils`, `validation` and `formatting`.
 4. **Consistent with the siblings.** Options are keyword-only, arguments are validated with
-   `coola.validation`, helpers that exist elsewhere are reused (`coola.formatting`), and the optional
+   `coola.validation`, helpers that exist elsewhere are reused (`coola.formatting`), and the
+   optional
    libraries follow the pattern of `coola.utils.fallback`.
 
 ## Architecture
 
-```
+```text
 coola/display/
     __init__.py       BaseDisplayMixin, InlineDisplayMixin, MultilineDisplayMixin (eager, no dependency)
                       str_pydantic_model, repr_pydantic_model                     (lazy, pydantic)
@@ -72,14 +78,16 @@ The package has three kinds of content with one rule each:
    Every public function calls a fake in its first statement (`Pretty(data)`, `SpinnerColumn()`,
    `get_console()`), before it changes anything: `configure_rich_logging` does not touch the root
    logger when `rich` is missing.
-4. **`check_rich()` is not called.** The fallback is the single mechanism, as for `pydantic`; a second
+4. **`check_rich()` is not called.** The fallback is the single mechanism, as for `pydantic`; a
+   second
    check would be dead code. (`check_rich` stays in `coola.utils.imports` for the other packages.)
 5. **`colorlog` works without the library.** The function falls back to plain `logging.basicConfig`,
    because for a logging helper "no colour" is a correct result and not an error. This is the
    difference between the two logging functions: `rich` is required, `colorlog` is optional.
 
 Why the fallback and not an import inside each function: it is the convention of the repository
-(`reducer`, `rounding`, `utils.tensor`, `display.pydantic`, `display.colorlog`), the names stay at the
+(`reducer`, `rounding`, `utils.tensor`, `display.pydantic`, `display.colorlog`), the names stay at
+the
 top of the module where `ruff` and `ty` see them, and the tests need no patching of
 `builtins.__import__`. The cost is one file of 25 lines to keep in sync with the imported names. The
 alternative, `check_rich()` and `from rich import ...` inside each function, needs no fake names but
@@ -89,12 +97,15 @@ is a second convention and hides the imports in function bodies.
 
 `BaseDisplayMixin` defines `__repr__`, `__str__` and a default `_display_fields`; the two concrete
 mixins implement `_render_fields`. `MultilineDisplayMixin` uses `repr_indent(repr_mapping(fields))`,
-which indents the continuation lines of a multiline value (`(y): a\n  b`). This is intended and covered
+which indents the continuation lines of a multiline value (`(y): a\n  b`). This is intended and
+covered
 by a test.
 
-The mixins do not guard against self-reference. A `reprlib.recursive_repr`-style guard needs a per-call
+The mixins do not guard against self-reference. A `reprlib.recursive_repr`-style guard needs a
+per-call
 set of ids on every `__repr__`, for a case that does not occur in the objects that use the mixins
-(configurations, loaders, transformers, registries); it would also change `__str__` and hide a bug in
+(configurations, loaders, transformers, registries); it would also change `__str__` and hide a bug
+in
 the caller's `_display_fields`.
 
 ### Formatting a pydantic model
@@ -120,12 +131,14 @@ def _shown(value):
     """A nested model is formatted like the root; lists, tuples, sets and dicts are rebuilt."""
 ```
 
-- **Nested models keep their name** (`P(c=C(name=a), items=[C(name=b)])`). A nested model is formatted
+- **Nested models keep their name** (`P(c=C(name=a), items=[C(name=b)])`). A nested model is
+  formatted
   with the same options as the root (`sort`, `exclude_none`, `exclude_secret`); the shown value is a
   tiny object whose `__repr__`/`__str__` is the formatted string, so the generic `repr_mapping_line`
   and `str_mapping_line` of `coola.formatting` need no change.
 - **No parallel walk, no `cast`**: the value is read once, from the model, and a nested secret is
-  dropped by the recursive call on the nested model. Dumping the model (`model_dump()`) and masking the
+  dropped by the recursive call on the nested model. Dumping the model (`model_dump()`) and masking
+  the
   secrets in the dump would need a second walk over the model and the dump in parallel.
 - **No serializer runs.** `getattr` reads the attribute; a `field_serializer`, an alias or a
   `computed_field` has no effect (a `computed_field` is not a field, so it is not shown; pydantic's
@@ -133,7 +146,8 @@ def _shown(value):
   safe formatter for logs, whose value is that it cannot raise or leak through user code. Keeping
   `model_dump()` would keep `computed_field` at the price of the parallel walk and of running the
   serializers.
-- **`secret_field_names` and `is_secret_annotation` are public in `coola.display.pydantic`.** They are
+- **`secret_field_names` and `is_secret_annotation` are public in `coola.display.pydantic`.** They
+  are
   the definition of "secret" shared by `display` and `summary`, with their own tests and doctests.
   A separate `coola.pydantic` module for the pydantic knowledge shared by several packages is not
   justified for two functions.
@@ -146,7 +160,8 @@ def _shown(value):
 ### Terminal output
 
 - **`configure_colorlog_logging(level=logging.INFO, *, force=False, **kwargs)`.** It accepts the
-  plain `logging.basicConfig` options (`handlers`, `filename`, `filemode`, `format`, `style`), handles
+  plain `logging.basicConfig` options (`handlers`, `filename`, `filemode`, `format`, `style`),
+  handles
   `stream` and `datefmt`, and checks that the stream is a terminal before it colours.
 - **`configure_rich_logging(level=logging.INFO, *, fmt, datefmt, rich_tracebacks, markup, force,
 console=None, **kwargs)`.** The handler is `RichHandler(console=console or get_console())`;
@@ -156,10 +171,12 @@ console=None)`** take the same `console` argument.
 - **`print_pretty` / `print_markdown`** take `title`, `title_align`, `box`, `panel` and `console`.
   `print_markdown(max_length=...)` truncates a Markdown string. `max_length` is validated
   (`validate_ge(max_length, 1)`, so a negative value raises `ValueError` instead of cutting from the
-  end) and the cut is done by `_truncate_markdown(msg, max_length)`, which stays in `print_.py` (it is
+  end) and the cut is done by `_truncate_markdown(msg, max_length)`, which stays in `print_.py` (it
+  is
   about Markdown, so it does not belong in `formatting.text`; `truncate_str` is not used because it
   cuts at a character and appends a suffix). The cut:
-  1. snaps to the last paragraph break (`\n\n`), else the last line break, else the last space, of the
+  1. snaps to the last paragraph break (`\n\n`), else the last line break, else the last space, of
+     the
      kept text, each only if it keeps at least half of `max_length`; otherwise it cuts at
      `max_length`;
   2. closes a code fence left open by the cut (an odd number of lines that start with ``` or `~~~`
@@ -168,15 +185,20 @@ console=None)`** take the same `console` argument.
      characters of `msg` that are not shown).
 
   The cut is not guaranteed to keep an inline marker (`**`, `*`, `` ` ``) balanced when it falls
-  inside a paragraph: the preference for paragraph and line breaks makes it rare, and it is documented
-  instead of repaired with a heuristic. A plain character cut would be simpler but can drop the closing
+  inside a paragraph: the preference for paragraph and line breaks makes it rare, and it is
+  documented
+  instead of repaired with a heuristic. A plain character cut would be simpler but can drop the
+  closing
   `**` or a code fence.
 
-- **The `rich` modules are four files** (`logging`, `print_`, `progressbar`, `__init__`). Merging them
-  would not shorten them: the three cover three different `rich` APIs and the split keeps each import
+- **The `rich` modules are four files** (`logging`, `print_`, `progressbar`, `__init__`). Merging
+  them
+  would not shorten them: the three cover three different `rich` APIs and the split keeps each
+  import
   list short.
 - **Two logging functions, not one `configure_logging(backend=...)`.** They have different options
-  (`rich_tracebacks`, `markup` against the colour of the formatter), and a dispatcher adds a name and
+  (`rich_tracebacks`, `markup` against the colour of the formatter), and a dispatcher adds a name
+  and
   a string option for two lines of caller code.
 
 ## Public API
@@ -233,7 +255,8 @@ Behaviours worth knowing:
 - **Log in JSON or to a file**: `configure_*_logging` forward `handlers`, `filename`, `format` to
   `logging.basicConfig`; nothing else is provided.
 - **Moving the logging helpers out of `display`** (to `coola.utils` or a `coola.logging` package):
-  `display` is where the user looks for terminal output and the two modules are small; revisit if the
+  `display` is where the user looks for terminal output and the two modules are small; revisit if
+  the
   package grows a third logging backend.
 - **`coola.utils.logging.CaptureHandler`** is a test helper for loggers and is unrelated to the
   display of records.

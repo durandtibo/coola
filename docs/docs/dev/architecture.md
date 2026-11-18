@@ -10,23 +10,28 @@ checklist to implement a new one. The design of each sub-package is on its own p
 1. **Properties first.** A sub-package starts from a table of properties (what is guaranteed) and a
    list of what is _not_ guaranteed. Every design choice exists to make one property true **by
    construction** (in one place), not by the discipline of each implementation.
-2. **One engine, one extension point.** The engine owns the invariants (identity, type, depth, cycles,
-   order, laziness, errors). A plug-in (tester, hasher, transformer, summarizer, child finder, rounder,
-   manager) only **describes one type**. A plug-in cannot forget a protection because it never recurses
+2. **One engine, one extension point.** The engine owns the invariants (identity, type, depth,
+   cycles,
+   order, laziness, errors). A plug-in (tester, hasher, transformer, summarizer, child finder,
+   rounder,
+   manager) only **describes one type**. A plug-in cannot forget a protection because it never
+   recurses
    and never receives the registry.
-3. **Strict and loud.** Different types are different. An unsupported type raises an error that names
+3. **Strict and loud.** Different types are different. An unsupported type raises an error that
+   names
    the type and how to register it. A default is never silently substituted for a missing object.
 4. **coola owns the semantics, the libraries own the structure.** A number is compared, hashed or
    rounded by one kernel; a library adapter only says what the structure is (columns, dtype, shape).
 5. **Small and easy to maintain.** Delete code that exists only to work around the design instead of
    adding code next to it. A helper that is one `isinstance` or one comparison is not a function.
-6. **No compatibility code.** A name or a behaviour that is replaced is replaced: there is no alias and
+6. **No compatibility code.** A name or a behaviour that is replaced is replaced: there is no alias
+   and
    no deprecation period, and a breaking change is made in a major release. The
    [migration guides](../migration/v1.1_to_v2.0.md) list the changes of each major release.
 
 ## Anatomy of a sub-package
 
-```
+```text
 coola/<package>/
     __init__.py    package docstring with the Properties; the public names; lazy_exports for the
                    names that need an optional library
@@ -49,9 +54,12 @@ Packages fall into two groups:
 - **Core**: `registry` (type-based dispatch), `utils` (generic helpers), `validation`, `formatting`
   (turning values into text) and `display`. A core package imports no feature package.
 - **Features**: `equality`, `hashing`, `summary`, `recursive`, `iterator`, `rounding`, `random`,
-  `nested`, `jsonable`, `reducer`, `io`, `factory`, `identifier` and `testing`. `equality`, `hashing`, `summary`,
-  `recursive`, `iterator` and `rounding` are built on `registry`; `reducer` and `random` are standalone
-  helpers. `identifier` depends on `hashing` (the stable identifiers are built on `hash_object`), and
+  `nested`, `jsonable`, `reducer`, `io`, `factory`, `identifier` and `testing`. `equality`,
+  `hashing`, `summary`,
+  `recursive`, `iterator` and `rounding` are built on `registry`; `reducer` and `random` are
+  standalone
+  helpers. `identifier` depends on `hashing` (the stable identifiers are built on `hash_object`),
+  and
   `hashing` must not import `identifier`. `nested` is built on the engines of `recursive` and
   `iterator`, and `jsonable` on the engine of `recursive`.
 
@@ -67,7 +75,8 @@ The allowed imports are:
 | a feature    | core packages and the features it is built on; never the `testing`; `equality`, `hashing`, `summary`, `recursive` and `iterator` never import `io` |
 
 The contract is enforced with [import-linter](https://import-linter.readthedocs.io/) (configured in
-`pyproject.toml`), without exception. Run it with `lint-imports`. A new package adds its place in the
+`pyproject.toml`), without exception. Run it with `lint-imports`. A new package adds its place in
+the
 contracts.
 
 ## The engine and the plug-in
@@ -75,7 +84,7 @@ contracts.
 Every package that walks a structure (`equality`, `hashing`, `summary`, `recursive`, `iterator`) has
 the same shape, so a contributor who knows one knows the others.
 
-```
+```text
 public function (validates, builds the config, picks the registry)
         |
         v
@@ -91,17 +100,21 @@ the result
 **The engine owns:**
 
 - the **identity and type rules** (strict type, the same object is equal);
-- the **lookup** of the plug-in: by MRO, cached for the call in a plain dict (a registration during a
+- the **lookup** of the plug-in: by MRO, cached for the call in a plain dict (a registration during
+  a
   call is seen by the next call);
-- the **depth**: an explicit stack or queue, so there is no `RecursionError`, whatever the nesting or
-  the caller's stack. The depth is bounded by memory only (`max_depth` is a policy, not a safety net);
+- the **depth**: an explicit stack or queue, so there is no `RecursionError`, whatever the nesting
+  or
+  the caller's stack. The depth is bounded by memory only (`max_depth` is a policy, not a safety
+  net);
 - the **cycles**: the objects (not their ids) on the current path are kept, and a container that
   contains itself is an error (`ValueError`), or "equal" for `equality`. A container reachable by
   several paths is not a cycle;
 - the **order**: depth first, left to right; a mapping gives its values in insertion order, a
   dataclass its fields in definition order, a set its iteration order (not specified);
 - the **laziness**: generators or children consumed on demand, no work after the first difference;
-- the **errors**: an exception of a plug-in propagates unchanged (except where totality is a property,
+- the **errors**: an exception of a plug-in propagates unchanged (except where totality is a
+  property,
   as in `summary`).
 
 **A plug-in contract** has these rules, documented in the base class and checked by one parametrised
@@ -109,9 +122,11 @@ unit test over the default registry:
 
 1. It is **pure and cheap**: it does not call the registry, does not recurse, does not modify the
    data, and does not depend on `id()`, on `hash()` or on the iteration order of a set.
-2. It returns a **description** (a verdict or a leaf, or the children and how to combine them), not a
+2. It returns a **description** (a verdict or a leaf, or the children and how to combine them), not
+   a
    result computed by recursion.
-3. It is **stateless** or holds its configuration only, so it can be shared by threads and registries,
+3. It is **stateless** or holds its configuration only, so it can be shared by threads and
+   registries,
    and is equal to another instance of its class.
 4. The built-in plug-ins are listed in a table (type, plug-in, default registration) on the package
    page.
@@ -138,14 +153,16 @@ A package that dispatches on the type uses a subclass of `TypeRegistry` (`coola.
   that does not exist there (`track_fork`).
 - **Lazy groups**: the handlers of an optional library are registered with `register_lazy`, and
   loaded when a type from its package is looked up or when the whole content is read.
-- **Default registry**: built once with `make_default_registry_singleton` (`coola.registry.default`),
+- **Default registry**: built once with `make_default_registry_singleton`
+  (`coola.registry.default`),
   which also loads the **plugin group** `coola.<package>.<plural noun>` (for example
-  `coola.hashing.hashers`). A broken plugin is skipped with a warning (`COOLA_STRICT_PLUGINS=1` raises).
+  `coola.hashing.hashers`). A broken plugin is skipped with a warning (`COOLA_STRICT_PLUGINS=1`
+  raises).
   Tests isolate the defaults with `temporary_default_registries`.
 - **Domain registry**: `class HasherRegistry(TypeRegistry[Hasher])` adds `has_hasher`, `find_hasher`
   (one-line delegations to `has` and `resolve`) and the entry point of the domain. A package also
-  exposes `get_default_registry()` (and an alias with the domain name) and `register_<plural>(mapping,
-*, exist_ok=False)`.
+  exposes `get_default_registry()` (and an alias with the domain name) and
+  `register_<plural>(mapping, *, exist_ok=False)`.
 - A **process-wide lazily built object** that is not a registry uses `LazySingleton`, not
   `functools.cache`.
 
@@ -174,13 +191,16 @@ The rules for a package that uses an optional library:
 
 - **Import**: never at module level of `src`. `import coola.<package>` imports no optional library.
   Use `lazy_exports` in `__init__.py` for the public names that need one.
-- **Availability**: `is_<pkg>_available()` (`coola.utils.imports`) is the single, cached definition of
+- **Availability**: `is_<pkg>_available()` (`coola.utils.imports`) is the single, cached definition
+  of
   "available". `check_<pkg>()` raises `MissingPackageError` with one message and the `pip install`
   hint. `package_available(name)` asks without importing.
 - **Fallback modules**: the module of a library guards its import with
-  `if TYPE_CHECKING or is_<pkg>_available(): import ... else: from coola.utils.fallback.<pkg> import ...`.
+  `if TYPE_CHECKING or is_<pkg>_available(): import ... else:
+  from coola.utils.fallback.<pkg> import ...`.
   The fakes raise `MissingPackageError` at the first use, before anything is changed.
-- **A missing library is an error at the call**, not at import. A function never runs half without its
+- **A missing library is an error at the call**, not at import. A function never runs half without
+  its
   library; where "no feature" is a correct result (colour of a log), the function says so.
 - **Adding a library**: two functions in `imports`, one fake module in `fallback/`, one row in
   `testing/marks.py`, the entries in `pyproject.toml`, and the lazy group of each registry. See
@@ -190,7 +210,8 @@ The rules for a package that uses an optional library:
 
 - **Options are keyword-only** (`*`), after the data and the first required arguments.
 - **Arguments are validated with `coola.validation`** before any work and before any state changes:
-  a wrong type is a `TypeError`, a wrong value a `ValueError`, both naming the argument. Do not write
+  a wrong type is a `TypeError`, a wrong value a `ValueError`, both naming the argument. Do not
+  write
   `raise ValueError` for a type, range or membership check, and do not add a validator that is one
   `isinstance` or one comparison.
 - **Several options are one frozen dataclass** (`EqualityConfig`, `SummaryConfig`) validated in
@@ -198,9 +219,11 @@ The rules for a package that uses an optional library:
 - **The input is never modified.** A function that rebuilds containers returns new ones; leaves are
   shared, never copied.
 - **Errors name the cause**: the type, the argument, and what to do (register a handler, install
-  `coola[numpy]`). Exceptions are the builtin ones plus a small named hierarchy (`MissingPackageError`,
+  `coola[numpy]`). Exceptions are the builtin ones plus a small named hierarchy
+  (`MissingPackageError`,
   `TypeNotRegisteredError`, `UnsupportedTypeError`); no error code.
-- **A shared helper is a public function of `coola.utils`** with its own tests, not a private function
+- **A shared helper is a public function of `coola.utils`** with its own tests, not a private
+  function
   imported across modules.
 - **Honest types**: a generic parameter reflects what is checked.
 - **The package docstring** carries the Properties table; each public function has a Google-style
@@ -210,7 +233,8 @@ The rules for a package that uses an optional library:
 
 - No global mutable state except the documented ones: the availability caches, the `track_fork`
   registry, the `LazySingleton` instances and the default registries.
-- The state of one call (stack, cache, ancestors) is local to the call, so threads and re-entrant calls
+- The state of one call (stack, cache, ancestors) is local to the call, so threads and re-entrant
+  calls
   are independent. No thread-local state, no lock on the read path.
 - Process-global resources that coola manages (the random generators) are not made thread-safe; the
   limit is documented.
@@ -221,7 +245,8 @@ The rules for a package that uses an optional library:
 
 - Performance is a requirement: both the passing and the failing path are measured. A simpler design
   that is slower is rejected unless a benchmark gate is met (`tests/benchmarks/`).
-- **Early exit**: check the cheap properties first (type, shape, dtype), then the values; stop at the
+- **Early exit**: check the cheap properties first (type, shape, dtype), then the values; stop at
+  the
   first difference; format a message only when asked.
 - **Bounded work** where the output is bounded (`summary` never iterates beyond `max_items`).
 - **Cache per call**, not per process, for the type lookup.
@@ -240,20 +265,24 @@ A new package ships these pages:
 | `mkdocs.yml` navigation  | The three pages above                                                        |
 
 Write down **what the package does not do** and the design choices with the alternatives that were
-not taken and what each would cost; a later reader needs the reason, not only the choice. A design page
+not taken and what each would cost; a later reader needs the reason, not only the choice. A design
+page
 describes the package as it is, not how it got there.
 
 ## Testing blueprint
 
-- **Unit tests** mirror the source tree, one behaviour per test, literal expected values, a regression
-  test for every bug (checked to fail without the fix), every function (private included) tested, 100%
+- **Unit tests** mirror the source tree, one behaviour per test, literal expected values, a
+  regression
+  test for every bug (checked to fail without the fix), every function (private included) tested,
+  100%
   coverage without `# pragma: no cover` on testable lines.
 - **Contract test** over the default registry: one sample per registered type, so every plug-in
   honours the rules of its contract (pure, reflexive, does not modify the sample).
 - **Property tests** (`tests/properties/`, seeded): the invariants of the Properties table, and the
   cross-package invariants (equal objects have the same hash; the same data gives the same leaves).
 - **Integration tests** (`tests/integration/`): real libraries without patching, threads
-  (`run_threads`), `os.fork`, subprocesses for the lazy imports. Every patched behaviour of a unit test
+  (`run_threads`), `os.fork`, subprocesses for the lazy imports. Every patched behaviour of a unit
+  test
   has a real counterpart here.
 - **Golden vectors** for any format that users persist (hashes, identifiers).
 - **Benchmarks** for the packages with a performance gate.
@@ -265,7 +294,8 @@ describes the package as it is, not how it got there.
 1. Write the Properties table and the "not guaranteed" list first.
 2. Decide the place in the layering and add the import-linter contract.
 3. Define the plug-in contract and the engine; the interface validates and delegates.
-4. Add the registry (a `TypeRegistry` subclass), the default registry, the plugin group, and the lazy
+4. Add the registry (a `TypeRegistry` subclass), the default registry, the plugin group, and the
+   lazy
    groups of the optional libraries.
 5. Keep optional libraries lazy: `lazy_exports`, fallback modules, `check_<pkg>()`.
 6. Make the options keyword-only and validate them with `coola.validation`.
@@ -302,7 +332,7 @@ the public API, the dependents and the trade-offs of the design.
 
 ## Module organization
 
-```
+```text
 coola/
 ├── equality/, hashing/, summary/, recursive/, iterator/, rounding/   # traversal and dispatch
 ├── nested/, jsonable/, reducer/, random/, io/, factory/, identifier/ # helpers built on the core
@@ -335,6 +365,7 @@ that `1` (int) and `1.0` (float) are treated differently catches numerical issue
 ## Contributing
 
 To contribute to `coola`'s architecture: understand the existing patterns, follow the conventions
-above, document the design decisions on the page of the package, write tests, and update this document
+above, document the design decisions on the page of the package, write tests, and update this
+document
 when a guideline changes. See the
 [contributing guide](https://github.com/durandtibo/coola/blob/main/CONTRIBUTING.md).

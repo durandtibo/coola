@@ -1,6 +1,9 @@
 # Architecture of `coola.summary`
 
-:book: This page describes the design of the `coola.summary` package for contributors: the invariants, the contracts between the parts, and the trade-offs of the main design choices. The rules that users rely on are in the [user guide](../uguide/summary.md#properties); the API is in the [reference](../refs/summary.md).
+:book: This page describes the design of the `coola.summary` package for contributors: the
+invariants, the contracts between the parts, and the trade-offs of the main design choices. The
+rules that users rely on are in the [user guide](../uguide/summary.md#properties); the API is in the
+[reference](../refs/summary.md).
 
 ## Overview
 
@@ -19,20 +22,24 @@ data. This is the same split as the equality and the recursive engines.
 1. **Simple and easy to maintain.** Summarizers are stateless: no constructor, no `__repr__`, no
    `equal`. The options live in one config, the traversal in one engine, and a summarizer only
    describes one type.
-2. **Bounded output and work.** `summarize` is called to build a log line. The cost depends on the size
-   of the summary, not on the size of the data: a huge input must not cost more than a small one. Small
+2. **Bounded output and work.** `summarize` is called to build a log line. The cost depends on the
+   size
+   of the summary, not on the size of the data: a huge input must not cost more than a small one.
+   Small
    inputs (tens of microseconds) pay a little for the fixed cost of the engine.
-3. **Consistent with the siblings.** Same engine shape as `equality` (the engine owns the invariants,
+3. **Consistent with the siblings.** Same engine shape as `equality` (the engine owns the
+   invariants,
    a plugin describes one type), same registry, same option rules as `recursive` and `equality`
    (keyword-only, validated, one frozen config).
 4. **Optional libraries stay lazy.** The package imports no optional library with
-   `import coola.summary`; the summarizers of NumPy, torch, pandas, ... are loaded the first time the
+   `import coola.summary`; the summarizers of NumPy, torch, pandas, ... are loaded the first time
+   the
    registry needs a type of the library (`register_lazy`). The plugin group
    `coola.summary.summarizers` is the extension point.
 
 ## Architecture in detail
 
-```
+```text
 summarize(data, *, max_depth=1, max_items=5, max_characters=1000, show_data=False, registry=None)
         |   one SummaryConfig (frozen, validated), one registry (default: the singleton)
         v
@@ -55,7 +62,8 @@ the text (lines joined once)
 The engine owns the invariants (bounded output, bounded work, depth, cycles, totality, layout). A
 summarizer **only describes one type**: a string for a leaf, or a header and lazy children for a
 container. That is the same split as `equality` (the engine owns identity, type, depth and cycles; a
-tester returns a verdict or the child pairs) and as `recursive` (a transformer returns the children).
+tester returns a verdict or the child pairs) and as `recursive` (a transformer returns the
+children).
 `registry`, `depth` and `max_depth` are not arguments of the summarizer, so a summarizer cannot
 forget a protection and cannot recurse.
 
@@ -82,24 +90,29 @@ class BaseSummarizer(ABC, Generic[T]):  # convenience base class
         return type(other) is type(self)
 ```
 
-Rules of the contract (documented in `BaseSummarizer`, checked by one parametrised unit test over the
+Rules of the contract (documented in `BaseSummarizer`, checked by one parametrised unit test over
+the
 default registry, like `NATIVE_SAMPLES` in `equality`):
 
 1. `summarize` is pure and cheap: it does not call the registry, does not recurse, does not modify
    `data`, and does not iterate the whole data. For a container it reads `len(data)` and returns the
    children **lazily** (`enumerate(data)`, `data.items()`, a generator): the engine takes at most
    `max_items` of them. A set is the exception: it returns the smallest `max_items` items.
-2. `compact` is `True` when the node is at the display depth. A leaf may use it (the default summarizer
+2. `compact` is `True` when the node is at the display depth. A leaf may use it (the default
+   summarizer
    shows the type only when `compact` is `False`); a container ignores it (the engine uses
    `CompactRepr`).
-3. A leaf returns a `str`, which may have several lines. The engine cuts it to at most `max_characters` characters (the `...` is part of the limit, as in `truncate_str`), so a
+3. A leaf returns a `str`, which may have several lines. The engine cuts it to at most
+   `max_characters` characters (the `...` is part of the limit, as in `truncate_str`), so a
    leaf does not have to.
 4. Labels are anything: the engine writes `safe_str(label)` cut at `max_characters`.
 5. An exception (of `summarize`, of the children iterator, of a label's `str`) is the engine's
    problem: it prints a placeholder, the summarizer does not guard itself.
 
-`Node` is a dataclass and not a tuple so that the contract is readable and a later field (for example
-a closing line) can be added without breaking the plugins. `Summarizer` (protocol) and `BaseSummarizer`
+`Node` is a dataclass and not a tuple so that the contract is readable and a later field (for
+example
+a closing line) can be added without breaking the plugins. `Summarizer` (protocol) and
+`BaseSummarizer`
 (ABC) follow the family convention: a summarizer from another library needs no import of `coola`.
 
 ### The config
@@ -114,15 +127,20 @@ class SummaryConfig:  # shareable, hashable, thread-safe; validated in __post_in
 ```
 
 All the options of the package are here, in one place, with one validation. `None` means "no limit"
-(there is no negative sentinel). The consequences of one config instead of options in the constructors:
+(there is no negative sentinel). The consequences of one config instead of options in the
+constructors:
 
-- A person who wants three items writes `summarize(data, max_items=3)`; they do not build a registry.
+- A person who wants three items writes `summarize(data, max_items=3)`; they do not build a
+  registry.
 - Summarizers are stateless, so they need no `__init__`, `__repr__`, `equal` or display mixin.
-- There is no per-type option (`max_items=3` for lists and 10 for dicts); a user who needs it registers
+- There is no per-type option (`max_items=3` for lists and 10 for dicts); a user who needs it
+  registers
   their own summarizer (a subclass that returns a `Node` with a smaller `total`).
-- **One limit for items, fields and columns**: `max_items` (default 5) counts the entries shown, so a
+- **One limit for items, fields and columns**: `max_items` (default 5) counts the entries shown, so
+  a
   frame lists 5 columns by default and `summarize(df, max_items=20)` lists more.
-- **The indentation is fixed** (2 spaces per level): a regular layout needs no `num_spaces`. Adding it
+- **The indentation is fixed** (2 spaces per level): a regular layout needs no `num_spaces`. Adding
+  it
   would be one field of the config.
 
 ### The engine
@@ -186,17 +204,22 @@ Design points:
   the call.
 - **`summarize` of a container runs at the boundary too.** It is cheap by contract (rule 1), and it
   keeps the engine free of a "is this a container?" question that only the summarizer can answer.
-- **The cycle check is on the open nodes only** (`ancestors`), so a DAG is not reported as a cycle, and
+- **The cycle check is on the open nodes only** (`ancestors`), so a DAG is not reported as a cycle,
+  and
   a leaf (a string, an array) never enters the set.
 - **The layout is one rule**: a node at depth `d` is written with `2 * d` spaces, and a text with
   several lines is aligned under its first character. Nothing is re-indented.
-- **A failure is local.** A node that fails prints its type and the exception name (never the message,
+- **A failure is local.** A node that fails prints its type and the exception name (never the
+  message,
   which may carry data) and the rest of the summary is intact. A summary is for logs and error
   messages, so raising there would hide the original problem. The cost is that a bug in a custom
-  summarizer shows as `<summary failed: ValueError>` instead of a traceback; the exception type is in
+  summarizer shows as `<summary failed: ValueError>` instead of a traceback; the exception type is
+  in
   the text, and the tests of the plugin show it.
-- **`max_depth` is a display depth** here (the nodes deeper than it are shown on one line), whereas it
-  is a limit that raises in `objects_are_equal`; the docs say so in both places. `expand_depth` would
+- **`max_depth` is a display depth** here (the nodes deeper than it are shown on one line), whereas
+  it
+  is a limit that raises in `objects_are_equal`; the docs say so in both places. `expand_depth`
+  would
   remove the ambiguity, but `max_depth` is the name every user of `summarize` knows.
 
 ### The compact form
@@ -229,9 +252,11 @@ class CompactRepr(reprlib.Repr):
   entries is shown with `repr()` directly, because `reprlib` is slower than `repr` on small
   containers.
 
-A "header only" form (`<class 'list'> (length=100) ...`) would be bounded and need no `reprlib`, but it
+A "header only" form (`<class 'list'> (length=100) ...`) would be bounded and need no `reprlib`, but
+it
 would hide the content of a small nested configuration, which is the most common use of the default
-`max_depth=1`. Asking the summarizer for an inline form (`Node.inline`) would be exact for every type,
+`max_depth=1`. Asking the summarizer for an inline form (`Node.inline`) would be exact for every
+type,
 but would double the contract. `reprlib` is slower than `repr` on small containers, so the fast path
 keeps the common case cheap; the gate is "up to 2x and at most 10 µs more" for inputs under 50 µs.
 
@@ -239,7 +264,7 @@ keeps the common case cheap; the gate is "up to 2x and at most 10 µs more" for 
 
 Rules (the examples are the output of the function):
 
-```
+```text
 >>> from coola.summary import summarize
 >>> print(summarize({"a": [1, 2, 3, 4, 5, 6, 7], "b": {"c": {1, 2}, "d": "x\ny"}}, max_depth=3))
 <class 'dict'> (length=2)
@@ -268,16 +293,20 @@ Rules (the examples are the output of the function):
 
 ```
 
-- A node is `header`, then its children one level deeper, then `... (+N more)` if some are not shown.
+- A node is `header`, then its children one level deeper, then `... (+N more)` if some are not
+  shown.
   An empty container is its header alone: `<class 'list'> (length=0)`.
-- A child is `(label): text`. The label of a sequence or a set is the position, of a mapping the `str`
+- A child is `(label): text`. The label of a sequence or a set is the position, of a mapping the
+  `str`
   of the key, of a dataclass or a pydantic model the field name, of a named tuple the field name.
 - **The type is shown for the nodes that are expanded and for their leaves; the boundary shows
   values.** A leaf shows `<class 'int'> 1` when `compact` is `False` and `1` when it is `True`:
-  `summarize(42)` is `<class 'int'> 42`, and the items of `summarize([1, "a"])` are bare because they
+  `summarize(42)` is `<class 'int'> 42`, and the items of `summarize([1, "a"])` are bare because
+  they
   are at the display depth. It needs one flag (`compact`). Showing the type of every leaf would be a
   simpler rule, but twice as long on the default output.
-- A metadata summarizer always shows its type: `<class 'numpy.ndarray'> | shape=(3,) | dtype=float64`.
+- A metadata summarizer always shows its type:
+  `<class 'numpy.ndarray'> | shape=(3,) | dtype=float64`.
 - Indentation is a fixed 2 spaces per level.
 
 An empty container is `(length=0)`, a list at the boundary is `[0, 1, 2, 3, 4, ...]`, a dict at the
@@ -288,7 +317,7 @@ entries are announced by `... (+N more)`.
 
 | Summarizer                                                                                                 | `summarize(data, config, compact=...)`                                                            | Default registration                  |
 | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| `DefaultSummarizer`                                                                                        | `safe_str(data)`, preceded by `<class ...> ` unless `compact`; a leaf                             | `object`, `UserString`                |
+| `DefaultSummarizer`                                                                                        | `safe_str(data)`, preceded by `<class ...>` and a space unless `compact`; a leaf                             | `object`, `UserString`                |
 | `SequenceSummarizer`                                                                                       | `Node("<type> (length=n)", enumerate(data), n)` (the field names for a named tuple)               | `list`, `tuple`, `deque`, `Sequence`  |
 | `SetSummarizer`                                                                                            | `Node("<type> (length=n)", enumerate(smallest(data, config.max_items)), n)`                       | `set`, `frozenset`                    |
 | `MappingSummarizer`                                                                                        | `Node("<type> (length=n)", data.items(), n)`                                                      | `dict`, `Mapping`, `MappingProxyType` |
@@ -300,14 +329,17 @@ Container summarizers are three one-line classes on a common helper; the datacla
 summarizers share `BaseObjectFieldsSummarizer` (one abstract method `_get_fields`). All of them are
 stateless: no constructor and no `__repr__`.
 
-A dataclass hides the `field(repr=False)` fields: it is how a dataclass author declares "do not print
-this" (tokens, large buffers), and the pydantic summarizer already hides secrets. The summary is not a
+A dataclass hides the `field(repr=False)` fields: it is how a dataclass author declares "do not
+print
+this" (tokens, large buffers), and the pydantic summarizer already hides secrets. The summary is not
+a
 comparison, so unlike `equality` and `hashing` it does not need every field. A named tuple uses its
 field names as labels (`data._fields`), consistent with dataclasses.
 
 `BaseMetadataSummarizer` (`_describe(data, config)` returns the fields, `_check_dependencies` raises
 `MissingPackageError` at construction if the library is missing) is the base class of the array and
-table summarizers. The summarizers of frames and tables call `format_fields(items, config.max_items)`
+table summarizers. The summarizers of frames and tables call
+`format_fields(items, config.max_items)`
 (`a: int64, b: float64, ... (+3 more)`) themselves.
 
 `str`, `int`, `float`, `complex` and `bool` are not registered: they resolve through `object`.
@@ -362,7 +394,8 @@ from coola.summary import (
 ```
 
 `summarize(...)` builds a `SummaryConfig` (so the options are validated in one place) and calls
-`registry.summarize(data, config)`, which calls the engine; `registry.summarize` is the registry-level
+`registry.summarize(data, config)`, which calls the engine; `registry.summarize` is the
+registry-level
 entry point, as `registry.objects_are_equal` is for `equality`.
 
 ## Dependents
@@ -381,12 +414,15 @@ docstrings). The package is a leaf.
 
 The choices that shape the package, with the alternative each was preferred to:
 
-- **A config instead of constructor options** (see [The config](#the-config)): simpler and stateless,
+- **A config instead of constructor options** (see [The config](#the-config)): simpler and
+  stateless,
   at the cost of per-type options.
-- **A `reprlib`-based compact form**: it keeps the content of a small nested structure and it is bounded.
+- **A `reprlib`-based compact form**: it keeps the content of a small nested structure and it is
+  bounded.
 - **A total engine**: an exception of a summarizer is a placeholder, not a raised error.
 - **Fixed indentation, one limit for items, fields and columns**: fewer options to validate and
-  document. A second `max_fields` option or a larger default for `max_items` (a list of 20 would show 10
+  document. A second `max_fields` option or a larger default for `max_items` (a list of 20 would
+  show 10
   lines) are the alternatives.
 - **The rule "type shown inside the expansion, values at the boundary"**: needs one flag.
 
