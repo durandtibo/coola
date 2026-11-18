@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from contextlib import suppress
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
@@ -142,6 +143,21 @@ def test_is_mps_available_without_mps() -> None:
 def test_is_mps_available_does_not_allocate_a_tensor() -> None:
     with patch("coola.utils.tensor.torch.ones", Mock(side_effect=RuntimeError("allocated"))):
         assert isinstance(is_mps_available(), bool)
+
+
+@torch_available
+@patch("coola.utils.tensor.is_torch_available", lambda: True)
+def test_is_mps_available_ignores_unsupported_device_warning() -> None:
+    def warn() -> bool:
+        warnings.warn("Skipping device that does not support Metal 2.0", UserWarning, stacklevel=2)
+        return False
+
+    with (
+        warnings.catch_warnings(),
+        patch("torch.backends.mps.is_available", warn),
+    ):
+        warnings.simplefilter("error")
+        assert not is_mps_available()
 
 
 @patch("coola.utils.tensor.is_torch_available", lambda: False)

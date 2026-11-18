@@ -10,6 +10,7 @@ __all__ = [
     "to_tensor",
 ]
 
+import warnings
 from typing import TYPE_CHECKING, Any, cast
 
 from coola.utils.imports import (
@@ -80,7 +81,9 @@ def is_cuda_available() -> bool:
 def is_mps_available() -> bool:
     r"""Indicate if MPS is currently available.
 
-    It does not allocate a tensor on the device.
+    It does not allocate a tensor on the device. The ``UserWarning`` that
+    PyTorch emits when the Metal device is not supported (for example on
+    a virtualized macOS machine) is silenced.
 
     Returns:
         A boolean indicating if MPS is currently available.
@@ -92,7 +95,11 @@ def is_mps_available() -> bool:
 
         ```
     """
-    return is_torch_available() and torch.backends.mps.is_available()
+    if not is_torch_available():
+        return False
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UserWarning)
+        return torch.backends.mps.is_available()
 
 
 def to_tensor(data: Sequence[int | float] | torch.Tensor | np.ndarray) -> torch.Tensor:
