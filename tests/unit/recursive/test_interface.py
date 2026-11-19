@@ -19,6 +19,7 @@ from coola.recursive import (
     get_default_registry,
     interface as recursive_interface,
     recursive_apply,
+    recursive_zip,
     recursive_zip_apply,
     register_transformers,
 )
@@ -395,3 +396,34 @@ def test_recursive_zip_apply_registry() -> None:
 def test_recursive_zip_apply_empty_raises() -> None:
     with pytest.raises(ValueError, match="at least one structure"):
         recursive_zip_apply([], sum)
+
+
+##################################
+#     Tests for recursive_zip     #
+##################################
+
+
+def test_recursive_zip() -> None:
+    assert recursive_zip([{"a": 1, "b": [2, 3]}, {"a": 10, "b": [20, 30]}]) == {
+        "a": (1, 10),
+        "b": [(2, 20), (3, 30)],
+    }
+
+
+def test_recursive_zip_single_item() -> None:
+    assert recursive_zip([[1, 2]]) == [(1,), (2,)]
+
+
+def test_recursive_zip_registry() -> None:
+    registry = TransformerRegistry({object: DefaultTransformer(), list: SequenceTransformer()})
+    assert recursive_zip([[1, 2], [3, 4]], registry=registry) == [(1, 3), (2, 4)]
+
+
+def test_recursive_zip_empty_raises() -> None:
+    with pytest.raises(ValueError, match="at least one structure"):
+        recursive_zip([])
+
+
+def test_recursive_zip_different_lengths_raises() -> None:
+    with pytest.raises(ValueError, match="same length"):
+        recursive_zip([[1], [1, 2]])

@@ -47,6 +47,7 @@ __all__ = [
     "rebuild_sequence",
     "rebuild_set",
     "recursive_apply",
+    "recursive_zip",
     "recursive_zip_apply",
     "register_transformers",
 ]
@@ -59,6 +60,7 @@ from coola.recursive.interface import (
     get_default_registry,
     get_default_transformer_registry,
     recursive_apply,
+    recursive_zip,
     recursive_zip_apply,
     register_transformers,
 )
