@@ -7,6 +7,7 @@ __all__ = [
     "get_default_registry",
     "get_default_transformer_registry",
     "recursive_apply",
+    "recursive_zip",
     "recursive_zip_apply",
     "register_transformers",
 ]
@@ -126,6 +127,40 @@ def recursive_zip_apply(
     if registry is None:
         registry = get_default_registry()
     return transform_zip(items, func, registry)
+
+
+def recursive_zip(items: Sequence[object], *, registry: TransformerRegistry | None = None) -> Any:
+    """Recursively zip several nested structures with the same layout.
+
+    The result has the layout of the first item, and each leaf is the
+    tuple of the leaves found at the same position in every item. It is
+    ``recursive_zip_apply`` with ``tuple`` as the function.
+
+    Args:
+        items: The structures to zip. They must have the same layout.
+        registry: Registry to resolve transformers. If ``None``, the
+            default registry is used.
+
+    Returns:
+        A structure with the layout (and the container types) of the
+        first item, where each leaf is a ``tuple`` of the leaves of the
+        items.
+
+    Raises:
+        ValueError: If ``items`` is empty, if the items do not have the
+            same keys, lengths or container kinds, or if a container
+            contains itself.
+        TypeError: If the items hold sets at the same position.
+
+    Example:
+        ```pycon
+        >>> from coola.recursive import recursive_zip
+        >>> recursive_zip([{"a": 1, "b": [2, 3]}, {"a": 10, "b": [20, 30]}])
+        {'a': (1, 10), 'b': [(2, 20), (3, 30)]}
+
+        ```
+    """
+    return recursive_zip_apply(items, tuple, registry=registry)
 
 
 def register_transformers(

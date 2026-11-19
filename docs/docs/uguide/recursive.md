@@ -72,6 +72,15 @@ The container types and the order follow the first structure. The mappings must 
 and the sequences the same length, otherwise a `ValueError` is raised. Sets are not supported
 (`TypeError`) because their elements have no position to align.
 
+`recursive_zip` is the same traversal where each leaf is the tuple of the aligned values:
+
+```pycon
+>>> from coola.recursive import recursive_zip
+>>> recursive_zip([{"a": 1, "b": [2, 3]}, {"a": 10, "b": [20, 30]}])
+{'a': (1, 10), 'b': [(2, 20), (3, 30)]}
+
+```
+
 ### More Examples
 
 You can use `recursive_apply` with different data structures:
