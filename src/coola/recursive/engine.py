@@ -200,8 +200,7 @@ def _zip(
 
 
 def _check_layout(items: list[Any], expansions: list[Any]) -> None:
-    r"""Check that the containers found at the same position are
-    aligned.
+    r"""Check that the containers found at the same position are aligned.
 
     Args:
         items: The containers found at the same position.
