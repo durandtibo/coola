@@ -56,6 +56,22 @@ data:
 The function traverses the data structure and applies the transformation function to each leaf value
 (i.e., non-container values like numbers and strings).
 
+### Combining Several Structures
+
+`recursive_zip_apply` traverses several structures with the same layout in parallel. The function
+receives the list of the values found at the same position in every structure:
+
+```pycon
+>>> from coola.recursive import recursive_zip_apply
+>>> recursive_zip_apply([{"a": 1, "b": [2, 3]}, {"a": 10, "b": [20, 30]}], sum)
+{'a': 11, 'b': [22, 33]}
+
+```
+
+The container types and the order follow the first structure. The mappings must have the same keys
+and the sequences the same length, otherwise a `ValueError` is raised. Sets are not supported
+(`TypeError`) because their elements have no position to align.
+
 ### More Examples
 
 You can use `recursive_apply` with different data structures:

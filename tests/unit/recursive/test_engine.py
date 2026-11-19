@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -13,7 +14,7 @@ from coola.recursive import (
     get_default_registry,
     recursive_apply,
 )
-from coola.recursive.engine import transform
+from coola.recursive.engine import _check_layout, _zip, transform, transform_zip
 from coola.registry import TypeNotRegisteredError
 from tests.helpers import DEEP_NESTING_DEPTH
 
@@ -31,6 +32,12 @@ class SelfChildTransformer(BaseTransformer[list]):
 @pytest.fixture
 def registry() -> TransformerRegistry:
     return get_default_registry()
+
+
+@dataclass
+class Point:
+    x: int
+    y: int
 
 
 def nest(value: Any, depth: int) -> Any:
@@ -179,3 +186,137 @@ def test_recursive_apply_deep_structure() -> None:
     for _ in range(DEEP_NESTING_DEPTH):
         result = result[0]
     assert result == "1"
+
+
+###################################
+#     Tests for transform_zip     #
+###################################
+
+
+def zip_sum(items: Any) -> Any:
+    return transform_zip(items, sum, get_default_registry())
+
+
+def test_transform_zip_leaves() -> None:
+    assert zip_sum([1, 2, 3]) == 6
+
+
+def test_transform_zip_single_item() -> None:
+    assert transform_zip([[1, 2]], lambda x: x[0] * 10, get_default_registry()) == [10, 20]
+
+
+def test_transform_zip_nested() -> None:
+    assert zip_sum([{"a": 1, "b": [2, 3]}, {"a": 10, "b": [20, 30]}]) == {"a": 11, "b": [22, 33]}
+
+
+def test_transform_zip_empty_containers() -> None:
+    assert zip_sum([{}, {}]) == {}
+
+
+def test_transform_zip_func_receives_a_list_of_leaves() -> None:
+    assert transform_zip([[1], [2]], lambda x: x, get_default_registry()) == [[1, 2]]
+
+
+def test_transform_zip_keeps_the_type_of_the_first_item() -> None:
+    assert zip_sum([(1, 2), [3, 4]]) == (4, 6)
+
+
+def test_transform_zip_mapping_other_key_order() -> None:
+    assert zip_sum([{"a": 1, "b": 2}, {"b": 20, "a": 10}]) == {"a": 11, "b": 22}
+
+
+def test_transform_zip_mapping_other_key_order_nested() -> None:
+    assert transform_zip(
+        [{"a": 1, "b": 2}, {"b": 20, "a": 10}], lambda x: x, get_default_registry()
+    ) == {"a": [1, 10], "b": [2, 20]}
+
+
+def test_transform_zip_dataclass() -> None:
+    assert zip_sum([Point(1, 2), Point(10, 20)]) == Point(11, 22)
+
+
+def test_transform_zip_empty_items_raises() -> None:
+    with pytest.raises(ValueError, match="items must contain at least one structure"):
+        zip_sum([])
+
+
+def test_transform_zip_different_keys_raises() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"The mappings must have the same keys but item 0 has keys \['a'\] and item 1 has keys \['b'\]",
+    ):
+        zip_sum([{"a": 1}, {"b": 1}])
+
+
+def test_transform_zip_different_lengths_raises() -> None:
+    with pytest.raises(ValueError, match="same length but item 0 has 1 elements and item 1 has 2"):
+        zip_sum([[1], [1, 2]])
+
+
+def test_transform_zip_mapping_and_sequence_raises() -> None:
+    with pytest.raises(ValueError, match="must have the same kind"):
+        zip_sum([{"a": 1}, [1]])
+
+
+def test_transform_zip_sequence_and_mapping_raises() -> None:
+    with pytest.raises(ValueError, match="must have the same kind"):
+        zip_sum([[1], {"a": 1}])
+
+
+def test_transform_zip_leaf_and_container_raises() -> None:
+    with pytest.raises(ValueError, match=r"item 0 is a leaf of type .* but item 1 is a container"):
+        zip_sum([1, [1]])
+
+
+def test_transform_zip_container_and_leaf_raises() -> None:
+    with pytest.raises(ValueError, match=r"item 0 is a container of type .* but item 1 is a leaf"):
+        zip_sum([[1], 1])
+
+
+def test_transform_zip_sets_raises() -> None:
+    with pytest.raises(TypeError, match="Sets cannot be combined"):
+        zip_sum([{1}, {2}])
+
+
+def test_transform_zip_cycle_raises() -> None:
+    data: list[Any] = []
+    data.append(data)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        zip_sum([data, data])
+
+
+def test_transform_zip_shared_container_is_not_a_cycle() -> None:
+    shared = [1]
+    assert zip_sum([[shared, shared], [[2], [3]]]) == [[3], [4]]
+
+
+def test_transform_zip_deep_structure_raises_explanatory_error() -> None:
+    with pytest.raises(RecursionError, match="recursion limit"):
+        zip_sum([nest(1, DEEP_NESTING_DEPTH)] * 2)
+
+
+def test_transform_zip_does_not_modify_the_items() -> None:
+    items = [{"a": [1]}, {"a": [2]}]
+    zip_sum(items)
+    assert items == [{"a": [1]}, {"a": [2]}]
+
+
+def test_zip_leaves() -> None:
+    assert _zip([1, 2], sum, get_default_registry(), set()) == 3
+
+
+def test_zip_releases_the_ancestors() -> None:
+    ancestors: set[int] = set()
+    _zip([[1], [2]], sum, get_default_registry(), ancestors)
+    assert ancestors == set()
+
+
+def test_check_layout_same_lengths() -> None:
+    items = [[1], [2]]
+    assert _check_layout(items, [(x, None) for x in items]) is None
+
+
+def test_check_layout_different_lengths_raises() -> None:
+    items = [[1], [2, 3]]
+    with pytest.raises(ValueError, match="same length"):
+        _check_layout(items, [(x, None) for x in items])

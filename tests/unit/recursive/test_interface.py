@@ -19,6 +19,7 @@ from coola.recursive import (
     get_default_registry,
     interface as recursive_interface,
     recursive_apply,
+    recursive_zip_apply,
     register_transformers,
 )
 from coola.registry import AlreadyRegisteredError
@@ -368,3 +369,29 @@ def test_register_default_transformers_without_pydantic_registers_no_lazy_group(
     with patch("coola.recursive.interface.package_available", lambda _: False):
         recursive_interface._register_default_transformers(registry)
     assert "<not loaded" not in repr(registry)
+
+
+#########################################
+#     Tests for recursive_zip_apply     #
+#########################################
+
+
+def test_recursive_zip_apply() -> None:
+    assert recursive_zip_apply([{"a": 1, "b": [2, 3]}, {"a": 10, "b": [20, 30]}], sum) == {
+        "a": 11,
+        "b": [22, 33],
+    }
+
+
+def test_recursive_zip_apply_default_registry_is_used() -> None:
+    assert recursive_zip_apply([Config(1, [2]), Config(10, [20])], sum) == Config(11, [22])
+
+
+def test_recursive_zip_apply_registry() -> None:
+    registry = TransformerRegistry({object: DefaultTransformer(), list: SequenceTransformer()})
+    assert recursive_zip_apply([[1, 2], [3, 4]], sum, registry=registry) == [4, 6]
+
+
+def test_recursive_zip_apply_empty_raises() -> None:
+    with pytest.raises(ValueError, match="at least one structure"):
+        recursive_zip_apply([], sum)
