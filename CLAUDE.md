@@ -33,6 +33,8 @@
   number, so do not add one.
 - In the PR description, say what was changed, what was deliberately not changed, and any
   behaviour change (for example a changed output, or a breaking change of the signature).
+- Do not escape special characters such as the backtick (`` ` ``) in the PR title or description
+  (no `\``): the backslash is not rendered well. Write the characters as is.
 - When a PR conflicts with `main`, merge `origin/main` into the branch and resolve the conflicts
   (do not rebase and force-push). Most conflicts are two PRs appending tests at the end of the
   same test file: keep both. Check what `main` already contains before choosing a side.
