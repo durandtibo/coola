@@ -7,6 +7,7 @@ __all__ = [
     "get_default_registry",
     "get_default_transformer_registry",
     "recursive_apply",
+    "recursive_zip_apply",
     "register_transformers",
 ]
 
@@ -20,6 +21,7 @@ from coola.recursive.dataclass import DataclassTransformer
 from coola.recursive.default import (
     DefaultTransformer,
 )
+from coola.recursive.engine import transform_zip
 from coola.recursive.mapping import MappingTransformer
 from coola.recursive.registry import TransformerRegistry
 from coola.recursive.sequence import SequenceTransformer
@@ -71,6 +73,59 @@ def recursive_apply(
     if registry is None:
         registry = get_default_registry()
     return registry.transform(data, func)
+
+
+def recursive_zip_apply(
+    items: Sequence[object],
+    func: Callable[[list[Any]], Any],
+    *,
+    registry: TransformerRegistry | None = None,
+) -> Any:
+    """Recursively apply a function to the leaves found at the same
+    position in several nested structures.
+
+    The structures are traversed in parallel: the function receives
+    the list of the values found at the same position in every structure.
+    It is the "N to 1" counterpart of ``recursive_apply``.
+
+    Args:
+        items: The structures to combine. They must have the same layout.
+        func: Function applied to the list of leaves found at the same
+            position in every item.
+        registry: Registry to resolve transformers. If ``None``, the
+            default registry is used.
+
+    Returns:
+        A structure with the layout (and the container types) of the
+        first item, where each leaf is the output of ``func``.
+
+    Raises:
+        ValueError: If ``items`` is empty, if the items do not have the
+            same keys, lengths or container kinds, or if a container
+            contains itself.
+        TypeError: If the items hold sets at the same position (their
+            elements have no position to align).
+
+    Notes:
+        Container types and keys follow the first item. A ``list`` and a
+        ``tuple`` at the same position are accepted. Mappings must have
+        the same keys, but the order of the keys of the other items is
+        ignored. ``str`` is a leaf. A custom transformer registered with
+        ``register_transformers`` is used through its ``expand`` method:
+        the containers of the same position must have the same number of
+        children.
+
+    Example:
+        ```pycon
+        >>> from coola.recursive import recursive_zip_apply
+        >>> recursive_zip_apply([{"a": 1, "b": [2, 3]}, {"a": 10, "b": [20, 30]}], sum)
+        {'a': 11, 'b': [22, 33]}
+
+        ```
+    """
+    if registry is None:
+        registry = get_default_registry()
+    return transform_zip(items, func, registry)
 
 
 def register_transformers(
