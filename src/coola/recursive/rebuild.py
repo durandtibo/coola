@@ -30,6 +30,10 @@ def rebuild_mapping(data: Any, items: Mapping[Any, Any] | Iterable[tuple[Any, An
     of ``data``, because its constructor does not accept a mapping as
     the first argument.
 
+    The output has the type of ``data`` (``dict``, ``OrderedDict``,
+    ``defaultdict`` with its ``default_factory``, or a subclass).
+    This contract is stable.
+
     Args:
         data: The original mapping, used for its type.
         items: The new items: a mapping or an iterable of
@@ -40,12 +44,13 @@ def rebuild_mapping(data: Any, items: Mapping[Any, Any] | Iterable[tuple[Any, An
 
     Raises:
         TypeError: If the type of ``data`` cannot be built from
-            ``items``. Register a transformer for this type.
+            ``items``. The message is built by ``_rebuild_error``. Register
+            a transformer for this type.
 
     Example:
         ```pycon
         >>> from collections import defaultdict
-        >>> from coola.recursive.rebuild import rebuild_mapping
+        >>> from coola.recursive import rebuild_mapping
         >>> rebuild_mapping(defaultdict(int, {"a": 1}), {"a": 2})
         defaultdict(<class 'int'>, {'a': 2})
 
@@ -66,6 +71,10 @@ def rebuild_sequence(data: Any, items: Iterable[Any]) -> Any:
     A named tuple is rebuilt from its fields, and a ``collections.deque``
     keeps its ``maxlen``.
 
+    The output has the type of ``data`` (``list``, ``tuple``, named
+    tuple, ``deque``, or a subclass). ``items`` can be any iterable.
+    This contract is stable.
+
     Args:
         data: The original sequence, used for its type.
         items: The new items.
@@ -75,12 +84,13 @@ def rebuild_sequence(data: Any, items: Iterable[Any]) -> Any:
 
     Raises:
         TypeError: If the type of ``data`` cannot be built from
-            ``items``. Register a transformer for this type.
+            ``items``. The message is built by ``_rebuild_error``. Register
+            a transformer for this type.
 
     Example:
         ```pycon
         >>> from collections import deque
-        >>> from coola.recursive.rebuild import rebuild_sequence
+        >>> from coola.recursive import rebuild_sequence
         >>> rebuild_sequence(deque([1, 2], maxlen=3), [3, 4])
         deque([3, 4], maxlen=3)
 
@@ -114,7 +124,7 @@ def rebuild_set(data: Any, items: Iterable[Any]) -> Any:
 
     Example:
         ```pycon
-        >>> from coola.recursive.rebuild import rebuild_set
+        >>> from coola.recursive import rebuild_set
         >>> rebuild_set(frozenset({1, 2}), [3, 3, 4])
         frozenset({3, 4})
 

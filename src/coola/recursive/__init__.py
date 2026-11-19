@@ -43,6 +43,9 @@ __all__ = [
     "TransformerRegistry",
     "get_default_registry",
     "get_default_transformer_registry",
+    "rebuild_mapping",
+    "rebuild_sequence",
+    "rebuild_set",
     "recursive_apply",
     "register_transformers",
 ]
@@ -58,6 +61,7 @@ from coola.recursive.interface import (
     register_transformers,
 )
 from coola.recursive.mapping import MappingTransformer
+from coola.recursive.rebuild import rebuild_mapping, rebuild_sequence, rebuild_set
 from coola.recursive.registry import TransformerRegistry
 from coola.recursive.sequence import SequenceTransformer
 from coola.recursive.set import SetTransformer
