@@ -1030,6 +1030,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#combining-several-structures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combining Several Structures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#more-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2948,6 +2959,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#combining-several-structures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combining Several Structures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#more-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3274,6 +3296,16 @@ data:</p>
 </code></pre></div>
 <p>The function traverses the data structure and applies the transformation function to each leaf value
 (i.e., non-container values like numbers and strings).</p>
+<h3 id="combining-several-structures">Combining Several Structures<a class="headerlink" href="#combining-several-structures" title="Permanent link">&para;</a></h3>
+<p><code>recursive_zip_apply</code> traverses several structures with the same layout in parallel. The function
+receives the list of the values found at the same position in every structure:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.recursive</span><span class="w"> </span><span class="kn">import</span> <span class="n">recursive_zip_apply</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recursive_zip_apply</span><span class="p">([{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]},</span> <span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">]}],</span> <span class="nb">sum</span><span class="p">)</span>
+<span class="go">{'a': 11, 'b': [22, 33]}</span>
+</code></pre></div>
+<p>The container types and the order follow the first structure. The mappings must have the same keys
+and the sequences the same length, otherwise a <code>ValueError</code> is raised. Sets are not supported
+(<code>TypeError</code>) because their elements have no position to align.</p>
 <h3 id="more-examples">More Examples<a class="headerlink" href="#more-examples" title="Permanent link">&para;</a></h3>
 <p>You can use <code>recursive_apply</code> with different data structures:</p>
 <p><strong>Nested lists and tuples:</strong></p>

@@ -2635,6 +2635,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#coola.recursive.recursive_zip_apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        recursive_zip_apply
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#coola.recursive.register_transformers" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3180,6 +3191,17 @@
     <span class="md-ellipsis">
       
         recursive_apply
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coola.recursive.recursive_zip_apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        recursive_zip_apply
       
     </span>
   </a>
@@ -5407,6 +5429,188 @@ itself raises a <code>ValueError</code>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Guard the operation so non-numeric leaves are preserved.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">recursive_apply</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mi">4</span><span class="p">}],</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="n">x</span><span class="p">)</span>
 <span class="go">[2, [4, 6], {'x': 8}]</span>
+</code></pre></div>
+</details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="coola.recursive.recursive_zip_apply" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">coola.recursive.recursive_zip_apply</span>
+
+
+<a href="#coola.recursive.recursive_zip_apply" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">recursive_zip_apply</span><span class="p">(</span>
+    <span class="n">items</span><span class="p">:</span> <span class="n"><span title="collections.abc.Sequence">Sequence</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" href="../../uguide/equality/#object">object</a></span><span class="p">],</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n"><span title="collections.abc.Callable">Callable</span></span><span class="p">[[</span><span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="typing.Any">Any</span></span><span class="p">]],</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">registry</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="coola.recursive.TransformerRegistry (coola.recursive.registry.TransformerRegistry)" href="#coola.recursive.TransformerRegistry">TransformerRegistry</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Any">Any</span></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Recursively apply a function to the leaves found at the same
+position in several nested structures.</p>
+<p>The structures are traversed in parallel: the function receives
+the list of the values found at the same position in every structure.
+It is the "N to 1" counterpart of <code>recursive_apply</code>.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>items</code>
+            </td>
+            <td>
+                  <code><span title="collections.abc.Sequence">Sequence</span>[<a class="autorefs autorefs-internal" href="../../uguide/equality/#object">object</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The structures to combine. They must have the same layout.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>func</code>
+            </td>
+            <td>
+                  <code><span title="collections.abc.Callable">Callable</span>[[<span title="list">list</span>[<span title="typing.Any">Any</span>]], <span title="typing.Any">Any</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Function applied to the list of leaves found at the same
+position in every item.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>registry</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="coola.recursive.TransformerRegistry (coola.recursive.registry.TransformerRegistry)" href="#coola.recursive.TransformerRegistry">TransformerRegistry</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Registry to resolve transformers. If <code>None</code>, the
+default registry is used.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A structure with the layout (and the container types) of the</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>first item, where each leaf is the output of <code>func</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>items</code> is empty, if the items do not have the
+same keys, lengths or container kinds, or if a container
+contains itself.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="TypeError">TypeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the items hold sets at the same position (their
+elements have no position to align).</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="notes" open>
+  <summary>Notes</summary>
+  <p>Container types and keys follow the first item. A <code>list</code> and a
+<code>tuple</code> at the same position are accepted. Mappings must have
+the same keys, but the order of the keys of the other items is
+ignored. <code>str</code> is a leaf. A custom transformer registered with
+<code>register_transformers</code> is used through its <code>expand</code> method:
+the containers of the same position must have the same number of
+children.</p>
+</details>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.recursive</span><span class="w"> </span><span class="kn">import</span> <span class="n">recursive_zip_apply</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recursive_zip_apply</span><span class="p">([{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]},</span> <span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">]}],</span> <span class="nb">sum</span><span class="p">)</span>
+<span class="go">{'a': 11, 'b': [22, 33]}</span>
 </code></pre></div>
 </details>
 
