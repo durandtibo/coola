@@ -10,6 +10,35 @@ on:
 permissions: {}
 
 jobs:
+  format:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+      - name: Format
+        run: |
+          make format
+      - name: Check for changes
+        run: |
+          git diff --exit-code
+
+  lint:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+      - name: Lint
+        run: |
+          make lint
+
   python:
     permissions:
       contents: read
@@ -29,25 +58,3 @@ jobs:
       - name: Lint python scripts
         run: |
           inv lint.check-python
-
-  shell:
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-
-      # make lint-shell/check-format-shell use `xargs -r`, so they no-op
-      # cleanly when the repo has no shell scripts, unlike the previous
-      # ludeeus/action-shellcheck-based setup which failed with "No files
-      # specified" in that case.
-      - name: Check shell formatting
-        run: |
-          make check-format-shell
-
-      - name: Lint shell scripts
-        run: |
-          make lint-shell
