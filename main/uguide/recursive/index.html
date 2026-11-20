@@ -3306,6 +3306,11 @@ receives the list of the values found at the same position in every structure:</
 <p>The container types and the order follow the first structure. The mappings must have the same keys
 and the sequences the same length, otherwise a <code>ValueError</code> is raised. Sets are not supported
 (<code>TypeError</code>) because their elements have no position to align.</p>
+<p><code>recursive_zip</code> is the same traversal where each leaf is the tuple of the aligned values:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.recursive</span><span class="w"> </span><span class="kn">import</span> <span class="n">recursive_zip</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recursive_zip</span><span class="p">([{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]},</span> <span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">]}])</span>
+<span class="go">{'a': (1, 10), 'b': [(2, 20), (3, 30)]}</span>
+</code></pre></div>
 <h3 id="more-examples">More Examples<a class="headerlink" href="#more-examples" title="Permanent link">&para;</a></h3>
 <p>You can use <code>recursive_apply</code> with different data structures:</p>
 <p><strong>Nested lists and tuples:</strong></p>

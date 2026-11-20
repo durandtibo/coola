@@ -2635,6 +2635,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#coola.recursive.recursive_zip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        recursive_zip
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#coola.recursive.recursive_zip_apply" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3191,6 +3202,17 @@
     <span class="md-ellipsis">
       
         recursive_apply
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coola.recursive.recursive_zip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        recursive_zip
       
     </span>
   </a>
@@ -5429,6 +5451,167 @@ itself raises a <code>ValueError</code>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Guard the operation so non-numeric leaves are preserved.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">recursive_apply</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mi">4</span><span class="p">}],</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="n">x</span><span class="p">)</span>
 <span class="go">[2, [4, 6], {'x': 8}]</span>
+</code></pre></div>
+</details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="coola.recursive.recursive_zip" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">coola.recursive.recursive_zip</span>
+
+
+<a href="#coola.recursive.recursive_zip" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">recursive_zip</span><span class="p">(</span>
+    <span class="n">items</span><span class="p">:</span> <span class="n"><span title="collections.abc.Sequence">Sequence</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" href="../../uguide/equality/#object">object</a></span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">registry</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="coola.recursive.TransformerRegistry (coola.recursive.registry.TransformerRegistry)" href="#coola.recursive.TransformerRegistry">TransformerRegistry</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Any">Any</span></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Recursively zip several nested structures with the same layout.</p>
+<p>The result has the layout of the first item, and each leaf is the
+tuple of the leaves found at the same position in every item. It is
+<code>recursive_zip_apply</code> with <code>tuple</code> as the function.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>items</code>
+            </td>
+            <td>
+                  <code><span title="collections.abc.Sequence">Sequence</span>[<a class="autorefs autorefs-internal" href="../../uguide/equality/#object">object</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The structures to zip. They must have the same layout.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>registry</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="coola.recursive.TransformerRegistry (coola.recursive.registry.TransformerRegistry)" href="#coola.recursive.TransformerRegistry">TransformerRegistry</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Registry to resolve transformers. If <code>None</code>, the
+default registry is used.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A structure with the layout (and the container types) of the</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>first item, where each leaf is a <code>tuple</code> of the leaves of the</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>items.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>items</code> is empty, if the items do not have the
+same keys, lengths or container kinds, or if a container
+contains itself.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="TypeError">TypeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the items hold sets at the same position.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.recursive</span><span class="w"> </span><span class="kn">import</span> <span class="n">recursive_zip</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recursive_zip</span><span class="p">([{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]},</span> <span class="p">{</span><span class="s2">"a"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">:</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">]}])</span>
+<span class="go">{'a': (1, 10), 'b': [(2, 20), (3, 30)]}</span>
 </code></pre></div>
 </details>
 
