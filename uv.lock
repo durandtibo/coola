@@ -274,8 +274,8 @@ colorlog = [
     { name = "colorlog" },
 ]
 jax = [
-    { name = "jax", version = "0.10.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and ((platform_machine == 'arm64' and sys_platform == 'darwin') or sys_platform == 'linux')" },
-    { name = "jax", version = "0.12.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and ((platform_machine == 'arm64' and sys_platform == 'darwin') or sys_platform == 'linux')" },
+    { name = "jax", version = "0.10.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.12' and sys_platform == 'linux')" },
+    { name = "jax", version = "0.12.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and sys_platform == 'linux')" },
 ]
 numpy = [
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
@@ -365,7 +365,7 @@ provides-extras = ["jax", "numpy", "packaging", "pandas", "polars", "pyarrow", "
 [package.metadata.requires-dev]
 dev = [
     { name = "codespell", specifier = ">=2.4,<3.0" },
-    { name = "coverage", extras = ["toml"], specifier = ">=7.17.2,<8.0" },
+    { name = "coverage", extras = ["toml"], specifier = ">=7.17.3,<8.0" },
     { name = "docformatter", specifier = ">=1.7.8,<2.0" },
     { name = "feu", extras = ["all"], specifier = ">=0.8.4,<1.0" },
     { name = "import-linter", marker = "python_full_version >= '3.14'", specifier = ">=2.0,<3.0" },
