@@ -142,8 +142,8 @@ class EnumHasher(InlineDisplayMixin, BaseHasher[Enum]):
 def _numpy_scalar_to_builtin(data: Any) -> Any:
     r"""Convert a NumPy scalar to the equivalent builtin value.
 
-    The ``repr`` of a NumPy scalar depends on the NumPy version (``1.0``
-    with NumPy 1, ``np.float32(1.0)`` with NumPy 2), so the scalars are
+    The ``repr`` of a NumPy scalar (``np.float32(1.0)``) differs from
+    the ``repr`` of the builtin value (``1.0``), so the scalars are
     converted before hashing. The other values are returned unchanged.
 
     Args:
