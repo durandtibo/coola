@@ -250,9 +250,6 @@ def _is_quantity(kind: Any) -> bool:
 def _to_numpy(array: Any) -> Any:
     r"""Convert an array or a chunked array to a NumPy array.
 
-    ``ChunkedArray.to_numpy`` does not accept ``zero_copy_only`` in the
-    old versions of pyarrow.
-
     Args:
         array: The array or chunked array, without null values for
             the types that cannot hold them in NumPy.
@@ -260,8 +257,6 @@ def _to_numpy(array: Any) -> Any:
     Returns:
         The NumPy array.
     """
-    if isinstance(array, pa.ChunkedArray):
-        return array.to_numpy()
     return array.to_numpy(zero_copy_only=False)
 
 

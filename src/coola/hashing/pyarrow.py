@@ -59,9 +59,6 @@ def _encode_array(array: Any) -> Encoding:
     """
     if not (is_numpy_available() and _is_fixed_width(array.type)):
         return Node("pyarrow.Array", [str(array.type), array.to_pylist()])
-    if isinstance(array, pa.ChunkedArray):
-        # ``ChunkedArray.to_numpy`` has no ``zero_copy_only`` argument before PyArrow 13.
-        array = array.combine_chunks()
     mask = b""
     if array.null_count:
         mask = digest(
