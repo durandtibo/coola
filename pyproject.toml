@@ -73,7 +73,7 @@ torch = [
 xarray = ["xarray>=2025.1"]
 
 # Testing: ``coola.testing`` (the pytest marks and fixtures) imports pytest
-testing = ["pytest>=8.0"]
+testing = ["pytest>=9.0,<10.0"]
 
 # Logging
 colorlog = ["colorlog >= 6.9,<7.0"]
