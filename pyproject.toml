@@ -62,7 +62,7 @@ jax = [
 ]
 numpy = ["numpy>=2.0,<3.0"]
 packaging = ["packaging>=22.0"]
-pandas = ["pandas>=2.0,<4.0"]
+pandas = ["pandas>=3.0,<4.0"]
 polars = ["polars>=1.0,<3.0"]
 pyarrow = ["pyarrow>=11.0"]
 pydantic = ["pydantic>=2.0,<3.0"]
