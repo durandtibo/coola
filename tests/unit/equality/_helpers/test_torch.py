@@ -19,10 +19,6 @@ if is_torch_available():
 else:
     torch = Mock()
 
-uint64_available = pytest.mark.skipif(
-    not hasattr(torch, "uint64"), reason="Requires torch 2.3 or later"
-)
-
 
 @pytest.fixture
 def config() -> EqualityConfig:
@@ -225,7 +221,6 @@ def test_tensor_equal_bool_equal_nan() -> None:
 
 
 @torch_available
-@uint64_available
 def test_tensor_equal_uint64_with_tolerance() -> None:
     assert tensor_equal(
         torch.tensor([3], dtype=torch.uint64),
@@ -235,7 +230,6 @@ def test_tensor_equal_uint64_with_tolerance() -> None:
 
 
 @torch_available
-@uint64_available
 def test_tensor_equal_uint64_outside_the_tolerance() -> None:
     assert not tensor_equal(
         torch.tensor([3], dtype=torch.uint64),
@@ -250,7 +244,6 @@ def test_tensor_equal_uint64_outside_the_tolerance() -> None:
 
 
 @torch_available
-@uint64_available
 def test_is_uint64_true() -> None:
     assert _is_uint64(torch.tensor([1], dtype=torch.uint64))
 
@@ -259,12 +252,6 @@ def test_is_uint64_true() -> None:
 @pytest.mark.parametrize("dtype", [torch.int64, torch.uint8, torch.float64, torch.bool])
 def test_is_uint64_false(dtype: torch.dtype) -> None:
     assert not _is_uint64(torch.zeros(1, dtype=dtype))
-
-
-@torch_available
-def test_is_uint64_without_uint64_in_torch(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delattr(torch, "uint64", raising=False)
-    assert not _is_uint64(torch.zeros(1, dtype=torch.int64))
 
 
 ##########################################

@@ -169,9 +169,6 @@ def _tensors_close(tensor1: torch.Tensor, tensor2: torch.Tensor, config: Equalit
 def _is_uint64(tensor: torch.Tensor) -> bool:
     r"""Indicate if a tensor has the ``uint64`` data type.
 
-    ``torch.uint64`` exists only in torch 2.3 and later: a tensor of an
-    older torch never has this data type.
-
     Args:
         tensor: The tensor.
 
@@ -179,4 +176,4 @@ def _is_uint64(tensor: torch.Tensor) -> bool:
         ``True`` if the data type of the tensor is ``torch.uint64``,
             otherwise ``False``.
     """
-    return tensor.dtype == getattr(torch, "uint64", None)
+    return tensor.dtype == torch.uint64
