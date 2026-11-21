@@ -7,7 +7,6 @@ from unittest.mock import Mock
 import pytest
 
 from coola.equality._helpers.numpy import (
-    _have_comparable_dtypes,
     array_close,
     array_equal,
     is_numeric_array,
@@ -75,6 +74,21 @@ def test_array_equal_true_atol(array: np.ndarray, config: EqualityConfig) -> Non
 def test_array_equal_true_rtol(array: np.ndarray, config: EqualityConfig) -> None:
     config = replace(config, tolerance=Tolerance(rtol=1e-3))
     assert array_equal(array, array.copy(), config=config)
+
+
+@numpy_available
+def test_array_equal_false_string_and_int(config: EqualityConfig) -> None:
+    assert not array_equal(np.array(["a"]), np.array([1]), config)
+
+
+@numpy_available
+def test_array_equal_false_float_and_string(config: EqualityConfig) -> None:
+    assert not array_equal(np.array([1.0]), np.array(["a"]), config)
+
+
+@numpy_available
+def test_array_close_string_and_int(config: EqualityConfig) -> None:
+    assert array_close(np.array(["a", "b"]), np.array([1, 2]), config).tolist() == [False, False]
 
 
 @numpy_available
@@ -502,35 +516,3 @@ def test_array_close_booleans_have_no_tolerance() -> None:
         np.array([False, False]),
         EqualityConfig(tolerance=Tolerance(atol=1.0)),
     ).tolist() == [False, True]
-
-
-#############################################
-#     Tests for _have_comparable_dtypes     #
-#############################################
-
-
-@numpy_available
-@pytest.mark.parametrize(
-    ("array1", "array2"),
-    [
-        pytest.param(np.array(["a"]), np.array(["b"]), id="str str"),
-        pytest.param(np.array([b"a"]), np.array(["b"]), id="bytes str"),
-        pytest.param(np.array([1]), np.array([1.5]), id="int float"),
-        pytest.param(np.array([True]), np.array([1]), id="bool int"),
-    ],
-)
-def test_have_comparable_dtypes_true(array1: np.ndarray, array2: np.ndarray) -> None:
-    assert _have_comparable_dtypes(array1, array2)
-
-
-@numpy_available
-@pytest.mark.parametrize(
-    ("array1", "array2"),
-    [
-        pytest.param(np.array(["a"]), np.array([1]), id="str int"),
-        pytest.param(np.array([1.0]), np.array(["a"]), id="float str"),
-        pytest.param(np.array([b"a"]), np.array([True]), id="bytes bool"),
-    ],
-)
-def test_have_comparable_dtypes_false(array1: np.ndarray, array2: np.ndarray) -> None:
-    assert not _have_comparable_dtypes(array1, array2)
