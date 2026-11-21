@@ -358,7 +358,7 @@ requires-dist = [
     { name = "rich", marker = "extra == 'rich'", specifier = ">=14.0.0,<16.0" },
     { name = "scipy", marker = "extra == 'scipy'", specifier = ">=1.13" },
     { name = "torch", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'torch') or (sys_platform == 'linux' and extra == 'torch')", specifier = ">=2.0,<3.0" },
-    { name = "xarray", marker = "extra == 'xarray'", specifier = ">=2024.1" },
+    { name = "xarray", marker = "extra == 'xarray'", specifier = ">=2025.1.0" },
 ]
 provides-extras = ["jax", "numpy", "packaging", "pandas", "polars", "pyarrow", "pydantic", "scipy", "torch", "xarray", "testing", "colorlog", "rich"]
 
