@@ -356,7 +356,7 @@ requires-dist = [
     { name = "pydantic", marker = "extra == 'pydantic'", specifier = ">=2.10,<3.0" },
     { name = "pytest", marker = "extra == 'testing'", specifier = ">=9.0,<10.0" },
     { name = "rich", marker = "extra == 'rich'", specifier = ">=14.0.0,<16.0" },
-    { name = "scipy", marker = "extra == 'scipy'", specifier = ">=1.13" },
+    { name = "scipy", marker = "extra == 'scipy'", specifier = ">=1.15,<2.0" },
     { name = "torch", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'torch') or (sys_platform == 'linux' and extra == 'torch')", specifier = ">=2.4,<3.0" },
     { name = "xarray", marker = "extra == 'xarray'", specifier = ">=2025.1.0" },
 ]

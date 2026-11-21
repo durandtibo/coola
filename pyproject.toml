@@ -66,7 +66,7 @@ pandas = ["pandas>=3.0,<4.0"]
 polars = ["polars>=1.0,<3.0"]
 pyarrow = ["pyarrow>=15.0"]
 pydantic = ["pydantic>=2.10,<3.0"]
-scipy = ["scipy>=1.13"]
+scipy = ["scipy>=1.15,<2.0"]
 torch = [
   "torch>=2.4,<3.0; (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))",
 ]
