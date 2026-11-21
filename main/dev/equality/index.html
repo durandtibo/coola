@@ -3737,7 +3737,7 @@ the hasher has to treat them the same way. This exception is part of the Guarant
 user guide. Comparing each cell through the engine gives one rule per value (a nested float gets the
 tolerance, <code>None</code> is not <code>NaN</code>) at the cost of speed.</p>
 <h3 id="time-resolution">Time resolution<a class="headerlink" href="#time-resolution" title="Permanent link">&para;</a></h3>
-<p><code>timedelta64[s]</code> and <code>timedelta64[ns]</code> are different dtypes, as in NumPy. pandas 3 infers different
+<p><code>timedelta64[s]</code> and <code>timedelta64[ns]</code> are different dtypes, as in NumPy. pandas infers different
 resolutions for values built in different ways, so two frames of the same instants can differ; the
 fix is an <code>astype</code>, which the guide documents. Casting both sides to the finer resolution would be
 friendlier, but it breaks the "same dtype" rule.</p>

@@ -5058,7 +5058,7 @@ ignore the order of the categories of an unordered categorical). The order chang
 and the hash of the data depends on it.</p>
 <p>The time resolution is part of the dtype, as in NumPy: <code>timedelta64[s]</code> and <code>timedelta64[ns]</code> (or
 <code>datetime64[s]</code> and <code>datetime64[ns]</code>) are different dtypes, so two frames that hold the same
-instants with different resolutions are different. pandas 3 infers the resolution from how the
+instants with different resolutions are different. pandas infers the resolution from how the
 values are built, so cast both sides with <code>astype</code> to the resolution you want before the comparison.</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.equality</span><span class="w"> </span><span class="kn">import</span> <span class="n">objects_are_equal</span>
