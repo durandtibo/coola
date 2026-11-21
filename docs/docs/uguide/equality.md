@@ -1088,7 +1088,7 @@ and the hash of the data depends on it.
 
 The time resolution is part of the dtype, as in NumPy: `timedelta64[s]` and `timedelta64[ns]` (or
 `datetime64[s]` and `datetime64[ns]`) are different dtypes, so two frames that hold the same
-instants with different resolutions are different. pandas 3 infers the resolution from how the
+instants with different resolutions are different. pandas infers the resolution from how the
 values are built, so cast both sides with `astype` to the resolution you want before the comparison.
 
 ```pycon

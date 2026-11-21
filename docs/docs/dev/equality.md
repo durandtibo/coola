@@ -220,7 +220,7 @@ tolerance, `None` is not `NaN`) at the cost of speed.
 
 ### Time resolution
 
-`timedelta64[s]` and `timedelta64[ns]` are different dtypes, as in NumPy. pandas 3 infers different
+`timedelta64[s]` and `timedelta64[ns]` are different dtypes, as in NumPy. pandas infers different
 resolutions for values built in different ways, so two frames of the same instants can differ; the
 fix is an `astype`, which the guide documents. Casting both sides to the finer resolution would be
 friendlier, but it breaks the "same dtype" rule.
