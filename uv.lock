@@ -347,7 +347,7 @@ property = [
 [package.metadata]
 requires-dist = [
     { name = "colorlog", marker = "extra == 'colorlog'", specifier = ">=6.9,<7.0" },
-    { name = "jax", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'jax') or (sys_platform == 'linux' and extra == 'jax')", specifier = ">=0.6.0,<1.0" },
+    { name = "jax", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'jax') or (sys_platform == 'linux' and extra == 'jax')", specifier = ">=0.8,<1.0" },
     { name = "numpy", marker = "extra == 'numpy'", specifier = ">=2.0,<3.0" },
     { name = "packaging", marker = "extra == 'packaging'", specifier = ">=22.0" },
     { name = "pandas", marker = "extra == 'pandas'", specifier = ">=3.0,<4.0" },
