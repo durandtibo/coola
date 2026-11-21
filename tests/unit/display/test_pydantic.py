@@ -48,11 +48,9 @@ if is_pydantic_available():
         pair: tuple[SecretStr, int]
         value: int = 0
 
-    if hasattr(pydantic, "Secret"):  # ``Secret`` is only available in pydantic 2.7 and later.
-
-        class GenericSecretModel(BaseModel):
-            wrapped: pydantic.Secret[int]
-            value: int = 0
+    class GenericSecretModel(BaseModel):
+        wrapped: pydantic.Secret[int]
+        value: int = 0
 
     class ChildModel(BaseModel):
         api_key: SecretStr
@@ -132,12 +130,6 @@ if is_pydantic_available():
 else:  # pragma: no cover
     SECRET_ANNOTATIONS = []
 
-pydantic_generic_secret_available = pytest.mark.skipif(
-    not (is_pydantic_available() and hasattr(pydantic, "Secret")),
-    reason="Requires pydantic 2.7 or later",
-)
-
-
 ##########################################
 #     Tests for is_secret_annotation     #
 ##########################################
@@ -149,7 +141,7 @@ def test_is_secret_annotation_true(annotation: object) -> None:
     assert is_secret_annotation(annotation)
 
 
-@pydantic_generic_secret_available
+@pydantic_available
 def test_is_secret_annotation_true_generic_secret() -> None:
     assert is_secret_annotation(pydantic.Secret[int])
 
@@ -192,7 +184,7 @@ def test_secret_field_names_secret_bytes_secret_and_generic() -> None:
     assert secret_field_names(model) == {"data", "pair"}
 
 
-@pydantic_generic_secret_available
+@pydantic_available
 def test_secret_field_names_generic_secret() -> None:
     model = GenericSecretModel(wrapped=1)
     assert secret_field_names(model) == {"wrapped"}
@@ -272,7 +264,7 @@ def test_str_pydantic_model_secret_bytes_secret_and_generic_excluded() -> None:
     assert str_pydantic_model(model) == "OtherSecretsModel(value=0)"
 
 
-@pydantic_generic_secret_available
+@pydantic_available
 def test_str_pydantic_model_generic_secret_excluded() -> None:
     assert str_pydantic_model(GenericSecretModel(wrapped=1)) == "GenericSecretModel(value=0)"
 

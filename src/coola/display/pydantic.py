@@ -52,8 +52,7 @@ def is_secret_annotation(annotation: object) -> bool:
 
         ```
     """
-    # ``Secret`` is only available in pydantic 2.7 and later.
-    secret_types = (SecretStr, SecretBytes, getattr(pydantic, "Secret", SecretBytes))
+    secret_types = (SecretStr, SecretBytes, pydantic.Secret)
     origin = get_origin(annotation) or annotation
     if isinstance(origin, type) and issubclass(origin, secret_types):
         return True
