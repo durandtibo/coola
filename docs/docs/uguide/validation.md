@@ -14,7 +14,7 @@ The package has eleven functions in three families:
 | Family     | Functions                                                                                       | Checks what a value...                    |
 | ---------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------- |
 | Type       | `validate_isinstance`, `validate_int`, `validate_number`                                        | **is**                                    |
-| Comparison | `validate_ge`, `validate_gt`, `validate_le`, `validate_lt`, `validate_range`, `validate_finite` | **compares** to (a bound, a range, `inf`) |
+| Comparison | `validate_ge`, `validate_gt`, `validate_le`, `validate_lt`, `validate_range`, `validate_finite`, `validate_non_zero` | **compares** to (a bound, a range, `inf`) |
 | Container  | `validate_not_empty`, `validate_in`                                                             | **holds**, or belongs to                  |
 
 The [Properties](#properties) section lists the rules that every function follows.
@@ -185,6 +185,18 @@ ValueError: lr must be finite, got inf
 Traceback (most recent call last):
     ...
 TypeError: lr must be a real number, got str
+
+```
+
+`validate_non_zero` rejects `0` and `NaN`, for example for a value used as a divisor:
+
+```pycon
+>>> from coola.validation import validate_non_zero
+>>> validate_non_zero(0.5)
+>>> validate_non_zero(0, name="alpha")
+Traceback (most recent call last):
+    ...
+ValueError: alpha must be different from 0, got 0
 
 ```
 

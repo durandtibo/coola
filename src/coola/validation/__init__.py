@@ -33,6 +33,7 @@ __all__ = [
     "validate_isinstance",
     "validate_le",
     "validate_lt",
+    "validate_non_zero",
     "validate_not_empty",
     "validate_number",
     "validate_range",
@@ -44,6 +45,7 @@ from coola.validation.comparison import (
     validate_gt,
     validate_le,
     validate_lt,
+    validate_non_zero,
     validate_range,
 )
 from coola.validation.container import validate_in, validate_not_empty
