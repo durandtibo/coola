@@ -11,11 +11,11 @@ For a refresher, see the [Python tutorial](https://docs.python.org/tutorial/).
 
 The package has eleven functions in three families:
 
-| Family     | Functions                                                                                       | Checks what a value...                    |
-| ---------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| Type       | `validate_isinstance`, `validate_int`, `validate_number`                                        | **is**                                    |
+| Family     | Functions                                                                                                            | Checks what a value...                    |
+| ---------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Type       | `validate_isinstance`, `validate_int`, `validate_number`                                                             | **is**                                    |
 | Comparison | `validate_ge`, `validate_gt`, `validate_le`, `validate_lt`, `validate_range`, `validate_finite`, `validate_non_zero` | **compares** to (a bound, a range, `inf`) |
-| Container  | `validate_not_empty`, `validate_in`                                                             | **holds**, or belongs to                  |
+| Container  | `validate_not_empty`, `validate_in`                                                                                  | **holds**, or belongs to                  |
 
 The [Properties](#properties) section lists the rules that every function follows.
 
