@@ -13,6 +13,7 @@ from coola.validation import (
     validate_gt,
     validate_le,
     validate_lt,
+    validate_non_zero,
     validate_range,
 )
 from coola.validation.comparison import _compare
@@ -113,9 +114,9 @@ def test_validate_comparison_rejects_nan(validate: Callable[[Any], None]) -> Non
         validate(float("nan"))
 
 
-####################################
-#     Tests for validate_range     #
-####################################
+#######################################
+#     Tests for validate_non_zero     #
+#######################################
 
 
 @pytest.mark.parametrize("value", [0, 0.5, 1])
@@ -312,3 +313,35 @@ def test_validate_finite_rejects_a_non_finite_float_subclass() -> None:
 
 def test_compare_returns_none_when_the_test_passes() -> None:
     assert _compare(bool, 1, "0", "value", "positive") is None
+
+
+#######################################
+#     Tests for validate_non_zero     #
+#######################################
+
+
+@pytest.mark.parametrize("value", [1, -1, 0.5, -0.5, float("inf"), Fraction(1, 2)])
+def test_validate_non_zero_accepts_a_non_zero_number(value: Any) -> None:
+    validate_non_zero(value)
+
+
+@pytest.mark.parametrize("value", [0, 0.0, -0.0])
+def test_validate_non_zero_zero_raises(value: Any) -> None:
+    with pytest.raises(ValueError, match="value must be different from 0, got"):
+        validate_non_zero(value)
+
+
+def test_validate_non_zero_nan_raises() -> None:
+    with pytest.raises(ValueError, match="value must be different from 0, got nan"):
+        validate_non_zero(float("nan"))
+
+
+@pytest.mark.parametrize("value", [None, "a", True, [1.0]])
+def test_validate_non_zero_not_a_real_number_raises(value: Any) -> None:
+    with pytest.raises(TypeError, match="value must be a real number"):
+        validate_non_zero(value)
+
+
+def test_validate_non_zero_message_uses_the_name() -> None:
+    with pytest.raises(ValueError, match=r"^alpha must be different from 0, got 0$"):
+        validate_non_zero(0, name="alpha")

@@ -8,6 +8,7 @@ __all__ = [
     "validate_gt",
     "validate_le",
     "validate_lt",
+    "validate_non_zero",
     "validate_range",
 ]
 
@@ -259,3 +260,27 @@ def validate_finite(value: float, *, name: str = "value") -> None:
     if not isinstance(value, int) and not math.isfinite(value):
         msg = f"{name} must be finite, got {value!r}"
         raise ValueError(msg)
+
+
+def validate_non_zero(value: float, *, name: str = "value") -> None:
+    r"""Validate that ``value`` is a number different from zero.
+
+    ``NaN`` is rejected, as in the other validators.
+
+    Args:
+        value: The value to validate.
+        name: The name of the value, used in the error message.
+
+    Raises:
+        TypeError: If ``value`` is not a real number (``bool`` is rejected).
+        ValueError: If ``value`` is zero or NaN.
+
+    Example:
+        ```pycon
+        >>> from coola.validation import validate_non_zero
+        >>> validate_non_zero(1.0)
+
+        ```
+    """
+    validate_number(value, name=name)
+    _compare(lambda v: v != 0 and not math.isnan(v), value, "0", name, "different from 0")

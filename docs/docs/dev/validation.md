@@ -10,7 +10,7 @@ the [reference](../refs/validation.md).
 `coola.validation` is a core package: it imports the standard library only (NumPy scalars are
 supported through the `numbers` ABCs they register with). It has eleven functions in three modules,
 named by what the function checks: `type.py` (`validate_isinstance`, `validate_int`,
-`validate_number`), `comparison.py` (`validate_ge/gt/le/lt`, `validate_range`, `validate_finite`)
+`validate_number`), `comparison.py` (`validate_ge/gt/le/lt`, `validate_range`, `validate_finite`, `validate_non_zero`)
 and `container.py` (`validate_not_empty`, `validate_in`). Two private helpers own the invariants:
 `_type_error` builds every `TypeError` and `_compare` evaluates every comparison and builds the
 `TypeError` (incomparable value) or `ValueError` (comparison false), so all the messages have one
@@ -106,6 +106,7 @@ package that wants the same format writes a call to a validator.
 | Bound     | `validate_ge`, `validate_gt`, `validate_le`, `validate_lt` `(value, bound, *, name)` | `TypeError` (incomparable), `ValueError` | duck-typed; the sign checks are `validate_ge(x, 0)` ...                                                |
 | Range     | `validate_range(value, low, high, *, low_inclusive=True, high_inclusive=True, name)` | `TypeError`, `ValueError`                | one function for open, closed and half-open ranges; closed by default (the form most call sites use)   |
 | Finite    | `validate_finite(value, *, name)`                                                    | `TypeError` (not a number), `ValueError` | calls `validate_number` first: `bool`, `None`, `str`, arrays give a named `TypeError`                  |
+| Non-zero  | `validate_non_zero(value, *, name)`                                                  | `TypeError` (not a number), `ValueError` | calls `validate_number` first; rejects `0`, `-0.0` and `NaN` (`NaN != 0` is true)                      |
 | Container | `validate_not_empty(value, *, name)`                                                 | `TypeError` (no `len`), `ValueError`     | `len(value) == 0`; an iterator or a generator has no `len` and is a `TypeError`, not consumed          |
 | Container | `validate_in(value, valid, *, name)`                                                 | `ValueError`                             | an unhashable value is not in a `set`: `ValueError`, not a raw `TypeError`; listing bounded            |
 
