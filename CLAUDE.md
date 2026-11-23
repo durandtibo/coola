@@ -85,8 +85,8 @@
 
   ```python
   with pytest.raises(ValueError, match=r"already exists"):
-      hook.update(metadata)
-  assert metadata == {"optional-dependencies": {"complete": ["old"], "dev": ["pytest"]}}
+      registry.add("key", value)
+  assert registry == {"key": "old"}
   ```
 
 - Do not use `contextlib.suppress` in place of `pytest.raises` to swallow an expected exception:
