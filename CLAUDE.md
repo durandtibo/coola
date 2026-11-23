@@ -79,6 +79,19 @@
 - One behaviour per test: a test has one `assert` or one `pytest.raises`. Split a test that checks
   several things (equal, different, negative, ...) into several tests. Thread-safety tests may
   assert the count and the uniqueness together, as the existing ones do.
+- A test may combine `pytest.raises` (or `pytest.warns`) with an `assert` that checks the state
+  after the error (for example that the input was not mutated). This is one behaviour: the call
+  fails and leaves the state unchanged.
+
+  ```python
+  with pytest.raises(ValueError, match=r"already exists"):
+      hook.update(metadata)
+  assert metadata == {"optional-dependencies": {"complete": ["old"], "dev": ["pytest"]}}
+  ```
+
+- Do not use `contextlib.suppress` in place of `pytest.raises` to swallow an expected exception:
+  it passes when no exception is raised, so the test does not prove the error happens. Use
+  `pytest.raises` with `match`, then assert on the state afterwards if needed.
 - Keep the unit tests simple and fast: no sleeps, no large data, no real network or heavy I/O,
   and no logic (loops, branches) in the test body. Anything slow or concurrent belongs in
   `tests/integration/`.
