@@ -2656,6 +2656,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#coola.validation.validate_non_zero" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_non_zero
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#coola.validation.validate_not_empty" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2754,6 +2765,17 @@
     <span class="md-ellipsis">
       
         validate_lt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coola.validation.comparison.validate_non_zero" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_non_zero
       
     </span>
   </a>
@@ -3033,6 +3055,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#coola.validation.validate_non_zero" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_non_zero
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#coola.validation.validate_not_empty" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3131,6 +3164,17 @@
     <span class="md-ellipsis">
       
         validate_lt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coola.validation.comparison.validate_non_zero" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_non_zero
       
     </span>
   </a>
@@ -4272,6 +4316,116 @@ instance of.</p>
 <div class="doc doc-object doc-function">
 
 
+<h3 id="coola.validation.validate_non_zero" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">coola.validation.validate_non_zero</span>
+
+
+<a href="#coola.validation.validate_non_zero" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">validate_non_zero</span><span class="p">(</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n"><span title="float">float</span></span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">"value"</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Validate that <code>value</code> is a number different from zero.</p>
+<p><code>NaN</code> is rejected, as in the other validators.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>value</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The value to validate.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The name of the value, used in the error message.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;value&#39;</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="TypeError">TypeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>value</code> is not a real number (<code>bool</code> is rejected).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>value</code> is zero or NaN.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_non_zero</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">validate_non_zero</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+</code></pre></div>
+</details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h3 id="coola.validation.validate_not_empty" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">coola.validation.validate_not_empty</span>
 
@@ -5314,6 +5468,116 @@ or if <code>value</code> is not in the range (or is NaN).</p>
   <summary>Example</summary>
   <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_lt</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">validate_lt</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+</details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="coola.validation.comparison.validate_non_zero" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">coola.validation.comparison.validate_non_zero</span>
+
+
+<a href="#coola.validation.comparison.validate_non_zero" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">validate_non_zero</span><span class="p">(</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n"><span title="float">float</span></span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">"value"</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Validate that <code>value</code> is a number different from zero.</p>
+<p><code>NaN</code> is rejected, as in the other validators.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>value</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The value to validate.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The name of the value, used in the error message.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;value&#39;</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="TypeError">TypeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>value</code> is not a real number (<code>bool</code> is rejected).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>value</code> is zero or NaN.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_non_zero</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">validate_non_zero</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
 </code></pre></div>
 </details>
 

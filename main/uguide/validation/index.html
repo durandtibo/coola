@@ -2884,7 +2884,7 @@ For a refresher, see the <a href="https://docs.python.org/tutorial/">Python tuto
 </tr>
 <tr>
 <td>Comparison</td>
-<td><code>validate_ge</code>, <code>validate_gt</code>, <code>validate_le</code>, <code>validate_lt</code>, <code>validate_range</code>, <code>validate_finite</code></td>
+<td><code>validate_ge</code>, <code>validate_gt</code>, <code>validate_le</code>, <code>validate_lt</code>, <code>validate_range</code>, <code>validate_finite</code>, <code>validate_non_zero</code></td>
 <td><strong>compares</strong> to (a bound, a range, <code>inf</code>)</td>
 </tr>
 <tr>
@@ -3023,6 +3023,14 @@ not a real number is a <code>TypeError</code>:</p>
 <span class="gt">Traceback (most recent call last):</span>
 <span class="w">    </span><span class="o">...</span>
 <span class="gr">TypeError</span>: <span class="n">lr must be a real number, got str</span>
+</code></pre></div>
+<p><code>validate_non_zero</code> rejects <code>0</code> and <code>NaN</code>, for example for a value used as a divisor:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">coola.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_non_zero</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">validate_non_zero</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">validate_non_zero</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"alpha"</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">    </span><span class="o">...</span>
+<span class="gr">ValueError</span>: <span class="n">alpha must be different from 0, got 0</span>
 </code></pre></div>
 <h2 id="properties">Properties<a class="headerlink" href="#properties" title="Permanent link">&para;</a></h2>
 <table>

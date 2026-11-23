@@ -2869,7 +2869,7 @@ the <a href="../../refs/validation/">reference</a>.</p>
 <p><code>coola.validation</code> is a core package: it imports the standard library only (NumPy scalars are
 supported through the <code>numbers</code> ABCs they register with). It has eleven functions in three modules,
 named by what the function checks: <code>type.py</code> (<code>validate_isinstance</code>, <code>validate_int</code>,
-<code>validate_number</code>), <code>comparison.py</code> (<code>validate_ge/gt/le/lt</code>, <code>validate_range</code>, <code>validate_finite</code>)
+<code>validate_number</code>), <code>comparison.py</code> (<code>validate_ge/gt/le/lt</code>, <code>validate_range</code>, <code>validate_finite</code>, <code>validate_non_zero</code>)
 and <code>container.py</code> (<code>validate_not_empty</code>, <code>validate_in</code>). Two private helpers own the invariants:
 <code>_type_error</code> builds every <code>TypeError</code> and <code>_compare</code> evaluates every comparison and builds the
 <code>TypeError</code> (incomparable value) or <code>ValueError</code> (comparison false), so all the messages have one
@@ -3007,6 +3007,12 @@ package that wants the same format writes a call to a validator.</p>
 <td><code>validate_finite(value, *, name)</code></td>
 <td><code>TypeError</code> (not a number), <code>ValueError</code></td>
 <td>calls <code>validate_number</code> first: <code>bool</code>, <code>None</code>, <code>str</code>, arrays give a named <code>TypeError</code></td>
+</tr>
+<tr>
+<td>Non-zero</td>
+<td><code>validate_non_zero(value, *, name)</code></td>
+<td><code>TypeError</code> (not a number), <code>ValueError</code></td>
+<td>calls <code>validate_number</code> first; rejects <code>0</code>, <code>-0.0</code> and <code>NaN</code> (<code>NaN != 0</code> is true)</td>
 </tr>
 <tr>
 <td>Container</td>
