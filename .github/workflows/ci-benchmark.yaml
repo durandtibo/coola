@@ -31,20 +31,23 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          run_id=$(gh run list --workflow ci-benchmark.yaml --status success --limit 1 \
-            --json databaseId --jq '.[0].databaseId')
+          # Use the latest artifact whatever the status of its run: a run that failed after
+          # saving the results still has results that belong to the history.
+          run_id=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=benchmark-results&per_page=1" \
+            --jq '.artifacts[] | select(.expired == false) | .workflow_run.id')
           gh run download "$run_id" --name benchmark-results --dir .benchmarks
 
       - name: Run benchmarks
-        # Save the results and fail if a benchmark is more than 50% slower than in the previous
-        # run (the runners are noisy, so the threshold is loose). The GitHub runners do not
-        # always have the same CPU, so pytest-benchmark warns that the machine info is different
-        # from the saved one. The repository turns warnings into errors, which crashed pytest
-        # before it compared and saved the results, so this warning is ignored.
+        # Save the results and show the comparison with the previous run. A slower benchmark does
+        # not fail the job (the runners are noisy): only an error that prevents saving the results
+        # does. The GitHub runners do not always have the same CPU, so pytest-benchmark warns that
+        # the machine info is different from the saved one. The repository turns warnings into
+        # errors, which crashed pytest before it compared and saved the results, so this warning
+        # is ignored.
         run: |
           compare=()
           if [ -n "$(find .benchmarks -name '*.json' 2>/dev/null)" ]; then
-            compare=(--benchmark-compare --benchmark-compare-fail=mean:50%)
+            compare=(--benchmark-compare)
           fi
           python -m pytest tests/benchmarks/ --benchmark-only \
             --ignore=tests/benchmarks/test_import_benchmark.py \
