@@ -173,7 +173,8 @@ and keep it up to date when you add, rename or remove a workflow.
   - `bot-`: scheduled automation that opens pull requests (dependency updates, pinning
     actions, formatting, ...) with the `ci-bot` GitHub App token.
   - `release-`: publishing to PyPI and the documentation, triggered by version tags
-    (`v*.*.*`) or manually; they run `ci.yaml` before publishing.
+    (`v*.*.*`) or manually; they do not run `ci.yaml`, so check that CI passes on the
+    commit before tagging.
   - `security-`: dependency review of PRs, scheduled dependency audit and scorecard.
 - `ci.yaml` is the single entry point of the checks (pull request, push to `main`, nightly).
   It calls `lib-get-test-matrix.yaml` once and passes the matrix (`test-matrix` input) to the
