@@ -112,6 +112,9 @@ jobs:
       (needs.sign-and-release.result == 'success' || needs.sign-and-release.result == 'skipped') &&
       (needs.provenance.result == 'success' || needs.provenance.result == 'skipped') &&
       (needs.attest.result == 'success' || needs.attest.result == 'skipped')
+    # publish-pypi-package-action runs pypa/gh-action-pypi-publish, a Docker
+    # container action, which requires a Docker daemon - ubuntu-slim doesn't
+    # have one, so this job must stay on ubuntu-latest.
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment:
