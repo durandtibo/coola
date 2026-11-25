@@ -53,6 +53,7 @@ The trigger of a reusable workflow is `workflow_call`: it runs when another work
 | `ci-examples.yaml`                   | daily, manual                               | Run the tests of the examples (`tests/examples`) to check that they still work (not a merge gate).                 |
 | `ci-verify-workflows.yaml`           | pull request or push changing the workflows | Lint the files of `.github/workflows`.                                                                             |
 | `lib-get-test-matrix.yaml`           | called by other workflows, manual           | Load the Python versions and the operating systems to test.                                                        |
+| `lib-get-package-metadata.yaml`      | called by other workflows, manual           | Read the name, the version and the dependency specifiers from `pyproject.toml`.                                    |
 | `lib-get-package-extras.yaml`        | called by other workflows, manual           | Read the names of the optional dependencies from `pyproject.toml`.                                                 |
 | `lib-get-package-versions.yaml`      | called by other workflows, manual           | Read the versions of the optional dependencies to test from `dev/config`.                                          |
 | `lib-get-package-deps.yaml`          | called by other workflows, manual           | Combine the two previous workflows.                                                                                |
