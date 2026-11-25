@@ -7,13 +7,29 @@ include $(dir $(lastword $(MAKEFILE_LIST)))files.mk
 # Targets for formatting and linting Makefiles and *.mk files.
 #
 # Optional variables (set before including this file):
-#   MAKEFILE_FORMAT_FILES ?= Makefile *.mk   # files passed to mbake format
-#   MAKEFILE_LINT_FILES   ?= Makefile *.mk   # files passed to checkmake
+#   MAKEFILE_PATH         ?= .   # directory searched recursively for Makefile, GNUmakefile and *.mk
+#   MAKEFILE_FORMAT_FILES ?=     # if set, shell globs passed to mbake format instead of the search
+#   MAKEFILE_LINT_FILES   ?=     # if set, shell globs passed to checkmake instead of the search
 #   MBAKE_CONFIG          ?= <this dir>/bake.toml   # config passed to mbake format
 #   USE_GITIGNORE ?= 1   # 1: skip the files ignored by .gitignore (see files.mk)
 
-MAKEFILE_FORMAT_FILES ?= Makefile *.mk
-MAKEFILE_LINT_FILES ?= Makefile *.mk
+MAKEFILE_PATH ?= .
+MAKEFILE_FORMAT_FILES ?=
+MAKEFILE_LINT_FILES ?=
+
+# Prints, NUL-separated, the files to process: the given globs ($(1)) if not empty, otherwise
+# every Makefile, GNUmakefile and *.mk file below MAKEFILE_PATH (nested directories included).
+makefile-files = if [ -n "$(1)" ]; then \
+	for pattern in $(1); do \
+		for f in $$pattern; do \
+			[ -e "$$f" ] && ! $(call is-ignored,$$f) && printf "%s\0" "$$f"; \
+		done; \
+	done; \
+	else \
+	{ $(call list-files,$(MAKEFILE_PATH),**/Makefile); \
+	$(call list-files,$(MAKEFILE_PATH),**/GNUmakefile); \
+	$(call list-files,$(MAKEFILE_PATH),**/*.mk); }; \
+	fi
 
 MBAKE_CONFIG ?= $(dir $(lastword $(MAKEFILE_LIST)))bake.toml
 
@@ -61,33 +77,13 @@ install-checkmake:
 .PHONY: format-makefile
 format-makefile: install-mbake ## Format Makefiles and .mk files with mbake
 	@echo "✨ Running mbake to format Makefiles..."
-	@files=""; \
-	for pattern in $(MAKEFILE_FORMAT_FILES); do \
-		for f in $$pattern; do \
-			[ -e "$$f" ] && ! $(call is-ignored,$$f) && files="$$files $$f"; \
-		done; \
-	done; \
-	if [ -n "$$files" ]; then \
-		mbake format --config $(MBAKE_CONFIG) $$files; \
-	else \
-		echo "No files found matching: $(MAKEFILE_FORMAT_FILES)"; \
-	fi
+	@{ $(call makefile-files,$(MAKEFILE_FORMAT_FILES)); } | xargs -0 -r mbake format --config $(MBAKE_CONFIG)
 	@echo "✅ Makefile formatting complete"
 
 .PHONY: lint-makefile
 lint-makefile: install-checkmake ## Lint Makefiles and .mk files with checkmake
 	@echo "🔍 Running checkmake on Makefiles..."
-	@files=""; \
-	for pattern in $(MAKEFILE_LINT_FILES); do \
-		for f in $$pattern; do \
-			[ -e "$$f" ] && ! $(call is-ignored,$$f) && files="$$files $$f"; \
-		done; \
-	done; \
-	if [ -n "$$files" ]; then \
-		checkmake $$files; \
-	else \
-		echo "No files found matching: $(MAKEFILE_LINT_FILES)"; \
-	fi
+	@{ $(call makefile-files,$(MAKEFILE_LINT_FILES)); } | xargs -0 -r checkmake
 	@echo "✅ Checkmake passed"
 
 endif
