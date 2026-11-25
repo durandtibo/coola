@@ -14,6 +14,12 @@ on:
 permissions: {}
 
 jobs:
+  # Read the package name from pyproject.toml, so it is not repeated here.
+  get-metadata:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/lib-get-package-metadata.yaml
+
   # Load the extras from pyproject.toml's [project.optional-dependencies],
   # plus "" for a baseline "no extra" build.
   get-extras:
@@ -31,7 +37,7 @@ jobs:
   build:
     permissions:
       contents: read
-    needs: get-extras
+    needs: [get-metadata, get-extras]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -46,7 +52,7 @@ jobs:
       - name: Verify Build
         uses: durandtibo/verify-uv-build-action@88da014d506b5f0b4f657d4ba8920061ab785620 # ratchet:durandtibo/verify-uv-build-action@v0.0.7
         with:
-          package-name: coola
+          package-name: ${{ needs.get-metadata.outputs.name }}
           package-extra: ${{ matrix.package-extra }}
           package-dependencies: ""
           dist-type: ${{ matrix.dist-type }}
@@ -65,6 +71,7 @@ jobs:
   build-all:
     permissions:
       contents: read
+    needs: get-metadata
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -86,7 +93,7 @@ jobs:
       - name: Verify Build
         uses: durandtibo/verify-uv-build-action@88da014d506b5f0b4f657d4ba8920061ab785620 # ratchet:durandtibo/verify-uv-build-action@v0.0.7
         with:
-          package-name: coola
+          package-name: ${{ needs.get-metadata.outputs.name }}
           package-extra: all
           package-dependencies: ""
           dist-type: ${{ matrix.dist-type }}
