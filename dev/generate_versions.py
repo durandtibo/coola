@@ -7,15 +7,12 @@ import logging
 from pathlib import Path
 
 from feu.utils.io import save_json
-from feu.utils.mapping import sort_by_keys
 from feu.version import (
-    fetch_latest_major_versions_map,
-    fetch_latest_minor_versions_map,
-    fetch_sampled_latest_minor_versions,
+    fetch_latest_versions,
+    fetch_package_versions as fetch_feu_package_versions,
+    filter_every_n_versions,
     get_package_bounds,
-    partition_package_bounds,
-    read_pyproject_dependencies,
-    read_pyproject_optional_dependencies,
+    read_pyproject_bounds,
 )
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -31,22 +28,22 @@ def fetch_package_versions(base_dir: Path) -> dict[str, list[str]]:
         A dictionary with the versions for each package.
     """
     pyproject_path = base_dir.joinpath("pyproject.toml")
+    sampled = {"polars": 5, "xarray": 3}
 
-    deps = read_pyproject_dependencies(pyproject_path) + read_pyproject_optional_dependencies(
-        pyproject_path
+    bounds = read_pyproject_bounds(pyproject_path)
+    versions = fetch_feu_package_versions(
+        pyproject_path, major_only=["packaging", "pyarrow"], include_lower_bound=True
     )
-    major_deps, minor_deps = partition_package_bounds(deps, ["packaging", "pyarrow"])
-
-    return sort_by_keys(
-        fetch_latest_major_versions_map(major_deps, include_lower_bound=True)
-        | fetch_latest_minor_versions_map(minor_deps, include_lower_bound=True)
-        | {
-            name: fetch_sampled_latest_minor_versions(
-                name, lower=get_package_bounds(deps, name).lower, n=n, include_lower_bound=True
-            )
-            for name, n in [("polars", 5), ("xarray", 3)]
-        }
-    )
+    for name, n in sampled.items():
+        minors = fetch_latest_versions(
+            name,
+            group="minor",
+            lower=get_package_bounds(bounds, name).lower,
+            include_lower_bound=True,
+        )
+        # Every n-th minor version, always keeping the latest one.
+        versions[name] = sorted({*filter_every_n_versions(minors, n), minors[-1]}, key=minors.index)
+    return dict(sorted(versions.items()))
 
 
 def main() -> None:

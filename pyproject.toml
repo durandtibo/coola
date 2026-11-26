@@ -85,7 +85,7 @@ dev = [
   "codespell>=2.4,<3.0",
   "coverage[toml]>=7.17.4,<8.0",
   "docformatter>=1.7.8,<2.0",
-  "feu[all]>=0.8.4,<1.0",
+  "feu[all]>=0.9.0,<1.0",
   # grimp (import-linter) does not build on free-threaded Python 3.13.
   "import-linter>=2.0,<3.0; python_version >= '3.14'",
   "invoke-tasklib>=0.1.0,<1.0",
@@ -98,7 +98,7 @@ dev = [
   "pytest-timeout>=2.4,<3.0",
   "pytest>=9.2,<10.0",
   "ruff>=0.17,<1.0",
-  "ty>=0.0.110,<1.0",
+  "ty>=0.0.112,<1.0",
   "xdoctest>=1.3,<2.0",
 ]
 
