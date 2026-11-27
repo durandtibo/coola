@@ -3,9 +3,13 @@ from __future__ import annotations
 import importlib.util
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
 import pytest
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 SCRIPT = Path(__file__).resolve().parents[3] / "dev" / "generate_versions.py"
 SPEC = importlib.util.spec_from_file_location("generate_versions", SCRIPT)
@@ -18,8 +22,9 @@ MINORS = ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6"]
 
 
 @pytest.fixture
-def feu_mocks() -> dict[str, Mock]:
-    r"""Patch the ``feu`` functions used by ``fetch_package_versions``."""
+def feu_mocks() -> Generator[dict[str, Mock]]:
+    r"""Patch the ``feu`` functions used by
+    ``fetch_package_versions``."""
     mocks = {
         "read_pyproject_bounds": Mock(return_value={"bounds": 1}),
         "fetch_feu_package_versions": Mock(return_value={"torch": ["2.0"], "numpy": ["1.0"]}),
